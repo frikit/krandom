@@ -15,6 +15,10 @@ interface KRandom {
     fun randomDouble(start: Number = properties.minDouble, end: Number = properties.maxDouble): Double
 
     //float
+    fun randomFloat(): Float
+
+    fun randomFloat(rangeTo: ClosedRange<Float>): Float
+
     fun randomFloat(start: Number = properties.minFloat, end: Number = properties.maxFloat): Float
 
     //long

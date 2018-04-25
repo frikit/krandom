@@ -1,4 +1,4 @@
-package krandom.common
+package krandom.performance
 
 import krandom.BaseTestClass
 import org.junit.Assert.assertTrue

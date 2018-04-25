@@ -10,6 +10,7 @@ open class Randomizer : KRandom {
 
     private val random: Random by lazy { Random() }
 
+    //double
     override fun randomDouble(): Double {
         return random.nextDouble()
     }
@@ -24,8 +25,19 @@ open class Randomizer : KRandom {
         return first + (second - first) * randomDouble()
     }
 
+    //float
+    override fun randomFloat(): Float {
+        return random.nextFloat()
+    }
+
+    override fun randomFloat(rangeTo: ClosedRange<Float>): Float {
+        return randomFloat(rangeTo.start, rangeTo.endInclusive)
+    }
+
     override fun randomFloat(start: Number, end: Number): Float {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val first = start.toFloat()
+        val second = end.toFloat()
+        return (first + (second - first) * randomDouble()).toFloat()
     }
 
     override fun randomLong(start: Number, end: Number): Long {
@@ -49,7 +61,7 @@ open class Randomizer : KRandom {
     }
 
     override fun randomBoolean(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return random.nextBoolean()
     }
 
     override fun randomString(length: Number): String {

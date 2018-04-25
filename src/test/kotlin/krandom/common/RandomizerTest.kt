@@ -25,6 +25,34 @@ class RandomizerTest : BaseTestClass() {
     }
 
     @Test
+    fun randomDoubleStartInt() {
+        val number: Double = randomizer.randomDouble(start = 1)
+        currentNumber = number
+        assertTrue("should be 0 or 1", number > 1 && number < Double.MAX_VALUE)
+    }
+
+    @Test
+    fun randomDoubleStartDouble() {
+        val number: Double = randomizer.randomDouble(start = 1.1)
+        currentNumber = number
+        assertTrue("should be 0 or 1", number > 1.1 && number < Double.MAX_VALUE)
+    }
+
+    @Test
+    fun randomDoubleStartFloat() {
+        val number: Double = randomizer.randomDouble(start = 1.1f)
+        currentNumber = number
+        assertTrue("should be 0 or 1", number > 1.1 && number < Double.MAX_VALUE)
+    }
+
+    @Test
+    fun randomDoubleEnd() {
+        val number: Double = randomizer.randomDouble(end = 2)
+        currentNumber = number
+        assertTrue("should be 0 or 1", number > Double.MIN_VALUE && number < 2)
+    }
+
+    @Test
     fun randomDoubleStartEnd() {
         val number: Double = randomizer.randomDouble(1, 2)
         currentNumber = number
@@ -32,11 +60,24 @@ class RandomizerTest : BaseTestClass() {
     }
 
     @Test
-    fun randomDouble1() {
+    fun randomFloat() {
+        val number: Float = randomizer.randomFloat()
+        currentNumber = number
+        assertTrue("should be 0 or 1", number > 0 && number < 1)
     }
 
     @Test
-    fun randomFloat() {
+    fun randomFloatRangeTo() {
+        val number: Float = randomizer.randomFloat((5.1f..5.6f))
+        currentNumber = number
+        assertTrue("should be 0 or 1", number > 5 && number < 6)
+    }
+
+    @Test
+    fun randomFloatStartEnd() {
+        val number: Float = randomizer.randomFloat(1, 2)
+        currentNumber = number
+        assertTrue("should be 0 or 1", number > 1 && number < 2)
     }
 
     @Test
@@ -61,6 +102,9 @@ class RandomizerTest : BaseTestClass() {
 
     @Test
     fun randomBoolean() {
+        val number: Boolean = randomizer.randomBoolean()
+        currentNumber = number.toString()
+        assertTrue("should be true or false", number || !number)
     }
 
     @Test
