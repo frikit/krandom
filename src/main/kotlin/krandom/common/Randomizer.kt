@@ -40,10 +40,20 @@ open class Randomizer : KRandom {
         return (first + (second - first) * randomDouble()).toFloat()
     }
 
-    override fun randomLong(start: Number, end: Number): Long {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    //long
+    override fun randomLong(): Long {
+        return random.nextLong()
     }
 
+    override fun randomLong(rangeTo: ClosedRange<Long>): Long {
+        return randomLong(rangeTo.start, rangeTo.endInclusive)
+    }
+
+    override fun randomLong(start: Number, end: Number): Long {
+        return start.toLong() + (randomDouble() * (start.toLong() - end.toLong())).toLong()
+    }
+
+    //int
     override fun randomInt(start: Number, end: Number): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

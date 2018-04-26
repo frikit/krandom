@@ -7,6 +7,7 @@ interface KRandom {
     val properties: Properties
 
     //Numbers
+
     //double
     fun randomDouble(): Double
 
@@ -22,6 +23,10 @@ interface KRandom {
     fun randomFloat(start: Number = properties.minFloat, end: Number = properties.maxFloat): Float
 
     //long
+    fun randomLong(): Long
+
+    fun randomLong(rangeTo: ClosedRange<Long>): Long
+
     fun randomLong(start: Number = properties.minLong, end: Number = properties.maxLong): Long
 
     //int
