@@ -4,29 +4,29 @@ import mu.KLogger
 import mu.KotlinLogging
 
 class TestLifecycle {
-    val LOGGER: KLogger = KotlinLogging.logger(TestLifecycle::class.java.simpleName)
+    private val kLogger: KLogger = KotlinLogging.logger(TestLifecycle::class.java.simpleName)
 
-    val DOUBLE_TAB = "\t\t"
-    val NEW_LINE_DOUBLE_TAB = "\n" + DOUBLE_TAB
+    private val doubleTab = "\t\t"
+    val NEW_LINE_DOUBLE_TAB = "\n" + doubleTab
     val FORMAT_LINE = "# %s"
 
     val START_MSG = NEW_LINE_DOUBLE_TAB +
             "#----------------------------------START TEST----------------------------------#\n" +
-            DOUBLE_TAB +
+            doubleTab +
             FORMAT_LINE +
             NEW_LINE_DOUBLE_TAB +
             "#------------------------------------------------------------------------------#\n"
 
     val FINISH_MSG = NEW_LINE_DOUBLE_TAB +
             "#----------------------------------FINISH TEST---------------------------------#\n" +
-            DOUBLE_TAB +
+            doubleTab +
             FORMAT_LINE +
             NEW_LINE_DOUBLE_TAB +
             "#------------------------------------------------------------------------------#\n"
 
     val FAIL_MSG_FIRST_PART = NEW_LINE_DOUBLE_TAB +
             "#----------------------------------FAIL TEST-----------------------------------#\n" +
-            DOUBLE_TAB +
+            doubleTab +
             FORMAT_LINE +
             NEW_LINE_DOUBLE_TAB +
             "# with Exception =>\n"
@@ -36,22 +36,28 @@ class TestLifecycle {
 
     fun onTestStart(methodName: String) {
         if (checkValidMethodName(methodName)) {
-            LOGGER.info(String.format(START_MSG, fillWithEmptySpacesOrReturn(methodName)))
+            kLogger.info(String.format(START_MSG, fillWithEmptySpacesOrReturn(methodName)))
         }
     }
 
     fun onTestFinish(methodName: String) {
         if (checkValidMethodName(methodName)) {
-            LOGGER.info(String.format(FINISH_MSG, fillWithEmptySpacesOrReturn(methodName)))
+            kLogger.info(String.format(FINISH_MSG, fillWithEmptySpacesOrReturn(methodName)))
+        }
+    }
+
+    fun onTestStep(logger: KLogger, message: String) {
+        if (checkValidMethodName(message)) {
+            logger.info { message }
         }
     }
 
     // private methods
     private fun fillWithEmptySpacesOrReturn(message: String): String {
-        if (message.length > 76) {
-            return message
+        return if (message.length > 76) {
+            message
         } else {
-            return centerText(message, 78) + "#"
+            centerText(message, 78) + "#"
         }
     }
 

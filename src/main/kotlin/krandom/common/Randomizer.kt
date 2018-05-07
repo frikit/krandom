@@ -1,16 +1,23 @@
 package krandom.common
 
 import krandom.properties.Properties
-import java.util.*
+import java.nio.charset.Charset
+import java.util.Random
+
+
 
 open class Randomizer : KRandom {
 
     override val properties: Properties
-        get() = Properties()
+        get() = Properties.getInstance()
 
     private val random: Random by lazy { Random() }
 
     //double
+    /**
+     * This return standard implementation of Random.class().toDouble() in java
+     * @return Double in range >=0 and <1
+     */
     override fun randomDouble(): Double {
         return random.nextDouble()
     }
@@ -19,10 +26,8 @@ open class Randomizer : KRandom {
         return randomDouble(rangeTo.start, rangeTo.endInclusive)
     }
 
-    override fun randomDouble(start: Number, end: Number): Double {
-        val first = start.toDouble()
-        val second = end.toDouble()
-        return first + (second - first) * randomDouble()
+    override fun randomDouble(start: Double, end: Double): Double {
+        return start + (end - start) * randomDouble()
     }
 
     //float
@@ -34,10 +39,8 @@ open class Randomizer : KRandom {
         return randomFloat(rangeTo.start, rangeTo.endInclusive)
     }
 
-    override fun randomFloat(start: Number, end: Number): Float {
-        val first = start.toFloat()
-        val second = end.toFloat()
-        return (first + (second - first) * randomDouble()).toFloat()
+    override fun randomFloat(start: Float, end: Float): Float {
+        return (start + (end - start) * randomDouble()).toFloat()
     }
 
     //long
@@ -49,33 +52,62 @@ open class Randomizer : KRandom {
         return randomLong(rangeTo.start, rangeTo.endInclusive)
     }
 
-    override fun randomLong(start: Number, end: Number): Long {
-        return start.toLong() + (randomDouble() * (start.toLong() - end.toLong())).toLong()
+    override fun randomLong(start: Long, end: Long): Long {
+        return start + (randomDouble() * (start - end)).toLong()
     }
 
     //int
-    override fun randomInt(start: Number, end: Number): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun randomInt(): Int {
+        return random.nextInt()
     }
 
-    override fun randomShort(start: Number, end: Number): Short {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun randomInt(rangeTo: ClosedRange<Int>): Int {
+        return randomInt(rangeTo.start, rangeTo.endInclusive)
     }
 
-    override fun randomByte(start: Number, end: Number): Byte {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun randomInt(start: Int, end: Int): Int {
+        return random.nextInt((start - end) + 1) + end
     }
 
+    //short
+    override fun randomShort(): Short {
+        return randomShort(start = properties.minShort, end = properties.maxShort)
+    }
+
+    override fun randomShort(rangeTo: ClosedRange<Short>): Short {
+        return randomShort(rangeTo.start, rangeTo.endInclusive)
+    }
+
+    override fun randomShort(start: Short, end: Short): Short {
+        return (random.nextInt((start.toInt() - end.toInt()) + 1) + end).toShort()
+    }
+
+    //byte
+    override fun randomByte(rangeTo: ClosedRange<Byte>): Byte {
+        return randomByte(rangeTo.start, rangeTo.endInclusive)
+    }
+
+    override fun randomByte(start: Byte, end: Byte): Byte {
+        return (random.nextInt((start.toInt() - end.toInt()) + 1) + end).toByte()
+    }
+
+    //char
     override fun randomChar(numberOfChars: Number): Char {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return randomInt().toChar()
     }
 
+    //boolean
     override fun randomBoolean(): Boolean {
         return random.nextBoolean()
     }
 
-    override fun randomString(length: Number): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    //string
+    override fun randomString(length: Int, specialCharacters: Boolean, numbers: Boolean): String {
+        val array = ByteArray(length) // length is bounded by 7
+        random.nextBytes(array)
+        return String(array, Charset.forName("UTF-8"))
     }
+
+
 
 }
