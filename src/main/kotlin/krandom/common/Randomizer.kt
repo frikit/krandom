@@ -66,6 +66,8 @@ open class Randomizer : KRandom {
     }
 
     override fun randomInt(start: Int, end: Int): Int {
+        var bound = start - end
+        if (bound < 0) bound *= -1
         return random.nextInt((start - end) + 1) + end
     }
 
