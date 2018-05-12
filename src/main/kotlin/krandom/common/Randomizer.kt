@@ -4,14 +4,13 @@ import krandom.properties.Properties
 import java.nio.charset.Charset
 import java.util.Random
 
-
-
 open class Randomizer : KRandom {
 
     override val properties: Properties
         get() = Properties.getInstance()
 
     private val random: Random by lazy { Random() }
+    private val illegalArgumentException = "Illegal argument passed start = %s and end = %s, they should be different!"
 
     //double
     /**
@@ -27,7 +26,11 @@ open class Randomizer : KRandom {
     }
 
     override fun randomDouble(start: Double, end: Double): Double {
-        return start + (end - start) * randomDouble()
+        if (checkIfValid(start, end)) {
+            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
+        } else {
+            return start + (end - start) * randomDouble()
+        }
     }
 
     //float
@@ -40,7 +43,11 @@ open class Randomizer : KRandom {
     }
 
     override fun randomFloat(start: Float, end: Float): Float {
-        return (start + (end - start) * randomDouble()).toFloat()
+        if (checkIfValid(start, end)) {
+            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
+        } else {
+            return (start + (end - start) * randomDouble()).toFloat()
+        }
     }
 
     //long
@@ -53,7 +60,11 @@ open class Randomizer : KRandom {
     }
 
     override fun randomLong(start: Long, end: Long): Long {
-        return start + (randomDouble() * (start - end)).toLong()
+        if (checkIfValid(start, end)) {
+            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
+        } else {
+            return start + (randomDouble() * (start - end)).toLong()
+        }
     }
 
     //int
@@ -66,9 +77,14 @@ open class Randomizer : KRandom {
     }
 
     override fun randomInt(start: Int, end: Int): Int {
-        var bound = start - end
-        if (bound < 0) bound *= -1
-        return random.nextInt((start - end) + 1) + end
+        if (checkIfValid(start, end)) {
+            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
+        } else {
+            //TODO add check start and end should be != before make random
+            var bound = start - end
+            if (bound < 0) bound *= -1
+            return random.nextInt((start - end) + 1) + end
+        }
     }
 
     //short
@@ -81,7 +97,11 @@ open class Randomizer : KRandom {
     }
 
     override fun randomShort(start: Short, end: Short): Short {
-        return (random.nextInt((start.toInt() - end.toInt()) + 1) + end).toShort()
+        if (checkIfValid(start, end)) {
+            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
+        } else {
+            return (random.nextInt((start.toInt() - end.toInt()) + 1) + end).toShort()
+        }
     }
 
     //byte
@@ -90,7 +110,11 @@ open class Randomizer : KRandom {
     }
 
     override fun randomByte(start: Byte, end: Byte): Byte {
-        return (random.nextInt((start.toInt() - end.toInt()) + 1) + end).toByte()
+        if (checkIfValid(start, end)) {
+            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
+        } else {
+            return (random.nextInt((start.toInt() - end.toInt()) + 1) + end).toByte()
+        }
     }
 
     //char
@@ -111,5 +135,8 @@ open class Randomizer : KRandom {
     }
 
 
+    private fun checkIfValid(x: Number, y: Number): Boolean {
+        return x == y
+    }
 
 }
