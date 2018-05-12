@@ -1,7 +1,5 @@
-package krandom.spek
+package krandom.common
 
-import krandom.common.KRandom
-import krandom.common.Randomizer
 import krandom.utils.TestLifecycle
 import mu.KLogger
 import mu.KLogging
