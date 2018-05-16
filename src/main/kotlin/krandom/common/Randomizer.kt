@@ -7,7 +7,7 @@ import java.util.Random
 open class Randomizer : KRandom {
 
     override val properties: Properties
-        get() = Properties.getInstance()
+        get() = Properties
 
     private val random: Random by lazy { Random() }
     private val illegalArgumentException = "Illegal argument passed start = %s and end = %s, they should be different!"
@@ -83,7 +83,7 @@ open class Randomizer : KRandom {
             //TODO add check start and end should be != before make random
             var bound = start - end
             if (bound < 0) bound *= -1
-            return random.nextInt((start - end) + 1) + end
+            return random.nextInt(bound + 1) + end
         }
     }
 

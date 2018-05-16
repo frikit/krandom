@@ -29,7 +29,7 @@ class PropertiesSpek : Spek({
 
     TestLifecycle().onTestStart("test properties class")
     describe("a properties object") {
-        val properties: Properties = Properties.getInstance()
+        val properties = Properties
         describe("get fields from object") {
             val fields: Array<Field> = properties.javaClass.fields
             val fieldNames: List<String> = fields

@@ -6,14 +6,8 @@ private val logger = KotlinLogging.logger(Properties::class.java.simpleName)
 
 object Properties {
 
-    private var properties: Properties = Properties
-
     //global var for output initialization of variable
     private var isFirstTimeRunning: Boolean = true
-
-    fun getInstance(): Properties {
-        return properties
-    }
 
     //double
     val maxDouble: Double = Double.MAX_VALUE
