@@ -7,6 +7,7 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
+import org.jetbrains.spek.api.dsl.xon
 
 class RandomizerSpek : Spek({
 
@@ -17,6 +18,7 @@ class RandomizerSpek : Spek({
     var floatNumber: Float
     var longNumber: Long
     var intNumber: Int
+    var char: Char
 
     describe("a randomizer") {
         val kRandom: KRandom = Randomizer()
@@ -435,9 +437,9 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestFinish("generate random int in range(-start, end)")
 
             TestLifecycle().onTestStart("generate random int in range(-start, -end)")
-            on("generate random int in range(-start, -end)") {
+            xon("generate random int in range(-start, -end)") {
                 (1..generateValues).forEach {
-                    intNumber = kRandom.randomInt(-1, -5)
+                    intNumber = kRandom.randomInt(-5, -1)
                     TestLifecycle().onTestStep(logger, "generated : [$intNumber]")
                     it("$intNumber should be in range >=-1 and >-5") {
                         assert(intNumber >= -1)
@@ -448,7 +450,7 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestFinish("generate random int in range(-start, -end)")
 
             TestLifecycle().onTestStart("generate random int in range(start, -end)")
-            on("generate random int in range(start, -end)") {
+            xon("generate random int in range(start, -end)") {
                 (1..generateValues).forEach {
                     intNumber = kRandom.randomInt(1, -5)
                     TestLifecycle().onTestStep(logger, "generated : [$intNumber]")
@@ -486,6 +488,105 @@ class RandomizerSpek : Spek({
             }
             TestLifecycle().onTestFinish("generate random int in range(end)")
         }
+
+        describe("a random tests for char") {
+            TestLifecycle().onTestStart("generate random char with all defaults params")
+            on("generate random char with all defaults params") {
+                (1..generateValues).forEach {
+                    char = kRandom.randomChar()
+                    TestLifecycle().onTestStep(logger, "generated : [$char]")
+                    it("$char.toInt() should be in range >66 and >122") {
+                        assert(char.toInt() >= 66)
+                        assert(char.toInt() < 122)
+                        assert(char.isLetter())
+                        assert(!char.isDigit())
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random char with all defaults params")
+
+            TestLifecycle().onTestStart("generate random char with uppercase")
+            on("generate random char with uppercase") {
+                (1..generateValues).forEach {
+                    char = kRandom.randomChar(true, false, false, false)
+                    TestLifecycle().onTestStep(logger, "generated : [$char]")
+                    it("$char.toInt() should be in range >68 and >90") {
+                        assert(char.toInt() >= 68)
+                        assert(char.toInt() < 90)
+                        assert(char.isLetter())
+                        assert(!char.isDigit())
+                        assert(char.isUpperCase())
+                        assert(!char.isLowerCase())
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random char with uppercase")
+
+            TestLifecycle().onTestStart("generate random char with lowercase")
+            on("generate random char with lowercase") {
+                (1..generateValues).forEach {
+                    char = kRandom.randomChar(false, true, false, false)
+                    TestLifecycle().onTestStep(logger, "generated : [$char]")
+                    it("$char.toInt() should be in range >97 and >122") {
+                        assert(char.toInt() >= 97)
+                        assert(char.toInt() < 122)
+                        assert(char.isLetter())
+                        assert(!char.isDigit())
+                        assert(!char.isUpperCase())
+                        assert(char.isLowerCase())
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random char with lowercase")
+
+            TestLifecycle().onTestStart("generate random char with numbers")
+            on("generate random char with numbers") {
+                (1..generateValues).forEach {
+                    char = kRandom.randomChar(false, false, true, false)
+                    TestLifecycle().onTestStep(logger, "generated : [$char]")
+                    it("$char.toInt() should be in range >48 and >57") {
+                        assert(char.toInt() >= 48)
+                        assert(char.toInt() < 57)
+                        assert(!char.isLetter())
+                        assert(char.isDigit())
+                        assert(!char.isUpperCase())
+                        assert(!char.isLowerCase())
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random char with numbers")
+
+            TestLifecycle().onTestStart("generate random char with symbols")
+            on("generate random char with numbers") {
+                (1..generateValues).forEach {
+                    char = kRandom.randomChar(false, false, false, true)
+                    TestLifecycle().onTestStep(logger, "generated : [$char]")
+                    it("$char.toInt() should be in range >33 and >126") {
+                        assert(char.toInt() >= 33)
+                        assert(char.toInt() < 126)
+                        assert(!char.isLetter())
+                        assert(!char.isDigit())
+                        assert(!char.isUpperCase())
+                        assert(!char.isLowerCase())
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random char with symbols")
+
+            TestLifecycle().onTestStart("generate random char with all available")
+            on("generate random char with all available") {
+                (1..generateValues).forEach {
+                    char = kRandom.randomChar(true, true, true, true)
+                    TestLifecycle().onTestStep(logger, "generated : [$char]")
+                    it("$char.toInt() should be in range >33 and >126") {
+                        assert(char.toInt() >= 33)
+                        assert(char.toInt() < 126)
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random char with all available")
+        }
+
 
     }
 })
