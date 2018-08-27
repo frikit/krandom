@@ -104,7 +104,7 @@ open class Randomizer : KRandom {
 
     //string
     override fun randomString(length: Int, specialCharacters: Boolean, numbers: Boolean): String {
-        val array = ByteArray(length) // length is bounded by 7
+        val array = ByteArray(length) // length is bounded by var
         random.nextBytes(array)
         return String(array, Charset.forName("UTF-8"))
     }

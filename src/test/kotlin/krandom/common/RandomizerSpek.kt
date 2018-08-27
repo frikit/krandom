@@ -19,6 +19,7 @@ class RandomizerSpek : Spek({
     var longNumber: Long
     var intNumber: Int
     var char: Char
+    var boolean: Boolean
 
     describe("a randomizer") {
         val kRandom: KRandom = Randomizer()
@@ -67,7 +68,7 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestStart("generate random double in range(0, 0)")
             on("generate random double in range(0, 0)") {
                 try {
-                    kRandom.randomDouble(0.0,0.0)
+                    kRandom.randomDouble(0.0, 0.0)
                 } catch (exception: IllegalArgumentException) {
                     assert(exception.message!!.startsWith(prefix = "Illegal argument passed start = 0.0 and end = 0.0, they should be different!", ignoreCase = false))
                 }
@@ -184,7 +185,7 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestStart("generate random float in range(0, 0)")
             on("generate random float in range(0, 0)") {
                 try {
-                    kRandom.randomFloat(0.0f,0.0f)
+                    kRandom.randomFloat(0.0f, 0.0f)
                 } catch (exception: IllegalArgumentException) {
                     assert(exception.message!!.startsWith(prefix = "Illegal argument passed start = 0.0 and end = 0.0, they should be different!", ignoreCase = false))
                 }
@@ -300,7 +301,7 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestStart("generate random long in range(0, 0)")
             on("generate random long in range(0, 0)") {
                 try {
-                    kRandom.randomLong(0L,0L)
+                    kRandom.randomLong(0L, 0L)
                 } catch (exception: IllegalArgumentException) {
                     assert(exception.message!!.startsWith(prefix = "Illegal argument passed start = 0.0 and end = 0.0, they should be different!", ignoreCase = false))
                 }
@@ -416,7 +417,7 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestStart("generate random int in range(0, 0)")
             on("generate random int in range(0, 0)") {
                 try {
-                    kRandom.randomInt(0,0)
+                    kRandom.randomInt(0, 0)
                 } catch (exception: IllegalArgumentException) {
                     assert(exception.message!!.startsWith(prefix = "Illegal argument passed start = 0.0 and end = 0.0, they should be different!", ignoreCase = false))
                 }
@@ -585,6 +586,20 @@ class RandomizerSpek : Spek({
                 }
             }
             TestLifecycle().onTestFinish("generate random char with all available")
+        }
+
+        describe("a random tests for boolean") {
+            TestLifecycle().onTestStart("generate random boolean")
+            on("generate random boolean") {
+                (1..10).forEach {
+                    boolean = kRandom.randomBoolean()
+                    TestLifecycle().onTestStep(logger, "generated : [$boolean]")
+                    it("[$it idx] $boolean should be true or false") {
+                        assert(boolean || !boolean)
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random boolean")
         }
 
 
