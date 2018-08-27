@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.41'
+    ext.kotlin_version = '1.2.+'
 
     repositories {
         mavenCentral()
@@ -15,14 +15,14 @@ version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'kotlin'
 
-sourceCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile ("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version") {
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version") {
         transitive = false
     }
     compile 'io.github.microutils:kotlin-logging:1.4.9'
