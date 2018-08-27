@@ -32,4 +32,8 @@ object RandomizerUtils {
 
         return combinations.toList()
     }
+
+    fun validateLength(length: Int) {
+        if (length < 1) IllegalAccessException("Length can't be < 1")
+    }
 }

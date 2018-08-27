@@ -2,6 +2,7 @@ package krandom.common
 
 import krandom.utils.RandomizerUtils.checkThrowException
 import krandom.utils.RandomizerUtils.getCharCombinations
+import krandom.utils.RandomizerUtils.validateLength
 import java.nio.charset.Charset
 import java.util.*
 
@@ -87,6 +88,7 @@ open class Randomizer : KRandom {
         }
 
         if (chooseWhich < 0 || chooseWhich >= combinations.size) {
+            //TODO find a way to test this block of code
             throw IllegalArgumentException("Index which was choose to get combination pair is wrong $chooseWhich")
         }
 
@@ -104,6 +106,7 @@ open class Randomizer : KRandom {
 
     //string
     override fun randomString(length: Int, specialCharacters: Boolean, numbers: Boolean): String {
+        validateLength(length)
         val array = ByteArray(length) // length is bounded by var
         random.nextBytes(array)
         return String(array, Charset.forName("UTF-8"))
