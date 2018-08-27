@@ -4,8 +4,6 @@ import krandom.properties.Properties
 
 interface KRandom {
 
-    val properties: Properties
-
     //Numbers
 
     //double
@@ -13,43 +11,34 @@ interface KRandom {
 
     fun randomDouble(rangeTo: ClosedRange<Double>): Double
 
-    fun randomDouble(start: Double = properties.minDouble, end: Double = properties.maxDouble): Double
+    fun randomDouble(start: Double = Properties.minDouble, end: Double = Properties.maxDouble): Double
 
     //float
     fun randomFloat(): Float
 
     fun randomFloat(rangeTo: ClosedRange<Float>): Float
 
-    fun randomFloat(start: Float = properties.minFloat, end: Float = properties.maxFloat): Float
+    fun randomFloat(start: Float = Properties.minFloat, end: Float = Properties.maxFloat): Float
 
     //long
     fun randomLong(): Long
 
     fun randomLong(rangeTo: ClosedRange<Long>): Long
 
-    fun randomLong(start: Long = properties.minLong, end: Long = properties.maxLong): Long
+    fun randomLong(start: Long = Properties.minLong, end: Long = Properties.maxLong): Long
 
     //int
     fun randomInt(): Int
 
     fun randomInt(rangeTo: ClosedRange<Int>): Int
 
-    fun randomInt(start: Int = properties.minInt, end: Int = properties.maxInt): Int
-
-    //short
-    fun randomShort(): Short
-
-    fun randomShort(rangeTo: ClosedRange<Short>): Short
-
-    fun randomShort(start: Short = properties.minShort, end: Short = properties.maxShort): Short
-
-    //byte
-    fun randomByte(rangeTo: ClosedRange<Byte>): Byte
-
-    fun randomByte(start: Byte = properties.minByte, end: Byte = properties.maxByte): Byte
+    fun randomInt(start: Int = Properties.minInt, end: Int = Properties.maxInt): Int
 
     //Chars
-    fun randomChar(numberOfChars: Number = 1): Char
+    fun randomChar(upperLetters: Boolean = true,
+                   lowerLetters: Boolean = true,
+                   numbers: Boolean = false,
+                   specialCharacters: Boolean = false): Char
 
     //Boolean
     fun randomBoolean(): Boolean

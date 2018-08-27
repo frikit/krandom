@@ -1,16 +1,13 @@
 package krandom.common
 
-import krandom.properties.Properties
+import krandom.utils.RandomizerUtils.checkThrowException
+import krandom.utils.RandomizerUtils.getCharCombinations
 import java.nio.charset.Charset
-import java.util.Random
+import java.util.*
 
 open class Randomizer : KRandom {
 
-    override val properties: Properties
-        get() = Properties
-
     private val random: Random by lazy { Random() }
-    private val illegalArgumentException = "Illegal argument passed start = %s and end = %s, they should be different!"
 
     //double
     /**
@@ -26,11 +23,8 @@ open class Randomizer : KRandom {
     }
 
     override fun randomDouble(start: Double, end: Double): Double {
-        if (checkIfValid(start, end)) {
-            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
-        } else {
-            return start + (end - start) * randomDouble()
-        }
+        checkThrowException(start, end)
+        return start + (end - start) * randomDouble()
     }
 
     //float
@@ -43,11 +37,8 @@ open class Randomizer : KRandom {
     }
 
     override fun randomFloat(start: Float, end: Float): Float {
-        if (checkIfValid(start, end)) {
-            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
-        } else {
-            return (start + (end - start) * randomDouble()).toFloat()
-        }
+        checkThrowException(start, end)
+        return (start + (end - start) * randomDouble()).toFloat()
     }
 
     //long
@@ -60,11 +51,8 @@ open class Randomizer : KRandom {
     }
 
     override fun randomLong(start: Long, end: Long): Long {
-        if (checkIfValid(start, end)) {
-            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
-        } else {
-            return start + (randomDouble() * (start - end)).toLong()
-        }
+        checkThrowException(start, end)
+        return start + (randomFloat() * (end - start)).toLong()
     }
 
     //int
@@ -77,49 +65,36 @@ open class Randomizer : KRandom {
     }
 
     override fun randomInt(start: Int, end: Int): Int {
-        if (checkIfValid(start, end)) {
-            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
-        } else {
-            //TODO add check start and end should be != before make random
-            var bound = start - end
-            if (bound < 0) bound *= -1
-            return random.nextInt(bound + 1) + end
-        }
-    }
+        checkThrowException(start, end)
+        val startElem = if (start == 0) start + 1 else start
+        var endElem = if (end == 0) end + 1 else end
+        if (startElem == endElem) endElem++
 
-    //short
-    override fun randomShort(): Short {
-        return randomShort(start = properties.minShort, end = properties.maxShort)
-    }
-
-    override fun randomShort(rangeTo: ClosedRange<Short>): Short {
-        return randomShort(rangeTo.start, rangeTo.endInclusive)
-    }
-
-    override fun randomShort(start: Short, end: Short): Short {
-        if (checkIfValid(start, end)) {
-            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
-        } else {
-            return (random.nextInt((start.toInt() - end.toInt()) + 1) + end).toShort()
-        }
-    }
-
-    //byte
-    override fun randomByte(rangeTo: ClosedRange<Byte>): Byte {
-        return randomByte(rangeTo.start, rangeTo.endInclusive)
-    }
-
-    override fun randomByte(start: Byte, end: Byte): Byte {
-        if (checkIfValid(start, end)) {
-            throw IllegalArgumentException(String.format(illegalArgumentException, start, end))
-        } else {
-            return (random.nextInt((start.toInt() - end.toInt()) + 1) + end).toByte()
-        }
+        val rnd: Int = random.ints(1, startElem, endElem).findFirst().orElse(999)
+        return rnd
     }
 
     //char
-    override fun randomChar(numberOfChars: Number): Char {
-        return randomInt().toChar()
+    override fun randomChar(upperLetters: Boolean,
+                            lowerLetters: Boolean,
+                            numbers: Boolean,
+                            specialCharacters: Boolean): Char {
+        val combinations: List<Pair<Int, Int>> = getCharCombinations(upperLetters, lowerLetters, numbers, specialCharacters)
+        val chooseWhich: Int = if (combinations.size == 1) {
+            0
+        } else {
+            randomInt(0, combinations.size - 1) - 1
+        }
+
+        if (chooseWhich < 0 || chooseWhich >= combinations.size) {
+            throw IllegalArgumentException("Index which was choose to get combination pair is wrong $chooseWhich")
+        }
+
+        val first = combinations[chooseWhich].first.toLong()
+        val second = combinations[chooseWhich].second.toLong()
+
+        val number = randomLong(first, second)
+        return number.toChar()
     }
 
     //boolean
@@ -133,10 +108,4 @@ open class Randomizer : KRandom {
         random.nextBytes(array)
         return String(array, Charset.forName("UTF-8"))
     }
-
-
-    private fun checkIfValid(x: Number, y: Number): Boolean {
-        return x == y
-    }
-
 }
