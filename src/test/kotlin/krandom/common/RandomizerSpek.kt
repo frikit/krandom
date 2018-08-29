@@ -20,6 +20,7 @@ class RandomizerSpek : Spek({
     var intNumber: Int
     var char: Char
     var boolean: Boolean
+    var string: String
 
     describe("a randomizer") {
         val kRandom: KRandom = Randomizer()
@@ -602,6 +603,37 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestFinish("generate random boolean")
         }
 
+        describe("a random tests for string") {
+            TestLifecycle().onTestStart("generate random string with all defaults params")
+            on("generate random string with all defaults params") {
+                (1..generateValues).forEach {
+                    string = kRandom.randomString()
+                    TestLifecycle().onTestStep(logger, "generated : [$string]")
+                    it("$string should be with length 5 and not empty and not blank") {
+                        assert(string.length == 5)
+                        assert(string.isNotBlank())
+                        assert(string.isNotEmpty())
+                        assert(string.contains("[0-9]+".toRegex()))
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random string with all defaults params")
+
+            TestLifecycle().onTestStart("generate random string with uppercase")
+            on("generate random string with uppercase") {
+                (1..generateValues).forEach {
+                    string = kRandom.randomString(25, false, false)
+                    TestLifecycle().onTestStep(logger, "generated : [$string]")
+                    it("$string should be with length 25 and not empty and not blank") {
+                        assert(string.length == 25)
+                        assert(string.isNotBlank())
+                        assert(string.isNotEmpty())
+                        assert(!string.contains("[0-9]+".toRegex()))
+                    }
+                }
+            }
+            TestLifecycle().onTestFinish("generate random string with uppercase")
+        }
 
     }
 })

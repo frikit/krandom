@@ -44,5 +44,5 @@ interface KRandom {
     fun randomBoolean(): Boolean
 
     //Strings
-    fun randomString(length: Int = 1, specialCharacters: Boolean = true, numbers: Boolean = true): String
+    fun randomString(length: Int = 5, specialCharacters: Boolean = true, numbers: Boolean = true): String
 }
