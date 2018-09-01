@@ -80,7 +80,8 @@ open class Randomizer : KRandom {
                             lowerLetters: Boolean,
                             numbers: Boolean,
                             specialCharacters: Boolean): Char {
-        val combinations: List<Pair<Int, Int>> = getCharCombinations(upperLetters, lowerLetters, numbers, specialCharacters)
+        val combinations: List<Pair<Int, Int>> =
+                getCharCombinations(upperLetters, lowerLetters, numbers, specialCharacters)
         val chooseWhich: Int = if (combinations.size == 1) {
             0
         } else {
