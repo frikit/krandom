@@ -12,6 +12,8 @@ buildscript {
 group 'krandom'
 version '1.0-SNAPSHOT'
 
+apply plugin: 'base'
+apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'kotlin'
 
