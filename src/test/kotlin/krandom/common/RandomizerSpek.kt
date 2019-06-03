@@ -7,7 +7,6 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
-import org.jetbrains.spek.api.dsl.xon
 
 class RandomizerSpek : Spek({
 
@@ -439,7 +438,7 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestFinish("generate random int in range(-start, end)")
 
             TestLifecycle().onTestStart("generate random int in range(-start, -end)")
-            xon("generate random int in range(-start, -end)") {
+            on("generate random int in range(-start, -end)") {
                 (1..generateValues).forEach {
                     intNumber = kRandom.randomInt(-5, -1)
                     TestLifecycle().onTestStep(logger, "generated : [$intNumber]")
@@ -452,7 +451,7 @@ class RandomizerSpek : Spek({
             TestLifecycle().onTestFinish("generate random int in range(-start, -end)")
 
             TestLifecycle().onTestStart("generate random int in range(start, -end)")
-            xon("generate random int in range(start, -end)") {
+            on("generate random int in range(start, -end)") {
                 (1..generateValues).forEach {
                     intNumber = kRandom.randomInt(1, -5)
                     TestLifecycle().onTestStep(logger, "generated : [$intNumber]")

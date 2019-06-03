@@ -67,9 +67,11 @@ open class Randomizer : KRandom {
 
     override fun randomInt(start: Int, end: Int): Int {
         checkThrowException(start, end)
-        val startElem = if (start == 0) start + 1 else start
+        var startElem = if (start == 0) start + 1 else start
         var endElem = if (end == 0) end + 1 else end
         if (startElem == endElem) endElem++
+        //swap vars to act easier
+        if (startElem > endElem) startElem = endElem.also { endElem = startElem }
 
         val rnd: Int = random.ints(1, startElem, endElem).findFirst().orElse(999)
         return rnd
