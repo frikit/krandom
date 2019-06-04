@@ -1,5 +1,3 @@
 package krandom
 
-open class Username {
-
-}
+open class Username
