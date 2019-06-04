@@ -6,7 +6,7 @@ import krandom.utils.RandomizerUtils.validateLength
 import java.nio.charset.Charset
 import java.util.*
 
-open class Randomizer : KRandom {
+open class Randomizer : KRandomCommon {
 
     private val random: Random by lazy { Random() }
 

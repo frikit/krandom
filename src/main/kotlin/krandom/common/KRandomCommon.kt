@@ -2,7 +2,7 @@ package krandom.common
 
 import krandom.properties.Properties
 
-interface KRandom {
+interface KRandomCommon {
 
     //Numbers
 

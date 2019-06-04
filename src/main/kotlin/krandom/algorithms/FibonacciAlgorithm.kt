@@ -1,11 +1,11 @@
 package krandom.algorithms
 
-import krandom.common.KRandom
+import krandom.common.KRandomCommon
 import krandom.common.Randomizer
 
 object FibonacciAlgorithm {
 
-    private val kRandom: KRandom by lazy { Randomizer() }
+    private val kRandomCommon: KRandomCommon by lazy { Randomizer() }
     private val fibonacciTillMaxLong: List<Long> by lazy {
         arrayListOf(
                 0, 1, 1, 2, 3, 5, 8, 13, 21,
@@ -55,7 +55,7 @@ object FibonacciAlgorithm {
     }
 
     fun randomNumber(): Long {
-        val index = kRandom.randomInt(0 until fibonacciTillMaxLong.size)
+        val index = kRandomCommon.randomInt(0 until fibonacciTillMaxLong.size)
         return getNumber(index)
     }
 }

@@ -27,7 +27,7 @@ class PropertiesSpek : Spek({
             Pair("minByte", Byte.MIN_VALUE)
     )
 
-    TestLifecycle().onTestStart("test properties class")
+    TestLifecycle.onTestStart("test properties class")
     describe("a properties object") {
         val properties = Properties
         describe("get fields from object") {
@@ -55,5 +55,5 @@ class PropertiesSpek : Spek({
             }
         }
     }
-    TestLifecycle().onTestFinish("test properties class")
+    TestLifecycle.onTestFinish("test properties class")
 })

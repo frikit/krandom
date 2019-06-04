@@ -1,18 +1,18 @@
 package krandom.algorithms
 
-import krandom.common.KRandom
+import krandom.common.KRandomCommon
 import krandom.common.Randomizer
 
 object LuhnAlgorithm {
 
-    private val kRandom: KRandom by lazy { Randomizer() }
+    private val kRandomCommon: KRandomCommon by lazy { Randomizer() }
 
     fun randomNumber(): String {
         val randomNumberLength = 9
 
         val builder = StringBuilder()
         for (i in 0 until randomNumberLength) {
-            val digit = kRandom.randomInt(1, 10)
+            val digit = kRandomCommon.randomInt(1, 10)
             builder.append(digit)
         }
 
