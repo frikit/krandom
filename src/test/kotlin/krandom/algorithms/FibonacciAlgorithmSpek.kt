@@ -1,16 +1,12 @@
 package krandom.algorithms
 
 import krandom.utils.TestLifecycle
-import mu.KLogger
-import mu.KLogging
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 
 class FibonacciAlgorithmSpek : Spek({
-
-    val logger: KLogger = KLogging().logger(FibonacciAlgorithmSpek::class.java.simpleName)
 
     val startExp: List<Long> = listOf(0, 1, 1, 2, 3, 5)
     val endExp: List<Long> = listOf(1779979416004714189, 2880067194370816120, 4660046610375530309, 7540113804746346429)
