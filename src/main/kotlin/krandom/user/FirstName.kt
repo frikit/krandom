@@ -3,6 +3,7 @@ package krandom.user
 import krandom.KRandomUser
 import krandom.common.KRandomCommon
 import krandom.common.Randomizer
+import krandom.utils.CSVParser
 import krandom.utils.ResourceResolver
 
 class FirstName : KRandomUser<String> {
@@ -25,16 +26,15 @@ class FirstName : KRandomUser<String> {
 
     override fun randomDatas(size: Int): List<String> {
         if (size > maxAllowSize) IllegalArgumentException("Size cannot be > 10_000!")
-        validateList(names)
         return names.shuffled().take(size).toList()
     }
 
     private fun nameList(): List<String> {
-        return ResourceResolver
-                .getResourceContent("person/firstName/names.txt")
-                .split(",\n")
-                .toList()
-                .requireNoNulls()
+        val content = ResourceResolver.getResourceContent("person/firstName/names.txt")
+        val list = CSVParser.parse(content, CSVParser.csvDelimiter).requireNoNulls()
+        validateList(list)
+
+        return list
     }
 
     private fun validateList(list: List<String>) {
