@@ -30,7 +30,7 @@ class FirstName : KRandomUser<String> {
     }
 
     private fun nameList(): List<String> {
-        val content = ResourceResolver.getResourceContent("person/firstName/names.txt")
+        val content = ResourceResolver.getResourceContent("person/names.txt")
         val list = CSVParser.parse(content, CSVParser.csvDelimiter).requireNoNulls()
         validateList(list)
 
