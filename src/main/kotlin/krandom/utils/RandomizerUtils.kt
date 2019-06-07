@@ -8,9 +8,7 @@ object RandomizerUtils {
 
     fun checkThrowException(x: Number, y: Number) {
         if (checkSameValues(x, y)) {
-            throw IllegalArgumentException(
-                    "Illegal argument passed start = $x and end = $y, they should be different!"
-            )
+            throw IllegalArgumentException("Illegal argument passed start = $x and end = $y, they should be different!")
         }
     }
 

@@ -4,14 +4,13 @@ import krandom.KRandomUser
 import krandom.user.common.GenericUserGenerator
 import krandom.utils.ResourcePathHolder
 
-class FirstName : KRandomUser<String>, GenericUserGenerator() {
+class SurName : KRandomUser<String>, GenericUserGenerator() {
 
     //cache parsed list
-    private val list by lazy { initCache(ResourcePathHolder.relativeFirstNamePath) }
+    private val list by lazy { initCache(ResourcePathHolder.relativeSurNamePath) }
 
     override fun randomData(): String {
         val list = randomDatas()
-        if (list.size - 1 <= 0) throw IllegalArgumentException("Something is wrong list init without elements[${list.size}] -> [$list]")
         val index = kRandomCommon.randomInt(0, list.size - 1)
         return list[index]
     }
