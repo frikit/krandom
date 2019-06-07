@@ -16,7 +16,7 @@ class SurName : KRandomUser<String>, GenericUserGenerator() {
     }
 
     override fun randomDatas(): List<String> {
-        val size = kRandomCommon.randomInt(1..maxAllowSize)
+        val size = kRandomCommon.randomInt(2..maxAllowSize)
         return randomDatas(size)
     }
 

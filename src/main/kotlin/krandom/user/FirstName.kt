@@ -11,13 +11,12 @@ class FirstName : KRandomUser<String>, GenericUserGenerator() {
 
     override fun randomData(): String {
         val list = randomDatas()
-        if (list.size - 1 <= 0) throw IllegalArgumentException("Something is wrong list init without elements[${list.size}] -> [$list]")
         val index = kRandomCommon.randomInt(0, list.size - 1)
         return list[index]
     }
 
     override fun randomDatas(): List<String> {
-        val size = kRandomCommon.randomInt(1..maxAllowSize)
+        val size = kRandomCommon.randomInt(2..maxAllowSize)
         return randomDatas(size)
     }
 
