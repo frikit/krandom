@@ -2,9 +2,8 @@ package krandom.properties
 
 import mu.KotlinLogging
 
-private val logger = KotlinLogging.logger(Properties::class.java.simpleName)
-
 object Properties {
+    private val logger = KotlinLogging.logger(Properties::class.java.simpleName)
 
     //global var for output initialization of variable
     private var isFirstTimeRunning: Boolean = true
