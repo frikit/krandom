@@ -41,3 +41,16 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+//tasks
+clean.doLast {
+    List<String> files = [
+            "${rootDir}/out/",
+            "${rootDir}/logs/"
+    ]
+
+    files.each {
+        println "Delete [$it]"
+        file(it).deleteDir()
+    }
+}
