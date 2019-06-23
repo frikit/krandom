@@ -4,16 +4,15 @@ import krandom.utils.LuhnUtils
 import krandom.utils.TestLifecycle
 import mu.KLogger
 import mu.KLogging
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
-class LuhnAlgorithmSpek : Spek({
+object LuhnAlgorithmSpek : Spek({
 
     val logger: KLogger = KLogging().logger(LuhnAlgorithmSpek::class.java.simpleName)
 
     TestLifecycle.onTestStart("generate random luhn number from scratch")
-    on("generate random double in range(start, end)") {
+    describe("generate random double in range(start, end)") {
         var number: String
         (1..1_000).onEach {
             number = LuhnAlgorithm.randomNumber()
