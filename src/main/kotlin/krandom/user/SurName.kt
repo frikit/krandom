@@ -21,7 +21,7 @@ class SurName : KRandomUser<String>, GenericUserGenerator() {
     }
 
     override fun randomDatas(size: Int): List<String> {
-        if (size > maxAllowSize) IllegalArgumentException("Size cannot be > 10_000!")
+        if (size > maxAllowSize) IllegalArgumentException("Size cannot be > $maxAllowSize!")
         return list.shuffled().take(size).toList()
     }
 }

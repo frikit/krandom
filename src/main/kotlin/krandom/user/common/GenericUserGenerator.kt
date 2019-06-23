@@ -7,7 +7,7 @@ import krandom.utils.ResourceResolver
 
 abstract class GenericUserGenerator {
     val kRandomCommon: KRandomCommon by lazy { Randomizer() }
-    val maxAllowSize = 10_000
+    open var maxAllowSize = 10_000
 
     fun initCache(relativePath: String): List<String> {
         val content = ResourceResolver.getResourceContent(relativePath)
