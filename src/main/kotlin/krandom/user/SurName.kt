@@ -1,6 +1,7 @@
 package krandom.user
 
 import krandom.KRandomUser
+import krandom.exceptions.SizeLimitExceedException
 import krandom.user.common.GenericUserGenerator
 import krandom.utils.ResourcePathHolder
 
@@ -21,7 +22,7 @@ class SurName : KRandomUser<String>, GenericUserGenerator() {
     }
 
     override fun randomDatas(size: Int): List<String> {
-        if (size > maxAllowSize) IllegalArgumentException("Size cannot be > $maxAllowSize!")
+        if (size > maxAllowSize) SizeLimitExceedException("Size cannot be > $maxAllowSize!")
         return list.shuffled().take(size).toList()
     }
 }
