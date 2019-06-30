@@ -2,8 +2,8 @@ package krandom.user
 
 import krandom.KRandomUser
 import krandom.utils.Constants.generateValues
+import krandom.utils.Constants.userSize
 import krandom.utils.TestLifecycle
-import krandom.utils.UserUtils.size
 import krandom.utils.UserUtils.validateName
 import krandom.utils.UserUtils.validateNames
 import mu.KLogger
@@ -42,18 +42,18 @@ object FirstNameTest : Spek({
         }
         TestLifecycle.onTestFinish("generate user names")
 
-        TestLifecycle.onTestStart("generate user names($size)")
-        describe("generate user names($size)") {
+        TestLifecycle.onTestStart("generate user names($userSize)")
+        describe("generate user names($userSize)") {
             (1..generateValues).forEach {
-                val name: List<String> = kRandomUser.randomDatas(size)
+                val name: List<String> = kRandomUser.randomDatas(userSize)
                 TestLifecycle.onTestStep(logger, "generated : [${name}]")
-                assert(name.size == size)
+                assert(name.size == userSize)
                 it(" ${name[0]} should be valid name") {
                     validateNames(name)
                 }
             }
         }
-        TestLifecycle.onTestFinish("generate user names($size)")
+        TestLifecycle.onTestFinish("generate user names($userSize)")
     }
 
 })

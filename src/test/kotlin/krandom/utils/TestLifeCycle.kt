@@ -57,11 +57,11 @@ object TestLifecycle {
         return if (message.length > 76) {
             message
         } else {
-            centerText(message, 78) + "#"
+            centerText(message) + "#"
         }
     }
 
-    private fun centerText(text: String, len: Int): String {
+    private fun centerText(text: String, len: Int = 78): String {
         val out: String = String.format("%" + len + "s%s%" + len + "s", " ", text, " ")
         val mid = (out.length / 2)
         val start = (mid - (len / 2))

@@ -4,7 +4,7 @@ import krandom.KRandomUser
 import krandom.utils.Constants.generateValues
 import krandom.utils.TestLifecycle
 import krandom.utils.UserUtils
-import krandom.utils.UserUtils.size
+import krandom.utils.Constants.userSize
 import krandom.utils.UserUtils.validateName
 import mu.KLogger
 import mu.KLogging
@@ -41,10 +41,10 @@ object SurNameTest : Spek({
         }
         TestLifecycle.onTestFinish("generate user surnames")
 
-        TestLifecycle.onTestStart("generate user surnames($size)")
-        describe("generate user surnames($size)") {
+        TestLifecycle.onTestStart("generate user surnames($userSize)")
+        describe("generate user surnames($userSize)") {
             (1..generateValues).forEach {
-                val name: List<String> = kRandomUser.randomDatas(size)
+                val name: List<String> = kRandomUser.randomDatas(userSize)
                 TestLifecycle.onTestStep(logger, "generated : [${name}]")
                 assert(name.size == 10)
                 it(" ${name[0]} should be valid name") {
@@ -52,7 +52,7 @@ object SurNameTest : Spek({
                 }
             }
         }
-        TestLifecycle.onTestFinish("generate user surnames($size)")
+        TestLifecycle.onTestFinish("generate user surnames($userSize)")
     }
 
 })
