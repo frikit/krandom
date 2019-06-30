@@ -1,5 +1,6 @@
 package krandom.algorithms
 
+import krandom.utils.Constants.generateValues
 import krandom.utils.LuhnUtils
 import krandom.utils.TestLifecycle
 import mu.KLogger
@@ -14,14 +15,14 @@ object LuhnAlgorithmSpek : Spek({
     TestLifecycle.onTestStart("generate random luhn number from scratch")
     describe("generate random double in range(start, end)") {
         var number: String
-        (1..1_000).onEach {
+        (1..generateValues).onEach {
             number = LuhnAlgorithm.randomNumber()
             TestLifecycle.onTestStep(logger, "generated : [$number]")
             it("$number valid luhn algorithm checked") {
                 //basic check
-                assert(number.length == 10)
-                assert(!number.contains("0"))
-                assert(number.matches("0-9".toRegex()))
+                assert(number.length == 10) { "Length should be 10! but it is [${number.length}]" }
+                assert(!number.contains("0")) { "Should not contain 0 but it contains 0 [$number]" }
+                assert(number.matches("[0-9]+".toRegex())) {"Should be number 0-9 but is not [$number]"}
 
                 //advanced check
                 assert(LuhnUtils.checkValidLuhnNumber(number))
