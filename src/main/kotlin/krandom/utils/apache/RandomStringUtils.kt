@@ -61,222 +61,164 @@ import java.util.*
  * This constructor is public to permit tools that require a JavaBean instance
  * to operate.
  */
-class RandomStringUtils {
-    companion object {
+object RandomStringUtils {
 
-        /**
-         *
-         * Random object used by random method. This has to be not local
-         * to the random method so as to not return the same value in the
-         * same millisecond.
-         */
-        private val RANDOM = Random()
+    /**
+     *
+     * Random object used by random method. This has to be not local
+     * to the random method so as to not return the same value in the
+     * same millisecond.
+     */
+    private val RANDOM = Random()
 
-        /**
-         *
-         * Creates a random string whose length is the number of characters
-         * specified.
-         *
-         *
-         * Characters will be chosen from the set of alpha-numeric
-         * characters as indicated by the arguments.
-         *
-         * @param count  the length of random string to create
-         * @param letters  if `true`, generated string may include
-         * alphabetic characters
-         * @param numbers  if `true`, generated string may include
-         * numeric characters
-         * @return the random string
-         */
-        fun random(count: Int, letters: Boolean = false, numbers: Boolean = false): String {
-            return random(count, 0, 0, letters, numbers)
-        }
-
-        /**
-         *
-         * Creates a random string based on a variety of options, using
-         * default source of randomness.
-         *
-         *
-         * This method has exactly the same semantics as
-         * [.random], but
-         * instead of using an externally supplied source of randomness, it uses
-         * the internal static [Random] instance.
-         *
-         * @param count  the length of random string to create
-         * @param start  the position in set of chars to start at
-         * @param end  the position in set of chars to end before
-         * @param letters  only allow letters?
-         * @param numbers  only allow numbers?
-         * @param chars  the set of chars to choose randoms from.
-         * If `null`, then it will use the set of all chars.
-         * @return the random string
-         * @throws ArrayIndexOutOfBoundsException if there are not
-         * `(end - start) + 1` characters in the set array.
-         */
-        fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean, vararg chars: Char): String {
-            return random(count, start, end, letters, numbers, chars, RANDOM)
-        }
-
-        /**
-         *
-         * Creates a random string based on a variety of options, using
-         * supplied source of randomness.
-         *
-         *
-         * If start and end are both `0`, start and end are set
-         * to `' '` and `'z'`, the ASCII printable
-         * characters, will be used, unless letters and numbers are both
-         * `false`, in which case, start and end are set to
-         * `0` and [Character.MAX_CODE_POINT].
-         *
-         *
-         * If set is not `null`, characters between start and
-         * end are chosen.
-         *
-         *
-         * This method accepts a user-supplied [Random]
-         * instance to use as a source of randomness. By seeding a single
-         * [Random] instance with a fixed seed and using it for each call,
-         * the same random sequence of strings can be generated repeatedly
-         * and predictably.
-         *
-         * @param count  the length of random string to create
-         * @param start  the position in set of chars to start at (inclusive)
-         * @param end  the position in set of chars to end before (exclusive)
-         * @param letters  only allow letters?
-         * @param numbers  only allow numbers?
-         * @param chars  the set of chars to choose randoms from, must not be empty.
-         * If `null`, then it will use the set of all chars.
-         * @param random  a source of randomness.
-         * @return the random string
-         * @throws ArrayIndexOutOfBoundsException if there are not
-         * `(end - start) + 1` characters in the set array.
-         * @throws IllegalArgumentException if `count` &lt; 0 or the provided chars array is empty.
-         * @since 2.0
-         */
-        fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean,
-                   chars: CharArray? = null, random: Random = RANDOM): String {
-            var count = count
-            var start = start
-            var end = end
-            if (count == 0) {
-                return ""
-            } else if (count < 0) {
-                throw IllegalArgumentException("Requested random string length $count is less than 0.")
-            }
-            if (chars != null && chars.size == 0) {
-                throw IllegalArgumentException("The chars array must not be empty")
-            }
-
-            if (start == 0 && end == 0) {
-                if (chars != null) {
-                    end = chars.size
-                } else {
-                    if (!letters && !numbers) {
-                        end = Character.MAX_CODE_POINT
-                    } else {
-                        end = 'z'.toInt() + 1
-                        start = ' '.toInt()
-                    }
-                }
-            } else {
-                if (end <= start) {
-                    throw IllegalArgumentException("Parameter end ($end) must be greater than start ($start)")
-                }
-            }
-
-            val zero_digit_ascii = 48
-            val first_letter_ascii = 65
-
-            if (chars == null && (numbers && end <= zero_digit_ascii || letters && end <= first_letter_ascii)) {
-                throw IllegalArgumentException("Parameter end (" + end + ") must be greater then (" + zero_digit_ascii + ") for generating digits " +
-                        "or greater then (" + first_letter_ascii + ") for generating letters.")
-            }
-
-            val builder = StringBuilder(count)
-            val gap = end - start
-
-            loop@ while (count-- != 0) {
-                val codePoint: Int
-                if (chars == null) {
-                    codePoint = random.nextInt(gap) + start
-
-                    when (Character.getType(codePoint).toByte()) {
-                        Character.UNASSIGNED, Character.PRIVATE_USE, Character.SURROGATE -> {
-                            count++
-                            continue@loop
-                        }
-                    }
-
-                } else {
-                    codePoint = chars[random.nextInt(gap) + start].toInt()
-                }
-
-                val numberOfChars = Character.charCount(codePoint)
-                if (count == 0 && numberOfChars > 1) {
-                    count++
-                    continue
-                }
-
-                if (letters && Character.isLetter(codePoint)
-                        || numbers && Character.isDigit(codePoint)
-                        || !letters && !numbers) {
-                    builder.appendCodePoint(codePoint)
-
-                    if (numberOfChars == 2) {
-                        count--
-                    }
-
-                } else {
-                    count++
-                }
-            }
-            return builder.toString()
-        }
-
-
-        /**
-         *
-         * Creates a random string whose length is the number of characters
-         * specified.
-         *
-         *
-         * Characters will be chosen from the set of characters
-         * specified by the string, must not be empty.
-         * If null, the set of all characters is used.
-         *
-         * @param count  the length of random string to create
-         * @param chars  the String containing the set of characters to use,
-         * may be null, but must not be empty
-         * @return the random string
-         * @throws IllegalArgumentException if `count` &lt; 0 or the string is empty.
-         */
-        fun random(count: Int, chars: String?): String {
-            return if (chars == null) {
-                random(count, 0, 0, false, false, null, RANDOM)
-            } else random(count, *chars.toCharArray())
-        }
-
-        /**
-         *
-         * Creates a random string whose length is the number of characters
-         * specified.
-         *
-         *
-         * Characters will be chosen from the set of characters specified.
-         *
-         * @param count  the length of random string to create
-         * @param chars  the character array containing the set of characters to use,
-         * may be null
-         * @return the random string
-         * @throws IllegalArgumentException if `count` &lt; 0.
-         */
-        fun random(count: Int, vararg chars: Char): String {
-            return if (chars == null) {
-                random(count, 0, 0, false, false, null, RANDOM)
-            } else random(count, 0, chars.size, false, false, chars, RANDOM)
-        }
+    /**
+     *
+     * Creates a random string whose length is the number of characters
+     * specified.
+     *
+     *
+     * Characters will be chosen from the set of alpha-numeric
+     * characters as indicated by the arguments.
+     *
+     * @param count  the length of random string to create
+     * @param letters  if `true`, generated string may include
+     * alphabetic characters
+     * @param numbers  if `true`, generated string may include
+     * numeric characters
+     * @return the random string
+     */
+    fun random(count: Int, letters: Boolean = false, numbers: Boolean = false): String {
+        return random(count, 0, 0, letters, numbers)
     }
 
+    /**
+     *
+     * Creates a random string based on a variety of options, using
+     * default source of randomness.
+     *
+     *
+     * This method has exactly the same semantics as
+     * [.random], but
+     * instead of using an externally supplied source of randomness, it uses
+     * the internal static [Random] instance.
+     *
+     * @param count  the length of random string to create
+     * @param start  the position in set of chars to start at
+     * @param end  the position in set of chars to end before
+     * @param letters  only allow letters?
+     * @param numbers  only allow numbers?
+     * @param chars  the set of chars to choose randoms from.
+     * If `null`, then it will use the set of all chars.
+     * @return the random string
+     * @throws ArrayIndexOutOfBoundsException if there are not
+     * `(end - start) + 1` characters in the set array.
+     */
+    fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean, vararg chars: Char): String {
+        return random(count, start, end, letters, numbers, chars, RANDOM)
+    }
+
+    /**
+     *
+     * Creates a random string based on a variety of options, using
+     * supplied source of randomness.
+     *
+     *
+     * If start and end are both `0`, start and end are set
+     * to `' '` and `'z'`, the ASCII printable
+     * characters, will be used, unless letters and numbers are both
+     * `false`, in which case, start and end are set to
+     * `0` and [Character.MAX_CODE_POINT].
+     *
+     *
+     * If set is not `null`, characters between start and
+     * end are chosen.
+     *
+     *
+     * This method accepts a user-supplied [Random]
+     * instance to use as a source of randomness. By seeding a single
+     * [Random] instance with a fixed seed and using it for each call,
+     * the same random sequence of strings can be generated repeatedly
+     * and predictably.
+     *
+     * @param count  the length of random string to create
+     * @param start  the position in set of chars to start at (inclusive)
+     * @param end  the position in set of chars to end before (exclusive)
+     * @param letters  only allow letters?
+     * @param numbers  only allow numbers?
+     * @param chars  the set of chars to choose randoms from, must not be empty.
+     * If `null`, then it will use the set of all chars.
+     * @param random  a source of randomness.
+     * @return the random string
+     * @throws ArrayIndexOutOfBoundsException if there are not
+     * `(end - start) + 1` characters in the set array.
+     * @throws IllegalArgumentException if `count` &lt; 0 or the provided chars array is empty.
+     * @since 2.0
+     */
+    fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean,
+               chars: CharArray? = null, random: Random = RANDOM): String {
+        var count = count
+        var start = start
+        var end = end
+        if (chars != null && chars.size == 0) {
+            throw IllegalArgumentException("The chars array must not be empty")
+        }
+
+        if (start == 0 && end == 0) {
+            if (chars != null) {
+                end = chars.size
+            } else {
+                if (!letters && !numbers) {
+                    end = Character.MAX_CODE_POINT
+                } else {
+                    end = 'z'.toInt() + 1
+                    start = ' '.toInt()
+                }
+            }
+        } else {
+            if (end <= start) {
+                throw IllegalArgumentException("Parameter end ($end) must be greater than start ($start)")
+            }
+        }
+
+        val zeroDigitAscii = 48
+        val firstLetterAscii = 65
+
+        if (chars == null && (numbers && end <= zeroDigitAscii || letters && end <= firstLetterAscii)) {
+            throw IllegalArgumentException("Parameter end (" + end + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
+                    "or greater then (" + firstLetterAscii + ") for generating letters.")
+        }
+
+        val builder = StringBuilder(count)
+        val gap = end - start
+
+        loop@ while (count-- != 0) {
+            val codePoint: Int
+            if (chars == null) {
+                codePoint = random.nextInt(gap) + start
+
+            } else {
+                codePoint = chars[random.nextInt(gap) + start].toInt()
+            }
+
+            val numberOfChars = Character.charCount(codePoint)
+            if (count == 0 && numberOfChars > 1) {
+                count++
+                continue
+            }
+
+            if (letters && Character.isLetter(codePoint)
+                    || numbers && Character.isDigit(codePoint)
+                    || !letters && !numbers) {
+                builder.appendCodePoint(codePoint)
+
+                if (numberOfChars == 2) {
+                    count--
+                }
+
+            } else {
+                count++
+            }
+        }
+        return builder.toString()
+    }
 }
