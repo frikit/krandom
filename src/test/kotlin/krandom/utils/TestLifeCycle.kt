@@ -34,7 +34,25 @@ object TestLifecycle {
     private const val FAIL_MSG_SECOND_PART = NEW_LINE_DOUBLE_TAB +
             "#------------------------------------------------------------------------------#\n"
 
-    fun onTestStart(methodName: String) {
+    fun onTestStart(methodName: () -> String) {
+        if (checkValidMethodName(methodName())) {
+            kLogger.info(String.format(START_MSG, fillWithEmptySpacesOrReturn(methodName())))
+        }
+    }
+
+    fun onTestFinish(methodName: () -> String) {
+        if (checkValidMethodName(methodName())) {
+            kLogger.info(String.format(FINISH_MSG, fillWithEmptySpacesOrReturn(methodName())))
+        }
+    }
+
+    fun onTestStep(logger: KLogger, message: () -> String) {
+        if (checkValidMethodName(message())) {
+            logger.info { message }
+        }
+    }
+
+    fun onTestStart(methodName:  String) {
         if (checkValidMethodName(methodName)) {
             kLogger.info(String.format(START_MSG, fillWithEmptySpacesOrReturn(methodName)))
         }

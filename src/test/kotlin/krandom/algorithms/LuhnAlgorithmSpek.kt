@@ -22,7 +22,7 @@ object LuhnAlgorithmSpek : Spek({
                 //basic check
                 assert(number.length == 10) { "Length should be 10! but it is [${number.length}]" }
                 assert(!number.contains("0")) { "Should not contain 0 but it contains 0 [$number]" }
-                assert(number.matches("[0-9]+".toRegex())) {"Should be number 0-9 but is not [$number]"}
+                assert(number.matches("[0-9]+".toRegex())) { "Should be number 0-9 but is not [$number]" }
 
                 //advanced check
                 assert(LuhnUtils.checkValidLuhnNumber(number))

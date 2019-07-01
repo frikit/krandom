@@ -1,6 +1,10 @@
 package krandom.utils
 
+import mu.KLogger
+import mu.KLogging
+
 object UserUtils {
+    private val logger: KLogger = KLogging().logger(UserUtils::class.java.simpleName)
 
     fun validateName(name: String) {
         assert(!name.contains(Regex("0-9"))) { "Name should not contains numbers! [$name]" }
@@ -9,6 +13,12 @@ object UserUtils {
     }
 
     fun validateNames(name: List<String>) {
-        name.forEach { validateName(it) }
+        for ((index, it) in name.withIndex()) {
+            try {
+                validateName(it)
+            } catch (e: Throwable) {
+                logger.error { "Empty value found with index [$index] and value [$it]" }
+            }
+        }
     }
 }

@@ -40,7 +40,7 @@ object FibonacciAlgorithmSpek : Spek({
 
     describe("a random tests for fibonacci algorithm") {
 
-        TestLifecycle.onTestStart("get number with invalid index -1")
+        TestLifecycle.onTestStart { "get number with invalid index -1" }
         describe("get number with index -1") {
             it("should throw exception") {
                 try {
@@ -51,9 +51,9 @@ object FibonacciAlgorithmSpek : Spek({
                 }
             }
         }
-        TestLifecycle.onTestFinish("get number with invalid index -1")
+        TestLifecycle.onTestFinish { "get number with invalid index -1" }
 
-        TestLifecycle.onTestStart("get number with invalid index 93")
+        TestLifecycle.onTestStart { "get number with invalid index 93" }
         describe("get number with index 93") {
             it("should throw exception") {
                 try {
@@ -64,31 +64,31 @@ object FibonacciAlgorithmSpek : Spek({
                 }
             }
         }
-        TestLifecycle.onTestFinish("get number with invalid index 93")
+        TestLifecycle.onTestFinish { "get number with invalid index 93" }
 
         for (i in 0 until startExp.size) {
-            TestLifecycle.onTestStart("get number with valid index $i")
+            TestLifecycle.onTestStart { "get number with valid index $i" }
             describe("get number with index $i") {
                 it("should ${startExp[i]}") {
                     assert(FibonacciAlgorithm.getNumber(i) == startExp[i])
                 }
             }
-            TestLifecycle.onTestFinish("get number with valid index $i")
+            TestLifecycle.onTestFinish { "get number with valid index $i" }
         }
 
         for ((incrementation, i) in (92 downTo 92 - (endExp.size - 1)).withIndex()) {
 
-            TestLifecycle.onTestStart("get number with valid index $i")
+            TestLifecycle.onTestStart { "get number with valid index $i" }
             describe("get number with index $i") {
                 it("should ${endExp[incrementation]}") {
                     assert(FibonacciAlgorithm.getNumber(i) == endExp[incrementation])
                 }
             }
-            TestLifecycle.onTestFinish("get number with valid index $i")
+            TestLifecycle.onTestFinish { "get number with valid index $i" }
 
         }
 
-        TestLifecycle.onTestStart("get random fibonacci number")
+        TestLifecycle.onTestStart { "get random fibonacci number" }
         describe("get random fibonacci number") {
             for (i in 0 until fibonacciTillMaxLong.size) {
                 val rnd = FibonacciAlgorithm.randomNumber()
@@ -97,18 +97,18 @@ object FibonacciAlgorithmSpek : Spek({
                 }
             }
         }
-        TestLifecycle.onTestFinish("get random fibonacci number")
+        TestLifecycle.onTestFinish { "get random fibonacci number" }
 
-        TestLifecycle.onTestStart("generate random fibonacci sequence all default")
+        TestLifecycle.onTestStart { "generate random fibonacci sequence all default" }
         describe("generate random fibonacci sequence all default") {
             val seq: List<Long> = FibonacciAlgorithm.generateSequence()
             it("seq should be the same as expected") {
                 assert(seq.equals(fibonacciTillMaxLong))
             }
         }
-        TestLifecycle.onTestFinish("generate random fibonacci sequence all default")
+        TestLifecycle.onTestFinish { "generate random fibonacci sequence all default" }
 
-        TestLifecycle.onTestStart("generate random fibonacci sequence from 1")
+        TestLifecycle.onTestStart { "generate random fibonacci sequence from 1" }
         describe("generate random fibonacci sequence from 1") {
             val seq: List<Long> = FibonacciAlgorithm.generateSequence(from = 1)
             val exp = fibonacciTillMaxLong.subList(1, fibonacciTillMaxLong.size)
@@ -116,7 +116,7 @@ object FibonacciAlgorithmSpek : Spek({
                 assert(seq == exp)
             }
         }
-        TestLifecycle.onTestFinish("generate random fibonacci sequence from 1")
+        TestLifecycle.onTestFinish { "generate random fibonacci sequence from 1" }
 
     }
 })

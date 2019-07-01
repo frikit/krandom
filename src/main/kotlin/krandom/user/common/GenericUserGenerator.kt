@@ -5,6 +5,7 @@ import krandom.common.Randomizer
 import krandom.exceptions.SizeLimitExceedException
 import krandom.utils.CSVParser
 import krandom.utils.ResourceResolver
+import java.lang.IllegalArgumentException
 
 abstract class GenericUserGenerator {
     val kRandomCommon: KRandomCommon by lazy { Randomizer() }
@@ -24,9 +25,12 @@ abstract class GenericUserGenerator {
     }
 
     protected fun randomDatas(list: List<String>, size: Int): List<String> {
+        if (list.isEmpty()) throw IllegalArgumentException("List should have elements!!!")
         if (size > maxAllowSize) throw SizeLimitExceedException("Size cannot be > $maxAllowSize!")
         if (size < 0) throw SizeLimitExceedException("Size cannot be < 0!")
-        return list.shuffled().take(size).toList()
+        val res = list.run { shuffled().take(size).toList() }
+        if (res.isEmpty()) throw IllegalArgumentException("WTF?! [$res]")
+        return res
     }
 
     private fun validateList(list: List<String>) {

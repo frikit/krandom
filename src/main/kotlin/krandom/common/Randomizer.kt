@@ -3,12 +3,13 @@ package krandom.common
 import krandom.utils.RandomizerUtils.checkThrowException
 import krandom.utils.RandomizerUtils.getCharCombinations
 import krandom.utils.RandomizerUtils.validateLength
-import java.nio.charset.Charset
+import krandom.utils.apache.RandomStringUtils
+import java.security.SecureRandom
 import java.util.*
 
 open class Randomizer : KRandomCommon {
 
-    private val random: Random by lazy { Random() }
+    private val random: Random by lazy { SecureRandom() }
 
     //double
     /**
@@ -25,7 +26,9 @@ open class Randomizer : KRandomCommon {
 
     override fun randomDouble(start: Double, end: Double): Double {
         checkThrowException(start, end)
-        return start + (end - start) * randomDouble()
+        val (startElem, endElem) = normalizeStartEnd(start, end)
+
+        return random.doubles(1, startElem, endElem).findFirst().orElse(999.99)
     }
 
     //float
@@ -53,7 +56,9 @@ open class Randomizer : KRandomCommon {
 
     override fun randomLong(start: Long, end: Long): Long {
         checkThrowException(start, end)
-        return start + (randomFloat() * (end - start)).toLong()
+        val (startElem, endElem) = normalizeStartEnd(start, end)
+
+        return random.longs(1, startElem, endElem).findFirst().orElse(999L)
     }
 
     //int
@@ -67,14 +72,9 @@ open class Randomizer : KRandomCommon {
 
     override fun randomInt(start: Int, end: Int): Int {
         checkThrowException(start, end)
-        var startElem = if (start == 0) start + 1 else start
-        var endElem = if (end == 0) end + 1 else end
-        if (startElem == endElem) endElem++
-        //swap vars to act easier
-        if (startElem > endElem) startElem = endElem.also { endElem = startElem }
+        val (startElem, endElem) = normalizeStartEnd(start, end)
 
-        val rnd: Int = random.ints(1, startElem, endElem).findFirst().orElse(999)
-        return rnd
+        return random.ints(1, startElem, endElem).findFirst().orElse(999)
     }
 
     //char
@@ -110,8 +110,39 @@ open class Randomizer : KRandomCommon {
     //string
     override fun randomString(length: Int, specialCharacters: Boolean, numbers: Boolean): String {
         validateLength(length)
-        val array = ByteArray(length) // length is bounded by var
-        random.nextBytes(array)
-        return String(array, Charset.forName("UTF-8"))
+
+        var res = RandomStringUtils.random(length, true, numbers)
+        while (numbers && !res.contains("[0-9]+".toRegex())) {
+            //regenerate as should contains at least one number
+            res = RandomStringUtils.random(length, true, numbers)
+        }
+        return res
+    }
+
+    private fun normalizeStartEnd(start: Double, end: Double): Pair<Double, Double> {
+        var startElem: Double = if (start == 0.0) start + 1.0 else start
+        var endElem = if (end == 0.0) end + 1.0 else end
+        if (startElem == endElem) endElem++
+        //swap vars to act easier
+        if (startElem > endElem) startElem = endElem.also { endElem = startElem }
+        return Pair(startElem, endElem)
+    }
+
+    private fun normalizeStartEnd(start: Long, end: Long): Pair<Long, Long> {
+        var startElem: Long = if (start == 0L) start + 1L else start
+        var endElem = if (end == 0L) end + 1L else end
+        if (startElem == endElem) endElem++
+        //swap vars to act easier
+        if (startElem > endElem) startElem = endElem.also { endElem = startElem }
+        return Pair(startElem, endElem)
+    }
+
+    private fun normalizeStartEnd(start: Int, end: Int): Pair<Int, Int> {
+        var startElem = if (start == 0) start + 1 else start
+        var endElem = if (end == 0) end + 1 else end
+        if (startElem == endElem) endElem++
+        //swap vars to act easier
+        if (startElem > endElem) startElem = endElem.also { endElem = startElem }
+        return Pair(startElem, endElem)
     }
 }
