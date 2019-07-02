@@ -1,5 +1,3 @@
 package krandom.exceptions
 
-class SizeLimitExceedException : IllegalArgumentException {
-    constructor(s: String?) : super(s)
-}
+class SizeLimitExceedException(s: String?) : IllegalArgumentException(s)
