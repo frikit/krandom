@@ -159,7 +159,7 @@ object RandomStringUtils {
         var count = count
         var start = start
         var end = end
-        if (chars != null && chars.size == 0) {
+        if (chars != null && chars.isEmpty()) {
             throw IllegalArgumentException("The chars array must not be empty")
         }
 
@@ -192,12 +192,10 @@ object RandomStringUtils {
         val gap = end - start
 
         loop@ while (count-- != 0) {
-            val codePoint: Int
-            if (chars == null) {
-                codePoint = random.nextInt(gap) + start
-
+            val codePoint: Int = if (chars == null) {
+                random.nextInt(gap) + start
             } else {
-                codePoint = chars[random.nextInt(gap) + start].toInt()
+                chars[random.nextInt(gap) + start].toInt()
             }
 
             val numberOfChars = Character.charCount(codePoint)

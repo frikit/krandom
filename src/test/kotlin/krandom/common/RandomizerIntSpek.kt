@@ -60,7 +60,7 @@ object RandomizerIntSpek : Spek({
             TestLifecycle.onTestStart("generate random $randomType in range(start, end)")
             describe("generate random $randomType in range(start, end)") {
                 val expectedOne = 1
-                val expectedTwo = 5
+                val expectedTwo = 500
 
                 (1..generateValues).forEach {
                     intNumber = kRandomCommon.randomInt(expectedOne, expectedTwo)

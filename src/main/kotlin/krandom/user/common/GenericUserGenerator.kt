@@ -2,6 +2,7 @@ package krandom.user.common
 
 import krandom.common.KRandomCommon
 import krandom.common.Randomizer
+import krandom.exceptions.NegativeSizeException
 import krandom.exceptions.SizeLimitExceedException
 import krandom.utils.CSVParser
 import krandom.utils.ResourceResolver
@@ -26,11 +27,15 @@ abstract class GenericUserGenerator {
 
     protected fun randomDatas(list: List<String>, size: Int): List<String> {
         if (list.isEmpty()) throw IllegalArgumentException("List should have elements!!!")
-        if (size > maxAllowSize) throw SizeLimitExceedException("Size cannot be > $maxAllowSize!")
-        if (size < 0) throw SizeLimitExceedException("Size cannot be < 0!")
+        isValidSize(size)
         val res = list.run { shuffled().take(size).toList() }
         if (res.isEmpty()) throw IllegalArgumentException("WTF?! [$res]")
         return res
+    }
+
+    protected fun isValidSize(size: Int) {
+        if (size > maxAllowSize) throw SizeLimitExceedException("Size cannot be > $maxAllowSize!")
+        if (size < 1) throw NegativeSizeException("Size cannot be < 1!")
     }
 
     private fun validateList(list: List<String>) {

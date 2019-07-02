@@ -1,6 +1,6 @@
 package krandom.user
 
-import krandom.KRandomUser
+import krandom.exceptions.NegativeSizeException
 import krandom.exceptions.SizeLimitExceedException
 import krandom.user.BaseUserGenerator.propName
 import krandom.user.BaseUserGenerator.propNames
@@ -58,7 +58,7 @@ object FirstNameTest : Spek({
             (1..generateValues).forEach {
                 val name: List<String> = kRandomUser.randomDatas(userSize)
                 TestLifecycle.onTestStep(logger, "generated : [${name}]")
-                assert(name.size == userSize)
+                assert(name.size == userSize) { "${name.size} != $userSize" }
                 it(" ${name[0]} should be valid name") {
                     validateNames(name)
                 }
@@ -82,7 +82,7 @@ object FirstNameTest : Spek({
             try {
                 kRandomUser.randomDatas(overflowUserSizeMinus)
                 assert(false) { "Should be runtime exception on line above" }
-            } catch (see: SizeLimitExceedException) {
+            } catch (see: NegativeSizeException) {
                 assert(true) { "Exception should throw" }
             }
         }

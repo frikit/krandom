@@ -1,4 +1,4 @@
-package krandom
+package krandom.user
 
 interface KRandomUser<T> {
 

@@ -1,6 +1,5 @@
 package krandom.user
 
-import krandom.KRandomUser
 import krandom.user.common.GenericUserGenerator
 import krandom.utils.ResourcePathHolder
 
