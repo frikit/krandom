@@ -25,7 +25,7 @@ object LuhnAlgorithm {
 
     private fun getCheckDigit(number: String): Int {
         var sum = 0
-        for (i in 0 until number.length) {
+        for (i in number.indices) {
 
             // Get the digit at the current position.
             var digit = Integer.parseInt(number.substring(i, i + 1))

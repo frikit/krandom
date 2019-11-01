@@ -32,6 +32,6 @@ object RandomizerUtils {
     }
 
     fun validateLength(length: Int) {
-        if (length < 1) IllegalAccessException("Length can't be < 1")
+        if (length < 1) throw IllegalAccessException("Length can't be < 1")
     }
 }

@@ -159,9 +159,7 @@ object RandomStringUtils {
         var count = count
         var start = start
         var end = end
-        if (chars != null && chars.isEmpty()) {
-            throw IllegalArgumentException("The chars array must not be empty")
-        }
+        require(!(chars != null && chars.isEmpty())) { "The chars array must not be empty" }
 
         if (start == 0 && end == 0) {
             if (chars != null) {
@@ -175,17 +173,15 @@ object RandomStringUtils {
                 }
             }
         } else {
-            if (end <= start) {
-                throw IllegalArgumentException("Parameter end ($end) must be greater than start ($start)")
-            }
+            require(end > start) { "Parameter end ($end) must be greater than start ($start)" }
         }
 
         val zeroDigitAscii = 48
         val firstLetterAscii = 65
 
-        if (chars == null && (numbers && end <= zeroDigitAscii || letters && end <= firstLetterAscii)) {
-            throw IllegalArgumentException("Parameter end (" + end + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
-                    "or greater then (" + firstLetterAscii + ") for generating letters.")
+        require(!(chars == null && (numbers && end <= zeroDigitAscii || letters && end <= firstLetterAscii))) {
+            "Parameter end (" + end + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
+                "or greater then (" + firstLetterAscii + ") for generating letters."
         }
 
         val builder = StringBuilder(count)

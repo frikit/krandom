@@ -29,8 +29,8 @@ object FibonacciAlgorithm {
     }
 
     fun getNumber(index: Int): Long {
-        if (index < 0) throw IllegalArgumentException("Index should be >= 0!")
-        if (index > 92) throw IllegalArgumentException("Index should be <= 92!")
+        require(index >= 0) { "Index should be >= 0!" }
+        require(index <= 92) { "Index should be <= 92!" }
         return fibonacciTillMaxLong[index]
     }
 
@@ -55,7 +55,7 @@ object FibonacciAlgorithm {
     }
 
     fun randomNumber(): Long {
-        val index = kRandomCommon.randomInt(0 until fibonacciTillMaxLong.size)
+        val index = kRandomCommon.randomInt(fibonacciTillMaxLong.indices)
         return getNumber(index)
     }
 }

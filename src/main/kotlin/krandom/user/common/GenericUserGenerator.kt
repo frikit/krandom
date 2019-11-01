@@ -26,10 +26,10 @@ abstract class GenericUserGenerator {
     }
 
     protected fun randomDatas(list: List<String>, size: Int): List<String> {
-        if (list.isEmpty()) throw IllegalArgumentException("List should have elements!!!")
+        require(list.isNotEmpty()) { "List should have elements!!!" }
         isValidSize(size)
         val res = list.run { shuffled().take(size).toList() }
-        if (res.isEmpty()) throw IllegalArgumentException("WTF?! [$res]")
+        require(res.isNotEmpty()) { "WTF?! [$res]" }
         return res
     }
 
