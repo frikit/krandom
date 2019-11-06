@@ -155,64 +155,71 @@ object RandomStringUtils {
      * @since 2.0
      */
     fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean,
-               chars: CharArray? = null, random: Random = RANDOM): String {
-        var count = count
-        var start = start
-        var end = end
-        require(!(chars != null && chars.isEmpty())) { "The chars array must not be empty" }
+               chars: CharArray = CharArray(0),
+               random: Random = RANDOM): String {
+        var countChars = count
+        var startChar = start
+        var endChar = end
+        require(chars.isNotEmpty()) { "The chars array must not be empty" }
 
-        if (start == 0 && end == 0) {
-            if (chars != null) {
-                end = chars.size
+        if (startChar == 0 && endChar == 0) {
+            if (chars.isNotEmpty()) {
+                endChar = chars.size
             } else {
                 if (!letters && !numbers) {
-                    end = Character.MAX_CODE_POINT
+                    endChar = Character.MAX_CODE_POINT
                 } else {
-                    end = 'z'.toInt() + 1
-                    start = ' '.toInt()
+                    endChar = 'z'.toInt() + 1
+                    startChar = ' '.toInt()
                 }
             }
         } else {
-            require(end > start) { "Parameter end ($end) must be greater than start ($start)" }
+            require(endChar > startChar) { "Parameter end ($endChar) must be greater than start ($startChar)" }
         }
 
         val zeroDigitAscii = 48
         val firstLetterAscii = 65
 
-        require(!(chars == null && (numbers && end <= zeroDigitAscii || letters && end <= firstLetterAscii))) {
-            "Parameter end (" + end + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
+        require(!(chars.isEmpty() && (numbers && endChar <= zeroDigitAscii || letters && endChar <= firstLetterAscii))) {
+            "Parameter end (" + endChar + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
                 "or greater then (" + firstLetterAscii + ") for generating letters."
         }
 
-        val builder = StringBuilder(count)
-        val gap = end - start
+        val builder = StringBuilder(countChars)
+        val gap = endChar - startChar
 
-        loop@ while (count-- != 0) {
-            val codePoint: Int = if (chars == null) {
-                random.nextInt(gap) + start
+        loop@ while (countChars-- != 0) {
+            val codePoint: Int = if (chars.isEmpty()) {
+                random.nextInt(gap) + startChar
             } else {
-                chars[random.nextInt(gap) + start].toInt()
+                chars[random.nextInt(gap) + startChar].toInt()
             }
 
             val numberOfChars = Character.charCount(codePoint)
-            if (count == 0 && numberOfChars > 1) {
-                count++
+            if (countChars == 0 && numberOfChars > 1) {
+                countChars++
                 continue
             }
 
-            if (letters && Character.isLetter(codePoint)
-                    || numbers && Character.isDigit(codePoint)
-                    || !letters && !numbers) {
-                builder.appendCodePoint(codePoint)
-
-                if (numberOfChars == 2) {
-                    count--
-                }
-
-            } else {
-                count++
-            }
+            countChars = isRightChar(letters, codePoint, numbers, builder, numberOfChars, countChars)
         }
         return builder.toString()
+    }
+
+    private fun isRightChar(letters: Boolean, codePoint: Int, numbers: Boolean, builder: StringBuilder, numberOfChars: Int, countChars: Int): Int {
+        var countChars1 = countChars
+        if (letters && Character.isLetter(codePoint)
+                || numbers && Character.isDigit(codePoint)
+                || !letters && !numbers) {
+            builder.appendCodePoint(codePoint)
+
+            if (numberOfChars == 2) {
+                countChars1--
+            }
+
+        } else {
+            countChars1++
+        }
+        return countChars1
     }
 }
