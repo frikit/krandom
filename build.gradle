@@ -1,5 +1,6 @@
 buildscript {
     ext.kotlin_version = '1.3.50'
+    //TODO remove this block if everything will work fine until Jan 2020
 //    ext.kotlin_ann_version = '13.0'
 
     repositories {
@@ -44,6 +45,7 @@ dependencies {
 
 }
 
+//TODO remove this block if everything will work fine until Jan 2020
 //compileKotlin {
 //    kotlinOptions.jvmTarget = "12"
 //}
