@@ -4,7 +4,7 @@ matrix:
   include:
     - os: linux
       sudo: required
-      jdk: oraclejdk8
+      jdk: openjdk8
     - os: linux
       sudo: required
       jdk: openjdk12
