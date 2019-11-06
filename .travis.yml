@@ -1,6 +1,7 @@
+root: linux
 language: java
 
-matrix:
+jobs:
   include:
     - os: linux
       sudo: required
