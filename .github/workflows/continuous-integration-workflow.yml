@@ -9,7 +9,7 @@ jobs:
       - name: Check where I'm
         run: echo $PWD
       - name: Check files in directory
-        run: ls
+        run: echo $(ls -s)
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Running tests
