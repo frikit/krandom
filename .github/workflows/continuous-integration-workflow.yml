@@ -6,6 +6,7 @@ jobs:
     name: Testing
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - name: Check where I'm
         working-directory: ${{ github.workspace }}
         run: echo $PWD
