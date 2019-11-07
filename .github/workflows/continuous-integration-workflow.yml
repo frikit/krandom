@@ -1,9 +1,9 @@
-name: Victor Osipov
+name: Run Kotlin Tests
 on: [push]
 
 jobs:
   build:
-    name: Testing
+    name: Run Spek2 Test on Ubuntu(latest)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
