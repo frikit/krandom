@@ -1,14 +1,3 @@
-name: Checkout github code
-on: [push]
-
-jobs:
-  build:
-    name: Checkout github code
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-
----
 name: Run Kotlin Tests
 on: [push]
 
@@ -17,6 +6,7 @@ jobs:
     name: Run Spek2 Test on Ubuntu(latest)
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - name: Check where I'm
         working-directory: ${{ github.workspace }}
         run: echo $PWD
