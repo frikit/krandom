@@ -11,6 +11,12 @@ jobs:
         run: echo $PWD
       - name: Check files in directory
         run: ls -la
+      - name: Go up
+        run: cd ..
+      - name: Check where I'm
+        run: echo $PWD
+      - name: Check files in directory
+        run: ls -la
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Running tests
