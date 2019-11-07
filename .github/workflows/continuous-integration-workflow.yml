@@ -1,0 +1,12 @@
+name: Victor Osipov
+on: [push]
+
+jobs:
+  build:
+    name: Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+      - name: Running tests
+        run: ./gradlew test build --info --stacktrace --console=plain --max-workers=1 --no-daemon --build-cache -Dkotlin.colors.enabled=false
