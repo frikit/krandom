@@ -6,8 +6,10 @@ jobs:
     name: Testing
     runs-on: ubuntu-latest
     steps:
-      - name: Check when I'm
+      - name: Check where I'm
         run: echo $PWD
+      - name: Check files in directory
+        run: ls
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Running tests
