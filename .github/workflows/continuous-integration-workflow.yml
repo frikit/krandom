@@ -6,6 +6,8 @@ jobs:
     name: Testing
     runs-on: ubuntu-latest
     steps:
+      - name: Check when I'm
+        run: echo $PWD
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Running tests
