@@ -12,10 +12,10 @@ object ResourcePathHolderTest : Spek({
     for (test in testCases) {
         describe("check [$test]") {
             it("[$test] should not be blank") {
-                assert(test.isBlank()) { "[$test] should not be blank!" }
+                assert(test.isNotBlank()) { "[$test] should not be blank!" }
             }
             it("[$test] should not be empty") {
-                assert(test.isEmpty()) { "[$test] should not be empty!" }
+                assert(test.isNotEmpty()) { "[$test] should not be empty!" }
             }
         }
     }
