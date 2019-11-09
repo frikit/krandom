@@ -20,8 +20,8 @@ apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'jacoco'
 
-sourceCompatibility = JavaVersion.VERSION_12
-targetCompatibility = JavaVersion.VERSION_12
+sourceCompatibility = JavaVersion.VERSION_13
+targetCompatibility = JavaVersion.VERSION_13
 
 repositories {
     mavenLocal()
