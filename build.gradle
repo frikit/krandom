@@ -32,18 +32,18 @@ repositories {
 
 dependencies {
     //stdlib
-    compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     //logging
-    compile 'io.github.microutils:kotlin-logging:+'
-    compile 'io.github.microutils:kotlin-logging-common:+'
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '+'
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '+'
-    compile group: 'log4j', name: 'log4j', version: '+'
+    implementation 'io.github.microutils:kotlin-logging:+'
+    implementation 'io.github.microutils:kotlin-logging-common:+'
+    implementation group: 'org.slf4j', name: 'slf4j-log4j12', version: '+'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '+'
+    implementation group: 'log4j', name: 'log4j', version: '+'
 
     //spek 2
-    testCompile group: 'org.spekframework.spek2', name: 'spek-dsl-jvm', version: '+'
-    testCompile group: 'org.spekframework.spek2', name: 'spek-runner-junit5', version: '+'
+    testImplementation group: 'org.spekframework.spek2', name: 'spek-dsl-jvm', version: '+'
+    testImplementation group: 'org.spekframework.spek2', name: 'spek-runner-junit5', version: '+'
 
 }
 
