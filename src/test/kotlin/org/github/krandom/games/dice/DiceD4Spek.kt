@@ -15,7 +15,6 @@ object DiceD4Spek : Spek({
 
     val logger: KLogger = KLogging().logger(DiceD4Spek::class.java.simpleName)
     val typeOfTest = "dice d4"
-    var value: String
 
     describe("a dice with invalid elems") {
         val invalidScenarios = listOf(
@@ -38,6 +37,7 @@ object DiceD4Spek : Spek({
         val generatedValues = arrayListOf<String>()
         val generateExpectedValues = generateExpectedValues(1, 4)
         val expectedRegEx = generateRegEx(1, 4)
+        var value: String
 
         describe("generate ${Constants.generateValues} values for tests") {
             (1..Constants.generateValues).forEach { _ ->
@@ -71,10 +71,11 @@ object DiceD4Spek : Spek({
     }
 
     describe("a manually filled dice d4") {
-        val dice: Dice = Dice.init(DiceType.D4, listOf("-1", "0", "1", "2"))
+        val dice: Dice = Dice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<String>()
-        val generateExpectedValues = generateExpectedValues(-1, 2)
-        val expectedRegEx = generateRegEx(-1, 2)
+        val generateExpectedValues = generateExpectedValues(-3, 0)
+        val expectedRegEx = generateRegEx(-3, 0)
+        var value: String
 
         describe("generate ${Constants.generateValues} values for tests") {
             (1..Constants.generateValues).forEach { _ ->
