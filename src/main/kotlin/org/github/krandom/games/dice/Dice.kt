@@ -10,11 +10,11 @@ interface Dice {
         fun init(diceType: DiceType, values: List<String> = emptyList()): Dice {
             return when(diceType) {
                 DiceType.D4 -> DiceD4(values)
-                DiceType.D6 -> DiceD4(values)
-                DiceType.D8 -> DiceD4(values)
-                DiceType.D10 -> DiceD4(values)
-                DiceType.D12 -> DiceD4(values)
-                DiceType.D20 -> DiceD4(values)
+//                DiceType.D6 -> DiceD4(values)
+//                DiceType.D8 -> DiceD4(values)
+//                DiceType.D10 -> DiceD4(values)
+//                DiceType.D12 -> DiceD4(values)
+//                DiceType.D20 -> DiceD4(values)
             }
         }
     }

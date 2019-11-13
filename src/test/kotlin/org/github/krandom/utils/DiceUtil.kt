@@ -17,7 +17,7 @@ object DiceUtil {
         return res.toString().toRegex()
     }
 
-    fun generateExpectedValues(start: Int, end: Int) : List<String> {
+    fun generateExpectedValues(start: Int, end: Int) : ArrayList<String> {
         val res = arrayListOf<String>()
         for (i in start..end) {
             res.add(i.toString())
