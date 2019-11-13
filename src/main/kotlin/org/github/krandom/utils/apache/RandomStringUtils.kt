@@ -156,47 +156,47 @@ object RandomStringUtils {
      */
     fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean,
                chars: CharArray? = null, random: Random = RANDOM): String {
-        var count = count
-        var start = start
-        var end = end
+        var countChars = count
+        var startChars = start
+        var endChars = end
         require(!(chars != null && chars.isEmpty())) { "The chars array must not be empty" }
 
-        if (start == 0 && end == 0) {
+        if (startChars == 0 && endChars == 0) {
             if (chars != null) {
-                end = chars.size
+                endChars = chars.size
             } else {
                 if (!letters && !numbers) {
-                    end = Character.MAX_CODE_POINT
+                    endChars = Character.MAX_CODE_POINT
                 } else {
-                    end = 'z'.toInt() + 1
-                    start = ' '.toInt()
+                    endChars = 'z'.toInt() + 1
+                    startChars = ' '.toInt()
                 }
             }
         } else {
-            require(end > start) { "Parameter end ($end) must be greater than start ($start)" }
+            require(endChars > startChars) { "Parameter end ($endChars) must be greater than start ($startChars)" }
         }
 
         val zeroDigitAscii = 48
         val firstLetterAscii = 65
 
-        require(!(chars == null && (numbers && end <= zeroDigitAscii || letters && end <= firstLetterAscii))) {
-            "Parameter end (" + end + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
+        require(!(chars == null && (numbers && endChars <= zeroDigitAscii || letters && endChars <= firstLetterAscii))) {
+            "Parameter end (" + endChars + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
                 "or greater then (" + firstLetterAscii + ") for generating letters."
         }
 
-        val builder = StringBuilder(count)
-        val gap = end - start
+        val builder = StringBuilder(countChars)
+        val gap = endChars - startChars
 
-        loop@ while (count-- != 0) {
+        loop@ while (countChars-- != 0) {
             val codePoint: Int = if (chars == null) {
-                random.nextInt(gap) + start
+                random.nextInt(gap) + startChars
             } else {
-                chars[random.nextInt(gap) + start].toInt()
+                chars[random.nextInt(gap) + startChars].toInt()
             }
 
             val numberOfChars = Character.charCount(codePoint)
-            if (count == 0 && numberOfChars > 1) {
-                count++
+            if (countChars == 0 && numberOfChars > 1) {
+                countChars++
                 continue
             }
 
@@ -206,11 +206,11 @@ object RandomStringUtils {
                 builder.appendCodePoint(codePoint)
 
                 if (numberOfChars == 2) {
-                    count--
+                    countChars--
                 }
 
             } else {
-                count++
+                countChars++
             }
         }
         return builder.toString()
