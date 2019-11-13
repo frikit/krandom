@@ -42,6 +42,7 @@ dependencies {
     //spek 2
     testImplementation group: 'org.spekframework.spek2', name: 'spek-dsl-jvm', version: '+'
     testImplementation group: 'org.spekframework.spek2', name: 'spek-runner-junit5', version: '+'
+    testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test', version: kotlin_version
 
 }
 

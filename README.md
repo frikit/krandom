@@ -32,3 +32,6 @@ Basic generator:
 |Char|✅|✅|
 |Boolean|✅|✅|
 |String|✅|✅|
+
+
+//TODO to add all types of tables which will be implemented
