@@ -88,7 +88,7 @@ open class Randomizer : KRandomCommon {
         val chooseWhich: Int = if (combinations.size == 1) {
             0
         } else {
-            randomInt(0, combinations.size - 1) - 1
+            randomInt(0, combinations.size - 1)
         }
 
         require(!(chooseWhich < 0 || chooseWhich >= combinations.size)) {
@@ -112,13 +112,13 @@ open class Randomizer : KRandomCommon {
     override fun randomString(length: Int, specialCharacters: Boolean, numbers: Boolean): String {
         validateLength(length)
 
-        val function: () -> String = {RandomStringUtils.random(length, true, numbers)}
+        val function: () -> String = { RandomStringUtils.random(length, true, numbers) }
         return generateRandomString(function, numbers)
     }
 
     private fun normalizeStartEnd(start: Double, end: Double): Pair<Double, Double> {
-        var startElem: Double = if (start == 0.0) start + 1.0 else start
-        var endElem = if (end == 0.0) end + 1.0 else end
+        var startElem: Double = start
+        var endElem = end
         if (startElem == endElem) endElem++
         //swap vars to act easier
         if (startElem > endElem) startElem = endElem.also { endElem = startElem }
@@ -126,8 +126,8 @@ open class Randomizer : KRandomCommon {
     }
 
     private fun normalizeStartEnd(start: Long, end: Long): Pair<Long, Long> {
-        var startElem: Long = if (start == 0L) start + 1L else start
-        var endElem = if (end == 0L) end + 1L else end
+        var startElem: Long = start
+        var endElem = end
         if (startElem == endElem) endElem++
         //swap vars to act easier
         if (startElem > endElem) startElem = endElem.also { endElem = startElem }
@@ -135,8 +135,8 @@ open class Randomizer : KRandomCommon {
     }
 
     private fun normalizeStartEnd(start: Int, end: Int): Pair<Int, Int> {
-        var startElem = if (start == 0) start + 1 else start
-        var endElem = if (end == 0) end + 1 else end
+        var startElem = start
+        var endElem = end
         if (startElem == endElem) endElem++
         //swap vars to act easier
         if (startElem > endElem) startElem = endElem.also { endElem = startElem }
