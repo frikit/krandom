@@ -61,8 +61,8 @@ object DiceD4Spek : Spek({
                 generatedValues.forEach {
                     value = it
                     TestLifecycle.onTestStep(logger, "generated : [$value]")
-                    it("$value should be [1 or 2 or 3 or 4]") {
-                        assert(value.matches(expectedRegEx))
+                    it("$value should be $expectedRegEx") {
+                        assert(value.matches(expectedRegEx)) {"Value [$value] don't match regex [$expectedRegEx]"}
                     }
                 }
             }
@@ -98,8 +98,8 @@ object DiceD4Spek : Spek({
                 generatedValues.forEach {
                     value = it
                     TestLifecycle.onTestStep(logger, "generated : [$value]")
-                    it("$value should be [-1 or 0 or 1 or 2]") {
-                        assert(value.matches(expectedRegEx))
+                    it("$value should be $expectedRegEx") {
+                        assert(value.matches(expectedRegEx)) {"Value [$value] don't match regex [$expectedRegEx]"}
                     }
                 }
             }
