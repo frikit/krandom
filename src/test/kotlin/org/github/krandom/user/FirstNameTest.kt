@@ -31,7 +31,7 @@ object FirstNameTest : Spek({
 
         onTestStart("generate user $propName")
         describe("generate user $propName") {
-            (1..generateValues).forEach {
+            (1..generateValues).forEach { _ ->
                 val name: String = kRandomUser.randomData()
                 TestLifecycle.onTestStep(logger, "generated : [$name]")
                 it(" $name should be valid $propName") {
@@ -43,7 +43,7 @@ object FirstNameTest : Spek({
 
         onTestStart("generate user $propNames")
         describe("generate user $propNames") {
-            (1..generateValues).forEach {
+            (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas()
                 TestLifecycle.onTestStep(logger, "generated : [${name.size}] user $propNames")
                 it(" ${name.size} all should be valid name") {
@@ -55,7 +55,7 @@ object FirstNameTest : Spek({
 
         onTestStart("generate user $propNames($userSize)")
         describe("generate user $propNames($userSize)") {
-            (1..generateValues).forEach {
+            (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas(userSize)
                 TestLifecycle.onTestStep(logger, "generated : [${name}]")
                 assert(name.size == userSize) { "${name.size} != $userSize" }

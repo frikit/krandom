@@ -19,7 +19,7 @@ object RandomizerCharSpek : Spek({
         describe("a random tests for char") {
             TestLifecycle.onTestStart("generate random char with all defaults params")
             describe("generate random char with all defaults params") {
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     charz = kRandomCommon.randomChar()
                     charz.let { char ->
                         TestLifecycle.onTestStep(logger, "generated : [$char]")
@@ -36,8 +36,8 @@ object RandomizerCharSpek : Spek({
 
             TestLifecycle.onTestStart("generate random char with uppercase")
             describe("generate random char with uppercase") {
-                (1..generateValues).forEach {
-                    charz = kRandomCommon.randomChar(true, false, false, false)
+                (1..generateValues).forEach { _ ->
+                    charz = kRandomCommon.randomChar(upperLetters = true, lowerLetters = false, numbers = false, specialCharacters = false)
                     charz.let { char ->
                         TestLifecycle.onTestStep(logger, "generated : [$char]")
                         it("$char.toInt() should be in range >65 and <90") {
@@ -55,8 +55,8 @@ object RandomizerCharSpek : Spek({
 
             TestLifecycle.onTestStart("generate random char with lowercase")
             describe("generate random char with lowercase") {
-                (1..generateValues).forEach {
-                    charz = kRandomCommon.randomChar(false, true, false, false)
+                (1..generateValues).forEach { _ ->
+                    charz = kRandomCommon.randomChar(upperLetters = false, lowerLetters = true, numbers = false, specialCharacters = false)
                     charz.let { char ->
                         TestLifecycle.onTestStep(logger, "generated : [$char]")
                         it("$char.toInt() should be in range >97 and <122") {
@@ -74,8 +74,8 @@ object RandomizerCharSpek : Spek({
 
             TestLifecycle.onTestStart("generate random char with numbers")
             describe("generate random char with numbers") {
-                (1..generateValues).forEach {
-                    charz = kRandomCommon.randomChar(false, false, true, false)
+                (1..generateValues).forEach { _ ->
+                    charz = kRandomCommon.randomChar(upperLetters = false, lowerLetters = false, numbers = true, specialCharacters = false)
                     charz.let { char ->
                         TestLifecycle.onTestStep(logger, "generated : [$char]")
                         it("$char.toInt() should be in range >48 and <57") {
@@ -93,8 +93,8 @@ object RandomizerCharSpek : Spek({
 
             TestLifecycle.onTestStart("generate random char with symbols")
             describe("generate random char with numbers") {
-                (1..generateValues).forEach {
-                    charz = kRandomCommon.randomChar(false, false, false, true)
+                (1..generateValues).forEach { _ ->
+                    charz = kRandomCommon.randomChar(upperLetters = false, lowerLetters = false, numbers = false, specialCharacters = true)
                     charz.let { char ->
                         TestLifecycle.onTestStep(logger, "generated : [$char]")
                         it("$char.toInt() should be in range >33 and <126") {
@@ -112,8 +112,8 @@ object RandomizerCharSpek : Spek({
 
             TestLifecycle.onTestStart("generate random char with all available")
             describe("generate random char with all available") {
-                (1..generateValues).forEach {
-                    charz = kRandomCommon.randomChar(true, true, true, true)
+                (1..generateValues).forEach { _ ->
+                    charz = kRandomCommon.randomChar(upperLetters = true, lowerLetters = true, numbers = true, specialCharacters = true)
                     charz.let { char ->
                         TestLifecycle.onTestStep(logger, "generated : [$char]")
                         it("$char.toInt() should be in range >33 and <126") {

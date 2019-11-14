@@ -19,7 +19,7 @@ object RandomizerStringSpek : Spek({
         describe("a random tests for string") {
             TestLifecycle.onTestStart("generate random string with all defaults params")
             describe("generate random string with all defaults params") {
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     stringz = kRandomCommon.randomString()
                     stringz.let { string ->
                         TestLifecycle.onTestStep(logger, "generated : [$string]")
@@ -35,8 +35,8 @@ object RandomizerStringSpek : Spek({
 
             TestLifecycle.onTestStart("generate random string")
             describe("generate random string") {
-                (1..generateValues).forEach {
-                    stringz = kRandomCommon.randomString(25, false, false)
+                (1..generateValues).forEach { _ ->
+                    stringz = kRandomCommon.randomString(length = 25, specialCharacters = false, numbers = false)
                     stringz.let { string ->
                         TestLifecycle.onTestStep(logger, "generated : [$string]")
                         it("$string should be with length 25 and not empty and not blank") {
@@ -52,8 +52,8 @@ object RandomizerStringSpek : Spek({
 
             TestLifecycle.onTestStart("generate random string with numbers")
             describe("generate random string with numbers") {
-                (1..generateValues).forEach {
-                    stringz = kRandomCommon.randomString(33, false, true)
+                (1..generateValues).forEach { _ ->
+                    stringz = kRandomCommon.randomString(length = 33, specialCharacters = false, numbers = true)
                     stringz.let { string ->
                         TestLifecycle.onTestStep(logger, "generated : [$string]")
                         it("$string should be with length 33 and not empty and not blank") {

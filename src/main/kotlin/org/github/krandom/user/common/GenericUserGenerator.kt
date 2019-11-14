@@ -38,7 +38,7 @@ abstract class GenericUserGenerator {
     }
 
     private fun validateList(list: List<String>) {
-        if (list.isEmpty()) throw java.lang.IllegalArgumentException("List with options can't be empty!")
-        if (list.none { it != "" }) throw java.lang.IllegalArgumentException("List with options can't be empty or consist only of empty elements!")
+        require(list.isNotEmpty()) { "List with options can't be empty!" }
+        require(!list.none { it != "" }) { "List with options can't be empty or consist only of empty elements!" }
     }
 }

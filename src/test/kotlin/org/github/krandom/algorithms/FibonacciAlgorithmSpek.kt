@@ -66,7 +66,7 @@ object FibonacciAlgorithmSpek : Spek({
         }
         TestLifecycle.onTestFinish { "get number with invalid index 93" }
 
-        for (i in 0 until startExp.size) {
+        for (i in startExp.indices) {
             TestLifecycle.onTestStart { "get number with valid index $i" }
             describe("get number with index $i") {
                 it("should ${startExp[i]}") {
@@ -90,7 +90,7 @@ object FibonacciAlgorithmSpek : Spek({
 
         TestLifecycle.onTestStart { "get random fibonacci number" }
         describe("get random fibonacci number") {
-            for (i in 0 until fibonacciTillMaxLong.size) {
+            for (i in fibonacciTillMaxLong.indices) {
                 val rnd = FibonacciAlgorithm.randomNumber()
                 it("value [$rnd] should be in expected") {
                     assert(fibonacciTillMaxLong.contains(rnd))
@@ -103,7 +103,7 @@ object FibonacciAlgorithmSpek : Spek({
         describe("generate random fibonacci sequence all default") {
             val seq: List<Long> = FibonacciAlgorithm.generateSequence()
             it("seq should be the same as expected") {
-                assert(seq.equals(fibonacciTillMaxLong))
+                assert(seq == fibonacciTillMaxLong)
             }
         }
         TestLifecycle.onTestFinish { "generate random fibonacci sequence all default" }

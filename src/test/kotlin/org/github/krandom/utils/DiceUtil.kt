@@ -6,7 +6,7 @@ object DiceUtil {
 
     fun generateRegEx(start: Int, end: Int) : Regex {
         //^(1|2|3|4|){1}$
-        val res: StringBuilder = StringBuilder("^(")
+        val res = StringBuilder("^(")
         for (i in start..end) {
             res.append(i.toString())
             res.append("|")

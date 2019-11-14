@@ -27,7 +27,7 @@ object RandomizerDoubleSpek : Spek({
                 val expectedOne = 0.0
                 val expectedTwo = 1.0
 
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     doubleNumber = kRandomCommon.randomDouble()
                     doubleNumber.also { number ->
                         TestLifecycle.onTestStep(logger, "generated : [$number]")
@@ -45,7 +45,7 @@ object RandomizerDoubleSpek : Spek({
                 val expectedOne = 1.0
                 val expectedTwo = 5.0
 
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     doubleNumber = kRandomCommon.randomDouble(expectedOne..expectedTwo)
                     doubleNumber.also { number ->
 
@@ -64,7 +64,7 @@ object RandomizerDoubleSpek : Spek({
                 val expectedOne = 1.0
                 val expectedTwo = 5.0
 
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     doubleNumber = kRandomCommon.randomDouble(expectedOne, expectedTwo)
                     doubleNumber.also { number ->
 
@@ -94,7 +94,7 @@ object RandomizerDoubleSpek : Spek({
                 val expectedOne = -1.0
                 val expectedTwo = 5.0
 
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     doubleNumber = kRandomCommon.randomDouble(expectedOne..expectedTwo)
                     doubleNumber.also { number ->
 
@@ -113,7 +113,7 @@ object RandomizerDoubleSpek : Spek({
                 val expectedOne = -1.0
                 val expectedTwo = -5.0
 
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     doubleNumber = kRandomCommon.randomDouble(expectedOne..expectedTwo)
                     doubleNumber.also { number ->
 
@@ -132,7 +132,7 @@ object RandomizerDoubleSpek : Spek({
                 val expectedOne = 1.0
                 val expectedTwo = -5.0
 
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     doubleNumber = kRandomCommon.randomDouble(expectedOne..expectedTwo)
                     doubleNumber.also { number ->
 
@@ -150,7 +150,7 @@ object RandomizerDoubleSpek : Spek({
             describe("generate random $randomType in range(start)") {
                 val expectedOne = 1.0
 
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     doubleNumber = kRandomCommon.randomDouble(start = expectedOne)
                     doubleNumber.also { number ->
 
@@ -167,7 +167,7 @@ object RandomizerDoubleSpek : Spek({
             describe("generate random $randomType in range(end)") {
                 val expectedTwo = 5.0
 
-                (1..generateValues).forEach {
+                (1..generateValues).forEach { _ ->
                     doubleNumber = kRandomCommon.randomDouble(end = expectedTwo)
                     doubleNumber.also { number ->
 

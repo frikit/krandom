@@ -24,16 +24,6 @@ object TestLifecycle {
             NEW_LINE_DOUBLE_TAB +
             "#------------------------------------------------------------------------------#\n"
 
-    private const val FAIL_MSG_FIRST_PART = NEW_LINE_DOUBLE_TAB +
-            "#----------------------------------FAIL TEST-----------------------------------#\n" +
-            doubleTab +
-            FORMAT_LINE +
-            NEW_LINE_DOUBLE_TAB +
-            "# with Exception =>\n"
-
-    private const val FAIL_MSG_SECOND_PART = NEW_LINE_DOUBLE_TAB +
-            "#------------------------------------------------------------------------------#\n"
-
     fun onTestStart(methodName: () -> String) {
         if (checkValidMethodName(methodName())) {
             kLogger.info(String.format(START_MSG, fillWithEmptySpacesOrReturn(methodName())))

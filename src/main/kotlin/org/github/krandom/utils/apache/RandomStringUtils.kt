@@ -36,11 +36,6 @@ import java.util.*
  * [
  * RandomStringGenerator](https://commons.apache.org/proper/commons-text/javadocs/api-release/org/apache/commons/text/RandomStringGenerator.html) instead.
  *
- *
- * Caveat: Instances of [Random], upon which the implementation of this
- * class relies, are not cryptographically secure.
- *
- *
  * Please note that the Apache Commons project provides a component
  * dedicated to pseudo-random number generation, namely
  * [Commons RNG](https://commons.apache.org/rng), that may be
