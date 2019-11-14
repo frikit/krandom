@@ -1,6 +1,6 @@
 package org.github.krandom.properties
 
-import org.github.krandom.utils.TestLifecycle
+import org.github.krandom.testhelper.TestLifecycle
 import mu.KLogger
 import mu.KLogging
 import org.spekframework.spek2.Spek

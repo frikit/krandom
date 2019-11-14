@@ -1,9 +1,9 @@
 package org.github.krandom.common
 
-import org.github.krandom.utils.RandomizerUtils.checkThrowException
-import org.github.krandom.utils.RandomizerUtils.generateRandomString
-import org.github.krandom.utils.RandomizerUtils.getCharCombinations
-import org.github.krandom.utils.RandomizerUtils.validateLength
+import org.github.krandom.utils.checkThrowException
+import org.github.krandom.utils.generateRandomString
+import org.github.krandom.utils.getCharCombinations
+import org.github.krandom.utils.validateLength
 import org.github.krandom.utils.apache.RandomStringUtils
 import java.security.SecureRandom
 import java.util.*

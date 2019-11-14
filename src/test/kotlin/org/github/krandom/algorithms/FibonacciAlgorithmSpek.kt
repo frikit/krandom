@@ -1,6 +1,6 @@
 package org.github.krandom.algorithms
 
-import org.github.krandom.utils.TestLifecycle
+import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 

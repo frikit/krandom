@@ -1,4 +1,4 @@
-package org.github.krandom.utils
+package org.github.krandom.testhelper
 
 object LuhnUtils {
 

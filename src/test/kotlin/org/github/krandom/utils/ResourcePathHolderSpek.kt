@@ -5,7 +5,7 @@ import org.github.krandom.utils.ResourcePathHolder.relativeSurNamePath
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-object ResourcePathHolderTest : Spek({
+object ResourcePathHolderSpek : Spek({
 
     val testCases = listOf(relativeFirstNamePath, relativeSurNamePath)
 

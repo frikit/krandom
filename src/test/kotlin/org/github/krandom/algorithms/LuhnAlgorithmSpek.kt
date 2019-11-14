@@ -1,8 +1,8 @@
 package org.github.krandom.algorithms
 
-import org.github.krandom.utils.Constants.generateValues
-import org.github.krandom.utils.LuhnUtils
-import org.github.krandom.utils.TestLifecycle
+import org.github.krandom.testhelper.Constants.generateValues
+import org.github.krandom.testhelper.LuhnUtils
+import org.github.krandom.testhelper.TestLifecycle
 import mu.KLogger
 import mu.KLogging
 import org.spekframework.spek2.Spek

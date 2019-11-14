@@ -2,10 +2,10 @@ package org.github.krandom.common
 
 import mu.KLogger
 import mu.KLogging
-import org.github.krandom.utils.AssertionHelper.isBiggerOrEqual
-import org.github.krandom.utils.AssertionHelper.isSmaller
-import org.github.krandom.utils.Constants.generateValues
-import org.github.krandom.utils.TestLifecycle
+import org.github.krandom.testhelper.isBiggerOrEqual
+import org.github.krandom.testhelper.isSmaller
+import org.github.krandom.testhelper.Constants.generateValues
+import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 

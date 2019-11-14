@@ -3,10 +3,10 @@ package org.github.krandom.games.dice
 import mu.KLogger
 import mu.KLogging
 import org.github.krandom.games.dice.enum.DiceType
-import org.github.krandom.utils.Constants
-import org.github.krandom.utils.DiceUtil.generateExpectedValues
-import org.github.krandom.utils.DiceUtil.generateRegEx
-import org.github.krandom.utils.TestLifecycle
+import org.github.krandom.testhelper.Constants
+import org.github.krandom.testhelper.DiceUtil.generateExpectedValues
+import org.github.krandom.testhelper.DiceUtil.generateRegEx
+import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith

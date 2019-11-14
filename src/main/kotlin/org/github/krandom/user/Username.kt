@@ -1,7 +1,7 @@
 package org.github.krandom.user
 
 import org.github.krandom.user.common.GenericUserGenerator
-import org.github.krandom.utils.RandomizerUtils.generateRandomString
+import org.github.krandom.utils.generateRandomString
 
 class Username(val numbers: Boolean) : KRandomUser<String>, GenericUserGenerator() {
 
