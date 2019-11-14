@@ -14,13 +14,13 @@ jobs:
         run: ls -la
       - name: Make gradlew executable
         run: chmod +x gradlew
-      - name: Running tests \#1
+      - name: Running tests Nr. 1
         run: ./gradlew clean check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
-      - name: Running tests \#2
+      - name: Running tests Nr. 2
         run: ./gradlew clean check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
-      - name: Running tests \#3
+      - name: Running tests Nr. 3
         run: ./gradlew clean check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
-      - name: Running tests \#4
+      - name: Running tests Nr. 4
         run: ./gradlew clean check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
-      - name: Running tests \#5
+      - name: Running tests Nr. 5
         run: ./gradlew clean check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
