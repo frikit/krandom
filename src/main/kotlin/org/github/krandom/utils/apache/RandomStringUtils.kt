@@ -33,7 +33,6 @@ object RandomStringUtils {
         val zeroDigitAscii = 48
         val firstLetterAscii = 65
 
-        //TODO test this part with mock or somehow
         require(!(chars == null && (numbers && endChars <= zeroDigitAscii || letters && endChars <= firstLetterAscii))) {
             "Parameter end (" + endChars + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
                     "or greater then (" + firstLetterAscii + ") for generating letters."
@@ -51,10 +50,11 @@ object RandomStringUtils {
             val codePoint: Int = getNextCodePoint(chars, gap, startChars)
 
             val numberOfChars = Character.charCount(codePoint)
-            if (countChars1 == 0 && numberOfChars > 1) {
-                countChars1++
-                continue
-            }
+            //TODO remove in future
+//            if (countChars1 == 0 && numberOfChars > 1) {
+//                countChars1++
+//                continue
+//            }
 
             if (letters && Character.isLetter(codePoint)
                     || numbers && Character.isDigit(codePoint)

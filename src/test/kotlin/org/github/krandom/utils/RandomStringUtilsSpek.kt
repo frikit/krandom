@@ -3,6 +3,7 @@ package org.github.krandom.utils
 import org.github.krandom.utils.apache.RandomStringUtils.random
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.test.assertFailsWith
 
 object RandomStringUtilsSpek : Spek({
 
@@ -48,6 +49,13 @@ object RandomStringUtilsSpek : Spek({
             }
             it("[$res] should be valid size") {
                 assert(res.length > 1)
+            }
+        }
+
+        describe("test if exception is thrown") {
+            val block = { random(count = 2, start = 0, end = 47, letters = true, numbers = false, chars = null) }
+            assertFailsWith(IllegalArgumentException::class, "Should fail because end char is < 48") {
+                block.invoke()
             }
         }
     }

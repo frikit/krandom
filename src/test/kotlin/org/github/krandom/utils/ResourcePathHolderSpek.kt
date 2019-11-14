@@ -9,6 +9,13 @@ object ResourcePathHolderSpek : Spek({
 
     val testCases = listOf(relativeFirstNamePath, relativeSurNamePath)
 
+    describe("check object") {
+        it("object string should not be blank/empty") {
+            assert(ResourcePathHolder.toString().isNotBlank()) { " should not be blank!" }
+            assert(ResourcePathHolder.toString().isNotEmpty()) { " should not be empty!" }
+        }
+    }
+
     for (test in testCases) {
         describe("check [$test]") {
             it("[$test] should not be blank") {
