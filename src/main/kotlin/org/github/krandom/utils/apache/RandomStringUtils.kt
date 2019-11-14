@@ -22,8 +22,7 @@ object RandomStringUtils {
 
     private val RANDOM = Random()
 
-    fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean,
-               chars: CharArray? = null, random: Random = RANDOM): String {
+    fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean, chars: CharArray? = null): String {
 
         require(!(chars != null && chars.isEmpty())) { "The chars array must not be empty" }
 
@@ -34,21 +33,22 @@ object RandomStringUtils {
         val zeroDigitAscii = 48
         val firstLetterAscii = 65
 
+        //TODO test this part with mock or somehow
         require(!(chars == null && (numbers && endChars <= zeroDigitAscii || letters && endChars <= firstLetterAscii))) {
             "Parameter end (" + endChars + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
                     "or greater then (" + firstLetterAscii + ") for generating letters."
         }
 
         val gap = endChars - startChars
-        return generateResult(count, chars, random, gap, startChars, letters, numbers).toString()
+        return generateResult(count, chars, gap, startChars, letters, numbers).toString()
     }
 
-    private fun generateResult(countChars: Int, chars: CharArray?, random: Random, gap: Int, startChars: Int, letters: Boolean, numbers: Boolean): StringBuilder {
+    private fun generateResult(countChars: Int, chars: CharArray?, gap: Int, startChars: Int, letters: Boolean, numbers: Boolean): StringBuilder {
         var countChars1 = countChars
         val builder = StringBuilder(countChars1)
 
         loop@ while (countChars1-- != 0) {
-            val codePoint: Int = getNextCodePoint(chars, random, gap, startChars)
+            val codePoint: Int = getNextCodePoint(chars, gap, startChars)
 
             val numberOfChars = Character.charCount(codePoint)
             if (countChars1 == 0 && numberOfChars > 1) {
@@ -72,11 +72,11 @@ object RandomStringUtils {
         return builder
     }
 
-    private fun getNextCodePoint(chars: CharArray?, random: Random, gap: Int, startChars: Int): Int {
+    private fun getNextCodePoint(chars: CharArray?, gap: Int, startChars: Int): Int {
         return if (chars == null) {
-            random.nextInt(gap) + startChars
+            RANDOM.nextInt(gap) + startChars
         } else {
-            chars[random.nextInt(gap) + startChars].toInt()
+            chars[RANDOM.nextInt(gap) + startChars].toInt()
         }
     }
 
