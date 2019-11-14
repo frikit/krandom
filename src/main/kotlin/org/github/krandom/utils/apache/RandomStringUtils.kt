@@ -18,180 +18,41 @@ package org.github.krandom.utils.apache
 
 import java.util.*
 
-/**
- *
- * Operations for random `String`s.
- *
- * Currently *private high surrogate* characters are ignored.
- * These are Unicode characters that fall between the values 56192 (db80)
- * and 56319 (dbff) as we don't know how to handle them.
- * High and low surrogates are correctly dealt with - that is if a
- * high surrogate is randomly chosen, 55296 (d800) to 56191 (db7f)
- * then it is followed by a low surrogate. If a low surrogate is chosen,
- * 56320 (dc00) to 57343 (dfff) then it is placed after a randomly
- * chosen high surrogate.
- *
- * RandomStringUtils is intended for simple use cases. For more advanced
- * use cases consider using commons-text
- * [
- * RandomStringGenerator](https://commons.apache.org/proper/commons-text/javadocs/api-release/org/apache/commons/text/RandomStringGenerator.html) instead.
- *
- * Please note that the Apache Commons project provides a component
- * dedicated to pseudo-random number generation, namely
- * [Commons RNG](https://commons.apache.org/rng), that may be
- * a better choice for applications with more stringent requirements
- * (performance and/or correctness).
- *
- *
- * #ThreadSafe#
- * @since 1.0
- */
-/**
- *
- * `RandomStringUtils` instances should NOT be constructed in
- * standard programming. Instead, the class should be used as
- * `RandomStringUtils.random(5);`.
- *
- *
- * This constructor is public to permit tools that require a JavaBean instance
- * to operate.
- */
 object RandomStringUtils {
 
-    /**
-     *
-     * Random object used by random method. This has to be not local
-     * to the random method so as to not return the same value in the
-     * same millisecond.
-     */
     private val RANDOM = Random()
 
-    /**
-     *
-     * Creates a random string whose length is the number of characters
-     * specified.
-     *
-     *
-     * Characters will be chosen from the set of alpha-numeric
-     * characters as indicated by the arguments.
-     *
-     * @param count  the length of random string to create
-     * @param letters  if `true`, generated string may include
-     * alphabetic characters
-     * @param numbers  if `true`, generated string may include
-     * numeric characters
-     * @return the random string
-     */
-    fun random(count: Int, letters: Boolean = false, numbers: Boolean = false): String {
-        return random(count, 0, 0, letters, numbers)
-    }
-
-    /**
-     *
-     * Creates a random string based on a variety of options, using
-     * default source of randomness.
-     *
-     *
-     * This method has exactly the same semantics as
-     * [.random], but
-     * instead of using an externally supplied source of randomness, it uses
-     * the internal static [Random] instance.
-     *
-     * @param count  the length of random string to create
-     * @param start  the position in set of chars to start at
-     * @param end  the position in set of chars to end before
-     * @param letters  only allow letters?
-     * @param numbers  only allow numbers?
-     * @param chars  the set of chars to choose randoms from.
-     * If `null`, then it will use the set of all chars.
-     * @return the random string
-     * @throws ArrayIndexOutOfBoundsException if there are not
-     * `(end - start) + 1` characters in the set array.
-     */
-    fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean, vararg chars: Char): String {
-        return random(count, start, end, letters, numbers, chars, RANDOM)
-    }
-
-    /**
-     *
-     * Creates a random string based on a variety of options, using
-     * supplied source of randomness.
-     *
-     *
-     * If start and end are both `0`, start and end are set
-     * to `' '` and `'z'`, the ASCII printable
-     * characters, will be used, unless letters and numbers are both
-     * `false`, in which case, start and end are set to
-     * `0` and [Character.MAX_CODE_POINT].
-     *
-     *
-     * If set is not `null`, characters between start and
-     * end are chosen.
-     *
-     *
-     * This method accepts a user-supplied [Random]
-     * instance to use as a source of randomness. By seeding a single
-     * [Random] instance with a fixed seed and using it for each call,
-     * the same random sequence of strings can be generated repeatedly
-     * and predictably.
-     *
-     * @param count  the length of random string to create
-     * @param start  the position in set of chars to start at (inclusive)
-     * @param end  the position in set of chars to end before (exclusive)
-     * @param letters  only allow letters?
-     * @param numbers  only allow numbers?
-     * @param chars  the set of chars to choose randoms from, must not be empty.
-     * If `null`, then it will use the set of all chars.
-     * @param random  a source of randomness.
-     * @return the random string
-     * @throws ArrayIndexOutOfBoundsException if there are not
-     * `(end - start) + 1` characters in the set array.
-     * @throws IllegalArgumentException if `count` &lt; 0 or the provided chars array is empty.
-     * @since 2.0
-     */
     fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean,
                chars: CharArray? = null, random: Random = RANDOM): String {
-        var countChars = count
-        var startChars = start
-        var endChars = end
+
         require(!(chars != null && chars.isEmpty())) { "The chars array must not be empty" }
 
-        if (startChars == 0 && endChars == 0) {
-            if (chars != null) {
-                endChars = chars.size
-            } else {
-                if (!letters && !numbers) {
-                    endChars = Character.MAX_CODE_POINT
-                } else {
-                    endChars = 'z'.toInt() + 1
-                    startChars = ' '.toInt()
-                }
-            }
-        } else {
-            require(endChars > startChars) { "Parameter end ($endChars) must be greater than start ($startChars)" }
-        }
+        val pair = getStartEndChars(start, end, chars, letters, numbers)
+        val startChars = pair.first
+        val endChars = pair.second
 
         val zeroDigitAscii = 48
         val firstLetterAscii = 65
 
         require(!(chars == null && (numbers && endChars <= zeroDigitAscii || letters && endChars <= firstLetterAscii))) {
             "Parameter end (" + endChars + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
-                "or greater then (" + firstLetterAscii + ") for generating letters."
+                    "or greater then (" + firstLetterAscii + ") for generating letters."
         }
 
-        val builder = StringBuilder(countChars)
         val gap = endChars - startChars
+        return generateResult(count, chars, random, gap, startChars, letters, numbers).toString()
+    }
 
-        loop@ while (countChars-- != 0) {
-            val codePoint: Int = if (chars == null) {
-                random.nextInt(gap) + startChars
-            } else {
-                chars[random.nextInt(gap) + startChars].toInt()
-            }
+    private fun generateResult(countChars: Int, chars: CharArray?, random: Random, gap: Int, startChars: Int, letters: Boolean, numbers: Boolean): StringBuilder {
+        var countChars1 = countChars
+        val builder = StringBuilder(countChars1)
+
+        loop@ while (countChars1-- != 0) {
+            val codePoint: Int = getNextCodePoint(chars, random, gap, startChars)
 
             val numberOfChars = Character.charCount(codePoint)
-            if (countChars == 0 && numberOfChars > 1) {
-                countChars++
+            if (countChars1 == 0 && numberOfChars > 1) {
+                countChars1++
                 continue
             }
 
@@ -201,13 +62,41 @@ object RandomStringUtils {
                 builder.appendCodePoint(codePoint)
 
                 if (numberOfChars == 2) {
-                    countChars--
+                    countChars1--
                 }
 
             } else {
-                countChars++
+                countChars1++
             }
         }
-        return builder.toString()
+        return builder
+    }
+
+    private fun getNextCodePoint(chars: CharArray?, random: Random, gap: Int, startChars: Int): Int {
+        return if (chars == null) {
+            random.nextInt(gap) + startChars
+        } else {
+            chars[random.nextInt(gap) + startChars].toInt()
+        }
+    }
+
+    private fun getStartEndChars(startChars: Int, endChars: Int, chars: CharArray?, letters: Boolean, numbers: Boolean): Pair<Int, Int> {
+        var startChars1 = startChars
+        var endChars1 = endChars
+        if (startChars1 == 0 && endChars1 == 0) {
+            if (chars != null) {
+                endChars1 = chars.size
+            } else {
+                if (!letters && !numbers) {
+                    endChars1 = Character.MAX_CODE_POINT
+                } else {
+                    endChars1 = 'z'.toInt() + 1
+                    startChars1 = ' '.toInt()
+                }
+            }
+        } else {
+            require(endChars1 > startChars1) { "Parameter end ($endChars1) must be greater than start ($startChars1)" }
+        }
+        return Pair(startChars1, endChars1)
     }
 }

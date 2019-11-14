@@ -1,10 +1,10 @@
 package org.github.krandom.common
 
+import org.github.krandom.utils.apache.RandomStringUtils
 import org.github.krandom.utils.checkThrowException
 import org.github.krandom.utils.generateRandomString
 import org.github.krandom.utils.getCharCombinations
 import org.github.krandom.utils.validateLength
-import org.github.krandom.utils.apache.RandomStringUtils
 import java.security.SecureRandom
 import java.util.*
 
@@ -112,7 +112,7 @@ open class Randomizer : KRandomCommon {
     override fun randomString(length: Int, specialCharacters: Boolean, numbers: Boolean): String {
         validateLength(length)
 
-        val function: () -> String = { RandomStringUtils.random(length, true, numbers) }
+        val function: () -> String = { RandomStringUtils.random(length, 0, 0, true, numbers) }
         return generateRandomString(function, numbers)
     }
 
