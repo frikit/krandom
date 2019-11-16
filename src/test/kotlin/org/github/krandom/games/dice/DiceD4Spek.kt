@@ -220,4 +220,12 @@ object DiceD4Spek : Spek({
             TestLifecycle.onTestFinish("generate random $typeOfTest")
         }
     }
+
+    describe("a exceptions tests") {
+        it("should fail with IllegalArgument") {
+            assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                IDice.init(DiceType.D4).rolls(0)
+            }
+        }
+    }
 })

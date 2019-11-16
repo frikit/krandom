@@ -23,7 +23,7 @@ class Dice(nrFaces: Int, values: List<String>) : IDice {
     override fun rolls(nrTimes: Int): List<String> {
         require(nrTimes > 0) {"nr of times should be > 0"}
         val result = arrayListOf<String>()
-        for (index in 1..nrTimes) {
+        (1..nrTimes).forEach { _ ->
             val indexOfElem = kRandomCommon.randomInt(range)
             result.add(values[indexOfElem])
         }
