@@ -115,8 +115,10 @@ object FibonacciAlgorithmSpek : Spek({
 
         TestLifecycle.onTestStart { "generate random fibonacci sequence from 1 to 1" }
         describe("generate random fibonacci sequence from 1 to 1") {
+            val seq: List<Long> = FibonacciAlgorithm.generateSequence(from = 1, tillNumber = -1)
+
             it("seq should be the same as expected without first") {
-                assert(FibonacciAlgorithm.generateSequence(from = 1, tillNumber = 1).isEmpty())
+                assert(seq.isEmpty())
             }
         }
         TestLifecycle.onTestFinish { "generate random fibonacci sequence from 1" }
