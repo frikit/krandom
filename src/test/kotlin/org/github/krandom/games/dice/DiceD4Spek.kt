@@ -67,7 +67,7 @@ object DiceD4Spek : Spek({
         }
     }
 
-    describe("a manually filled $typeOfTest") {
+    describe("a manually filled $typeOfTest throw 1 times") {
         val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<String>()
         val generateExpectedValues = generateExpectedValues(-3, 0)
@@ -77,6 +77,44 @@ object DiceD4Spek : Spek({
         describe("generate ${Constants.generateValues} values for tests") {
             (1..Constants.generateValues).forEach { _ ->
                 generatedValues.add(dice.roll())
+            }
+
+            it("should not be empty") {
+                assert(generatedValues.isNotEmpty()) { "Generated values are empty! [$generatedValues]" }
+            }
+        }
+
+        generateExpectedValues.forEach {
+            it("should be at least 1 of $it") {
+                assert(generatedValues.contains(it))
+            }
+        }
+
+        describe("a random tests for $typeOfTest") {
+            TestLifecycle.onTestStart("generate random $typeOfTest")
+            describe("generate random $typeOfTest") {
+                generatedValues.forEach {
+                    value = it
+                    TestLifecycle.onTestStep(logger, "generated : [$value]")
+                    it("$value should be $expectedRegEx") {
+                        assert(value.matches(expectedRegEx)) {"Value [$value] don't match regex [$expectedRegEx]"}
+                    }
+                }
+            }
+            TestLifecycle.onTestFinish("generate random $typeOfTest")
+        }
+    }
+
+    describe("a manually filled $typeOfTest throw 5 times") {
+        val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
+        val generatedValues = arrayListOf<String>()
+        val generateExpectedValues = generateExpectedValues(-3, 0)
+        val expectedRegEx = generateRegEx(-3, 0)
+        var value: String
+
+        describe("generate ${Constants.generateValues} values for tests") {
+            (1..Constants.generateValues).forEach { _ ->
+                generatedValues.add(dice.roll(5))
             }
 
             it("should not be empty") {
