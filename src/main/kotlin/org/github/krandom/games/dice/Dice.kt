@@ -1,21 +1,24 @@
 package org.github.krandom.games.dice
 
-import org.github.krandom.games.dice.enum.DiceType
+import org.github.krandom.common.KRandomCommon
+import org.github.krandom.common.Randomizer
+import java.lang.IllegalArgumentException
 
-interface Dice {
+class Dice(nrFaces: Int, values: List<String>, defaultValues: List<String> = emptyList()) : IDice {
+    private val values: List<String>
+    private val kRandomCommon: KRandomCommon by lazy { Randomizer() }
+    private val range = 0..nrFaces
 
-    fun roll(): String
-
-    companion object {
-        fun init(diceType: DiceType, values: List<String> = emptyList()): Dice {
-            return when(diceType) {
-                DiceType.D4 -> DiceD4(values)
-//                DiceType.D6 -> DiceD4(values)
-//                DiceType.D8 -> DiceD4(values)
-//                DiceType.D10 -> DiceD4(values)
-//                DiceType.D12 -> DiceD4(values)
-//                DiceType.D20 -> DiceD4(values)
-            }
+    init {
+        when {
+            values.isEmpty() -> this.values = defaultValues
+            nrFaces == values.size -> this.values = values
+            else -> throw IllegalArgumentException("Value you passed is not valid one, actual:[${values.size}], expected:[$nrFaces]")
         }
+    }
+
+    override fun roll(): String {
+        val index = kRandomCommon.randomInt(range)
+        return values[index]
     }
 }

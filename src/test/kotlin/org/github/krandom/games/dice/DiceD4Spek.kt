@@ -5,6 +5,7 @@ import mu.KLogging
 import org.github.krandom.games.dice.enum.DiceType
 import org.github.krandom.testhelper.Constants
 import org.github.krandom.testhelper.DiceUtil.generateExpectedValues
+import org.github.krandom.testhelper.DiceUtil.generateInvalidValues
 import org.github.krandom.testhelper.DiceUtil.generateRegEx
 import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
@@ -14,29 +15,25 @@ import kotlin.test.assertFailsWith
 object DiceD4Spek : Spek({
 
     val logger: KLogger = KLogging().logger(DiceD4Spek::class.java.simpleName)
-    val typeOfTest = "dice d4"
+    val diceSize = 4
+    val typeOfTest = "dice d$diceSize"
 
     describe("a dice with invalid elems") {
-        val invalidScenarios = listOf(
-                listOf("-1"),
-                listOf("-1", "0"),
-                listOf("-1", "0", "1"),
-                listOf("-1", "0", "1", "0", "1")
-        )
+        val invalidScenarios = generateInvalidValues(diceSize)
         invalidScenarios.forEach {
             it("should fail with IllegalArgument") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                    Dice.init(DiceType.D4, it)
+                    IDice.init(DiceType.D4, it.toList())
                 }
             }
         }
     }
 
-    describe("a empty dice d4") {
-        val emptyDice: Dice = Dice.init(DiceType.D4)
+    describe("a empty $typeOfTest") {
+        val emptyDice: IDice = IDice.init(DiceType.D4)
         val generatedValues = arrayListOf<String>()
-        val generateExpectedValues = generateExpectedValues(1, 4)
-        val expectedRegEx = generateRegEx(1, 4)
+        val generateExpectedValues = generateExpectedValues(1, diceSize)
+        val expectedRegEx = generateRegEx(1, diceSize)
         var value: String
 
         describe("generate ${Constants.generateValues} values for tests") {
@@ -70,8 +67,8 @@ object DiceD4Spek : Spek({
         }
     }
 
-    describe("a manually filled dice d4") {
-        val dice: Dice = Dice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
+    describe("a manually filled $typeOfTest") {
+        val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<String>()
         val generateExpectedValues = generateExpectedValues(-3, 0)
         val expectedRegEx = generateRegEx(-3, 0)

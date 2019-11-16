@@ -1,10 +1,8 @@
 package org.github.krandom.testhelper
 
-import java.lang.StringBuilder
-
 object DiceUtil {
 
-    fun generateRegEx(start: Int, end: Int) : Regex {
+    fun generateRegEx(start: Int, end: Int): Regex {
         //^(1|2|3|4|){1}$
         val res = StringBuilder("^(")
         for (i in start..end) {
@@ -17,10 +15,26 @@ object DiceUtil {
         return res.toString().toRegex()
     }
 
-    fun generateExpectedValues(start: Int, end: Int) : ArrayList<String> {
+    fun generateExpectedValues(start: Int, end: Int): ArrayList<String> {
         val res = arrayListOf<String>()
         for (i in start..end) {
             res.add(i.toString())
+        }
+
+        return res
+    }
+
+    fun generateInvalidValues(curr: Int): ArrayList<MutableCollection<String>> {
+        val res = arrayListOf<MutableCollection<String>>()
+        val unaDin = arrayListOf<String>()
+        for (i in 0..9) {
+            for (j in 0..i) {
+                unaDin.add(j.toString())
+            }
+            if (curr != unaDin.size) {
+                res.add(unaDin.toMutableList())
+            }
+            unaDin.clear()
         }
 
         return res
