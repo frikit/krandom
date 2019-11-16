@@ -17,15 +17,17 @@ class Dice(nrFaces: Int, values: List<String>) : IDice {
     }
 
     override fun roll(nrTimes: Int): String {
+        return rolls(nrTimes).last()
+    }
+
+    override fun rolls(nrTimes: Int): List<String> {
+        require(nrTimes > 0) {"nr of times should be > 0"}
         val result = arrayListOf<String>()
-        for (index in 0..nrTimes) {
+        for (index in 1..nrTimes) {
             val indexOfElem = kRandomCommon.randomInt(range)
             result.add(values[indexOfElem])
         }
 
-        val indexOfElem = kRandomCommon.randomInt(0, result.size - 1)
-
-        //TODO decide last or random from a thrown
-        return if (result.size == 1) result[0] else result[indexOfElem]
+        return result
     }
 }

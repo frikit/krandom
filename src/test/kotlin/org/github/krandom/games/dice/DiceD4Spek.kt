@@ -59,7 +59,7 @@ object DiceD4Spek : Spek({
                     value = it
                     TestLifecycle.onTestStep(logger, "generated : [$value]")
                     it("$value should be $expectedRegEx") {
-                        assert(value.matches(expectedRegEx)) {"Value [$value] don't match regex [$expectedRegEx]"}
+                        assert(value.matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                     }
                 }
             }
@@ -67,7 +67,7 @@ object DiceD4Spek : Spek({
         }
     }
 
-    describe("a manually filled $typeOfTest throw 1 times") {
+    describe("a manually filled $typeOfTest roll() 1 times") {
         val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<String>()
         val generateExpectedValues = generateExpectedValues(-3, 0)
@@ -97,7 +97,7 @@ object DiceD4Spek : Spek({
                     value = it
                     TestLifecycle.onTestStep(logger, "generated : [$value]")
                     it("$value should be $expectedRegEx") {
-                        assert(value.matches(expectedRegEx)) {"Value [$value] don't match regex [$expectedRegEx]"}
+                        assert(value.matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                     }
                 }
             }
@@ -105,7 +105,7 @@ object DiceD4Spek : Spek({
         }
     }
 
-    describe("a manually filled $typeOfTest throw 5 times") {
+    describe("a manually filled $typeOfTest roll() 5 times") {
         val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<String>()
         val generateExpectedValues = generateExpectedValues(-3, 0)
@@ -135,7 +135,85 @@ object DiceD4Spek : Spek({
                     value = it
                     TestLifecycle.onTestStep(logger, "generated : [$value]")
                     it("$value should be $expectedRegEx") {
-                        assert(value.matches(expectedRegEx)) {"Value [$value] don't match regex [$expectedRegEx]"}
+                        assert(value.matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
+                    }
+                }
+            }
+            TestLifecycle.onTestFinish("generate random $typeOfTest")
+        }
+    }
+
+    describe("a manually filled $typeOfTest rolls() 1 times") {
+        val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
+        val generatedValues = arrayListOf<List<String>>()
+        val expectedRegEx = generateRegEx(-3, 0)
+        var value: String
+
+        describe("generate ${Constants.generateValues} values for tests") {
+            (1..Constants.generateValues).forEach { _ ->
+                generatedValues += dice.rolls()
+            }
+
+            it("should not be empty") {
+                assert(generatedValues.isNotEmpty()) { "Generated values are empty! [$generatedValues]" }
+            }
+        }
+
+        generatedValues.forEach {
+            it("should be size 1") {
+                assert(it.size == 1) { "Should be size == 1 {$it}" }
+            }
+        }
+
+        describe("a random tests for $typeOfTest") {
+            TestLifecycle.onTestStart("generate random $typeOfTest")
+            describe("generate random $typeOfTest") {
+                generatedValues.forEach { vals ->
+                    vals.forEach {
+                        value = it
+                        TestLifecycle.onTestStep(logger, "generated : [$value]")
+                        it("$value should be $expectedRegEx") {
+                            assert(value.matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
+                        }
+                    }
+                }
+            }
+            TestLifecycle.onTestFinish("generate random $typeOfTest")
+        }
+    }
+
+    describe("a manually filled $typeOfTest rolls() 5 times") {
+        val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
+        val generatedValues = arrayListOf<List<String>>()
+        val expectedRegEx = generateRegEx(-3, 0)
+        var value: String
+
+        describe("generate ${Constants.generateValues} values for tests") {
+            (1..Constants.generateValues).forEach { _ ->
+                generatedValues += dice.rolls(5)
+            }
+
+            it("should not be empty") {
+                assert(generatedValues.isNotEmpty()) { "Generated values are empty! [$generatedValues]" }
+            }
+        }
+
+        generatedValues.forEach {
+            it("should be size 5") {
+                assert(it.size == 5) { "Should be size == 5 {$it}" }
+            }
+        }
+
+        describe("a random tests for $typeOfTest") {
+            TestLifecycle.onTestStart("generate random $typeOfTest")
+            describe("generate random $typeOfTest") {
+                generatedValues.forEach { vals ->
+                    vals.forEach {
+                        value = it
+                        TestLifecycle.onTestStep(logger, "generated : [$value]")
+                        it("$value should be $expectedRegEx") {
+                            assert(value.matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
+                        }
                     }
                 }
             }

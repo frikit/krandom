@@ -6,6 +6,8 @@ interface IDice {
 
     fun roll(nrTimes: Int = 1): String
 
+    fun rolls(nrTimes: Int = 1): List<String>
+
     companion object {
         fun init(diceType: DiceType, values: List<String> = emptyList()): IDice {
             return when (diceType) {
