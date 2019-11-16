@@ -113,5 +113,15 @@ object FibonacciAlgorithmSpek : Spek({
         }
         TestLifecycle.onTestFinish { "generate random fibonacci sequence from 1" }
 
+        TestLifecycle.onTestStart { "generate random fibonacci sequence from 1 to 1" }
+        describe("generate random fibonacci sequence from 1 to 1") {
+            it("seq should be the same as expected without first") {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                    FibonacciAlgorithm.generateSequence(from = 1, tillNumber = 1)
+                }
+            }
+        }
+        TestLifecycle.onTestFinish { "generate random fibonacci sequence from 1" }
+
     }
 })
