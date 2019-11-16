@@ -1,11 +1,12 @@
 package org.github.krandom.common
 
-import org.github.krandom.testhelper.Constants.generateValues
-import org.github.krandom.testhelper.TestLifecycle
 import mu.KLogger
 import mu.KLogging
+import org.github.krandom.testhelper.Constants.generateValues
+import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.test.assertFailsWith
 
 object RandomizerStringSpek : Spek({
 
@@ -66,6 +67,16 @@ object RandomizerStringSpek : Spek({
                 }
             }
             TestLifecycle.onTestFinish("generate random string with numbers")
+
+            TestLifecycle.onTestStart("generate random string and throw exception")
+            describe("generate random string and throw exception") {
+                (1..generateValues).forEach { _ ->
+                    assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                        kRandomCommon.randomString(length = -33, specialCharacters = false, numbers = true)
+                    }
+                }
+            }
+            TestLifecycle.onTestFinish("generate random string and throw exception")
         }
     }
 })

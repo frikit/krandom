@@ -3,6 +3,7 @@ package org.github.krandom.algorithms
 import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.test.assertFailsWith
 
 object FibonacciAlgorithmSpek : Spek({
 
@@ -43,11 +44,8 @@ object FibonacciAlgorithmSpek : Spek({
         TestLifecycle.onTestStart { "get number with invalid index -1" }
         describe("get number with index -1") {
             it("should throw exception") {
-                try {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
                     FibonacciAlgorithm.getNumber(-1)
-                } catch (exp: IllegalArgumentException) {
-                    assert(exp.message != "")
-                    assert(exp.message == "Index should be >= 0!")
                 }
             }
         }
@@ -56,11 +54,8 @@ object FibonacciAlgorithmSpek : Spek({
         TestLifecycle.onTestStart { "get number with invalid index 93" }
         describe("get number with index 93") {
             it("should throw exception") {
-                try {
-                    FibonacciAlgorithm.getNumber(-1)
-                } catch (exp: IllegalArgumentException) {
-                    assert(exp.message != "")
-                    assert(exp.message == "Index should be >= 0!")
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                    FibonacciAlgorithm.getNumber(93)
                 }
             }
         }
