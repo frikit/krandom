@@ -119,7 +119,6 @@ open class Randomizer : KRandomCommon {
     private fun normalizeStartEnd(start: Double, end: Double): Pair<Double, Double> {
         var startElem: Double = start
         var endElem = end
-        if (startElem == endElem) endElem++
         //swap vars to act easier
         if (startElem > endElem) startElem = endElem.also { endElem = startElem }
         return Pair(startElem, endElem)
@@ -128,7 +127,6 @@ open class Randomizer : KRandomCommon {
     private fun normalizeStartEnd(start: Long, end: Long): Pair<Long, Long> {
         var startElem: Long = start
         var endElem = end
-        if (startElem == endElem) endElem++
         //swap vars to act easier
         if (startElem > endElem) startElem = endElem.also { endElem = startElem }
         return Pair(startElem, endElem)
@@ -137,7 +135,6 @@ open class Randomizer : KRandomCommon {
     private fun normalizeStartEnd(start: Int, end: Int): Pair<Int, Int> {
         var startElem = start
         var endElem = end
-        if (startElem == endElem) endElem++
         //swap vars to act easier
         if (startElem > endElem) startElem = endElem.also { endElem = startElem }
         return Pair(startElem, endElem)

@@ -118,7 +118,7 @@ object RandomizerIntSpek : Spek({
                 val expectedTwo = -5
 
                 (1..generateValues).forEach { _ ->
-                    intNumber = kRandomCommon.randomInt(expectedTwo..expectedOne)
+                    intNumber = kRandomCommon.randomInt(expectedOne..expectedTwo)
                     intNumber.also { number ->
 
                         TestLifecycle.onTestStep(logger, "generated : [$number]")
@@ -137,7 +137,7 @@ object RandomizerIntSpek : Spek({
                 val expectedTwo = -5
 
                 (1..generateValues).forEach { _ ->
-                    intNumber = kRandomCommon.randomInt(expectedTwo..expectedOne)
+                    intNumber = kRandomCommon.randomInt(expectedOne..expectedTwo)
                     intNumber.also { number ->
 
                         TestLifecycle.onTestStep(logger, "generated : [$number]")

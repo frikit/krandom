@@ -118,7 +118,7 @@ object RandomizerLongSpek : Spek({
                 val expectedTwo = -5L
 
                 (1..generateValues).forEach { _ ->
-                    longNumber = kRandomCommon.randomLong(expectedTwo..expectedOne)
+                    longNumber = kRandomCommon.randomLong(expectedOne..expectedTwo)
                     longNumber.also { number ->
 
                         TestLifecycle.onTestStep(logger, "generated : [$number]")
@@ -137,7 +137,7 @@ object RandomizerLongSpek : Spek({
                 val expectedTwo = -5L
 
                 (1..generateValues).forEach { _ ->
-                    longNumber = kRandomCommon.randomLong(expectedTwo..expectedOne)
+                    longNumber = kRandomCommon.randomLong(expectedOne..expectedTwo)
                     longNumber.also { number ->
 
                         TestLifecycle.onTestStep(logger, "generated : [$number]")
