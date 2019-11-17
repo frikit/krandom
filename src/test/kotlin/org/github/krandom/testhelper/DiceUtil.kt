@@ -15,21 +15,21 @@ object DiceUtil {
         return res.toString().toRegex()
     }
 
-    fun generateExpectedValues(start: Int, end: Int): ArrayList<String> {
-        val res = arrayListOf<String>()
+    fun generateExpectedValues(start: Int, end: Int): ArrayList<Int> {
+        val res = arrayListOf<Int>()
         for (i in start..end) {
-            res.add(i.toString())
+            res.add(i)
         }
 
         return res
     }
 
-    fun generateInvalidValues(curr: Int): ArrayList<MutableCollection<String>> {
-        val res = arrayListOf<MutableCollection<String>>()
-        val unaDin = arrayListOf<String>()
+    fun generateInvalidValues(curr: Int): ArrayList<MutableCollection<Int>> {
+        val res = arrayListOf<MutableCollection<Int>>()
+        val unaDin = arrayListOf<Int>()
         for (i in 0..9) {
             for (j in 0..i) {
-                unaDin.add(j.toString())
+                unaDin.add(j)
             }
             if (curr != unaDin.size) {
                 res.add(unaDin.toMutableList())
