@@ -2,26 +2,29 @@ package org.github.krandom.games.dice
 
 import org.github.krandom.games.dice.enum.DiceType
 
-interface IDice {
+interface IDice<E> {
 
-    fun roll(nrTimes: Int = 1): String
+    fun roll(nrTimes: Int = 1): E
 
-    fun rolls(nrTimes: Int = 1): List<String>
+    fun rolls(nrTimes: Int = 1): List<E>
 
     companion object {
-        fun init(diceType: DiceType, values: List<String> = emptyList()): IDice {
+        fun <E> init(diceType: DiceType, values: List<E>): IDice<E> {
+            validator(diceType.nrFaces, values)
             return when (diceType) {
-                DiceType.D4 -> Dice(diceType.nrFaces, getValue(values, diceType))
-                DiceType.D6 -> Dice(diceType.nrFaces, getValue(values, diceType))
-                DiceType.D8 -> Dice(diceType.nrFaces, getValue(values, diceType))
-                DiceType.D10 -> Dice(diceType.nrFaces, getValue(values, diceType))
-                DiceType.D12 -> Dice(diceType.nrFaces, getValue(values, diceType))
-                DiceType.D20 -> Dice(diceType.nrFaces, getValue(values, diceType))
+                DiceType.D4 -> Dice(diceType.nrFaces, values)
+                DiceType.D6 -> Dice(diceType.nrFaces, values)
+                DiceType.D8 -> Dice(diceType.nrFaces, values)
+                DiceType.D10 -> Dice(diceType.nrFaces, values)
+                DiceType.D12 -> Dice(diceType.nrFaces, values)
+                DiceType.D20 -> Dice(diceType.nrFaces, values)
             }
         }
 
-        private fun getValue(values: List<String>, diceType: DiceType): List<String> {
-            return if (values.isEmpty()) diceType.defaultValues else values
+        private fun <E> validator(nrFaces: Int, values: List<E>) {
+            require(nrFaces == values.size) {
+                "Value you passed is not valid one, actual:[${values.size}], expected:[$nrFaces]"
+            }
         }
     }
 }

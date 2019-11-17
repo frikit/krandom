@@ -27,48 +27,16 @@ object DiceD4Spek : Spek({
                 }
             }
         }
-    }
 
-    describe("a empty $typeOfTest") {
-        val emptyDice: IDice = IDice.init(DiceType.D4)
-        val generatedValues = arrayListOf<String>()
-        val generateExpectedValues = generateExpectedValues(1, diceSize)
-        val expectedRegEx = generateRegEx(1, diceSize)
-        var value: String
-
-        describe("generate ${Constants.generateValues} values for tests") {
-            (1..Constants.generateValues).forEach { _ ->
-                generatedValues.add(emptyDice.roll())
+        it("should fail with IllegalArgument") {
+            assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                IDice.init(DiceType.D4, emptyList<String>())
             }
-
-            it("should not be empty") {
-                assert(generatedValues.isNotEmpty()) { "Generated values are empty! [$generatedValues]" }
-            }
-        }
-
-        generateExpectedValues.forEach {
-            it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it))
-            }
-        }
-
-        describe("a random tests for $typeOfTest") {
-            TestLifecycle.onTestStart("generate random $typeOfTest")
-            describe("generate random $typeOfTest") {
-                generatedValues.forEach {
-                    value = it
-                    TestLifecycle.onTestStep(logger, "generated : [$value]")
-                    it("$value should be $expectedRegEx") {
-                        assert(value.matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
-                    }
-                }
-            }
-            TestLifecycle.onTestFinish("generate random $typeOfTest")
         }
     }
 
     describe("a manually filled $typeOfTest roll() 1 times") {
-        val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
+        val dice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<String>()
         val generateExpectedValues = generateExpectedValues(-3, 0)
         val expectedRegEx = generateRegEx(-3, 0)
@@ -106,7 +74,7 @@ object DiceD4Spek : Spek({
     }
 
     describe("a manually filled $typeOfTest roll() 5 times") {
-        val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
+        val dice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<String>()
         val generateExpectedValues = generateExpectedValues(-3, 0)
         val expectedRegEx = generateRegEx(-3, 0)
@@ -144,7 +112,7 @@ object DiceD4Spek : Spek({
     }
 
     describe("a manually filled $typeOfTest rolls() 1 times") {
-        val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
+        val dice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<List<String>>()
         val expectedRegEx = generateRegEx(-3, 0)
         var value: String
@@ -183,7 +151,7 @@ object DiceD4Spek : Spek({
     }
 
     describe("a manually filled $typeOfTest rolls() 5 times") {
-        val dice: IDice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
+        val dice = IDice.init(DiceType.D4, listOf("-3", "-2", "-1", "0"))
         val generatedValues = arrayListOf<List<String>>()
         val expectedRegEx = generateRegEx(-3, 0)
         var value: String
@@ -224,7 +192,7 @@ object DiceD4Spek : Spek({
     describe("a exceptions tests") {
         it("should fail with IllegalArgument") {
             assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                IDice.init(DiceType.D4).rolls(0)
+                IDice.init(DiceType.D4, emptyList<String>()).rolls(0)
             }
         }
     }
