@@ -18,28 +18,36 @@ object DiceD4Spek : Spek({
     val diceSize = 4
     val typeOfTest = "dice d$diceSize"
     val expectedValues = generateExpectedValues(-3, 0)
+    val expectedRegEx = generateRegEx(-3, 0)
+    val diceType = DiceType.D4
+    val rollTimes = 5
 
-    describe("a dice with invalid elems") {
+    describe("a $typeOfTest with invalid tests") {
         val invalidScenarios = generateInvalidValues(diceSize)
         invalidScenarios.forEach {
-            it("should fail with IllegalArgument") {
+            it("have invalid values") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                    IDice.init(DiceType.D4, it.toList())
+                    IDice.init(diceType, it.toList())
                 }
             }
         }
 
-        it("should fail with IllegalArgument") {
+        it("have empty values") {
             assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                IDice.init(DiceType.D4, emptyList<String>())
+                IDice.init(diceType, emptyList<String>())
+            }
+        }
+
+        it("roll invalid nr of times") {
+            assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                IDice.init(diceType, expectedValues).rolls(-1)
             }
         }
     }
 
-    describe("a manually filled $typeOfTest roll() 1 times") {
-        val dice = IDice.init(DiceType.D4, expectedValues)
+    describe("a $typeOfTest roll() 1 times") {
+        val dice = IDice.init(diceType, expectedValues)
         val generatedValues = arrayListOf<Int>()
-        val expectedRegEx = generateRegEx(-3, 0)
         var value: Int
 
         describe("generate ${Constants.generateValues} values for tests") {
@@ -73,15 +81,14 @@ object DiceD4Spek : Spek({
         }
     }
 
-    describe("a manually filled $typeOfTest roll() 5 times") {
-        val dice = IDice.init(DiceType.D4, expectedValues)
+    describe("a $typeOfTest roll() 5 times") {
+        val dice = IDice.init(diceType, expectedValues)
         val generatedValues = arrayListOf<Int>()
-        val expectedRegEx = generateRegEx(-3, 0)
         var value: Int
 
         describe("generate ${Constants.generateValues} values for tests") {
             (1..Constants.generateValues).forEach { _ ->
-                generatedValues.add(dice.roll(5))
+                generatedValues.add(dice.roll(rollTimes))
             }
 
             it("should not be empty") {
@@ -110,10 +117,9 @@ object DiceD4Spek : Spek({
         }
     }
 
-    describe("a manually filled $typeOfTest rolls() 1 times") {
-        val dice = IDice.init(DiceType.D4, expectedValues)
+    describe("a $typeOfTest rolls() 1 times") {
+        val dice = IDice.init(diceType, expectedValues)
         val generatedValues = arrayListOf<List<Int>>()
-        val expectedRegEx = generateRegEx(-3, 0)
         var value: Int
 
         describe("generate ${Constants.generateValues} values for tests") {
@@ -149,15 +155,14 @@ object DiceD4Spek : Spek({
         }
     }
 
-    describe("a manually filled $typeOfTest rolls() 5 times") {
-        val dice = IDice.init(DiceType.D4, expectedValues)
+    describe("a $typeOfTest rolls() 5 times") {
+        val dice = IDice.init(diceType, expectedValues)
         val generatedValues = arrayListOf<List<Int>>()
-        val expectedRegEx = generateRegEx(-3, 0)
         var value: Int
 
         describe("generate ${Constants.generateValues} values for tests") {
             (1..Constants.generateValues).forEach { _ ->
-                generatedValues += dice.rolls(5)
+                generatedValues += dice.rolls(rollTimes)
             }
 
             it("should not be empty") {
@@ -167,7 +172,7 @@ object DiceD4Spek : Spek({
 
         generatedValues.forEach {
             it("should be size 5") {
-                assert(it.size == 5) { "Should be size == 5 {$it}" }
+                assert(it.size == rollTimes) { "Should be size == 5 {$it}" }
             }
         }
 
