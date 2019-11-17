@@ -27,6 +27,7 @@ abstract class GenericUserGenerator {
     protected fun randomDatas(list: List<String>, size: Int): List<String> {
         require(list.isNotEmpty()) { "List should have elements!!!" }
         isValidSize(size)
+        //TODO optimize make linked list and extract a bunch of indexes
         val res = list.run { shuffled().take(size).toList() }
         require(res.isNotEmpty()) { "WTF?! [$res]" }
         return res

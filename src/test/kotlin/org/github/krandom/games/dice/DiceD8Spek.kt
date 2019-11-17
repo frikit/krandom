@@ -20,7 +20,7 @@ object DiceD8Spek : Spek({
     val expectedValues = generateExpectedValues(-3, 4)
     val expectedRegEx = generateRegEx(-3, 4)
     val diceType = DiceType.D8
-    val rollTimes = 25
+    val rollTimes = 125
 
     describe("a $typeOfTest with invalid tests") {
         val invalidScenarios = generateInvalidValues(diceSize)
