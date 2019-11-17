@@ -12,14 +12,14 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
-object DiceD4Spek : Spek({
+object DiceD6Spek : Spek({
 
-    val logger: KLogger = KLogging().logger(DiceD4Spek::class.java.simpleName)
-    val diceSize = 4
+    val logger: KLogger = KLogging().logger(DiceD6Spek::class.java.simpleName)
+    val diceSize = 6
     val typeOfTest = "dice d$diceSize"
-    val expectedValues = generateExpectedValues(-3, 0)
-    val expectedRegEx = generateRegEx(-3, 0)
-    val diceType = DiceType.D4
+    val expectedValues = generateExpectedValues(-3, 2)
+    val expectedRegEx = generateRegEx(-3, 2)
+    val diceType = DiceType.D6
     val rollTimes = 25
 
     describe("a $typeOfTest with invalid tests") {

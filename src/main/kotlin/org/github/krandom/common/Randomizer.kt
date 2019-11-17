@@ -96,10 +96,10 @@ open class Randomizer : KRandomCommon {
             "Index which was choose to get combination pair is wrong $chooseWhich"
         }
 
-        val first = combinations[chooseWhich].first.toLong()
-        val second = combinations[chooseWhich].second.toLong()
+        val first = combinations[chooseWhich].first
+        val second = combinations[chooseWhich].second
 
-        val number = randomLong(first, second)
+        val number = randomInt(first, second)
         return number.toChar()
     }
 
