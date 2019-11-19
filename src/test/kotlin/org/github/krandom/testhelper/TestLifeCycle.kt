@@ -55,9 +55,9 @@ object TestLifecycle {
     }
 
     fun onTestStep(logger: KLogger, message: String) {
-        if (checkValidMethodName(message)) {
-            logger.info { message }
-        }
+//        if (checkValidMethodName(message)) {
+//            logger.info { message }
+//        }
     }
 
     // private methods

@@ -50,7 +50,7 @@ object RandomStringUtils {
             val codePoint: Int = getNextCodePoint(chars, gap, startChars)
 
             val numberOfChars = Character.charCount(codePoint)
-            //TODO remove in future
+            //TODO remove in future or find a way to test it
 //            if (countChars1 == 0 && numberOfChars > 1) {
 //                countChars1++
 //                continue
