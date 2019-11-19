@@ -19,8 +19,8 @@ class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
 
         if (nrTimes > values.size * 2) {
             //make sure all values are different when generate them
-            repeat(99) {
-                if (!isValidResult(result)) {
+            (0..99).forEach { index ->
+                if (!isValidResult(index, result)) {
                     result = generateResult(nrTimes)
                 } else {
                     return result
@@ -30,10 +30,10 @@ class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
         return result
     }
 
-    private fun isValidResult(result: List<E>): Boolean {
+    private fun isValidResult(index: Int, result: List<E>): Boolean {
         values.forEach {
             if (!result.contains(it)) {
-                logger.trace { "Because there is no [$it] in results and need to regenerate {$result}" }
+                logger.trace { "[$index idx]Because there is no [$it] in results and need to regenerate {$result}" }
                 return false
             }
         }
