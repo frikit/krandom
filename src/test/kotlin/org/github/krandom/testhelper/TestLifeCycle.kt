@@ -10,6 +10,8 @@ object TestLifecycle {
     private const val NEW_LINE_DOUBLE_TAB = "\n" + doubleTab
     private const val FORMAT_LINE = "# %s"
 
+    private val LOG_STEPS by lazy { !System.getenv("LOG_STEPS").isNullOrEmpty() }
+
     private const val START_MSG = NEW_LINE_DOUBLE_TAB +
             "#----------------------------------START TEST----------------------------------#\n" +
             doubleTab +
@@ -42,7 +44,7 @@ object TestLifecycle {
         }
     }
 
-    fun onTestStart(methodName:  String) {
+    fun onTestStart(methodName: String) {
         if (checkValidMethodName(methodName)) {
             kLogger.info(String.format(START_MSG, fillWithEmptySpacesOrReturn(methodName)))
         }
@@ -55,9 +57,11 @@ object TestLifecycle {
     }
 
     fun onTestStep(logger: KLogger, message: String) {
-//        if (checkValidMethodName(message)) {
-//            logger.info { message }
-//        }
+        if (LOG_STEPS) {
+            if (checkValidMethodName(message)) {
+                logger.info { message }
+            }
+        }
     }
 
     // private methods
