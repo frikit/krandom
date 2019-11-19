@@ -2,7 +2,6 @@ package org.github.krandom.algorithms
 
 import org.github.krandom.testhelper.Constants.generateValues
 import org.github.krandom.testhelper.LuhnUtils
-import org.github.krandom.testhelper.TestLifecycle
 import mu.KLogger
 import mu.KLogging
 import org.spekframework.spek2.Spek
@@ -12,12 +11,10 @@ object LuhnAlgorithmSpek : Spek({
 
     val logger: KLogger = KLogging().logger(LuhnAlgorithmSpek::class.java.simpleName)
 
-    TestLifecycle.onTestStart("generate random luhn number from scratch")
     describe("generate random luhn number from scratch") {
         var number: String
         (1..generateValues).onEach {
             number = LuhnAlgorithm.randomNumber()
-            TestLifecycle.onTestStep(logger, "generated : [$number]")
             it("$number valid luhn algorithm checked") {
                 //basic check
                 assert(number.length == 10) { "Length should be 10! but it is [${number.length}]" }
@@ -28,5 +25,4 @@ object LuhnAlgorithmSpek : Spek({
             }
         }
     }
-    TestLifecycle.onTestFinish("generate random luhn number from scratch")
-})
+    })

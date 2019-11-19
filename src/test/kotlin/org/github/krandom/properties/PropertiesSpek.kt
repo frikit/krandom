@@ -1,6 +1,5 @@
 package org.github.krandom.properties
 
-import org.github.krandom.testhelper.TestLifecycle
 import mu.KLogger
 import mu.KLogging
 import org.spekframework.spek2.Spek
@@ -26,7 +25,6 @@ object PropertiesSpek : Spek({
             Pair("minByte", Byte.MIN_VALUE)
     )
 
-    TestLifecycle.onTestStart("test properties class")
     describe("a properties object") {
         val properties = Properties
         describe("get fields from object") {
@@ -54,5 +52,4 @@ object PropertiesSpek : Spek({
             }
         }
     }
-    TestLifecycle.onTestFinish("test properties class")
-})
+    })

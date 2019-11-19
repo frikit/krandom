@@ -7,7 +7,6 @@ import org.github.krandom.testhelper.Constants
 import org.github.krandom.testhelper.DiceUtil.generateExpectedValues
 import org.github.krandom.testhelper.DiceUtil.generateInvalidValues
 import org.github.krandom.testhelper.DiceUtil.generateRegEx
-import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -20,7 +19,7 @@ object DiceD12Spek : Spek({
     val expectedValues = generateExpectedValues(-3, 8)
     val expectedRegEx = generateRegEx(-3, 8)
     val diceType = DiceType.D12
-    val rollTimes = 125
+    val rollTimes = diceSize * 5
 
     describe("a $typeOfTest with invalid tests") {
         val invalidScenarios = generateInvalidValues(diceSize)
@@ -67,18 +66,15 @@ object DiceD12Spek : Spek({
         }
 
         describe("a random tests for $typeOfTest") {
-            TestLifecycle.onTestStart("generate random $typeOfTest")
             describe("generate random $typeOfTest") {
                 generatedValues.forEach {
                     value = it
-                    TestLifecycle.onTestStep(logger, "generated : [$value]")
                     it("$value should be $expectedRegEx") {
                         assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $typeOfTest")
-        }
+            }
     }
 
     describe("a $typeOfTest roll() 5 times") {
@@ -103,18 +99,15 @@ object DiceD12Spek : Spek({
         }
 
         describe("a random tests for $typeOfTest") {
-            TestLifecycle.onTestStart("generate random $typeOfTest")
             describe("generate random $typeOfTest") {
                 generatedValues.forEach {
                     value = it
-                    TestLifecycle.onTestStep(logger, "generated : [$value]")
                     it("$value should be $expectedRegEx") {
                         assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $typeOfTest")
-        }
+            }
     }
 
     describe("a $typeOfTest rolls() 1 times") {
@@ -139,20 +132,17 @@ object DiceD12Spek : Spek({
         }
 
         describe("a random tests for $typeOfTest") {
-            TestLifecycle.onTestStart("generate random $typeOfTest")
             describe("generate random $typeOfTest") {
                 generatedValues.forEach { vals ->
                     vals.forEach {
                         value = it
-                        TestLifecycle.onTestStep(logger, "generated : [$value]")
                         it("$value should be $expectedRegEx") {
                             assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                         }
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $typeOfTest")
-        }
+            }
     }
 
     describe("a $typeOfTest rolls() 5 times") {
@@ -177,19 +167,16 @@ object DiceD12Spek : Spek({
         }
 
         describe("a random tests for $typeOfTest") {
-            TestLifecycle.onTestStart("generate random $typeOfTest")
             describe("generate random $typeOfTest") {
                 generatedValues.forEach { vals ->
                     vals.forEach {
                         value = it
-                        TestLifecycle.onTestStep(logger, "generated : [$value]")
                         it("$value should be $expectedRegEx") {
                             assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                         }
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $typeOfTest")
-        }
+            }
     }
 })

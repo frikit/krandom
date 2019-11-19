@@ -5,7 +5,6 @@ import mu.KLogging
 import org.github.krandom.testhelper.isBiggerOrEqual
 import org.github.krandom.testhelper.isSmaller
 import org.github.krandom.testhelper.Constants.generateValues
-import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -21,7 +20,6 @@ object RandomizerLongSpek : Spek({
 
         describe("a random tests for $randomType") {
 
-            TestLifecycle.onTestStart("generate random $randomType")
             describe("generate random $randomType") {
                 val expectedOne = Long.MIN_VALUE
                 val expectedTwo = Long.MAX_VALUE
@@ -29,7 +27,6 @@ object RandomizerLongSpek : Spek({
                 (1..generateValues).forEach { _ ->
                     longNumber = kRandomCommon.randomLong()
                     longNumber.also { number ->
-                        TestLifecycle.onTestStep(logger, "generated : [$number]")
                         it("$number should be in range >=$expectedOne and <$expectedTwo") {
                             isBiggerOrEqual(number, expectedOne)
                             isSmaller(number, expectedTwo)
@@ -37,9 +34,6 @@ object RandomizerLongSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType")
-
-            TestLifecycle.onTestStart("generate random $randomType in range")
             describe("generate random $randomType in range") {
                 val expectedOne = 1L
                 val expectedTwo = 5L
@@ -48,7 +42,6 @@ object RandomizerLongSpek : Spek({
                     longNumber = kRandomCommon.randomLong(expectedOne..expectedTwo)
                     longNumber.also { number ->
 
-                        TestLifecycle.onTestStep(logger, "generated : [$number]")
                         it("$number should be in range >=$expectedOne and <$expectedTwo") {
                             isBiggerOrEqual(number, expectedOne)
                             isSmaller(number, expectedTwo)
@@ -56,9 +49,6 @@ object RandomizerLongSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType in range")
-
-            TestLifecycle.onTestStart("generate random $randomType in range(start, end)")
             describe("generate random $randomType in range(start, end)") {
                 val expectedOne = 1L
                 val expectedTwo = 5L
@@ -67,7 +57,6 @@ object RandomizerLongSpek : Spek({
                     longNumber = kRandomCommon.randomLong(expectedOne, expectedTwo)
                     longNumber.also { number ->
 
-                        TestLifecycle.onTestStep(logger, "generated : [$number]")
                         it("$number should be in range >=$expectedOne and <$expectedTwo") {
                             isBiggerOrEqual(number, expectedOne)
                             isSmaller(number, expectedTwo)
@@ -75,17 +64,11 @@ object RandomizerLongSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType in range(start, end)")
-
-            TestLifecycle.onTestStart("generate random $randomType in range(0, 0)")
             describe("generate random $randomType in range(0, 0)") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
                     kRandomCommon.randomLong(0L, 0L)
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType in range(0, 0)")
-
-            TestLifecycle.onTestStart("generate random $randomType in range(-start, end)")
             describe("generate random $randomType in range(-start, end)") {
                 val expectedOne = -1L
                 val expectedTwo = 5L
@@ -94,7 +77,6 @@ object RandomizerLongSpek : Spek({
                     longNumber = kRandomCommon.randomLong(expectedOne..expectedTwo)
                     longNumber.also { number ->
 
-                        TestLifecycle.onTestStep(logger, "generated : [$number]")
                         it("$number should be in range >=$expectedOne and <$expectedTwo") {
                             isBiggerOrEqual(number, expectedOne)
                             isSmaller(number, expectedTwo)
@@ -102,9 +84,6 @@ object RandomizerLongSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType in range(-start, end)")
-
-            TestLifecycle.onTestStart("generate random $randomType in range(-start, -end)")
             describe("generate random $randomType in range(-start, -end)") {
                 val expectedOne = -1L
                 val expectedTwo = -5L
@@ -113,7 +92,6 @@ object RandomizerLongSpek : Spek({
                     longNumber = kRandomCommon.randomLong(expectedOne..expectedTwo)
                     longNumber.also { number ->
 
-                        TestLifecycle.onTestStep(logger, "generated : [$number]")
                         it("$number should be in range >=$expectedOne and <$expectedTwo") {
                             isSmaller(number, expectedOne)
                             isBiggerOrEqual(number, expectedTwo)
@@ -121,9 +99,6 @@ object RandomizerLongSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType in range(-start, -end)")
-
-            TestLifecycle.onTestStart("generate random $randomType in range(start, -end)")
             describe("generate random $randomType in range(start, -end)") {
                 val expectedOne = 1L
                 val expectedTwo = -5L
@@ -132,7 +107,6 @@ object RandomizerLongSpek : Spek({
                     longNumber = kRandomCommon.randomLong(expectedOne..expectedTwo)
                     longNumber.also { number ->
 
-                        TestLifecycle.onTestStep(logger, "generated : [$number]")
                         it("$number should be in range >=$expectedOne and <$expectedTwo") {
                             isSmaller(number, expectedOne)
                             isBiggerOrEqual(number, expectedTwo)
@@ -140,9 +114,6 @@ object RandomizerLongSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType in range(start, -end)")
-
-            TestLifecycle.onTestStart("generate random $randomType in range(start)")
             describe("generate random $randomType in range(start)") {
                 val expectedOne = 1L
 
@@ -150,16 +121,12 @@ object RandomizerLongSpek : Spek({
                     longNumber = kRandomCommon.randomLong(start = expectedOne)
                     longNumber.also { number ->
 
-                        TestLifecycle.onTestStep(logger, "generated : [$number]")
                         it("$number should be in range >=$expectedOne") {
                             isBiggerOrEqual(number, expectedOne)
                         }
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType in range(start)")
-
-            TestLifecycle.onTestStart("generate random $randomType in range(end)")
             describe("generate random $randomType in range(end)") {
                 val expectedTwo = 5L
 
@@ -167,15 +134,12 @@ object RandomizerLongSpek : Spek({
                     longNumber = kRandomCommon.randomLong(end = expectedTwo)
                     longNumber.also { number ->
 
-                        TestLifecycle.onTestStep(logger, "generated : [$number]")
                         it("$number should be in range <$expectedTwo") {
                             isSmaller(number, expectedTwo)
                         }
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType in range(end)")
-
-        }
+            }
     }
 })

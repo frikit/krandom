@@ -1,7 +1,6 @@
 package org.github.krandom.common
 
 import org.github.krandom.testhelper.Constants.generateValues
-import org.github.krandom.testhelper.TestLifecycle
 import mu.KLogger
 import mu.KLogging
 import org.spekframework.spek2.Spek
@@ -17,17 +16,14 @@ object RandomizerBooleanSpek : Spek({
         val kRandomCommon: KRandomCommon = Randomizer()
 
         describe("a random tests for $randomType") {
-            TestLifecycle.onTestStart("generate random $randomType")
             describe("generate random $randomType") {
                 (1..generateValues).forEach {
                     boolean = kRandomCommon.randomBoolean()
-                    TestLifecycle.onTestStep(logger, "generated : [$boolean]")
                     it("[$it idx] $boolean should be true or false") {
                         assert(boolean || !boolean)
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random $randomType")
-        }
+            }
     }
 })

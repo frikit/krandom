@@ -3,7 +3,6 @@ package org.github.krandom.common
 import mu.KLogger
 import mu.KLogging
 import org.github.krandom.testhelper.Constants.generateValues
-import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -18,12 +17,10 @@ object RandomizerStringSpek : Spek({
         val kRandomCommon: KRandomCommon = Randomizer()
 
         describe("a random tests for string") {
-            TestLifecycle.onTestStart("generate random string with all defaults params")
             describe("generate random string with all defaults params") {
                 (1..generateValues).forEach { _ ->
                     stringz = kRandomCommon.randomString()
                     stringz.let { string ->
-                        TestLifecycle.onTestStep(logger, "generated : [$string]")
                         it("$string should be with length 5 and not empty and not blank") {
                             assert(string.length == 5)
                             assert(string.isNotBlank())
@@ -32,14 +29,10 @@ object RandomizerStringSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random string with all defaults params")
-
-            TestLifecycle.onTestStart("generate random string")
             describe("generate random string") {
                 (1..generateValues).forEach { _ ->
                     stringz = kRandomCommon.randomString(length = 25, specialCharacters = false, numbers = false)
                     stringz.let { string ->
-                        TestLifecycle.onTestStep(logger, "generated : [$string]")
                         it("$string should be with length 25 and not empty and not blank") {
                             assert(string.length == 25)
                             assert(string.isNotBlank())
@@ -49,14 +42,10 @@ object RandomizerStringSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random string")
-
-            TestLifecycle.onTestStart("generate random string with numbers")
             describe("generate random string with numbers") {
                 (1..generateValues).forEach { _ ->
                     stringz = kRandomCommon.randomString(length = 33, specialCharacters = false, numbers = true)
                     stringz.let { string ->
-                        TestLifecycle.onTestStep(logger, "generated : [$string]")
                         it("$string should be with length 33 and not empty and not blank") {
                             assert(string.length == 33)
                             assert(string.isNotBlank())
@@ -66,9 +55,6 @@ object RandomizerStringSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random string with numbers")
-
-            TestLifecycle.onTestStart("generate random string and throw exception")
             describe("generate random string and throw exception") {
                 (1..generateValues).forEach { _ ->
                     assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
@@ -76,7 +62,6 @@ object RandomizerStringSpek : Spek({
                     }
                 }
             }
-            TestLifecycle.onTestFinish("generate random string and throw exception")
-        }
+            }
     }
 })

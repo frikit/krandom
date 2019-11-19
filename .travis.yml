@@ -8,9 +8,6 @@ jobs:
     - os: linux
       jdk: openjdk13
 
-env:
-  - LOG_STEPS=false
-
 script: ./gradlew check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
 
 before_cache:
