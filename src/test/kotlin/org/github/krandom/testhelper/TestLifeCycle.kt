@@ -10,7 +10,7 @@ object TestLifecycle {
     private const val NEW_LINE_DOUBLE_TAB = "\n" + doubleTab
     private const val FORMAT_LINE = "# %s"
 
-    private val LOG_STEPS by lazy { !System.getenv("LOG_STEPS").isNullOrEmpty() }
+    private val LOG_STEPS by lazy { System.getenv("LOG_STEPS").isNullOrEmpty() }
 
     private const val START_MSG = NEW_LINE_DOUBLE_TAB +
             "#----------------------------------START TEST----------------------------------#\n" +
