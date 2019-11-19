@@ -1,9 +1,11 @@
 package org.github.krandom.games.dice
 
+import mu.KLogging
 import org.github.krandom.common.KRandomCommon
 import org.github.krandom.common.Randomizer
 
 class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
+    private val logger by lazy { KLogging().logger("Dice") }
     private val kRandomCommon: KRandomCommon by lazy { Randomizer() }
     private val range = 0..nrFaces
 
@@ -17,7 +19,7 @@ class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
 
         if (nrTimes > values.size * 2) {
             //make sure all values are different when generate them
-            repeat(9) {
+            repeat(99) {
                 if (!isValidResult(result)) {
                     result = generateResult(nrTimes)
                 } else {
@@ -30,7 +32,10 @@ class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
 
     private fun isValidResult(result: List<E>): Boolean {
         values.forEach {
-            if (!result.contains(it)) return false
+            if (!result.contains(it)) {
+                logger.trace { "Because there is no [$it] in results and need to regenerate {$result}" }
+                return false
+            }
         }
 
         return true

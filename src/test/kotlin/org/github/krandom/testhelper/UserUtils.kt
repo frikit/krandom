@@ -1,10 +1,6 @@
 package org.github.krandom.testhelper
 
-import mu.KLogger
-import mu.KLogging
-
 object UserUtils {
-    private val logger: KLogger = KLogging().logger(UserUtils::class.java.simpleName)
 
     fun validateName(name: String, numbers: Boolean = false) {
         if (numbers) {
@@ -17,12 +13,8 @@ object UserUtils {
     }
 
     fun validateNames(name: List<String>, numbers: Boolean = false) {
-        for ((index, it) in name.withIndex()) {
-            try {
-                validateName(it, numbers)
-            } catch (e: Throwable) {
-                logger.error { "Empty value found with index [$index] and value [$it]" }
-            }
+        for (it in name) {
+            validateName(it, numbers)
         }
     }
 }

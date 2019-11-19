@@ -8,7 +8,7 @@ import java.lang.reflect.Field
 
 object PropertiesSpek : Spek({
 
-    val logger: KLogger = KLogging().logger(PropertiesSpek::class.java.simpleName)
+    val logger: KLogger by lazy { KLogging().logger(PropertiesSpek::class.java.simpleName) }
 
     val expectedFields: Map<String, Any> = mapOf(
             Pair("maxDouble", Double.MAX_VALUE),

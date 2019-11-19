@@ -1,7 +1,5 @@
 package org.github.krandom.common
 
-import mu.KLogger
-import mu.KLogging
 import org.github.krandom.testhelper.Constants.generateValues
 import org.github.krandom.testhelper.isBiggerOrEqual
 import org.github.krandom.testhelper.isSmaller
@@ -11,7 +9,6 @@ import kotlin.test.assertFailsWith
 
 object RandomizerIntSpek : Spek({
 
-    val logger: KLogger = KLogging().logger(RandomizerIntSpek::class.java.simpleName)
     val randomType = "int"
     var intNumber: Int
 

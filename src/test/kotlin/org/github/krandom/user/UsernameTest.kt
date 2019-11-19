@@ -1,7 +1,5 @@
 package org.github.krandom.user
 
-import mu.KLogger
-import mu.KLogging
 import org.github.krandom.exceptions.NegativeSizeException
 import org.github.krandom.exceptions.SizeLimitExceedException
 import org.github.krandom.testhelper.Constants
@@ -15,7 +13,6 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object UsernameTest : Spek({
-    val logger: KLogger = KLogging().logger(UsernameTest::class.java.simpleName)
 
     run {
         propName = "username"

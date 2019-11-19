@@ -1,15 +1,11 @@
 package org.github.krandom.common
 
-import mu.KLogger
-import mu.KLogging
 import org.github.krandom.testhelper.Constants.generateValues
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
 object RandomizerStringSpek : Spek({
-
-    val logger: KLogger = KLogging().logger(RandomizerStringSpek::class.java.simpleName)
 
     var stringz: String
 

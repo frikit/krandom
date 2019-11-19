@@ -2,20 +2,17 @@ package org.github.krandom.user
 
 import org.github.krandom.exceptions.NegativeSizeException
 import org.github.krandom.exceptions.SizeLimitExceedException
-import org.github.krandom.user.BaseUserGenerator.propName
-import org.github.krandom.user.BaseUserGenerator.propNames
 import org.github.krandom.testhelper.Constants
 import org.github.krandom.testhelper.Constants.generateValues
-import org.github.krandom.testhelper.UserUtils
 import org.github.krandom.testhelper.Constants.userSize
+import org.github.krandom.testhelper.UserUtils
 import org.github.krandom.testhelper.UserUtils.validateName
-import mu.KLogger
-import mu.KLogging
+import org.github.krandom.user.BaseUserGenerator.propName
+import org.github.krandom.user.BaseUserGenerator.propNames
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object SurNameTest : Spek({
-    val logger: KLogger = KLogging().logger(SurNameTest::class.java.simpleName)
 
     run {
         propName = "surname"

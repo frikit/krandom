@@ -2,14 +2,10 @@ package org.github.krandom.algorithms
 
 import org.github.krandom.testhelper.Constants.generateValues
 import org.github.krandom.testhelper.LuhnUtils
-import mu.KLogger
-import mu.KLogging
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object LuhnAlgorithmSpek : Spek({
-
-    val logger: KLogger = KLogging().logger(LuhnAlgorithmSpek::class.java.simpleName)
 
     describe("generate random luhn number from scratch") {
         var number: String

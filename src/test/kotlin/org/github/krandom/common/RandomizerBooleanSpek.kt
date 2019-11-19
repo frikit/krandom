@@ -1,14 +1,11 @@
 package org.github.krandom.common
 
 import org.github.krandom.testhelper.Constants.generateValues
-import mu.KLogger
-import mu.KLogging
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object RandomizerBooleanSpek : Spek({
 
-    val logger: KLogger = KLogging().logger(RandomizerBooleanSpek::class.java.simpleName)
     val randomType = "boolean"
     var boolean: Boolean
 

@@ -1,7 +1,5 @@
 package org.github.krandom.games.dice
 
-import mu.KLogger
-import mu.KLogging
 import org.github.krandom.games.dice.enum.DiceType
 import org.github.krandom.testhelper.Constants
 import org.github.krandom.testhelper.DiceUtil.generateExpectedValues
@@ -13,7 +11,6 @@ import kotlin.test.assertFailsWith
 
 object DiceD4Spek : Spek({
 
-    val logger: KLogger = KLogging().logger(DiceD4Spek::class.java.simpleName)
     val diceSize = 4
     val typeOfTest = "dice d$diceSize"
     val expectedValues = generateExpectedValues(-3, 0)

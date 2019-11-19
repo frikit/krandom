@@ -1,14 +1,10 @@
 package org.github.krandom.common
 
 import org.github.krandom.testhelper.Constants.generateValues
-import mu.KLogger
-import mu.KLogging
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object RandomizerCharSpek : Spek({
-
-    val logger: KLogger = KLogging().logger(RandomizerCharSpek::class.java.simpleName)
 
     var charz: Char
 

@@ -1,16 +1,16 @@
 package org.github.krandom.common
 
-import mu.KLogger
-import mu.KLogging
-import org.github.krandom.testhelper.*
 import org.github.krandom.testhelper.Constants.generateValues
+import org.github.krandom.testhelper.isBigger
+import org.github.krandom.testhelper.isBiggerOrEqual
+import org.github.krandom.testhelper.isLesserOrEqual
+import org.github.krandom.testhelper.isSmaller
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
 object RandomizerDoubleSpek : Spek({
 
-    val logger: KLogger = KLogging().logger(RandomizerDoubleSpek::class.java.simpleName)
     val randomType = "double"
     var doubleNumber: Double
 
