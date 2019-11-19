@@ -31,9 +31,9 @@ class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
     }
 
     private fun isValidResult(index: Int, result: List<E>): Boolean {
-        values.forEach {
+        for (it in values) {
             if (!result.contains(it)) {
-                logger.trace { "[$index idx]Because there is no [$it] in results and need to regenerate {$result}" }
+                logger.trace { "[$index idx] Because there is no [$it] in results and need to regenerate {$result}" }
                 return false
             }
         }

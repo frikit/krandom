@@ -58,7 +58,7 @@ object DiceD20Spek : Spek({
 
         expectedValues.forEach {
             it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it)) { "this value [$it] should be in [$generatedValues]" }
+                assert(generatedValues.contains(it)) { "This value [$it] should be in [$generatedValues]" }
             }
         }
 
@@ -71,7 +71,7 @@ object DiceD20Spek : Spek({
                     }
                 }
             }
-            }
+        }
     }
 
     describe("a $typeOfTest roll() 5 times") {
@@ -91,7 +91,7 @@ object DiceD20Spek : Spek({
 
         expectedValues.forEach {
             it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it)) { "this value [$it] should be in [$generatedValues]" }
+                assert(generatedValues.contains(it)) { "This value [$it] should be in [$generatedValues]" }
             }
         }
 
@@ -104,7 +104,7 @@ object DiceD20Spek : Spek({
                     }
                 }
             }
-            }
+        }
     }
 
     describe("a $typeOfTest rolls() 1 times") {
@@ -139,7 +139,7 @@ object DiceD20Spek : Spek({
                     }
                 }
             }
-            }
+        }
     }
 
     describe("a $typeOfTest rolls() 5 times") {
@@ -174,6 +174,6 @@ object DiceD20Spek : Spek({
                     }
                 }
             }
-            }
+        }
     }
 })

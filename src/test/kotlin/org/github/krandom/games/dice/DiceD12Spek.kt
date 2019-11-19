@@ -71,7 +71,7 @@ object DiceD12Spek : Spek({
                     }
                 }
             }
-            }
+        }
     }
 
     describe("a $typeOfTest roll() 5 times") {
@@ -104,7 +104,7 @@ object DiceD12Spek : Spek({
                     }
                 }
             }
-            }
+        }
     }
 
     describe("a $typeOfTest rolls() 1 times") {
@@ -139,7 +139,7 @@ object DiceD12Spek : Spek({
                     }
                 }
             }
-            }
+        }
     }
 
     describe("a $typeOfTest rolls() 5 times") {
@@ -174,6 +174,6 @@ object DiceD12Spek : Spek({
                     }
                 }
             }
-            }
+        }
     }
 })
