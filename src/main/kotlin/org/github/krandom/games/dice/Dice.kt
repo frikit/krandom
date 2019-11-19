@@ -13,12 +13,35 @@ class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
 
     override fun rolls(nrTimes: Int): List<E> {
         require(nrTimes > 0) { "nr of times should be > 0" }
+        var result = generateResult(nrTimes)
+
+        if (nrTimes > values.size * 2) {
+            //make sure all values are different when generate them
+            repeat(9) {
+                if (!isValidResult(result)) {
+                    result = generateResult(nrTimes)
+                } else {
+                    return result
+                }
+            }
+        }
+        return result
+    }
+
+    private fun isValidResult(result: List<E>): Boolean {
+        values.forEach {
+            if (!result.contains(it)) return false
+        }
+
+        return true
+    }
+
+    private fun generateResult(nrTimes: Int): ArrayList<E> {
         val result = arrayListOf<E>()
         (1..nrTimes).forEach { _ ->
             val indexOfElem = kRandomCommon.randomInt(range)
             result.add(values[indexOfElem])
         }
-
         return result
     }
 }
