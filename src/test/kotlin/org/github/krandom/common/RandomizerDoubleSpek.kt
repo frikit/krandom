@@ -2,14 +2,11 @@ package org.github.krandom.common
 
 import mu.KLogger
 import mu.KLogging
-import org.github.krandom.testhelper.isBigger
-import org.github.krandom.testhelper.isBiggerOrEqual
-import org.github.krandom.testhelper.isLesserOrEqual
-import org.github.krandom.testhelper.isSmaller
+import org.github.krandom.testhelper.*
 import org.github.krandom.testhelper.Constants.generateValues
-import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.test.assertFailsWith
 
 object RandomizerDoubleSpek : Spek({
 
@@ -80,11 +77,8 @@ object RandomizerDoubleSpek : Spek({
 
             TestLifecycle.onTestStart("generate random $randomType in range(0, 0)")
             describe("generate random $randomType in range(0, 0)") {
-                //TODO change to kotlin-test
-                try {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
                     kRandomCommon.randomDouble(0.0, 0.0)
-                } catch (exception: IllegalArgumentException) {
-                    assert(exception.message!!.startsWith(prefix = "Illegal argument passed start = 0.0 and end = 0.0, they should be different!", ignoreCase = false))
                 }
             }
             TestLifecycle.onTestFinish("generate random $randomType in range(0, 0)")

@@ -7,6 +7,8 @@
 </div>
 <br>
 
+Snyk: https://app.snyk.io/org/frikit-github-marketplace/projects
+
 kRandom is an advanced random generator in written in kotlin. The idea behind this is I can't find a library which can generate me a lot of different
 data mostly for testing purposes but for general use case as well.
 For example: Name, Surname, email, telephone number, random number based on specific algorithms...

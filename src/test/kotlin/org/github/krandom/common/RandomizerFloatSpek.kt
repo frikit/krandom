@@ -10,6 +10,7 @@ import org.github.krandom.testhelper.Constants.generateValues
 import org.github.krandom.testhelper.TestLifecycle
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.test.assertFailsWith
 
 object RandomizerFloatSpek : Spek({
 
@@ -80,11 +81,8 @@ object RandomizerFloatSpek : Spek({
 
             TestLifecycle.onTestStart("generate random $randomType in range(0, 0)")
             describe("generate random $randomType in range(0, 0)") {
-                //TODO update to kotlin-test
-                try {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
                     kRandomCommon.randomFloat(0.0f, 0.0f)
-                } catch (exception: IllegalArgumentException) {
-                    assert(exception.message!!.startsWith(prefix = "Illegal argument passed start = 0.0 and end = 0.0, they should be different!", ignoreCase = false))
                 }
             }
             TestLifecycle.onTestFinish("generate random $randomType in range(0, 0)")
