@@ -62,7 +62,7 @@ object DiceD20Spek : Spek({
 
         expectedValues.forEach {
             it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it))
+                assert(generatedValues.contains(it)) { "this value [$it] should be in [$generatedValues]" }
             }
         }
 
@@ -98,7 +98,7 @@ object DiceD20Spek : Spek({
 
         expectedValues.forEach {
             it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it))
+                assert(generatedValues.contains(it)) { "this value [$it] should be in [$generatedValues]" }
             }
         }
 
