@@ -21,7 +21,7 @@ object DiceD4Spek : Spek({
     describe("a $typeOfTest with invalid tests") {
         val invalidScenarios = generateInvalidValues(diceSize)
         invalidScenarios.forEach {
-            it("have invalid values") {
+            it("have invalid values size [${it.toList()}]") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
                     IDice.init(diceType, it.toList())
                 }

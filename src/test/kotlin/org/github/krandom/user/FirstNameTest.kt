@@ -24,7 +24,7 @@ object FirstNameTest : Spek({
     describe("a user randomizer") {
         val kRandomUser: KRandomUser<String> = FirstName()
 
-       describe("generate user $propName") {
+        describe("generate user $propName") {
             (1..generateValues).forEach { _ ->
                 val name: String = kRandomUser.randomData()
                 it(" $name should be valid $propName") {
@@ -32,7 +32,7 @@ object FirstNameTest : Spek({
                 }
             }
         }
-       describe("generate user $propNames") {
+        describe("generate user $propNames") {
             (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas()
                 it(" ${name.size} all should be valid name") {
@@ -40,16 +40,18 @@ object FirstNameTest : Spek({
                 }
             }
         }
-       describe("generate user $propNames($userSize)") {
+        describe("generate user $propNames($userSize)") {
             (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas(userSize)
-                assert(name.size == userSize) { "${name.size} != $userSize" }
+                it("should be right size ${name.size} == $userSize") {
+                    assert(name.size == userSize) { "${name.size} != $userSize" }
+                }
                 it(" ${name[0]} should be valid name") {
                     validateNames(name)
                 }
             }
         }
-       describe("generate user $propNames($overflowUserSizePlus)") {
+        describe("generate user $propNames($overflowUserSizePlus)") {
             try {
                 kRandomUser.randomDatas(overflowUserSizePlus)
                 assert(false) { "Should be runtime exception on line above" }
@@ -57,7 +59,7 @@ object FirstNameTest : Spek({
                 assert(true) { "Exception should throw" }
             }
         }
-       describe("generate user $propNames($overflowUserSizeMinus)") {
+        describe("generate user $propNames($overflowUserSizeMinus)") {
             try {
                 kRandomUser.randomDatas(overflowUserSizeMinus)
                 assert(false) { "Should be runtime exception on line above" }
@@ -65,6 +67,6 @@ object FirstNameTest : Spek({
                 assert(true) { "Exception should throw" }
             }
         }
-        }
+    }
 
 })

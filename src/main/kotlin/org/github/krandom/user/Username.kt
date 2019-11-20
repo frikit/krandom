@@ -10,20 +10,10 @@ class Username(val numbers: Boolean) : KRandomUser<String>, GenericUserGenerator
         return generateRandomString(block, numbers)
     }
 
-    override fun randomDatas(): List<String> {
-        val times = kRandomCommon.randomInt(1, maxAllowSize)
-        return randomDatas(times)
-    }
-
     override fun randomDatas(size: Int): List<String> {
         isValidSize(size)
-        val res = arrayListOf<String>()
-        repeat((1..size).count()) {
-            val item = randomData()
-            res.add(item)
-        }
 
-        return res
+        return (1..size).map { randomData() }.toList()
     }
 
 }

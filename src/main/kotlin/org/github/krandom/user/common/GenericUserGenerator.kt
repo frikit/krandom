@@ -27,10 +27,19 @@ abstract class GenericUserGenerator {
     protected fun randomDatas(list: List<String>, size: Int): List<String> {
         require(list.isNotEmpty()) { "List should have elements!!!" }
         isValidSize(size)
-        //TODO optimize make linked list and extract a bunch of indexes
-        val res = list.run { shuffled().take(size).toList() }
-        require(res.isNotEmpty()) { "WTF?! [$res]" }
+
+        //TODO optimize make linked list and extract a bunch of indexes, or not need to do so have no idea
+        val randomInits = generateIntSeq(size)
+        val res = randomInits.map { list[it] }.toMutableList()
+
+        validateList(res)
         return res
+    }
+
+    private fun generateIntSeq(size: Int): MutableList<Int> {
+        return (1..size).map {
+            kRandomCommon.randomInt(0, size)
+        }.toMutableList()
     }
 
     protected fun isValidSize(size: Int) {

@@ -41,7 +41,9 @@ object UsernameTest : Spek({
         describe("generate user $propNames($userSize)") {
             (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas(userSize)
-                assert(name.size == userSize) { "${name.size} != $userSize" }
+                it("should be right size ${name.size} == $userSize") {
+                    assert(name.size == userSize) { "${name.size} != $userSize" }
+                }
                 it(" ${name[0]} should be valid name") {
                     UserUtils.validateNames(name)
                 }
