@@ -3,6 +3,7 @@ package org.github.krandom.games.dice
 import mu.KLogging
 import org.github.krandom.common.KRandomCommon
 import org.github.krandom.common.Randomizer
+import java.util.*
 
 class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
     private val logger by lazy { KLogging().logger("Dice") }
@@ -41,12 +42,8 @@ class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
         return true
     }
 
-    private fun generateResult(nrTimes: Int): ArrayList<E> {
-        val result = arrayListOf<E>()
-        (1..nrTimes).forEach { _ ->
-            val indexOfElem = kRandomCommon.randomInt(range)
-            result.add(values[indexOfElem])
-        }
-        return result
+    private fun generateResult(nrTimes: Int): List<E> {
+        val indexes = Random().ints(nrTimes.toLong(), 0, values.size).toArray()
+        return indexes.map { values[it] }.toList()
     }
 }
