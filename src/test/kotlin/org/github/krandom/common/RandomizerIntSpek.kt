@@ -82,31 +82,31 @@ object RandomizerIntSpek : Spek({
                 }
             }
             describe("generate random $randomType in range(-start, -end)") {
-                val expectedOne = -1
-                val expectedTwo = -5
+                val expectedOne = -5
+                val expectedTwo = -1
 
                 (1..generateValues).forEach { _ ->
                     intNumber = kRandomCommon.randomInt(expectedOne..expectedTwo)
                     intNumber.also { number ->
 
                         it("$number should be in range >=$expectedOne and <$expectedTwo") {
-                            isSmaller(number, expectedOne)
-                            isBiggerOrEqual(number, expectedTwo)
+                            isSmaller(number, expectedTwo)
+                            isBiggerOrEqual(number, expectedOne)
                         }
                     }
                 }
             }
             describe("generate random $randomType in range(start, -end)") {
-                val expectedOne = 1
-                val expectedTwo = -5
+                val expectedOne = -5
+                val expectedTwo = 1
 
                 (1..generateValues).forEach { _ ->
                     intNumber = kRandomCommon.randomInt(expectedOne..expectedTwo)
                     intNumber.also { number ->
 
                         it("$number should be in range >=$expectedOne and <$expectedTwo") {
-                            isSmaller(number, expectedOne)
-                            isBiggerOrEqual(number, expectedTwo)
+                            isSmaller(number, expectedTwo)
+                            isBiggerOrEqual(number, expectedOne)
                         }
                     }
                 }

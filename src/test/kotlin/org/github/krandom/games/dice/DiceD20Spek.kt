@@ -5,18 +5,19 @@ import org.github.krandom.testhelper.Constants
 import org.github.krandom.testhelper.DiceUtil.generateExpectedValues
 import org.github.krandom.testhelper.DiceUtil.generateInvalidValues
 import org.github.krandom.testhelper.DiceUtil.generateRegEx
+import org.github.krandom.testhelper.DiceUtil.getRollTimes
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
 object DiceD20Spek : Spek({
 
-    val diceSize = 20
+    val diceType = DiceType.D20
+    val diceSize = diceType.nrFaces
     val typeOfTest = "dice d$diceSize"
     val expectedValues = generateExpectedValues(-3, 16)
     val expectedRegEx = generateRegEx(-3, 16)
-    val diceType = DiceType.D20
-    val rollTimes = diceSize * 5
+    val rollTimes = getRollTimes(diceSize)
 
     describe("a $typeOfTest with invalid tests") {
         val invalidScenarios = generateInvalidValues(diceSize)
@@ -58,7 +59,7 @@ object DiceD20Spek : Spek({
 
         expectedValues.forEach {
             it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it)) { "This value [$it] should be in [$generatedValues]" }
+                assert(generatedValues.contains(it)) { "This value [$it] should be in [${generatedValues.sorted()}]" }
             }
         }
 

@@ -39,4 +39,7 @@ object DiceUtil {
 
         return res
     }
+
+    fun getRollTimes(diceSize: Int): Int = diceSize * 5
+
 }

@@ -2,6 +2,7 @@ package org.github.krandom.games.dice
 
 import org.github.krandom.games.dice.enum.DiceType
 import org.github.krandom.testhelper.Constants
+import org.github.krandom.testhelper.DiceUtil
 import org.github.krandom.testhelper.DiceUtil.generateExpectedValues
 import org.github.krandom.testhelper.DiceUtil.generateInvalidValues
 import org.github.krandom.testhelper.DiceUtil.generateRegEx
@@ -11,12 +12,12 @@ import kotlin.test.assertFailsWith
 
 object DiceD10Spek : Spek({
 
-    val diceSize = 10
+    val diceType = DiceType.D10
+    val diceSize = diceType.nrFaces
     val typeOfTest = "dice d$diceSize"
     val expectedValues = generateExpectedValues(-3, 6)
     val expectedRegEx = generateRegEx(-3, 6)
-    val diceType = DiceType.D10
-    val rollTimes = diceSize * 5
+    val rollTimes = DiceUtil.getRollTimes(diceSize)
 
     describe("a $typeOfTest with invalid tests") {
         val invalidScenarios = generateInvalidValues(diceSize)
@@ -58,7 +59,7 @@ object DiceD10Spek : Spek({
 
         expectedValues.forEach {
             it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it))
+                assert(generatedValues.contains(it)) { "This value [$it] should be in [${generatedValues.sorted()}]" }
             }
         }
 

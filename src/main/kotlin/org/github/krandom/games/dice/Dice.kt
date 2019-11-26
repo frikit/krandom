@@ -14,7 +14,8 @@ class Dice<E>(private val values: List<E>) : IDice<E> {
         require(nrTimes > 0) { "nr of times should be > 0" }
         var result = generateResult(nrTimes)
 
-        if (nrTimes > values.size * 2) {
+        //TODO improve this block somehow rewrite logic, ita happens a lot of times, turn on trace in testing logs and see logs
+        if (nrTimes > values.size * 4) {
             //make sure all values are different when generate them
             (0..99).forEach { index ->
                 if (!isValidResult(index, result)) {
