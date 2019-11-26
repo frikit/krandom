@@ -12,12 +12,12 @@ interface IDice<E> {
         fun <E> init(diceType: DiceType, values: List<E>): IDice<E> {
             validator(diceType.nrFaces, values)
             return when (diceType) {
-                DiceType.D4 -> Dice(diceType.nrFaces, values)
-                DiceType.D6 -> Dice(diceType.nrFaces, values)
-                DiceType.D8 -> Dice(diceType.nrFaces, values)
-                DiceType.D10 -> Dice(diceType.nrFaces, values)
-                DiceType.D12 -> Dice(diceType.nrFaces, values)
-                DiceType.D20 -> Dice(diceType.nrFaces, values)
+                DiceType.D4 -> Dice(values)
+                DiceType.D6 -> Dice(values)
+                DiceType.D8 -> Dice(values)
+                DiceType.D10 -> Dice(values)
+                DiceType.D12 -> Dice(values)
+                DiceType.D20 -> Dice(values)
             }
         }
 

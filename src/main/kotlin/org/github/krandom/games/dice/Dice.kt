@@ -1,14 +1,10 @@
 package org.github.krandom.games.dice
 
 import mu.KLogging
-import org.github.krandom.common.KRandomCommon
-import org.github.krandom.common.Randomizer
 import java.util.*
 
-class Dice<E>(nrFaces: Int, private val values: List<E>) : IDice<E> {
+class Dice<E>(private val values: List<E>) : IDice<E> {
     private val logger by lazy { KLogging().logger("Dice") }
-    private val kRandomCommon: KRandomCommon by lazy { Randomizer() }
-    private val range = 0..nrFaces
 
     override fun roll(nrTimes: Int): E {
         return rolls(nrTimes).last()

@@ -83,18 +83,8 @@ open class Randomizer : KRandomCommon {
                             lowerLetters: Boolean,
                             numbers: Boolean,
                             specialCharacters: Boolean): Char {
-        val combinations: List<Pair<Int, Int>> =
-                getCharCombinations(upperLetters, lowerLetters, numbers, specialCharacters)
-        val chooseWhich: Int = if (combinations.size == 1) {
-            0
-        } else {
-            randomInt(0, combinations.size - 1)
-        }
-
-        require(!(chooseWhich < 0 || chooseWhich >= combinations.size)) {
-            //TODO test somehow this method, if there is no way to test it with mocks
-            "Index which was choose to get combination pair is wrong $chooseWhich"
-        }
+        val combinations: List<Pair<Int, Int>> = getCharCombinations(upperLetters, lowerLetters, numbers, specialCharacters)
+        val chooseWhich: Int = chooseWhichIndex(combinations)
 
         val first = combinations[chooseWhich].first
         val second = combinations[chooseWhich].second
@@ -116,27 +106,25 @@ open class Randomizer : KRandomCommon {
         return generateRandomString(function, numbers)
     }
 
-    private fun normalizeStartEnd(start: Double, end: Double): Pair<Double, Double> {
-        var startElem: Double = start
-        var endElem = end
-        //swap vars to act easier
-        if (startElem > endElem) startElem = endElem.also { endElem = startElem }
-        return Pair(startElem, endElem)
-    }
-
-    private fun normalizeStartEnd(start: Long, end: Long): Pair<Long, Long> {
-        var startElem: Long = start
-        var endElem = end
-        //swap vars to act easier
-        if (startElem > endElem) startElem = endElem.also { endElem = startElem }
-        return Pair(startElem, endElem)
-    }
-
-    private fun normalizeStartEnd(start: Int, end: Int): Pair<Int, Int> {
+    private fun <T : Comparable<T>> normalizeStartEnd(start: T, end: T): Pair<T, T> {
         var startElem = start
         var endElem = end
         //swap vars to act easier
         if (startElem > endElem) startElem = endElem.also { endElem = startElem }
         return Pair(startElem, endElem)
+    }
+
+    private fun chooseWhichIndex(combinations: List<Pair<Int, Int>>): Int {
+        val chooseWhich: Int = if (combinations.size == 1) {
+            0
+        } else {
+            randomInt(0, combinations.size - 1)
+        }
+
+        require(!(chooseWhich < 0 || chooseWhich >= combinations.size)) {
+            //TODO test somehow this method, if there is no way to test it with mocks
+            "Index which was choose to get combination pair is wrong $chooseWhich"
+        }
+        return chooseWhich
     }
 }
