@@ -6,6 +6,7 @@ import org.github.krandom.testhelper.DiceUtil
 import org.github.krandom.testhelper.DiceUtil.generateExpectedValues
 import org.github.krandom.testhelper.DiceUtil.generateInvalidValues
 import org.github.krandom.testhelper.DiceUtil.generateRegEx
+import org.github.krandom.testhelper.isBiggerOrEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -57,10 +58,9 @@ object DiceD12Spek : Spek({
             }
         }
 
-        expectedValues.forEach {
-            it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it)) { "This value [$it] should be in [${generatedValues.sorted()}]" }
-            }
+        //there is a chance to generate all values expect 1 can be missing from values because % of pick random value from array still exist
+        it("should have unique element  >= ${expectedValues.size - 1}") {
+            isBiggerOrEqual(generatedValues.distinct().sorted().size, expectedValues.size - 1)
         }
 
         describe("a random tests for $typeOfTest") {
@@ -75,7 +75,7 @@ object DiceD12Spek : Spek({
         }
     }
 
-    describe("a $typeOfTest roll() 5 times") {
+    describe("a $typeOfTest roll() $rollTimes times") {
         val dice = IDice.init(diceType, expectedValues)
         val generatedValues = arrayListOf<Int>()
         var value: Int
@@ -91,8 +91,8 @@ object DiceD12Spek : Spek({
         }
 
         expectedValues.forEach {
-            it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it))
+            it("rolls($rollTimes)it") {
+                assert(generatedValues.contains(it)) { "This value [$it] should be in [$generatedValues]" }
             }
         }
 
@@ -143,7 +143,7 @@ object DiceD12Spek : Spek({
         }
     }
 
-    describe("a $typeOfTest rolls() 5 times") {
+    describe("a $typeOfTest rolls($rollTimes) times") {
         val dice = IDice.init(diceType, expectedValues)
         val generatedValues = arrayListOf<List<Int>>()
         var value: Int

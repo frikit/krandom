@@ -1,10 +1,8 @@
 package org.github.krandom.games.dice
 
-import mu.KLogging
 import java.util.*
 
 class Dice<E>(private val values: List<E>) : IDice<E> {
-    private val logger by lazy { KLogging().logger("Dice") }
 
     override fun roll(nrTimes: Int): E {
         return rolls(nrTimes).last()
@@ -15,28 +13,14 @@ class Dice<E>(private val values: List<E>) : IDice<E> {
         var result = generateResult(nrTimes)
 
         //TODO improve this block somehow rewrite logic, ita happens a lot of times, turn on trace in testing logs and see logs
-        if (nrTimes > values.size * 4) {
-            //make sure all values are different when generate them
-            (0..99).forEach { index ->
-                if (!isValidResult(index, result)) {
-                    result = generateResult(nrTimes)
-                } else {
-                    return result
-                }
-            }
+        if (nrTimes > values.size) {
+            val r = generateResult(nrTimes - values.size).toMutableList()
+            r.addAll(values)
+            r.shuffle()
+            result = r.toList()
         }
+
         return result
-    }
-
-    private fun isValidResult(index: Int, result: List<E>): Boolean {
-        for (it in values) {
-            if (!result.contains(it)) {
-                logger.trace { "[$index idx] Because there is no [$it] in results and need to regenerate {$result}" }
-                return false
-            }
-        }
-
-        return true
     }
 
     private fun generateResult(nrTimes: Int): List<E> {

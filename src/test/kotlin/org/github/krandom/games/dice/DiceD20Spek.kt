@@ -6,6 +6,7 @@ import org.github.krandom.testhelper.DiceUtil.generateExpectedValues
 import org.github.krandom.testhelper.DiceUtil.generateInvalidValues
 import org.github.krandom.testhelper.DiceUtil.generateRegEx
 import org.github.krandom.testhelper.DiceUtil.getRollTimes
+import org.github.krandom.testhelper.isBiggerOrEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -18,6 +19,8 @@ object DiceD20Spek : Spek({
     val expectedValues = generateExpectedValues(-3, 16)
     val expectedRegEx = generateRegEx(-3, 16)
     val rollTimes = getRollTimes(diceSize)
+
+    //TODO scrie testele care trebu fixeaza asa ca sa fie marja de erroare 1
 
     describe("a $typeOfTest with invalid tests") {
         val invalidScenarios = generateInvalidValues(diceSize)
@@ -57,25 +60,22 @@ object DiceD20Spek : Spek({
             }
         }
 
-        expectedValues.forEach {
-            it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it)) { "This value [$it] should be in [${generatedValues.sorted()}]" }
-            }
+        //there is a chance to generate all values expect 1 can be missing from values because % of pick random value from array still exist
+        it("should have unique element  >= ${expectedValues.size - 1}") {
+            isBiggerOrEqual(generatedValues.distinct().sorted().size, expectedValues.size - 1)
         }
 
         describe("a random tests for $typeOfTest") {
-            describe("generate random $typeOfTest") {
-                generatedValues.forEach {
-                    value = it
-                    it("$value should be $expectedRegEx") {
-                        assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
-                    }
+            generatedValues.forEach {
+                value = it
+                it("$value should be $expectedRegEx") {
+                    assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                 }
             }
         }
     }
 
-    describe("a $typeOfTest roll() 5 times") {
+    describe("a $typeOfTest roll() $rollTimes times") {
         val dice = IDice.init(diceType, expectedValues)
         val generatedValues = arrayListOf<Int>()
         var value: Int
@@ -90,19 +90,16 @@ object DiceD20Spek : Spek({
             }
         }
 
-        expectedValues.forEach {
-            it("should be at least 1 of $it") {
-                assert(generatedValues.contains(it)) { "This value [$it] should be in [$generatedValues]" }
-            }
+        //there is a chance to generate all values expect 1 can be missing from values because % of pick random value from array still exist
+        it("should have unique element  >= ${expectedValues.size - 1}") {
+            isBiggerOrEqual(generatedValues.distinct().sorted().size, expectedValues.size - 1)
         }
 
         describe("a random tests for $typeOfTest") {
-            describe("generate random $typeOfTest") {
-                generatedValues.forEach {
-                    value = it
-                    it("$value should be $expectedRegEx") {
-                        assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
-                    }
+            generatedValues.forEach {
+                value = it
+                it("$value should be $expectedRegEx") {
+                    assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                 }
             }
         }
@@ -130,20 +127,18 @@ object DiceD20Spek : Spek({
         }
 
         describe("a random tests for $typeOfTest") {
-            describe("generate random $typeOfTest") {
-                generatedValues.forEach { vals ->
-                    vals.forEach {
-                        value = it
-                        it("$value should be $expectedRegEx") {
-                            assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
-                        }
+            generatedValues.forEach { vals ->
+                vals.forEach {
+                    value = it
+                    it("$value should be $expectedRegEx") {
+                        assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                     }
                 }
             }
         }
     }
 
-    describe("a $typeOfTest rolls() 5 times") {
+    describe("a $typeOfTest rolls($rollTimes) times") {
         val dice = IDice.init(diceType, expectedValues)
         val generatedValues = arrayListOf<List<Int>>()
         var value: Int
@@ -165,13 +160,11 @@ object DiceD20Spek : Spek({
         }
 
         describe("a random tests for $typeOfTest") {
-            describe("generate random $typeOfTest") {
-                generatedValues.forEach { vals ->
-                    vals.forEach {
-                        value = it
-                        it("$value should be $expectedRegEx") {
-                            assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
-                        }
+            generatedValues.forEach { vals ->
+                vals.forEach {
+                    value = it
+                    it("$value should be $expectedRegEx") {
+                        assert(value.toString().matches(expectedRegEx)) { "Value [$value] don't match regex [$expectedRegEx]" }
                     }
                 }
             }
