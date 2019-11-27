@@ -36,4 +36,27 @@ Basic generator:
 |String|✅|✅|
 
 
+User(fields) generator:
+
+| Name | Implemented | Tested |
+|:---:|:---:|:---:|
+|First Name|✅|✅|
+|Last Name|✅|✅|
+|Username|✅|✅|
+//TBD...
+
+Games related things generator:
+
+| Name | Implemented | Tested |
+|:---:|:---:|:---:|
+|4 sided dice|✅|✅|
+|6 sided dice|✅|✅|
+|8 sided dice|✅|✅|
+|10 sided dice|✅|✅|
+|12 sided dice|✅|✅|
+|20 sided dice|✅|✅|
+//TODO think maybe to add all from???? https://commons.wikimedia.org/wiki/Dice_by_number_of_sides
+
+
+
 //TODO to add all types of tables which will be implemented
