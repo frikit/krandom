@@ -47,6 +47,8 @@ User(fields) generator:
 
 Games related things generator:
 
+Dice related things generator:
+
 | Name | Implemented | Tested |
 |:---:|:---:|:---:|
 |4 sided dice|✅|✅|

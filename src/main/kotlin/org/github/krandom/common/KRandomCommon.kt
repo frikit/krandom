@@ -4,6 +4,9 @@ import org.github.krandom.properties.Properties
 
 interface KRandomCommon {
 
+    //TODO add exclude params to methods to make easier to exclude unwanted values from result
+    //TODO exclude a list of values
+
     //Numbers
 
     //double
