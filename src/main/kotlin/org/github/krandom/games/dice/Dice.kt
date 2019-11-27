@@ -10,17 +10,13 @@ class Dice<E>(private val values: List<E>) : IDice<E> {
 
     override fun rolls(nrTimes: Int): List<E> {
         require(nrTimes > 0) { "nr of times should be > 0" }
-        var result = generateResult(nrTimes)
 
-        //TODO improve this block somehow rewrite logic, ita happens a lot of times, turn on trace in testing logs and see logs
-        if (nrTimes > values.size) {
-            val r = generateResult(nrTimes - values.size).toMutableList()
-            r.addAll(values)
-            r.shuffle()
-            result = r.toList()
+        return if (nrTimes > values.size) {
+            val firstPart = generateResult(nrTimes - values.size)
+            (firstPart + values).shuffled()
+        } else {
+            generateResult(nrTimes)
         }
-
-        return result
     }
 
     private fun generateResult(nrTimes: Int): List<E> {
