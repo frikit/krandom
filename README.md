@@ -9,7 +9,7 @@
 
 Snyk: https://app.snyk.io/org/frikit-github-marketplace/projects
 
-kRandom is an advanced random generator in written in kotlin. The idea behind this is I can't find a library which can generate me a lot of different
+kRandom is an advanced random generator written in kotlin. The idea behind this is I can't find a library, which can generate me a lot of different
 data mostly for testing purposes but for general use case as well.
 For example: Name, Surname, email, telephone number, random number based on specific algorithms...
 
@@ -17,11 +17,11 @@ For example: Name, Surname, email, telephone number, random number based on spec
 As far as for language in the end I want to achieve full 100% of kotlin code, to be able to compile it in java 8+ and use it
 
 ---
-TODO: Need to add a features table which will show progress on this project
+TODO: Need to add features table, which will show progress on this project
 
 Legend:
-<br>✅ - Checked
-<br>⬜ - Unchecked
+<br>✅ — Checked
+<br>⬜ — Unchecked
 
 Basic generator:
 
@@ -61,4 +61,5 @@ Dice related things generator:
 
 
 
-//TODO to add all types of tables which will be implemented
+//TODO to add all types of tables, which will be implemented
+//TODO Idea can be taken from here https://chancejs.com/basics/
