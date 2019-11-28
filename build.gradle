@@ -23,11 +23,11 @@ repositories {
 
 dependencies {
     //stdlib
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.property('kotlin_version')}"
+    implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: project.property('kotlin_version')
 
     //logging
-    implementation 'io.github.microutils:kotlin-logging:+'
-    implementation 'io.github.microutils:kotlin-logging-common:+'
+    implementation group: 'io.github.microutils', name: 'kotlin-logging', version: '+'
+    implementation group: 'io.github.microutils', name: 'kotlin-logging-common', version: '+'
     implementation group: 'org.slf4j', name: 'slf4j-log4j12', version: '+'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '+'
     implementation group: 'log4j', name: 'log4j', version: '+'
@@ -36,7 +36,6 @@ dependencies {
     testImplementation group: 'org.spekframework.spek2', name: 'spek-dsl-jvm', version: '+'
     testImplementation group: 'org.spekframework.spek2', name: 'spek-runner-junit5', version: '+'
     testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test', version: project.property('kotlin_version')
-
 }
 
 //jacoco
