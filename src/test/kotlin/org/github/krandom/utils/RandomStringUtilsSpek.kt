@@ -7,7 +7,7 @@ import kotlin.test.assertFailsWith
 
 object RandomStringUtilsSpek : Spek({
 
-    describe("a random from a chararray from used") {
+    describe("a random test for random method apache") {
         val chars = "abcdfgh".toCharArray()
 
         (1..10).forEach { index ->
@@ -52,11 +52,51 @@ object RandomStringUtilsSpek : Spek({
             }
         }
 
-        describe("test if exception is thrown") {
-            val block = { random(count = 2, start = 0, end = 47, letters = true, numbers = false, chars = null) }
-            assertFailsWith(IllegalArgumentException::class, "Should fail because end char is < 48") {
-                block.invoke()
+        describe("test if start end flags works well with chars null") {
+            val res = random(count = 2, start = 0, end = 99, letters = true, numbers = false, chars = null)
+            it("[$res] should not be blank") {
+                assert(res.isNotBlank()) { "[$res] is blank!" }
+            }
+            it("[$res] should not be empty") {
+                assert(res.isNotEmpty()) { "[$res] is empty!" }
+            }
+            it("[$res] should be valid size") {
+                assert(res.length > 1)
+            }
+        }
+
+        describe("test if start=0 and end=0 not null chars") {
+            val res = random(count = 2, start = 0, end = 0, letters = true, numbers = false, chars = null)
+            it("[$res] should not be blank") {
+                assert(res.isNotBlank()) { "[$res] is blank!" }
+            }
+            it("[$res] should not be empty") {
+                assert(res.isNotEmpty()) { "[$res] is empty!" }
+            }
+            it("[$res] should be valid size") {
+                assert(res.length > 1)
             }
         }
     }
+
+    describe("test if exception is thrown") {
+        it("should throw IllegalArgumentException exception because end char is < 48") {
+            assertFailsWith(IllegalArgumentException::class, "Should fail because end char is < 48") {
+                random(count = 2, start = 0, end = 47, letters = true, numbers = false, chars = null)
+            }
+        }
+        it("should throw IllegalArgumentException exception because end char is < start char") {
+            assertFailsWith(IllegalArgumentException::class, "Should fail because end char is < 48") {
+                random(count = 2, start = 47, end = 0, letters = true, numbers = false, chars = null)
+            }
+        }
+
+        it("should throw IllegalArgumentException exception because chars is empty") {
+            assertFailsWith(IllegalArgumentException::class, "Should fail because chars is empty") {
+                random(count = 2, start = 0, end = 47, letters = true, numbers = false, chars = CharArray(0))
+            }
+        }
+    }
+
+
 })

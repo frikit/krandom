@@ -59,6 +59,15 @@ Dice related things generator:
 |20 sided dice|✅|✅|
 //TODO think maybe to add all from???? https://commons.wikimedia.org/wiki/Dice_by_number_of_sides
 
+Number related generator:
+
+Natural number generator:
+
+| Name | Implemented | Tested |
+|:---:|:---:|:---:|
+|natural number|✅|✅|
+|prime number|✅|✅|
+|composite number|✅|✅|
 
 
 //TODO to add all types of tables, which will be implemented

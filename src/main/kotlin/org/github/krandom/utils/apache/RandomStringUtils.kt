@@ -24,7 +24,9 @@ object RandomStringUtils {
 
     fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean, chars: CharArray? = null): String {
 
-        require(!(chars != null && chars.isEmpty())) { "The chars array must not be empty" }
+        require(!(chars != null && chars.isEmpty())) {
+            "The chars array must not be empty"
+        }
 
         val pair = getStartEndChars(start, end, chars, letters, numbers)
         val startChars = pair.first
@@ -90,7 +92,9 @@ object RandomStringUtils {
                 }
             }
         } else {
-            require(endChars1 > startChars1) { "Parameter end ($endChars1) must be greater than start ($startChars1)" }
+            require(endChars1 > startChars1) {
+                "Parameter end ($endChars1) must be greater than start ($startChars1)"
+            }
         }
         return Pair(startChars1, endChars1)
     }
