@@ -4,15 +4,15 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
-object PrimeNumberGeneratorWithCache : Spek({
+object CompositeNumberGeneratorWithoutCacheSpek : Spek({
 
-    val testCaseName = "prime number"
+    val testCaseName = "composite number"
 
-    USE_NATURAL_NUMBER_CACHE = true
+    USE_NATURAL_NUMBER_CACHE = false
 
     describe("a random tests for list") {
         describe("a random $testCaseName default") {
-            val generated = NaturalNumberGenerator.generatePrimeNumbers()
+            val generated = NaturalNumberGenerator.generateCompositeNumbers()
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -21,13 +21,13 @@ object PrimeNumberGeneratorWithCache : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
                 }
             }
         }
 
         describe("a random $testCaseName with from") {
-            val generated = NaturalNumberGenerator.generatePrimeNumbers(from = 100)
+            val generated = NaturalNumberGenerator.generateCompositeNumbers(from = 100)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -36,13 +36,13 @@ object PrimeNumberGeneratorWithCache : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
                 }
             }
         }
 
         describe("a random $testCaseName with to") {
-            val generated = NaturalNumberGenerator.generatePrimeNumbers(to = 100)
+            val generated = NaturalNumberGenerator.generateCompositeNumbers(to = 100)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -51,13 +51,13 @@ object PrimeNumberGeneratorWithCache : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
                 }
             }
         }
 
         describe("a random $testCaseName with from -> to") {
-            val generated = NaturalNumberGenerator.generatePrimeNumbers(from = 10, to = 100)
+            val generated = NaturalNumberGenerator.generateCompositeNumbers(from = 10, to = 100)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -66,7 +66,7 @@ object PrimeNumberGeneratorWithCache : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
                 }
             }
         }
@@ -74,7 +74,7 @@ object PrimeNumberGeneratorWithCache : Spek({
         describe("a random $testCaseName with from > to") {
             it("should throw exception") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                    NaturalNumberGenerator.generatePrimeNumbers(from = 100, to = 10)
+                    NaturalNumberGenerator.generateCompositeNumbers(from = 100, to = 10)
                 }
             }
         }
@@ -82,7 +82,7 @@ object PrimeNumberGeneratorWithCache : Spek({
 
     describe("a random tests for element") {
         describe("a random $testCaseName default") {
-            val generated = listOf(NaturalNumberGenerator.generatePrimeNumber())
+            val generated = listOf(NaturalNumberGenerator.generateCompositeNumber())
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -91,13 +91,13 @@ object PrimeNumberGeneratorWithCache : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
                 }
             }
         }
 
         describe("a random $testCaseName with from") {
-            val generated = listOf(NaturalNumberGenerator.generatePrimeNumber(from = 100))
+            val generated = listOf(NaturalNumberGenerator.generateCompositeNumber(from = 100))
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -106,13 +106,13 @@ object PrimeNumberGeneratorWithCache : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
                 }
             }
         }
 
         describe("a random $testCaseName with to") {
-            val generated = listOf(NaturalNumberGenerator.generatePrimeNumber(to = 100))
+            val generated = listOf(NaturalNumberGenerator.generateCompositeNumber(to = 100))
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -121,13 +121,13 @@ object PrimeNumberGeneratorWithCache : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
                 }
             }
         }
 
         describe("a random $testCaseName with from -> to") {
-            val generated = listOf(NaturalNumberGenerator.generatePrimeNumber(from = 10, to = 100))
+            val generated = listOf(NaturalNumberGenerator.generateCompositeNumber(from = 10, to = 100))
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -136,7 +136,7 @@ object PrimeNumberGeneratorWithCache : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
                 }
             }
         }
@@ -144,7 +144,7 @@ object PrimeNumberGeneratorWithCache : Spek({
         describe("a random $testCaseName with from > to") {
             it("should throw exception") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                    NaturalNumberGenerator.generatePrimeNumber(from = 100, to = 10)
+                    NaturalNumberGenerator.generateCompositeNumber(from = 100, to = 10)
                 }
             }
         }

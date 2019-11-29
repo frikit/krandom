@@ -3,9 +3,9 @@ package org.github.krandom.common.numbers
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-object PrimeCompositeNumberMethodCheck : Spek({
-    val primeNumbers = listOf(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71)
-    val compositeNumbers = listOf(4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24, 25, 26, 27, 28, 30)
+object PrimeCompositeNumberMethodCheckSpek : Spek({
+    val primeNumbers = listOf<Long>(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71)
+    val compositeNumbers = listOf<Long>(4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24, 25, 26, 27, 28, 30)
 
     describe("a test for check prime numbers are valid") {
         primeNumbers.forEach {

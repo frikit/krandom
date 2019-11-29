@@ -4,11 +4,11 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
-object CompositeNumberGeneratorWithoutCache : Spek({
+object CompositeNumberGeneratorWithCacheSpek : Spek({
 
     val testCaseName = "composite number"
 
-    USE_NATURAL_NUMBER_CACHE = false
+    USE_NATURAL_NUMBER_CACHE = true
 
     describe("a random tests for list") {
         describe("a random $testCaseName default") {

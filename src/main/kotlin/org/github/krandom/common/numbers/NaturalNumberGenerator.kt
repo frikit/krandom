@@ -7,18 +7,31 @@ import kotlin.collections.ArrayList
 var USE_NATURAL_NUMBER_CACHE: Boolean = true
 
 object NaturalNumberGenerator {
-    //TODO add method to generate random natural number
     private val kRandomCommon by lazy { Randomizer() }
 
     private const val MAX_CAPACITY = 999_999
-    private val primeCache = ArrayList<Int>()
-    private val compositeCache = ArrayList<Int>()
+    private val primeCache = ArrayList<Long>()
+    private val compositeCache = ArrayList<Long>()
+
+    fun isNaturalNumber(number: Long): Boolean {
+        return number > 0 && number < Long.MAX_VALUE
+    }
+
+    fun generateNaturalNumbers(size: Int, from: Long = 0, to: Long = Long.MAX_VALUE): List<Long> {
+        val (start, end) = validateStartEnd(from, to, 0, Long.MAX_VALUE - 2)
+
+        return (1..size).map { randomNaturalLong(start, end) }.toList()
+    }
+
+    fun generateNaturalNumber(from: Long = 0, to: Long = Long.MAX_VALUE): Long {
+        return generateNaturalNumbers(1, from, to)[0]
+    }
 
     //TODO refactor for simplified solution
-    fun isPrimeNumber(number: Int): Boolean {
+    fun isPrimeNumber(number: Long): Boolean {
         var isPrime = true
         for (divisor in 2..number / 2) {
-            if (number % divisor == 0) {
+            if (number % divisor == 0L) {
                 isPrime = false
                 break // num is not a prime, no reason to continue checking
             }
@@ -28,19 +41,19 @@ object NaturalNumberGenerator {
     }
 
     //TODO refactor for simplified solution
-    fun isCompositeNumber(number: Int): Boolean {
-        if (number == 2) return false
+    fun isCompositeNumber(number: Long): Boolean {
+        if (number == 2L) return false
         else if (number > 2) {
             var i = 2
             while (i < number) {
-                if (number % i == 0) return true
+                if (number % i == 0L) return true
                 i++
             }
         }
         return false
     }
 
-    fun generatePrimeNumbers(from: Int = 2, to: Int = Byte.MAX_VALUE.toInt()): List<Int> {
+    fun generatePrimeNumbers(from: Long = 2, to: Long = Byte.MAX_VALUE.toLong()): List<Long> {
         val (start, end) = validateStartEnd(from, to)
 
         if (primeCache.isEmpty() || primeCache.first() > start || primeCache.last() < end) {
@@ -54,7 +67,7 @@ object NaturalNumberGenerator {
         return primeWithinRange
     }
 
-    fun generatePrimeNumber(from: Int = 2, to: Int = Byte.MAX_VALUE.toInt()): Int {
+    fun generatePrimeNumber(from: Long = 2, to: Long = Byte.MAX_VALUE.toLong()): Long {
         val numbers = generatePrimeNumbers(from, to)
 
         val index = kRandomCommon.randomInt(0, numbers.size - 1)
@@ -62,9 +75,9 @@ object NaturalNumberGenerator {
         return numbers[index]
     }
 
-    fun generateCompositeNumbers(from: Int = 3, to: Int = Byte.MAX_VALUE.toInt()): List<Int> {
+    fun generateCompositeNumbers(from: Long = 3, to: Long = Byte.MAX_VALUE.toLong()): List<Long> {
         var (start, end) = validateStartEnd(from, to)
-        if (start == 2) start++
+        if (start == 2L) start++
 
         if (compositeCache.isEmpty() || compositeCache.first() > start || compositeCache.last() < end) {
             fillCache(false, start, end)
@@ -77,7 +90,7 @@ object NaturalNumberGenerator {
         return primeWithinRange
     }
 
-    fun generateCompositeNumber(from: Int = 3, to: Int = Byte.MAX_VALUE.toInt()): Int {
+    fun generateCompositeNumber(from: Long = 3, to: Long = Byte.MAX_VALUE.toLong()): Long {
         val numbers = generateCompositeNumbers(from, to)
 
         val index = kRandomCommon.randomInt(0, numbers.size - 1)
@@ -85,14 +98,15 @@ object NaturalNumberGenerator {
         return numbers[index]
     }
 
-    private fun validateStartEnd(from: Int, to: Int): Pair<Int, Int> {
+    private fun validateStartEnd(from: Long, to: Long, fromMin: Long = 2, toMax: Long = Int.MAX_VALUE.toLong() - 1): Pair<Long, Long> {
         require(from < to) { "from[$from] < to[$to]!" }
-        val start = if (from < 2) 2 else from
-        val end = if (to > Int.MAX_VALUE - 1) Int.MAX_VALUE else to
+        val start = if (from < fromMin) fromMin else from
+        val end = if (to > toMax) toMax else to
+        require(from < to) { "from[$from] < to[$to]!" }
         return Pair(start, end)
     }
 
-    private fun fillCache(isPrimeMethod: Boolean, start: Int, end: Int) {
+    private fun fillCache(isPrimeMethod: Boolean, start: Long, end: Long) {
         isCacheHaveEnoughSpace()
 
         if (isPrimeMethod) {
@@ -118,10 +132,10 @@ object NaturalNumberGenerator {
     /**
      * sieveOfEratosthenes method
      */
-    private fun fillCacheSieveOfEratosthenesMethod(start: Int, end: Int) {
-        val prime = BooleanArray(end + 1)
+    private fun fillCacheSieveOfEratosthenesMethod(start: Long, end: Long) {
+        val prime = BooleanArray(end.toInt() + 1)
         Arrays.fill(prime, true)
-        var p = start
+        var p = start.toInt()
         while (p * p <= end) {
             if (prime[p]) {
                 var i = p * 2
@@ -139,7 +153,7 @@ object NaturalNumberGenerator {
         //TODO this will permit optimization for this loop, when you have a big range and cache contains half of numbers it will make it x2 faster roughly
 
         for (it in start..end) {
-            if (prime[it] && isPrimeNumber(it) && !primeCache.contains(it)) {
+            if (prime[it.toInt()] && isPrimeNumber(it) && !primeCache.contains(it)) {
                 primeCache.add(it)
                 primeCache.sort()
             }
@@ -156,5 +170,14 @@ object NaturalNumberGenerator {
             primeCache.clear()
             compositeCache.clear()
         }
+    }
+
+    private fun randomNaturalLong(from: Long, to: Long): Long {
+        val result = kRandomCommon.randomLong(from, to)
+        if (!isNaturalNumber(result)) {
+            return randomNaturalLong(from, to)
+        }
+
+        return result
     }
 }

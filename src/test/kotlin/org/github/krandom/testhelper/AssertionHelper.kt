@@ -1,5 +1,7 @@
 package org.github.krandom.testhelper
 
+import org.github.krandom.common.numbers.NaturalNumberGenerator
+
 //double
 fun isBiggerOrEqual(actual: Double, expected: Double) {
     assert(actual >= expected) { "$actual >= $expected -> ${actual >= expected}" }
@@ -66,4 +68,11 @@ fun isSmaller(actual: Int, expected: Int) {
 
 fun isBigger(actual: Int, expected: Int) {
     assert(actual > expected) { "$actual > $expected -> ${actual > expected}" }
+}
+
+//natural
+fun isNaturalNumberInRange(testCaseName: String, actual: Long, from: Long, to: Long) {
+    assert(NaturalNumberGenerator.isNaturalNumber(actual)) { "Number [$actual] should be $testCaseName!" }
+    assert(actual >= from) { "Number [$actual] should be >= $from" }
+    assert(actual <= to) { "Number [$actual] should be <= $to" }
 }
