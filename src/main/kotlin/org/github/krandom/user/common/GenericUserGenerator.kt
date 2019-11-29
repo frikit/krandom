@@ -2,8 +2,6 @@ package org.github.krandom.user.common
 
 import org.github.krandom.common.KRandomCommon
 import org.github.krandom.common.Randomizer
-import org.github.krandom.exceptions.NegativeSizeException
-import org.github.krandom.exceptions.SizeLimitExceedException
 import org.github.krandom.utils.CSVParser
 import org.github.krandom.utils.ResourceResolver
 
@@ -37,14 +35,12 @@ abstract class GenericUserGenerator {
     }
 
     private fun generateIntSeq(size: Int): MutableList<Int> {
-        return (1..size).map {
-            kRandomCommon.randomInt(0, size)
-        }.toMutableList()
+        return (1..size).map { kRandomCommon.randomInt(0, size) }.toMutableList()
     }
 
     protected fun isValidSize(size: Int) {
-        if (size > maxAllowSize) throw SizeLimitExceedException("Size cannot be > $maxAllowSize!")
-        if (size < 1) throw NegativeSizeException("Size cannot be < 1!")
+        require(size < maxAllowSize) { "Size cannot be > $maxAllowSize!" }
+        require(size >= 1) { "Size cannot be > $maxAllowSize!" }
     }
 
     private fun validateList(list: List<String>) {

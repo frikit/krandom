@@ -1,7 +1,5 @@
 package org.github.krandom.user
 
-import org.github.krandom.exceptions.NegativeSizeException
-import org.github.krandom.exceptions.SizeLimitExceedException
 import org.github.krandom.testhelper.Constants
 import org.github.krandom.testhelper.Constants.generateValues
 import org.github.krandom.testhelper.Constants.userSize
@@ -11,6 +9,7 @@ import org.github.krandom.user.BaseUserGenerator.propName
 import org.github.krandom.user.BaseUserGenerator.propNames
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.test.assertFailsWith
 
 object UsernameTest : Spek({
 
@@ -30,6 +29,7 @@ object UsernameTest : Spek({
                 }
             }
         }
+
         describe("generate user $propNames") {
             (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas()
@@ -38,6 +38,7 @@ object UsernameTest : Spek({
                 }
             }
         }
+
         describe("generate user $propNames($userSize)") {
             (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas(userSize)
@@ -49,20 +50,20 @@ object UsernameTest : Spek({
                 }
             }
         }
+
         describe("generate user $propNames(${Constants.overflowUserSizePlus})") {
-            try {
-                kRandomUser.randomDatas(Constants.overflowUserSizePlus)
-                assert(false) { "Should be runtime exception on line above" }
-            } catch (see: SizeLimitExceedException) {
-                assert(true) { "Exception should throw" }
+            it("should throw exception") {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                    kRandomUser.randomDatas(Constants.overflowUserSizePlus)
+                }
             }
         }
+
         describe("generate user $propNames(${Constants.overflowUserSizeMinus})") {
-            try {
-                kRandomUser.randomDatas(Constants.overflowUserSizeMinus)
-                assert(false) { "Should be runtime exception on line above" }
-            } catch (see: NegativeSizeException) {
-                assert(true) { "Exception should throw" }
+            it("should throw exception") {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                    kRandomUser.randomDatas(Constants.overflowUserSizeMinus)
+                }
             }
         }
     }
@@ -78,6 +79,7 @@ object UsernameTest : Spek({
                 }
             }
         }
+
         describe("generate user $propNames") {
             (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas()
@@ -86,6 +88,7 @@ object UsernameTest : Spek({
                 }
             }
         }
+
         describe("generate user $propNames($userSize)") {
             (1..generateValues).forEach { _ ->
                 val name: List<String> = kRandomUser.randomDatas(userSize)
@@ -95,20 +98,20 @@ object UsernameTest : Spek({
                 }
             }
         }
+
         describe("generate user $propNames(${Constants.overflowUserSizePlus})") {
-            try {
-                kRandomUser.randomDatas(Constants.overflowUserSizePlus)
-                assert(false) { "Should be runtime exception on line above" }
-            } catch (see: SizeLimitExceedException) {
-                assert(true) { "Exception should throw" }
+            it("should throw exception") {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                    kRandomUser.randomDatas(Constants.overflowUserSizePlus)
+                }
             }
         }
+
         describe("generate user $propNames(${Constants.overflowUserSizeMinus})") {
-            try {
-                kRandomUser.randomDatas(Constants.overflowUserSizeMinus)
-                assert(false) { "Should be runtime exception on line above" }
-            } catch (see: NegativeSizeException) {
-                assert(true) { "Exception should throw" }
+            it("should throw exception") {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                    kRandomUser.randomDatas(Constants.overflowUserSizeMinus)
+                }
             }
         }
     }
