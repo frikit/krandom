@@ -1,5 +1,6 @@
 package org.github.krandom.common.numbers
 
+import org.github.krandom.testhelper.isNaturalCompositeNumberInRange
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -12,6 +13,8 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
     describe("a random tests for list") {
         describe("a random $testCaseName default") {
+            val from = 2L
+            val to = Long.MAX_VALUE - 1
             val generated = NaturalNumberGenerator.generateCompositeNumbers()
 
             it("should not be empty or nulls") {
@@ -21,13 +24,15 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalCompositeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with from") {
-            val generated = NaturalNumberGenerator.generateCompositeNumbers(from = 100)
+            val from = 100L
+            val to = Long.MAX_VALUE - 1
+            val generated = NaturalNumberGenerator.generateCompositeNumbers(from = from)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -36,13 +41,15 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalCompositeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with to") {
-            val generated = NaturalNumberGenerator.generateCompositeNumbers(to = 100)
+            val from = 2L
+            val to = 100L
+            val generated = NaturalNumberGenerator.generateCompositeNumbers(to = to)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -51,13 +58,15 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalCompositeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with from -> to") {
-            val generated = NaturalNumberGenerator.generateCompositeNumbers(from = 10, to = 100)
+            val from = 10L
+            val to = 100L
+            val generated = NaturalNumberGenerator.generateCompositeNumbers(from = from, to = to)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -66,7 +75,7 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalCompositeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
@@ -82,6 +91,8 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
     describe("a random tests for element") {
         describe("a random $testCaseName default") {
+            val from = 2L
+            val to = Long.MAX_VALUE - 1
             val generated = listOf(NaturalNumberGenerator.generateCompositeNumber())
 
             it("should not be empty or nulls") {
@@ -91,13 +102,15 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalCompositeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with from") {
-            val generated = listOf(NaturalNumberGenerator.generateCompositeNumber(from = 100))
+            val from = 100L
+            val to = Long.MAX_VALUE - 1
+            val generated = listOf(NaturalNumberGenerator.generateCompositeNumber(from = from))
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -106,13 +119,15 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalCompositeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with to") {
-            val generated = listOf(NaturalNumberGenerator.generateCompositeNumber(to = 100))
+            val from = 2L
+            val to = 100L
+            val generated = listOf(NaturalNumberGenerator.generateCompositeNumber(to = to))
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -121,12 +136,14 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalCompositeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with from -> to") {
+            val from = 2L
+            val to = 100L
             val generated = listOf(NaturalNumberGenerator.generateCompositeNumber(from = 10, to = 100))
 
             it("should not be empty or nulls") {
@@ -136,7 +153,7 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isCompositeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalCompositeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }

@@ -71,8 +71,22 @@ fun isBigger(actual: Int, expected: Int) {
 }
 
 //natural
-fun isNaturalNumberInRange(testCaseName: String, actual: Long, from: Long, to: Long) {
-    assert(NaturalNumberGenerator.isNaturalNumber(actual)) { "Number [$actual] should be $testCaseName!" }
+private fun fitInRange(actual: Long, from: Long, to: Long) {
     assert(actual >= from) { "Number [$actual] should be >= $from" }
     assert(actual <= to) { "Number [$actual] should be <= $to" }
+}
+
+fun isNaturalNumberInRange(testCaseName: String, actual: Long, from: Long, to: Long) {
+    assert(NaturalNumberGenerator.isNaturalNumber(actual)) { "Number [$actual] should be $testCaseName!" }
+    fitInRange(actual, from, to)
+}
+
+fun isNaturalCompositeNumberInRange(testCaseName: String, actual: Long, from: Long, to: Long) {
+    assert(NaturalNumberGenerator.isCompositeNumber(actual)) { "Number [$actual] should be $testCaseName!" }
+    fitInRange(actual, from, to)
+}
+
+fun isNaturalPrimeNumberInRange(testCaseName: String, actual: Long, from: Long, to: Long) {
+    assert(NaturalNumberGenerator.isPrimeNumber(actual)) { "Number [$actual] should be $testCaseName!" }
+    fitInRange(actual, from, to)
 }

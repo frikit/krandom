@@ -1,5 +1,6 @@
 package org.github.krandom.common.numbers
 
+import org.github.krandom.testhelper.isNaturalPrimeNumberInRange
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -12,6 +13,8 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
     describe("a random tests for list") {
         describe("a random $testCaseName default") {
+            val from = 2L
+            val to = Long.MAX_VALUE - 1
             val generated = NaturalNumberGenerator.generatePrimeNumbers()
 
             it("should not be empty or nulls") {
@@ -21,13 +24,15 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalPrimeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with from") {
-            val generated = NaturalNumberGenerator.generatePrimeNumbers(from = 100)
+            val from = 100L
+            val to = Long.MAX_VALUE - 1
+            val generated = NaturalNumberGenerator.generatePrimeNumbers(from = from)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -36,13 +41,15 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalPrimeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with to") {
-            val generated = NaturalNumberGenerator.generatePrimeNumbers(to = 100)
+            val from = 2L
+            val to = 100L
+            val generated = NaturalNumberGenerator.generatePrimeNumbers(to = to)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -51,13 +58,15 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalPrimeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with from -> to") {
-            val generated = NaturalNumberGenerator.generatePrimeNumbers(from = 10, to = 100)
+            val from = 10L
+            val to = 100L
+            val generated = NaturalNumberGenerator.generatePrimeNumbers(from = from, to = to)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -66,7 +75,7 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalPrimeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
@@ -82,6 +91,8 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
     describe("a random tests for element") {
         describe("a random $testCaseName default") {
+            val from = 2L
+            val to = Long.MAX_VALUE - 1
             val generated = listOf(NaturalNumberGenerator.generatePrimeNumber())
 
             it("should not be empty or nulls") {
@@ -91,13 +102,15 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalPrimeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with from") {
-            val generated = listOf(NaturalNumberGenerator.generatePrimeNumber(from = 100))
+            val from = 100L
+            val to = Long.MAX_VALUE - 1
+            val generated = listOf(NaturalNumberGenerator.generatePrimeNumber(from = from))
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -106,13 +119,15 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalPrimeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with to") {
-            val generated = listOf(NaturalNumberGenerator.generatePrimeNumber(to = 100))
+            val from = 2L
+            val to = 100L
+            val generated = listOf(NaturalNumberGenerator.generatePrimeNumber(to = to))
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
@@ -121,12 +136,14 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalPrimeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
 
         describe("a random $testCaseName with from -> to") {
+            val from = 2L
+            val to = 100L
             val generated = listOf(NaturalNumberGenerator.generatePrimeNumber(from = 10, to = 100))
 
             it("should not be empty or nulls") {
@@ -136,7 +153,7 @@ object PrimeNumberGeneratorWithoutCacheSpek : Spek({
 
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
-                    assert(NaturalNumberGenerator.isPrimeNumber(it)) { "Number [$it] should be $testCaseName!" }
+                    isNaturalPrimeNumberInRange(testCaseName, it, from, to)
                 }
             }
         }
