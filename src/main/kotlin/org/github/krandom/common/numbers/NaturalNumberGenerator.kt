@@ -17,14 +17,29 @@ object NaturalNumberGenerator {
         return number > 0 && number < Long.MAX_VALUE
     }
 
-    fun generateNaturalNumbers(size: Int, from: Long = 0, to: Long = Long.MAX_VALUE): List<Long> {
-        val (start, end) = validateStartEnd(from, to, 0, Long.MAX_VALUE - 2)
+    fun generateNaturalNumbers(size: Int, from: Long = 0, to: Long = Long.MAX_VALUE, excludeNumbers: List<Long> = emptyList()): List<Long> {
+        val result = arrayListOf<Long>()
 
-        return (1..size).map { randomNaturalLong(start, end) }.toList()
+        if (size > 0 || !excludeNumbers.isNullOrEmpty()) {
+            val (start, end) = validateStartEnd(from, to, 0, Long.MAX_VALUE - 2)
+
+            for (i in 1..size * 10) {
+                val number = randomNaturalLong(start, end)
+                if (!excludeNumbers.contains(number)) {
+                    result.add(number)
+                }
+
+                if (result.size == size) {
+                    break
+                }
+            }
+        }
+
+        return result
     }
 
-    fun generateNaturalNumber(from: Long = 0, to: Long = Long.MAX_VALUE): Long {
-        return generateNaturalNumbers(1, from, to)[0]
+    fun generateNaturalNumber(from: Long = 0, to: Long = Long.MAX_VALUE, excludeNumbers: List<Long> = emptyList()): Long {
+        return generateNaturalNumbers(1, from, to, excludeNumbers)[0]
     }
 
     //TODO refactor for simplified solution

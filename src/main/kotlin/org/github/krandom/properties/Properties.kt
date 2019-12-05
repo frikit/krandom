@@ -5,7 +5,7 @@ import mu.KotlinLogging
 object Properties {
     private val logger = KotlinLogging.logger(Properties::class.java.simpleName)
 
-    //global var for output initialization of variable
+    //the global var for output initialization of variable
     private var isFirstTimeRunning: Boolean = true
 
     //double
@@ -27,10 +27,10 @@ object Properties {
     init {
         if (isFirstTimeRunning) {
             logger.info("Properties:")
-            logger.info("Found DOUBLE { MAX = $maxDouble, MIN = $minDouble")
-            logger.info("Found FLOAT  { MAX = $maxFloat, MIN = $minFloat")
-            logger.info("Found LONG   { MAX = $maxLong, MIN = $minLong")
-            logger.info("Found INT    { MAX = $maxInt, MIN = $minInt")
+            logger.info("Found DOUBLE { MAX = $maxDouble, MIN = $minDouble }")
+            logger.info("Found FLOAT  { MAX = $maxFloat, MIN = $minFloat }")
+            logger.info("Found LONG   { MAX = $maxLong, MIN = $minLong }")
+            logger.info("Found INT    { MAX = $maxInt, MIN = $minInt }")
 
             isFirstTimeRunning = false
         }
