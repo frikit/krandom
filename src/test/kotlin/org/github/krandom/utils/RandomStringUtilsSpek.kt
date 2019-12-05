@@ -111,6 +111,13 @@ object RandomStringUtilsSpek : Spek({
                 random(count = 2, start = 0, end = 47, letters = true, numbers = false, chars = null)
             }
         }
+
+        it("should throw IllegalArgumentException exception because end char is == 48") {
+            assertFailsWith(IllegalArgumentException::class, "Should fail because end char is == 48") {
+                random(count = 2, start = 0, end = 48, letters = false, numbers = true, chars = null)
+            }
+        }
+
         it("should throw IllegalArgumentException exception because end char is < start char") {
             assertFailsWith(IllegalArgumentException::class, "Should fail because end char is < 48") {
                 random(count = 2, start = 47, end = 0, letters = true, numbers = false, chars = null)
@@ -123,6 +130,5 @@ object RandomStringUtilsSpek : Spek({
             }
         }
     }
-
 
 })

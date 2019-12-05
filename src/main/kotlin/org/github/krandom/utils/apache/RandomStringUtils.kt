@@ -16,16 +16,27 @@ object RandomStringUtils {
         val startChars = pair.first
         val endChars = pair.second
 
+        validateEndChar(chars, numbers, letters, endChars)
+
+        val gap = endChars - startChars
+        return generateResult(count, chars, gap, startChars, letters, numbers).toString()
+    }
+
+    private fun validateEndChar(chars: CharArray?, numbers: Boolean, letters: Boolean, endChars: Int) {
         val zeroDigitAscii = 48
         val firstLetterAscii = 65
 
-        require(!(chars == null && (numbers && endChars <= zeroDigitAscii || letters && endChars <= firstLetterAscii))) {
+        //Split if for the easy track on code coverage
+
+        require(!(chars == null && numbers && endChars <= zeroDigitAscii)) {
             "Parameter end (" + endChars + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
                     "or greater then (" + firstLetterAscii + ") for generating letters."
         }
 
-        val gap = endChars - startChars
-        return generateResult(count, chars, gap, startChars, letters, numbers).toString()
+        require(!(chars == null && letters && endChars <= firstLetterAscii)) {
+            "Parameter end (" + endChars + ") must be greater then (" + zeroDigitAscii + ") for generating digits " +
+                    "or greater then (" + firstLetterAscii + ") for generating letters."
+        }
     }
 
     private fun generateResult(countChars: Int, chars: CharArray?, gap: Int, startChars: Int, letters: Boolean, numbers: Boolean): StringBuilder {
