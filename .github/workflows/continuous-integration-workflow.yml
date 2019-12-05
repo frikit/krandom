@@ -6,11 +6,7 @@ jobs:
     name: Run Spek2 Test on Ubuntu(latest)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: Set up JDK 13
-        uses: actions/setup-java@master
-        with:
-          java-version: 13
+      - uses: actions/checkout@v1
       - name: Check where I'm
         working-directory: ${{ github.workspace }}
         run: echo $PWD
@@ -20,9 +16,5 @@ jobs:
         run: chmod +x gradlew
       - name: Running tests
         run: ./gradlew clean check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
-      - name: Codecov
-      - uses: codecov/codecov-action@master
-          with:
-            # User defined upload name. Visible in Codecov UI
-            # Repository uploads token - get it from codecov.io
-            token: 31c1b27f-b72a-4c8f-85f9-c7a715b2933b
+
+#TODO add codecov upload result
