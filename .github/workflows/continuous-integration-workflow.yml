@@ -17,8 +17,9 @@ jobs:
       - name: Running tests
         run: ./gradlew clean check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.4
-        with:
+      - uses: actions/checkout@master
+      - uses: codecov/codecov-action@v1
+          with:
           # User defined upload name. Visible in Codecov UI
           # Repository uploads token - get it from codecov.io
           token: 31c1b27f-b72a-4c8f-85f9-c7a715b2933b
