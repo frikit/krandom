@@ -57,7 +57,8 @@ Dice related things generator:
 |10 sided dice|✅|✅|
 |12 sided dice|✅|✅|
 |20 sided dice|✅|✅|
-//TODO think maybe to add all from???? https://commons.wikimedia.org/wiki/Dice_by_number_of_sides
+
+<br>//TODO think maybe to add all from???? https://commons.wikimedia.org/wiki/Dice_by_number_of_sides
 
 Number related generator:
 
@@ -69,6 +70,5 @@ Natural number generator:
 |prime number|✅|✅|
 |composite number|✅|✅|
 
-
-//TODO to add all types of tables, which will be implemented
-//TODO Idea can be taken from here https://chancejs.com/basics/
+<br>//TODO to add all types of tables, which will be implemented
+<br>//TODO Idea can be taken from here https://chancejs.com/basics/
