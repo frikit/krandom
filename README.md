@@ -71,3 +71,4 @@ Natural number generator:
 
 <br>//TODO to add all types of tables, which will be implemented
 <br>//TODO Idea can be taken from here https://chancejs.com/
+<br>//TODO Idea can be taken from here https://github.com/mdeanda/lorem
