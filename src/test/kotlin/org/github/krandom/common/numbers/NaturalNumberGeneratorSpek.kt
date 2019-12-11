@@ -10,6 +10,20 @@ object NaturalNumberGeneratorSpek : Spek({
 
     val testCaseName = "natural number"
 
+    describe("a random tests for validation") {
+        it("2 is valid $testCaseName") {
+            assert(NaturalNumberGenerator.isNaturalNumber(2)) {"2 is valid $testCaseName!!!"}
+        }
+
+        it("0 is invalid $testCaseName") {
+            assert(!NaturalNumberGenerator.isNaturalNumber(0)) {"0 is invalid $testCaseName!!!"}
+        }
+
+        it("${Long.MAX_VALUE} is invalid $testCaseName") {
+            assert(!NaturalNumberGenerator.isNaturalNumber(Long.MAX_VALUE)) {"${Long.MAX_VALUE} is invalid $testCaseName!!!"}
+        }
+    }
+
     describe("a random tests for list") {
 
         describe("a random $testCaseName default") {
