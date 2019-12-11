@@ -71,10 +71,13 @@ object NaturalNumberGenerator {
     fun generatePrimeNumbers(from: Long = 2, to: Long = Byte.MAX_VALUE.toLong()): List<Long> {
         val (start, end) = validateStartEnd(from, to)
 
+        //TODO extract method is cache empty
         if (primeCache.isEmpty() || primeCache.first() > start || primeCache.last() < end) {
+            //TODO pass cache as param
             fillCache(true, start, end)
         }
 
+        //TODO optimize with index or something
         val primeWithinRange = primeCache.filter { it in start..end }.toList()
         checkClearCache()
         require(primeWithinRange.isNotEmpty()) { "No prime numbers within [$start .. $end]" }
@@ -122,24 +125,28 @@ object NaturalNumberGenerator {
     }
 
     private fun fillCache(isPrimeMethod: Boolean, start: Long, end: Long) {
-        isCacheHaveEnoughSpace()
-
+        //TODO use passed cached as param instead change global var for both methods
         if (isPrimeMethod) {
             fillCacheSieveOfEratosthenesMethod(start, end)
         } else {
-            //TODO determine start and end depends on cache data and set only to range only between numbers which are not in cache
-            //TODO for e.g. in cache is 2,3,4 you input is 3..10 the start should be 4 and end is 10
-            //TODO for e.g. in cache is 3,4,5 you input is 2..10 the start should be 2 and end is 10
-            //TODO for e.g. in cache is 2,3,4 you input is 79..99 the start should be 79 and end is 99
-            //TODO this will permit optimization for this loop, when you have a big range and cache contains half of numbers it will make it x2 faster roughly
+            fillCompositeCache(start, end)
+        }
+    }
 
-            //TODO measure every line under foreach for how optimize is these values
+    private fun fillCompositeCache(start: Long, end: Long) {
+        //TODO determine start and end depends on cache data and set only to range only between numbers which are not in cache
+        //TODO for e.g. in the cache is 2,3,4 you input is 3..10 the start should be 4 and end is 10
+        //TODO for e.g. in the cache is 3,4,5 you input is 2..10 the start should be 2 and end is 10
+        //TODO for e.g. in the cache is 2,3,4 you input is 79..99 the start should be 79 and end is 99
+        //TODO this will permit optimization for this loop, when you have a big range and cache contains half of numbers it will make it x2 faster roughly
 
-            (start..end).forEach {
-                if (isCompositeNumber(it) && !compositeCache.contains(it)) {
-                    compositeCache.add(it)
-                    compositeCache.sort()
-                }
+        //TODO measure every line under foreach for how optimize is these values
+
+        (start..end).forEach {
+            if (isCompositeNumber(it) && !compositeCache.contains(it)) {
+                //TODO change it more performance with different collection
+                compositeCache.add(it)
+                compositeCache.sort()
             }
         }
     }
@@ -162,29 +169,25 @@ object NaturalNumberGenerator {
             p++
         }
         //TODO determine start and end depends on cache data and set only to range only between numbers which are not in cache
-        //TODO for e.g. in cache is 2,3,4 you input is 3..10 the start should be 4 and end is 10
-        //TODO for e.g. in cache is 3,4,5 you input is 2..10 the start should be 2 and end is 10
-        //TODO for e.g. in cache is 2,3,4 you input is 79..99 the start should be 79 and end is 99
+        //TODO for e.g. in the cache is 2,3,4 you input is 3..10 the start should be 4 and end is 10
+        //TODO for e.g. in the cache is 3,4,5 you input is 2..10 the start should be 2 and end is 10
+        //TODO for e.g. in the cache is 2,3,4 you input is 79..99 the start should be 79 and end is 99
         //TODO this will permit optimization for this loop, when you have a big range and cache contains half of numbers it will make it x2 faster roughly
 
         for (it in start..end) {
             if (prime[it.toInt()] && isPrimeNumber(it) && !primeCache.contains(it)) {
+                //TODO change it more performance with different collection
                 primeCache.add(it)
                 primeCache.sort()
             }
         }
     }
 
-    private fun isCacheHaveEnoughSpace() {
-        if (primeCache.size >= MAX_CAPACITY) primeCache.clear()
-        if (compositeCache.size >= MAX_CAPACITY) compositeCache.clear()
-    }
-
     private fun checkClearCache() {
-        if (!USE_NATURAL_NUMBER_CACHE) {
-            primeCache.clear()
-            compositeCache.clear()
-        }
+        if (USE_NATURAL_NUMBER_CACHE && primeCache.size >= MAX_CAPACITY) primeCache.clear()
+        if (!USE_NATURAL_NUMBER_CACHE) primeCache.clear()
+        if (USE_NATURAL_NUMBER_CACHE && compositeCache.size >= MAX_CAPACITY) compositeCache.clear()
+        if (!USE_NATURAL_NUMBER_CACHE) compositeCache.clear()
     }
 
     private fun randomNaturalLong(from: Long, to: Long): Long {

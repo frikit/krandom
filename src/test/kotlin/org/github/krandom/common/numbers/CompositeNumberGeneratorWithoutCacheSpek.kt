@@ -1,6 +1,7 @@
 package org.github.krandom.common.numbers
 
 import org.github.krandom.testhelper.isNaturalCompositeNumberInRange
+import org.github.krandom.testhelper.isSorted
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -22,6 +23,10 @@ object CompositeNumberGeneratorWithoutCacheSpek : Spek({
                 assert(!generated.isNullOrEmpty()) { "Generated values should not be null!" }
             }
 
+            it("should be sorted") {
+                isSorted(generated)
+            }
+
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
                     isNaturalCompositeNumberInRange(testCaseName, it, from, to)
@@ -37,6 +42,10 @@ object CompositeNumberGeneratorWithoutCacheSpek : Spek({
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
                 assert(!generated.isNullOrEmpty()) { "Generated values should not be null!" }
+            }
+
+            it("should be sorted") {
+                isSorted(generated)
             }
 
             generated.forEach {
@@ -56,6 +65,10 @@ object CompositeNumberGeneratorWithoutCacheSpek : Spek({
                 assert(!generated.isNullOrEmpty()) { "Generated values should not be null!" }
             }
 
+            it("should be sorted") {
+                isSorted(generated)
+            }
+
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
                     isNaturalCompositeNumberInRange(testCaseName, it, from, to)
@@ -71,6 +84,10 @@ object CompositeNumberGeneratorWithoutCacheSpek : Spek({
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
                 assert(!generated.isNullOrEmpty()) { "Generated values should not be null!" }
+            }
+
+            it("should be sorted") {
+                isSorted(generated)
             }
 
             generated.forEach {

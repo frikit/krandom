@@ -1,6 +1,7 @@
 package org.github.krandom.common.numbers
 
 import org.github.krandom.testhelper.isNaturalCompositeNumberInRange
+import org.github.krandom.testhelper.isSorted
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
@@ -22,6 +23,10 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
                 assert(!generated.isNullOrEmpty()) { "Generated values should not be null!" }
             }
 
+            it("should be sorted") {
+                isSorted(generated)
+            }
+
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
                     isNaturalCompositeNumberInRange(testCaseName, it, from, to)
@@ -37,6 +42,10 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
                 assert(!generated.isNullOrEmpty()) { "Generated values should not be null!" }
+            }
+
+            it("should be sorted") {
+                isSorted(generated)
             }
 
             generated.forEach {
@@ -56,6 +65,10 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
                 assert(!generated.isNullOrEmpty()) { "Generated values should not be null!" }
             }
 
+            it("should be sorted") {
+                isSorted(generated)
+            }
+
             generated.forEach {
                 it("Number [$it] should be $testCaseName!") {
                     isNaturalCompositeNumberInRange(testCaseName, it, from, to)
@@ -64,13 +77,17 @@ object CompositeNumberGeneratorWithCacheSpek : Spek({
         }
 
         describe("a random $testCaseName with from -> to") {
-            val from = 10L
+            val from = 2L
             val to = 100L
             val generated = NaturalNumberGenerator.generateCompositeNumbers(from = from, to = to)
 
             it("should not be empty or nulls") {
                 assert(generated.isNotEmpty()) { "Generated values should not be empty!" }
                 assert(!generated.isNullOrEmpty()) { "Generated values should not be null!" }
+            }
+
+            it("should be sorted") {
+                isSorted(generated)
             }
 
             generated.forEach {

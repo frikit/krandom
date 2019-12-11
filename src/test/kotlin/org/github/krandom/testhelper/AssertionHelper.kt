@@ -1,6 +1,7 @@
 package org.github.krandom.testhelper
 
 import org.github.krandom.common.numbers.NaturalNumberGenerator
+import java.util.stream.Collectors
 
 //double
 fun isBiggerOrEqual(actual: Double, expected: Double) {
@@ -70,6 +71,20 @@ fun isBigger(actual: Int, expected: Int) {
     assert(actual > expected) { "$actual > $expected -> ${actual > expected}" }
 }
 
+private fun isSortedList(list: List<Long>): Boolean {
+    return list.stream().sorted().collect(Collectors.toList()) == list
+}
+
+fun isSorted(list: List<Long>) {
+    val isSort = isSortedList(list)
+    assert(isSort) { "List[${list.size}] should be sorted, but it is not! {${list.take(10)}}" }
+}
+
+fun isNotSorted(list: List<Long>) {
+    val isSort = isSortedList(list)
+    assert(!isSort) { "List[${list.size}] should be sorted, but it is not! {${list.take(10)}}" }
+}
+
 //natural
 private fun fitInRange(actual: Long, from: Long, to: Long) {
     assert(actual >= from) { "Number [$actual] should be >= $from" }
@@ -90,3 +105,4 @@ fun isNaturalPrimeNumberInRange(testCaseName: String, actual: Long, from: Long, 
     assert(NaturalNumberGenerator.isPrimeNumber(actual)) { "Number [$actual] should be $testCaseName!" }
     fitInRange(actual, from, to)
 }
+
