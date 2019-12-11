@@ -70,4 +70,4 @@ Natural number generator:
 |composite number|✅|✅|
 
 <br>//TODO to add all types of tables, which will be implemented
-<br>//TODO Idea can be taken from here https://chancejs.com/basics/
+<br>//TODO Idea can be taken from here https://chancejs.com/
