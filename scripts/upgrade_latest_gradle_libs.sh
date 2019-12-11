@@ -29,8 +29,8 @@ echo "Find version [$versionLib]"
 
 sed -i.back "s/\(^kotlin_version=\).*/\1$versionLib/g" gradle.properties
 
-echo Remove whitespaces...
-cat gradle.properties | tr -d "[:blank:]" > gradle.properties.back
+echo Copy upgrade gradle prop into existing one...
+cat gradle.properties > gradle.properties.back
 
 echo Update current gradle.properties...
 mv -vf gradle.properties.back gradle.properties
