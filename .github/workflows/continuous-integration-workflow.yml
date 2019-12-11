@@ -18,8 +18,6 @@ jobs:
         run: ./gradlew clean check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
       - name: Codecov
         uses: codecov/codecov-action@master
-          with:
-            token: ${{ secrets.CODECOV_TOKEN }}
-            fail_ci_if_error: true
-
-#TODO add codecov upload result
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
