@@ -88,7 +88,7 @@ object NaturalNumberGenerator {
     fun generatePrimeNumber(from: Long = 2, to: Long = Byte.MAX_VALUE.toLong()): Long {
         val numbers = generatePrimeNumbers(from, to)
 
-        val index = kRandomCommon.randomInt(0, numbers.size - 1)
+        val index = kRandomCommon.randomInt(0, numbers.size)
 
         return numbers[index]
     }
@@ -111,7 +111,7 @@ object NaturalNumberGenerator {
     fun generateCompositeNumber(from: Long = 3, to: Long = Byte.MAX_VALUE.toLong()): Long {
         val numbers = generateCompositeNumbers(from, to)
 
-        val index = kRandomCommon.randomInt(0, numbers.size - 1)
+        val index = kRandomCommon.randomInt(0, numbers.size)
 
         return numbers[index]
     }

@@ -115,16 +115,29 @@ open class Randomizer : KRandomCommon {
     }
 
     private fun chooseWhichIndex(combinations: List<Pair<Int, Int>>): Int {
-        val chooseWhich: Int = if (combinations.size == 1) {
-            0
-        } else {
-            randomInt(0, combinations.size - 1)
+        var chooseWhich: Int = chooseWhichOne(combinations)
+
+        repeat(10) {
+            if (chooseWhich >= 0 && chooseWhich < combinations.size) return@repeat
+            chooseWhich = chooseWhichOne(combinations)
         }
 
-        require(!(chooseWhich < 0 || chooseWhich >= combinations.size)) {
+        if (chooseWhich < 0) {
             //TODO test somehow this method, if there is no way to test it with mocks
-            "Index which was choose to get combination pair is wrong $chooseWhich"
+            throw IllegalArgumentException("Index can't be < 0 ==> [$chooseWhich]")
         }
+        if (chooseWhich >= combinations.size) {
+            //TODO test somehow this method, if there is no way to test it with mocks
+            throw IllegalArgumentException("Index can't be >= ${combinations.size} ==> [$chooseWhich]")
+        }
+
         return chooseWhich
     }
+
+    private fun chooseWhichOne(combinations: List<Pair<Int, Int>>): Int =
+            if (combinations.size == 1) {
+                0
+            } else {
+                randomInt(0, combinations.size)
+            }
 }

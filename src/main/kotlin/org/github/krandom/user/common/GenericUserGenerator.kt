@@ -18,7 +18,7 @@ abstract class GenericUserGenerator {
     }
 
     protected fun randomData(list: List<String>): String {
-        val index = kRandomCommon.randomInt(0, list.size - 1)
+        val index = kRandomCommon.randomInt(0, list.size)
         return list[index]
     }
 
