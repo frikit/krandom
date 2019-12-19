@@ -1,10 +1,7 @@
 package org.github.krandom.common
 
 import org.github.krandom.utils.apache.RandomStringUtils
-import org.github.krandom.utils.checkThrowException
 import org.github.krandom.utils.generateRandomString
-import org.github.krandom.utils.getCharCombinations
-import org.github.krandom.utils.validateLength
 import java.security.SecureRandom
 import java.util.*
 
@@ -26,7 +23,6 @@ open class Randomizer : KRandomCommon {
     }
 
     override fun randomDouble(start: Double, end: Double): Double {
-        checkThrowException(start, end)
         val (startElem, endElem) = normalizeStartEnd(start, end)
 
         return random.doubles(1, startElem, endElem).findFirst().orElse(999.99)
@@ -42,8 +38,9 @@ open class Randomizer : KRandomCommon {
     }
 
     override fun randomFloat(start: Float, end: Float): Float {
-        checkThrowException(start, end)
-        return (start + (end - start) * randomDouble()).toFloat()
+        val (startElem, endElem) = normalizeStartEnd(start, end)
+
+        return (startElem + (endElem - startElem) * randomDouble()).toFloat()
     }
 
     //long
@@ -56,7 +53,6 @@ open class Randomizer : KRandomCommon {
     }
 
     override fun randomLong(start: Long, end: Long): Long {
-        checkThrowException(start, end)
         val (startElem, endElem) = normalizeStartEnd(start, end)
 
         return random.longs(1, startElem, endElem).findFirst().orElse(999L)
@@ -72,7 +68,6 @@ open class Randomizer : KRandomCommon {
     }
 
     override fun randomInt(start: Int, end: Int): Int {
-        checkThrowException(start, end)
         val (startElem, endElem) = normalizeStartEnd(start, end)
 
         return random.ints(1, startElem, endElem).findFirst().orElse(999)
@@ -100,13 +95,34 @@ open class Randomizer : KRandomCommon {
 
     //string
     override fun randomString(length: Int, specialCharacters: Boolean, numbers: Boolean): String {
-        validateLength(length)
+        require(length >= 1) { "Length can't be < 1" }
 
         val function: () -> String = { RandomStringUtils.random(length, 0, 0, true, numbers) }
         return generateRandomString(function, numbers)
     }
 
+    private fun getCharCombinations(upperLetters: Boolean,
+                                    lowerLetters: Boolean,
+                                    numbers: Boolean,
+                                    specialCharacters: Boolean): List<Pair<Int, Int>> {
+        val combinations: MutableList<Pair<Int, Int>> = mutableListOf()
+        if (upperLetters) combinations.add(66 to 90)
+        if (lowerLetters) combinations.add(97 to 122)
+        if (numbers) combinations.add(48 to 57)
+        if (specialCharacters) combinations.addAll(
+                listOf(
+                        33 to 47,
+                        58 to 64,
+                        91 to 96,
+                        123 to 126)
+        )
+
+        return combinations.toList()
+    }
+
     private fun <T : Comparable<T>> normalizeStartEnd(start: T, end: T): Pair<T, T> {
+        require(start != end) { "Illegal argument passed start = $start and end = $end, they should be different!" }
+
         var startElem = start
         var endElem = end
         //swap vars to act easier
@@ -115,11 +131,11 @@ open class Randomizer : KRandomCommon {
     }
 
     private fun chooseWhichIndex(combinations: List<Pair<Int, Int>>): Int {
-        var chooseWhich: Int = chooseWhichOne(combinations)
+        var chooseWhich: Int = -1
 
         repeat(10) {
-            if (chooseWhich >= 0 && chooseWhich < combinations.size) return@repeat
             chooseWhich = chooseWhichOne(combinations)
+            if (chooseWhich >= 0 && chooseWhich < combinations.size) return@repeat
         }
 
         if (chooseWhich < 0) {

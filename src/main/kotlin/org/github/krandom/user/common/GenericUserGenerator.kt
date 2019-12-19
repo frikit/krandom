@@ -26,7 +26,7 @@ abstract class GenericUserGenerator {
         require(list.isNotEmpty()) { "List should have elements!!!" }
         isValidSize(size)
 
-        //TODO optimize make linked list and extract a bunch of indexes, or not need to do so have no idea
+        //TODO optimize make linked list and extract a bunch of indexes, or not need to do, so have no idea
         val randomInits = generateIntSeq(size)
         val res = randomInits.map { list[it] }.toMutableList()
 
@@ -39,8 +39,8 @@ abstract class GenericUserGenerator {
     }
 
     protected fun isValidSize(size: Int) {
-        require(size < maxAllowSize) { "Size cannot be > $maxAllowSize!" }
-        require(size >= 1) { "Size cannot be > $maxAllowSize!" }
+        require(size < maxAllowSize) { "Size cannot be < $maxAllowSize!" }
+        require(size >= 1) { "Size cannot be >= 1!" }
     }
 
     private fun validateList(list: List<String>) {
