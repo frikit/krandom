@@ -3,7 +3,7 @@ package org.github.krandom.user
 import org.github.krandom.user.common.GenericUserGenerator
 import org.github.krandom.utils.ResourcePathHolder
 
-class SurName : KRandomUser<String>, GenericUserGenerator() {
+class SurName : KRandomUser<String>, GenericUserGenerator<String>() {
 
     //cache parsed list
     private val list by lazy { initCache(ResourcePathHolder.relativeSurNamePath) }

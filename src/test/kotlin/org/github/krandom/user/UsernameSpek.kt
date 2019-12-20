@@ -11,7 +11,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
-object UsernameTest : Spek({
+object UsernameSpek : Spek({
 
     run {
         propName = "username"
@@ -19,34 +19,34 @@ object UsernameTest : Spek({
     }
 
     describe("a user randomizer without numbers") {
-        val kRandomUser: KRandomUser<String> = Username(false)
+        val kRandomUser = Username(false)
 
         describe("generate user $propName") {
             (1..generateValues).forEach { _ ->
-                val name: String = kRandomUser.randomData()
-                it(" $name should be valid $propName") {
-                    validateName(name)
+                val value = kRandomUser.randomData()
+                it(" $value should be valid $propName") {
+                    validateName(value)
                 }
             }
         }
 
         describe("generate user $propNames") {
             (1..generateValues).forEach { _ ->
-                val name: List<String> = kRandomUser.randomDatas()
-                it(" ${name.size} all should be valid name") {
-                    UserUtils.validateNames(name)
+                val value = kRandomUser.randomDatas()
+                it(" ${value.size} all should be valid name") {
+                    UserUtils.validateNames(value)
                 }
             }
         }
 
         describe("generate user $propNames($userSize)") {
             (1..generateValues).forEach { _ ->
-                val name: List<String> = kRandomUser.randomDatas(userSize)
-                it("should be right size ${name.size} == $userSize") {
-                    assert(name.size == userSize) { "${name.size} != $userSize" }
+                val value = kRandomUser.randomDatas(userSize)
+                it("should be right size ${value.size} == $userSize") {
+                    assert(value.size == userSize) { "${value.size} != $userSize" }
                 }
-                it(" ${name[0]} should be valid name") {
-                    UserUtils.validateNames(name)
+                it(" ${value[0]} should be valid name") {
+                    UserUtils.validateNames(value)
                 }
             }
         }
@@ -69,32 +69,32 @@ object UsernameTest : Spek({
     }
 
     describe("a user randomizer with numbers") {
-        val kRandomUser: KRandomUser<String> = Username(true)
+        val kRandomUser = Username(true)
 
         describe("generate user $propName") {
             (1..generateValues).forEach { _ ->
-                val name: String = kRandomUser.randomData()
-                it(" $name should be valid $propName") {
-                    validateName(name, true)
+                val value = kRandomUser.randomData()
+                it(" $value should be valid $propName") {
+                    validateName(value, true)
                 }
             }
         }
 
         describe("generate user $propNames") {
             (1..generateValues).forEach { _ ->
-                val name: List<String> = kRandomUser.randomDatas()
-                it(" ${name.size} all should be valid name") {
-                    UserUtils.validateNames(name, true)
+                val value = kRandomUser.randomDatas()
+                it(" ${value.size} all should be valid name") {
+                    UserUtils.validateNames(value, true)
                 }
             }
         }
 
         describe("generate user $propNames($userSize)") {
             (1..generateValues).forEach { _ ->
-                val name: List<String> = kRandomUser.randomDatas(userSize)
-                assert(name.size == userSize) { "${name.size} != $userSize" }
-                it(" ${name[0]} should be valid name") {
-                    UserUtils.validateNames(name, true)
+                val value = kRandomUser.randomDatas(userSize)
+                assert(value.size == userSize) { "${value.size} != $userSize" }
+                it(" ${value[0]} should be valid name") {
+                    UserUtils.validateNames(value, true)
                 }
             }
         }

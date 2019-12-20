@@ -3,7 +3,7 @@ package org.github.krandom.user
 import org.github.krandom.user.common.GenericUserGenerator
 import org.github.krandom.utils.generateRandomString
 
-class Username(val numbers: Boolean) : KRandomUser<String>, GenericUserGenerator() {
+class Username(val numbers: Boolean) : KRandomUser<String>, GenericUserGenerator<String>() {
 
     override fun randomData(): String {
         val block: () -> String = { kRandomCommon.randomString(7, false, numbers) }

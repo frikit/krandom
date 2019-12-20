@@ -2,6 +2,16 @@ package org.github.krandom.testhelper
 
 object UserUtils {
 
+    fun validateAge(age: Int) {
+        assert(age in 0..100) { "Age should be between 0-100! [$age]" }
+    }
+
+    fun validateAges(ages: List<Int>) {
+        for (it in ages) {
+            validateAge(it)
+        }
+    }
+
     fun validateName(name: String, numbers: Boolean = false) {
         if (numbers) {
             assert(name.contains(Regex("[0-9]+"))) { "Name should contain numbers! [$name]" }
