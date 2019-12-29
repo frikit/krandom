@@ -1,31 +1,39 @@
 package org.github.krandom.user
 
-import org.github.krandom.testhelper.Constants
 import org.github.krandom.testhelper.Constants.generateValues
+import org.github.krandom.testhelper.Constants.overflowUserSizeMinus
+import org.github.krandom.testhelper.Constants.overflowUserSizePlus
 import org.github.krandom.testhelper.Constants.userSize
-import org.github.krandom.testhelper.UserUtils
+import org.github.krandom.testhelper.UserUtils.validateGender
+import org.github.krandom.testhelper.UserUtils.validateGenders
 import org.github.krandom.testhelper.UserUtils.validateName
+import org.github.krandom.testhelper.UserUtils.validateNames
 import org.github.krandom.user.BaseUserGenerator.propName
 import org.github.krandom.user.BaseUserGenerator.propNames
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
-object UsernameSpek : Spek({
+object GenderSpek : Spek({
 
     run {
-        propName = "username"
-        propNames = "usernames"
+        propName = "gender"
+        propNames = "genders"
     }
 
-    describe("a user randomizer without numbers") {
-        val kRandomUser = Username(false)
+    val extraGenders = listOf("AGender", "BGender")
+
+    val expectedDefault = Gender.DEFAULT
+    val expectedExtra = expectedDefault + extraGenders
+
+    describe("a default user randomizer") {
+        val kRandomUser = Gender()
 
         describe("generate user $propName") {
             (1..generateValues).forEach { _ ->
                 val value = kRandomUser.randomData()
                 it(" $value should be valid $propName") {
-                    validateName(value)
+                    validateGender(value, expectedDefault)
                 }
             }
         }
@@ -34,7 +42,7 @@ object UsernameSpek : Spek({
             (1..generateValues).forEach { _ ->
                 val value = kRandomUser.randomDatas()
                 it(" ${value.size} all should be valid $propName") {
-                    UserUtils.validateNames(value)
+                    validateGenders(value, expectedDefault)
                 }
             }
         }
@@ -46,36 +54,36 @@ object UsernameSpek : Spek({
                     assert(value.size == userSize) { "${value.size} != $userSize" }
                 }
                 it(" ${value[0]} should be valid $propName") {
-                    UserUtils.validateNames(value)
+                    validateNames(value)
                 }
             }
         }
 
-        describe("generate user $propNames(${Constants.overflowUserSizePlus})") {
+        describe("generate user $propNames($overflowUserSizePlus)") {
             it("should throw exception") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                    kRandomUser.randomDatas(Constants.overflowUserSizePlus)
+                    kRandomUser.randomDatas(overflowUserSizePlus)
                 }
             }
         }
 
-        describe("generate user $propNames(${Constants.overflowUserSizeMinus})") {
+        describe("generate user $propNames($overflowUserSizeMinus)") {
             it("should throw exception") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                    kRandomUser.randomDatas(Constants.overflowUserSizeMinus)
+                    kRandomUser.randomDatas(overflowUserSizeMinus)
                 }
             }
         }
     }
 
-    describe("a user randomizer with numbers") {
-        val kRandomUser = Username(true)
+    describe("a user randomizer with extra") {
+        val kRandomUser = Gender(extraGenders)
 
         describe("generate user $propName") {
             (1..generateValues).forEach { _ ->
                 val value = kRandomUser.randomData()
                 it(" $value should be valid $propName") {
-                    validateName(value, true)
+                    validateGender(value, expectedExtra)
                 }
             }
         }
@@ -84,7 +92,7 @@ object UsernameSpek : Spek({
             (1..generateValues).forEach { _ ->
                 val value = kRandomUser.randomDatas()
                 it(" ${value.size} all should be valid $propName") {
-                    UserUtils.validateNames(value, true)
+                    validateGenders(value, expectedExtra)
                 }
             }
         }
@@ -92,25 +100,27 @@ object UsernameSpek : Spek({
         describe("generate user $propNames($userSize)") {
             (1..generateValues).forEach { _ ->
                 val value = kRandomUser.randomDatas(userSize)
-                assert(value.size == userSize) { "${value.size} != $userSize" }
+                it("should be right size ${value.size} == $userSize") {
+                    assert(value.size == userSize) { "${value.size} != $userSize" }
+                }
                 it(" ${value[0]} should be valid $propName") {
-                    UserUtils.validateNames(value, true)
+                    validateNames(value)
                 }
             }
         }
 
-        describe("generate user $propNames(${Constants.overflowUserSizePlus})") {
+        describe("generate user $propNames($overflowUserSizePlus)") {
             it("should throw exception") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                    kRandomUser.randomDatas(Constants.overflowUserSizePlus)
+                    kRandomUser.randomDatas(overflowUserSizePlus)
                 }
             }
         }
 
-        describe("generate user $propNames(${Constants.overflowUserSizeMinus})") {
+        describe("generate user $propNames($overflowUserSizeMinus)") {
             it("should throw exception") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
-                    kRandomUser.randomDatas(Constants.overflowUserSizeMinus)
+                    kRandomUser.randomDatas(overflowUserSizeMinus)
                 }
             }
         }

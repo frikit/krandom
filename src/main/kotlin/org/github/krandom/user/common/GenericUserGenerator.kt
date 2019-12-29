@@ -27,7 +27,7 @@ abstract class GenericUserGenerator<T> {
         isValidSize(size)
 
         //TODO optimize make linked list and extract a bunch of indexes, or not need to do, so have no idea
-        val randomInits = generateIntSeq(size, size)
+        val randomInits = generateIntSeq(size, list.size)
         val res = randomInits.map { list[it] }.toList()
 
         validateList(res)

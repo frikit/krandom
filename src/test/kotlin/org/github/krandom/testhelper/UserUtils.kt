@@ -27,4 +27,14 @@ object UserUtils {
             validateName(it, numbers)
         }
     }
+
+    fun validateGender(gender: String, validValues: List<String>) {
+        assert(validValues.contains(gender)) {"Gender $gender should be one of these $validValues"}
+    }
+
+    fun validateGenders(gender: List<String>, validValues: List<String>) {
+        for (it in gender) {
+            validateGender(it, validValues)
+        }
+    }
 }

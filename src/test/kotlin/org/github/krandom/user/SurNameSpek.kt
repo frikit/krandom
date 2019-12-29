@@ -33,7 +33,7 @@ object SurNameSpek : Spek({
         describe("generate user $propNames") {
             (1..generateValues).forEach { _ ->
                 val value = kRandomUser.randomDatas()
-                it(" ${value.size} all should be valid name") {
+                it(" ${value.size} all should be valid $propName") {
                     UserUtils.validateNames(value)
                 }
             }
@@ -45,7 +45,7 @@ object SurNameSpek : Spek({
                 it("should be right size ${value.size} == $userSize") {
                     assert(value.size == userSize) { "${value.size} != $userSize" }
                 }
-                it(" ${value[0]} should be valid name") {
+                it(" ${value[0]} should be valid $propName") {
                     UserUtils.validateNames(value)
                 }
             }
