@@ -8,6 +8,6 @@ interface KRandomInt {
 
     fun randomInt(rangeTo: ClosedRange<Int>): Int
 
-    fun randomInt(start: Int = Properties.minInt, end: Int = Properties.maxInt): Int
+    fun randomInt(start: Int = Properties.MIN_INT, end: Int = Properties.MAX_INT): Int
 
 }

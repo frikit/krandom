@@ -8,6 +8,6 @@ interface KRandomDouble {
 
     fun randomDouble(rangeTo: ClosedRange<Double>): Double
 
-    fun randomDouble(start: Double = Properties.minDouble, end: Double = Properties.maxDouble): Double
+    fun randomDouble(start: Double = Properties.MIN_DOUBLE, end: Double = Properties.MAX_DOUBLE): Double
 
 }

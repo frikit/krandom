@@ -8,6 +8,6 @@ interface KRandomFloat {
 
     fun randomFloat(rangeTo: ClosedRange<Float>): Float
 
-    fun randomFloat(start: Float = Properties.minFloat, end: Float = Properties.maxFloat): Float
+    fun randomFloat(start: Float = Properties.MIN_FLOAT, end: Float = Properties.MAX_FLOAT): Float
 
 }

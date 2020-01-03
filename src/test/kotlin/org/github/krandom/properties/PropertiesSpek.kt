@@ -1,55 +1,41 @@
 package org.github.krandom.properties
 
-import mu.KLogger
-import mu.KLogging
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.lang.reflect.Field
+import kotlin.reflect.full.declaredMemberProperties
 
 object PropertiesSpek : Spek({
 
-    val logger: KLogger by lazy { KLogging().logger(PropertiesSpek::class.java.simpleName) }
+    val expectedFields = listOf(
+            Pair("MAX_DOUBLE", Double.MAX_VALUE),
+            Pair("MIN_DOUBLE", Double.MIN_VALUE),
+            Pair("MAX_FLOAT", Float.MAX_VALUE),
+            Pair("MIN_FLOAT", Float.MIN_VALUE),
+            Pair("MAX_LONG", Long.MAX_VALUE),
+            Pair("MIN_LONG", Long.MIN_VALUE),
+            Pair("MAX_INT", Int.MAX_VALUE),
+            Pair("MIN_INT", Int.MIN_VALUE)
+    ).sortedWith(compareBy { it.first })
 
-    val expectedFields: Map<String, Any> = mapOf(
-            Pair("maxDouble", Double.MAX_VALUE),
-            Pair("minDouble", Double.MIN_VALUE),
-            Pair("maxFloat", Float.MAX_VALUE),
-            Pair("minFloat", Float.MIN_VALUE),
-            Pair("maxLong", Long.MAX_VALUE),
-            Pair("minLong", Long.MIN_VALUE),
-            Pair("maxInt", Int.MAX_VALUE),
-            Pair("minInt", Int.MIN_VALUE),
-            Pair("maxShort", Short.MAX_VALUE),
-            Pair("minShort", Short.MIN_VALUE),
-            Pair("maxByte", Byte.MAX_VALUE),
-            Pair("minByte", Byte.MIN_VALUE)
-    )
 
-    describe("a properties object") {
-        val properties = Properties
-        describe("get fields from object") {
-            val fields: Array<Field> = properties.javaClass.fields
-            val fieldNames: List<String> = fields
-                    .filter { it.name != "INSTANCE" }//filter object of instance
-                    .map { it.toGenericString() }
-                    .map { it.split(".Properties.")[1] }
+    describe("get fields from object") {
+        val fields = Properties::class.declaredMemberProperties
+                .map { it.name to it.get(Properties) }
+                .sortedWith(compareBy { it.first })
 
-            fieldNames.forEach {
-                it("check prop name = $it it should not be empty or blank") {
-                    assert(it.isNotBlank())
-                    assert(it.isNotEmpty())
-                    logger.info { "Prop with name $it is not blank and not empty!" }
-                }
+        it("should be ${expectedFields.size} props") {
+            assert(fields.size == expectedFields.size) { "Should be [${expectedFields.size}] != [${fields.size}]" }
+        }
+
+        repeat(expectedFields.size) {
+            val expectedValue = expectedFields[it]
+            val currentValue = fields[it]
+            it("key should be the same [${expectedValue.first}]") {
+                assert(expectedValue.first == currentValue.first) { "${expectedValue.first} == ${currentValue.first}" }
             }
-
-            fieldNames.forEach {
-                val expectedValue = expectedFields[it]
-                val getValue = properties.javaClass.getDeclaredField(it).get(properties)
-                it("check prop name = $expectedValue as expectedValue should be = $getValue") {
-                    logger.info { "check if $expectedValue == $getValue" }
-                    assert(expectedValue == getValue) { "Expected  should be the same!" }
-                }
+            it("value should be the same [${expectedValue.second}]") {
+                assert(expectedValue.second == currentValue.second) { "${expectedValue.second} == ${currentValue.second}" }
             }
         }
     }
-    })
+})
