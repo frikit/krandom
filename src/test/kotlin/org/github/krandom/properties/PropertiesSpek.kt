@@ -2,7 +2,6 @@ package org.github.krandom.properties
 
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import kotlin.reflect.full.declaredMemberProperties
 
 object PropertiesSpek : Spek({
 
@@ -15,21 +14,27 @@ object PropertiesSpek : Spek({
             Pair("MIN_LONG", Long.MIN_VALUE),
             Pair("MAX_INT", Int.MAX_VALUE),
             Pair("MIN_INT", Int.MIN_VALUE)
-    ).sortedWith(compareBy { it.first })
+    )
 
+    val currentFields = listOf(
+            Pair("MAX_DOUBLE", Properties.MAX_DOUBLE),
+            Pair("MIN_DOUBLE", Properties.MIN_DOUBLE),
+            Pair("MAX_FLOAT", Properties.MAX_FLOAT),
+            Pair("MIN_FLOAT", Properties.MIN_FLOAT),
+            Pair("MAX_LONG", Properties.MAX_LONG),
+            Pair("MIN_LONG", Properties.MIN_LONG),
+            Pair("MAX_INT", Properties.MAX_INT),
+            Pair("MIN_INT", Properties.MIN_INT)
+    )
 
-    describe("get fields from object") {
-        val fields = Properties::class.declaredMemberProperties
-                .map { it.name to it.get(Properties) }
-                .sortedWith(compareBy { it.first })
-
+    describe("a properties") {
         it("should be ${expectedFields.size} props") {
-            assert(fields.size == expectedFields.size) { "Should be [${expectedFields.size}] != [${fields.size}]" }
+            assert(currentFields.size == expectedFields.size) { "Should be [${expectedFields.size}] != [${currentFields.size}]" }
         }
 
         repeat(expectedFields.size) {
             val expectedValue = expectedFields[it]
-            val currentValue = fields[it]
+            val currentValue = currentFields[it]
             it("key should be the same [${expectedValue.first}]") {
                 assert(expectedValue.first == currentValue.first) { "${expectedValue.first} == ${currentValue.first}" }
             }
