@@ -26,7 +26,6 @@ object TitleSpek : Spek({
         propNames = "titles"
     }
 
-
     describe("a default title randomizer") {
         val kRandomUser = Title.initDefault()
 

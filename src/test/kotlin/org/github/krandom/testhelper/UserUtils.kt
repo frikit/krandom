@@ -52,7 +52,7 @@ object UserUtils {
             assert(!title.getTitle(true).endsWith(".")) { "Long titles should not end with ." }
         }
 
-        assert(!title.getTitle(false).endsWith(".")) { "UK style titles should not end with ." }
+        assert(!title.getTitle().endsWith(".")) { "UK style titles should not end with ." }
 
         assert(validValues.contains(title)) { "Title $title should be one of these $validValues" }
     }
