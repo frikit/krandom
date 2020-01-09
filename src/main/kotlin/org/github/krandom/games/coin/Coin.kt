@@ -13,13 +13,8 @@ class Coin(val head: CoinResult = CoinResult.HEAD, val tail: CoinResult = CoinRe
 
     fun flip(nrTimes: Int): List<CoinResult> {
         val times = if (nrTimes >= MAX_ALLOWED_SIZE) MAX_ALLOWED_SIZE else nrTimes
-        val res = (1..times).map { flip() }.toList()
-        val expectedSize = res.size
-        require(expectedSize == times) {
-            "Generated result $expectedSize != $times , but they should be the same"
-        }
 
-        return res
+        return (1..times).map { flip() }.toList()
     }
 
     fun flip(): CoinResult {
