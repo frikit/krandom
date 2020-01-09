@@ -1,5 +1,8 @@
 package org.github.krandom.testhelper
 
+import org.github.krandom.user.DummyEnum
+import org.github.krandom.user.enum.TitleResult
+
 object UserUtils {
 
     fun validateAge(age: Int) {
@@ -29,12 +32,45 @@ object UserUtils {
     }
 
     fun validateGender(gender: String, validValues: List<String>) {
-        assert(validValues.contains(gender)) {"Gender $gender should be one of these $validValues"}
+        assert(validValues.contains(gender)) { "Gender $gender should be one of these $validValues" }
     }
 
     fun validateGenders(gender: List<String>, validValues: List<String>) {
         for (it in gender) {
             validateGender(it, validValues)
+        }
+    }
+
+    fun validateTitle(title: TitleResult, validValues: List<TitleResult>) {
+        assert(title.title.isNotEmpty()) { "Title cant be empty!" }
+        assert(title.fullTitle.isNotEmpty()) { "FullTitle cant be empty!" }
+        assert(title.description.isNotEmpty()) { "Description cant be empty!" }
+
+        if (title.title.length <= 3) {
+            assert(title.getTitle(true).endsWith(".")) { "Short titles should end with ." }
+        } else {
+            assert(!title.getTitle(true).endsWith(".")) { "Long titles should not end with ." }
+        }
+
+        assert(!title.getTitle(false).endsWith(".")) { "UK style titles should not end with ." }
+
+        assert(validValues.contains(title)) { "Title $title should be one of these $validValues" }
+    }
+
+    fun validateTitles(title: List<TitleResult>, validValues: List<TitleResult>) {
+        for (it in title) {
+            validateTitle(it, validValues)
+        }
+    }
+
+    fun validateCustomTitle(title: DummyEnum, validValues: List<DummyEnum>) {
+        assert(title.title.isNotEmpty()) { "Title cant be empty!" }
+        assert(validValues.contains(title)) { "Title $title should be one of these $validValues" }
+    }
+
+    fun validateCustomTitles(title: List<DummyEnum>, validValues: List<DummyEnum>) {
+        for (it in title) {
+            validateCustomTitle(it, validValues)
         }
     }
 }

@@ -2,11 +2,12 @@ package org.github.krandom.user
 
 import org.github.krandom.user.common.GenericUserGenerator
 
-class Gender(val extraGenders: List<String> = emptyList()) : KRandomUser<String>, GenericUserGenerator<String>() {
+class Gender(extraGenders: List<String> = emptyList()) : KRandomUser<String>, GenericUserGenerator<String>() {
 
     companion object {
         val DEFAULT = listOf("Male", "Female")
     }
+
     //cache parsed list
     private val list = DEFAULT + extraGenders
 
