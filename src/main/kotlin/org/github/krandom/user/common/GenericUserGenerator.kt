@@ -45,6 +45,5 @@ abstract class GenericUserGenerator<T> {
 
     private fun validateList(list: List<T>) {
         require(list.isNotEmpty()) { "List with options can't be empty!" }
-        require(!list.none { it != "" }) { "List with options can't be empty or consist only of empty elements!" }
     }
 }
