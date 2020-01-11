@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package org.github.krandom.utils
 
 class CSVParser<T> {
