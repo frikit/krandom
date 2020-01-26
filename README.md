@@ -1,10 +1,5 @@
-<div>
-<h1>kRandom</h1>
-<a href="https://codecov.io/gh/frikit/krandom">
-  <img src="https://codecov.io/gh/frikit/krandom/branch/master/graph/badge.svg?token=CpcHkmbzo7" alt="build:failed"/>
-</a>
-</div>
-<br>
+# kRandom
+[![codecov](https://codecov.io/gh/frikit/krandom/branch/master/graph/badge.svg?token=CpcHkmbzo7)](https://codecov.io/gh/frikit/krandom)
 
 Snyk: https://app.snyk.io/org/frikit-github-marketplace/projects
 
