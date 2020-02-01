@@ -67,6 +67,12 @@ Natural number generator:
 |prime number|✅|✅|
 |composite number|✅|✅|
 
+Network
+| Name | Implemented | Tested |
+|:---:|:---:|:---:|
+|Ipv4|✅|✅|
+//TBD...
+
 <br>//TODO to add all types of tables, which will be implemented
 <br>//TODO Idea can be taken from here https://chancejs.com
 <br>//TODO Idea can be taken from here https://github.com/mdeanda/lorem
