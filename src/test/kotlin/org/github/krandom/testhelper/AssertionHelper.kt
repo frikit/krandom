@@ -1,6 +1,7 @@
 package org.github.krandom.testhelper
 
 import org.github.krandom.common.numbers.NaturalNumberGenerator
+import org.github.krandom.common.string.hash.HashGeneratorResult
 import org.github.krandom.games.coin.enum.CoinResult
 import java.util.stream.Collectors
 
@@ -142,5 +143,33 @@ fun isValidIP(ips: List<String>) {
         //part 4
         assert(part4 >= 0) { "[$part4] should be >= 0!" }
         assert(part4 <= 255) { "[$part4] should be <= 255!" }
+    }
+}
+
+//hex hash
+private fun isValidMD5(hash: String, length: Int): Boolean {
+    return hash.matches("^[a-fA-F0-9]{$length}$".toRegex())
+}
+
+fun isValidHexHash(hash: String,
+                   returnProcessorStrategy: HashGeneratorResult = HashGeneratorResult.NONE,
+                   length: Int = 32) {
+
+    assert(hash.length == length) { "Hash length = ${hash.length} != expected length = $length" }
+
+    when (returnProcessorStrategy) {
+        HashGeneratorResult.UPPER_CASE ->
+            assert(isValidMD5(hash, length) && hash.matches("^[A-F0-9]{$length}$".toRegex())) {
+                "Hex should contain only upper case letters and numbers, but it is not! [$hash]"
+            }
+        HashGeneratorResult.LOWER_CASE ->
+            assert(isValidMD5(hash, length) && hash.matches("^[a-f0-9]{$length}$".toRegex())) {
+                "Hex should contain only lower case letters and numbers, but it is not! [$hash]"
+            }
+        else ->
+
+            assert(isValidMD5(hash, length)) {
+                "Hex should contain only letters and numbers, but it is not! [$hash]"
+            }
     }
 }

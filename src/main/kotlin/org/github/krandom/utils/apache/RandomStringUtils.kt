@@ -65,11 +65,14 @@ object RandomStringUtils {
     }
 
     private fun getNextCodePoint(chars: CharArray?, gap: Int, startChars: Int): Int {
-        return if (chars == null) {
-            RANDOM.nextInt(gap) + startChars
+        val randomInt = RANDOM.nextInt(gap) + startChars
+        val result = if (chars == null) {
+            randomInt
         } else {
-            chars[RANDOM.nextInt(gap) + startChars].toInt()
+            chars[randomInt].toInt()
         }
+
+        return result
     }
 
     private fun getStartEndChars(startChars: Int, endChars: Int, chars: CharArray?, letters: Boolean, numbers: Boolean): Pair<Int, Int> {
