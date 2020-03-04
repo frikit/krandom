@@ -2,6 +2,9 @@ package org.github.krandom.testhelper
 
 import org.github.krandom.user.DummyEnum
 import org.github.krandom.user.enum.TitleResult
+import org.github.krandom.validators.network.IPv4Validator
+import org.github.krandom.validators.network.IPv6Validator
+import org.github.krandom.validators.user.EmailValidator
 
 object UserUtils {
 
@@ -71,6 +74,26 @@ object UserUtils {
     fun validateCustomTitles(title: List<DummyEnum>, validValues: List<DummyEnum>) {
         for (it in title) {
             validateCustomTitle(it, validValues)
+        }
+    }
+
+    fun validateEmail(email: String, domains: List<String>) {
+        assert(EmailValidator.validate(email)) { "Email '$email' should be like this pattern:\n${EmailValidator.PATTERN.pattern()}\n" }
+
+        val domainEmail = email.split("@")[1].toLowerCase()
+        val normalized = domains.map {
+            if (IPv4Validator.validate(it) || IPv6Validator.validate(it)) {
+                "[" + it.toLowerCase() + "]"
+            } else {
+                it.toLowerCase()
+            }
+        }
+        assert(normalized.contains(domainEmail)) { "Generated email '$domainEmail' is not from domains=$normalized" }
+    }
+
+    fun validateEmails(emails: List<String>, domains: List<String>) {
+        for (it in emails) {
+            validateEmail(it, domains)
         }
     }
 }
