@@ -18,8 +18,7 @@ class Email(val domains: List<String> = DEFAULT_DOMAINS) : KRandomUser<String>, 
                 "test.com",
                 "example.com",
                 "example.org",
-                "example.net",
-                "test.invalid"
+                "example.net"
         )
     }
 

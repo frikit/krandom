@@ -78,7 +78,7 @@ object UserUtils {
     }
 
     fun validateEmail(email: String, domains: List<String>) {
-        assert(EmailValidator.validate(email)) { "Email '$email' should be like this pattern:\n${EmailValidator.PATTERN.pattern()}\n" }
+        assert(EmailValidator.validate(email)) { "Not valid email '$email'!" }
 
         val domainEmail = email.split("@")[1].toLowerCase()
         val normalized = domains.map {
