@@ -6,7 +6,6 @@ object ResourceResolver {
 
     fun getResourceContent(relativePath: String): String {
         val rel = File("").absoluteFile
-        var result: String? = ""
 
         val resources = rel.walkTopDown()
                 .map { it }
@@ -15,13 +14,8 @@ object ResourceResolver {
                 .filter { it.isFile }
                 .toList()
 
-        resources.forEach {
-            if (it.absolutePath.endsWith(relativePath)) {
-                result = it.reader().readText()
-                return@forEach
-            }
-        }
+        val file: File? = resources.firstOrNull { it.absolutePath.endsWith(relativePath) }
 
-        return result!!
+        return file?.reader()?.readText() ?: ""
     }
 }
