@@ -38,8 +38,7 @@ class Email(val domains: List<String> = DEFAULT_DOMAINS) : KRandomUser<String>, 
             val idx = randomIndexInList(domains)
             val value = domains[idx]
 
-            if (IPv4Validator.validate(value)
-                    || IPv6Validator.validate(value)) {
+            if (IPv4Validator.validate(value) || IPv6Validator.validate(value)) {
                 "[$value]"
             } else {
                 value

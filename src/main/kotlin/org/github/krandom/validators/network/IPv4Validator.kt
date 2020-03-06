@@ -6,10 +6,6 @@ object IPv4Validator {
 
     private val validator: InetAddressValidator = InetAddressValidator.getInstance()
 
-    fun validate(values: List<String>): Boolean {
-        return values.all { validate(it) }
-    }
-
     fun validate(value: String): Boolean {
         return validator.isValidInet4Address(value)
     }
