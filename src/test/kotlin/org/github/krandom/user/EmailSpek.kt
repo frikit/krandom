@@ -101,7 +101,6 @@ object EmailSpek : Spek({
 
     describe("a user randomizer(fail test cases)") {
         val kRandomUser = Email(listOf("victor.dev"))
-        val domains = kRandomUser.domains
 
         describe("generate user $propNames($overflowUserSizePlus)") {
             it("should throw exception") {
@@ -119,10 +118,18 @@ object EmailSpek : Spek({
             }
         }
 
-        describe("generate user $propNames($overflowUserSizeMinus)") {
+        describe("generate user with empty domain list") {
             it("should throw exception") {
                 assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
                     Email(emptyList())
+                }
+            }
+        }
+
+        describe("generate user with one empty element in domain list") {
+            it("should throw exception") {
+                assertFailsWith(IllegalArgumentException::class, "should throw illegal argument exception") {
+                    Email(listOf("test", "", "test2"))
                 }
             }
         }
