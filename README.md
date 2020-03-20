@@ -40,6 +40,8 @@ User(fields) generator:
 |Username|✅|✅|
 |Age|✅|✅|
 |Gender|✅|✅|
+|Email|✅|✅|
+|Title|✅|✅|
 //TBD...
 
 Games related things generator:
