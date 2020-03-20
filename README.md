@@ -73,6 +73,13 @@ Network:
 |:---:|:---:|:---:|
 |Ipv4|✅|✅|
 
+Hash:
+
+| Name | Implemented | Tested |
+|:---:|:---:|:---:|
+|random hash from 1-999(length)|✅|✅|
+
+
 //TBD...
 
 <br>//TODO to add all types of tables, which will be implemented

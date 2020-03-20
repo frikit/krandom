@@ -24,6 +24,8 @@ repositories {
 dependencies {
     //stdlib
     implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: project.property('kotlin_version')
+    implementation group: 'commons-validator', name: 'commons-validator', version: '1.6'
+
 
     //logging
     implementation group: 'io.github.microutils', name: 'kotlin-logging', version: '+'

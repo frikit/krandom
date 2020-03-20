@@ -6,6 +6,21 @@ object RandomStringUtils {
 
     private val RANDOM = Random()
 
+    fun generateRandomString(function: () -> String, numbers: Boolean): String {
+        var res: String = function.invoke()
+        if (numbers) {
+            for (i in 0..99) {
+                if (!res.contains("[0-9]+".toRegex())) {
+                    res = function.invoke()
+                } else {
+                    return res
+                }
+            }
+            res = ""
+        }
+        return res
+    }
+
     fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean, chars: CharArray? = null): String {
 
         require(!(chars != null && chars.isEmpty())) {
@@ -65,11 +80,14 @@ object RandomStringUtils {
     }
 
     private fun getNextCodePoint(chars: CharArray?, gap: Int, startChars: Int): Int {
-        return if (chars == null) {
-            RANDOM.nextInt(gap) + startChars
+        val randomInt = RANDOM.nextInt(gap) + startChars
+        val result = if (chars == null) {
+            randomInt
         } else {
-            chars[RANDOM.nextInt(gap) + startChars].toInt()
+            chars[randomInt].toInt()
         }
+
+        return result
     }
 
     private fun getStartEndChars(startChars: Int, endChars: Int, chars: CharArray?, letters: Boolean, numbers: Boolean): Pair<Int, Int> {

@@ -1,11 +1,18 @@
 package org.github.krandom.utils
 
+import org.github.krandom.utils.apache.RandomStringUtils.generateRandomString
 import org.github.krandom.utils.apache.RandomStringUtils.random
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import kotlin.test.assertFailsWith
 
 object RandomStringUtilsSpek : Spek({
+
+    describe("a loop string generator function") {
+        it("should be empty") {
+            assert(generateRandomString(function = { "" }, numbers = true) == "")
+        }
+    }
 
     describe("a random test for random method apache") {
         val chars = "abcdfgh".toCharArray()

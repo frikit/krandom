@@ -1,7 +1,6 @@
 package org.github.krandom.common
 
 import org.github.krandom.utils.apache.RandomStringUtils
-import org.github.krandom.utils.generateRandomString
 import java.security.SecureRandom
 import java.util.*
 
@@ -98,7 +97,7 @@ open class Randomizer : KRandomCommon {
         require(length >= 1) { "Length can't be < 1" }
 
         val function: () -> String = { RandomStringUtils.random(length, 0, 0, true, numbers) }
-        return generateRandomString(function, numbers)
+        return RandomStringUtils.generateRandomString(function, numbers)
     }
 
     private fun getCharCombinations(upperLetters: Boolean,
