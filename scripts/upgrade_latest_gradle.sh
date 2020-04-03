@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 curr=${PDW}
 cd ../
@@ -25,7 +25,11 @@ echo "Version is [${version_line}]"
 latest_version=${version_line}
 type="ALL"
 
-echo Upgrade gradle version to ${latest_version}
-./gradlew wrapper --gradle-version ${latest_version} --distribution-type=${type} --warning-mode=ALL
+echo Upgrade gradle version to "${latest_version}"
+./gradlew wrapper --gradle-version "${latest_version}" --distribution-type=${type} --warning-mode=ALL
 
-cd ${curr}
+sleep 1
+
+./gradlew
+
+cd "${curr}" || exit

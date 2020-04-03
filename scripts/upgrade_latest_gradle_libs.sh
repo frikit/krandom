@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 curr=${PDW}
 cd ../
@@ -38,4 +38,4 @@ mv -vf gradle.properties.back gradle.properties
 echo Output gradle.properties...
 cat gradle.properties
 
-cd ${curr}
+cd ${curr} || exit
