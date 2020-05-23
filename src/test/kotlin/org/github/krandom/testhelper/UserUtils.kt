@@ -5,6 +5,7 @@ import org.github.krandom.user.enum.TitleResult
 import org.github.krandom.validators.network.IPv4Validator
 import org.github.krandom.validators.network.IPv6Validator
 import org.github.krandom.validators.user.EmailValidator
+import org.github.krandom.validators.user.SocialSecurityNumberValidator
 
 object UserUtils {
 
@@ -94,6 +95,16 @@ object UserUtils {
     fun validateEmails(emails: List<String>, domains: List<String>) {
         for (it in emails) {
             validateEmail(it, domains)
+        }
+    }
+
+    fun validateSSN(ssn: String) {
+        assert(SocialSecurityNumberValidator.validate(ssn)) { "Not valid ssn '$ssn'!" }
+    }
+
+    fun validateSSNs(ssns: List<String>) {
+        for (it in ssns) {
+            validateSSN(it)
         }
     }
 }

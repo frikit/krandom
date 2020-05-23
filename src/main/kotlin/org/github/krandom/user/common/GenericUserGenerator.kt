@@ -39,8 +39,8 @@ abstract class GenericUserGenerator<T> {
     }
 
     protected fun isValidSize(size: Int) {
-        require(size <= maxAllowSize) { "Size cannot be < $maxAllowSize!" }
-        require(size >= 1) { "Size cannot be >= 1!" }
+        require(size <= maxAllowSize) { "Size cannot be >= $maxAllowSize!" }
+        require(size >= 1) { "Size cannot be < 1!" }
     }
 
     private fun validateList(list: List<T>) {
