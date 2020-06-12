@@ -1,27 +1,34 @@
 package org.github.krandom.utils.apache
 
+import java.lang.IllegalArgumentException
 import java.util.*
 
 object RandomStringUtils {
 
-    private val RANDOM = Random()
+    private val RANDOM: Random = Random()
+    private val numberOnlyRegex: Regex by lazy { "[0-9]+".toRegex() }
 
-    fun generateRandomString(function: () -> String, numbers: Boolean): String {
-        var res: String = function.invoke()
-        if (numbers) {
-            for (i in 0..99) {
-                if (!res.contains("[0-9]+".toRegex())) {
-                    res = function.invoke()
-                } else {
-                    return res
-                }
+    fun generateRandomString(function: () -> String, numbers: Boolean, index: Int = 0): String {
+        if (index > 99)
+            throw IllegalArgumentException("Index out of bound exception, can't be > 99, you maybe pass index too big OR it fail to generate random string with number!")
+
+        val res: String = function.invoke()
+
+        if (numbers && !res.contains(numberOnlyRegex)) {
+            try {
+                return generateRandomString(function, numbers, index + 1)
+            } catch (exp: IllegalArgumentException) {
+                //throw new illegal argument exception so not to keep full stack of method call
+                throw IllegalArgumentException("Index out of bound exception, can't be > 99, you maybe pass index too big OR it fail to generate random string with number!")
             }
-            res = ""
         }
+
         return res
     }
 
     fun random(count: Int, start: Int, end: Int, letters: Boolean, numbers: Boolean, chars: CharArray? = null): String {
+        if (count == 0)
+            return ""
 
         require(!(chars != null && chars.isEmpty())) {
             "The chars array must not be empty"
@@ -58,7 +65,7 @@ object RandomStringUtils {
         var countChars1 = countChars
         val builder = StringBuilder(countChars1)
 
-        loop@ while (countChars1-- != 0) {
+        while (countChars1-- != 0) {
             val codePoint: Int = getNextCodePoint(chars, gap, startChars)
 
             val numberOfChars = Character.charCount(codePoint)
@@ -81,13 +88,12 @@ object RandomStringUtils {
 
     private fun getNextCodePoint(chars: CharArray?, gap: Int, startChars: Int): Int {
         val randomInt = RANDOM.nextInt(gap) + startChars
-        val result = if (chars == null) {
+
+        return if (chars == null) {
             randomInt
         } else {
             chars[randomInt].toInt()
         }
-
-        return result
     }
 
     private fun getStartEndChars(startChars: Int, endChars: Int, chars: CharArray?, letters: Boolean, numbers: Boolean): Pair<Int, Int> {

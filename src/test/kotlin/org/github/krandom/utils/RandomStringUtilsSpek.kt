@@ -10,7 +10,9 @@ object RandomStringUtilsSpek : Spek({
 
     describe("a loop string generator function") {
         it("should be empty") {
-            assert(generateRandomString(function = { "" }, numbers = true) == "")
+            assertFailsWith(IllegalArgumentException::class, "Index out of bound exception, can't be > 99, you maybe pass index too big OR it fail to generate random string with number!") {
+                generateRandomString(function = { "" }, numbers = true)
+            }
         }
     }
 
