@@ -1,4 +1,5 @@
 # kRandom
+![!kt test + coverage](https://github.com/frikit/krandom/workflows/kt%20test%20+%20coverage/badge.svg)
 [![codecov](https://codecov.io/gh/frikit/krandom/branch/master/graph/badge.svg?token=CpcHkmbzo7)](https://codecov.io/gh/frikit/krandom)
 [![codecov](https://img.shields.io/snyk/vulnerabilities/github/frikit/krandom)](https://img.shields.io/snyk/vulnerabilities/github/frikit/krandom)
 
