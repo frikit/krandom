@@ -1,4 +1,4 @@
-name: Run Kotlin Tests
+name: kt test + coverage
 on: [push]
 
 jobs:
