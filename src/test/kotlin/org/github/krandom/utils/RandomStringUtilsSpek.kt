@@ -112,6 +112,16 @@ object RandomStringUtilsSpek : Spek({
                 assert(res.length > 1)
             }
         }
+
+        describe("test if count=0 return empty string") {
+            val res = random(count = 0, start = 0, end = 0, letters = false, numbers = true, chars = null)
+            it("[$res] should be blank") {
+                assert(res.isBlank()) { "[$res] is blank!" }
+            }
+            it("[$res] should be empty") {
+                assert(res.isEmpty()) { "[$res] is empty!" }
+            }
+        }
     }
 
     describe("test if exception is thrown") {
