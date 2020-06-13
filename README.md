@@ -43,6 +43,8 @@ User(fields) generator:
 |Gender|✅|✅|
 |Email|✅|✅|
 |Title|✅|✅|
+|Birth day|✅|✅|
+|Social Security Number|✅|✅|
 //TBD...
 
 Games related things generator:
