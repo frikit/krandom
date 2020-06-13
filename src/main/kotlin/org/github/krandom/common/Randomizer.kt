@@ -130,22 +130,21 @@ open class Randomizer : KRandomCommon {
     }
 
     private fun chooseWhichIndex(combinations: List<Pair<Int, Int>>, index: Int = 0): Int {
+        if (combinations.isEmpty())
+            throw IllegalArgumentException("combinations can't be empty!")
+
         if (index > 99)
             throw IllegalArgumentException("Index can't be > 99, it fail to generate right index from combinations!")
 
         val chooseWhich: Int = chooseWhichOne(combinations)
 
-        if (chooseWhich < 0 && chooseWhich >= combinations.size) {
-            return chooseWhichIndex(combinations, index + 1)
-        }
-
-        if (chooseWhich < 0) {
-            //TODO test somehow this method, if there is no way to test it with mocks
-            throw IllegalArgumentException("Index can't be < 0 ==> [$chooseWhich]")
-        }
-        if (chooseWhich >= combinations.size) {
-            //TODO test somehow this method, if there is no way to test it with mocks
-            throw IllegalArgumentException("Index can't be >= ${combinations.size} ==> [$chooseWhich]")
+        try {
+            if (chooseWhich < 0 && chooseWhich >= combinations.size) {
+                return chooseWhichIndex(combinations, index + 1)
+            }
+        } catch (exp: IllegalArgumentException) {
+            //throw new exception don't keep full method call stack
+            throw IllegalArgumentException("Index can't be > 99, it fail to generate right index from combinations!")
         }
 
         return chooseWhich
