@@ -80,10 +80,9 @@ open class Randomizer : KRandomCommon {
         val combinations: List<Pair<Int, Int>> = getCharCombinations(upperLetters, lowerLetters, numbers, specialCharacters)
         val chooseWhich: Int = chooseWhichIndex(combinations)
 
-        val first = combinations[chooseWhich].first
-        val second = combinations[chooseWhich].second
+        val pair = combinations[chooseWhich]
 
-        val number = randomInt(first, second)
+        val number = randomInt(pair.first, pair.second)
         return number.toChar()
     }
 
@@ -122,19 +121,22 @@ open class Randomizer : KRandomCommon {
     private fun <T : Comparable<T>> normalizeStartEnd(start: T, end: T): Pair<T, T> {
         require(start != end) { "Illegal argument passed start = $start and end = $end, they should be different!" }
 
-        var startElem = start
-        var endElem = end
-        //swap vars to act easier
-        if (startElem > endElem) startElem = endElem.also { endElem = startElem }
-        return Pair(startElem, endElem)
+        //swap val's to act easier
+        return if (start > end) {
+            Pair(end, start)
+        } else {
+            Pair(start, end)
+        }
     }
 
-    private fun chooseWhichIndex(combinations: List<Pair<Int, Int>>): Int {
-        var chooseWhich: Int = -1
+    private fun chooseWhichIndex(combinations: List<Pair<Int, Int>>, index: Int = 0): Int {
+        if (index > 99)
+            throw IllegalArgumentException("Index can't be > 99, it fail to generate right index from combinations!")
 
-        repeat(10) {
-            chooseWhich = chooseWhichOne(combinations)
-            if (chooseWhich >= 0 && chooseWhich < combinations.size) return@repeat
+        val chooseWhich: Int = chooseWhichOne(combinations)
+
+        if (chooseWhich < 0 && chooseWhich >= combinations.size) {
+            return chooseWhichIndex(combinations, index + 1)
         }
 
         if (chooseWhich < 0) {
