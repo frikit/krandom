@@ -44,27 +44,35 @@ object NaturalNumberGenerator {
 
     //TODO refactor for simplified solution
     fun isPrimeNumber(number: Long): Boolean {
-        var isPrime = true
+        if (number == 0L || number == 1L)
+            return false
+
         for (divisor in 2..number / 2) {
             if (number % divisor == 0L) {
-                isPrime = false
-                break // num is not a prime, no reason to continue checking
+                return false
             }
         }
 
-        return isPrime
+        return true
+    }
+
+    private fun isCompositeNumberRecursive(number: Long, from: Long = 2): Boolean {
+        if (from < number) {
+            if (number % from == 0L)
+                return true
+            else
+                isCompositeNumberRecursive(number, from + 1)
+        }
+
+        return false
     }
 
     //TODO refactor for simplified solution
     fun isCompositeNumber(number: Long): Boolean {
-        if (number == 2L) return false
-        else if (number > 2) {
-            var i = 2
-            while (i < number) {
-                if (number % i == 0L) return true
-                i++
-            }
+        if (number > 2L) {
+            return isCompositeNumberRecursive(number)
         }
+
         return false
     }
 
@@ -103,7 +111,9 @@ object NaturalNumberGenerator {
 
         val primeWithinRange = compositeCache.filter { it in start..end }.toList()
         checkClearCache()
-        require(primeWithinRange.isNotEmpty()) { "No prime numbers within [$start .. $end]" }
+        require(primeWithinRange.isNotEmpty()) {
+            "No prime numbers within [$start .. $end]"
+        }
 
         return primeWithinRange
     }
