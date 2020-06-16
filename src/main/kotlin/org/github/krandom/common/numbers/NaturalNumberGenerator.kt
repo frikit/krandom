@@ -20,7 +20,7 @@ object NaturalNumberGenerator {
     fun generateNaturalNumbers(size: Int, from: Long = 1, to: Long = Long.MAX_VALUE, excludeNumbers: Set<Long> = emptySet()): List<Long> {
         val result = arrayListOf<Long>()
 
-        if (size > 0 || excludeNumbers.isNotEmpty()) {
+        if (size > 0 ) {
             val (start, end) = validateStartEnd(from, to, 1, Long.MAX_VALUE - 2)
 
             for (i in 1..size * 10) {
