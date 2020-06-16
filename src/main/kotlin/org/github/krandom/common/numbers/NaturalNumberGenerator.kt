@@ -17,14 +17,14 @@ object NaturalNumberGenerator {
         return number > 0 && number < Long.MAX_VALUE
     }
 
-    fun generateNaturalNumbers(size: Int, from: Long = 0, to: Long = Long.MAX_VALUE, excludeNumbers: List<Long> = emptyList()): List<Long> {
+    fun generateNaturalNumbers(size: Int, from: Long = 1, to: Long = Long.MAX_VALUE, excludeNumbers: Set<Long> = emptySet()): List<Long> {
         val result = arrayListOf<Long>()
 
-        if (size > 0 || !excludeNumbers.isNullOrEmpty()) {
-            val (start, end) = validateStartEnd(from, to, 0, Long.MAX_VALUE - 2)
+        if (size > 0 || excludeNumbers.isNotEmpty()) {
+            val (start, end) = validateStartEnd(from, to, 1, Long.MAX_VALUE - 2)
 
             for (i in 1..size * 10) {
-                val number = randomNaturalLong(start, end)
+                val number = kRandomCommon.randomLong(start, end)
                 if (!excludeNumbers.contains(number)) {
                     result.add(number)
                 }
@@ -38,7 +38,7 @@ object NaturalNumberGenerator {
         return result
     }
 
-    fun generateNaturalNumber(from: Long = 0, to: Long = Long.MAX_VALUE, excludeNumbers: List<Long> = emptyList()): Long {
+    fun generateNaturalNumber(from: Long = 0, to: Long = Long.MAX_VALUE, excludeNumbers: Set<Long> = emptySet()): Long {
         return generateNaturalNumbers(1, from, to, excludeNumbers)[0]
     }
 
@@ -198,14 +198,5 @@ object NaturalNumberGenerator {
         if (!USE_NATURAL_NUMBER_CACHE) primeCache.clear()
         if (USE_NATURAL_NUMBER_CACHE && compositeCache.size >= MAX_CAPACITY) compositeCache.clear()
         if (!USE_NATURAL_NUMBER_CACHE) compositeCache.clear()
-    }
-
-    private fun randomNaturalLong(from: Long, to: Long): Long {
-        val result = kRandomCommon.randomLong(from, to)
-        if (!isNaturalNumber(result)) {
-            return randomNaturalLong(from, to)
-        }
-
-        return result
     }
 }

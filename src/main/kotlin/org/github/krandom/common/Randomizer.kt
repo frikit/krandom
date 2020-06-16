@@ -119,7 +119,9 @@ open class Randomizer : KRandomCommon {
     }
 
     private fun <T : Comparable<T>> normalizeStartEnd(start: T, end: T): Pair<T, T> {
-        require(start != end) { "Illegal argument passed start = $start and end = $end, they should be different!" }
+        require(start != end) {
+            "Illegal argument passed start = $start and end = $end, they should be different!"
+        }
 
         //swap val's to act easier
         return if (start > end) {
