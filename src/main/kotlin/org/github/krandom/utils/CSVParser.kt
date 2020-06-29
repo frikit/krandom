@@ -7,7 +7,7 @@ object CSVParser {
     const val csvDelimiter = ",\n"
 
     fun <T> parse(content: String, delimiter: String): List<T> {
-        return if (content.isBlank() || content.isEmpty()) {
+        return if (content.isBlank()) {
             emptyList()
         } else {
             content
