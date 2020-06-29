@@ -2,13 +2,11 @@
 
 package org.github.krandom.utils
 
-class CSVParser<T> {
+object CSVParser {
 
-    companion object {
-        const val csvDelimiter = ",\n"
-    }
+    const val csvDelimiter = ",\n"
 
-    fun parse(content: String, delimiter: String): List<T> {
+    fun <T> parse(content: String, delimiter: String): List<T> {
         return if (content.isBlank() || content.isEmpty()) {
             emptyList()
         } else {

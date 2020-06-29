@@ -11,7 +11,7 @@ abstract class GenericUserGenerator<T> {
 
     protected fun initCache(relativePath: String): List<T> {
         val content = ResourceResolver.getResourceContent(relativePath)
-        val list = CSVParser<T>().parse(content, CSVParser.csvDelimiter)
+        val list = CSVParser.parse<T>(content, CSVParser.csvDelimiter)
         validateList(list)
 
         return list
