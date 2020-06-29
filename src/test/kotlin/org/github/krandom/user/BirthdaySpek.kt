@@ -21,37 +21,47 @@ object BirthdaySpek : Spek({
         propNames = "birthdays"
     }
 
-    describe("a user randomizer custom range") {
-        val start = newDate(2000, 1, 1)
-        val end = newDate(2020, 1, 1)
-        val kRandomUser = BirthDay(start to end)
+    val customRangeOfYears = listOf(
+            Pair(2000, 2100),
+            Pair(1900, 1800)
+    )
 
-        describe("generate user $propName") {
-            (1..generateValues).forEach { _ ->
-                val value = kRandomUser.randomData()
-                it(" $value should be valid $propName") {
-                    validateBirthDay(value, start, end)
+    customRangeOfYears.forEach { yearPair ->
+        describe("a user randomizer custom range $yearPair") {
+            val start = newDate(yearPair.first, 1, 1)
+            val end = newDate(yearPair.second, 1, 1)
+            val expectedStart = if (start.before(end)) start else end
+            val expectedEnd = if (start.before(end)) end else start
+
+            val kRandomUser = BirthDay(start to end)
+
+            describe("generate user $propName") {
+                (1..generateValues).forEach { _ ->
+                    val value = kRandomUser.randomData()
+                    it(" $value should be valid $propName") {
+                        validateBirthDay(value, expectedStart, expectedEnd)
+                    }
                 }
             }
-        }
 
-        describe("generate user $propNames") {
-            (1..generateValues).forEach { _ ->
-                val value = kRandomUser.randomDatas()
-                it(" ${value.size} all should be valid $propName") {
-                    validateBirthDays(value, start, end)
+            describe("generate user $propNames") {
+                (1..generateValues).forEach { _ ->
+                    val value = kRandomUser.randomDatas()
+                    it(" ${value.size} all should be valid $propName") {
+                        validateBirthDays(value, expectedStart, expectedEnd)
+                    }
                 }
             }
-        }
 
-        describe("generate user $propNames($userSize)") {
-            (1..generateValues).forEach { _ ->
-                val value = kRandomUser.randomDatas(userSize)
-                it("should be right size ${value.size} == $userSize") {
-                    assert(value.size == userSize) { "${value.size} != $userSize" }
-                }
-                it(" ${value[0]} should be valid $propName") {
-                    validateBirthDays(value, start, end)
+            describe("generate user $propNames($userSize)") {
+                (1..generateValues).forEach { _ ->
+                    val value = kRandomUser.randomDatas(userSize)
+                    it("should be right size ${value.size} == $userSize") {
+                        assert(value.size == userSize) { "${value.size} != $userSize" }
+                    }
+                    it(" ${value[0]} should be valid $propName") {
+                        validateBirthDays(value, expectedStart, expectedEnd)
+                    }
                 }
             }
         }

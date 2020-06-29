@@ -4,18 +4,24 @@ import java.io.File
 
 object ResourceResolver {
 
+    private const val emptyString = ""
+
     fun getResourceContent(relativePath: String): String {
+        if (relativePath.isEmpty() || relativePath.isBlank()) return emptyString
+        if (relativePath.trim() == "/" || relativePath.trim() == "\\" ) return emptyString
+
         val rel = File("").absoluteFile
 
         val resources = rel.walkTopDown()
-                .map { it }
+                .maxDepth(100)
+                .asSequence()
                 .filter { it.absolutePath.contains("/resources/") }
-                .filter { !it.absolutePath.contains("/resources/test/") }
+                .filter { !it.absolutePath.contains("/test/") }
                 .filter { it.isFile }
-                .toList()
+                .toSet()
 
         val file: File? = resources.firstOrNull { it.absolutePath.endsWith(relativePath) }
 
-        return file?.reader()?.readText() ?: ""
+        return file?.reader()?.readText() ?: emptyString
     }
 }
