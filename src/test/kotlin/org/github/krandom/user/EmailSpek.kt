@@ -21,6 +21,48 @@ object EmailSpek : Spek({
 
     describe("a user randomizer domains=default") {
         val kRandomUser = Email()
+        val actualDomains = kRandomUser.domains
+        val expectedDomains = Email.DEFAULT_DOMAINS
+
+        it(" no param provided should return default domains") {
+            assert(actualDomains == expectedDomains) {
+                "When init Email without domains should be default one default=$expectedDomains != actual=$actualDomains"
+            }
+        }
+
+        describe("generate user $propName") {
+            (1..generateValues).forEach { _ ->
+                val value = kRandomUser.randomData()
+                it(" $value should be valid $propName") {
+                    validateEmail(value, actualDomains)
+                }
+            }
+        }
+
+        describe("generate user $propNames") {
+            (1..generateValues).forEach { _ ->
+                val value = kRandomUser.randomDatas()
+                it(" ${value.size} all should be valid $propName") {
+                    validateEmails(value, actualDomains)
+                }
+            }
+        }
+
+        describe("generate user $propNames($userSize)") {
+            (1..generateValues).forEach { _ ->
+                val value = kRandomUser.randomDatas(userSize)
+                it("should be right size ${value.size} == $userSize") {
+                    assert(value.size == userSize) { "${value.size} != $userSize" }
+                }
+                it(" ${value[0]} should be valid $propName") {
+                    validateEmails(value, actualDomains)
+                }
+            }
+        }
+    }
+
+    describe("a user randomizer domains=default") {
+        val kRandomUser = Email()
         val domains = kRandomUser.domains
 
         describe("generate user $propName") {
