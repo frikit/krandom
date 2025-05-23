@@ -45,6 +45,7 @@ User(fields) generator:
 |Title|✅|✅|
 |Birth day|✅|✅|
 |Social Security Number|✅|✅|
+|Country|✅|✅|
 //TBD...
 
 Games related things generator:
