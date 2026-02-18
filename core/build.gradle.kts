@@ -1,0 +1,54 @@
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+    jacoco
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+dependencies {
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.commons.validator)
+    implementation(libs.commons.beanutils)
+    implementation(libs.kotlin.logging)
+    implementation(libs.slf4j.api)
+    runtimeOnly(libs.logback.classic)
+
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.assertions.core)
+}
+
+tasks.test {
+    useJUnitPlatform {
+        includeEngines("kotest")
+    }
+    jvmArgs("-Xmx512m")
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+    reportsDirectory = layout.buildDirectory.dir("jacoco")
+}
+
+tasks.jacocoTestReport {
+    reports {
+        csv.required = true
+        xml.required = true
+        html.required = true
+        csv.outputLocation = layout.buildDirectory.file("jacoco/jacoco.csv")
+        xml.outputLocation = layout.buildDirectory.file("jacoco/jacoco.xml")
+        html.outputLocation = layout.buildDirectory.dir("jacoco/html")
+    }
+    sourceSets(sourceSets.main.get())
+}
+
+tasks.clean {
+    doLast {
+        listOf("${rootDir}/out/", "${rootDir}/logs/").forEach {
+            println("Delete [$it]")
+            file(it).deleteRecursively()
+        }
+    }
+}

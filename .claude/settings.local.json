@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs:*)",
+      "Bash(./gradlew wrapper:*)",
+      "Bash(./gradlew :core:compileKotlin:*)",
+      "Bash(java:*)",
+      "Bash(/usr/libexec/java_home:*)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home ./gradlew:*)",
+      "Bash(./gradlew :core:test:*)",
+      "Bash(./gradlew build:*)"
+    ]
+  }
+}
