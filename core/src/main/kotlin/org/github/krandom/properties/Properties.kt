@@ -25,4 +25,16 @@ object Properties {
     @JvmStatic
     val MIN_INT: Int = Int.MIN_VALUE
 
+    //short
+    @JvmStatic
+    val MAX_SHORT: Short = Short.MAX_VALUE
+    @JvmStatic
+    val MIN_SHORT: Short = Short.MIN_VALUE
+
+    //byte
+    @JvmStatic
+    val MAX_BYTE: Byte = Byte.MAX_VALUE
+    @JvmStatic
+    val MIN_BYTE: Byte = Byte.MIN_VALUE
+
 }

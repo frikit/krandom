@@ -57,6 +57,26 @@ open class Randomizer : KRandomCommon {
         return random.longs(1, startElem, endElem).findFirst().orElse(999L)
     }
 
+    //byte
+    override fun randomByte(): Byte = random.nextInt().toByte()
+
+    override fun randomByte(rangeTo: ClosedRange<Byte>): Byte = randomByte(rangeTo.start, rangeTo.endInclusive)
+
+    override fun randomByte(start: Byte, end: Byte): Byte {
+        val (startElem, endElem) = normalizeStartEnd(start, end)
+        return random.ints(1, startElem.toInt(), endElem.toInt()).findFirst().orElse(0).toByte()
+    }
+
+    //short
+    override fun randomShort(): Short = random.nextInt().toShort()
+
+    override fun randomShort(rangeTo: ClosedRange<Short>): Short = randomShort(rangeTo.start, rangeTo.endInclusive)
+
+    override fun randomShort(start: Short, end: Short): Short {
+        val (startElem, endElem) = normalizeStartEnd(start, end)
+        return random.ints(1, startElem.toInt(), endElem.toInt()).findFirst().orElse(0).toShort()
+    }
+
     //int
     override fun randomInt(): Int {
         return random.nextInt()

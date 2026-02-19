@@ -1,0 +1,201 @@
+package org.github.krandom.generator;
+
+import org.github.krandom.generator.base.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
+
+/**
+ * Static factory for all built-in base-type generators.
+ *
+ * <p>Every {@code of*()} method has two forms:
+ * <ul>
+ *   <li>No-arg — default range / default character set, uses {@link java.security.SecureRandom}.</li>
+ *   <li>With bounds (and optional seed) — fully configured.</li>
+ * </ul>
+ *
+ * <p>Usage:
+ * <pre>{@code
+ *   int          value  = Generators.ofInt().generate();
+ *   int          roll   = Generators.ofInt(1, 7).generate();          // die [1..6]
+ *   List<String> names  = Generators.ofString().generateList(20);
+ *   List<Long>   ids    = Generators.ofLong(1L, 1_000_000L).generateList(100);
+ *
+ *   // Generic lookup by Class
+ *   Generator<Integer> g = Generators.forType(Integer.class);
+ * }</pre>
+ *
+ * <p>All generators returned by this class are independent instances — they do not share state.
+ */
+public final class Generators {
+
+    private Generators() { /* static utility */ }
+
+    // ── Byte ──────────────────────────────────────────────────────────────────
+
+    public static ByteGenerator ofByte() {
+        return new ByteGenerator();
+    }
+
+    public static ByteGenerator ofByte(byte min, byte max) {
+        return new ByteGenerator(min, max);
+    }
+
+    public static ByteGenerator ofByte(byte min, byte max, long seed) {
+        return new ByteGenerator(min, max, seed);
+    }
+
+    // ── Short ─────────────────────────────────────────────────────────────────
+
+    public static ShortGenerator ofShort() {
+        return new ShortGenerator();
+    }
+
+    public static ShortGenerator ofShort(short min, short max) {
+        return new ShortGenerator(min, max);
+    }
+
+    public static ShortGenerator ofShort(short min, short max, long seed) {
+        return new ShortGenerator(min, max, seed);
+    }
+
+    // ── Int ───────────────────────────────────────────────────────────────────
+
+    public static IntGenerator ofInt() {
+        return new IntGenerator();
+    }
+
+    public static IntGenerator ofInt(int min, int max) {
+        return new IntGenerator(min, max);
+    }
+
+    public static IntGenerator ofInt(int min, int max, long seed) {
+        return new IntGenerator(min, max, seed);
+    }
+
+    // ── Long ──────────────────────────────────────────────────────────────────
+
+    public static LongGenerator ofLong() {
+        return new LongGenerator();
+    }
+
+    public static LongGenerator ofLong(long min, long max) {
+        return new LongGenerator(min, max);
+    }
+
+    public static LongGenerator ofLong(long min, long max, long seed) {
+        return new LongGenerator(min, max, seed);
+    }
+
+    // ── Float ─────────────────────────────────────────────────────────────────
+
+    public static FloatGenerator ofFloat() {
+        return new FloatGenerator();
+    }
+
+    public static FloatGenerator ofFloat(float min, float max) {
+        return new FloatGenerator(min, max);
+    }
+
+    public static FloatGenerator ofFloat(float min, float max, long seed) {
+        return new FloatGenerator(min, max, seed);
+    }
+
+    // ── Double ────────────────────────────────────────────────────────────────
+
+    public static DoubleGenerator ofDouble() {
+        return new DoubleGenerator();
+    }
+
+    public static DoubleGenerator ofDouble(double min, double max) {
+        return new DoubleGenerator(min, max);
+    }
+
+    public static DoubleGenerator ofDouble(double min, double max, long seed) {
+        return new DoubleGenerator(min, max, seed);
+    }
+
+    // ── Char ──────────────────────────────────────────────────────────────────
+
+    /** Letters (upper + lower). */
+    public static CharGenerator ofChar() {
+        return CharGenerator.letters();
+    }
+
+    /** Custom character pool via a {@link CharGenerator.Builder}. */
+    public static CharGenerator.Builder ofChar(CharGenerator.Builder builder) {
+        return Objects.requireNonNull(builder, "builder");
+    }
+
+    // ── Boolean ───────────────────────────────────────────────────────────────
+
+    public static BooleanGenerator ofBoolean() {
+        return new BooleanGenerator();
+    }
+
+    public static BooleanGenerator ofBoolean(long seed) {
+        return new BooleanGenerator(seed);
+    }
+
+    // ── String ────────────────────────────────────────────────────────────────
+
+    /** Letters only, length 5–20. */
+    public static StringGenerator ofString() {
+        return StringGenerator.letters();
+    }
+
+    /** Full control via a pre-configured builder. */
+    public static StringGenerator ofString(StringGenerator.Builder builder) {
+        return Objects.requireNonNull(builder, "builder").build();
+    }
+
+    // ── Generic lookup by type ────────────────────────────────────────────────
+
+    /**
+     * Return a default {@link Generator} for the given Java primitive wrapper class.
+     *
+     * <p>Supported types: {@code Byte}, {@code Short}, {@code Integer}, {@code Long},
+     * {@code Float}, {@code Double}, {@code Character}, {@code Boolean}, {@code String}.
+     *
+     * @param type the wrapper class; must not be {@code null}
+     * @throws IllegalArgumentException if the type has no built-in generator
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Generator<T> forType(Class<T> type) {
+        Objects.requireNonNull(type, "type must not be null");
+        Supplier<?> factory = REGISTRY.get(type);
+        if (factory == null) {
+            throw new IllegalArgumentException(
+                    "No built-in generator for type: " + type.getName() +
+                    ". Register a custom Generator or use one of the of*() methods.");
+        }
+        return (Generator<T>) factory.get();
+    }
+
+    // ── Internal registry ─────────────────────────────────────────────────────
+
+    private static final Map<Class<?>, Supplier<? extends Generator<?>>> REGISTRY;
+
+    static {
+        REGISTRY = new HashMap<>();
+        REGISTRY.put(Byte.class,      ByteGenerator::new);
+        REGISTRY.put(byte.class,      ByteGenerator::new);
+        REGISTRY.put(Short.class,     ShortGenerator::new);
+        REGISTRY.put(short.class,     ShortGenerator::new);
+        REGISTRY.put(Integer.class,   IntGenerator::new);
+        REGISTRY.put(int.class,       IntGenerator::new);
+        REGISTRY.put(Long.class,      LongGenerator::new);
+        REGISTRY.put(long.class,      LongGenerator::new);
+        REGISTRY.put(Float.class,     FloatGenerator::new);
+        REGISTRY.put(float.class,     FloatGenerator::new);
+        REGISTRY.put(Double.class,    DoubleGenerator::new);
+        REGISTRY.put(double.class,    DoubleGenerator::new);
+        REGISTRY.put(Character.class, CharGenerator::letters);
+        REGISTRY.put(char.class,      CharGenerator::letters);
+        REGISTRY.put(Boolean.class,   BooleanGenerator::new);
+        REGISTRY.put(boolean.class,   BooleanGenerator::new);
+        REGISTRY.put(String.class,    StringGenerator::letters);
+    }
+}
