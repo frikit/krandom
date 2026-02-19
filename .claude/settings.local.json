@@ -13,7 +13,12 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(gh api:*)",
       "Bash(python3:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(./gradlew updateLicenses:*)",
+      "Bash(./gradlew spotlessApply:*)",
+      "Bash(git -C /Users/victorosipov/IdeaProjects/krandom diff --name-only)",
+      "Bash(git -C /Users/victorosipov/IdeaProjects/krandom checkout -- core/src/main/java core/src/test/java)",
+      "Bash(./gradlew spotlessCheck:*)"
     ]
   }
 }

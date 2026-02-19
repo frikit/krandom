@@ -1,6 +1,7 @@
 [versions]
 kotlin = "2.1.10"
 jacoco = "0.8.12"
+spotless = "6.25.0"
 commons-validator = "1.9.0"
 commons-beanutils = "1.9.4"
 kotlin-logging = "7.0.3"
@@ -24,3 +25,4 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
