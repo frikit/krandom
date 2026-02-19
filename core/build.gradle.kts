@@ -17,11 +17,14 @@ dependencies {
 
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.params)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks.test {
     useJUnitPlatform {
-        includeEngines("kotest")
+        includeEngines("kotest", "junit-jupiter")
     }
     jvmArgs("-Xmx512m")
     finalizedBy(tasks.jacocoTestReport)
