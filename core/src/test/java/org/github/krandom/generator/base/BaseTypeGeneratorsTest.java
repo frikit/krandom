@@ -197,6 +197,17 @@ class BaseTypeGeneratorsTest {
             assertNotNull(value);
             assertTrue(Integer.parseInt(value) >= 1);
         }
+
+        @Test
+        @DisplayName("generate(high, low) swaps bounds via lo/hi helpers")
+        void reversedBoundsAreSwapped() {
+            // Exercises the lo() "return b" and hi() "return a" branches in AbstractBoundedGenerator
+            IntGenerator gen = new IntGenerator();
+            for (int i = 0; i < SAMPLES; i++) {
+                int v = gen.generate(20, 10);
+                assertTrue(v >= 10 && v < 20, "Expected [10, 20) after swap, got: " + v);
+            }
+        }
     }
 
     // ── LongGenerator ─────────────────────────────────────────────────────────
@@ -482,6 +493,20 @@ class BaseTypeGeneratorsTest {
         void maxLessThanMinThrows() {
             assertThrows(IllegalArgumentException.class,
                     () -> StringGenerator.builder().minLength(10).maxLength(5).build());
+        }
+
+        @Test
+        @DisplayName("length(0) throws IllegalArgumentException")
+        void lengthZeroThrows() {
+            assertThrows(IllegalArgumentException.class,
+                    () -> StringGenerator.builder().length(0));
+        }
+
+        @Test
+        @DisplayName("maxLength(0) throws IllegalArgumentException")
+        void maxLengthZeroThrows() {
+            assertThrows(IllegalArgumentException.class,
+                    () -> StringGenerator.builder().maxLength(0));
         }
     }
 

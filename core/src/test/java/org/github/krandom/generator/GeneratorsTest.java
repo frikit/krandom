@@ -1,0 +1,185 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+package org.github.krandom.generator;
+
+import org.github.krandom.generator.algorithms.FibonacciGenerator;
+import org.github.krandom.generator.algorithms.LuhnGenerator;
+import org.github.krandom.generator.base.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("Generators factory")
+class GeneratorsTest {
+
+    // ── Byte ──────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofByte() returns ByteGenerator")
+    void ofByte() { assertInstanceOf(ByteGenerator.class, Generators.ofByte()); }
+
+    @Test @DisplayName("ofByte(min, max) returns ByteGenerator")
+    void ofByteRange() { assertInstanceOf(ByteGenerator.class, Generators.ofByte((byte) 0, (byte) 10)); }
+
+    @Test @DisplayName("ofByte(min, max, seed) returns ByteGenerator")
+    void ofByteSeeded() { assertInstanceOf(ByteGenerator.class, Generators.ofByte((byte) 0, (byte) 10, 1L)); }
+
+    // ── Short ─────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofShort() returns ShortGenerator")
+    void ofShort() { assertInstanceOf(ShortGenerator.class, Generators.ofShort()); }
+
+    @Test @DisplayName("ofShort(min, max) returns ShortGenerator")
+    void ofShortRange() { assertInstanceOf(ShortGenerator.class, Generators.ofShort((short) 0, (short) 100)); }
+
+    @Test @DisplayName("ofShort(min, max, seed) returns ShortGenerator")
+    void ofShortSeeded() { assertInstanceOf(ShortGenerator.class, Generators.ofShort((short) 0, (short) 100, 1L)); }
+
+    // ── Int ───────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofInt() returns IntGenerator")
+    void ofInt() { assertInstanceOf(IntGenerator.class, Generators.ofInt()); }
+
+    @Test @DisplayName("ofInt(min, max) returns IntGenerator")
+    void ofIntRange() { assertInstanceOf(IntGenerator.class, Generators.ofInt(0, 100)); }
+
+    @Test @DisplayName("ofInt(min, max, seed) returns IntGenerator")
+    void ofIntSeeded() { assertInstanceOf(IntGenerator.class, Generators.ofInt(0, 100, 1L)); }
+
+    // ── Long ──────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofLong() returns LongGenerator")
+    void ofLong() { assertInstanceOf(LongGenerator.class, Generators.ofLong()); }
+
+    @Test @DisplayName("ofLong(min, max) returns LongGenerator")
+    void ofLongRange() { assertInstanceOf(LongGenerator.class, Generators.ofLong(0L, 100L)); }
+
+    @Test @DisplayName("ofLong(min, max, seed) returns LongGenerator")
+    void ofLongSeeded() { assertInstanceOf(LongGenerator.class, Generators.ofLong(0L, 100L, 1L)); }
+
+    // ── Float ─────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofFloat() returns FloatGenerator")
+    void ofFloat() { assertInstanceOf(FloatGenerator.class, Generators.ofFloat()); }
+
+    @Test @DisplayName("ofFloat(min, max) returns FloatGenerator")
+    void ofFloatRange() { assertInstanceOf(FloatGenerator.class, Generators.ofFloat(0f, 1f)); }
+
+    @Test @DisplayName("ofFloat(min, max, seed) returns FloatGenerator")
+    void ofFloatSeeded() { assertInstanceOf(FloatGenerator.class, Generators.ofFloat(0f, 1f, 1L)); }
+
+    // ── Double ────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofDouble() returns DoubleGenerator")
+    void ofDouble() { assertInstanceOf(DoubleGenerator.class, Generators.ofDouble()); }
+
+    @Test @DisplayName("ofDouble(min, max) returns DoubleGenerator")
+    void ofDoubleRange() { assertInstanceOf(DoubleGenerator.class, Generators.ofDouble(0.0, 1.0)); }
+
+    @Test @DisplayName("ofDouble(min, max, seed) returns DoubleGenerator")
+    void ofDoubleSeeded() { assertInstanceOf(DoubleGenerator.class, Generators.ofDouble(0.0, 1.0, 1L)); }
+
+    // ── Char ──────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofChar() returns CharGenerator")
+    void ofChar() { assertInstanceOf(CharGenerator.class, Generators.ofChar()); }
+
+    @Test @DisplayName("ofChar(builder) returns the same builder")
+    void ofCharBuilder() {
+        CharGenerator.Builder builder = CharGenerator.builder().uppercase();
+        assertSame(builder, Generators.ofChar(builder));
+    }
+
+    // ── Boolean ───────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofBoolean() returns BooleanGenerator")
+    void ofBoolean() { assertInstanceOf(BooleanGenerator.class, Generators.ofBoolean()); }
+
+    @Test @DisplayName("ofBoolean(seed) returns BooleanGenerator")
+    void ofBooleanSeeded() { assertInstanceOf(BooleanGenerator.class, Generators.ofBoolean(1L)); }
+
+    // ── String ────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofString() returns StringGenerator")
+    void ofString() { assertInstanceOf(StringGenerator.class, Generators.ofString()); }
+
+    @Test @DisplayName("ofString(builder) returns StringGenerator")
+    void ofStringBuilder() {
+        assertInstanceOf(StringGenerator.class,
+                Generators.ofString(StringGenerator.builder().length(5)));
+    }
+
+    // ── Algorithms ────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofFibonacci() returns FibonacciGenerator")
+    void ofFibonacci() { assertInstanceOf(FibonacciGenerator.class, Generators.ofFibonacci()); }
+
+    @Test @DisplayName("ofLuhn() returns LuhnGenerator")
+    void ofLuhn() { assertInstanceOf(LuhnGenerator.class, Generators.ofLuhn()); }
+
+    // ── forType ───────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("forType(Byte.class) returns a generator")
+    void forTypeByte() { assertNotNull(Generators.forType(Byte.class).generate()); }
+
+    @Test @DisplayName("forType(byte.class) returns a generator")
+    void forTypeBytePrimitive() { assertNotNull(Generators.forType(byte.class).generate()); }
+
+    @Test @DisplayName("forType(Short.class) returns a generator")
+    void forTypeShort() { assertNotNull(Generators.forType(Short.class).generate()); }
+
+    @Test @DisplayName("forType(short.class) returns a generator")
+    void forTypeShortPrimitive() { assertNotNull(Generators.forType(short.class).generate()); }
+
+    @Test @DisplayName("forType(Integer.class) returns a generator")
+    void forTypeInteger() { assertNotNull(Generators.forType(Integer.class).generate()); }
+
+    @Test @DisplayName("forType(int.class) returns a generator")
+    void forTypeIntPrimitive() { assertNotNull(Generators.forType(int.class).generate()); }
+
+    @Test @DisplayName("forType(Long.class) returns a generator")
+    void forTypeLong() { assertNotNull(Generators.forType(Long.class).generate()); }
+
+    @Test @DisplayName("forType(long.class) returns a generator")
+    void forTypeLongPrimitive() { assertNotNull(Generators.forType(long.class).generate()); }
+
+    @Test @DisplayName("forType(Float.class) returns a generator")
+    void forTypeFloat() { assertNotNull(Generators.forType(Float.class).generate()); }
+
+    @Test @DisplayName("forType(float.class) returns a generator")
+    void forTypeFloatPrimitive() { assertNotNull(Generators.forType(float.class).generate()); }
+
+    @Test @DisplayName("forType(Double.class) returns a generator")
+    void forTypeDouble() { assertNotNull(Generators.forType(Double.class).generate()); }
+
+    @Test @DisplayName("forType(double.class) returns a generator")
+    void forTypeDoublePrimitive() { assertNotNull(Generators.forType(double.class).generate()); }
+
+    @Test @DisplayName("forType(Character.class) returns a generator")
+    void forTypeCharacter() { assertNotNull(Generators.forType(Character.class).generate()); }
+
+    @Test @DisplayName("forType(char.class) returns a generator")
+    void forTypeCharPrimitive() { assertNotNull(Generators.forType(char.class).generate()); }
+
+    @Test @DisplayName("forType(Boolean.class) returns a generator")
+    void forTypeBoolean() { assertNotNull(Generators.forType(Boolean.class).generate()); }
+
+    @Test @DisplayName("forType(boolean.class) returns a generator")
+    void forTypeBooleanPrimitive() { assertNotNull(Generators.forType(boolean.class).generate()); }
+
+    @Test @DisplayName("forType(String.class) returns a generator")
+    void forTypeString() { assertNotNull(Generators.forType(String.class).generate()); }
+
+    @Test @DisplayName("forType(null) throws NullPointerException")
+    void forTypeNullThrows() {
+        assertThrows(NullPointerException.class, () -> Generators.forType(null));
+    }
+
+    @Test @DisplayName("forType(unknown type) throws IllegalArgumentException")
+    void forTypeUnknownThrows() {
+        assertThrows(IllegalArgumentException.class, () -> Generators.forType(Object.class));
+    }
+}
