@@ -5,6 +5,7 @@
  */
 package org.github.krandom.generator;
 
+import org.github.krandom.games.coin.CoinGenerator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
@@ -168,6 +169,13 @@ public final class Generators {
     /** Returns a generator that produces 10-digit Luhn-valid number strings. */
     public static LuhnGenerator ofLuhn() {
         return new LuhnGenerator();
+    }
+
+    // ── Games ─────────────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random coin-flip results ({@code HEAD} or {@code TAIL}). */
+    public static CoinGenerator ofCoin() {
+        return new CoinGenerator();
     }
 
     // ── Generic lookup by type ────────────────────────────────────────────────

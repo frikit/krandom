@@ -7,7 +7,6 @@ package org.github.krandom.testhelper
 
 import org.github.krandom.common.numbers.NaturalNumberGenerator
 import org.github.krandom.common.string.hash.HashGeneratorResult
-import org.github.krandom.games.coin.enum.CoinResult
 import java.util.stream.Collectors
 
 //double
@@ -111,19 +110,6 @@ fun isNaturalCompositeNumberInRange(testCaseName: String, actual: Long, from: Lo
 fun isNaturalPrimeNumberInRange(testCaseName: String, actual: Long, from: Long, to: Long) {
     assert(NaturalNumberGenerator.isPrimeNumber(actual)) { "Number [$actual] should be $testCaseName!" }
     fitInRange(actual, from, to)
-}
-
-//coin
-fun isValidCoin(value: CoinResult, head: CoinResult = CoinResult.HEAD, tail: CoinResult = CoinResult.TAIL) {
-    assert(value == head || value == tail) { "$value should be $head OR $tail" }
-}
-
-fun isValidCoin(values: List<CoinResult>, times: Int, head: CoinResult = CoinResult.HEAD, tail: CoinResult = CoinResult.TAIL) {
-    assert(!values.isNullOrEmpty()) { "List is empty or have nulls! [$values]" }
-    assert(values.size == times) { "Should generate [$times], but it generate [${values.size}]" }
-    for (value in values) {
-        isValidCoin(value, head, tail)
-    }
 }
 
 //ip
