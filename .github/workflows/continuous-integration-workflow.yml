@@ -1,23 +1,37 @@
-name: kt test + coverage
-on: [push]
+name: tests + coverage
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
 
 jobs:
   build:
-    name: Run Spek2 Test on Ubuntu(latest)
+    name: Test & Coverage (Kotest + JUnit 5)
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@master
-      - name: Check where I'm
-        working-directory: ${{ github.workspace }}
-        run: echo $PWD
-      - name: Check files in directory
-        run: ls -la
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Remove local Java home override
+        run: sed -i '/org.gradle.java.home/d' gradle.properties
+
       - name: Make gradlew executable
         run: chmod +x gradlew
-      - name: Running tests
-        run: ./gradlew clean build check --info --stacktrace --console=plain --max-workers=1 --no-daemon --no-build-cache -Dkotlin.colors.enabled=false
-      - name: Codecov
-        uses: codecov/codecov-action@master
+
+      - name: Build and verify
+        run: ./gradlew clean build check --stacktrace --console=plain --max-workers=1 --no-daemon
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: core/build/jacoco/jacoco.xml
           fail_ci_if_error: true
