@@ -67,17 +67,12 @@ All primitive generators implement `Generator<T>` with `generate()`, `generateLi
 | Birthday | ✅ | ✅ |
 | Social Security Number | ✅ | ✅ |
 
-### Game utilities (Kotlin layer — `org.github.krandom.games`)
+### Game utilities (Java API — `org.github.krandom.games`)
 
-| Generator | Implemented | Tested |
-|:---:|:---:|:---:|
-| 4-sided dice | ✅ | ✅ |
-| 6-sided dice | ✅ | ✅ |
-| 8-sided dice | ✅ | ✅ |
-| 10-sided dice | ✅ | ✅ |
-| 12-sided dice | ✅ | ✅ |
-| 20-sided dice | ✅ | ✅ |
-| Coin flip | ✅ | ✅ |
+| Generator | Class | Implemented | Tested |
+|:---:|:---:|:---:|:---:|
+| D4 / D6 / D8 / D10 / D12 / D20 | `DiceGenerator` + `DiceType` | ✅ | ✅ |
+| Coin flip | `CoinGenerator` + `CoinResult` | ✅ | ✅ |
 
 ### Number generators (Kotlin layer — `org.github.krandom.common.numbers`)
 
@@ -115,6 +110,11 @@ List<Long> ids = Generators.ofLong(1L, 1_000_000L).generateList(100);
 // Algorithm generators
 long fib    = Generators.ofFibonacci().generate();
 String card = Generators.ofLuhn().generate();           // "4382916057"
+
+// Game generators
+CoinResult   side = Generators.ofCoin().generate();              // HEAD or TAIL
+int          roll = Generators.ofDice(DiceType.D20).generate();  // 1–20
+List<Integer> d6s = DiceGenerator.d6().roll(5);                  // 5 rolls, fairness guaranteed
 
 // Generic lookup by type
 Generator<Integer> g = Generators.forType(Integer.class);

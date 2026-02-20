@@ -6,6 +6,8 @@
 package org.github.krandom.generator;
 
 import org.github.krandom.games.coin.CoinGenerator;
+import org.github.krandom.games.dice.DiceGenerator;
+import org.github.krandom.games.dice.DiceType;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
@@ -125,6 +127,9 @@ class GeneratorsTest {
 
     @Test @DisplayName("ofCoin() returns CoinGenerator")
     void ofCoin() { assertInstanceOf(CoinGenerator.class, Generators.ofCoin()); }
+
+    @Test @DisplayName("ofDice(D6) returns DiceGenerator")
+    void ofDice() { assertInstanceOf(DiceGenerator.class, Generators.ofDice(DiceType.D6)); }
 
     // ── forType ───────────────────────────────────────────────────────────────
 

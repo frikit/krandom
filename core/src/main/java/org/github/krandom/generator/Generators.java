@@ -6,6 +6,8 @@
 package org.github.krandom.generator;
 
 import org.github.krandom.games.coin.CoinGenerator;
+import org.github.krandom.games.dice.DiceGenerator;
+import org.github.krandom.games.dice.DiceType;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
@@ -176,6 +178,11 @@ public final class Generators {
     /** Returns a generator that produces random coin-flip results ({@code HEAD} or {@code TAIL}). */
     public static CoinGenerator ofCoin() {
         return new CoinGenerator();
+    }
+
+    /** Returns a generator for the given die type (results in {@code [1, sides]}). */
+    public static DiceGenerator ofDice(DiceType type) {
+        return new DiceGenerator(type);
     }
 
     // ── Generic lookup by type ────────────────────────────────────────────────
