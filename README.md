@@ -82,11 +82,12 @@ All primitive generators implement `Generator<T>` with `generate()`, `generateLi
 | Prime numbers | ✅ | ✅ |
 | Composite numbers | ✅ | ✅ |
 
-### Network generators (Kotlin layer — `org.github.krandom.network`)
+### Network generators (Java layer — `org.github.krandom.network`)
 
-| Generator | Implemented | Tested |
-|:---:|:---:|:---:|
-| IPv4 | ✅ | ✅ |
+| Generator | Layer | Implemented | Tested |
+|:---:|:---:|:---:|:---:|
+| IPv4 (RFC 791, unicast) | Java | ✅ | ✅ |
+| IPv6 (RFC 4291 / RFC 5952) | Java | ✅ | ✅ |
 
 ### String generators (Kotlin layer — `org.github.krandom.common.string`)
 
@@ -146,3 +147,4 @@ JaCoCo line and branch coverage enforced at ≥ 90%.
 - [`docs/easy-random-reference.md`](docs/easy-random-reference.md) — easy-random library deep-dive
 - [`docs/chancejs-reference.md`](docs/chancejs-reference.md) — Chance.js API reference and feature comparison
 - [`docs/lorem-reference.md`](docs/lorem-reference.md) — lorem (mdeanda) API reference and feature comparison
+- [`docs/randomlib-reference.md`](docs/randomlib-reference.md) — RandomLib (ircmaxell) PHP library deep-dive

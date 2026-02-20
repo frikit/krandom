@@ -8,6 +8,8 @@ package org.github.krandom.generator;
 import org.github.krandom.games.coin.CoinGenerator;
 import org.github.krandom.games.dice.DiceGenerator;
 import org.github.krandom.games.dice.DiceType;
+import org.github.krandom.network.IPv4Generator;
+import org.github.krandom.network.IPv6Generator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
@@ -130,6 +132,14 @@ class GeneratorsTest {
 
     @Test @DisplayName("ofDice(D6) returns DiceGenerator")
     void ofDice() { assertInstanceOf(DiceGenerator.class, Generators.ofDice(DiceType.D6)); }
+
+    // ── Network ───────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofIPv4() returns IPv4Generator")
+    void ofIPv4() { assertInstanceOf(IPv4Generator.class, Generators.ofIPv4()); }
+
+    @Test @DisplayName("ofIPv6() returns IPv6Generator")
+    void ofIPv6() { assertInstanceOf(IPv6Generator.class, Generators.ofIPv6()); }
 
     // ── forType ───────────────────────────────────────────────────────────────
 

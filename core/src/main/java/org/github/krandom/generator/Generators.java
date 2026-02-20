@@ -8,6 +8,8 @@ package org.github.krandom.generator;
 import org.github.krandom.games.coin.CoinGenerator;
 import org.github.krandom.games.dice.DiceGenerator;
 import org.github.krandom.games.dice.DiceType;
+import org.github.krandom.network.IPv4Generator;
+import org.github.krandom.network.IPv6Generator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
@@ -183,6 +185,18 @@ public final class Generators {
     /** Returns a generator for the given die type (results in {@code [1, sides]}). */
     public static DiceGenerator ofDice(DiceType type) {
         return new DiceGenerator(type);
+    }
+
+    // ── Network ───────────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random IPv4 addresses (RFC 791, unicast range). */
+    public static IPv4Generator ofIPv4() {
+        return new IPv4Generator();
+    }
+
+    /** Returns a generator that produces random IPv6 addresses (RFC 4291 / RFC 5952). */
+    public static IPv6Generator ofIPv6() {
+        return new IPv6Generator();
     }
 
     // ── Generic lookup by type ────────────────────────────────────────────────

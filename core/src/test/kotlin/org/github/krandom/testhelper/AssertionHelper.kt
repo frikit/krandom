@@ -112,31 +112,6 @@ fun isNaturalPrimeNumberInRange(testCaseName: String, actual: Long, from: Long, 
     fitInRange(actual, from, to)
 }
 
-//ip
-fun isValidIP(ips: List<String>) {
-    ips.forEach { ip ->
-        val part1 = ip.split(".")[0].toInt()
-        val part2 = ip.split(".")[1].toInt()
-        val part3 = ip.split(".")[2].toInt()
-        val part4 = ip.split(".")[3].toInt()
-        //part 1
-        assert(part1 >= 0) { "[$part1] should be >= 0!" }
-        assert(part1 <= 223) { "[$part1] should be <= 223!" }
-
-        //part 2
-        assert(part2 >= 0) { "[$part2] should be >= 0!" }
-        assert(part2 <= 255) { "[$part2] should be <= 255!" }
-
-        //part 3
-        assert(part3 >= 0) { "[$part3] should be >= 0!" }
-        assert(part3 <= 255) { "[$part3] should be <= 255!" }
-
-        //part 4
-        assert(part4 >= 0) { "[$part4] should be >= 0!" }
-        assert(part4 <= 255) { "[$part4] should be <= 255!" }
-    }
-}
-
 //hex hash
 private fun isValidMD5(hash: String, length: Int): Boolean {
     return hash.matches("^[a-fA-F0-9]{$length}$".toRegex())
