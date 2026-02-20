@@ -5,6 +5,8 @@
  */
 package org.github.krandom.generator;
 
+import org.github.krandom.generator.algorithms.FibonacciGenerator;
+import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
 
 import java.util.HashMap;
@@ -154,6 +156,18 @@ public final class Generators {
     /** Full control via a pre-configured builder. */
     public static StringGenerator ofString(StringGenerator.Builder builder) {
         return Objects.requireNonNull(builder, "builder").build();
+    }
+
+    // ── Algorithms ────────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random Fibonacci numbers. */
+    public static FibonacciGenerator ofFibonacci() {
+        return new FibonacciGenerator();
+    }
+
+    /** Returns a generator that produces 10-digit Luhn-valid number strings. */
+    public static LuhnGenerator ofLuhn() {
+        return new LuhnGenerator();
     }
 
     // ── Generic lookup by type ────────────────────────────────────────────────
