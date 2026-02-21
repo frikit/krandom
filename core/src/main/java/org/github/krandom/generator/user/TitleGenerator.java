@@ -30,6 +30,14 @@ public final class TitleGenerator implements Generator<String> {
 
     public TitleGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        
+        Locale locale = config.getLocale();
+        if (!LocaleTitleData.isSupported(locale)) {
+            throw new UnsupportedOperationException(
+                "Locale " + locale + " is not supported. Supported locales: " +
+                LocaleTitleData.getSupportedLocalesString());
+        }
+        
         this.random = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();

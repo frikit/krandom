@@ -175,30 +175,28 @@ class TitleGeneratorTest {
     }
 
     @Test
-    @DisplayName("unsupported locale falls back gracefully")
-    void unsupportedLocaleFallback() {
+    @DisplayName("unsupported locale throws exception")
+    void unsupportedLocaleThrowsException() {
         Locale unsupported = new Locale("xx", "YY");
-        TitleGenerator gen = new TitleGenerator(unsupported);
         
-        // Should fallback to EN_US
-        String title = gen.generate();
-        assertNotNull(title);
-        assertFalse(title.isEmpty());
+        UnsupportedOperationException exception = assertThrows(
+            UnsupportedOperationException.class,
+            () -> new TitleGenerator(unsupported)
+        );
         
-        // Should not be explicitly supported
-        assertFalse(gen.isLocaleExplicitlySupported());
+        assertTrue(exception.getMessage().contains("not supported"));
+        assertTrue(exception.getMessage().contains("xx_YY"));
     }
 
     @Test
-    @DisplayName("language-only fallback works (en -> en_US)")
-    void languageOnlyFallback() {
-        Locale english = new Locale("en"); // No country
+    @DisplayName("language-only locale works (en -> matches en_US)")
+    void languageOnlyLocale() {
+        Locale english = new Locale("en");
         TitleGenerator gen = new TitleGenerator(english);
         
         String title = gen.generate();
         assertNotNull(title);
         
-        // Should generate valid English titles
         Set<String> titles = new HashSet<>();
         for (int i = 0; i < 50; i++) {
             titles.add(gen.generate());
