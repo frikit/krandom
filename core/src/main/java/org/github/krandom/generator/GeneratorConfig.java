@@ -7,6 +7,7 @@ package org.github.krandom.generator;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.OptionalLong;
 
@@ -19,6 +20,7 @@ import java.util.OptionalLong;
  *       .seed(42L)
  *       .charset(StandardCharsets.UTF_8)
  *       .stringLength(8, 32)
+ *       .locale(Locale.GERMANY)
  *       .build();
  * }</pre>
  *
@@ -32,6 +34,7 @@ public final class GeneratorConfig {
     private final int maxStringLength;
     private final int minCollectionSize;
     private final int maxCollectionSize;
+    private final Locale locale;
 
     private GeneratorConfig(Builder b) {
         this.seed             = b.seed;
@@ -40,6 +43,7 @@ public final class GeneratorConfig {
         this.maxStringLength  = b.maxStringLength;
         this.minCollectionSize = b.minCollectionSize;
         this.maxCollectionSize = b.maxCollectionSize;
+        this.locale           = b.locale;
     }
 
     /** Config with all defaults applied. */
@@ -64,6 +68,9 @@ public final class GeneratorConfig {
     public int getMinCollectionSize() { return minCollectionSize; }
     public int getMaxCollectionSize() { return maxCollectionSize; }
 
+    /** Locale for locale-aware generators (names, addresses, etc.). Default: {@link Locale#US}. */
+    public Locale getLocale() { return locale; }
+
     // ── Builder ───────────────────────────────────────────────────────────────
 
     public static final class Builder {
@@ -74,6 +81,7 @@ public final class GeneratorConfig {
         private int maxStringLength       = 20;
         private int minCollectionSize     = 1;
         private int maxCollectionSize     = 10;
+        private Locale locale             = Locale.US;
 
         /** Fix the PRNG seed for reproducible output. */
         public Builder seed(long seed) {
@@ -102,6 +110,12 @@ public final class GeneratorConfig {
             if (max < min) throw new IllegalArgumentException("max collection size must be >= min");
             this.minCollectionSize = min;
             this.maxCollectionSize = max;
+            return this;
+        }
+
+        /** Locale for locale-aware generators (names, addresses, phone numbers, etc.). */
+        public Builder locale(Locale locale) {
+            this.locale = Objects.requireNonNull(locale, "locale");
             return this;
         }
 

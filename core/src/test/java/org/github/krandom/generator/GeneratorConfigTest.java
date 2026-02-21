@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,6 +26,7 @@ class GeneratorConfigTest {
         assertEquals(20, c.getMaxStringLength());
         assertEquals(1,  c.getMinCollectionSize());
         assertEquals(10, c.getMaxCollectionSize());
+        assertEquals(Locale.US, c.getLocale());
     }
 
     @Test
@@ -91,5 +93,32 @@ class GeneratorConfigTest {
     void collectionSizeMaxBelowMinThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> GeneratorConfig.builder().collectionSize(5, 3));
+    }
+
+    @Test
+    @DisplayName("locale() stores the locale")
+    void localeStored() {
+        GeneratorConfig c = GeneratorConfig.builder().locale(Locale.GERMANY).build();
+        assertEquals(Locale.GERMANY, c.getLocale());
+    }
+
+    @Test
+    @DisplayName("locale(null) throws NullPointerException")
+    void localeNullThrows() {
+        assertThrows(NullPointerException.class,
+                () -> GeneratorConfig.builder().locale(null));
+    }
+
+    @Test
+    @DisplayName("locale() accepts various locales")
+    void variousLocales() {
+        GeneratorConfig japan = GeneratorConfig.builder().locale(Locale.JAPAN).build();
+        assertEquals(Locale.JAPAN, japan.getLocale());
+
+        GeneratorConfig custom = GeneratorConfig.builder()
+                .locale(new Locale("es", "MX"))
+                .build();
+        assertEquals("es", custom.getLocale().getLanguage());
+        assertEquals("MX", custom.getLocale().getCountry());
     }
 }
