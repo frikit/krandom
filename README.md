@@ -144,7 +144,4 @@ JaCoCo line and branch coverage enforced at ≥ 90%.
 
 ## Reference docs
 
-- [`docs/easy-random-reference.md`](docs/easy-random-reference.md) — easy-random library deep-dive
-- [`docs/chancejs-reference.md`](docs/chancejs-reference.md) — Chance.js API reference and feature comparison
-- [`docs/lorem-reference.md`](docs/lorem-reference.md) — lorem (mdeanda) API reference and feature comparison
-- [`docs/randomlib-reference.md`](docs/randomlib-reference.md) — RandomLib (ircmaxell) PHP library deep-dive
+Comparative references for 10 popular random/fake-data libraries across Java, Python, Go, Rust, C#, JavaScript, and PHP — see [`docs/`](docs/README.md).
