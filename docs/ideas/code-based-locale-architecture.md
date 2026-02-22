@@ -1,7 +1,7 @@
 # Code-Based Locale Architecture Design
 
-**Date:** 2026-02-21  
-**Approach:** Embed locale data in code as enums/constants, not external files  
+**Date:** 2026-02-21
+**Approach:** Embed locale data in code as enums/constants, not external files
 **Philosophy:** Locale logic baked into generator configuration
 
 ---
@@ -46,7 +46,7 @@ enum class LocaleData(
         cities = listOf("New York", "Los Angeles", "Chicago", "Houston", "Phoenix"),
         postalCodeFormat = "#####"
     ),
-    
+
     DE_DE(
         locale = Locale.GERMANY,
         firstNames = listOf(
@@ -61,7 +61,7 @@ enum class LocaleData(
         cities = listOf("Berlin", "München", "Hamburg", "Frankfurt", "Köln"),
         postalCodeFormat = "#####"
     ),
-    
+
     ES_ES(
         locale = Locale("es", "ES"),
         firstNames = listOf(
@@ -76,7 +76,7 @@ enum class LocaleData(
         cities = listOf("Madrid", "Barcelona", "Valencia", "Sevilla", "Zaragoza"),
         postalCodeFormat = "#####"
     ),
-    
+
     FR_FR(
         locale = Locale.FRANCE,
         firstNames = listOf(
@@ -91,7 +91,7 @@ enum class LocaleData(
         cities = listOf("Paris", "Marseille", "Lyon", "Toulouse", "Nice"),
         postalCodeFormat = "#####"
     ),
-    
+
     JA_JP(
         locale = Locale.JAPAN,
         firstNames = listOf(
@@ -106,27 +106,27 @@ enum class LocaleData(
         cities = listOf("東京", "大阪", "横浜", "名古屋", "札幌"),
         postalCodeFormat = "###-####"
     );
-    
+
     companion object {
         fun fromLocale(locale: Locale): LocaleData {
-            return values().firstOrNull { 
-                it.locale.language == locale.language && 
-                it.locale.country == locale.country 
+            return values().firstOrNull {
+                it.locale.language == locale.language &&
+                it.locale.country == locale.country
             } ?: EN_US // Default fallback
         }
-        
+
         fun fromLocaleWithFallback(locale: Locale): LocaleData {
             // Try exact match (language + country)
-            values().firstOrNull { 
-                it.locale.language == locale.language && 
-                it.locale.country == locale.country 
+            values().firstOrNull {
+                it.locale.language == locale.language &&
+                it.locale.country == locale.country
             }?.let { return it }
-            
+
             // Try language-only match
-            values().firstOrNull { 
-                it.locale.language == locale.language 
+            values().firstOrNull {
+                it.locale.language == locale.language
             }?.let { return it }
-            
+
             // Default to English
             return EN_US
         }
@@ -142,28 +142,28 @@ class FirstName(
     private val locale: Locale = Locale.US,
     private val random: Random = Random.Default
 ) : Generator<String> {
-    
-    private val localeData by lazy { 
-        LocaleData.fromLocaleWithFallback(locale) 
+
+    private val localeData by lazy {
+        LocaleData.fromLocaleWithFallback(locale)
     }
-    
+
     override fun generate(): String {
         return localeData.firstNames.random(random)
     }
-    
+
     // Builder pattern for Java compatibility
     companion object {
         @JvmStatic
         fun builder() = Builder()
     }
-    
+
     class Builder {
         private var locale: Locale = Locale.US
         private var random: Random = Random.Default
-        
+
         fun locale(locale: Locale) = apply { this.locale = locale }
         fun seed(seed: Long) = apply { this.random = Random(seed) }
-        
+
         fun build() = FirstName(locale, random)
     }
 }
@@ -173,11 +173,11 @@ class SurName(
     private val locale: Locale = Locale.US,
     private val random: Random = Random.Default
 ) : Generator<String> {
-    
-    private val localeData by lazy { 
-        LocaleData.fromLocaleWithFallback(locale) 
+
+    private val localeData by lazy {
+        LocaleData.fromLocaleWithFallback(locale)
     }
-    
+
     override fun generate(): String {
         return localeData.lastNames.random(random)
     }
@@ -192,12 +192,12 @@ data class LocaleConfig(
     val locale: Locale = Locale.US,
     val seed: Long? = null
 ) {
-    val random: Random by lazy { 
-        seed?.let { Random(it) } ?: Random.Default 
+    val random: Random by lazy {
+        seed?.let { Random(it) } ?: Random.Default
     }
-    
-    val localeData: LocaleData by lazy { 
-        LocaleData.fromLocaleWithFallback(locale) 
+
+    val localeData: LocaleData by lazy {
+        LocaleData.fromLocaleWithFallback(locale)
     }
 }
 
@@ -205,10 +205,10 @@ data class LocaleConfig(
 class FirstName(
     private val config: LocaleConfig = LocaleConfig()
 ) : Generator<String> {
-    
+
     // Convenience constructor
     constructor(locale: Locale) : this(LocaleConfig(locale = locale))
-    
+
     override fun generate(): String {
         return config.localeData.firstNames.random(config.random)
     }
@@ -277,30 +277,30 @@ enum class LocaleData(/* ... */) {
         override fun formatFullName(first: String, last: String): String {
             return "$first $last"
         }
-        
+
         override fun formatAddress(
             street: String, city: String, postal: String
         ): String {
             return "$street, $city, $postal"
         }
     },
-    
+
     JA_JP(/* ... */) {
         override fun formatFullName(first: String, last: String): String {
             return "$last $first"  // Last name first in Japanese
         }
-        
+
         override fun formatAddress(
             street: String, city: String, postal: String
         ): String {
             return "〒$postal $city $street"  // Japanese format
         }
     };
-    
+
     // Abstract methods for locale-specific logic
     abstract fun formatFullName(first: String, last: String): String
     abstract fun formatAddress(street: String, city: String, postal: String): String
-    
+
     fun generatePostalCode(random: Random): String {
         return postalCodeFormat?.map { char ->
             when (char) {
@@ -320,18 +320,18 @@ enum class PersonNameLocale(val locale: Locale, val names: List<String>) {
     EN_US_NAMES(Locale.US, listOf("James", "John", "Mary")),
     DE_DE_NAMES(Locale.GERMANY, listOf("Hans", "Emma", "Sophie")),
     ES_ES_NAMES(Locale("es", "ES"), listOf("José", "María"));
-    
+
     companion object {
         fun forLocale(locale: Locale): PersonNameLocale {
-            return values().firstOrNull { 
-                it.locale.language == locale.language 
+            return values().firstOrNull {
+                it.locale.language == locale.language
             } ?: EN_US_NAMES
         }
     }
 }
 
 enum class AddressLocale(
-    val locale: Locale, 
+    val locale: Locale,
     val cities: List<String>,
     val postalFormat: String
 ) {
@@ -347,25 +347,25 @@ sealed class LocaleData {
     abstract val locale: Locale
     abstract val firstNames: List<String>
     abstract val lastNames: List<String>
-    
+
     object EnglishUS : LocaleData() {
         override val locale = Locale.US
         override val firstNames = listOf("James", "John", "Mary", "Patricia")
         override val lastNames = listOf("Smith", "Johnson", "Williams")
     }
-    
+
     object German : LocaleData() {
         override val locale = Locale.GERMANY
         override val firstNames = listOf("Hans", "Friedrich", "Emma")
         override val lastNames = listOf("Müller", "Schmidt", "Schneider")
     }
-    
+
     companion object {
         private val registry = listOf(EnglishUS, German)
-        
+
         fun forLocale(locale: Locale): LocaleData {
-            return registry.firstOrNull { 
-                it.locale.language == locale.language 
+            return registry.firstOrNull {
+                it.locale.language == locale.language
             } ?: EnglishUS
         }
     }
@@ -382,11 +382,11 @@ class ObjectGenerator<T>(
     private val clazz: Class<T>,
     private val localeConfig: LocaleConfig = LocaleConfig()
 ) : Generator<T> {
-    
+
     // Use locale when creating user-related generators
     override fun generate(): T {
         val instance = clazz.getDeclaredConstructor().newInstance()
-        
+
         clazz.declaredFields.forEach { field ->
             field.isAccessible = true
             val value = when (field.type) {
@@ -402,7 +402,7 @@ class ObjectGenerator<T>(
             }
             field.set(instance, value)
         }
-        
+
         return instance
     }
 }
@@ -427,18 +427,18 @@ val germanPerson = ObjectGenerator(
 ```kotlin
 // Fluent generator factory
 class KRandom(private val config: LocaleConfig = LocaleConfig()) {
-    
+
     fun person() = PersonGenerators(config)
     fun address() = AddressGenerators(config)
     fun primitives() = PrimitiveGenerators(config)
-    
+
     class PersonGenerators(private val config: LocaleConfig) {
         fun firstName() = FirstName(config)
         fun lastName() = SurName(config)
         fun fullName() = FullName(config)
         fun email() = Email(config)
     }
-    
+
     class AddressGenerators(private val config: LocaleConfig) {
         fun city() = City(config)
         fun postalCode() = PostalCode(config)
@@ -465,13 +465,13 @@ val germanData = KRandom(LocaleConfig(Locale.GERMANY))
 // Allow users to register custom locales
 object LocaleRegistry {
     private val customLocales = mutableMapOf<Locale, LocaleData>()
-    
+
     fun register(localeData: LocaleData) {
         customLocales[localeData.locale] = localeData
     }
-    
+
     fun get(locale: Locale): LocaleData {
-        return customLocales[locale] 
+        return customLocales[locale]
             ?: LocaleData.fromLocaleWithFallback(locale)
     }
 }
@@ -527,8 +527,8 @@ private const val EN_US_NAMES_DATA = """
     James,John,Robert,Michael,William,David,Richard,Joseph,Thomas,Charles
 """
 
-val EN_US_FIRST_NAMES by lazy { 
-    EN_US_NAMES_DATA.split(",").map { it.trim() } 
+val EN_US_FIRST_NAMES by lazy {
+    EN_US_NAMES_DATA.split(",").map { it.trim() }
 }
 ```
 

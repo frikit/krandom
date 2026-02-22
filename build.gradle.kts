@@ -13,6 +13,20 @@ allprojects {
     }
 }
 
+apply(plugin = "com.diffplug.spotless")
+
+configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+    format("markdown") {
+        target("README.md", "docs/**/*.md")
+        // Remove trailing whitespace
+        trimTrailingWhitespace()
+        // Ensure files end with newline
+        endWithNewline()
+        // Normalize line endings
+        lineEndings = com.diffplug.spotless.LineEnding.UNIX
+    }
+}
+
 subprojects {
     apply(plugin = "com.diffplug.spotless")
 

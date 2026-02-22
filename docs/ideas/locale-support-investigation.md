@@ -1,15 +1,15 @@
 # Locale Support Investigation & Design Proposal
 
-**Date:** 2026-02-21  
-**Status:** Investigation Phase  
+**Date:** 2026-02-21
+**Status:** Investigation Phase
 **Purpose:** Design locale-aware data generation for krandom
 
 ---
 
 ## Executive Summary
 
-**Current State:** ❌ Zero locale support - all data is generic/mixed international  
-**Goal:** Support `java.util.Locale` for locale-specific random data generation  
+**Current State:** ❌ Zero locale support - all data is generic/mixed international
+**Goal:** Support `java.util.Locale` for locale-specific random data generation
 **Primary Use Cases:** Currency, postal codes, names, addresses, phone formats, character sets
 
 ---
@@ -173,7 +173,7 @@ person = Person(locale=Locale.DE)
 name = person.first_name()  # German name
 ```
 
-**Strategy:** Eager loading - all locale data loaded at instantiation  
+**Strategy:** Eager loading - all locale data loaded at instantiation
 **Performance:** 5-15x faster than Faker due to single load
 
 ### 2.4 Faker (Python) — 80+ Locales
@@ -189,7 +189,7 @@ fake = Faker('de_DE')
 fake = Faker(['en_US', 'de_DE', 'ja_JP'])
 ```
 
-**Strategy:** Lazy loading per provider call  
+**Strategy:** Lazy loading per provider call
 **Providers:** Modular per locale (`faker.providers.person.de_DE`)
 
 ---
@@ -286,7 +286,7 @@ core/src/main/resources/
     └── colors.txt
 ```
 
-**Naming Convention:** `{category}_{type}.txt`  
+**Naming Convention:** `{category}_{type}.txt`
 **Encoding:** UTF-8 for international character support
 
 #### File Format (TXT - Phase 1)
@@ -329,7 +329,7 @@ person:
 ```kotlin
 object LocaleResolver {
     private const val DEFAULT_LOCALE = "en"
-    
+
     /**
      * Resolves resource path with fallback logic
      * @param locale Target locale (e.g., de_DE)
@@ -337,12 +337,12 @@ object LocaleResolver {
      * @return Path chain: [de_DE, de, en]
      */
     fun resolveResourcePath(
-        locale: Locale, 
+        locale: Locale,
         resourceType: String
     ): List<String> {
         val language = locale.language
         val country = locale.country
-        
+
         return buildList {
             // Try full locale: de_DE
             if (country.isNotEmpty()) {
@@ -354,7 +354,7 @@ object LocaleResolver {
             add("locales/${DEFAULT_LOCALE}/${resourceType}.txt")
         }
     }
-    
+
     /**
      * Load resource with fallback
      */
@@ -363,7 +363,7 @@ object LocaleResolver {
         resourceType: String
     ): String {
         val paths = resolveResourcePath(locale, resourceType)
-        
+
         for (path in paths) {
             try {
                 return ResourceResolver.getResourceContent(path)
@@ -371,7 +371,7 @@ object LocaleResolver {
                 // Continue to next fallback
             }
         }
-        
+
         throw IllegalStateException(
             "Resource not found: $resourceType for locale $locale (tried: $paths)"
         )
@@ -384,7 +384,7 @@ object LocaleResolver {
 abstract class LocaleAwareGenerator<T>(
     protected val locale: Locale = Locale.ENGLISH
 ) : Generator<T> {
-    
+
     protected fun loadLocaleData(resourceType: String): List<String> {
         val content = LocaleResolver.loadResourceWithFallback(locale, resourceType)
         return content.split("\n")
@@ -400,12 +400,12 @@ class FirstName(
     private val locale: Locale = Locale.ENGLISH,
     random: Random = Random.Default
 ) : LocaleAwareGenerator<String>(locale) {
-    
+
     companion object {
         // Cache per locale
         private val cache = ConcurrentHashMap<Locale, List<String>>()
     }
-    
+
     override fun generate(): String {
         val names = cache.getOrPut(locale) {
             loadLocaleData("person_names")
@@ -528,7 +528,7 @@ cities_de=(Berlin München Hamburg Frankfurt Köln Stuttgart)
 ## 7. Open Questions
 
 ### 7.1 Technical Decisions
-1. **YAML vs TXT?** 
+1. **YAML vs TXT?**
    - TXT for Phase 1 (minimal change)
    - YAML for Phase 2 (if gender-awareness needed)
 
@@ -596,6 +596,6 @@ cities_de=(Berlin München Hamburg Frankfurt Köln Stuttgart)
 
 ---
 
-**Last Updated:** 2026-02-21  
-**Authors:** krandom development team  
+**Last Updated:** 2026-02-21
+**Authors:** krandom development team
 **Status:** Ready for implementation

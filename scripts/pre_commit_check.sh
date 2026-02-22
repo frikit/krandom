@@ -41,6 +41,22 @@ else
     exit 1
 fi
 
+step "Format markdown documentation"
+if "${GRADLEW}" spotlessMarkdownApply --quiet; then
+    ok "Markdown formatted"
+else
+    fail "Markdown formatting failed"
+    exit 1
+fi
+
+step "Verify markdown documentation"
+if "${GRADLEW}" spotlessMarkdownCheck --quiet; then
+    ok "Markdown OK"
+else
+    fail "Markdown check failed — run ./gradlew spotlessMarkdownApply and re-check"
+    exit 1
+fi
+
 step "Compile all modules"
 if "${GRADLEW}" classes testClasses --quiet; then
     ok "Compilation OK"

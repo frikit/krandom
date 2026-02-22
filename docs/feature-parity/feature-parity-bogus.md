@@ -1,7 +1,7 @@
 # kRandom vs Bogus (.NET) — Feature Parity Matrix
 
-**Last Updated:** 2026-02-21  
-**Bogus Version:** Latest (C# .NET)  
+**Last Updated:** 2026-02-21
+**Bogus Version:** Latest (C# .NET)
 **kRandom Version:** Current development state
 
 ---

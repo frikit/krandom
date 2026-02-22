@@ -1,6 +1,6 @@
 # JDK Locale Support & GeneratorConfig Integration
 
-**Date:** 2026-02-21  
+**Date:** 2026-02-21
 **Objective:** Add Locale support to existing `GeneratorConfig` class
 
 ---
@@ -63,7 +63,7 @@ public final class GeneratorConfig {
     private final int maxStringLength;
     private final int minCollectionSize;
     private final int maxCollectionSize;
-    
+
     // Builder pattern with fluent API
 }
 ```
@@ -167,21 +167,21 @@ GeneratorConfig configMX = GeneratorConfig.builder()
 class FirstName(
     private val config: GeneratorConfig = GeneratorConfig.defaults()
 ) : Generator<String> {
-    
-    private val localeData by lazy { 
-        LocaleData.fromLocale(config.locale) 
+
+    private val localeData by lazy {
+        LocaleData.fromLocale(config.locale)
     }
-    
+
     private val random by lazy {
-        config.seed.isPresent 
-            ? Random(config.seed.asLong) 
+        config.seed.isPresent
+            ? Random(config.seed.asLong)
             : Random.Default
     }
-    
+
     override fun generate(): String {
         return localeData.firstNames.random(random)
     }
-    
+
     // Convenience constructor (backward compatible)
     constructor(locale: Locale) : this(
         GeneratorConfig.builder().locale(locale).build()
@@ -194,15 +194,15 @@ class FirstName(
 ```java
 // Generator factory that uses config
 public class Generators {
-    
+
     public static Generator<String> firstName(GeneratorConfig config) {
         return new FirstName(config);
     }
-    
+
     public static Generator<String> surname(GeneratorConfig config) {
         return new SurName(config);
     }
-    
+
     public static Generator<String> city(GeneratorConfig config) {
         return new City(config);
     }
@@ -225,11 +225,11 @@ String germanCity = Generators.city(germanConfig).generate();
 // We extend it to accept GeneratorConfig for locale awareness
 
 public class ObjectGenerator<T> implements Generator<T> {
-    
+
     private final Class<T> clazz;
     private final ObjectGeneratorConfig objectConfig;
     private final GeneratorConfig generatorConfig;  // NEW
-    
+
     public ObjectGenerator(
         Class<T> clazz,
         ObjectGeneratorConfig objectConfig,
@@ -239,12 +239,12 @@ public class ObjectGenerator<T> implements Generator<T> {
         this.objectConfig = objectConfig;
         this.generatorConfig = generatorConfig;  // NEW
     }
-    
+
     // Convenience constructor (backward compatible)
     public ObjectGenerator(Class<T> clazz) {
         this(clazz, ObjectGeneratorConfig.defaults(), GeneratorConfig.defaults());
     }
-    
+
     @Override
     public T generate() {
         // Use generatorConfig.getLocale() when creating user generators
@@ -252,28 +252,28 @@ public class ObjectGenerator<T> implements Generator<T> {
         populateFields(instance, 0);
         return instance;
     }
-    
+
     private void populateFields(Object obj, int depth) {
         for (Field field : obj.getClass().getDeclaredFields()) {
             // Check field override first
             Optional<Generator<?>> fieldGen = objectConfig.getFieldOverride(
                 obj.getClass(), field.getName()
             );
-            
+
             if (fieldGen.isPresent()) {
                 setField(obj, field, fieldGen.get().generate());
                 continue;
             }
-            
+
             // Use locale-aware generators based on field name
             Generator<?> gen = getGeneratorForField(field);
             setField(obj, field, gen.generate());
         }
     }
-    
+
     private Generator<?> getGeneratorForField(Field field) {
         String fieldName = field.getName().toLowerCase();
-        
+
         // Locale-aware field detection
         if (fieldName.contains("firstname") || fieldName.equals("fname")) {
             return new FirstName(generatorConfig);  // Uses locale from config
@@ -284,7 +284,7 @@ public class ObjectGenerator<T> implements Generator<T> {
         if (fieldName.contains("city")) {
             return new City(generatorConfig);
         }
-        
+
         // Fallback to type-based generation
         return getDefaultGenerator(field.getType());
     }
@@ -346,35 +346,35 @@ enum class LocaleData(
         lastNames = EN_US_LAST_NAMES,
         cities = EN_US_CITIES
     ),
-    
+
     DE_DE(
         locale = Locale.GERMANY,
         firstNames = DE_DE_FIRST_NAMES,
         lastNames = DE_DE_LAST_NAMES,
         cities = DE_DE_CITIES
     ),
-    
+
     ES_ES(
         locale = Locale("es", "ES"),
         firstNames = ES_ES_FIRST_NAMES,
         lastNames = ES_ES_LAST_NAMES,
         cities = ES_ES_CITIES
     ),
-    
+
     FR_FR(
         locale = Locale.FRANCE,
         firstNames = FR_FR_FIRST_NAMES,
         lastNames = FR_FR_LAST_NAMES,
         cities = FR_FR_CITIES
     ),
-    
+
     JA_JP(
         locale = Locale.JAPAN,
         firstNames = JA_JP_FIRST_NAMES,
         lastNames = JA_JP_LAST_NAMES,
         cities = JA_JP_CITIES
     );
-    
+
     companion object {
         /**
          * Get locale data with fallback logic:
@@ -384,16 +384,16 @@ enum class LocaleData(
          */
         fun fromLocale(locale: Locale): LocaleData {
             // Exact match
-            values().firstOrNull { 
-                it.locale.language == locale.language && 
-                it.locale.country == locale.country 
+            values().firstOrNull {
+                it.locale.language == locale.language &&
+                it.locale.country == locale.country
             }?.let { return it }
-            
+
             // Language-only match
-            values().firstOrNull { 
-                it.locale.language == locale.language 
+            values().firstOrNull {
+                it.locale.language == locale.language
             }?.let { return it }
-            
+
             // Default fallback
             return EN_US
         }
@@ -539,10 +539,10 @@ GeneratorConfig testConfig = GeneratorConfig.builder()
 
 ## Summary
 
-✅ **JDK provides 748 locales** - Use standard `java.util.Locale`  
-✅ **Add locale to existing `GeneratorConfig`** - Don't create new config  
-✅ **Use enum-based `LocaleData`** - Code-based, no file loading  
-✅ **Maintain backward compatibility** - Existing code still works  
-✅ **Follow existing patterns** - Builder, config, lazy loading  
+✅ **JDK provides 748 locales** - Use standard `java.util.Locale`
+✅ **Add locale to existing `GeneratorConfig`** - Don't create new config
+✅ **Use enum-based `LocaleData`** - Code-based, no file loading
+✅ **Maintain backward compatibility** - Existing code still works
+✅ **Follow existing patterns** - Builder, config, lazy loading
 
 **Next Step:** Implement locale field in `GeneratorConfig` + create `LocaleData` enum with 5 initial locales.
