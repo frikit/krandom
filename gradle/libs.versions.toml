@@ -3,8 +3,6 @@ kotlin = "2.2.0"
 jacoco = "0.8.12"
 spotless = "8.2.1"
 commons-validator = "1.10.1"
-commons-beanutils = "1.9.4"
-kotlin-logging = "7.0.7"
 slf4j = "2.0.17"
 logback = "1.5.18"
 kotest = "5.9.1"
@@ -14,8 +12,6 @@ junit-platform = "1.12.2"
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
-commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
