@@ -57,15 +57,11 @@ else
     exit 1
 fi
 
-step "Enforce coverage thresholds (80% line, 80% branch)"
-if "${GRADLEW}" :core:jacocoTestCoverageVerification --quiet; then
-    ok "Coverage thresholds met"
-else
-    fail "Coverage below threshold — see core/build/jacoco/html/index.html"
-    exit 1
-fi
+step "Enforce coverage thresholds"
+COVERAGE_OK=0
+"${GRADLEW}" :core:jacocoTestCoverageVerification --quiet && COVERAGE_OK=1 || true
 
-# ── Coverage report ───────────────────────────────────────────────────────────
+# ── Coverage report — always printed ──────────────────────────────────────────
 
 step "Coverage report"
 CSV="${REPO_ROOT}/core/build/jacoco/jacoco.csv"
@@ -98,14 +94,14 @@ END {
     print "╔══════════════════════════════════════════════════════════════╗"
     print "║              CODE COVERAGE SUMMARY                          ║"
     print "╠══════════════════════════════════════════════════════════════╣"
-    printf "║  Line   coverage : %s  [%s]           ║\n", lp_col, bar(lp)
-    printf "║  Branch coverage : %s  [%s]           ║\n", bp_col, bar(bp)
+    printf "║  Line   coverage : %s  [%s]  ║\n", lp_col, bar(lp)
+    printf "║  Branch coverage : %s  [%s]  ║\n", bp_col, bar(bp)
     print  "║  Threshold       :  80.0%  minimum (both counters)         ║"
-    printf "║  Line   status   :  %s                                   ║\n", ls_col
-    printf "║  Branch status   :  %s                                   ║\n", bs_col
+    printf "║  Line   status   :  %-33s║\n", ls_col
+    printf "║  Branch status   :  %-33s║\n", bs_col
     print  "╠══════════════════════════════════════════════════════════════╣"
-    printf "║  Lines  covered  : %5d / %-5d                            ║\n", tlc, tl
-    printf "║  Branch covered  : %5d / %-5d                            ║\n", tbc, tb
+    printf "║  Lines  covered  :   %3d / %-3d                              ║\n", tlc, tl
+    printf "║  Branch covered  :   %3d / %-3d                              ║\n", tbc, tb
     print  "╚══════════════════════════════════════════════════════════════╝"
 }' "${CSV}"
 
@@ -154,6 +150,12 @@ printf "! = below 80%% threshold\n"
 # ── Summary ───────────────────────────────────────────────────────────────────
 
 echo
-echo -e "${GREEN}============================================"
-echo -e " All pre-commit checks passed. Safe to commit."
-echo -e "============================================${RESET}"
+if [ "${COVERAGE_OK}" -eq 1 ]; then
+    ok "Coverage thresholds met"
+    echo -e "${GREEN}============================================"
+    echo -e " All pre-commit checks passed. Safe to commit."
+    echo -e "============================================${RESET}"
+else
+    fail "Coverage below threshold — see core/build/jacoco/html/index.html"
+    exit 1
+fi
