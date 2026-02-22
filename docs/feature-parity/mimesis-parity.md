@@ -355,8 +355,8 @@ for record in schema.loop():
     database.insert(record)
 ```
 
-**krandom Status:** ❌ No equivalent  
-**Priority:** HIGH  
+**krandom Status:** ❌ No equivalent
+**Priority:** HIGH
 **Notes:** krandom has `Generator.generateList(n)` for single-type collections and `ObjectGenerator<T>` for POJOs via reflection, but no declarative multi-field record generation like Schema.
 
 ---
@@ -375,8 +375,8 @@ field('choice', items=[1, 2, 3])                    # 2
 field('text.word')                                  # 'forest'
 ```
 
-**krandom Status:** ❌ No equivalent  
-**Priority:** MEDIUM  
+**krandom Status:** ❌ No equivalent
+**Priority:** MEDIUM
 **Notes:** Field provides a unified DSL for all providers. krandom requires direct instantiation of each generator class.
 
 ---
@@ -398,8 +398,8 @@ g.numeric.integer_number()  # 42
 g.text.word()               # 'forest'
 ```
 
-**krandom Status:** ❌ No equivalent  
-**Priority:** MEDIUM  
+**krandom Status:** ❌ No equivalent
+**Priority:** MEDIUM
 **Notes:** Generic provides all providers under one instance. krandom requires separate instances per generator type.
 
 ---
@@ -432,8 +432,8 @@ g.gaming.genre()      # 'RPG'
 g.gaming.platform()   # 'Nintendo Switch'
 ```
 
-**krandom Status:** ❌ No equivalent  
-**Priority:** MEDIUM  
+**krandom Status:** ❌ No equivalent
+**Priority:** MEDIUM
 **Notes:** Mimesis allows runtime addition of custom providers. krandom requires direct class implementation.
 
 ---
@@ -454,8 +454,8 @@ image_data = bf.image(file_type=ImageFile.PNG)      # bytes
 pdf_data = bf.document(file_type=DocumentFile.PDF)  # bytes
 ```
 
-**krandom Status:** ❌ No equivalent  
-**Priority:** LOW  
+**krandom Status:** ❌ No equivalent
+**Priority:** LOW
 **Notes:** Generates fake binary file content in memory. Useful for testing file uploads, storage systems, etc.
 
 ---
@@ -470,8 +470,8 @@ pdf_data = bf.document(file_type=DocumentFile.PDF)  # bytes
 - Locale-specific postal code patterns
 - Fallback to EN for missing keys
 
-**krandom Status:** ❌ No locale support  
-**Priority:** HIGH  
+**krandom Status:** ❌ No locale support
+**Priority:** HIGH
 **Notes:** Biggest competitive gap. All krandom data is English-only.
 
 ---
@@ -488,8 +488,8 @@ pdf_data = bf.document(file_type=DocumentFile.PDF)  # bytes
 
 **Performance:** ~5-15x faster than Faker
 
-**krandom Status:** ✅ Already performant with JVM optimizations  
-**Priority:** ✓ DONE  
+**krandom Status:** ✅ Already performant with JVM optimizations
+**Priority:** ✓ DONE
 **Notes:** krandom doesn't need this optimization; JVM is already fast.
 
 ---
@@ -503,8 +503,8 @@ pdf_data = bf.document(file_type=DocumentFile.PDF)  # bytes
 - Type hints for all parameters and return values
 - IDE autocomplete and type checking
 
-**krandom Status:** ✅ Kotlin has superior type safety  
-**Priority:** ✓ DONE  
+**krandom Status:** ✅ Kotlin has superior type safety
+**Priority:** ✓ DONE
 **Notes:** Kotlin's type system is more advanced than Python's type hints.
 
 ---
@@ -534,8 +534,8 @@ import pandas as pd
 df = pd.DataFrame(schema.create())
 ```
 
-**krandom Status:** ❌ No built-in serialization  
-**Priority:** MEDIUM  
+**krandom Status:** ❌ No built-in serialization
+**Priority:** MEDIUM
 **Notes:** Users must manually serialize krandom output. Could add DSL for common formats.
 
 ---

@@ -405,7 +405,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
   class ObjectPool {
       private Map<Class<?>, Queue<Object>> pool;
       private int maxSize;
-      
+
       Object getOrCreate(Class<?> type, Supplier<Object> factory) {
           Queue<Object> instances = pool.get(type);
           if (instances != null && !instances.isEmpty()) {
@@ -451,16 +451,16 @@ Easy Random is a specialized library focused on **object graph randomization** r
           val fieldType = field.type
           val elementType = resolveElementType(field.genericType)
           val size = config.collectionSize.random()
-          
+
           return when {
-              List::class.java.isAssignableFrom(fieldType) -> 
+              List::class.java.isAssignableFrom(fieldType) ->
                   List(size) { Generators.forType(elementType).generate() }
               Set::class.java.isAssignableFrom(fieldType) ->
                   Set(size) { Generators.forType(elementType).generate() }
               Map::class.java.isAssignableFrom(fieldType) -> {
                   val (keyType, valueType) = resolveMapTypes(field.genericType)
-                  Map(size) { 
-                      Generators.forType(keyType).generate() to 
+                  Map(size) {
+                      Generators.forType(keyType).generate() to
                       Generators.forType(valueType).generate()
                   }
               }
@@ -480,7 +480,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
   ```kotlin
   class ObjenesisObjectFactory : ObjectFactory {
       private val objenesis = ObjenesisStd()
-      
+
       fun <T> create(clazz: Class<T>): T {
           return try {
               clazz.getDeclaredConstructor().newInstance()
@@ -507,31 +507,31 @@ Easy Random is a specialized library focused on **object graph randomization** r
   ```kotlin
   @Target(AnnotationTarget.FIELD)
   annotation class Exclude
-  
+
   class FieldPredicate {
       companion object {
-          fun named(pattern: String): (Field) -> Boolean = 
+          fun named(pattern: String): (Field) -> Boolean =
               { it.name.matches(Regex(pattern)) }
-          
-          fun ofType(type: Class<*>): (Field) -> Boolean = 
+
+          fun ofType(type: Class<*>): (Field) -> Boolean =
               { it.type == type }
-          
-          fun inClass(clazz: Class<*>): (Field) -> Boolean = 
+
+          fun inClass(clazz: Class<*>): (Field) -> Boolean =
               { it.declaringClass == clazz }
-          
+
           fun annotatedWith(annotation: Class<out Annotation>): (Field) -> Boolean =
               { it.isAnnotationPresent(annotation) }
       }
   }
-  
+
   class ObjectGeneratorConfig {
       private val excludedFields = mutableListOf<(Field) -> Boolean>()
-      
+
       fun excludeField(predicate: (Field) -> Boolean): ObjectGeneratorConfig {
           excludedFields.add(predicate)
           return this
       }
-      
+
       fun shouldExclude(field: Field): Boolean {
           return field.isAnnotationPresent(Exclude::class.java) ||
                  excludedFields.any { it(field) }
@@ -552,18 +552,18 @@ Easy Random is a specialized library focused on **object graph randomization** r
       val value: KClass<out Generator<*>>,
       val args: Array<RandomizerArgument> = []
   )
-  
+
   @Repeatable
   annotation class RandomizerArgument(
       val value: String,
       val type: KClass<*>
   )
-  
+
   // Usage:
   class Person {
       @Randomizer(EmailGenerator::class)
       lateinit var email: String
-      
+
       @Randomizer(
           value = IntGenerator::class,
           args = [
@@ -591,19 +591,19 @@ Easy Random is a specialized library focused on **object graph randomization** r
       val currentDepth: Int
       val config: ObjectGeneratorConfig
   }
-  
+
   interface ContextAwareGenerator<T> : Generator<T> {
       fun setContext(context: GeneratorContext)
   }
-  
+
   // Example: Generate email based on name field
   class EmailGenerator : ContextAwareGenerator<String> {
       private lateinit var context: GeneratorContext
-      
+
       override fun setContext(context: GeneratorContext) {
           this.context = context
       }
-      
+
       override fun generate(): String {
           val obj = context.currentObject
           val name = obj?.javaClass?.getDeclaredField("name")?.get(obj)
@@ -632,7 +632,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
           return when {
               field.isAnnotationPresent(NotNull::class.java) ->
                   NonNullGenerator(baseGenerator(field))
-              
+
               field.isAnnotationPresent(Size::class.java) -> {
                   val size = field.getAnnotation(Size::class.java)
                   when (field.type) {
@@ -641,25 +641,25 @@ Easy Random is a specialized library focused on **object graph randomization** r
                       else -> null
                   }
               }
-              
+
               field.isAnnotationPresent(Min::class.java) -> {
                   val min = field.getAnnotation(Min::class.java).value
                   IntGenerator(min.toInt(), Int.MAX_VALUE)
               }
-              
+
               field.isAnnotationPresent(Max::class.java) -> {
                   val max = field.getAnnotation(Max::class.java).value
                   IntGenerator(Int.MIN_VALUE, max.toInt())
               }
-              
+
               field.isAnnotationPresent(Email::class.java) ->
                   EmailGenerator()
-              
+
               field.isAnnotationPresent(Pattern::class.java) -> {
                   val regex = field.getAnnotation(Pattern::class.java).regexp
                   RegexGenerator(regex)
               }
-              
+
               else -> null
           }
       }
@@ -695,7 +695,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
           return LocalDate.ofEpochDay(randomDay)
       }
   }
-  
+
   class LocalDateTimeGenerator(
       private val minDate: LocalDate = LocalDate.of(2010, 1, 1),
       private val maxDate: LocalDate = LocalDate.of(2030, 1, 1),
@@ -719,16 +719,16 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Implementation**:
   ```kotlin
   class GeneratorConfig {
-      var dateRange: ClosedRange<LocalDate> = 
+      var dateRange: ClosedRange<LocalDate> =
           LocalDate.of(2010, 1, 1)..LocalDate.of(2030, 1, 1)
-      var timeRange: ClosedRange<LocalTime> = 
+      var timeRange: ClosedRange<LocalTime> =
           LocalTime.MIN..LocalTime.MAX
-      
+
       fun dateRange(min: LocalDate, max: LocalDate): GeneratorConfig {
           dateRange = min..max
           return this
       }
-      
+
       fun timeRange(min: LocalTime, max: LocalTime): GeneratorConfig {
           timeRange = min..max
           return this
@@ -756,7 +756,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
           return "$username@$domain"
       }
   }
-  
+
   class SafeEmailGenerator : EmailGenerator("test.example.com")
   ```
 - **Effort**: 0.5 days
@@ -783,7 +783,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
   ```kotlin
   class RegexGenerator(private val pattern: String) : Generator<String> {
       private val generex = Generex(pattern)
-      
+
       override fun generate(): String = generex.random()
   }
   ```
@@ -800,7 +800,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
       private val words = listOf("lorem", "ipsum", "dolor", "sit", "amet", ...)
       override fun generate(): String = words.random()
   }
-  
+
   class SentenceGenerator(private val wordCount: IntRange = 5..15) : Generator<String> {
       override fun generate(): String {
           val count = wordCount.random()
@@ -809,7 +809,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
               .capitalize() + "."
       }
   }
-  
+
   class ParagraphGenerator(private val sentenceCount: IntRange = 3..7) : Generator<String> {
       override fun generate(): String {
           val count = sentenceCount.random()
@@ -846,11 +846,11 @@ Easy Random is a specialized library focused on **object graph randomization** r
       AMEX("37", 15),
       DISCOVER("6011", 16)
   }
-  
+
   class CreditCardGenerator(private val type: CardType) : Generator<String> {
       override fun generate(): String {
           val remaining = type.length - type.prefix.length - 1 // -1 for check digit
-          val digits = type.prefix + 
+          val digits = type.prefix +
                       (1..remaining).map { Random.nextInt(0, 10) }.joinToString("")
           return LuhnGenerator.addCheckDigit(digits)
       }
@@ -1089,15 +1089,15 @@ Easy Random is a specialized library focused on **object graph randomization** r
 ```kotlin
 class RandomizationContext(private val config: ObjectGeneratorConfig) {
     private val objectPool = mutableMapOf<Class<*>, ArrayDeque<Any>>()
-    
+
     fun <T> getOrCreateInstance(clazz: Class<T>, factory: () -> T): T {
         val pool = objectPool.getOrPut(clazz) { ArrayDeque(config.objectPoolSize) }
-        
+
         // Return cached instance if pool is full (circular ref guard)
         if (pool.size >= config.objectPoolSize) {
             return pool.first() as T
         }
-        
+
         // Create new instance
         val instance = factory()
         pool.add(instance)
@@ -1113,40 +1113,40 @@ class FieldGeneratorResolver(private val config: ObjectGeneratorConfig) {
     fun resolve(field: Field, context: RandomizationContext): Generator<*>? {
         // 1. Exclusion check
         if (config.shouldExclude(field)) return SkipGenerator
-        
+
         // 2. @Randomizer annotation
-        field.getAnnotation(Randomizer::class.java)?.let { 
+        field.getAnnotation(Randomizer::class.java)?.let {
             return instantiateRandomizer(it)
         }
-        
+
         // 3. Field-level override
         config.fieldOverrides["${field.declaringClass.name}.${field.name}"]?.let {
             return it
         }
-        
+
         // 4. Type-level override
         config.typeOverrides[field.type]?.let { return it }
-        
+
         // 5. Bean Validation constraints
         resolveBeanValidationGenerator(field)?.let { return it }
-        
+
         // 6. Built-in types (primitives, String, etc.)
         Generators.forType(field.type)?.let { return it }
-        
+
         // 7. Enums
         if (field.type.isEnum) return EnumGenerator(field.type)
-        
+
         // 8. Arrays
         if (field.type.isArray) return ArrayGenerator(field.type.componentType)
-        
+
         // 9. Collections
         if (Collection::class.java.isAssignableFrom(field.type)) {
             return CollectionGenerator(resolveElementType(field.genericType))
         }
-        
+
         // 10. Depth guard
         if (context.currentDepth >= config.maxDepth) return NullGenerator
-        
+
         // 11. Recursive nested object
         return ObjectGenerator(field.type, config)
     }
@@ -1159,30 +1159,30 @@ class FieldGeneratorResolver(private val config: ObjectGeneratorConfig) {
 typealias FieldPredicate = (Field) -> Boolean
 
 object FieldPredicates {
-    fun named(pattern: String): FieldPredicate = 
+    fun named(pattern: String): FieldPredicate =
         { it.name.matches(Regex(pattern)) }
-    
-    fun ofType(type: Class<*>): FieldPredicate = 
+
+    fun ofType(type: Class<*>): FieldPredicate =
         { it.type == type }
-    
-    fun inClass(clazz: Class<*>): FieldPredicate = 
+
+    fun inClass(clazz: Class<*>): FieldPredicate =
         { it.declaringClass == clazz }
-    
+
     fun annotatedWith(annotation: KClass<out Annotation>): FieldPredicate =
         { it.isAnnotationPresent(annotation.java) }
 }
 
-infix fun FieldPredicate.and(other: FieldPredicate): FieldPredicate = 
+infix fun FieldPredicate.and(other: FieldPredicate): FieldPredicate =
     { this(it) && other(it) }
 
-infix fun FieldPredicate.or(other: FieldPredicate): FieldPredicate = 
+infix fun FieldPredicate.or(other: FieldPredicate): FieldPredicate =
     { this(it) || other(it) }
 
-operator fun FieldPredicate.not(): FieldPredicate = 
+operator fun FieldPredicate.not(): FieldPredicate =
     { !this(it) }
 
 // Usage:
-val predicate = FieldPredicates.named("password") and 
+val predicate = FieldPredicates.named("password") and
                 FieldPredicates.inClass(User::class.java)
 ```
 
@@ -1251,5 +1251,5 @@ Easy Random's key value propositions are **object graph safety** and **declarati
 - 🚀 Test coverage (99% vs unknown)
 - 🚀 Active development (vs maintenance mode)
 
-**Total Effort**: ~35 days (~7 weeks) for comprehensive parity  
+**Total Effort**: ~35 days (~7 weeks) for comprehensive parity
 **Minimal Viable Port**: ~10 days (Phase 1 + critical Phase 5)

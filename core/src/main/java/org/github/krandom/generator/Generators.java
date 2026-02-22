@@ -87,6 +87,20 @@ public final class Generators {
         return new IntGenerator(min, max, seed);
     }
 
+    // ── Natural Number ────────────────────────────────────────────────────────
+
+    public static NaturalNumberGenerator ofNaturalNumber() {
+        return new NaturalNumberGenerator();
+    }
+
+    public static NaturalNumberGenerator ofNaturalNumber(int min, int max) {
+        return new NaturalNumberGenerator(min, max);
+    }
+
+    public static NaturalNumberGenerator ofNaturalNumber(int min, int max, long seed) {
+        return new NaturalNumberGenerator(min, max, seed);
+    }
+
     // ── Long ──────────────────────────────────────────────────────────────────
 
     public static LongGenerator ofLong() {
@@ -127,6 +141,34 @@ public final class Generators {
 
     public static DoubleGenerator ofDouble(double min, double max, long seed) {
         return new DoubleGenerator(min, max, seed);
+    }
+
+    // ── Normal Distribution ───────────────────────────────────────────────────
+
+    public static NormalDistributionGenerator ofNormal() {
+        return new NormalDistributionGenerator();
+    }
+
+    public static NormalDistributionGenerator ofNormal(double mean, double standardDeviation) {
+        return new NormalDistributionGenerator(mean, standardDeviation);
+    }
+
+    public static NormalDistributionGenerator ofNormal(double mean, double standardDeviation, long seed) {
+        return new NormalDistributionGenerator(mean, standardDeviation, seed);
+    }
+
+    // ── Prime ─────────────────────────────────────────────────────────────────
+
+    public static PrimeGenerator ofPrime() {
+        return new PrimeGenerator();
+    }
+
+    public static PrimeGenerator ofPrime(int min, int max) {
+        return new PrimeGenerator(min, max);
+    }
+
+    public static PrimeGenerator ofPrime(int min, int max, long seed) {
+        return new PrimeGenerator(min, max, seed);
     }
 
     // ── Char ──────────────────────────────────────────────────────────────────

@@ -397,10 +397,10 @@ paradigm shift from imperative faker libraries—types "opt into" fake generatio
 struct User {
     #[dummy(faker = "fake::faker::name::en::FirstName()")]
     first_name: String,
-    
+
     #[dummy(faker = "18..65")]
     age: u8,
-    
+
     #[dummy(default)]
     is_verified: bool,  // always false
 }

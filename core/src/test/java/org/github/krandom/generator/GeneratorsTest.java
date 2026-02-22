@@ -87,6 +87,39 @@ class GeneratorsTest {
     @Test @DisplayName("ofDouble(min, max, seed) returns DoubleGenerator")
     void ofDoubleSeeded() { assertInstanceOf(DoubleGenerator.class, Generators.ofDouble(0.0, 1.0, 1L)); }
 
+    // ── Natural ───────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofNaturalNumber() returns NaturalNumberGenerator")
+    void ofNaturalNumber() { assertInstanceOf(NaturalNumberGenerator.class, Generators.ofNaturalNumber()); }
+
+    @Test @DisplayName("ofNaturalNumber(min, max) returns NaturalNumberGenerator")
+    void ofNaturalNumberRange() { assertInstanceOf(NaturalNumberGenerator.class, Generators.ofNaturalNumber(0, 100)); }
+
+    @Test @DisplayName("ofNaturalNumber(min, max, seed) returns NaturalNumberGenerator")
+    void ofNaturalNumberSeeded() { assertInstanceOf(NaturalNumberGenerator.class, Generators.ofNaturalNumber(0, 100, 1L)); }
+
+    // ── Normal Distribution ───────────────────────────────────────────────────
+
+    @Test @DisplayName("ofNormal() returns NormalDistributionGenerator")
+    void ofNormal() { assertInstanceOf(NormalDistributionGenerator.class, Generators.ofNormal()); }
+
+    @Test @DisplayName("ofNormal(mean, stdDev) returns NormalDistributionGenerator")
+    void ofNormalParams() { assertInstanceOf(NormalDistributionGenerator.class, Generators.ofNormal(0.0, 1.0)); }
+
+    @Test @DisplayName("ofNormal(mean, stdDev, seed) returns NormalDistributionGenerator")
+    void ofNormalSeeded() { assertInstanceOf(NormalDistributionGenerator.class, Generators.ofNormal(0.0, 1.0, 1L)); }
+
+    // ── Prime ─────────────────────────────────────────────────────────────────
+
+    @Test @DisplayName("ofPrime() returns PrimeGenerator")
+    void ofPrime() { assertInstanceOf(PrimeGenerator.class, Generators.ofPrime()); }
+
+    @Test @DisplayName("ofPrime(min, max) returns PrimeGenerator")
+    void ofPrimeRange() { assertInstanceOf(PrimeGenerator.class, Generators.ofPrime(2, 100)); }
+
+    @Test @DisplayName("ofPrime(min, max, seed) returns PrimeGenerator")
+    void ofPrimeSeeded() { assertInstanceOf(PrimeGenerator.class, Generators.ofPrime(2, 100, 1L)); }
+
     // ── Char ──────────────────────────────────────────────────────────────────
 
     @Test @DisplayName("ofChar() returns CharGenerator")

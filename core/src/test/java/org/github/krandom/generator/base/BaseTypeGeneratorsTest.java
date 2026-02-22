@@ -9,10 +9,7 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.HashSet;
 import java.util.List;
@@ -294,6 +291,45 @@ class BaseTypeGeneratorsTest {
             FloatGenerator gen = new FloatGenerator(3.14f, 3.14f);
             assertThrows(IllegalArgumentException.class, gen::generate);
         }
+
+        @Test
+        @DisplayName("withPrecision(2) rounds to 2 decimal places")
+        void withPrecisionTwo() {
+            FloatGenerator gen = new FloatGenerator(0.0f, 100.0f, 42L).withPrecision(2);
+            for (int i = 0; i < 50; i++) {
+                float v = gen.generate();
+                // Multiply by 100 and check if it's close to an integer
+                float scaled = v * 100;
+                float remainder = Math.abs(scaled - Math.round(scaled));
+                assertTrue(remainder < 0.001f,
+                        "Expected at most 2 decimal places, got: " + v + " (remainder: " + remainder + ")");
+            }
+        }
+
+        @Test
+        @DisplayName("withPrecision(0) rounds to integers")
+        void withPrecisionZero() {
+            FloatGenerator gen = new FloatGenerator(0.0f, 100.0f).withPrecision(0);
+            for (int i = 0; i < 50; i++) {
+                float v = gen.generate();
+                float remainder = Math.abs(v - Math.round(v));
+                assertTrue(remainder < 0.001f, "Expected integer value, got: " + v);
+            }
+        }
+
+        @Test
+        @DisplayName("withPrecision throws for negative precision")
+        void withPrecisionNegativeThrows() {
+            FloatGenerator gen = new FloatGenerator();
+            assertThrows(IllegalArgumentException.class, () -> gen.withPrecision(-1));
+        }
+
+        @Test
+        @DisplayName("withPrecision throws for precision > 7")
+        void withPrecisionTooHighThrows() {
+            FloatGenerator gen = new FloatGenerator();
+            assertThrows(IllegalArgumentException.class, () -> gen.withPrecision(8));
+        }
     }
 
     // ── DoubleGenerator ───────────────────────────────────────────────────────
@@ -337,6 +373,45 @@ class BaseTypeGeneratorsTest {
         void minEqualsMaxThrows() {
             DoubleGenerator gen = new DoubleGenerator(2.71, 2.71);
             assertThrows(IllegalArgumentException.class, gen::generate);
+        }
+
+        @Test
+        @DisplayName("withPrecision(2) rounds to 2 decimal places")
+        void withPrecisionTwo() {
+            DoubleGenerator gen = new DoubleGenerator(0.0, 100.0, 42L).withPrecision(2);
+            for (int i = 0; i < 50; i++) {
+                double v = gen.generate();
+                // Multiply by 100 and check if it's close to an integer
+                double scaled = v * 100;
+                double remainder = Math.abs(scaled - Math.round(scaled));
+                assertTrue(remainder < 0.000001,
+                        "Expected at most 2 decimal places, got: " + v + " (remainder: " + remainder + ")");
+            }
+        }
+
+        @Test
+        @DisplayName("withPrecision(0) rounds to integers")
+        void withPrecisionZero() {
+            DoubleGenerator gen = new DoubleGenerator(0.0, 100.0).withPrecision(0);
+            for (int i = 0; i < 50; i++) {
+                double v = gen.generate();
+                double remainder = Math.abs(v - Math.round(v));
+                assertTrue(remainder < 0.000001, "Expected integer value, got: " + v);
+            }
+        }
+
+        @Test
+        @DisplayName("withPrecision throws for negative precision")
+        void withPrecisionNegativeThrows() {
+            DoubleGenerator gen = new DoubleGenerator();
+            assertThrows(IllegalArgumentException.class, () -> gen.withPrecision(-1));
+        }
+
+        @Test
+        @DisplayName("withPrecision throws for precision > 15")
+        void withPrecisionTooHighThrows() {
+            DoubleGenerator gen = new DoubleGenerator();
+            assertThrows(IllegalArgumentException.class, () -> gen.withPrecision(16));
         }
     }
 
