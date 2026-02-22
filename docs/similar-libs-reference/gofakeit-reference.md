@@ -52,8 +52,8 @@ import "github.com/brianvoe/gofakeit/v6"
 ### 3.2 Constructors
 
 ```go
-func New(seed uint64) *Faker         // seed=0 uses crypto/rand; any other = deterministic
-func NewCrypto() *Faker              // backed by crypto/rand
+func New(seed uint64) *Faker // seed=0 uses crypto/rand; any other = deterministic
+func NewCrypto() *Faker // backed by crypto/rand
 func NewCustom(source rand.Source) *Faker
 func NewUnlocked(seed uint64) *Faker // no mutex — fastest for single-goroutine use
 func NewFaker(src rand.Source, lock bool) *Faker
@@ -62,8 +62,8 @@ func NewFaker(src rand.Source, lock bool) *Faker
 ### 3.3 Global helpers
 
 ```go
-func Seed(seed int64)                // re-seeds the GlobalFaker (0 = crypto/rand)
-func SetGlobalFaker(faker *Faker)    // replace GlobalFaker entirely
+func Seed(seed int64) // re-seeds the GlobalFaker (0 = crypto/rand)
+func SetGlobalFaker(faker *Faker) // replace GlobalFaker entirely
 ```
 
 ### 3.4 Usage patterns
@@ -71,7 +71,7 @@ func SetGlobalFaker(faker *Faker)    // replace GlobalFaker entirely
 ```go
 // Deterministic
 faker := gofakeit.New(12345)
-fmt.Println(faker.Name())   // identical on every run with same seed
+fmt.Println(faker.Name()) // identical on every run with same seed
 
 // Cryptographically secure
 faker := gofakeit.NewCrypto()
@@ -145,7 +145,7 @@ func BeerBlg() string
 ### 4.5 Book
 
 ```go
-func Book() *BookInfo     // BookInfo: Title, Author, Genre
+func Book() *BookInfo // BookInfo: Title, Author, Genre
 func BookTitle() string
 func BookAuthor() string
 func BookGenre() string
@@ -154,7 +154,7 @@ func BookGenre() string
 ### 4.6 Car
 
 ```go
-func Car() *CarInfo       // CarInfo: Type, Fuel, Transmission, Brand, Model, Year
+func Car() *CarInfo // CarInfo: Type, Fuel, Transmission, Brand, Model, Year
 func CarMaker() string
 func CarModel() string
 func CarType() string
@@ -173,10 +173,10 @@ func CelebritySport() string
 ### 4.8 Color
 
 ```go
-func Color() string       // "MediumOrchid"
+func Color() string // "MediumOrchid"
 func HexColor() string    // "#a45fb2"
 func RGBColor() string    // "rgb(123,45,67)"
-func SafeColor() string   // web-safe color name
+func SafeColor() string // web-safe color name
 func NiceColors() []string
 ```
 
@@ -199,7 +199,7 @@ func Slogan() string
 ### 4.10 Contact
 
 ```go
-func Contact() *ContactInfo  // ContactInfo: Phone, Email
+func Contact() *ContactInfo // ContactInfo: Phone, Email
 func Email() string
 func Phone() string
 func PhoneFormatted() string
@@ -209,7 +209,7 @@ func Username() string
 ### 4.11 Credit Card / Payment / Finance
 
 ```go
-func CreditCard() *CreditCardInfo        // Type, Number, Exp, Cvv
+func CreditCard() *CreditCardInfo // Type, Number, Exp, Cvv
 func CreditCardNumber(cco *CreditCardOptions) string
 func CreditCardType() string
 func CreditCardExp() string
@@ -220,7 +220,7 @@ func BankName() string
 func BankType() string
 func BitcoinAddress() string
 func BitcoinPrivateKey() string
-func Currency() *CurrencyInfo            // Short ("USD"), Long ("United States Dollar")
+func Currency() *CurrencyInfo // Short ("USD"), Long ("United States Dollar")
 func CurrencyShort() string
 func CurrencyLong() string
 func Price(min, max float64) float64
@@ -284,8 +284,8 @@ func ErrorObject() error
 ### 4.15 File
 
 ```go
-func FileExtension() string   // "png", "go", "sql"
-func FileMimeType() string    // "image/png", "text/html"
+func FileExtension() string // "png", "go", "sql"
+func FileMimeType() string // "image/png", "text/html"
 ```
 
 ### 4.16 Food / Drink
@@ -313,17 +313,17 @@ func Hobby() string
 ### 4.18 Generate / Pattern
 
 ```go
-func Generate(dataVal string) string   // {function} placeholders; '#'=digit, '?'=letter
-func Regex(regexStr string) string     // string satisfying RE2 pattern
-func Map() map[string]interface{}      // random heterogeneous map
+func Generate(dataVal string) string // {function} placeholders; '#'=digit, '?'=letter
+func Regex(regexStr string) string // string satisfying RE2 pattern
+func Map() map[string]interface{} // random heterogeneous map
 ```
 
 ```go
-gofakeit.Generate("{firstname}")               // "Alice"
-gofakeit.Generate("{sentence:3}")              // "Record river mind"
-gofakeit.Generate("{number:1,100}")            // "42"
-gofakeit.Generate("###-???")                  // "481-fda"
-gofakeit.Regex("[a-z]{5}[0-9]{3}")            // "fkqwj812"
+gofakeit.Generate("{firstname}") // "Alice"
+gofakeit.Generate("{sentence:3}")   // "Record river mind"
+gofakeit.Generate("{number:1,100}") // "42"
+gofakeit.Generate("###-???") // "481-fda"
+gofakeit.Regex("[a-z]{5}[0-9]{3}") // "fkqwj812"
 ```
 
 ### 4.19 Hacker
@@ -332,9 +332,9 @@ gofakeit.Regex("[a-z]{5}[0-9]{3}")            // "fkqwj812"
 func HackerPhrase() string
 func HackerAbbreviation() string   // "HTTP", "RAM", "GPU"
 func HackerAdjective() string      // "neural", "redundant"
-func HackerNoun() string           // "feed", "bandwidth"
+func HackerNoun() string // "feed", "bandwidth"
 func HackerVerb() string
-func HackeringVerb() string        // gerund form
+func HackeringVerb() string // gerund form
 ```
 
 ### 4.20 Hex
@@ -362,8 +362,8 @@ func HipsterParagraph(paragraphCount, sentenceCount, wordCount int, separator st
 ```go
 func HTTPMethod() string
 func HTTPStatusCode() int
-func HTTPStatusCodeSimple() int   // only 200, 301, 302, 404, 500
-func HTTPVersion() string          // "HTTP/1.1", "HTTP/2.0"
+func HTTPStatusCodeSimple() int // only 200, 301, 302, 404, 500
+func HTTPVersion() string // "HTTP/1.1", "HTTP/2.0"
 ```
 
 ### 4.23 Image
@@ -372,7 +372,7 @@ func HTTPVersion() string          // "HTTP/1.1", "HTTP/2.0"
 func Image(width, height int) []byte
 func ImageJpeg(width, height int) []byte
 func ImagePng(width, height int) []byte
-func ImageURL(width, height int) string   // picsum.photos URL
+func ImageURL(width, height int) string // picsum.photos URL
 func Svg(options *SvgOptions) string
 ```
 
@@ -381,8 +381,8 @@ func Svg(options *SvgOptions) string
 ```go
 func URL() string
 func DomainName() string
-func DomainSuffix() string            // "com", "org", "io"
-func UrlSlug(words int) string        // "my-awesome-slug"
+func DomainSuffix() string // "com", "org", "io"
+func UrlSlug(words int) string // "my-awesome-slug"
 func IPv4Address() string
 func IPv6Address() string
 func MacAddress() string
@@ -392,18 +392,18 @@ func FirefoxUserAgent() string
 func SafariUserAgent() string
 func OperaUserAgent() string
 func APIUserAgent() string
-func LogLevel(logType string) string   // "apache", "nginx", "syslog", "nfs"
+func LogLevel(logType string) string // "apache", "nginx", "syslog", "nfs"
 func Password(lower, upper, numeric, special, space bool, num int) string
-func InputName() string               // HTML input field name value
+func InputName() string // HTML input field name value
 ```
 
 ### 4.25 Language
 
 ```go
-func Language() string               // "English", "Japanese"
+func Language() string // "English", "Japanese"
 func LanguageAbbreviation() string   // "en", "ja"
 func LanguageBCP() string            // "en-US"
-func ProgrammingLanguage() string    // "Go", "Python"
+func ProgrammingLanguage() string     // "Go", "Python"
 func ProgrammingLanguageBest() string // always returns "Go"
 ```
 
@@ -449,8 +449,8 @@ func Digit() string
 func DigitN(n int) string
 func Numerify(str string) string    // '#' -> random digit
 func Lexify(str string) string      // '?' -> random letter
-func Bothify(str string) string     // '#' digit, '?' letter
-func Asciify(str string) string     // '*' -> random ASCII printable
+func Bothify(str string) string // '#' digit, '?' letter
+func Asciify(str string) string // '*' -> random ASCII printable
 ```
 
 ### 4.28 Minecraft
@@ -489,7 +489,7 @@ func Struct(v interface{})
 ### 4.30 Movie / Music
 
 ```go
-func Movie() *MovieInfo       // Name, Genre
+func Movie() *MovieInfo // Name, Genre
 func MovieName() string
 func MovieGenre() string
 func MusicGenre() string
@@ -500,15 +500,15 @@ func MusicArtist() string
 ### 4.31 Person
 
 ```go
-func Person() *PersonInfo     // FirstName, LastName, Gender, Age, SSN, Hobby, Job, Address, Contact, CreditCard
+func Person() *PersonInfo // FirstName, LastName, Gender, Age, SSN, Hobby, Job, Address, Contact, CreditCard
 func Name() string
 func FirstName() string
 func MiddleName() string
 func LastName() string
-func NamePrefix() string      // "Mr.", "Dr."
-func NameSuffix() string      // "Jr.", "PhD"
-func Gender() string          // "male" or "female"
-func Age() int                // 0-100
+func NamePrefix() string // "Mr.", "Dr."
+func NameSuffix() string // "Jr.", "PhD"
+func Gender() string     // "male" or "female"
+func Age() int // 0-100
 func SSN() string
 func Hobby() string
 ```
@@ -582,7 +582,7 @@ All options structs accept row counts, field definitions (`{Name, Function, Para
 
 ```go
 type Fakeable interface {
-    Fake(f *Faker) (any, error)
+Fake(f *Faker) (any, error)
 }
 ```
 
@@ -590,16 +590,16 @@ type Fakeable interface {
 
 ```go
 type Order struct {
-    ID         string    `fake:"{uuid}"`
-    CustomerID int       `fake:"{number:1000,9999}"`
-    FirstName  string    `fake:"{firstname}"`
-    LastName   string    `fake:"{lastname}"`
-    Email      string    `fake:"{email}"`
-    Tags       []string  `fakesize:"3"`
-    Ref        string    `fake:"{regex:[A-Z]{3}-[0-9]{6}}"`
-    PlacedAt   time.Time `fake:"{year}-{month}-{day}" format:"2006-01-02"`
-    TotalPrice float64   `fake:"{price:5.00,500.00}"`
-    Internal   *string   `fake:"skip"`
+ID         string    `fake:"{uuid}"`
+CustomerID int       `fake:"{number:1000,9999}"`
+FirstName  string    `fake:"{firstname}"`
+LastName   string    `fake:"{lastname}"`
+Email      string    `fake:"{email}"`
+Tags       []string  `fakesize:"3"`
+Ref        string    `fake:"{regex:[A-Z]{3}-[0-9]{6}}"`
+PlacedAt   time.Time `fake:"{year}-{month}-{day}" format:"2006-01-02"`
+TotalPrice float64   `fake:"{price:5.00,500.00}"`
+Internal   *string   `fake:"skip"`
 }
 
 var o Order
@@ -636,18 +636,18 @@ result, err := gofakeit.Template(tmpl, &gofakeit.TemplateOptions{})
 
 ```go
 gofakeit.AddFuncLookup("teamname", gofakeit.Info{
-    Category:    "custom",
-    Description: "Random sports team name",
-    Example:     "Blue Hawks",
-    Output:      "string",
-    Generate: func(f *gofakeit.Faker, m *gofakeit.MapParams, info *gofakeit.Info) (any, error) {
-        colors  := []string{"Blue", "Red", "Green", "Gold", "Silver"}
-        animals := []string{"Hawks", "Lions", "Bears", "Wolves", "Eagles"}
-        return f.RandomString(colors) + " " + f.RandomString(animals), nil
-    },
+Category:    "custom",
+Description: "Random sports team name",
+Example:     "Blue Hawks",
+Output:      "string",
+Generate: func (f *gofakeit.Faker, m *gofakeit.MapParams, info *gofakeit.Info) (any, error) {
+colors := []string{"Blue", "Red", "Green", "Gold", "Silver"}
+animals := []string{"Hawks", "Lions", "Bears", "Wolves", "Eagles"}
+return f.RandomString(colors) + " " + f.RandomString(animals), nil
+},
 })
 
-gofakeit.Generate("{teamname}")    // "Gold Bears"
+gofakeit.Generate("{teamname}") // "Gold Bears"
 gofakeit.RemoveFuncLookup("teamname")
 ```
 
@@ -738,84 +738,84 @@ gofakeit.RemoveFuncLookup("teamname")
 
 ```go
 // Person
-gofakeit.Name()              // "Alice Smith"
+gofakeit.Name() // "Alice Smith"
 gofakeit.FirstName()         // "Alice"
 gofakeit.LastName()          // "Smith"
-gofakeit.NamePrefix()        // "Dr."
-gofakeit.NameSuffix()        // "Jr."
-gofakeit.Email()             // "alice.smith@example.com"
+gofakeit.NamePrefix() // "Dr."
+gofakeit.NameSuffix() // "Jr."
+gofakeit.Email() // "alice.smith@example.com"
 gofakeit.Phone()             // "(570)245-7485"
 gofakeit.PhoneFormatted()    // "570-245-7485"
-gofakeit.Username()          // "alice_s"
-gofakeit.SSN()               // "123-45-6789"
-gofakeit.Gender()            // "female"
+gofakeit.Username() // "alice_s"
+gofakeit.SSN()      // "123-45-6789"
+gofakeit.Gender() // "female"
 gofakeit.Age()               // 34
 
 // Address
-gofakeit.City()              // "Portland"
-gofakeit.State()             // "Oregon"
-gofakeit.StateAbr()          // "OR"
-gofakeit.Country()           // "United States"
+gofakeit.City() // "Portland"
+gofakeit.State()    // "Oregon"
+gofakeit.StateAbr() // "OR"
+gofakeit.Country() // "United States"
 gofakeit.Zip()               // "97201"
 gofakeit.Street()            // "123 Main St Apt 4B"
-gofakeit.Latitude()          // 45.523452
-gofakeit.Longitude()         // -122.676207
+gofakeit.Latitude()  // 45.523452
+gofakeit.Longitude() // -122.676207
 
 // Numbers
-gofakeit.Number(1, 100)                          // 42
-gofakeit.Float64Range(0.5, 9.99)                // 3.14
-gofakeit.Bool()                                  // true
-gofakeit.UUID()                                  // "590c1440-9888-45b0-bd51-a817ee07c3f2"
-gofakeit.Digit()                                 // "7"
-gofakeit.DigitN(6)                               // "481293"
+gofakeit.Number(1, 100) // 42
+gofakeit.Float64Range(0.5, 9.99) // 3.14
+gofakeit.Bool() // true
+gofakeit.UUID() // "590c1440-9888-45b0-bd51-a817ee07c3f2"
+gofakeit.Digit() // "7"
+gofakeit.DigitN(6) // "481293"
 
 // Strings / patterns
-gofakeit.Numerify("###-###")                    // "481-293"
-gofakeit.Lexify("???")                          // "fda"
-gofakeit.Regex("[A-Z]{2}[0-9]{4}")             // "XW8421"
-gofakeit.Password(true,true,true,true,false,16) // "aB3$kL9!mN2@xQ7#"
+gofakeit.Numerify("###-###") // "481-293"
+gofakeit.Lexify("???") // "fda"
+gofakeit.Regex("[A-Z]{2}[0-9]{4}") // "XW8421"
+gofakeit.Password(true, true, true, true, false, 16) // "aB3$kL9!mN2@xQ7#"
 
 // Internet
-gofakeit.URL()                                   // "https://example.com/path"
-gofakeit.DomainName()                            // "example.com"
-gofakeit.IPv4Address()                           // "192.168.1.1"
-gofakeit.IPv6Address()                           // "2001:db8::1"
-gofakeit.MacAddress()                            // "aa:bb:cc:dd:ee:ff"
-gofakeit.UserAgent()                             // full UA string
-gofakeit.HTTPMethod()                            // "GET"
-gofakeit.HTTPStatusCode()                        // 404
+gofakeit.URL() // "https://example.com/path"
+gofakeit.DomainName()  // "example.com"
+gofakeit.IPv4Address() // "192.168.1.1"
+gofakeit.IPv6Address() // "2001:db8::1"
+gofakeit.MacAddress()  // "aa:bb:cc:dd:ee:ff"
+gofakeit.UserAgent() // full UA string
+gofakeit.HTTPMethod()     // "GET"
+gofakeit.HTTPStatusCode() // 404
 
 // Finance
-gofakeit.CreditCardNumber(nil)                   // "4287271570245748"
+gofakeit.CreditCardNumber(nil) // "4287271570245748"
 gofakeit.CreditCardType()                        // "Visa"
 gofakeit.CreditCardExp()                         // "03/26"
-gofakeit.CreditCardCvv()                         // "123"
-gofakeit.CurrencyShort()                         // "USD"
-gofakeit.Price(1, 100)                           // 42.99
-gofakeit.AchRouting()                            // "021000021"
-gofakeit.BitcoinAddress()                        // "1A1zP1..."
+gofakeit.CreditCardCvv() // "123"
+gofakeit.CurrencyShort() // "USD"
+gofakeit.Price(1, 100) // 42.99
+gofakeit.AchRouting()     // "021000021"
+gofakeit.BitcoinAddress() // "1A1zP1..."
 
 // Date / Time
-gofakeit.Date()                                  // time.Time
-gofakeit.FutureDate()                            // time.Time (after now)
-gofakeit.PastDate()                              // time.Time (before now)
-gofakeit.Month()                                 // 3
-gofakeit.MonthString()                           // "March"
-gofakeit.WeekDay()                               // "Monday"
-gofakeit.Year()                                  // 2023
-gofakeit.TimeZone()                              // "America/Los_Angeles"
+gofakeit.Date() // time.Time
+gofakeit.FutureDate() // time.Time (after now)
+gofakeit.PastDate()   // time.Time (before now)
+gofakeit.Month()       // 3
+gofakeit.MonthString() // "March"
+gofakeit.WeekDay() // "Monday"
+gofakeit.Year()     // 2023
+gofakeit.TimeZone() // "America/Los_Angeles"
 
 // Color
-gofakeit.Color()                                 // "MediumOrchid"
-gofakeit.HexColor()                              // "#a45fb2"
-gofakeit.RGBColor()                              // "rgb(164,95,178)"
+gofakeit.Color()    // "MediumOrchid"
+gofakeit.HexColor() // "#a45fb2"
+gofakeit.RGBColor() // "rgb(164,95,178)"
 
 // Games
-gofakeit.FlipACoin()                             // "Heads"
+gofakeit.FlipACoin() // "Heads"
 gofakeit.Dice(2, 6)                              // []int{3, 5}
 
 // Hacker
-gofakeit.HackerPhrase()                          // "If we parse the bus, we can override the TCP feed!"
+gofakeit.HackerPhrase() // "If we parse the bus, we can override the TCP feed!"
 
 // Struct fill
 var p gofakeit.PersonInfo

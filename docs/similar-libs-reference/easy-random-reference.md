@@ -34,11 +34,18 @@ Stream<Person> people = easyRandom.objects(Person.class, 100);
 
 ```java
 public class EasyRandom extends Random {
-    public EasyRandom() { }
-    public EasyRandom(EasyRandomParameters parameters) { }
 
-    public <T> T nextObject(Class<T> type) { }
-    public <T> Stream<T> objects(Class<T> type, int streamSize) { }
+    public EasyRandom() {
+    }
+
+    public EasyRandom(EasyRandomParameters parameters) {
+    }
+
+    public <T> T nextObject(Class<T> type) {
+    }
+
+    public <T> Stream<T> objects(Class<T> type, int streamSize) {
+    }
 }
 ```
 
@@ -118,13 +125,17 @@ All extension points are interfaces in `org.jeasy.random.api`.
 Core functional interface. Any lambda qualifies.
 
 ```java
+
 @FunctionalInterface
 public interface Randomizer<T> {
+
     T getRandomValue();
 }
 
 // Lambda usage
-parameters.randomize(String.class, () -> "hello");
+parameters.
+
+randomize(String .class, () ->"hello");
 ```
 
 ### `ContextAwareRandomizer<T>`
@@ -133,6 +144,7 @@ Receives the full randomization context before `getRandomValue()` is called.
 
 ```java
 public interface ContextAwareRandomizer<T> extends Randomizer<T> {
+
     void setRandomizerContext(RandomizerContext context);
 }
 ```
@@ -143,11 +155,17 @@ Read-only view of in-flight state, passed to context-aware randomizers.
 
 ```java
 public interface RandomizerContext {
+
     Class<?> getTargetType();               // top-level type passed to nextObject()
+
     Object getRootObject();                 // root object being built
+
     Object getCurrentObject();              // object currently being populated
+
     String getCurrentField();               // full dotted path, e.g. "person.address.city"
+
     int getCurrentRandomizationDepth();     // current recursion depth
+
     EasyRandomParameters getParameters();
 }
 ```
@@ -158,8 +176,11 @@ Groups randomizers together. Discovered via `ServiceLoader` (SPI) or registered 
 
 ```java
 public interface RandomizerRegistry {
+
     void init(EasyRandomParameters parameters);
+
     Randomizer<?> getRandomizer(Field field);
+
     Randomizer<?> getRandomizer(Class<?> type);
 }
 ```
@@ -170,8 +191,11 @@ Strategy for resolving randomizers. Default: `RegistriesRandomizerProvider`.
 
 ```java
 public interface RandomizerProvider {
+
     Randomizer<?> getRandomizerByField(Field field, RandomizerContext context);
+
     <T> Randomizer<T> getRandomizerByType(Class<T> type, RandomizerContext context);
+
     void setRandomizerRegistries(Set<RandomizerRegistry> registries);
 }
 ```
@@ -182,7 +206,9 @@ Strategy for deciding what to skip.
 
 ```java
 public interface ExclusionPolicy {
+
     boolean shouldBeExcluded(Field field, RandomizerContext context);
+
     boolean shouldBeExcluded(Class<?> type, RandomizerContext context);
 }
 ```
@@ -195,6 +221,7 @@ Strategy for instantiating objects.
 
 ```java
 public interface ObjectFactory {
+
     <T> T createInstance(Class<T> type, RandomizerContext context)
         throws ObjectCreationException;
 }
@@ -214,9 +241,10 @@ Skips a field entirely.
 
 ```java
 class Person {
+
     private String name;
     @Exclude
-    private int age; // never randomized
+    private int    age; // never randomized
 }
 ```
 
@@ -226,6 +254,7 @@ Declares a `Randomizer` implementation to use for a specific field. Supports typ
 
 ```java
 class Person {
+
     @Randomizer(EmailRandomizer.class)
     private String email;
 
@@ -424,13 +453,29 @@ Adds `BeanValidationRandomizerRegistry` (priority -2) that introspects `javax.va
 // Without scanning: abstract field = null
 // With scanning: abstract field = random concrete subtype
 EasyRandomParameters params = new EasyRandomParameters()
-    .scanClasspathForConcreteTypes(true);
+        .scanClasspathForConcreteTypes(true);
 
-abstract class Animal {}
-class Dog extends Animal {}
-class Cat extends Animal {}
 
-class Owner { Animal pet; }
+abstract class Animal {
+
+}
+
+
+class Dog extends Animal {
+
+}
+
+
+class Cat extends Animal {
+
+}
+
+
+class Owner {
+
+    Animal pet;
+}
+
 
 Owner owner = new EasyRandom(params).nextObject(Owner.class);
 // owner.pet is either a Dog or Cat instance

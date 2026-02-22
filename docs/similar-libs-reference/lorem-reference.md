@@ -38,11 +38,11 @@ and realistic-looking rather than random character sequences.
 ```java
 Lorem lorem = LoremIpsum.getInstance();
 
-String name    = lorem.getName();                      // 'Shirley Williams'
-String email   = lorem.getEmail();                     // '[email protected]'
+String name = lorem.getName();                      // 'Shirley Williams'
+String email = lorem.getEmail();                     // '[email protected]'
 String address = lorem.getCity() + ", " + lorem.getStateAbbr() + " " + lorem.getZipCode();
-String body    = lorem.getParagraphs(2, 5);
-String html    = lorem.getHtmlParagraphs(1, 3);
+String body = lorem.getParagraphs(2, 5);
+String html = lorem.getHtmlParagraphs(1, 3);
 ```
 
 ---
@@ -57,37 +57,56 @@ The public contract. Declare variables against this interface to allow substitut
 package com.thedeanda.lorem;
 
 public interface Lorem {
+
     // Text
     String getWords(int count);
+
     String getWords(int min, int max);
+
     String getTitle(int count);
+
     String getTitle(int min, int max);
+
     String getParagraphs(int min, int max);
+
     String getHtmlParagraphs(int min, int max);
 
     // Person
     String getFirstName();
+
     String getFirstNameMale();
+
     String getFirstNameFemale();
+
     String getLastName();
+
     String getName();
+
     String getNameMale();
+
     String getNameFemale();
 
     // Contact
     String getEmail();
+
     String getPhone();
+
     String getUrl();
 
     // Location
     String getCity();
+
     String getStateAbbr();
+
     String getStateFull();
+
     String getZipCode();
+
     String getCountry();
 
     // Date/Time
     LocalDateTime getPriorDate(Duration maxDurationBeforeNow);
+
     LocalDateTime getFutureDate(Duration maxDurationFromNow);
 }
 ```
@@ -98,11 +117,18 @@ Concrete implementation. Backed by classpath resource files.
 
 ```java
 public class LoremIpsum implements Lorem {
-    public LoremIpsum() { }
-    public LoremIpsum(Long seed) { }       // null = unseeded
-    public LoremIpsum(Random random) { }   // pass SecureRandom or any subclass
 
-    public static LoremIpsum getInstance() { }  // shared singleton, thread-safe
+    public LoremIpsum() {
+    }
+
+    public LoremIpsum(Long seed) {
+    }       // null = unseeded
+
+    public LoremIpsum(Random random) {
+    }   // pass SecureRandom or any subclass
+
+    public static LoremIpsum getInstance() {
+    }  // shared singleton, thread-safe
 }
 ```
 
@@ -125,7 +151,9 @@ Returns exactly `count` space-separated lorem ipsum words, trimmed. Words are dr
 
 ```java
 lorem.getWords(3)    // => 'lorem ipsum dolor'
-lorem.getWords(1)    // => 'amet'
+lorem.
+
+getWords(1)    // => 'amet'
 ```
 
 ### `getWords(int min, int max)`
@@ -133,7 +161,7 @@ lorem.getWords(1)    // => 'amet'
 Returns a random number of words in `[min, max]`.
 
 ```java
-lorem.getWords(5, 10)  // => 'consectetur adipiscing elit sed do eiusmod tempor'
+lorem.getWords(5,10)  // => 'consectetur adipiscing elit sed do eiusmod tempor'
 ```
 
 ### `getTitle(int count)`
@@ -149,7 +177,7 @@ lorem.getTitle(4)    // => 'Lorem Ipsum Dolor sit'  (short words stay lowercase)
 Same capitalisation rules, random word count in `[min, max]`.
 
 ```java
-lorem.getTitle(3, 6)
+lorem.getTitle(3,6)
 ```
 
 ### `getParagraphs(int min, int max)`
@@ -157,7 +185,7 @@ lorem.getTitle(3, 6)
 Returns a random number of paragraphs in `[min, max]`. Paragraphs are separated by `\n`. Each paragraph contains 2–6 sentences; each sentence starts with a capital word and ends with `. `.
 
 ```java
-lorem.getParagraphs(2, 4)
+lorem.getParagraphs(2,4)
 // => "Lorem ipsum dolor sit amet....\n\nConsectetur adipiscing elit...."
 ```
 
@@ -166,7 +194,7 @@ lorem.getParagraphs(2, 4)
 Same as `getParagraphs` but each paragraph is wrapped in `<p>...</p>`.
 
 ```java
-lorem.getHtmlParagraphs(1, 3)
+lorem.getHtmlParagraphs(1,3)
 // => "<p>Lorem ipsum dolor....</p><p>Consectetur adipiscing....</p>"
 ```
 
@@ -186,8 +214,12 @@ Returns a randomly combined first name + last name.
 
 ```java
 lorem.getName()         // => 'Shirley Williams'
-lorem.getNameMale()     // => 'James Anderson'
-lorem.getNameFemale()   // => 'Patricia Thompson'
+lorem.
+
+getNameMale()     // => 'James Anderson'
+lorem.
+
+getNameFemale()   // => 'Patricia Thompson'
 ```
 
 ### `getFirstName()` / `getFirstNameMale()` / `getFirstNameFemale()`
@@ -196,8 +228,12 @@ First name only (no surname).
 
 ```java
 lorem.getFirstName()        // => 'Shirley'
-lorem.getFirstNameMale()    // => 'James'
-lorem.getFirstNameFemale()  // => 'Patricia'
+lorem.
+
+getFirstNameMale()    // => 'James'
+lorem.
+
+getFirstNameFemale()  // => 'Patricia'
 ```
 
 ### `getLastName()`
@@ -218,7 +254,9 @@ Format: `firstname.lastname@example.com`. Both components are lowercased; spaces
 
 ```java
 lorem.getEmail()   // => '[email protected]'
-lorem.getEmail()   // => '[email protected]'
+lorem.
+
+getEmail()   // => '[email protected]'
 ```
 
 ### `getPhone()`
@@ -227,7 +265,9 @@ Format: `(X##) X##-####` where `X` ∈ 1–9 and `#` ∈ 0–9. US-style NANP fo
 
 ```java
 lorem.getPhone()   // => '(800) 555-1212'
-lorem.getPhone()   // => '(312) 943-8671'
+lorem.
+
+getPhone()   // => '(312) 943-8671'
 ```
 
 ### `getUrl()`
@@ -236,7 +276,9 @@ Returns a search engine URL with a random lorem ipsum word as the query. Cycles 
 
 ```java
 lorem.getUrl()   // => 'https://www.google.com/#q=lorem'
-lorem.getUrl()   // => 'https://duckduckgo.com/?q=amet'
+lorem.
+
+getUrl()   // => 'https://duckduckgo.com/?q=amet'
 ```
 
 ---
@@ -259,7 +301,9 @@ US state abbreviation or full name.
 
 ```java
 lorem.getStateAbbr()   // => 'CA'
-lorem.getStateFull()   // => 'California'
+lorem.
+
+getStateFull()   // => 'California'
 ```
 
 ### `getZipCode()`
@@ -331,11 +375,11 @@ These files are loaded once at construction time. To customise the data pool, su
 Lorem lorem = LoremIpsum.getInstance();
 
 String fullName = lorem.getName();
-String email    = lorem.getEmail();
-String city     = lorem.getCity();
-String state    = lorem.getStateAbbr();
-String zip      = lorem.getZipCode();
-String body     = lorem.getParagraphs(2, 5);
+String email = lorem.getEmail();
+String city = lorem.getCity();
+String state = lorem.getStateAbbr();
+String zip = lorem.getZipCode();
+String body = lorem.getParagraphs(2, 5);
 ```
 
 ### Seeded — reproducible tests
@@ -356,15 +400,15 @@ Lorem lorem = new LoremIpsum(new SecureRandom());
 ```java
 Lorem lorem = LoremIpsum.getInstance();
 String article = "<h1>" + lorem.getTitle(4, 8) + "</h1>"
-               + lorem.getHtmlParagraphs(3, 6);
+                 + lorem.getHtmlParagraphs(3, 6);
 ```
 
 ### Date range generation
 
 ```java
 Lorem lorem = LoremIpsum.getInstance();
-LocalDateTime createdAt  = lorem.getPriorDate(Duration.ofDays(730));  // last 2 years
-LocalDateTime expiresAt  = lorem.getFutureDate(Duration.ofDays(90));  // next 3 months
+LocalDateTime createdAt = lorem.getPriorDate(Duration.ofDays(730));  // last 2 years
+LocalDateTime expiresAt = lorem.getFutureDate(Duration.ofDays(90));  // next 3 months
 ```
 
 ---

@@ -38,7 +38,7 @@ chance.integer({min: 1, max: 100}); // => 47
 ## 2. Core Object
 
 ```javascript
-const chance = new Chance(seed?);
+const chance = new Chance(seed ?);
 ```
 
 - `seed` can be a number, string, or custom RNG function.
