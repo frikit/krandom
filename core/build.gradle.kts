@@ -11,7 +11,6 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.commons.validator)
     implementation(libs.commons.beanutils)
-    implementation(libs.kotlin.logging)
     implementation(libs.slf4j.api)
     runtimeOnly(libs.logback.classic)
 
@@ -20,6 +19,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.test {
