@@ -15,8 +15,10 @@ import java.util.Random;
 
 /**
  * Generates locale-aware honorific titles.
- * 
- * <p>Supports 10 locales: US, UK, AU, FR, DE, JA, ES, IT, PT, ZH.
+ *
+ * <p>Built-in support covers 10 locales (US, UK, AU, FR, DE, JA, ES, IT, PT, ZH). Additional
+ * locales — and overrides of built-in ones — can be registered at runtime via
+ * {@link TitleDataRegistry#register(TitleDataProvider)}.
  */
 public final class TitleGenerator implements Generator<String> {
 
@@ -32,18 +34,17 @@ public final class TitleGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         
         Locale locale = config.getLocale();
-        if (!LocaleTitleData.isSupported(locale)) {
+        if (!TitleDataRegistry.isRegistered(locale)) {
             throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Supported locales: " +
-                LocaleTitleData.getSupportedLocalesString());
+                "Locale " + locale + " is not supported. Registered locales: " +
+                TitleDataRegistry.registeredKeys());
         }
-        
+
         this.random = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();
 
-        LocaleTitleData localeData = LocaleTitleData.forLocale(config.getLocale());
-        this.titles = localeData.getTitles();
+        this.titles = TitleDataRegistry.forLocale(locale).getTitles();
     }
 
     public TitleGenerator(Locale locale) {
@@ -67,6 +68,6 @@ public final class TitleGenerator implements Generator<String> {
     }
 
     public boolean isLocaleExplicitlySupported() {
-        return LocaleTitleData.isSupported(config.getLocale());
+        return TitleDataRegistry.isRegistered(config.getLocale());
     }
 }

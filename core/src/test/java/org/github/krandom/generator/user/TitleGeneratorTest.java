@@ -253,7 +253,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("constructor rejects null config")
     void nullConfigRejected() {
-        assertThrows(NullPointerException.class, () -> 
+        assertThrows(NullPointerException.class, () ->
             new TitleGenerator((GeneratorConfig) null)
         );
     }
@@ -261,18 +261,167 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("constructor rejects null locale")
     void nullLocaleRejected() {
-        assertThrows(NullPointerException.class, () -> 
+        assertThrows(NullPointerException.class, () ->
             new TitleGenerator((Locale) null)
         );
     }
 
     @Test
-    @DisplayName("getTitleCount() returns positive value for all locales")
+    @DisplayName("getTitleCount() returns positive value for all built-in locales")
     void titleCountPositive() {
         for (LocaleTitleData data : LocaleTitleData.values()) {
             TitleGenerator gen = new TitleGenerator(data.getLocale());
             assertTrue(gen.getTitleCount() > 0,
                     "Locale " + data.getLocale() + " should have titles");
         }
+    }
+
+    // --- TitleDataRegistry extensibility ---
+
+    @Test
+    @DisplayName("custom provider registered for new locale is used by TitleGenerator")
+    void customLocaleRegistration() {
+        Locale korean = new Locale("ko", "KR");
+        String[] koreanTitles = {"씨", "님", "박사", "교수"};
+
+        TitleDataRegistry.register(new TitleDataProvider() {
+            @Override public Locale getLocale() { return korean; }
+            @Override public String[] getTitles() { return koreanTitles; }
+        });
+
+        TitleGenerator gen = new TitleGenerator(korean);
+        assertEquals(4, gen.getTitleCount());
+
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < 200; i++) seen.add(gen.generate());
+        assertTrue(seen.containsAll(Arrays.asList(koreanTitles)));
+    }
+
+    @Test
+    @DisplayName("custom provider overrides built-in locale")
+    void customProviderOverridesBuiltIn() {
+        Locale us = Locale.US;
+        String[] custom = {"Ser", "Dame"};
+
+        TitleDataRegistry.register(new TitleDataProvider() {
+            @Override public Locale getLocale() { return us; }
+            @Override public String[] getTitles() { return custom; }
+        });
+
+        TitleGenerator gen = new TitleGenerator(us);
+        assertEquals(2, gen.getTitleCount());
+
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < 100; i++) seen.add(gen.generate());
+        assertTrue(seen.containsAll(Arrays.asList(custom)));
+
+        // Restore built-in US data so other tests are unaffected.
+        TitleDataRegistry.register(LocaleTitleData.EN_US);
+    }
+
+    @Test
+    @DisplayName("registered custom locale appears in registeredKeys()")
+    void customLocaleAppearsInKeys() {
+        Locale swahili = new Locale("sw");
+        TitleDataRegistry.register(new TitleDataProvider() {
+            @Override public Locale getLocale() { return swahili; }
+            @Override public String[] getTitles() { return new String[]{"Bwana", "Bibi"}; }
+        });
+
+        assertTrue(TitleDataRegistry.registeredKeys().contains("sw"));
+        assertTrue(TitleDataRegistry.isRegistered(swahili));
+    }
+
+    @Test
+    @DisplayName("language-only registration serves as fallback for any country variant")
+    void languageOnlyFallback() {
+        Locale arabic = new Locale("ar");
+        TitleDataRegistry.register(new TitleDataProvider() {
+            @Override public Locale getLocale() { return arabic; }
+            @Override public String[] getTitles() { return new String[]{"السيد", "السيدة"}; }
+        });
+
+        // ar_EG should fall back to the "ar" language entry.
+        Locale arabicEgypt = new Locale("ar", "EG");
+        assertTrue(TitleDataRegistry.isRegistered(arabicEgypt));
+
+        TitleGenerator gen = new TitleGenerator(arabicEgypt);
+        assertEquals(2, gen.getTitleCount());
+    }
+
+    @Test
+    @DisplayName("register rejects null provider")
+    void registerRejectsNull() {
+        assertThrows(NullPointerException.class, () -> TitleDataRegistry.register(null));
+    }
+
+    @Test
+    @DisplayName("generate() returns empty string when provider supplies empty titles array")
+    void generateWithEmptyTitlesArray() {
+        Locale empty = new Locale("zz", "ZZ");
+        TitleDataRegistry.register(new TitleDataProvider() {
+            @Override public Locale getLocale() { return empty; }
+            @Override public String[] getTitles() { return new String[0]; }
+        });
+
+        TitleGenerator gen = new TitleGenerator(empty);
+        assertEquals("", gen.generate());
+    }
+
+    @Test
+    @DisplayName("isRegistered returns false for null locale")
+    void isRegisteredNullReturnsFalse() {
+        assertFalse(TitleDataRegistry.isRegistered(null));
+    }
+
+    @Test
+    @DisplayName("forLocale returns null for null locale")
+    void forLocaleNullReturnsNull() {
+        assertNull(TitleDataRegistry.forLocale(null));
+    }
+
+    @Test
+    @DisplayName("isRegistered returns false for unregistered locale with country")
+    void isRegisteredUnknownLocale() {
+        assertFalse(TitleDataRegistry.isRegistered(new Locale("xx", "YY")));
+    }
+
+    @Test
+    @DisplayName("forLocale returns null for completely unknown locale")
+    void forLocaleUnknownReturnsNull() {
+        assertNull(TitleDataRegistry.forLocale(new Locale("xx", "YY")));
+    }
+
+    @Test
+    @DisplayName("forLocale returns language-level entry when no exact country match exists")
+    void forLocaleLanguageFallbackInRegistry() {
+        // "en" is registered (language-level entry seeded from EN_US).
+        // "en_ZZ" has no exact entry but shares the "en" language key.
+        TitleDataProvider provider = TitleDataRegistry.forLocale(new Locale("en", "ZZ"));
+        assertNotNull(provider);
+        assertTrue(provider.getTitles().length > 0);
+    }
+
+    @Test
+    @DisplayName("explicit language-only registration replaces language fallback")
+    void languageOnlyRegistrationReplacesExistingFallback() {
+        Locale plain = new Locale("en");
+        String[] slim = {"Doc"};
+
+        TitleDataRegistry.register(new TitleDataProvider() {
+            @Override public Locale getLocale() { return plain; }
+            @Override public String[] getTitles() { return slim; }
+        });
+
+        TitleDataProvider found = TitleDataRegistry.forLocale(plain);
+        assertNotNull(found);
+        assertArrayEquals(slim, found.getTitles());
+
+        // Restore the language-level "en" fallback. Must use a locale with no country so
+        // register() takes the explicit-put path rather than putIfAbsent.
+        TitleDataRegistry.register(new TitleDataProvider() {
+            @Override public Locale getLocale() { return new Locale("en"); }
+            @Override public String[] getTitles() { return LocaleTitleData.EN_US.getTitles(); }
+        });
     }
 }
