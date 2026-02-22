@@ -16,14 +16,29 @@ import java.util.random.RandomGenerator;
 /**
  * Generates random {@link Character} values drawn from a configurable character pool.
  *
- * <p>Use the {@link Builder} for readable configuration:
+ * <p>Use the {@link Builder} for standard character groups:
  * <pre>{@code
  *   CharGenerator letters = CharGenerator.builder().uppercase().lowercase().build();
  *   CharGenerator digit   = CharGenerator.builder().digits().build();
  *   CharGenerator all     = CharGenerator.builder().uppercase().lowercase().digits().special().build();
  * }</pre>
  *
- * <p>At least one character group must be enabled; the builder enforces this at {@link Builder#build()}.
+ * <p>Or use factory methods for common patterns:
+ * <pre>{@code
+ *   CharGenerator letters = CharGenerator.letters();       // A-Z, a-z
+ *   CharGenerator digits = CharGenerator.digits();         // 0-9
+ *   CharGenerator alphanum = CharGenerator.alphanumeric(); // A-Z, a-z, 0-9
+ * }</pre>
+ *
+ * <p>For custom character pools, use {@link #pool(String)} or {@link #pool(char...)}:
+ * <pre>{@code
+ *   CharGenerator vowels = CharGenerator.pool("aeiou");
+ *   CharGenerator hex = CharGenerator.pool("0123456789ABCDEF");
+ *   CharGenerator binary = CharGenerator.pool('0', '1');
+ * }</pre>
+ *
+ * <p>At least one character group must be enabled when using the builder;
+ * the builder enforces this at {@link Builder#build()}.
  */
 public final class CharGenerator implements Generator<Character> {
 
@@ -60,6 +75,80 @@ public final class CharGenerator implements Generator<Character> {
     /** All groups: letters, digits, and special characters. */
     public static CharGenerator all() {
         return builder().uppercase().lowercase().digits().special().build();
+    }
+
+    /**
+     * Creates a generator that selects characters from a custom pool.
+     *
+     * <p>Examples:
+     * <pre>{@code
+     *   CharGenerator vowels = CharGenerator.pool("aeiou");
+     *   CharGenerator consonants = CharGenerator.pool("bcdfghjklmnpqrstvwxyz");
+     *   CharGenerator hex = CharGenerator.pool("0123456789ABCDEF");
+     *   CharGenerator custom = CharGenerator.pool('X', 'Y', 'Z');
+     * }</pre>
+     *
+     * @param characters custom character pool (must not be empty)
+     * @return a generator that selects from the given pool
+     * @throws IllegalArgumentException if characters is null or empty
+     */
+    public static CharGenerator pool(String characters) {
+        if (characters == null || characters.isEmpty()) {
+            throw new IllegalArgumentException("Character pool must not be null or empty");
+        }
+        return new CharGenerator(characters.toCharArray(), new SecureRandom());
+    }
+
+    /**
+     * Creates a generator that selects characters from a custom pool.
+     *
+     * <p>Examples:
+     * <pre>{@code
+     *   CharGenerator binary = CharGenerator.pool('0', '1');
+     *   CharGenerator arrows = CharGenerator.pool('←', '↑', '→', '↓');
+     * }</pre>
+     *
+     * @param characters custom character pool (must not be empty)
+     * @return a generator that selects from the given pool
+     * @throws IllegalArgumentException if characters is null or empty
+     */
+    public static CharGenerator pool(char... characters) {
+        if (characters == null || characters.length == 0) {
+            throw new IllegalArgumentException("Character pool must not be null or empty");
+        }
+        return new CharGenerator(characters.clone(), new SecureRandom());
+    }
+
+    /**
+     * Creates a seeded generator that selects characters from a custom pool.
+     *
+     * <p>Useful for deterministic testing with custom character sets.
+     *
+     * @param seed the random seed
+     * @param characters custom character pool (must not be empty)
+     * @return a seeded generator that selects from the given pool
+     * @throws IllegalArgumentException if characters is null or empty
+     */
+    public static CharGenerator pool(long seed, String characters) {
+        if (characters == null || characters.isEmpty()) {
+            throw new IllegalArgumentException("Character pool must not be null or empty");
+        }
+        return new CharGenerator(characters.toCharArray(), new Random(seed));
+    }
+
+    /**
+     * Creates a seeded generator that selects characters from a custom pool.
+     *
+     * @param seed the random seed
+     * @param characters custom character pool (must not be empty)
+     * @return a seeded generator that selects from the given pool
+     * @throws IllegalArgumentException if characters is null or empty
+     */
+    public static CharGenerator pool(long seed, char... characters) {
+        if (characters == null || characters.length == 0) {
+            throw new IllegalArgumentException("Character pool must not be null or empty");
+        }
+        return new CharGenerator(characters.clone(), new Random(seed));
     }
 
     public static Builder builder() {
