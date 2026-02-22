@@ -16,9 +16,12 @@ composer require ircmaxell/random-lib
 
 ## 1. Purpose
 
-RandomLib generates cryptographically-quality random numbers and strings in PHP at configurable security strengths. It solves the pre-PHP-7 problem of inconsistent OS entropy APIs across platforms by mixing output from every available source through a cryptographic combiner, providing defense-in-depth: even if one entropy source is weak or compromised, the combined output remains unpredictable as long as any single source contributes genuine entropy.
+RandomLib generates cryptographically-quality random numbers and strings in PHP at configurable security strengths. It solves the pre-PHP-7 problem of inconsistent OS entropy APIs across platforms by
+mixing output from every available source through a cryptographic combiner, providing defense-in-depth: even if one entropy source is weak or compromised, the combined output remains unpredictable as
+long as any single source contributes genuine entropy.
 
 **Primary use cases:**
+
 - Password-reset tokens, CSRF tokens, session identifiers (MEDIUM strength)
 - Cryptographic key material for long-lived secrets (HIGH strength)
 - Non-critical random strings and integers (LOW strength)
@@ -52,24 +55,24 @@ Factory
                       └── sourceN.generate(size) ──┘
 ```
 
-| Layer | Role |
-|-------|------|
-| **Source** | Reads from a single OS/PHP entropy mechanism; returns raw bytes |
-| **Mixer** | Receives one byte string per source; combines them into a single output |
-| **Generator** | Orchestrates sources + mixer; exposes high-level `generate*` methods |
-| **Factory** | Auto-discovers available sources and mixers; selects by strength; constructs Generator |
+| Layer         | Role                                                                                   |
+|---------------|----------------------------------------------------------------------------------------|
+| **Source**    | Reads from a single OS/PHP entropy mechanism; returns raw bytes                        |
+| **Mixer**     | Receives one byte string per source; combines them into a single output                |
+| **Generator** | Orchestrates sources + mixer; exposes high-level `generate*` methods                   |
+| **Factory**   | Auto-discovers available sources and mixers; selects by strength; constructs Generator |
 
 ### Strength levels (`SecurityLib\Strength`)
 
 Five ordered levels used for filtering sources and mixers:
 
-| Constant | Ordinal | Notes |
-|----------|---------|-------|
-| `VERYHIGH` | 5 | No components ship at this level |
-| `HIGH` | 4 | `/dev/random`, `random_bytes()`, `libsodium`, patched OpenSSL |
-| `MEDIUM` | 3 | Hash (sha512) mixer; `/dev/urandom`, CAPICOM, OpenSSL |
-| `LOW` | 2 | XOR mixer; `mt_rand`, `uniqid`, microtime |
-| `VERYLOW` | 1 | `rand()`, XOR mixer without Suhosin |
+| Constant   | Ordinal | Notes                                                         |
+|------------|---------|---------------------------------------------------------------|
+| `VERYHIGH` | 5       | No components ship at this level                              |
+| `HIGH`     | 4       | `/dev/random`, `random_bytes()`, `libsodium`, patched OpenSSL |
+| `MEDIUM`   | 3       | Hash (sha512) mixer; `/dev/urandom`, CAPICOM, OpenSSL         |
+| `LOW`      | 2       | XOR mixer; `mt_rand`, `uniqid`, microtime                     |
+| `VERYLOW`  | 1       | `rand()`, XOR mixer without Suhosin                           |
 
 ---
 
@@ -104,7 +107,8 @@ Throws `\RangeException` if `$min > $max`.
 
 ### `generateString(int $length, int|string $characters = ''): string`
 
-Uniform random string of `$length` characters drawn from `$characters`. Accepts either a `Generator::CHAR_*` bitmask or an explicit character string. Uses rejection sampling for equal probability per character regardless of pool size.
+Uniform random string of `$length` characters drawn from `$characters`. Accepts either a `Generator::CHAR_*` bitmask or an explicit character string. Uses rejection sampling for equal probability per
+character regardless of pool size.
 
 ```php
 // Built-in charset constants (bitmask)
@@ -118,24 +122,25 @@ $generator->generateString(10, 'abc');
 ```
 
 ### `getMixer(): \RandomLib\Mixer`
+
 ### `getSources(): array`
 
 ### Character-set constants
 
-| Constant | Value | Characters |
-|----------|-------|------------|
-| `CHAR_UPPER` | 1 | `A-Z` |
-| `CHAR_LOWER` | 2 | `a-z` |
-| `CHAR_ALPHA` | 3 | `A-Za-z` |
-| `CHAR_DIGITS` | 4 | `0-9` |
-| `CHAR_ALNUM` | 7 | `A-Za-z0-9` |
-| `CHAR_UPPER_HEX` | 8 | `0-9A-F` |
-| `CHAR_LOWER_HEX` | 16 | `0-9a-f` |
-| `CHAR_BASE64` | 32 | `A-Za-z0-9+/` |
-| `CHAR_SYMBOLS` | 64 | `!@#$%^&*()` |
-| `CHAR_BRACKETS` | 128 | `()[]{}<>` |
-| `CHAR_PUNCT` | 256 | Full printable punctuation |
-| `EASY_TO_READ` | 512 | Excludes ambiguous chars: `B8G6I1l\|0OQDS5Z2` |
+| Constant         | Value | Characters                                    |
+|------------------|-------|-----------------------------------------------|
+| `CHAR_UPPER`     | 1     | `A-Z`                                         |
+| `CHAR_LOWER`     | 2     | `a-z`                                         |
+| `CHAR_ALPHA`     | 3     | `A-Za-z`                                      |
+| `CHAR_DIGITS`    | 4     | `0-9`                                         |
+| `CHAR_ALNUM`     | 7     | `A-Za-z0-9`                                   |
+| `CHAR_UPPER_HEX` | 8     | `0-9A-F`                                      |
+| `CHAR_LOWER_HEX` | 16    | `0-9a-f`                                      |
+| `CHAR_BASE64`    | 32    | `A-Za-z0-9+/`                                 |
+| `CHAR_SYMBOLS`   | 64    | `!@#$%^&*()`                                  |
+| `CHAR_BRACKETS`  | 128   | `()[]{}<>`                                    |
+| `CHAR_PUNCT`     | 256   | Full printable punctuation                    |
+| `EASY_TO_READ`   | 512   | Excludes ambiguous chars: `B8G6I1l\|0OQDS5Z2` |
 
 Constants are combinable with bitwise OR:
 
@@ -151,7 +156,8 @@ $generator->generateString(32, Generator::CHAR_UPPER_HEX);
 
 ## 4. `RandomLib\Factory`
 
-Entry point. Auto-discovers all mixer and source classes in `lib/RandomLib/Mixer/` and `lib/RandomLib/Source/`, registers those whose `test()` / `isSupported()` returns `true`, then builds a `Generator` matched to the requested strength.
+Entry point. Auto-discovers all mixer and source classes in `lib/RandomLib/Mixer/` and `lib/RandomLib/Source/`, registers those whose `test()` / `isSupported()` returns `true`, then builds a
+`Generator` matched to the requested strength.
 
 ### Quick constructors
 
@@ -165,7 +171,8 @@ $gen = $factory->getHighStrengthGenerator();   // throws on PHP 7.2+ (no HIGH mi
 
 ### `getGenerator(\SecurityLib\Strength $strength): Generator`
 
-Selects sources whose strength >= `$strength` and the best available mixer at `$strength` (with fallback to the next lower level if no exact match exists). Throws `\RuntimeException` if no sources or no mixer qualify.
+Selects sources whose strength >= `$strength` and the best available mixer at `$strength` (with fallback to the next lower level if no exact match exists). Throws `\RuntimeException` if no sources or
+no mixer qualify.
 
 ```php
 use SecurityLib\Strength;
@@ -246,8 +253,8 @@ All mixers share the same loop in `AbstractMixer::mix()`:
 
 1. Pad all parts to a multiple of `getPartSize()`
 2. For each position block `i`:
-   - If `i` is even: `state ^= mixParts1(state, part[i])`
-   - If `i` is odd: `state ^= mixParts2(state, part[i])`
+    - If `i` is even: `state ^= mixParts1(state, part[i])`
+    - If `i` is odd: `state ^= mixParts2(state, part[i])`
 3. Return `state` trimmed to the original length
 
 The output is at least as strong as the strongest contributing source, provided the mixer is at least that strong.
@@ -271,24 +278,28 @@ interface Source {
 ### HIGH strength sources
 
 #### `Source\RandomBytes`
+
 - **Mechanism:** `random_bytes()` (PHP 7.0+)
 - **Platform:** cross-platform
 - **Available:** `function_exists('random_bytes')`
 - **Notes:** Preferred source on PHP 7+. Delegates to the OS CSPRNG.
 
 #### `Source\Sodium`
+
 - **Mechanism:** `\Sodium\randombytes_buf()` (old PECL libsodium)
 - **Platform:** wherever libsodium PECL is installed
 - **Available:** `function_exists('Sodium\\randombytes_buf')`
 - **Notes:** Targets the pre-PHP-7.2 PECL extension. PHP 7.2+ bundled sodium uses `sodium_randombytes_buf` (different function name — not covered by this source).
 
 #### `Source\Random`
+
 - **Mechanism:** reads `/dev/random`
 - **Platform:** POSIX (Linux, macOS, BSDs)
 - **Available:** `file_exists('/dev/random')`
 - **Notes:** Blocks when the kernel entropy pool is exhausted. Slower than URandom but theoretically higher entropy during pool replenishment.
 
 #### `Source\OpenSSL`
+
 - **Mechanism:** `openssl_random_pseudo_bytes()`
 - **Platform:** cross-platform (wherever OpenSSL extension is loaded)
 - **Available:** `function_exists('openssl_random_pseudo_bytes')`
@@ -297,18 +308,21 @@ interface Source {
 ### MEDIUM strength sources
 
 #### `Source\URandom`
+
 - **Mechanism:** reads `/dev/urandom`
 - **Platform:** POSIX
 - **Available:** `file_exists('/dev/urandom')`
 - **Notes:** Non-blocking kernel CSPRNG. The standard choice on Linux/macOS.
 
 #### `Source\CAPICOM`
+
 - **Mechanism:** `CAPICOM.Utilities` COM object → `GetRandom()`
 - **Platform:** Windows only
 - **Available:** `class_exists('COM')`
 - **Notes:** Windows equivalent of `/dev/urandom`. Uses the OS cryptographic API via COM. Falls back to null bytes on COM failure.
 
 #### `Source\MTRand`
+
 - **Mechanism:** `mt_rand()` XORed in pairs per byte
 - **Platform:** cross-platform
 - **Available:** always
@@ -318,18 +332,22 @@ interface Source {
 ### LOW strength sources
 
 #### `Source\MicroTime`
+
 - **Mechanism:** Repeated SHA-512 of `microtime()` + process state + counter
 - **Platform:** cross-platform
 - **Available:** always
-- **Notes:** `final` class. Constructor harvests process-level entropy: `posix_times()`, `zend_thread_id()`, `getmypid()`, `memory_get_usage()`, `$_ENV`, `$_SERVER`, backtrace depth. Only emits the first 8 of 64 SHA-512 bytes per iteration to avoid leaking internal state. Calls `gc_collect_cycles()` for timing jitter.
+- **Notes:** `final` class. Constructor harvests process-level entropy: `posix_times()`, `zend_thread_id()`, `getmypid()`, `memory_get_usage()`, `$_ENV`, `$_SERVER`, backtrace depth. Only emits the
+  first 8 of 64 SHA-512 bytes per iteration to avoid leaking internal state. Calls `gc_collect_cycles()` for timing jitter.
 
 #### `Source\UniqID`
+
 - **Mechanism:** `uniqid($result, true)` (with `more_entropy=true`)
 - **Platform:** cross-platform
 - **Available:** always
 - **Notes:** Accumulates `uniqid` output until `$size` bytes are collected. The `more_entropy` flag appends an LCG float, slightly increasing entropy over plain `uniqid()`.
 
 #### `Source\Rand`
+
 - **Mechanism:** `rand()` XORed in pairs per byte: `chr((rand() ^ rand()) % 256)`
 - **Platform:** cross-platform
 - **Available:** always
@@ -338,21 +356,21 @@ interface Source {
 
 ### Source / mixer capability matrix
 
-| Component | Class | Strength | Platform | Requires |
-|-----------|-------|----------|----------|----------|
-| Mixer | `Mixer\Hash` | MEDIUM | all | — |
-| Mixer | `Mixer\McryptRijndael128` | HIGH | all | mcrypt (PHP ≤ 7.1) |
-| Mixer | `Mixer\XorMixer` | VERYLOW | all | — |
-| Source | `Source\RandomBytes` | HIGH | all | PHP 7.0+ |
-| Source | `Source\Sodium` | HIGH | all | libsodium PECL |
-| Source | `Source\Random` | HIGH | POSIX | — |
-| Source | `Source\OpenSSL` | HIGH / MEDIUM | all | openssl ext |
-| Source | `Source\URandom` | MEDIUM | POSIX | — |
-| Source | `Source\CAPICOM` | MEDIUM | Windows | COM ext |
-| Source | `Source\MTRand` | MEDIUM / LOW | all | — |
-| Source | `Source\MicroTime` | LOW | all | — |
-| Source | `Source\UniqID` | LOW | all | — |
-| Source | `Source\Rand` | LOW / VERYLOW | all | — |
+| Component | Class                     | Strength      | Platform | Requires           |
+|-----------|---------------------------|---------------|----------|--------------------|
+| Mixer     | `Mixer\Hash`              | MEDIUM        | all      | —                  |
+| Mixer     | `Mixer\McryptRijndael128` | HIGH          | all      | mcrypt (PHP ≤ 7.1) |
+| Mixer     | `Mixer\XorMixer`          | VERYLOW       | all      | —                  |
+| Source    | `Source\RandomBytes`      | HIGH          | all      | PHP 7.0+           |
+| Source    | `Source\Sodium`           | HIGH          | all      | libsodium PECL     |
+| Source    | `Source\Random`           | HIGH          | POSIX    | —                  |
+| Source    | `Source\OpenSSL`          | HIGH / MEDIUM | all      | openssl ext        |
+| Source    | `Source\URandom`          | MEDIUM        | POSIX    | —                  |
+| Source    | `Source\CAPICOM`          | MEDIUM        | Windows  | COM ext            |
+| Source    | `Source\MTRand`           | MEDIUM / LOW  | all      | —                  |
+| Source    | `Source\MicroTime`        | LOW           | all      | —                  |
+| Source    | `Source\UniqID`           | LOW           | all      | —                  |
+| Source    | `Source\Rand`             | LOW / VERYLOW | all      | —                  |
 
 ---
 
@@ -460,7 +478,8 @@ class MyMixer extends AbstractMixer
 ## 9. Security Design Notes
 
 **Defense in depth — source combination.**
-The mixer receives one byte string from every source. The RFC 4086 mixing algorithm guarantees the output is at least as strong as the strongest source, provided the mixer itself is at least that strong. A compromised or weak source does not reduce security below the level of the remaining sources.
+The mixer receives one byte string from every source. The RFC 4086 mixing algorithm guarantees the output is at least as strong as the strongest source, provided the mixer itself is at least that
+strong. A compromised or weak source does not reduce security below the level of the remaining sources.
 
 **Rejection sampling for uniform distribution.**
 Both `generateInt` and `generateString` use bit-masking and rejection loops rather than modulo reduction, preventing the bias that occurs when the range does not evenly divide the raw random space.
@@ -469,10 +488,12 @@ Both `generateInt` and `generateString` use bit-masking and rejection loops rath
 Only the first 8 of 64 bytes from each SHA-512 round are emitted. This prevents reconstructing the internal state from observed outputs even when the hash function is known.
 
 **OpenSSL version gating.**
-The `OpenSSL` source downgrades to MEDIUM strength on unpatched PHP versions where `openssl_random_pseudo_bytes` had known seeding issues, ensuring the Factory does not include it in HIGH-strength generator construction on those platforms.
+The `OpenSSL` source downgrades to MEDIUM strength on unpatched PHP versions where `openssl_random_pseudo_bytes` had known seeding issues, ensuring the Factory does not include it in HIGH-strength
+generator construction on those platforms.
 
 **Modern PHP note.**
-On PHP 7+, `random_bytes()` and `random_int()` provide cryptographically secure randomness natively and are preferred over this library. RandomLib's primary value on modern PHP is the `generateString()` API and the multi-source defense-in-depth architecture, not the underlying entropy generation.
+On PHP 7+, `random_bytes()` and `random_int()` provide cryptographically secure randomness natively and are preferred over this library. RandomLib's primary value on modern PHP is the
+`generateString()` API and the multi-source defense-in-depth architecture, not the underlying entropy generation.
 
 ---
 
@@ -519,40 +540,40 @@ new Source\Sodium(bool $useLibsodium = true)
 
 ## 11. Comparison with krandom
 
-| Feature | RandomLib (PHP) | krandom (Kotlin/Java) |
-|---------|-----------------|----------------------|
-| Language | PHP 5.3+ | Kotlin 2.1 / Java 21 |
-| Primitives (int, float, bool, string) | `generateInt`, `generateString` | `Generators.ofInt()`, etc. |
-| Typed random string generation | ✅ (charset constants + bitmask) | ✅ (`StringGenerator.Builder`) |
-| Multi-source entropy mixing | ✅ (core architecture) | No |
-| Configurable security strength | ✅ (LOW / MEDIUM / HIGH) | No (always SecureRandom) |
-| Custom sources / mixers | ✅ (register any class) | No |
-| Object-graph population | No | ✅ (`ObjectGenerator`) |
-| Seeded reproducibility | No | Partial (per-generator seed) |
-| Luhn-valid strings | No | ✅ (`LuhnGenerator`) |
-| Fibonacci sequences | No | ✅ (`FibonacciGenerator`) |
-| Dice / coin | No | ✅ (`DiceGenerator`, `CoinGenerator`) |
-| IPv4 | No | ✅ (`IPv4Random`) |
-| Person data (name, SSN, etc.) | No | ✅ (Kotlin layer) |
-| Hash generation | No | ✅ (`HexHashGenerator`) |
-| Natural / prime numbers | No | ✅ (`NaturalNumberGenerator`) |
+| Feature                               | RandomLib (PHP)                 | krandom (Kotlin/Java)                |
+|---------------------------------------|---------------------------------|--------------------------------------|
+| Language                              | PHP 5.3+                        | Kotlin 2.1 / Java 21                 |
+| Primitives (int, float, bool, string) | `generateInt`, `generateString` | `Generators.ofInt()`, etc.           |
+| Typed random string generation        | ✅ (charset constants + bitmask) | ✅ (`StringGenerator.Builder`)        |
+| Multi-source entropy mixing           | ✅ (core architecture)           | No                                   |
+| Configurable security strength        | ✅ (LOW / MEDIUM / HIGH)         | No (always SecureRandom)             |
+| Custom sources / mixers               | ✅ (register any class)          | No                                   |
+| Object-graph population               | No                              | ✅ (`ObjectGenerator`)                |
+| Seeded reproducibility                | No                              | Partial (per-generator seed)         |
+| Luhn-valid strings                    | No                              | ✅ (`LuhnGenerator`)                  |
+| Fibonacci sequences                   | No                              | ✅ (`FibonacciGenerator`)             |
+| Dice / coin                           | No                              | ✅ (`DiceGenerator`, `CoinGenerator`) |
+| IPv4                                  | No                              | ✅ (`IPv4Random`)                     |
+| Person data (name, SSN, etc.)         | No                              | ✅ (Kotlin layer)                     |
+| Hash generation                       | No                              | ✅ (`HexHashGenerator`)               |
+| Natural / prime numbers               | No                              | ✅ (`NaturalNumberGenerator`)         |
 
 ### Equivalent generation patterns
 
-| RandomLib | krandom |
-|-----------|---------|
-| `$gen->generateInt(0, 100)` | `Generators.ofInt(0, 101).generate()` |
-| `$gen->generateString(32, Generator::CHAR_ALNUM)` | `Generators.ofString(StringGenerator.builder().length(32)).generate()` |
+| RandomLib                                             | krandom                                                                                  |
+|-------------------------------------------------------|------------------------------------------------------------------------------------------|
+| `$gen->generateInt(0, 100)`                           | `Generators.ofInt(0, 101).generate()`                                                    |
+| `$gen->generateString(32, Generator::CHAR_ALNUM)`     | `Generators.ofString(StringGenerator.builder().length(32)).generate()`                   |
 | `$gen->generateString(16, Generator::CHAR_LOWER_HEX)` | `Generators.ofString(StringGenerator.builder().length(16).lowercase().hex()).generate()` |
-| `$gen->generate(32)` (raw bytes) | `Generators.ofByte().generateList(32)` |
+| `$gen->generate(32)` (raw bytes)                      | `Generators.ofByte().generateList(32)`                                                   |
 
 ---
 
 ## 12. Potential Additions for krandom Inspired by RandomLib
 
-| Feature | RandomLib approach | krandom gap |
-|---------|-------------------|-------------|
-| Typed charset constants | `CHAR_ALNUM`, `CHAR_UPPER_HEX`, `EASY_TO_READ` bitmasks | `StringGenerator.Builder` has basic pools but no bitmask API or `EASY_TO_READ` filter |
-| Uniform `generateInt(min, max)` | Rejection sampling, modulo-bias-free | Already handled in `AbstractBoundedGenerator` |
-| Configurable strength tiers | LOW / MEDIUM / HIGH generator factory | No equivalent — always uses `SecureRandom` |
-| Multi-source entropy pooling | Core differentiator | No equivalent |
+| Feature                         | RandomLib approach                                      | krandom gap                                                                           |
+|---------------------------------|---------------------------------------------------------|---------------------------------------------------------------------------------------|
+| Typed charset constants         | `CHAR_ALNUM`, `CHAR_UPPER_HEX`, `EASY_TO_READ` bitmasks | `StringGenerator.Builder` has basic pools but no bitmask API or `EASY_TO_READ` filter |
+| Uniform `generateInt(min, max)` | Rejection sampling, modulo-bias-free                    | Already handled in `AbstractBoundedGenerator`                                         |
+| Configurable strength tiers     | LOW / MEDIUM / HIGH generator factory                   | No equivalent — always uses `SecureRandom`                                            |
+| Multi-source entropy pooling    | Core differentiator                                     | No equivalent                                                                         |

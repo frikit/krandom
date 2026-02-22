@@ -12,9 +12,11 @@
 
 ## 1. Purpose
 
-Chance.js is a minimalist random data generator for JavaScript. It covers a wide range of domains — numerics, strings, dates, people, locations, finance, web, and more — with a single fluent API object. It does **not** do object-graph randomization; instead, it provides building blocks for constructing test fixtures manually.
+Chance.js is a minimalist random data generator for JavaScript. It covers a wide range of domains — numerics, strings, dates, people, locations, finance, web, and more — with a single fluent API
+object. It does **not** do object-graph randomization; instead, it provides building blocks for constructing test fixtures manually.
 
 **Primary use cases:**
+
 - Generating test data in JavaScript / Node.js test suites
 - Seeded, reproducible randomization for deterministic tests
 - Weighted and normally-distributed sampling
@@ -49,8 +51,8 @@ const chance = new Chance(seed?);
 
 ### `integer({min, max})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
+| Option | Default                   | Description             |
+|--------|---------------------------|-------------------------|
 | `min`  | `Number.MIN_SAFE_INTEGER` | Lower bound (inclusive) |
 | `max`  | `Number.MAX_SAFE_INTEGER` | Upper bound (inclusive) |
 
@@ -63,11 +65,11 @@ chance.integer({min: 1, max: 10})   // => 7
 
 Non-negative integers only (≥ 0).
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `min`  | `0` | Lower bound |
-| `max`  | `Number.MAX_SAFE_INTEGER` | Upper bound |
-| `exclude` | `[]` | Array of values to exclude from results |
+| Option    | Default                   | Description                             |
+|-----------|---------------------------|-----------------------------------------|
+| `min`     | `0`                       | Lower bound                             |
+| `max`     | `Number.MAX_SAFE_INTEGER` | Upper bound                             |
+| `exclude` | `[]`                      | Array of values to exclude from results |
 
 ```javascript
 chance.natural()                            // => 2974305
@@ -77,11 +79,11 @@ chance.natural({exclude: [1, 2, 3]})        // never returns 1, 2, or 3
 
 ### `floating({min, max, fixed})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `min`  | `-MAX` | Lower bound |
-| `max`  | `MAX` | Upper bound |
-| `fixed` | `4` | Number of decimal places |
+| Option  | Default | Description              |
+|---------|---------|--------------------------|
+| `min`   | `-MAX`  | Lower bound              |
+| `max`   | `MAX`   | Upper bound              |
+| `fixed` | `4`     | Number of decimal places |
 
 ```javascript
 chance.floating()                           // => -304534.44
@@ -101,10 +103,10 @@ chance.prime({min: 2, max: 100})            // => 47
 
 Returns a normally-distributed random variate (Box-Muller transform).
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `mean` | `0` | Distribution centre |
-| `dev`  | `1` | Standard deviation |
+| Option | Default | Description         |
+|--------|---------|---------------------|
+| `mean` | `0`     | Distribution centre |
+| `dev`  | `1`     | Standard deviation  |
 
 ```javascript
 chance.normal()                             // => 0.424
@@ -117,9 +119,9 @@ chance.normal({mean: 100, dev: 15})         // => 85.1   (IQ-like distribution)
 
 ### `bool({likelihood})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `likelihood` | `50` | Percent chance of `true` (0–100) |
+| Option       | Default | Description                      |
+|--------------|---------|----------------------------------|
+| `likelihood` | `50`    | Percent chance of `true` (0–100) |
 
 ```javascript
 chance.bool()                               // => true
@@ -128,13 +130,13 @@ chance.bool({likelihood: 80})              // => true ~80% of the time
 
 ### `character({pool, alpha, numeric, symbols, casing})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `pool`    | All printable ASCII | Custom character pool string |
-| `alpha`   | — | Restrict to alphabetic characters |
-| `numeric` | — | Restrict to digits |
-| `symbols` | — | Restrict to symbols |
-| `casing`  | — | `'upper'` or `'lower'` |
+| Option    | Default             | Description                       |
+|-----------|---------------------|-----------------------------------|
+| `pool`    | All printable ASCII | Custom character pool string      |
+| `alpha`   | —                   | Restrict to alphabetic characters |
+| `numeric` | —                   | Restrict to digits                |
+| `symbols` | —                   | Restrict to symbols               |
+| `casing`  | —                   | `'upper'` or `'lower'`            |
 
 ```javascript
 chance.character()                          // => 'g'
@@ -144,14 +146,14 @@ chance.character({pool: 'aeiou'})           // => 'o'
 
 ### `string({length, pool, casing, alpha, numeric, symbols})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `length`  | 5–20 (random) | Fixed string length |
-| `pool`    | All printable ASCII | Custom character pool |
-| `casing`  | — | `'upper'` or `'lower'` |
-| `alpha`   | — | Alphabetic only |
-| `numeric` | — | Digits only |
-| `symbols` | — | Symbols only |
+| Option    | Default             | Description            |
+|-----------|---------------------|------------------------|
+| `length`  | 5–20 (random)       | Fixed string length    |
+| `pool`    | All printable ASCII | Custom character pool  |
+| `casing`  | —                   | `'upper'` or `'lower'` |
+| `alpha`   | —                   | Alphabetic only        |
+| `numeric` | —                   | Digits only            |
+| `symbols` | —                   | Symbols only           |
 
 ```javascript
 chance.string()                             // => 'ztZdM'
@@ -165,14 +167,14 @@ chance.string({pool: 'abc', length: 5})     // => 'cabba'
 
 ### `name({middle, middle_initial, prefix, suffix, gender, nationality})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `middle` | false | Include full middle name |
-| `middle_initial` | false | Include middle initial only |
-| `prefix` | false | Include title prefix (e.g., `Doctor`) |
-| `suffix` | false | Include suffix (e.g., `Esq.`) |
-| `gender` | random | `'male'` or `'female'` |
-| `nationality` | `'en'` | `'en'` (English) or `'it'` (Italian) |
+| Option           | Default | Description                           |
+|------------------|---------|---------------------------------------|
+| `middle`         | false   | Include full middle name              |
+| `middle_initial` | false   | Include middle initial only           |
+| `prefix`         | false   | Include title prefix (e.g., `Doctor`) |
+| `suffix`         | false   | Include suffix (e.g., `Esq.`)         |
+| `gender`         | random  | `'male'` or `'female'`                |
+| `nationality`    | `'en'`  | `'en'` (English) or `'it'` (Italian)  |
 
 ```javascript
 chance.name()                               // => 'Dafi Vatemi'
@@ -207,13 +209,13 @@ chance.suffix()                             // => 'Esq.'
 
 ### `age({type})`
 
-| Type | Range |
-|------|-------|
-| `'child'` | 1–12 |
-| `'teen'` | 13–19 |
-| `'adult'` | 18–65 |
+| Type       | Range  |
+|------------|--------|
+| `'child'`  | 1–12   |
+| `'teen'`   | 13–19  |
+| `'adult'`  | 18–65  |
 | `'senior'` | 65–100 |
-| (none) | 1–120 |
+| (none)     | 1–120  |
 
 ```javascript
 chance.age()                                // => 34
@@ -230,10 +232,10 @@ chance.gender()                             // => 'Female'
 
 ### `ssn({ssnFour, dashes})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `ssnFour` | false | Return only last 4 digits |
-| `dashes`  | true  | Include dashes in output |
+| Option    | Default | Description               |
+|-----------|---------|---------------------------|
+| `ssnFour` | false   | Return only last 4 digits |
+| `dashes`  | true    | Include dashes in output  |
 
 ```javascript
 chance.ssn()                                // => '411-90-0070'
@@ -268,12 +270,12 @@ chance.city()                               // => 'Cowotba'
 
 ### `state({full, territories, armed_forces, country})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `full` | false | Return full name instead of abbreviation |
-| `territories` | false | Include US territories (Guam, etc.) |
-| `armed_forces` | false | Include Armed Forces regions |
-| `country` | `'us'` | `'us'` or `'it'` |
+| Option         | Default | Description                              |
+|----------------|---------|------------------------------------------|
+| `full`         | false   | Return full name instead of abbreviation |
+| `territories`  | false   | Include US territories (Guam, etc.)      |
+| `armed_forces` | false   | Include Armed Forces regions             |
+| `country`      | `'us'`  | `'us'` or `'it'`                         |
 
 ```javascript
 chance.state()                              // => 'AK'
@@ -316,11 +318,11 @@ chance.country({full: true})                // => 'Germany'
 
 Supported countries: `'us'`, `'uk'`, `'fr'`.
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `formatted` | true | Include formatting (parentheses, dashes) |
-| `country` | `'us'` | Target country |
-| `mobile` | false | Generate mobile (UK only) |
+| Option      | Default | Description                              |
+|-------------|---------|------------------------------------------|
+| `formatted` | true    | Include formatting (parentheses, dashes) |
+| `country`   | `'us'`  | Target country                           |
+| `mobile`    | false   | Generate mobile (UK only)                |
 
 ```javascript
 chance.phone()                              // => '(494) 927-2152'
@@ -339,11 +341,11 @@ chance.areacode()                           // => '(789)'
 
 ### `latitude({fixed, min, max})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `fixed` | 5 | Decimal places |
-| `min` | -90 | Minimum latitude |
-| `max` | 90 | Maximum latitude |
+| Option  | Default | Description      |
+|---------|---------|------------------|
+| `fixed` | 5       | Decimal places   |
+| `min`   | -90     | Minimum latitude |
+| `max`   | 90      | Maximum latitude |
 
 ```javascript
 chance.latitude()                           // => 57.99514
@@ -393,8 +395,8 @@ chance.geohash()                            // => 'gbsuv7z'
 
 Generates a Luhn-valid credit card number.
 
-| Option | Description |
-|--------|-------------|
+| Option | Description                                                                                                        |
+|--------|--------------------------------------------------------------------------------------------------------------------|
 | `type` | Card type by long name (`'Visa'`, `'Mastercard'`, `'American Express'`) or short name (`'visa'`, `'mc'`, `'amex'`) |
 
 ```javascript
@@ -428,9 +430,9 @@ chance.currency_pair()                      // => [{ code: 'EUR', ... }, { code:
 
 ### `dollar({max})` / `euro({max})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `max`  | 10000  | Upper bound of the amount |
+| Option | Default | Description               |
+|--------|---------|---------------------------|
+| `max`  | 10000   | Upper bound of the amount |
 
 ```javascript
 chance.dollar()                             // => '$2560.27'
@@ -475,13 +477,13 @@ chance.tld()                                // => 'com'
 
 ### `url({protocol, domain, domain_prefix, path, extensions})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `protocol` | `'http'` | URL scheme |
-| `domain` | random | Fixed domain |
-| `domain_prefix` | random | Fixed subdomain |
-| `path` | random | Fixed path |
-| `extensions` | — | Array to pick random file extension from |
+| Option          | Default  | Description                              |
+|-----------------|----------|------------------------------------------|
+| `protocol`      | `'http'` | URL scheme                               |
+| `domain`        | random   | Fixed domain                             |
+| `domain_prefix` | random   | Fixed subdomain                          |
+| `path`          | random   | Fixed path                               |
+| `extensions`    | —        | Array to pick random file extension from |
 
 ```javascript
 chance.url()                                // => 'http://vanogsi.io/pateliivi'
@@ -499,11 +501,11 @@ chance.ipv6()                               // => '2407:d300:a0:4900:15a0:a83:b6
 
 ### `color({format, grayscale, casing})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `format` | `'hex'` | `'hex'`, `'shorthex'`, `'rgb'`, `'0x'` |
-| `grayscale` | false | Restrict to grey shades |
-| `casing` | `'lower'` | `'upper'` for uppercase hex digits |
+| Option      | Default   | Description                            |
+|-------------|-----------|----------------------------------------|
+| `format`    | `'hex'`   | `'hex'`, `'shorthex'`, `'rgb'`, `'0x'` |
+| `grayscale` | false     | Restrict to grey shades                |
+| `casing`    | `'lower'` | `'upper'` for uppercase hex digits     |
 
 ```javascript
 chance.color()                              // => '#79c157'
@@ -544,13 +546,13 @@ chance.profession({ranked: true})           // => a common profession (biased to
 
 Returns a JavaScript `Date` object by default, or a string.
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `string` | false | Return as formatted string |
-| `american` | true | `MM/DD/YYYY` (true) vs `DD/MM/YYYY` (false) |
-| `year`  | random | Fix the year |
-| `month` | random | Fix month (0-indexed, like `Date`) |
-| `day`   | random | Fix day of month |
+| Option     | Default | Description                                 |
+|------------|---------|---------------------------------------------|
+| `string`   | false   | Return as formatted string                  |
+| `american` | true    | `MM/DD/YYYY` (true) vs `DD/MM/YYYY` (false) |
+| `year`     | random  | Fix the year                                |
+| `month`    | random  | Fix month (0-indexed, like `Date`)          |
+| `day`      | random  | Fix day of month                            |
 
 ```javascript
 chance.date()                               // => Sat Apr 09 2072 ...
@@ -586,10 +588,10 @@ chance.timestamp()                          // => 1482975167  (Unix seconds)
 
 ### `word({syllables, length})`
 
-| Option | Description |
-|--------|-------------|
-| `syllables` | Number of syllables (default 2) |
-| `length` | Exact character count (overrides syllables) |
+| Option      | Description                                 |
+|-------------|---------------------------------------------|
+| `syllables` | Number of syllables (default 2)             |
+| `length`    | Exact character count (overrides syllables) |
 
 ```javascript
 chance.word()                               // => 'nufraw'
@@ -629,9 +631,9 @@ chance.paragraph({sentences: 3})            // => exactly 3 sentences
 
 ### `guid({version})`
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `version` | `5` | `4` (random) or `5` (name-based) |
+| Option    | Default | Description                      |
+|-----------|---------|----------------------------------|
+| `version` | `5`     | `4` (random) or `5` (name-based) |
 
 ```javascript
 chance.guid()                               // => 'f0d8368d-85e2-54fb-73c4-2d60374295e3'
@@ -686,6 +688,7 @@ chance.unique(chance.integer, 10, {min: 0, max: 100})  // => 10 distinct integer
 ```
 
 Custom comparator for object uniqueness:
+
 ```javascript
 chance.unique(chance.currency, 2, {
     comparator: (arr, val) => arr.reduce((acc, item) => acc || item.code === val.code, false)
@@ -726,47 +729,47 @@ chance.seed(42);
 
 ## 14. Comparison with krandom
 
-| Feature | Chance.js | krandom |
-|---------|-----------|---------|
-| Language | JavaScript | Kotlin / Java |
-| Object graph generation | No | Yes (`ObjectGenerator`) |
-| Seeded reproducibility | Yes | Partial (per-generator seed) |
-| Normally-distributed values | Yes | No |
-| Weighted random | Yes | No |
-| Luhn-valid credit cards | Yes | Yes (`LuhnGenerator`) |
-| Fibonacci numbers | No | Yes (`FibonacciGenerator`) |
-| Dice / RPG notation | Yes | Yes (`Dice`, DiceType enum) |
-| Coin flip | Yes (`'heads'`/`'tails'`) | Yes (enum) |
-| IPv4 / IPv6 | Yes | IPv4 only |
-| Person data (name, SSN, etc.) | Yes | Yes (Kotlin layer) |
-| Finance (CC, currency, dollar) | Yes | Partial (Luhn only) |
-| Location (address, city, state) | Yes | No |
-| Text generation (sentence, para) | Yes | No |
-| GUID / UUID | Yes | No |
-| Bean/annotation-driven | No | No |
-| JVM interop | No | Yes |
+| Feature                          | Chance.js                 | krandom                      |
+|----------------------------------|---------------------------|------------------------------|
+| Language                         | JavaScript                | Kotlin / Java                |
+| Object graph generation          | No                        | Yes (`ObjectGenerator`)      |
+| Seeded reproducibility           | Yes                       | Partial (per-generator seed) |
+| Normally-distributed values      | Yes                       | No                           |
+| Weighted random                  | Yes                       | No                           |
+| Luhn-valid credit cards          | Yes                       | Yes (`LuhnGenerator`)        |
+| Fibonacci numbers                | No                        | Yes (`FibonacciGenerator`)   |
+| Dice / RPG notation              | Yes                       | Yes (`Dice`, DiceType enum)  |
+| Coin flip                        | Yes (`'heads'`/`'tails'`) | Yes (enum)                   |
+| IPv4 / IPv6                      | Yes                       | IPv4 only                    |
+| Person data (name, SSN, etc.)    | Yes                       | Yes (Kotlin layer)           |
+| Finance (CC, currency, dollar)   | Yes                       | Partial (Luhn only)          |
+| Location (address, city, state)  | Yes                       | No                           |
+| Text generation (sentence, para) | Yes                       | No                           |
+| GUID / UUID                      | Yes                       | No                           |
+| Bean/annotation-driven           | No                        | No                           |
+| JVM interop                      | No                        | Yes                          |
 
 ### Generators in krandom with direct Chance.js equivalents
 
-| krandom | Chance.js |
-|---------|-----------|
-| `Generators.ofInt(min, max)` | `chance.integer({min, max})` |
-| `Generators.ofFloat(min, max)` | `chance.floating({min, max})` |
-| `Generators.ofBoolean()` | `chance.bool()` |
-| `Generators.ofString()` | `chance.string()` |
-| `Generators.ofFibonacci()` | — (no equivalent) |
-| `Generators.ofLuhn()` | `chance.cc()` |
-| `NaturalNumberGenerator` | `chance.natural()` / `chance.prime()` |
-| `HexHashGenerator` | `chance.hash()` |
-| `IPv4Random` | `chance.ip()` |
-| `Dice` | `chance.rpg()` |
-| `Coin` | `chance.coin()` |
-| `Email` | `chance.email()` |
-| `SocialSecurityNumber` | `chance.ssn()` |
-| `FirstName` / `SurName` | `chance.first()` / `chance.last()` |
-| `Age` | `chance.age()` |
-| `Gender` | `chance.gender()` |
-| `BirthDay` | `chance.birthday()` |
+| krandom                        | Chance.js                             |
+|--------------------------------|---------------------------------------|
+| `Generators.ofInt(min, max)`   | `chance.integer({min, max})`          |
+| `Generators.ofFloat(min, max)` | `chance.floating({min, max})`         |
+| `Generators.ofBoolean()`       | `chance.bool()`                       |
+| `Generators.ofString()`        | `chance.string()`                     |
+| `Generators.ofFibonacci()`     | — (no equivalent)                     |
+| `Generators.ofLuhn()`          | `chance.cc()`                         |
+| `NaturalNumberGenerator`       | `chance.natural()` / `chance.prime()` |
+| `HexHashGenerator`             | `chance.hash()`                       |
+| `IPv4Random`                   | `chance.ip()`                         |
+| `Dice`                         | `chance.rpg()`                        |
+| `Coin`                         | `chance.coin()`                       |
+| `Email`                        | `chance.email()`                      |
+| `SocialSecurityNumber`         | `chance.ssn()`                        |
+| `FirstName` / `SurName`        | `chance.first()` / `chance.last()`    |
+| `Age`                          | `chance.age()`                        |
+| `Gender`                       | `chance.gender()`                     |
+| `BirthDay`                     | `chance.birthday()`                   |
 
 ---
 
@@ -774,11 +777,11 @@ chance.seed(42);
 
 Features present in Chance.js that krandom does not yet cover:
 
-| Category | Methods |
-|----------|---------|
+| Category | Methods                                                                                                                                              |
+|----------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Location | `city`, `state`, `country`, `zip`, `postal`, `postcode`, `phone`, `areacode`, `latitude`, `longitude`, `coordinates`, `altitude`, `depth`, `geohash` |
-| Finance | `cc` types (Visa/MC/Amex etc.), `currency`, `dollar`, `euro`, `exp` dates |
-| Web | `domain`, `url`, `tld`, `ipv6`, `color`, `twitter`, `avatar`, `company`, `profession` |
-| Text | `sentence`, `paragraph`, `syllable` |
-| Time | `year`, `month`, `hour`, `minute`, `second`, `timestamp` |
-| Misc | `guid`, `normal` distribution, `weighted`, `unique`, `rpg` notation |
+| Finance  | `cc` types (Visa/MC/Amex etc.), `currency`, `dollar`, `euro`, `exp` dates                                                                            |
+| Web      | `domain`, `url`, `tld`, `ipv6`, `color`, `twitter`, `avatar`, `company`, `profession`                                                                |
+| Text     | `sentence`, `paragraph`, `syllable`                                                                                                                  |
+| Time     | `year`, `month`, `hour`, `minute`, `second`, `timestamp`                                                                                             |
+| Misc     | `guid`, `normal` distribution, `weighted`, `unique`, `rpg` notation                                                                                  |

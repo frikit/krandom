@@ -14,6 +14,7 @@
 Easy Random generates random instances of arbitrary Java classes by traversing and populating entire object graphs recursively. It implements the **ObjectMother** pattern for the JVM.
 
 **Primary use cases:**
+
 - Generating test fixtures without hand-crafting data builders
 - Populating databases with random domain objects at scale
 - Testing algorithms (sorting, persistence, serialization) where specific values do not matter
@@ -44,6 +45,7 @@ public class EasyRandom extends Random {
 Because it extends `java.util.Random`, it is seeded and reproducible like any `Random` instance.
 
 **Internal `nextObject` pipeline:**
+
 1. If type is a Java record, randomize each component and invoke the canonical constructor.
 2. Check `ExclusionPolicy.shouldBeExcluded(type)` — return null if excluded.
 3. Look up a `Randomizer` for the type via `RandomizerProvider` — short-circuit if found.
@@ -58,20 +60,20 @@ Because it extends `java.util.Random`, it is seeded and reproducible like any `R
 
 Fluent configuration object. All setters return `this`.
 
-| Parameter | Default | Description |
-|---|---|---|
-| `seed` | `123L` | Deterministic seed for reproducibility |
-| `charset` | `US_ASCII` | Used for `String`/`char` generation |
-| `objectPoolSize` | `10` | Max cached instances per type (recursion guard) |
-| `randomizationDepth` | `Integer.MAX_VALUE` | Max depth of object graph |
-| `collectionSizeRange` | `[1, 100]` | Min/max element count for collections and arrays |
-| `stringLengthRange` | `[1, 32]` | Min/max character count for strings |
-| `dateRange` | `[2010-01-01, 2030-01-01]` | Range for date/time types |
-| `timeRange` | `[LocalTime.MIN, LocalTime.MAX]` | Range for time-only types |
-| `scanClasspathForConcreteTypes` | `false` | Scan classpath for concrete subtypes of abstract/interface fields |
-| `overrideDefaultInitialization` | `false` | Randomize fields that already have a non-null/non-default value |
-| `ignoreRandomizationErrors` | `false` | Silently set field to null on error instead of throwing |
-| `bypassSetters` | `false` | Use direct field reflection instead of setter methods |
+| Parameter                       | Default                          | Description                                                       |
+|---------------------------------|----------------------------------|-------------------------------------------------------------------|
+| `seed`                          | `123L`                           | Deterministic seed for reproducibility                            |
+| `charset`                       | `US_ASCII`                       | Used for `String`/`char` generation                               |
+| `objectPoolSize`                | `10`                             | Max cached instances per type (recursion guard)                   |
+| `randomizationDepth`            | `Integer.MAX_VALUE`              | Max depth of object graph                                         |
+| `collectionSizeRange`           | `[1, 100]`                       | Min/max element count for collections and arrays                  |
+| `stringLengthRange`             | `[1, 32]`                        | Min/max character count for strings                               |
+| `dateRange`                     | `[2010-01-01, 2030-01-01]`       | Range for date/time types                                         |
+| `timeRange`                     | `[LocalTime.MIN, LocalTime.MAX]` | Range for time-only types                                         |
+| `scanClasspathForConcreteTypes` | `false`                          | Scan classpath for concrete subtypes of abstract/interface fields |
+| `overrideDefaultInitialization` | `false`                          | Randomize fields that already have a non-null/non-default value   |
+| `ignoreRandomizationErrors`     | `false`                          | Silently set field to null on error instead of throwing           |
+| `bypassSetters`                 | `false`                          | Use direct field reflection instead of setter methods             |
 
 ```java
 EasyRandomParameters parameters = new EasyRandomParameters()
@@ -248,29 +250,29 @@ Placed on `RandomizerRegistry` implementations to control lookup order. Higher v
 
 ### `FieldPredicates` → `Predicate<Field>`
 
-| Method | Description |
-|---|---|
-| `named(String pattern)` | Match field name against regex |
-| `ofType(Class<?>)` | Match exact declared type |
-| `inClass(Class<?>)` | Match fields declared in a specific class |
-| `isAnnotatedWith(Class<? extends Annotation>...)` | Match fields carrying annotation(s) |
-| `hasModifiers(int)` | Match fields with given `Modifier` bits |
+| Method                                            | Description                               |
+|---------------------------------------------------|-------------------------------------------|
+| `named(String pattern)`                           | Match field name against regex            |
+| `ofType(Class<?>)`                                | Match exact declared type                 |
+| `inClass(Class<?>)`                               | Match fields declared in a specific class |
+| `isAnnotatedWith(Class<? extends Annotation>...)` | Match fields carrying annotation(s)       |
+| `hasModifiers(int)`                               | Match fields with given `Modifier` bits   |
 
 ### `TypePredicates` → `Predicate<Class<?>>`
 
-| Method | Description |
-|---|---|
-| `named(String)` | Match by fully-qualified name |
-| `ofType(Class<?>)` | Match exact type |
-| `inPackage(String prefix)` | Match types in a package |
-| `isAnnotatedWith(Class<? extends Annotation>...)` | Match annotated types |
-| `isInterface()` | Match interfaces |
-| `isPrimitive()` | Match primitives |
-| `isAbstract()` | Match abstract classes |
-| `isEnum()` | Match enumerations |
-| `isArray()` | Match array types |
-| `isAssignableFrom(Class<?>)` | Match subtypes |
-| `hasModifiers(int)` | Match types with given modifier bits |
+| Method                                            | Description                          |
+|---------------------------------------------------|--------------------------------------|
+| `named(String)`                                   | Match by fully-qualified name        |
+| `ofType(Class<?>)`                                | Match exact type                     |
+| `inPackage(String prefix)`                        | Match types in a package             |
+| `isAnnotatedWith(Class<? extends Annotation>...)` | Match annotated types                |
+| `isInterface()`                                   | Match interfaces                     |
+| `isPrimitive()`                                   | Match primitives                     |
+| `isAbstract()`                                    | Match abstract classes               |
+| `isEnum()`                                        | Match enumerations                   |
+| `isArray()`                                       | Match array types                    |
+| `isAssignableFrom(Class<?>)`                      | Match subtypes                       |
+| `hasModifiers(int)`                               | Match types with given modifier bits |
 
 Both are composable via `and()`, `or()`, `negate()`.
 
@@ -282,44 +284,51 @@ Both are composable via `and()`, `or()`, `negate()`.
 
 All extend `FakerBasedRandomizer<String>` and accept `(long seed)` or `(long seed, Locale locale)`.
 
-`CityRandomizer`, `CompanyRandomizer`, `CountryRandomizer`, `CreditCardNumberRandomizer`, `EmailRandomizer`, `FirstNameRandomizer`, `FullNameRandomizer`, `GenericStringRandomizer`, `Ipv4AddressRandomizer`, `Ipv6AddressRandomizer`, `IsbnRandomizer`, `LastNameRandomizer`, `LatitudeRandomizer`, `LongitudeRandomizer`, `MacAddressRandomizer`, `ParagraphRandomizer`, `PasswordRandomizer`, `PhoneNumberRandomizer`, `RegularExpressionRandomizer`, `SentenceRandomizer`, `StateRandomizer`, `StreetRandomizer`, `WordRandomizer`, `ZipCodeRandomizer`
+`CityRandomizer`, `CompanyRandomizer`, `CountryRandomizer`, `CreditCardNumberRandomizer`, `EmailRandomizer`, `FirstNameRandomizer`, `FullNameRandomizer`, `GenericStringRandomizer`,
+`Ipv4AddressRandomizer`, `Ipv6AddressRandomizer`, `IsbnRandomizer`, `LastNameRandomizer`, `LatitudeRandomizer`, `LongitudeRandomizer`, `MacAddressRandomizer`, `ParagraphRandomizer`,
+`PasswordRandomizer`, `PhoneNumberRandomizer`, `RegularExpressionRandomizer`, `SentenceRandomizer`, `StateRandomizer`, `StreetRandomizer`, `WordRandomizer`, `ZipCodeRandomizer`
 
 ### Misc — `org.jeasy.random.randomizers.misc`
 
-| Randomizer | Output | Notes |
-|---|---|---|
-| `BooleanRandomizer` | `Boolean` | |
-| `ConstantRandomizer<T>` | `T` | Always returns the same value |
-| `EnumRandomizer<T>` | `T extends Enum<T>` | Random enum constant |
-| `LocaleRandomizer` | `Locale` | |
-| `NullRandomizer` | `null` | Always null |
-| `OptionalRandomizer<T>` | `Optional<T>` | |
-| `SkipRandomizer` | `null` | Null Object — leaves field unset |
-| `UUIDRandomizer` | `UUID` | |
+| Randomizer              | Output              | Notes                            |
+|-------------------------|---------------------|----------------------------------|
+| `BooleanRandomizer`     | `Boolean`           |                                  |
+| `ConstantRandomizer<T>` | `T`                 | Always returns the same value    |
+| `EnumRandomizer<T>`     | `T extends Enum<T>` | Random enum constant             |
+| `LocaleRandomizer`      | `Locale`            |                                  |
+| `NullRandomizer`        | `null`              | Always null                      |
+| `OptionalRandomizer<T>` | `Optional<T>`       |                                  |
+| `SkipRandomizer`        | `null`              | Null Object — leaves field unset |
+| `UUIDRandomizer`        | `UUID`              |                                  |
 
 ### Numbers — `org.jeasy.random.randomizers.number`
 
-`ByteRandomizer`, `ShortRandomizer`, `IntegerRandomizer`, `LongRandomizer`, `FloatRandomizer`, `DoubleRandomizer`, `BigIntegerRandomizer`, `BigDecimalRandomizer`, `AtomicIntegerRandomizer`, `AtomicLongRandomizer`, `NumberRandomizer`
+`ByteRandomizer`, `ShortRandomizer`, `IntegerRandomizer`, `LongRandomizer`, `FloatRandomizer`, `DoubleRandomizer`, `BigIntegerRandomizer`, `BigDecimalRandomizer`, `AtomicIntegerRandomizer`,
+`AtomicLongRandomizer`, `NumberRandomizer`
 
 ### Ranges — `org.jeasy.random.randomizers.range`
 
 All extend `AbstractRangeRandomizer<T>` and take `(T min, T max)` or `(T min, T max, long seed)`.
 
-`ByteRangeRandomizer`, `ShortRangeRandomizer`, `IntegerRangeRandomizer`, `LongRangeRandomizer`, `FloatRangeRandomizer`, `DoubleRangeRandomizer`, `BigDecimalRangeRandomizer`, `BigIntegerRangeRandomizer`, `DateRangeRandomizer`, `SqlDateRangeRandomizer`, `InstantRangeRandomizer`, `LocalDateRangeRandomizer`, `LocalDateTimeRangeRandomizer`, `LocalTimeRangeRandomizer`, `OffsetDateTimeRangeRandomizer`, `OffsetTimeRangeRandomizer`, `ZonedDateTimeRangeRandomizer`, `YearRangeRandomizer`, `YearMonthRangeRandomizer`
+`ByteRangeRandomizer`, `ShortRangeRandomizer`, `IntegerRangeRandomizer`, `LongRangeRandomizer`, `FloatRangeRandomizer`, `DoubleRangeRandomizer`, `BigDecimalRangeRandomizer`,
+`BigIntegerRangeRandomizer`, `DateRangeRandomizer`, `SqlDateRangeRandomizer`, `InstantRangeRandomizer`, `LocalDateRangeRandomizer`, `LocalDateTimeRangeRandomizer`, `LocalTimeRangeRandomizer`,
+`OffsetDateTimeRangeRandomizer`, `OffsetTimeRangeRandomizer`, `ZonedDateTimeRangeRandomizer`, `YearRangeRandomizer`, `YearMonthRangeRandomizer`
 
 ### Date/time — `org.jeasy.random.randomizers.time`
 
-`CalendarRandomizer`, `DateRandomizer`, `DurationRandomizer`, `GregorianCalendarRandomizer`, `InstantRandomizer`, `LocalDateRandomizer`, `LocalDateTimeRandomizer`, `LocalTimeRandomizer`, `MonthDayRandomizer`, `OffsetDateTimeRandomizer`, `OffsetTimeRandomizer`, `PeriodRandomizer`, `SqlDateRandomizer`, `SqlTimeRandomizer`, `SqlTimestampRandomizer`, `TimeZoneRandomizer`, `YearMonthRandomizer`, `YearRandomizer`, `ZoneIdRandomizer`, `ZoneOffsetRandomizer`, `ZonedDateTimeRandomizer`
+`CalendarRandomizer`, `DateRandomizer`, `DurationRandomizer`, `GregorianCalendarRandomizer`, `InstantRandomizer`, `LocalDateRandomizer`, `LocalDateTimeRandomizer`, `LocalTimeRandomizer`,
+`MonthDayRandomizer`, `OffsetDateTimeRandomizer`, `OffsetTimeRandomizer`, `PeriodRandomizer`, `SqlDateRandomizer`, `SqlTimeRandomizer`, `SqlTimestampRandomizer`, `TimeZoneRandomizer`,
+`YearMonthRandomizer`, `YearRandomizer`, `ZoneIdRandomizer`, `ZoneOffsetRandomizer`, `ZonedDateTimeRandomizer`
 
 ### Collections — `org.jeasy.random.randomizers.collection`
 
-| Randomizer | Output |
-|---|---|
-| `ListRandomizer<T>` | `List<T>` |
-| `SetRandomizer<T>` | `Set<T>` |
-| `QueueRandomizer<T>` | `Queue<T>` |
+| Randomizer             | Output       |
+|------------------------|--------------|
+| `ListRandomizer<T>`    | `List<T>`    |
+| `SetRandomizer<T>`     | `Set<T>`     |
+| `QueueRandomizer<T>`   | `Queue<T>`   |
 | `EnumSetRandomizer<T>` | `EnumSet<T>` |
-| `MapRandomizer<K,V>` | `Map<K,V>` |
+| `MapRandomizer<K,V>`   | `Map<K,V>`   |
 
 ### Network — `org.jeasy.random.randomizers.net`
 
@@ -381,15 +390,15 @@ Always skipped (returns null) — see issue #280.
 
 ## 8. Registry Resolution Order
 
-| Registry | Priority | Role |
-|---|---|---|
-| User-defined registries | `> 0` | Override everything |
-| `ExclusionRandomizerRegistry` | `0` | Handles `@Exclude` and predicate exclusions |
-| `CustomRandomizerRegistry` | `-1` | Randomizers registered via API |
-| `AnnotationRandomizerRegistry` | `-1` | `@Randomizer` annotations on fields |
-| `BeanValidationRandomizerRegistry` | `-2` | Constraint-aware randomizers (separate module) |
-| `TimeRandomizerRegistry` | `-3` | JSR 310 types |
-| `InternalRandomizerRegistry` | `-4` | Java built-ins (lowest priority / base layer) |
+| Registry                           | Priority | Role                                           |
+|------------------------------------|----------|------------------------------------------------|
+| User-defined registries            | `> 0`    | Override everything                            |
+| `ExclusionRandomizerRegistry`      | `0`      | Handles `@Exclude` and predicate exclusions    |
+| `CustomRandomizerRegistry`         | `-1`     | Randomizers registered via API                 |
+| `AnnotationRandomizerRegistry`     | `-1`     | `@Randomizer` annotations on fields            |
+| `BeanValidationRandomizerRegistry` | `-2`     | Constraint-aware randomizers (separate module) |
+| `TimeRandomizerRegistry`           | `-3`     | JSR 310 types                                  |
+| `InternalRandomizerRegistry`       | `-4`     | Java built-ins (lowest priority / base layer)  |
 
 Resolution stops at the first registry that returns a non-null randomizer.
 
@@ -434,11 +443,13 @@ Uses [classgraph](https://github.com/classgraph/classgraph) at runtime.
 ## 11. Generics Support
 
 **Works:**
+
 - Simple concrete type parameters: `List<String>`, `Map<String, Integer>`
 - Single-level type variables resolved from context
 - Simple generic inheritance: `class StringList extends ArrayList<String>`
 
 **Does not work:**
+
 - Composite/nested generic collections: `List<List<String>>`, `Map<String, List<Integer>>`
 - Complex generic hierarchies involving type erasure
 
@@ -474,36 +485,36 @@ containing the fully-qualified class name of your registry.
 
 ## 14. Design Patterns Used
 
-| Pattern | Where |
-|---|---|
-| Builder / Fluent API | `EasyRandomParameters` — all setters return `this` |
-| Strategy | `Randomizer`, `ExclusionPolicy`, `ObjectFactory`, `RandomizerProvider` — all swappable |
-| Registry | `RandomizerRegistry` — groups randomizers keyed by field or type |
-| Chain of Responsibility | `RegistriesRandomizerProvider` walks sorted registries until a match is found |
-| Null Object | `SkipRandomizer` returns null to leave field unset |
-| Object Pool / Cache | `RandomizationContext.populatedBeans` caches instances to break circular references |
-| Context Object | `RandomizationContext` / `RandomizationContextStackItem` carry per-invocation state |
-| Template Method | `AbstractRangeRandomizer<T>` — algorithm fixed, subclasses implement min/max/check |
-| ObjectMother | The library itself is a reusable ObjectMother implementation |
-| Decorator | `ContextAwareRandomizer` extends `Randomizer` with context injection |
-| Service Locator / SPI | `ServiceLoader` discovers `RandomizerRegistry` implementations on the classpath |
+| Pattern                 | Where                                                                                  |
+|-------------------------|----------------------------------------------------------------------------------------|
+| Builder / Fluent API    | `EasyRandomParameters` — all setters return `this`                                     |
+| Strategy                | `Randomizer`, `ExclusionPolicy`, `ObjectFactory`, `RandomizerProvider` — all swappable |
+| Registry                | `RandomizerRegistry` — groups randomizers keyed by field or type                       |
+| Chain of Responsibility | `RegistriesRandomizerProvider` walks sorted registries until a match is found          |
+| Null Object             | `SkipRandomizer` returns null to leave field unset                                     |
+| Object Pool / Cache     | `RandomizationContext.populatedBeans` caches instances to break circular references    |
+| Context Object          | `RandomizationContext` / `RandomizationContextStackItem` carry per-invocation state    |
+| Template Method         | `AbstractRangeRandomizer<T>` — algorithm fixed, subclasses implement min/max/check     |
+| ObjectMother            | The library itself is a reusable ObjectMother implementation                           |
+| Decorator               | `ContextAwareRandomizer` extends `Randomizer` with context injection                   |
+| Service Locator / SPI   | `ServiceLoader` discovers `RandomizerRegistry` implementations on the classpath        |
 
 ---
 
 ## 15. Runtime Dependencies
 
-| Library | Purpose |
-|---|---|
-| **objenesis** | Instantiates classes without no-arg constructors |
+| Library        | Purpose                                                 |
+|----------------|---------------------------------------------------------|
+| **objenesis**  | Instantiates classes without no-arg constructors        |
 | **classgraph** | Classpath scanning for concrete subtypes (when enabled) |
-| **datafaker** | Realistic fake data backing facade randomizers |
-| **slf4j-api** | Logging (depth warnings, etc.) |
+| **datafaker**  | Realistic fake data backing facade randomizers          |
+| **slf4j-api**  | Logging (depth warnings, etc.)                          |
 
 ---
 
 ## 16. Community Extensions
 
-| Extension | What it adds |
-|---|---|
-| easy-random-vavr | Vavr functional Java collection and option types |
-| easy-random-protobuf | Protocol Buffers message types |
+| Extension            | What it adds                                     |
+|----------------------|--------------------------------------------------|
+| easy-random-vavr     | Vavr functional Java collection and option types |
+| easy-random-protobuf | Protocol Buffers message types                   |

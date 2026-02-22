@@ -44,10 +44,10 @@ import "github.com/brianvoe/gofakeit/v6"
 
 ### 3.1 Global functions vs `Faker` struct
 
-| Form | Example | Notes |
-|---|---|---|
-| Package-level | `gofakeit.Name()` | Uses global `GlobalFaker`; mutex-protected, safe for concurrent use |
-| Instance method | `f.Name()` | Thread-safety depends on construction mode |
+| Form            | Example           | Notes                                                               |
+|-----------------|-------------------|---------------------------------------------------------------------|
+| Package-level   | `gofakeit.Name()` | Uses global `GlobalFaker`; mutex-protected, safe for concurrent use |
+| Instance method | `f.Name()`        | Thread-safety depends on construction mode                          |
 
 ### 3.2 Constructors
 
@@ -567,16 +567,16 @@ All options structs accept row counts, field definitions (`{Name, Function, Para
 
 ### 5.1 Tag reference
 
-| Tag | Effect | Example |
-|---|---|---|
-| `fake:"{function}"` | Call named function | `fake:"{firstname}"` |
-| `fake:"{function:arg1,arg2}"` | Function with parameters | `fake:"{number:1,100}"` |
-| `fake:"{regex:[pattern]}"` | Generate from RE2 regex | `fake:"{regex:[a-z]{5}}"` |
-| `fake:"{randomstring:[a,b,c]}"` | Pick from list | `fake:"{randomstring:[foo,bar,baz]}"` |
-| `fake:"skip"` or `fake:"-"` | Skip this field | |
-| `fakesize:"n"` | Exact slice/map/array size | `fakesize:"5"` |
-| `fakesize:"min,max"` | Random size in range | `fakesize:"2,8"` |
-| `format:"layout"` | `time.Time` parse layout | `format:"2006-01-02"` |
+| Tag                             | Effect                     | Example                               |
+|---------------------------------|----------------------------|---------------------------------------|
+| `fake:"{function}"`             | Call named function        | `fake:"{firstname}"`                  |
+| `fake:"{function:arg1,arg2}"`   | Function with parameters   | `fake:"{number:1,100}"`               |
+| `fake:"{regex:[pattern]}"`      | Generate from RE2 regex    | `fake:"{regex:[a-z]{5}}"`             |
+| `fake:"{randomstring:[a,b,c]}"` | Pick from list             | `fake:"{randomstring:[foo,bar,baz]}"` |
+| `fake:"skip"` or `fake:"-"`     | Skip this field            |                                       |
+| `fakesize:"n"`                  | Exact slice/map/array size | `fakesize:"5"`                        |
+| `fakesize:"min,max"`            | Random size in range       | `fakesize:"2,8"`                      |
+| `format:"layout"`               | `time.Time` parse layout   | `format:"2006-01-02"`                 |
 
 ### 5.2 `Fakeable` interface
 
@@ -657,80 +657,80 @@ gofakeit.RemoveFuncLookup("teamname")
 
 ### 8.1 Implemented in krandom
 
-| gofakeit function | krandom class | Notes |
-|---|---|---|
-| `Number(min, max)` | `IntGenerator` | Bounded |
-| `Int64()` / `Int32()` etc | `LongGenerator`, `IntGenerator` | |
-| `Float64Range()` / `Float32Range()` | `FloatGenerator`, `DoubleGenerator` | |
-| `Bool()` | `BooleanGenerator` | |
-| `FirstName()` | `FirstName.kt` | EN only |
-| `LastName()` | `SurName.kt` | EN only |
-| `Email()` | `Email.kt` | |
-| `Username()` | `Username.kt` | |
-| `SSN()` | `SocialSecurityNumber.kt` | |
-| `IPv4Address()` | `IPv4Generator.java` | RFC 791 unicast |
-| `IPv6Address()` | `IPv6Generator.java` | RFC 4291 / 5952 |
-| `Dice(n, sides)` | `DiceGenerator.java` | D4/D6/D8/D10/D12/D20 |
-| `FlipACoin()` | `CoinGenerator.java` | |
-| `Struct(&v)` (reflection fill) | `ObjectGenerator.java` | Reflection-based |
-| Luhn-valid number | `LuhnGenerator.java` | 10-digit |
-| Fibonacci | `FibonacciGenerator.java` | No gofakeit equivalent |
-| Natural/prime/composite numbers | `NaturalNumberGenerator.kt` | No gofakeit equivalent |
+| gofakeit function                   | krandom class                       | Notes                  |
+|-------------------------------------|-------------------------------------|------------------------|
+| `Number(min, max)`                  | `IntGenerator`                      | Bounded                |
+| `Int64()` / `Int32()` etc           | `LongGenerator`, `IntGenerator`     |                        |
+| `Float64Range()` / `Float32Range()` | `FloatGenerator`, `DoubleGenerator` |                        |
+| `Bool()`                            | `BooleanGenerator`                  |                        |
+| `FirstName()`                       | `FirstName.kt`                      | EN only                |
+| `LastName()`                        | `SurName.kt`                        | EN only                |
+| `Email()`                           | `Email.kt`                          |                        |
+| `Username()`                        | `Username.kt`                       |                        |
+| `SSN()`                             | `SocialSecurityNumber.kt`           |                        |
+| `IPv4Address()`                     | `IPv4Generator.java`                | RFC 791 unicast        |
+| `IPv6Address()`                     | `IPv6Generator.java`                | RFC 4291 / 5952        |
+| `Dice(n, sides)`                    | `DiceGenerator.java`                | D4/D6/D8/D10/D12/D20   |
+| `FlipACoin()`                       | `CoinGenerator.java`                |                        |
+| `Struct(&v)` (reflection fill)      | `ObjectGenerator.java`              | Reflection-based       |
+| Luhn-valid number                   | `LuhnGenerator.java`                | 10-digit               |
+| Fibonacci                           | `FibonacciGenerator.java`           | No gofakeit equivalent |
+| Natural/prime/composite numbers     | `NaturalNumberGenerator.kt`         | No gofakeit equivalent |
 
 ### 8.2 Gaps — Tier 1 (high value, simple)
 
-| gofakeit function | Category | Priority |
-|---|---|---|
-| `UUID()` | Misc | Wraps `java.util.UUID.randomUUID()` — trivial |
-| `Date()`, `DateRange()`, `FutureDate()`, `PastDate()` | Date/Time | Uses `java.time.*` already on classpath |
-| `Month()`, `Year()`, `WeekDay()` | Date/Time | Scalar date parts |
-| `Password(...)` | Internet | Extend `StringGenerator` with policy params |
-| `Phone()` / `PhoneFormatted()` | Contact | Format-string `Numerify` approach |
-| `City()`, `State()`, `Country()`, `Zip()`, `Street*()` | Address | CSV-backed, mirrors `FirstName` pattern |
-| `CurrencyShort()` / `CurrencyLong()` / `Price()` | Finance | ISO 4217 lookup table |
-| `MacAddress()` | Network | 6 hex octets — trivial |
-| `HTTPMethod()` / `HTTPStatusCode()` | HTTP | Static list / range |
-| `UrlSlug(n)` | Internet | Compose lorem words with hyphens |
+| gofakeit function                                      | Category  | Priority                                      |
+|--------------------------------------------------------|-----------|-----------------------------------------------|
+| `UUID()`                                               | Misc      | Wraps `java.util.UUID.randomUUID()` — trivial |
+| `Date()`, `DateRange()`, `FutureDate()`, `PastDate()`  | Date/Time | Uses `java.time.*` already on classpath       |
+| `Month()`, `Year()`, `WeekDay()`                       | Date/Time | Scalar date parts                             |
+| `Password(...)`                                        | Internet  | Extend `StringGenerator` with policy params   |
+| `Phone()` / `PhoneFormatted()`                         | Contact   | Format-string `Numerify` approach             |
+| `City()`, `State()`, `Country()`, `Zip()`, `Street*()` | Address   | CSV-backed, mirrors `FirstName` pattern       |
+| `CurrencyShort()` / `CurrencyLong()` / `Price()`       | Finance   | ISO 4217 lookup table                         |
+| `MacAddress()`                                         | Network   | 6 hex octets — trivial                        |
+| `HTTPMethod()` / `HTTPStatusCode()`                    | HTTP      | Static list / range                           |
+| `UrlSlug(n)`                                           | Internet  | Compose lorem words with hyphens              |
 
 ### 8.3 Gaps — Tier 2 (medium value)
 
-| gofakeit function | Category | Notes |
-|---|---|---|
-| `URL()` / `DomainName()` / `DomainSuffix()` | Internet | String composition |
-| `UserAgent()` | Internet | Static list of real UA strings |
-| `CreditCardNumber()` / `CreditCardType()` / `CreditCardExp()` / `CreditCardCvv()` | Finance | Extend `LuhnGenerator` with BIN prefixes |
-| `Company()` / `CompanySuffix()` | Company | CSV-backed |
-| `JobTitle()` / `JobLevel()` | Job | CSV-backed |
-| `Color()` / `HexColor()` / `RGBColor()` | Color | CSS named colors + hex |
-| `LoremIpsumWord/Sentence/Paragraph()` | Text | Standard lorem word list |
-| `FileExtension()` / `FileMimeType()` | File | Static lookup table |
-| `AchRouting()` / `AchAccount()` | Finance | US bank routing numbers |
-| `BitcoinAddress()` | Finance | P2PKH format |
+| gofakeit function                                                                 | Category | Notes                                    |
+|-----------------------------------------------------------------------------------|----------|------------------------------------------|
+| `URL()` / `DomainName()` / `DomainSuffix()`                                       | Internet | String composition                       |
+| `UserAgent()`                                                                     | Internet | Static list of real UA strings           |
+| `CreditCardNumber()` / `CreditCardType()` / `CreditCardExp()` / `CreditCardCvv()` | Finance  | Extend `LuhnGenerator` with BIN prefixes |
+| `Company()` / `CompanySuffix()`                                                   | Company  | CSV-backed                               |
+| `JobTitle()` / `JobLevel()`                                                       | Job      | CSV-backed                               |
+| `Color()` / `HexColor()` / `RGBColor()`                                           | Color    | CSS named colors + hex                   |
+| `LoremIpsumWord/Sentence/Paragraph()`                                             | Text     | Standard lorem word list                 |
+| `FileExtension()` / `FileMimeType()`                                              | File     | Static lookup table                      |
+| `AchRouting()` / `AchAccount()`                                                   | Finance  | US bank routing numbers                  |
+| `BitcoinAddress()`                                                                | Finance  | P2PKH format                             |
 
 ### 8.4 Gaps — Tier 3 (niche / lower priority)
 
-| gofakeit function | Category | Notes |
-|---|---|---|
-| `Weighted(options, weights)` | Utility | `WeightedGenerator<T>` wrapper |
-| `Regex(pattern)` | Pattern | RE2 regex string generation |
-| `Generate("{func}")` template | Pattern | Pattern-based string generation |
-| Structured data (CSV, JSON, XML, SQL) | Format | Format-generation API |
-| Beer / Food / Animal sub-categories | Domain | Low practical demand |
-| Minecraft items | Domain | Highly niche |
-| Grammar sub-types (Adjective*, Noun*, etc.) | Grammar | NLP / content generation |
-| `HackerPhrase()` / `Hipster*()` | Fun | Demo/placeholder data |
+| gofakeit function                           | Category | Notes                           |
+|---------------------------------------------|----------|---------------------------------|
+| `Weighted(options, weights)`                | Utility  | `WeightedGenerator<T>` wrapper  |
+| `Regex(pattern)`                            | Pattern  | RE2 regex string generation     |
+| `Generate("{func}")` template               | Pattern  | Pattern-based string generation |
+| Structured data (CSV, JSON, XML, SQL)       | Format   | Format-generation API           |
+| Beer / Food / Animal sub-categories         | Domain   | Low practical demand            |
+| Minecraft items                             | Domain   | Highly niche                    |
+| Grammar sub-types (Adjective*, Noun*, etc.) | Grammar  | NLP / content generation        |
+| `HackerPhrase()` / `Hipster*()`             | Fun      | Demo/placeholder data           |
 
 ### 8.5 Architectural comparison
 
-| Aspect | gofakeit | krandom |
-|---|---|---|
-| **Reproducibility** | Single seed on `Faker`; all calls deterministic | Each generator creates its own `SecureRandom`; no shared seed |
-| **PRNG** | PCG default; crypto optional | `SecureRandom` everywhere (crypto-strength by default) |
-| **Object graph filling** | `fake:` struct tags + `Struct(&v)` | `ObjectGenerator<T>` via reflection; no annotation needed |
-| **Template / pattern** | Full `text/template`; `Generate("{func:arg}")` | Partial: `Numerify`/`Lexify` in `StringGenerator`; no full engine |
-| **Weighted selection** | `Weighted(options, weights)` built in | Not available |
-| **Regex generation** | `Regex(pattern)` built in | Not available |
-| **Structured output** | CSV, JSON, XML, SQL, Markdown | Not available |
+| Aspect                   | gofakeit                                        | krandom                                                           |
+|--------------------------|-------------------------------------------------|-------------------------------------------------------------------|
+| **Reproducibility**      | Single seed on `Faker`; all calls deterministic | Each generator creates its own `SecureRandom`; no shared seed     |
+| **PRNG**                 | PCG default; crypto optional                    | `SecureRandom` everywhere (crypto-strength by default)            |
+| **Object graph filling** | `fake:` struct tags + `Struct(&v)`              | `ObjectGenerator<T>` via reflection; no annotation needed         |
+| **Template / pattern**   | Full `text/template`; `Generate("{func:arg}")`  | Partial: `Numerify`/`Lexify` in `StringGenerator`; no full engine |
+| **Weighted selection**   | `Weighted(options, weights)` built in           | Not available                                                     |
+| **Regex generation**     | `Regex(pattern)` built in                       | Not available                                                     |
+| **Structured output**    | CSV, JSON, XML, SQL, Markdown                   | Not available                                                     |
 
 ---
 

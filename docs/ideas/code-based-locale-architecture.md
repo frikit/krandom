@@ -111,7 +111,7 @@ enum class LocaleData(
         fun fromLocale(locale: Locale): LocaleData {
             return values().firstOrNull {
                 it.locale.language == locale.language &&
-                it.locale.country == locale.country
+                        it.locale.country == locale.country
             } ?: EN_US // Default fallback
         }
 
@@ -119,7 +119,7 @@ enum class LocaleData(
             // Try exact match (language + country)
             values().firstOrNull {
                 it.locale.language == locale.language &&
-                it.locale.country == locale.country
+                        it.locale.country == locale.country
             }?.let { return it }
 
             // Try language-only match
@@ -255,9 +255,9 @@ String germanName = germanGen.generate();
 
 // Builder pattern
 FirstName gen = FirstName.builder()
-    .locale(Locale.JAPAN)
-    .seed(12345L)
-    .build();
+                         .locale(Locale.JAPAN)
+                         .seed(12345L)
+                         .build();
 List<String> names = gen.generateList(10);
 
 // Configuration object
@@ -490,6 +490,7 @@ LocaleRegistry.register(customSpanish)
 ### How to Maintain Large Name Lists in Code
 
 **Option 1: Separate Kotlin files per locale**
+
 ```kotlin
 // LocaleData_EN_US.kt
 internal val EN_US_FIRST_NAMES = listOf(
@@ -514,6 +515,7 @@ enum class LocaleData(/* ... */) {
 ```
 
 **Option 2: Code generation from CSV**
+
 ```bash
 # Build script generates Kotlin code from CSV files
 # names_en_us.csv → LocaleData_EN_US.kt
@@ -521,6 +523,7 @@ enum class LocaleData(/* ... */) {
 ```
 
 **Option 3: Compressed string literals**
+
 ```kotlin
 // Store as comma-separated string, split on first use
 private const val EN_US_NAMES_DATA = """
@@ -546,17 +549,20 @@ val EN_US_FIRST_NAMES by lazy {
 ## Recommended Approach
 
 ✅ **Pattern 1 (Enum-Based)** for initial implementation:
+
 - Simple, type-safe, follows existing patterns
 - Easy to extend with new locales
 - Built-in fallback logic
 - No external dependencies
 
 ✅ **Pattern 3 (LocaleConfig)** for consistency:
+
 - Centralized configuration
 - Easy to pass through generator chains
 - Supports future extensions (timezone, currency, etc.)
 
 ✅ **Separate files** for large datasets:
+
 - Keep LocaleData.kt readable
 - One file per locale with constants
 - Import into main enum
@@ -577,6 +583,7 @@ val EN_US_FIRST_NAMES by lazy {
 ## Next Steps
 
 Would you like me to:
+
 1. Implement the `LocaleData` enum with initial locale data?
 2. Update existing generators (`FirstName`, `SurName`) to use this pattern?
 3. Create the `LocaleConfig` and fluent API classes?

@@ -19,6 +19,7 @@
 ### 1.1 Existing Resources
 
 **Data Files:**
+
 ```
 core/src/main/resources/person/
 ├── names.txt      (560KB) - Mixed international, comma-separated
@@ -26,11 +27,13 @@ core/src/main/resources/person/
 ```
 
 **Format:** Plain text, newline-separated entries
+
 ```
 John,Jane,José,李明,Hans,Иван,محمد
 ```
 
 **Loading Mechanism:**
+
 ```kotlin
 // ResourceResolver.kt
 fun getResourceContent(resourcePath: String): String {
@@ -57,17 +60,17 @@ private fun <T> initCache(...): List<T> {
 
 All generators are **locale-agnostic:**
 
-| Generator | Data Source | Locale Impact |
-|-----------|-------------|---------------|
-| `FirstName()` | `names.txt` | ⚠️ Returns mixed cultures |
-| `SurName()` | `surnames.txt` | ⚠️ Returns mixed cultures |
-| `Email()` | Composed from names | ⚠️ Inherited from names |
-| `Username()` | Composed from names | ⚠️ Inherited from names |
-| `Gender()` | Hardcoded enum | ✅ Universal |
-| `Age()` | Random int | ✅ Universal |
-| `BirthDay()` | Random date | ✅ Universal |
-| `Title()` | Hardcoded list | ⚠️ English-only |
-| `SocialSecurityNumber()` | Random digits | ⚠️ US-format only |
+| Generator                | Data Source         | Locale Impact             |
+|--------------------------|---------------------|---------------------------|
+| `FirstName()`            | `names.txt`         | ⚠️ Returns mixed cultures |
+| `SurName()`              | `surnames.txt`      | ⚠️ Returns mixed cultures |
+| `Email()`                | Composed from names | ⚠️ Inherited from names   |
+| `Username()`             | Composed from names | ⚠️ Inherited from names   |
+| `Gender()`               | Hardcoded enum      | ✅ Universal               |
+| `Age()`                  | Random int          | ✅ Universal               |
+| `BirthDay()`             | Random date         | ✅ Universal               |
+| `Title()`                | Hardcoded list      | ⚠️ English-only           |
+| `SocialSecurityNumber()` | Random digits       | ⚠️ US-format only         |
 
 ---
 
@@ -76,6 +79,7 @@ All generators are **locale-agnostic:**
 ### 2.1 DataFaker (Java) — Most Relevant ⭐
 
 **Locale API:**
+
 ```java
 // Constructor with Locale
 Faker faker = new Faker(new Locale("de"));
@@ -87,6 +91,7 @@ String city = faker.address().city();     // German city
 ```
 
 **Resource Structure:**
+
 ```
 src/main/resources/
 ├── en.yml
@@ -99,22 +104,24 @@ src/main/resources/
 ```
 
 **YAML Format:**
+
 ```yaml
 # de.yml
 de:
   faker:
     name:
-      first_name: [Hans, Friedrich, Emma, Sophie, Lukas]
-      last_name: [Müller, Schmidt, Schneider, Fischer, Weber]
+      first_name: [ Hans, Friedrich, Emma, Sophie, Lukas ]
+      last_name: [ Müller, Schmidt, Schneider, Fischer, Weber ]
       title:
-        descriptor: [Herr, Frau, Dr.]
+        descriptor: [ Herr, Frau, Dr. ]
     address:
-      city: [Berlin, München, Hamburg, Frankfurt]
-      postcode: ["#####"]  # Pattern
-      state: [Bayern, Hessen, Sachsen]
+      city: [ Berlin, München, Hamburg, Frankfurt ]
+      postcode: [ "#####" ]  # Pattern
+      state: [ Bayern, Hessen, Sachsen ]
 ```
 
 **Fallback Mechanism:**
+
 ```java
 // If de.yml missing "address.building_number":
 // 1. Try parent locale (de → en)
@@ -123,6 +130,7 @@ de:
 ```
 
 **Custom Data:**
+
 ```java
 faker.addPath(Locale.ENGLISH, Path.of("/custom/en.yml"));
 ```
@@ -130,6 +138,7 @@ faker.addPath(Locale.ENGLISH, Path.of("/custom/en.yml"));
 ### 2.2 Bogus (.NET) — 70+ Locales
 
 **Locale API:**
+
 ```csharp
 var faker = new Faker("ko");  // Korean
 var name = new DataSets.Name("ru");  // Russian
@@ -139,6 +148,7 @@ name["en"].LastName();  // Override to English
 ```
 
 **Resource Structure:**
+
 ```
 data_extend/
 ├── en/
@@ -151,11 +161,19 @@ data_extend/
 ```
 
 **JSON Format:**
+
 ```json
 {
   "name": {
-    "first_name": ["Hans", "Friedrich", "Emma"],
-    "last_name": ["Müller", "Schmidt"]
+    "first_name": [
+      "Hans",
+      "Friedrich",
+      "Emma"
+    ],
+    "last_name": [
+      "Müller",
+      "Schmidt"
+    ]
   }
 }
 ```
@@ -165,6 +183,7 @@ data_extend/
 ### 2.3 Mimesis (Python) — 50+ Locales
 
 **Locale API:**
+
 ```python
 from mimesis import Person
 from mimesis.enums import Locale
@@ -179,6 +198,7 @@ name = person.first_name()  # German name
 ### 2.4 Faker (Python) — 80+ Locales
 
 **Locale API:**
+
 ```python
 from faker import Faker
 
@@ -198,33 +218,33 @@ fake = Faker(['en_US', 'de_DE', 'ja_JP'])
 
 ### 3.1 Data Format Comparison
 
-| Format | Pros | Cons | Used By |
-|--------|------|------|---------|
-| **YAML** | Human-readable, comments, hierarchical, Java standard | Parsing overhead, library dependency | DataFaker |
-| **JSON** | Lightweight, universal, fast parsing | No comments, less readable | Bogus, Mimesis |
-| **TXT/CSV** | Simplest, no parsing, fastest | No structure, no metadata | krandom (current) |
-| **Properties** | Java native, simple | Flat structure, limited data types | — |
+| Format         | Pros                                                  | Cons                                 | Used By           |
+|----------------|-------------------------------------------------------|--------------------------------------|-------------------|
+| **YAML**       | Human-readable, comments, hierarchical, Java standard | Parsing overhead, library dependency | DataFaker         |
+| **JSON**       | Lightweight, universal, fast parsing                  | No comments, less readable           | Bogus, Mimesis    |
+| **TXT/CSV**    | Simplest, no parsing, fastest                         | No structure, no metadata            | krandom (current) |
+| **Properties** | Java native, simple                                   | Flat structure, limited data types   | —                 |
 
 **Recommendation:** **YAML** for Java ecosystem alignment, or **TXT** for minimal migration
 
 ### 3.2 Loading Strategy Comparison
 
-| Strategy | Pros | Cons | Used By |
-|----------|------|------|---------|
-| **Lazy + Cache** | Memory efficient, fast after first load | Slight first-call delay | krandom, DataFaker |
-| **Eager loading** | Predictable performance, all-or-nothing | High startup memory | Mimesis |
-| **Per-call lazy** | Flexible, minimal memory | Repeated I/O overhead | Faker (Python) |
+| Strategy          | Pros                                    | Cons                    | Used By            |
+|-------------------|-----------------------------------------|-------------------------|--------------------|
+| **Lazy + Cache**  | Memory efficient, fast after first load | Slight first-call delay | krandom, DataFaker |
+| **Eager loading** | Predictable performance, all-or-nothing | High startup memory     | Mimesis            |
+| **Per-call lazy** | Flexible, minimal memory                | Repeated I/O overhead   | Faker (Python)     |
 
 **Recommendation:** **Lazy + Cache** (current approach is optimal)
 
 ### 3.3 Fallback Strategy Comparison
 
-| Library | Fallback Chain | Behavior |
-|---------|----------------|----------|
-| DataFaker | `locale → parent → en → error` | `es_MX → es → en` |
-| Bogus | `locale → en → error` | Silent fallback |
-| Mimesis | `locale → error` | Explicit locale requirement |
-| krandom | None | N/A (no locales yet) |
+| Library   | Fallback Chain                 | Behavior                    |
+|-----------|--------------------------------|-----------------------------|
+| DataFaker | `locale → parent → en → error` | `es_MX → es → en`           |
+| Bogus     | `locale → en → error`          | Silent fallback             |
+| Mimesis   | `locale → error`               | Explicit locale requirement |
+| krandom   | None                           | N/A (no locales yet)        |
 
 **Recommendation:** `locale → en → error` (2-level fallback)
 
@@ -235,6 +255,7 @@ fake = Faker(['en_US', 'de_DE', 'ja_JP'])
 ### 4.1 API Design
 
 #### Option A: Constructor Parameter (Recommended)
+
 ```kotlin
 // Kotlin API
 val faker = KRandom(Locale.GERMAN)
@@ -242,13 +263,14 @@ val firstName = faker.person().firstName()
 
 // Java API
 KRandom faker = new KRandom(Locale.GERMAN);
-String firstName = faker.person().firstName();
+String firstName = faker . person ().firstName();
 
 // Current style with locale
 val firstName = FirstName(locale = Locale.GERMAN).randomData()
 ```
 
 #### Option B: Per-Generator Parameter
+
 ```kotlin
 val firstName = FirstName().withLocale(Locale.GERMAN).randomData()
 val city = City().withLocale(Locale.JAPANESE).randomData()
@@ -259,6 +281,7 @@ val city = City().withLocale(Locale.JAPANESE).randomData()
 ### 4.2 Resource Structure
 
 #### Proposed File Organization
+
 ```
 core/src/main/resources/
 ├── locales/
@@ -290,6 +313,7 @@ core/src/main/resources/
 **Encoding:** UTF-8 for international character support
 
 #### File Format (TXT - Phase 1)
+
 ```
 # de/person_names.txt
 Hans
@@ -301,24 +325,27 @@ Anna
 ```
 
 **Advantages:**
+
 - Minimal migration from current format
 - No new dependencies
 - Fast loading
 - Easy to edit/extend
 
 #### Optional: YAML Format (Phase 2)
+
 ```yaml
 # de/person.yml
 person:
   names:
-    male: [Hans, Friedrich, Lukas]
-    female: [Emma, Sophie, Anna]
-  surnames: [Müller, Schmidt, Schneider]
+    male: [ Hans, Friedrich, Lukas ]
+    female: [ Emma, Sophie, Anna ]
+  surnames: [ Müller, Schmidt, Schneider ]
   titles:
-    formal: [Herr, Frau, Dr.]
+    formal: [ Herr, Frau, Dr. ]
 ```
 
 **Advantages:**
+
 - Gender-aware data
 - Metadata support
 - Hierarchical organization
@@ -326,6 +353,7 @@ person:
 ### 4.3 Core Classes
 
 #### LocaleResolver
+
 ```kotlin
 object LocaleResolver {
     private const val DEFAULT_LOCALE = "en"
@@ -380,6 +408,7 @@ object LocaleResolver {
 ```
 
 #### LocaleAwareGenerator
+
 ```kotlin
 abstract class LocaleAwareGenerator<T>(
     protected val locale: Locale = Locale.ENGLISH
@@ -395,6 +424,7 @@ abstract class LocaleAwareGenerator<T>(
 ```
 
 #### Updated FirstName Generator
+
 ```kotlin
 class FirstName(
     private val locale: Locale = Locale.ENGLISH,
@@ -418,31 +448,34 @@ class FirstName(
 ### 4.4 What Needs Locale Support?
 
 #### High Priority (Phase 1)
-| Generator | Locale-Specific? | Resource Type |
-|-----------|------------------|---------------|
-| `FirstName` | ✅ | `person_names` |
-| `SurName` | ✅ | `person_surnames` |
-| `Title` | ✅ | `person_titles` |
-| `City` | ✅ | `address_cities` |
-| `State` | ✅ | `address_states` |
-| `PostalCode` | ✅ | `address_postal_format` |
-| `PhoneNumber` | ✅ | `phone_format` |
+
+| Generator     | Locale-Specific? | Resource Type           |
+|---------------|------------------|-------------------------|
+| `FirstName`   | ✅                | `person_names`          |
+| `SurName`     | ✅                | `person_surnames`       |
+| `Title`       | ✅                | `person_titles`         |
+| `City`        | ✅                | `address_cities`        |
+| `State`       | ✅                | `address_states`        |
+| `PostalCode`  | ✅                | `address_postal_format` |
+| `PhoneNumber` | ✅                | `phone_format`          |
 
 #### Universal (No Locale Needed)
-| Generator | Reason |
-|-----------|--------|
-| `Age` | Numbers are universal |
-| `Gender` | Enum values universal |
-| `Email` | Internet standard (but names are locale-aware) |
-| `Username` | Internet standard |
-| `IPv4` / `IPv6` | RFC standards |
-| `UUID` | RFC standard |
-| `BooleanGenerator` | Universal |
-| Primitives | Universal |
+
+| Generator          | Reason                                         |
+|--------------------|------------------------------------------------|
+| `Age`              | Numbers are universal                          |
+| `Gender`           | Enum values universal                          |
+| `Email`            | Internet standard (but names are locale-aware) |
+| `Username`         | Internet standard                              |
+| `IPv4` / `IPv6`    | RFC standards                                  |
+| `UUID`             | RFC standard                                   |
+| `BooleanGenerator` | Universal                                      |
+| Primitives         | Universal                                      |
 
 ### 4.5 Migration Path
 
 #### Phase 1: Foundation (Week 1)
+
 1. ✅ Create `LocaleResolver` class
 2. ✅ Create `LocaleAwareGenerator` base class
 3. ✅ Restructure resources into `locales/en/` folder
@@ -450,19 +483,22 @@ class FirstName(
 5. ✅ Update `FirstName`, `SurName`, `Title` to use locale
 
 #### Phase 2: Core Locales (Week 2)
+
 6. ✅ Add 5 common locales:
-   - `de` (German)
-   - `fr` (French)
-   - `es` (Spanish)
-   - `ja` (Japanese)
-   - `zh` (Chinese)
+    - `de` (German)
+    - `fr` (French)
+    - `es` (Spanish)
+    - `ja` (Japanese)
+    - `zh` (Chinese)
 7. ✅ Source data from public datasets (census, etc.)
 
 #### Phase 3: Address Support (Week 3)
+
 8. ✅ Implement `City`, `State`, `PostalCode` generators
 9. ✅ Add locale-specific address data
 
 #### Phase 4: Patterns & Formats (Week 4)
+
 10. ✅ Implement `PhoneNumber` with format patterns
 11. ✅ Add postal code format patterns per locale
 12. ✅ Add currency symbols and formats
@@ -473,16 +509,17 @@ class FirstName(
 
 ### 5.1 Open Datasets for Locale Data
 
-| Data Type | Source | License |
-|-----------|--------|---------|
-| **Names** | Behind the Name, Census data | Public domain |
-| **Surnames** | National census bureaus | Public domain |
-| **Cities** | GeoNames.org | CC BY 4.0 |
-| **Addresses** | OpenStreetMap | ODbL |
-| **Postal Codes** | Wikipedia, postal authority docs | Various |
-| **Phone Formats** | ITU E.164 standard docs | Public |
+| Data Type         | Source                           | License       |
+|-------------------|----------------------------------|---------------|
+| **Names**         | Behind the Name, Census data     | Public domain |
+| **Surnames**      | National census bureaus          | Public domain |
+| **Cities**        | GeoNames.org                     | CC BY 4.0     |
+| **Addresses**     | OpenStreetMap                    | ODbL          |
+| **Postal Codes**  | Wikipedia, postal authority docs | Various       |
+| **Phone Formats** | ITU E.164 standard docs          | Public        |
 
 ### 5.2 Example: German Data Collection
+
 ```bash
 # German first names (from statistics)
 names_de=(Hans Friedrich Emma Sophie Lukas Anna Felix Laura)
@@ -499,6 +536,7 @@ cities_de=(Berlin München Hamburg Frankfurt Köln Stuttgart)
 ## 6. Implementation Checklist
 
 ### 6.1 Core Infrastructure
+
 - [ ] Create `LocaleResolver` utility class
 - [ ] Create `LocaleAwareGenerator<T>` base class
 - [ ] Update `ResourceResolver` to handle locale paths
@@ -506,18 +544,21 @@ cities_de=(Berlin München Hamburg Frankfurt Köln Stuttgart)
 - [ ] Add `Locale` parameter to existing generators (optional, default=EN)
 
 ### 6.2 Resource Migration
+
 - [ ] Create `locales/` folder structure
 - [ ] Move `names.txt` → `locales/en/person_names.txt`
 - [ ] Move `surnames.txt` → `locales/en/person_surnames.txt`
 - [ ] Ensure UTF-8 encoding for all resource files
 
 ### 6.3 Testing
+
 - [ ] Unit tests for `LocaleResolver` fallback logic
 - [ ] Unit tests for each locale (en, de, fr, es, ja)
 - [ ] Integration tests for generator + locale combinations
 - [ ] Performance tests for caching efficiency
 
 ### 6.4 Documentation
+
 - [ ] Update README with locale usage examples
 - [ ] Document supported locales
 - [ ] Document how to add custom locales
@@ -528,45 +569,51 @@ cities_de=(Berlin München Hamburg Frankfurt Köln Stuttgart)
 ## 7. Open Questions
 
 ### 7.1 Technical Decisions
+
 1. **YAML vs TXT?**
-   - TXT for Phase 1 (minimal change)
-   - YAML for Phase 2 (if gender-awareness needed)
+    - TXT for Phase 1 (minimal change)
+    - YAML for Phase 2 (if gender-awareness needed)
 
 2. **Lazy vs Eager loading per locale?**
-   - Keep lazy (current approach works well)
+    - Keep lazy (current approach works well)
 
 3. **Cache eviction strategy?**
-   - Simple: never evict (locales are small)
-   - Advanced: LRU cache with size limit
+    - Simple: never evict (locales are small)
+    - Advanced: LRU cache with size limit
 
 4. **Thread safety?**
-   - Use `ConcurrentHashMap` for caches
+    - Use `ConcurrentHashMap` for caches
 
 ### 7.2 Product Decisions
+
 1. **How many locales in v1.0?**
-   - Proposal: 10 locales (en, de, fr, es, it, ja, zh, ru, pt, ko)
+    - Proposal: 10 locales (en, de, fr, es, it, ja, zh, ru, pt, ko)
 
 2. **Support locale variants? (en_US vs en_GB)**
-   - Proposal: Yes, with fallback `en_US → en`
+    - Proposal: Yes, with fallback `en_US → en`
 
 3. **Allow custom locale data?**
-   - Proposal: Phase 2 feature (like DataFaker's `addPath`)
+    - Proposal: Phase 2 feature (like DataFaker's `addPath`)
 
 ---
 
 ## 8. Performance Considerations
 
 ### 8.1 Memory Impact
+
 **Current:**
+
 - `names.txt`: 560KB → ~10,000 names in memory when cached
 - `surnames.txt`: 1.3MB → ~25,000 surnames in memory
 
 **With 10 locales:**
+
 - 10 × 560KB = 5.6MB names
 - 10 × 1.3MB = 13MB surnames
 - **Total:** ~20MB for all person data (acceptable)
 
 ### 8.2 Optimization Strategies
+
 1. **Lazy loading:** Load locale data only when requested
 2. **Soft references:** Allow GC to reclaim unused locales
 3. **Compressed resources:** Use gzip for large data files

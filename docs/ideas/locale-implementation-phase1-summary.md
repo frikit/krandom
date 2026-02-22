@@ -12,6 +12,7 @@
 **File:** `core/src/main/java/org/github/krandom/generator/GeneratorConfig.java`
 
 #### Changes Made:
+
 - ✅ Added `private final Locale locale` field
 - ✅ Added `getLocale()` accessor method
 - ✅ Added `locale(Locale)` method to Builder
@@ -20,13 +21,18 @@
 - ✅ Updated JavaDoc with locale example
 
 #### Code:
+
 ```java
 public final class GeneratorConfig {
+
     private final Locale locale;  // NEW
 
-    public Locale getLocale() { return locale; }  // NEW
+    public Locale getLocale() {
+        return locale;
+    }  // NEW
 
     public static final class Builder {
+
         private Locale locale = Locale.US;  // NEW
 
         public Builder locale(Locale locale) {  // NEW
@@ -46,35 +52,37 @@ public final class GeneratorConfig {
 ```java
 // Default (US locale)
 GeneratorConfig config = GeneratorConfig.defaults();
-System.out.println(config.getLocale());  // en_US
+System.out.
+
+println(config.getLocale());  // en_US
 
 // German locale
 GeneratorConfig germanConfig = GeneratorConfig.builder()
-    .locale(Locale.GERMANY)
-    .build();
+                                              .locale(Locale.GERMANY)
+                                              .build();
 
 // Japanese locale with seed
 GeneratorConfig japanConfig = GeneratorConfig.builder()
-    .locale(Locale.JAPAN)
-    .seed(12345L)
-    .build();
+                                             .locale(Locale.JAPAN)
+                                             .seed(12345L)
+                                             .build();
 
 // Custom locale (Spanish Mexico)
 GeneratorConfig mexicoConfig = GeneratorConfig.builder()
-    .locale(new Locale("es", "MX"))
-    .build();
+                                              .locale(new Locale("es", "MX"))
+                                              .build();
 ```
 
 ### Full Configuration
 
 ```java
 GeneratorConfig config = GeneratorConfig.builder()
-    .locale(Locale.GERMANY)
-    .seed(42L)
-    .charset(StandardCharsets.UTF_8)
-    .stringLength(8, 16)
-    .collectionSize(5, 20)
-    .build();
+                                        .locale(Locale.GERMANY)
+                                        .seed(42L)
+                                        .charset(StandardCharsets.UTF_8)
+                                        .stringLength(8, 16)
+                                        .collectionSize(5, 20)
+                                        .build();
 ```
 
 ---
@@ -86,6 +94,7 @@ GeneratorConfig config = GeneratorConfig.builder()
 **File:** `core/src/test/java/org/github/krandom/generator/GeneratorConfigTest.java`
 
 Added tests:
+
 - ✅ Default locale is `Locale.US`
 - ✅ Locale can be set via builder
 - ✅ Null locale throws `NullPointerException`
@@ -94,6 +103,7 @@ Added tests:
 **File:** `core/src/test/java/org/github/krandom/generator/LocaleUsageExample.java`
 
 Created comprehensive examples:
+
 - ✅ Default locale usage
 - ✅ German locale
 - ✅ Japanese locale with custom string length
@@ -115,43 +125,54 @@ Created comprehensive examples:
 
 The JDK provides **748 locales** out of the box. Top languages:
 
-| Language | Variants | Examples |
-|----------|----------|----------|
-| English | 106 | en_US, en_GB, en_CA, en_AU |
-| French | 47 | fr_FR, fr_CA, fr_BE, fr_CH |
-| Arabic | 29 | ar_SA, ar_EG, ar_AE |
-| Spanish | 29 | es_ES, es_MX, es_AR |
-| Chinese | 14 | zh_CN, zh_TW, zh_HK |
-| German | 8 | de_DE, de_AT, de_CH |
-| Japanese | 1 | ja_JP |
-| Korean | 1 | ko_KR |
+| Language | Variants | Examples                   |
+|----------|----------|----------------------------|
+| English  | 106      | en_US, en_GB, en_CA, en_AU |
+| French   | 47       | fr_FR, fr_CA, fr_BE, fr_CH |
+| Arabic   | 29       | ar_SA, ar_EG, ar_AE        |
+| Spanish  | 29       | es_ES, es_MX, es_AR        |
+| Chinese  | 14       | zh_CN, zh_TW, zh_HK        |
+| German   | 8        | de_DE, de_AT, de_CH        |
+| Japanese | 1        | ja_JP                      |
+| Korean   | 1        | ko_KR                      |
 
 ---
 
 ## Next Steps (Future Phases)
 
 ### Phase 2: LocaleData Enum
+
 Create enum with embedded locale-specific data:
+
 ```java
-enum class LocaleData {
+enum
+
+
+class LocaleData {
+
     EN_US(Locale.US, firstNames, lastNames, cities),
+
     DE_DE(Locale.GERMANY, firstNames, lastNames, cities),
     // ...
 }
 ```
 
 ### Phase 3: Update Existing Generators
+
 Generators that could benefit from locale:
+
 - **User data generators** (when Kotlin → Java migration happens)
-  - FirstName, SurName, Email, Username
+    - FirstName, SurName, Email, Username
 - **Future generators**
-  - City, State, PostalCode
-  - PhoneNumber
-  - Company names
-  - Street addresses
+    - City, State, PostalCode
+    - PhoneNumber
+    - Company names
+    - Street addresses
 
 ### Phase 4: ObjectGenerator Integration
+
 Update `ObjectGenerator` to accept and use `GeneratorConfig`:
+
 ```java
 ObjectGenerator<Person> gen = new ObjectGenerator<>(
     Person.class,
@@ -174,6 +195,7 @@ ObjectGenerator<Person> gen = new ObjectGenerator<>(
 ## Backward Compatibility
 
 ✅ **Fully backward compatible**
+
 - Default locale is `Locale.US`
 - Existing code works without changes
 - No breaking API changes
@@ -186,6 +208,7 @@ ObjectGenerator<Person> gen = new ObjectGenerator<>(
 ### Why Add to GeneratorConfig?
 
 **Pros:**
+
 - ✅ Centralized configuration (one place for all settings)
 - ✅ Consistent with existing patterns
 - ✅ Easy to pass through generator chains
@@ -193,6 +216,7 @@ ObjectGenerator<Person> gen = new ObjectGenerator<>(
 - ✅ Follows builder pattern
 
 **Alternatives Considered:**
+
 - ❌ Create new LocaleConfig - Rejected (too many config objects)
 - ❌ Per-generator locale parameter - Rejected (not reusable)
 
@@ -227,12 +251,15 @@ ObjectGenerator<Person> gen = new ObjectGenerator<>(
 ## Documentation
 
 ### Updated JavaDoc
+
 - Added locale parameter to example in `GeneratorConfig` class JavaDoc
 - Added documentation for `getLocale()` method
 - Added documentation for `locale(Locale)` builder method
 
 ### Example Code
+
 Created `LocaleUsageExample.java` with 6 comprehensive test cases demonstrating:
+
 - Default locale
 - Common locales (Germany, Japan, France)
 - Custom locales (es_MX)

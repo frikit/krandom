@@ -11,43 +11,43 @@
 
 The JDK provides 748 locale variants across all languages. Here are the top languages by variant count:
 
-| Language Code | Language Name | Variants | Examples |
-|--------------|---------------|----------|----------|
-| **en** | English | 106 | en_US, en_GB, en_CA, en_AU, en_IN |
-| **fr** | French | 47 | fr_FR, fr_CA, fr_BE, fr_CH |
-| **ar** | Arabic | 29 | ar_SA, ar_EG, ar_AE, ar_MA |
-| **es** | Spanish | 29 | es_ES, es_MX, es_AR, es_CO |
-| **sr** | Serbian | 15 | sr_RS (Cyrillic/Latin) |
-| **zh** | Chinese | 14 | zh_CN, zh_TW, zh_HK, zh_SG |
-| **pt** | Portuguese | 13 | pt_BR, pt_PT, pt_AO |
-| **de** | German | 8 | de_DE, de_AT, de_CH |
-| **nl** | Dutch | 8 | nl_NL, nl_BE |
-| **ru** | Russian | 7 | ru_RU, ru_UA, ru_KZ |
-| **it** | Italian | 5 | it_IT, it_CH, it_SM |
-| **ja** | Japanese | 1 | ja_JP |
-| **ko** | Korean | 1 | ko_KR |
-| **hi** | Hindi | 2 | hi_IN |
-| **tr** | Turkish | 2 | tr_TR, tr_CY |
+| Language Code | Language Name | Variants | Examples                          |
+|---------------|---------------|----------|-----------------------------------|
+| **en**        | English       | 106      | en_US, en_GB, en_CA, en_AU, en_IN |
+| **fr**        | French        | 47       | fr_FR, fr_CA, fr_BE, fr_CH        |
+| **ar**        | Arabic        | 29       | ar_SA, ar_EG, ar_AE, ar_MA        |
+| **es**        | Spanish       | 29       | es_ES, es_MX, es_AR, es_CO        |
+| **sr**        | Serbian       | 15       | sr_RS (Cyrillic/Latin)            |
+| **zh**        | Chinese       | 14       | zh_CN, zh_TW, zh_HK, zh_SG        |
+| **pt**        | Portuguese    | 13       | pt_BR, pt_PT, pt_AO               |
+| **de**        | German        | 8        | de_DE, de_AT, de_CH               |
+| **nl**        | Dutch         | 8        | nl_NL, nl_BE                      |
+| **ru**        | Russian       | 7        | ru_RU, ru_UA, ru_KZ               |
+| **it**        | Italian       | 5        | it_IT, it_CH, it_SM               |
+| **ja**        | Japanese      | 1        | ja_JP                             |
+| **ko**        | Korean        | 1        | ko_KR                             |
+| **hi**        | Hindi         | 2        | hi_IN                             |
+| **tr**        | Turkish       | 2        | tr_TR, tr_CY                      |
 
 ### Most Common Locales for krandom (Priority)
 
-| Priority | Locale | Display Name | Usage |
-|----------|--------|--------------|-------|
-| 🔴 High | `en_US` | English (United States) | Default, global standard |
-| 🔴 High | `de_DE` | German (Germany) | Europe, business |
-| 🔴 High | `es_ES` | Spanish (Spain) | Europe |
-| 🔴 High | `fr_FR` | French (France) | Europe |
-| 🔴 High | `ja_JP` | Japanese (Japan) | Asia |
-| 🟡 Medium | `zh_CN` | Chinese (China) | Asia |
-| 🟡 Medium | `pt_BR` | Portuguese (Brazil) | South America |
-| 🟡 Medium | `ru_RU` | Russian (Russia) | Eastern Europe |
-| 🟡 Medium | `it_IT` | Italian (Italy) | Europe |
-| 🟡 Medium | `ko_KR` | Korean (South Korea) | Asia |
-| 🟡 Medium | `ar_SA` | Arabic (Saudi Arabia) | Middle East |
-| 🟢 Low | `nl_NL` | Dutch (Netherlands) | Europe |
-| 🟢 Low | `sv_SE` | Swedish (Sweden) | Europe |
-| 🟢 Low | `pl_PL` | Polish (Poland) | Europe |
-| 🟢 Low | `tr_TR` | Turkish (Turkey) | Europe/Asia |
+| Priority  | Locale  | Display Name            | Usage                    |
+|-----------|---------|-------------------------|--------------------------|
+| 🔴 High   | `en_US` | English (United States) | Default, global standard |
+| 🔴 High   | `de_DE` | German (Germany)        | Europe, business         |
+| 🔴 High   | `es_ES` | Spanish (Spain)         | Europe                   |
+| 🔴 High   | `fr_FR` | French (France)         | Europe                   |
+| 🔴 High   | `ja_JP` | Japanese (Japan)        | Asia                     |
+| 🟡 Medium | `zh_CN` | Chinese (China)         | Asia                     |
+| 🟡 Medium | `pt_BR` | Portuguese (Brazil)     | South America            |
+| 🟡 Medium | `ru_RU` | Russian (Russia)        | Eastern Europe           |
+| 🟡 Medium | `it_IT` | Italian (Italy)         | Europe                   |
+| 🟡 Medium | `ko_KR` | Korean (South Korea)    | Asia                     |
+| 🟡 Medium | `ar_SA` | Arabic (Saudi Arabia)   | Middle East              |
+| 🟢 Low    | `nl_NL` | Dutch (Netherlands)     | Europe                   |
+| 🟢 Low    | `sv_SE` | Swedish (Sweden)        | Europe                   |
+| 🟢 Low    | `pl_PL` | Polish (Poland)         | Europe                   |
+| 🟢 Low    | `tr_TR` | Turkish (Turkey)        | Europe/Asia              |
 
 ---
 
@@ -57,24 +57,27 @@ The JDK provides 748 locale variants across all languages. Here are the top lang
 
 ```java
 public final class GeneratorConfig {
+
     private final OptionalLong seed;
-    private final Charset charset;
-    private final int minStringLength;
-    private final int maxStringLength;
-    private final int minCollectionSize;
-    private final int maxCollectionSize;
+    private final Charset      charset;
+    private final int          minStringLength;
+    private final int          maxStringLength;
+    private final int          minCollectionSize;
+    private final int          maxCollectionSize;
 
     // Builder pattern with fluent API
 }
 ```
 
 ### Current Capabilities
+
 - ✅ Seed for reproducibility
 - ✅ Charset configuration (UTF-8, ASCII, etc.)
 - ✅ String length bounds
 - ✅ Collection size bounds
 
 ### What's Missing
+
 - ❌ **Locale configuration** for locale-aware data generation
 - ❌ Timezone configuration
 - ❌ Currency configuration
@@ -90,33 +93,36 @@ public final class GeneratorConfig {
 public final class GeneratorConfig {
 
     private final OptionalLong seed;
-    private final Charset charset;
-    private final int minStringLength;
-    private final int maxStringLength;
-    private final int minCollectionSize;
-    private final int maxCollectionSize;
-    private final Locale locale;  // NEW FIELD
+    private final Charset      charset;
+    private final int          minStringLength;
+    private final int          maxStringLength;
+    private final int          minCollectionSize;
+    private final int          maxCollectionSize;
+    private final Locale       locale;  // NEW FIELD
 
     private GeneratorConfig(Builder b) {
-        this.seed              = b.seed;
-        this.charset           = b.charset;
-        this.minStringLength   = b.minStringLength;
-        this.maxStringLength   = b.maxStringLength;
+        this.seed = b.seed;
+        this.charset = b.charset;
+        this.minStringLength = b.minStringLength;
+        this.maxStringLength = b.maxStringLength;
         this.minCollectionSize = b.minCollectionSize;
         this.maxCollectionSize = b.maxCollectionSize;
-        this.locale            = b.locale;  // NEW
+        this.locale = b.locale;  // NEW
     }
 
-    public Locale getLocale() { return locale; }  // NEW ACCESSOR
+    public Locale getLocale() {
+        return locale;
+    }  // NEW ACCESSOR
 
     public static final class Builder {
-        private OptionalLong seed          = OptionalLong.empty();
-        private Charset      charset       = StandardCharsets.US_ASCII;
-        private int minStringLength        = 5;
-        private int maxStringLength        = 20;
-        private int minCollectionSize      = 1;
-        private int maxCollectionSize      = 10;
-        private Locale locale              = Locale.US;  // NEW, default to US
+
+        private OptionalLong seed              = OptionalLong.empty();
+        private Charset      charset           = StandardCharsets.US_ASCII;
+        private int          minStringLength   = 5;
+        private int          maxStringLength   = 20;
+        private int          minCollectionSize = 1;
+        private int          maxCollectionSize = 10;
+        private Locale       locale            = Locale.US;  // NEW, default to US
 
         /** Set the locale for locale-aware generators (names, addresses, etc.) */
         public Builder locale(Locale locale) {
@@ -139,21 +145,21 @@ GeneratorConfig config = GeneratorConfig.defaults();
 
 // German locale
 GeneratorConfig configDE = GeneratorConfig.builder()
-    .locale(Locale.GERMANY)
-    .seed(12345L)
-    .build();
+                                          .locale(Locale.GERMANY)
+                                          .seed(12345L)
+                                          .build();
 
 // Japanese with custom string length
 GeneratorConfig configJA = GeneratorConfig.builder()
-    .locale(Locale.JAPAN)
-    .stringLength(3, 10)
-    .charset(StandardCharsets.UTF_8)
-    .build();
+                                          .locale(Locale.JAPAN)
+                                          .stringLength(3, 10)
+                                          .charset(StandardCharsets.UTF_8)
+                                          .build();
 
 // Spanish Mexico
 GeneratorConfig configMX = GeneratorConfig.builder()
-    .locale(new Locale("es", "MX"))
-    .build();
+                                          .locale(new Locale("es", "MX"))
+                                          .build();
 ```
 
 ---
@@ -174,8 +180,8 @@ class FirstName(
 
     private val random by lazy {
         config.seed.isPresent
-            ? Random(config.seed.asLong)
-            : Random.Default
+        ? Random(config.seed.asLong)
+        : Random.Default
     }
 
     override fun generate(): String {
@@ -208,11 +214,12 @@ public class Generators {
     }
 }
 
+
 // Usage
 GeneratorConfig germanConfig = GeneratorConfig.builder()
-    .locale(Locale.GERMANY)
-    .seed(42L)
-    .build();
+                                              .locale(Locale.GERMANY)
+                                              .seed(42L)
+                                              .build();
 
 String germanName = Generators.firstName(germanConfig).generate();
 String germanCity = Generators.city(germanConfig).generate();
@@ -224,11 +231,12 @@ String germanCity = Generators.city(germanConfig).generate();
 // ObjectGenerator already has ObjectGeneratorConfig
 // We extend it to accept GeneratorConfig for locale awareness
 
+
 public class ObjectGenerator<T> implements Generator<T> {
 
-    private final Class<T> clazz;
+    private final Class<T>              clazz;
     private final ObjectGeneratorConfig objectConfig;
-    private final GeneratorConfig generatorConfig;  // NEW
+    private final GeneratorConfig       generatorConfig;  // NEW
 
     public ObjectGenerator(
         Class<T> clazz,
@@ -296,16 +304,18 @@ public class ObjectGenerator<T> implements Generator<T> {
 ```java
 // Person POJO
 public class Person {
+
     private String firstName;
     private String lastName;
     private String city;
-    private int age;
+    private int    age;
 }
+
 
 // Generate German person
 GeneratorConfig germanConfig = GeneratorConfig.builder()
-    .locale(Locale.GERMANY)
-    .build();
+                                              .locale(Locale.GERMANY)
+                                              .build();
 
 ObjectGenerator<Person> generator = new ObjectGenerator<>(
     Person.class,
@@ -318,8 +328,8 @@ Person germanPerson = generator.generate();
 
 // Generate Japanese person
 GeneratorConfig japaneseConfig = GeneratorConfig.builder()
-    .locale(Locale.JAPAN)
-    .build();
+                                                .locale(Locale.JAPAN)
+                                                .build();
 
 Person japanesePerson = new ObjectGenerator<>(
     Person.class,
@@ -386,7 +396,7 @@ enum class LocaleData(
             // Exact match
             values().firstOrNull {
                 it.locale.language == locale.language &&
-                it.locale.country == locale.country
+                        it.locale.country == locale.country
             }?.let { return it }
 
             // Language-only match
@@ -416,8 +426,8 @@ String name = gen.generate();
 
 // New code - with locale
 GeneratorConfig config = GeneratorConfig.builder()
-    .locale(Locale.GERMANY)
-    .build();
+                                        .locale(Locale.GERMANY)
+                                        .build();
 FirstName germanGen = new FirstName(config);
 String germanName = germanGen.generate();
 ```
@@ -442,18 +452,21 @@ public FirstName(GeneratorConfig config) {
 ## Migration Checklist
 
 ### Phase 1: Core Infrastructure
+
 - [ ] Add `locale` field to `GeneratorConfig`
 - [ ] Add `locale(Locale)` method to `GeneratorConfig.Builder`
 - [ ] Set default locale to `Locale.US`
 - [ ] Update tests for `GeneratorConfig`
 
 ### Phase 2: LocaleData Enum
+
 - [ ] Create `LocaleData` enum with 5 locales (EN_US, DE_DE, ES_ES, FR_FR, JA_JP)
 - [ ] Create separate constant files for each locale's data
 - [ ] Implement `fromLocale()` with fallback logic
 - [ ] Add unit tests for locale resolution
 
 ### Phase 3: Generator Updates
+
 - [ ] Update `FirstName` to accept `GeneratorConfig`
 - [ ] Update `SurName` to accept `GeneratorConfig`
 - [ ] Update `Email` to use locale-aware names
@@ -462,12 +475,14 @@ public FirstName(GeneratorConfig config) {
 - [ ] Create new `PostalCode` generator
 
 ### Phase 4: ObjectGenerator Integration
+
 - [ ] Add `GeneratorConfig` parameter to `ObjectGenerator`
 - [ ] Update field detection logic for locale-aware generators
 - [ ] Add integration tests with various locales
 - [ ] Update documentation with examples
 
 ### Phase 5: Additional Locales
+
 - [ ] Add Chinese (zh_CN)
 - [ ] Add Portuguese (pt_BR)
 - [ ] Add Russian (ru_RU)
@@ -479,30 +494,37 @@ public FirstName(GeneratorConfig config) {
 ## Benefits of Using GeneratorConfig
 
 ### 1. Centralized Configuration
+
 - Single source of truth for all generator settings
 - Easy to pass through generator chains
 - Consistent API across all generators
 
 ### 2. Future Extensibility
+
 Can add more config without breaking changes:
+
 ```java
-public Builder timezone(ZoneId timezone) { ... }
-public Builder currency(Currency currency) { ... }
-public Builder numberFormat(NumberFormat format) { ... }
+public Builder timezone(ZoneId timezone) { ...}
+
+public Builder currency(Currency currency) { ...}
+
+public Builder numberFormat(NumberFormat format) { ...}
 ```
 
 ### 3. Consistency
+
 - Follows existing pattern in krandom
 - Similar to `ObjectGeneratorConfig`
 - Builder pattern already familiar to users
 
 ### 4. Testability
+
 ```java
 // Easy to create test configs
 GeneratorConfig testConfig = GeneratorConfig.builder()
-    .locale(Locale.GERMANY)
-    .seed(12345L)  // Deterministic for tests
-    .build();
+                                            .locale(Locale.GERMANY)
+                                            .seed(12345L)  // Deterministic for tests
+                                            .build();
 ```
 
 ---
@@ -524,16 +546,16 @@ GeneratorConfig testConfig = GeneratorConfig.builder()
 ## Open Questions
 
 1. **Default locale** - Use `Locale.US` or `Locale.getDefault()`?
-   - Recommendation: `Locale.US` for consistency across environments
+    - Recommendation: `Locale.US` for consistency across environments
 
 2. **Locale variants** - Support `en_GB` vs `en_US` differences?
-   - Phase 2 - Start with language-level, add variants later
+    - Phase 2 - Start with language-level, add variants later
 
 3. **Custom locale data** - Allow users to register custom locales?
-   - Phase 3 - Add `LocaleDataRegistry` for extensibility
+    - Phase 3 - Add `LocaleDataRegistry` for extensibility
 
 4. **Thread safety** - Cache locale data per locale?
-   - Use `lazy` initialization per enum value (already thread-safe)
+    - Use `lazy` initialization per enum value (already thread-safe)
 
 ---
 

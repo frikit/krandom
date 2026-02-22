@@ -25,9 +25,12 @@ implementation("com.thedeanda:lorem:2.2")
 
 ## 1. Purpose
 
-lorem is a lightweight Java library for generating realistic placeholder data. Unlike easy-random (which populates entire object graphs) or Chance.js (a general JS toolkit), lorem focuses specifically on **human-readable text and contact data** — names, addresses, lorem ipsum text, emails, phone numbers, and dates. Its data is loaded from classpath resource files, making every result pronounceable and realistic-looking rather than random character sequences.
+lorem is a lightweight Java library for generating realistic placeholder data. Unlike easy-random (which populates entire object graphs) or Chance.js (a general JS toolkit), lorem focuses specifically
+on **human-readable text and contact data** — names, addresses, lorem ipsum text, emails, phone numbers, and dates. Its data is loaded from classpath resource files, making every result pronounceable
+and realistic-looking rather than random character sequences.
 
 **Primary use cases:**
+
 - Populating test fixtures with realistic names, addresses, and body text
 - Generating seed data for databases and demo environments
 - Creating HTML mockups and prototypes with plausible placeholder content
@@ -103,12 +106,12 @@ public class LoremIpsum implements Lorem {
 }
 ```
 
-| Constructor | When to use |
-|---|---|
-| `LoremIpsum()` | Default; uses `new Random()` |
-| `LoremIpsum(42L)` | Reproducible output; same seed = same sequence |
-| `LoremIpsum(new SecureRandom())` | Cryptographically secure randomness |
-| `LoremIpsum.getInstance()` | Shared singleton; fastest for one-off generation |
+| Constructor                      | When to use                                      |
+|----------------------------------|--------------------------------------------------|
+| `LoremIpsum()`                   | Default; uses `new Random()`                     |
+| `LoremIpsum(42L)`                | Reproducible output; same seed = same sequence   |
+| `LoremIpsum(new SecureRandom())` | Cryptographically secure randomness              |
+| `LoremIpsum.getInstance()`       | Shared singleton; fastest for one-off generation |
 
 > **Note:** The singleton is stateful. Its internal `Random` advances with every call, so it cannot be used for deterministic reproducibility across test runs. Use `new LoremIpsum(seed)` for that.
 
@@ -175,11 +178,11 @@ lorem.getHtmlParagraphs(1, 3)
 
 Returns a randomly combined first name + last name.
 
-| Method | First name pool |
-|---|---|
-| `getName()` | Male or female (random) |
-| `getNameMale()` | Male only |
-| `getNameFemale()` | Female only |
+| Method            | First name pool         |
+|-------------------|-------------------------|
+| `getName()`       | Male or female (random) |
+| `getNameMale()`   | Male only               |
+| `getNameFemale()` | Female only             |
 
 ```java
 lorem.getName()         // => 'Shirley Williams'
@@ -305,16 +308,16 @@ LocalDateTime future = lorem.getFutureDate(Duration.ofHours(48));
 
 All data is loaded from classpath resources under `com/thedeanda/lorem/`.
 
-| File | Used by |
-|---|---|
-| `lorem.txt` | `getWords`, `getTitle`, `getParagraphs`, `getHtmlParagraphs` |
-| `male_names.txt` | `getFirstNameMale`, `getNameMale` |
-| `female_names.txt` | `getFirstNameFemale`, `getNameFemale` |
-| `surnames.txt` | `getLastName`, `getName`, `getEmail` |
-| `cities.txt` | `getCity` |
-| `state_abbr.txt` | `getStateAbbr` |
-| `state_full.txt` | `getStateFull` |
-| `countries.txt` | `getCountry` |
+| File               | Used by                                                      |
+|--------------------|--------------------------------------------------------------|
+| `lorem.txt`        | `getWords`, `getTitle`, `getParagraphs`, `getHtmlParagraphs` |
+| `male_names.txt`   | `getFirstNameMale`, `getNameMale`                            |
+| `female_names.txt` | `getFirstNameFemale`, `getNameFemale`                        |
+| `surnames.txt`     | `getLastName`, `getName`, `getEmail`                         |
+| `cities.txt`       | `getCity`                                                    |
+| `state_abbr.txt`   | `getStateAbbr`                                               |
+| `state_full.txt`   | `getStateFull`                                               |
+| `countries.txt`    | `getCountry`                                                 |
 
 These files are loaded once at construction time. To customise the data pool, subclass `LoremIpsum` and override the relevant method.
 
@@ -368,16 +371,17 @@ LocalDateTime expiresAt  = lorem.getFutureDate(Duration.ofDays(90));  // next 3 
 
 ## 10. Version History
 
-| Version | Date | Notable changes |
-|---|---|---|
-| 2.2 | Aug 2023 | Dependency updates; current Maven Central release |
-| 2.1 | Sep 2016 | Fixed email addresses that could contain spaces |
-| 2.0 | Oct 2015 | Greatly expanded word list |
-| 1.2 | Jun 2014 | — |
-| 1.1 | May 2014 | — |
-| 1.0 | Mar 2014 | Initial release |
+| Version | Date     | Notable changes                                   |
+|---------|----------|---------------------------------------------------|
+| 2.2     | Aug 2023 | Dependency updates; current Maven Central release |
+| 2.1     | Sep 2016 | Fixed email addresses that could contain spaces   |
+| 2.0     | Oct 2015 | Greatly expanded word list                        |
+| 1.2     | Jun 2014 | —                                                 |
+| 1.1     | May 2014 | —                                                 |
+| 1.0     | Mar 2014 | Initial release                                   |
 
 Selected commit milestones:
+
 - **Nov 2019** — added `getPriorDate` / `getFutureDate`
 - **Jan 2018** — added `LoremIpsum(Random random)` constructor for `SecureRandom` support
 - **Aug 2020** — fixed `getParagraphs` single-space sentence separator
@@ -386,49 +390,49 @@ Selected commit milestones:
 
 ## 11. Comparison with krandom
 
-| Feature | lorem | krandom |
-|---------|-------|---------|
-| Language | Java | Kotlin / Java |
-| First / last name | ✅ (male/female pools) | ✅ |
-| Full name | ✅ | ✅ |
-| Email | ✅ (`@example.com`) | ✅ (generated) |
-| Phone | ✅ (US NANP) | — |
-| City | ✅ | — |
-| State (abbr + full) | ✅ | — |
-| Country | ✅ | — |
-| ZIP code | ✅ | — |
-| Lorem ipsum text | ✅ (words, titles, paragraphs) | — |
-| HTML paragraph output | ✅ | — |
-| Date range generation | ✅ (`LocalDateTime`) | ✅ (`BirthDay`) |
-| Gender-specific names | ✅ | ✅ |
-| Age | — | ✅ |
-| SSN | — | ✅ |
-| Primitives (int/float/bool…) | — | ✅ |
-| Dice / coin | — | ✅ |
-| Fibonacci / Luhn | — | ✅ |
-| IPv4 | — | ✅ |
-| Hash | — | ✅ |
-| Object-graph population | — | ✅ (`ObjectGenerator`) |
-| Seeded reproducibility | ✅ | Partial (per-generator seed) |
-| Singleton access | ✅ | — |
+| Feature                      | lorem                         | krandom                      |
+|------------------------------|-------------------------------|------------------------------|
+| Language                     | Java                          | Kotlin / Java                |
+| First / last name            | ✅ (male/female pools)         | ✅                            |
+| Full name                    | ✅                             | ✅                            |
+| Email                        | ✅ (`@example.com`)            | ✅ (generated)                |
+| Phone                        | ✅ (US NANP)                   | —                            |
+| City                         | ✅                             | —                            |
+| State (abbr + full)          | ✅                             | —                            |
+| Country                      | ✅                             | —                            |
+| ZIP code                     | ✅                             | —                            |
+| Lorem ipsum text             | ✅ (words, titles, paragraphs) | —                            |
+| HTML paragraph output        | ✅                             | —                            |
+| Date range generation        | ✅ (`LocalDateTime`)           | ✅ (`BirthDay`)               |
+| Gender-specific names        | ✅                             | ✅                            |
+| Age                          | —                             | ✅                            |
+| SSN                          | —                             | ✅                            |
+| Primitives (int/float/bool…) | —                             | ✅                            |
+| Dice / coin                  | —                             | ✅                            |
+| Fibonacci / Luhn             | —                             | ✅                            |
+| IPv4                         | —                             | ✅                            |
+| Hash                         | —                             | ✅                            |
+| Object-graph population      | —                             | ✅ (`ObjectGenerator`)        |
+| Seeded reproducibility       | ✅                             | Partial (per-generator seed) |
+| Singleton access             | ✅                             | —                            |
 
 ### Methods in lorem with direct krandom equivalents
 
-| lorem | krandom |
-|-------|---------|
-| `lorem.getFirstName()` | `FirstName.generate()` |
-| `lorem.getLastName()` | `SurName.generate()` |
-| `lorem.getName()` | `GenericUserGenerator.fullName()` |
-| `lorem.getEmail()` | `Email.generate()` |
+| lorem                  | krandom                           |
+|------------------------|-----------------------------------|
+| `lorem.getFirstName()` | `FirstName.generate()`            |
+| `lorem.getLastName()`  | `SurName.generate()`              |
+| `lorem.getName()`      | `GenericUserGenerator.fullName()` |
+| `lorem.getEmail()`     | `Email.generate()`                |
 
 ---
 
 ## 12. Potential Additions for krandom Inspired by lorem
 
-| Category | lorem methods | krandom gap |
-|----------|---------------|-------------|
-| Location | `getCity`, `getStateAbbr`, `getStateFull`, `getZipCode`, `getCountry` | All missing |
-| Contact | `getPhone` | Missing |
-| Text | `getWords`, `getTitle`, `getParagraphs`, `getHtmlParagraphs` | All missing |
-| Web | `getUrl` | Missing |
-| Date range | `getPriorDate(Duration)`, `getFutureDate(Duration)` | `BirthDay` exists; general date-range generator missing |
+| Category   | lorem methods                                                         | krandom gap                                             |
+|------------|-----------------------------------------------------------------------|---------------------------------------------------------|
+| Location   | `getCity`, `getStateAbbr`, `getStateFull`, `getZipCode`, `getCountry` | All missing                                             |
+| Contact    | `getPhone`                                                            | Missing                                                 |
+| Text       | `getWords`, `getTitle`, `getParagraphs`, `getHtmlParagraphs`          | All missing                                             |
+| Web        | `getUrl`                                                              | Missing                                                 |
+| Date range | `getPriorDate(Duration)`, `getFutureDate(Duration)`                   | `BirthDay` exists; general date-range generator missing |
