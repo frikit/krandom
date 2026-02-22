@@ -60,6 +60,23 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Statistical validation: Empirical probability testing with 5% tolerance
 - Pre-commit: All checks passing
 
+#### Characters Section (6/6 features - 100% complete)
+
+- ✅ Random character - `CharGenerator.letters()`, `CharGenerator.digits()`, etc.
+- ✅ Custom character pool - `CharGenerator.pool("aeiou")` or `CharGenerator.pool('X', 'Y', 'Z')`
+- ✅ Alpha only - `CharGenerator.letters()` or `builder().uppercase().lowercase()`
+- ✅ Numeric only - `CharGenerator.digits()` or `builder().digits()`
+- ✅ Symbols only - `builder().special()`
+- ✅ Case control - `builder().uppercase()` or `builder().lowercase()`
+
+**Metrics**:
+
+- Test coverage: 99.7% line, 99.2% branch
+- New tests: 50+ comprehensive test cases
+- Support for custom pools (String and varargs)
+- Seeded custom pool support
+- Pre-commit: All checks passing
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -68,7 +85,6 @@ _None - awaiting next feature selection_
 
 - Email generation
 - UUID generation
-- Character generators with custom pools
 - Natural language (words, sentences, paragraphs)
 - Location data (addresses, cities, phones)
 - Helper methods (n, unique, pick)
@@ -96,25 +112,25 @@ _None - awaiting next feature selection_
 
 ### 2. BOOLEANS & BASIC TYPES
 
-| Feature               | Chance.js Support                                           | krandom Status | Implementation Priority | Notes                            |
-|-----------------------|-------------------------------------------------------------|----------------|-------------------------|----------------------------------|
+| Feature               | Chance.js Support                                           | krandom Status | Implementation Priority | Notes                                    |
+|-----------------------|-------------------------------------------------------------|----------------|-------------------------|------------------------------------------|
 | **Boolean**           |
-| Random boolean        | ✅ `bool()`                                                  | ✅ Yes          | ✓ DONE                  | `Generators.ofBoolean()`         |
+| Random boolean        | ✅ `bool()`                                                  | ✅ Yes          | ✓ DONE                  | `Generators.ofBoolean()`                 |
 | Weighted boolean      | ✅ `bool({likelihood: 80})`                                  | ✅ Yes          | ✓ DONE                  | `ofBoolean().withLikelihood(%)` - UNIQUE |
 | **Characters**        |
-| Random character      | ✅ `character({pool, alpha, numeric, symbols, casing})`      | ❌ No           | MEDIUM                  | Extensive options                |
-| Custom character pool | ✅ `character({pool: 'aeiou'})`                              | ❌ No           | MEDIUM                  | Select from custom set           |
-| Alpha only            | ✅ `character({alpha: true})`                                | ❌ No           | MEDIUM                  | A-Z only                         |
-| Numeric only          | ✅ `character({numeric: true})`                              | ❌ No           | MEDIUM                  | 0-9 only                         |
-| Symbols only          | ✅ `character({symbols: true})`                              | ❌ No           | LOW                     | Special chars                    |
-| Case control          | ✅ `character({casing: 'upper'/'lower'})`                    | ❌ No           | MEDIUM                  | Force case                       |
+| Random character      | ✅ `character({pool, alpha, numeric, symbols, casing})`      | ✅ Yes          | ✓ DONE                  | `CharGenerator` with builder/factories   |
+| Custom character pool | ✅ `character({pool: 'aeiou'})`                              | ✅ Yes          | ✓ DONE                  | `CharGenerator.pool("aeiou")`            |
+| Alpha only            | ✅ `character({alpha: true})`                                | ✅ Yes          | ✓ DONE                  | `CharGenerator.letters()`                |
+| Numeric only          | ✅ `character({numeric: true})`                              | ✅ Yes          | ✓ DONE                  | `CharGenerator.digits()`                 |
+| Symbols only          | ✅ `character({symbols: true})`                              | ✅ Yes          | ✓ DONE                  | `builder().special()`                    |
+| Case control          | ✅ `character({casing: 'upper'/'lower'})`                    | ✅ Yes          | ✓ DONE                  | `builder().uppercase()`/`lowercase()`    |
 | **Strings**           |
-| Random string         | ✅ `string({length, pool, casing, alpha, numeric, symbols})` | ✅ Yes          | ✓ DONE                  | `Generators.ofString()`          |
-| Variable length       | ✅ Default 5-20 random                                       | ❌ No           | MEDIUM                  | No fixed length required         |
-| Fixed length          | ✅ `string({length: 10})`                                    | ✅ Yes          | ✓ DONE                  |                                  |
-| Custom pool           | ✅ `string({pool: 'abc', length: 5})`                        | ❌ No           | MEDIUM                  | 'cabba'                          |
-| Alpha strings         | ✅ `string({alpha: true})`                                   | ❌ No           | MEDIUM                  | Letters only                     |
-| Numeric strings       | ✅ `string({numeric: true})`                                 | ❌ No           | MEDIUM                  | Digits as string                 |
+| Random string         | ✅ `string({length, pool, casing, alpha, numeric, symbols})` | ✅ Yes          | ✓ DONE                  | `Generators.ofString()`                  |
+| Variable length       | ✅ Default 5-20 random                                       | ❌ No           | MEDIUM                  | No fixed length required                 |
+| Fixed length          | ✅ `string({length: 10})`                                    | ✅ Yes          | ✓ DONE                  |                                          |
+| Custom pool           | ✅ `string({pool: 'abc', length: 5})`                        | ❌ No           | MEDIUM                  | 'cabba'                                  |
+| Alpha strings         | ✅ `string({alpha: true})`                                   | ❌ No           | MEDIUM                  | Letters only                             |
+| Numeric strings       | ✅ `string({numeric: true})`                                 | ❌ No           | MEDIUM                  | Digits as string                         |
 
 ### 3. PERSON IDENTITY
 
@@ -620,17 +636,17 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 ### Strategic Recommendation
 
-**Phase 1 Complete** ✅ - Implemented 10 features from Chance.js (Numbers + Booleans sections):
+**Phase 1 Complete** ✅ - Implemented 16 features from Chance.js:
 
 - Numbers: Natural numbers, primes, fixed precision, normal distribution, exclusion support (8/8 - 100%)
 - Booleans: Random boolean, weighted boolean with likelihood (2/2 - 100%)
+- Characters: Custom pools, alpha/numeric/symbols, case control (6/6 - 100%)
 
 **Next Phase** - Implement remaining high-value features:
 
 - Helper methods (n, unique, pick) - HIGH LEVERAGE
 - Natural language (word, sentence, paragraph) - HIGH DEMAND
 - Core data (email, UUID, addresses, phones) - HIGH USAGE
-- Character generators with custom pools - MEDIUM VALUE
 - Rich parameterization - BETTER UX
 
 **Maintain krandom advantages**:
@@ -640,8 +656,9 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - ✅ Clean architecture and test coverage (99.7%+)
 - ✅ JVM ecosystem integration
 - ✅ Statistical capabilities (normal distribution via Box-Muller, weighted boolean)
+- ✅ Flexible character generation (custom pools, builder pattern)
 
-**Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **probability control** not found in other JVM
+**Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character generation** not found in other JVM
 libraries.
 
-**Progress**: 10/60 core features implemented (17% complete)
+**Progress**: 16/60 core features implemented (27% complete)
