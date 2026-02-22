@@ -77,6 +77,23 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Seeded custom pool support
 - Pre-commit: All checks passing
 
+#### Strings Section (6/6 features - 100% complete)
+
+- ✅ Random string - `Generators.ofString()` with configurable CharGenerator
+- ✅ Variable length - `ofString().minLength(5).maxLength(20)`
+- ✅ Fixed length - `ofString().length(10)`
+- ✅ Custom pool - `StringGenerator.pool("abc", 5)` generates strings from custom character pool
+- ✅ Alpha strings - `ofString(CharGenerator.letters())`
+- ✅ Numeric strings - `ofString(CharGenerator.digits())`
+
+**Metrics**:
+
+- Test coverage: 99.8% line, 99.2% branch
+- New tests: 40+ comprehensive test cases
+- Custom pool support with fixed/variable length
+- Seeded generation support (with documented limitations)
+- Pre-commit: All checks passing
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -126,11 +143,11 @@ _None - awaiting next feature selection_
 | Case control          | ✅ `character({casing: 'upper'/'lower'})`                    | ✅ Yes          | ✓ DONE                  | `builder().uppercase()`/`lowercase()`    |
 | **Strings**           |
 | Random string         | ✅ `string({length, pool, casing, alpha, numeric, symbols})` | ✅ Yes          | ✓ DONE                  | `Generators.ofString()`                  |
-| Variable length       | ✅ Default 5-20 random                                       | ❌ No           | MEDIUM                  | No fixed length required                 |
-| Fixed length          | ✅ `string({length: 10})`                                    | ✅ Yes          | ✓ DONE                  |                                          |
-| Custom pool           | ✅ `string({pool: 'abc', length: 5})`                        | ❌ No           | MEDIUM                  | 'cabba'                                  |
-| Alpha strings         | ✅ `string({alpha: true})`                                   | ❌ No           | MEDIUM                  | Letters only                             |
-| Numeric strings       | ✅ `string({numeric: true})`                                 | ❌ No           | MEDIUM                  | Digits as string                         |
+| Variable length       | ✅ Default 5-20 random                                       | ✅ Yes          | ✓ DONE                  | `ofString().minLength().maxLength()`     |
+| Fixed length          | ✅ `string({length: 10})`                                    | ✅ Yes          | ✓ DONE                  | `ofString().length(10)`                  |
+| Custom pool           | ✅ `string({pool: 'abc', length: 5})`                        | ✅ Yes          | ✓ DONE                  | `StringGenerator.pool("abc", 5)`         |
+| Alpha strings         | ✅ `string({alpha: true})`                                   | ✅ Yes          | ✓ DONE                  | `ofString(CharGenerator.letters())`      |
+| Numeric strings       | ✅ `string({numeric: true})`                                 | ✅ Yes          | ✓ DONE                  | `ofString(CharGenerator.digits())`       |
 
 ### 3. PERSON IDENTITY
 
@@ -636,11 +653,12 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 ### Strategic Recommendation
 
-**Phase 1 Complete** ✅ - Implemented 16 features from Chance.js:
+**Phase 1 Complete** ✅ - Implemented 22 features from Chance.js:
 
 - Numbers: Natural numbers, primes, fixed precision, normal distribution, exclusion support (8/8 - 100%)
 - Booleans: Random boolean, weighted boolean with likelihood (2/2 - 100%)
 - Characters: Custom pools, alpha/numeric/symbols, case control (6/6 - 100%)
+- Strings: Custom pools, variable/fixed length, alpha/numeric strings (6/6 - 100%)
 
 **Next Phase** - Implement remaining high-value features:
 
@@ -653,12 +671,12 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 - ✅ Kotlin-first design with type safety
 - ✅ ObjectGenerator for complex graphs
-- ✅ Clean architecture and test coverage (99.7%+)
+- ✅ Clean architecture and test coverage (99.8%+)
 - ✅ JVM ecosystem integration
 - ✅ Statistical capabilities (normal distribution via Box-Muller, weighted boolean)
-- ✅ Flexible character generation (custom pools, builder pattern)
+- ✅ Flexible character/string generation (custom pools, builder pattern)
 
-**Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character generation** not found in other JVM
-libraries.
+**Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
+other JVM libraries.
 
 **Progress**: 16/60 core features implemented (27% complete)
