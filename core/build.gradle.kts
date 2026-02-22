@@ -63,8 +63,19 @@ tasks.jacocoTestCoverageVerification {
     }
 }
 
+tasks.javadoc {
+    options {
+        (this as StandardJavadocDocletOptions).apply {
+            addStringOption("Xdoclint:all,-missing", "-Werror")
+            encoding = "UTF-8"
+            charSet = "UTF-8"
+        }
+    }
+}
+
 tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
+    dependsOn(tasks.javadoc)
 }
 
 tasks.clean {

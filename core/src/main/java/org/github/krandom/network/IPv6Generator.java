@@ -13,7 +13,7 @@ import java.util.StringJoiner;
 /**
  * Generates random IPv6 addresses in colon-separated notation (RFC 4291, RFC 5952).
  *
- * <h3>RFC compliance</h3>
+ * <p><b>RFC compliance</b>
  * <ul>
  *   <li>RFC 4291 §2.2 — 128-bit address represented as eight 16-bit groups separated by
  *       {@code :}, each group expressed in hexadecimal.</li>

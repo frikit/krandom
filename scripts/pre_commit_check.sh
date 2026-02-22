@@ -49,6 +49,14 @@ else
     exit 1
 fi
 
+step "Validate Javadoc (check for broken links and missing docs)"
+if "${GRADLEW}" :core:javadoc --quiet; then
+    ok "Javadoc validation passed"
+else
+    fail "Javadoc validation failed — see core/build/reports/javadoc/index.html"
+    exit 1
+fi
+
 step "Run tests with coverage report"
 if "${GRADLEW}" :core:test --quiet; then
     ok "Tests passed"

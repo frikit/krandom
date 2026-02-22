@@ -20,9 +20,9 @@ import java.util.random.RandomGenerator;
  *   <li>Owns the {@link RandomGenerator} instance ({@link java.security.SecureRandom} when no
  *       seed is supplied, {@link Random} when a seed is supplied).</li>
  *   <li>Stores the default {@code min} / {@code max} bounds.</li>
- *   <li>Delegates no-arg {@link #generate()} → {@link #generate(Comparable, Comparable)}.</li>
- *   <li>Provides {@link #validate(Comparable, Comparable)} and {@link #lo}/{@link #hi} helpers
- *       to concrete subclasses.</li>
+ *   <li>Delegates no-arg {@link #generate()} to {@link #generate(Comparable, Comparable)}.</li>
+ *   <li>Provides {@link #validate(Number, Number)}, {@link #lo(Number, Number)}, and 
+ *       {@link #hi(Number, Number)} helpers to concrete subclasses.</li>
  * </ul>
  *
  * @param <T> numeric type; must extend {@link Number} and implement {@link Comparable}

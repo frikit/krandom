@@ -12,7 +12,7 @@ import java.security.SecureRandom;
 /**
  * Generates random IPv4 addresses in dotted-decimal notation (RFC 791).
  *
- * <h3>RFC compliance</h3>
+ * <p><b>RFC compliance</b>
  * <ul>
  *   <li>RFC 791 — address format: four decimal octets in [0, 255] separated by {@code .}</li>
  *   <li>First octet restricted to [0, 223] — excludes Class D multicast (224–239, RFC 3171)

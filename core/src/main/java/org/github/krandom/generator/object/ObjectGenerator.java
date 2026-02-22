@@ -16,13 +16,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Generates random instances of any Java class or record by introspecting its structure
  * at runtime and delegating field/component population to {@link FieldGeneratorResolver}.
  *
- * <h3>Supported types</h3>
+ * <p><b>Supported types</b>
  * <ul>
  *   <li><b>Records</b> — all components are populated and the canonical constructor is invoked.</li>
  *   <li><b>Plain classes</b> — instantiated via a public or package-private no-arg constructor;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  * </ul>
  *
- * <h3>Usage</h3>
+ * <p><b>Usage</b>
  * <pre>{@code
  *   // Minimal
  *   Person p = new ObjectGenerator<>(Person.class).generate();
@@ -86,8 +85,6 @@ public final class ObjectGenerator<T> implements Generator<T> {
     public T generate() {
         try {
             return type.isRecord() ? generateRecord() : generateClass();
-        } catch (ObjectGenerationException e) {
-            throw e; // re-throw as-is
         } catch (ReflectiveOperationException e) {
             throw new ObjectGenerationException(
                     "Failed to generate instance of " + type.getName() + ": " + e.getMessage(), e);
@@ -148,7 +145,6 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    @SuppressWarnings("unchecked")
     private Constructor<T> findNoArgConstructor() {
         try {
             return type.getDeclaredConstructor();

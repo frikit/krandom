@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * providers can be added at any time via {@link #register(TitleDataProvider)}, replacing any
  * existing provider for the same locale key.
  *
- * <h3>Lookup order</h3>
+ * <p><b>Lookup order</b>
  * <ol>
  *   <li>Exact {@code language_COUNTRY} match (e.g. {@code "en_GB"})
  *   <li>Language-only match (e.g. {@code "en"})
@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *       throwing {@link UnsupportedOperationException})
  * </ol>
  *
- * <h3>Language-level fallback</h3>
+ * <p><b>Language-level fallback</b><br>
  * The first provider registered for a given language becomes the language-level fallback for that
  * language. Subsequent registrations for the same language update the exact key only, leaving the
  * language fallback untouched — unless the new provider's locale has no country component (e.g.
