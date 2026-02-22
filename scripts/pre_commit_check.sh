@@ -99,18 +99,18 @@ END {
     bs_col = (bp >= 80 ? G "PASS" RST : R "FAIL" RST)
 
     print ""
-    print "╔══════════════════════════════════════════════════════════════╗"
-    print "║              CODE COVERAGE SUMMARY                          ║"
-    print "╠══════════════════════════════════════════════════════════════╣"
-    printf "║  Line   coverage : %s  [%s]  ║\n", lp_col, bar(lp)
-    printf "║  Branch coverage : %s  [%s]  ║\n", bp_col, bar(bp)
-    print  "║  Threshold       :  99.0%  minimum (both counters)         ║"
-    printf "║  Line   status   :  %-33s║\n", ls_col
-    printf "║  Branch status   :  %-33s║\n", bs_col
-    print  "╠══════════════════════════════════════════════════════════════╣"
-    printf "║  Lines  covered  :   %3d / %-3d                              ║\n", tlc, tl
-    printf "║  Branch covered  :   %3d / %-3d                              ║\n", tbc, tb
-    print  "╚══════════════════════════════════════════════════════════════╝"
+    print "─────────────────────────────────────────────────────────────────────────"
+    print "                     CODE COVERAGE SUMMARY"
+    print "─────────────────────────────────────────────────────────────────────────"
+    printf "  Line   coverage : %s  [%s]\n", lp_col, bar(lp)
+    printf "  Branch coverage : %s  [%s]\n", bp_col, bar(bp)
+    printf "  Threshold       :  99.0%%  minimum (both counters)\n"
+    printf "  Line   status   :  %s\n", ls_col
+    printf "  Branch status   :  %s\n", bs_col
+    print "─────────────────────────────────────────────────────────────────────────"
+    printf "  Lines  covered  :   %3d / %-3d\n", tlc, tl
+    printf "  Branch covered  :   %3d / %-3d\n", tbc, tb
+    print "─────────────────────────────────────────────────────────────────────────"
 }' "${CSV}"
 
 # ── Per-package table (sorted alphabetically) ─────────────────────────────────
