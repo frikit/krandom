@@ -96,7 +96,7 @@ END {
     print "╠══════════════════════════════════════════════════════════════╣"
     printf "║  Line   coverage : %s  [%s]  ║\n", lp_col, bar(lp)
     printf "║  Branch coverage : %s  [%s]  ║\n", bp_col, bar(bp)
-    print  "║  Threshold       :  80.0%  minimum (both counters)         ║"
+    print  "║  Threshold       :  99.0%  minimum (both counters)         ║"
     printf "║  Line   status   :  %-33s║\n", ls_col
     printf "║  Branch status   :  %-33s║\n", bs_col
     print  "╠══════════════════════════════════════════════════════════════╣"
@@ -145,7 +145,7 @@ END {
 END     { printf "%-73s\n", "─────────────────────────────────────────────────────────────────────────"; print total }'
 
 echo ""
-printf "! = below 80%% threshold\n"
+printf "! = below 99%% threshold\n"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 

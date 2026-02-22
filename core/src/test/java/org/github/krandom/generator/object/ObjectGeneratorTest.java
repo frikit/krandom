@@ -327,6 +327,12 @@ class ObjectGeneratorTest {
             NoDefaultCtor(String value) { this.value = value; }
         }
 
+        /** A class whose no-arg constructor throws — triggers ReflectiveOperationException path. */
+        static class ThrowingCtor {
+            ThrowingCtor() { throw new RuntimeException("ctor intentionally throws"); }
+            String value;
+        }
+
         @Test
         @DisplayName("missing no-arg constructor throws ObjectGenerationException")
         void missingNoArgCtorThrows() {
@@ -348,6 +354,199 @@ class ObjectGeneratorTest {
         void generateListNegativeThrows() {
             assertThrows(IllegalArgumentException.class,
                     () -> new ObjectGenerator<>(Address.class).generateList(-1));
+        }
+
+        @Test
+        @DisplayName("ObjectGenerationException message-only constructor sets message")
+        void exceptionMessageOnlyConstructor() {
+            ObjectGenerationException ex = new ObjectGenerationException("standalone message");
+            assertEquals("standalone message", ex.getMessage());
+            assertNull(ex.getCause());
+        }
+
+        @Test
+        @DisplayName("constructor that throws is wrapped in ObjectGenerationException (ReflectiveOperationException path)")
+        void throwingConstructorWrappedInOGE() {
+            // ctor.newInstance() raises InvocationTargetException (a ReflectiveOperationException)
+            // which is caught in generate() and re-thrown as ObjectGenerationException.
+            ObjectGenerationException ex = assertThrows(ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(ThrowingCtor.class).generate());
+            assertNotNull(ex.getCause(), "Expected a cause wrapping the original exception");
+        }
+
+        @Test
+        @DisplayName("toString includes type name, depth and maxDepth")
+        void toStringContainsTypeAndDepth() {
+            ObjectGenerator<Address> gen = new ObjectGenerator<>(Address.class);
+            String s = gen.toString();
+            assertTrue(s.contains("Address"),  "Expected class name in toString: " + s);
+            assertTrue(s.contains("depth=0"),  "Expected depth in toString: " + s);
+        }
+    }
+
+    // ── FieldGeneratorResolver branch coverage ────────────────────────────────
+
+    @Nested
+    @DisplayName("FieldGeneratorResolver — branch coverage")
+    class FieldResolutionTest {
+
+        // ── Fixtures ──────────────────────────────────────────────────────────
+
+        enum EmptyStatus {}
+
+        static class WithArrayField     { String[] tags; }
+        static class WithInterfaceField { Runnable runner; }
+        static abstract class AbstractBase {}
+        static class WithAbstractField  { AbstractBase base; }
+        static class WithJdkTypeField   { java.util.Date created; }
+        static class WithEmptyEnumField { EmptyStatus status; }
+
+        static class WithStaticAndFinalFields {
+            static String staticVal = "static";
+            final int     finalVal  = 1;
+            String        mutable;
+        }
+
+        static class Inner  { String value; }
+        static class Middle { Inner inner; }
+        static class Outer  { Middle middle; }
+
+        static class HasNoDefaultCtor   { HasNoDefaultCtor(String x) {} }
+        static class WithBadNestedField { HasNoDefaultCtor nested; String name; }
+
+        // For Exception-catch branch in resolveAndGenerate (non-OGE from nested generation)
+        static class InnerWithString { String value; }
+        static class OuterWithInner  { InnerWithString inner; int num; }
+
+        // ── Tests ─────────────────────────────────────────────────────────────
+
+        @Test
+        @DisplayName("array-typed field is left null (isArray branch in isNestableType)")
+        void arrayFieldLeftNull() {
+            WithArrayField obj = new ObjectGenerator<>(WithArrayField.class).generate();
+            assertNotNull(obj);
+            assertNull(obj.tags, "array-typed field should be null");
+        }
+
+        @Test
+        @DisplayName("interface-typed field is left null (isInterface branch in isNestableType)")
+        void interfaceFieldLeftNull() {
+            WithInterfaceField obj = new ObjectGenerator<>(WithInterfaceField.class).generate();
+            assertNotNull(obj);
+            assertNull(obj.runner, "interface-typed field should be null");
+        }
+
+        @Test
+        @DisplayName("abstract-class-typed field is left null (isAbstract branch in isNestableType)")
+        void abstractClassFieldLeftNull() {
+            WithAbstractField obj = new ObjectGenerator<>(WithAbstractField.class).generate();
+            assertNotNull(obj);
+            assertNull(obj.base, "abstract-typed field should be null");
+        }
+
+        @Test
+        @DisplayName("JDK-typed field is left null (startsWith 'java.' branch in isNestableType)")
+        void jdkTypeFieldLeftNull() {
+            WithJdkTypeField obj = new ObjectGenerator<>(WithJdkTypeField.class).generate();
+            assertNotNull(obj);
+            assertNull(obj.created, "JDK-typed field should be null");
+        }
+
+        @Test
+        @DisplayName("empty enum field returns null (constants.length == 0 branch)")
+        void emptyEnumFieldIsNull() {
+            WithEmptyEnumField obj = new ObjectGenerator<>(WithEmptyEnumField.class).generate();
+            assertNotNull(obj);
+            assertNull(obj.status, "empty-enum field should be null");
+        }
+
+        @Test
+        @DisplayName("static and final fields are skipped by collectSettableFields")
+        void staticAndFinalFieldsSkipped() {
+            WithStaticAndFinalFields obj = new ObjectGenerator<>(WithStaticAndFinalFields.class).generate();
+            assertNotNull(obj);
+            assertEquals("static", WithStaticAndFinalFields.staticVal, "static field must not be modified");
+            assertEquals(1, obj.finalVal, "final field must not be modified");
+            assertNotNull(obj.mutable, "mutable field must be populated");
+        }
+
+        @Test
+        @DisplayName("depth guard returns null for nested objects beyond maxDepth")
+        void depthGuardReturnsNull() {
+            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder().maxDepth(1).build();
+            Outer outer = new ObjectGenerator<>(Outer.class, cfg).generate();
+            assertNotNull(outer.middle, "Middle should be generated (depth 0 → 1 is within maxDepth=1)");
+            assertNull(outer.middle.inner, "Inner should be null: depth guard fires at depth 1 >= maxDepth 1");
+        }
+
+        @Test
+        @DisplayName("ignoreErrors=true swallows ObjectGenerationException from nested type with no no-arg ctor")
+        void ignoreErrorsSwallowsNestedOGE() {
+            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder().ignoreErrors(true).build();
+            WithBadNestedField obj = new ObjectGenerator<>(WithBadNestedField.class, cfg).generate();
+            assertNotNull(obj);
+            assertNull(obj.nested, "nested field should be null when OGE is swallowed");
+            assertNotNull(obj.name,   "other fields should still be populated");
+        }
+
+        @Test
+        @DisplayName("ignoreErrors=false re-throws ObjectGenerationException from nested type with no no-arg ctor")
+        void ignoreErrorsRethrowsNestedOGE() {
+            assertThrows(ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(WithBadNestedField.class).generate());
+        }
+
+        @Test
+        @DisplayName("ignoreErrors=true swallows non-OGE exception from nested generation (Exception catch)")
+        void ignoreErrorsSwallowsRuntimeExceptionFromNested() {
+            // String override throws RuntimeException inside InnerWithString.generate() —
+            // this propagates uncaught through generate(), reaching the Exception catch.
+            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
+                    .override(String.class, () -> { throw new RuntimeException("intentional"); })
+                    .ignoreErrors(true)
+                    .build();
+            OuterWithInner obj = new ObjectGenerator<>(OuterWithInner.class, cfg).generate();
+            assertNotNull(obj);
+            assertNull(obj.inner, "nested field should be null when generation throws RuntimeException");
+        }
+
+        @Test
+        @DisplayName("ignoreErrors=false wraps non-OGE exception in ObjectGenerationException (Exception catch)")
+        void ignoreErrorsFalseWrapsRuntimeExceptionFromNested() {
+            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
+                    .override(String.class, () -> { throw new RuntimeException("intentional"); })
+                    .build();
+            assertThrows(ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+        }
+    }
+
+    // ── generateClass field.set() failure branches ─────────────────────────────
+
+    @Nested
+    @DisplayName("generateClass — field.set() failure branches")
+    class FieldSetFailureTest {
+
+        @Test
+        @DisplayName("ignoreErrors=true silently skips field whose override returns the wrong type")
+        void ignoreErrorsSkipsWrongTypeField() {
+            // Field-level override returns a String for Address.houseNumber (int) —
+            // field.set() throws IllegalArgumentException, which must be swallowed.
+            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
+                    .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
+                    .ignoreErrors(true)
+                    .build();
+            assertDoesNotThrow(() -> new ObjectGenerator<>(Address.class, cfg).generate());
+        }
+
+        @Test
+        @DisplayName("ignoreErrors=false throws ObjectGenerationException when field.set() fails")
+        void ignoreErrorsFalseThrowsOnWrongTypeField() {
+            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
+                    .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
+                    .build();
+            assertThrows(ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(Address.class, cfg).generate());
         }
     }
 }

@@ -62,4 +62,12 @@ class EnumGeneratorTest {
     void emptyEnumThrows() {
         assertThrows(IllegalArgumentException.class, () -> new EnumGenerator<>(Empty.class));
     }
+
+    @Test
+    @DisplayName("non-enum class (getEnumConstants returns null) throws IllegalArgumentException")
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void nonEnumClassThrows() {
+        Class nonEnum = String.class;
+        assertThrows(IllegalArgumentException.class, () -> new EnumGenerator<>(nonEnum));
+    }
 }

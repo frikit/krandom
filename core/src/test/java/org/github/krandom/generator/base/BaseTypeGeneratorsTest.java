@@ -208,6 +208,14 @@ class BaseTypeGeneratorsTest {
                 assertTrue(v >= 10 && v < 20, "Expected [10, 20) after swap, got: " + v);
             }
         }
+
+        @Test
+        @DisplayName("getMin() and getMax() return the configured bounds")
+        void getMinAndMax() {
+            IntGenerator gen = new IntGenerator(10, 20);
+            assertEquals(10, gen.getMin());
+            assertEquals(20, gen.getMax());
+        }
     }
 
     // ── LongGenerator ─────────────────────────────────────────────────────────
@@ -379,6 +387,15 @@ class BaseTypeGeneratorsTest {
         }
 
         @Test
+        @DisplayName("alphanumeric() factory produces letters and digits")
+        void alphanumericFactory() {
+            CharGenerator gen = CharGenerator.alphanumeric();
+            List<Character> chars = gen.generateList(300);
+            assertTrue(chars.stream().anyMatch(Character::isLetter), "No letter found");
+            assertTrue(chars.stream().anyMatch(Character::isDigit),  "No digit found");
+        }
+
+        @Test
         @DisplayName("no groups enabled throws IllegalArgumentException")
         void noGroupsThrows() {
             CharGenerator.Builder builder = CharGenerator.builder(); // nothing enabled
@@ -507,6 +524,29 @@ class BaseTypeGeneratorsTest {
         void maxLengthZeroThrows() {
             assertThrows(IllegalArgumentException.class,
                     () -> StringGenerator.builder().maxLength(0));
+        }
+
+        @Test
+        @DisplayName("digits() factory produces strings of digit characters")
+        void digitsFactory() {
+            String s = StringGenerator.digits().generate();
+            assertTrue(s.chars().allMatch(Character::isDigit), "Expected digits only, got: " + s);
+        }
+
+        @Test
+        @DisplayName("alphanumeric() factory produces non-empty strings")
+        void alphanumericFactory() {
+            String s = StringGenerator.alphanumeric().generate();
+            assertNotNull(s);
+            assertFalse(s.isEmpty());
+        }
+
+        @Test
+        @DisplayName("all() factory produces non-empty strings")
+        void allFactory() {
+            String s = StringGenerator.all().generate();
+            assertNotNull(s);
+            assertFalse(s.isEmpty());
         }
     }
 

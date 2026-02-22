@@ -146,19 +146,15 @@ final class FieldGeneratorResolver {
 
     /**
      * Return {@code true} for concrete classes and records that {@link ObjectGenerator}
-     * can instantiate. Excludes primitives, arrays, interfaces, abstract classes,
-     * and JDK types (to avoid recursing into java.* packages).
+     * can instantiate. Excludes arrays, interfaces, abstract classes, and JDK types
+     * (bootstrap-loaded classes) to avoid recursing into platform internals.
      */
     private boolean isNestableType(Class<?> type) {
-        if (type.isPrimitive())   return false;
-        if (type.isArray())       return false;
-        if (type.isInterface())   return false;
-        if (type.isAnnotation())  return false;
+        if (type.isArray())     return false;
+        if (type.isInterface()) return false;
         if (java.lang.reflect.Modifier.isAbstract(type.getModifiers())) return false;
-        // Skip JDK and third-party library types — only recurse into user classes
-        String pkg = type.getPackageName();
-        if (pkg.startsWith("java.") || pkg.startsWith("javax.") ||
-            pkg.startsWith("sun.")  || pkg.startsWith("com.sun.")) return false;
+        // Bootstrap ClassLoader (null) loads all JDK platform classes — skip them
+        if (type.getClassLoader() == null) return false;
         return true;
     }
 }

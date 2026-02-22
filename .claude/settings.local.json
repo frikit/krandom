@@ -12,7 +12,8 @@
       "Bash(python3:*)",
       "Bash(./gradlew spotlessApply:*)",
       "Bash(./gradlew spotlessCheck:*)",
-      "Bash(./gradlew:*)"
+      "Bash(./gradlew:*)",
+      "Bash(bash scripts/:*)"
     ]
   }
 }

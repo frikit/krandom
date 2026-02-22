@@ -162,18 +162,17 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     /**
      * Collect all instance fields that can be set after construction:
-     * non-static, non-final, non-synthetic. Walks the full class hierarchy up to
+     * non-static and non-final. Walks the full class hierarchy up to
      * (but not including) {@link Object}.
      */
     private List<Field> collectSettableFields(Class<?> clazz) {
         List<Field> fields = new ArrayList<>();
         Class<?> current = clazz;
-        while (current != null && current != Object.class) {
+        while (current != Object.class) {
             for (Field f : current.getDeclaredFields()) {
                 int mods = f.getModifiers();
-                if (Modifier.isStatic(mods))  continue;  // class-level, not instance
-                if (Modifier.isFinal(mods))   continue;  // immutable after construction
-                if (f.isSynthetic())           continue;  // compiler-generated (e.g. this$0)
+                if (Modifier.isStatic(mods)) continue;  // class-level, not instance
+                if (Modifier.isFinal(mods))  continue;  // immutable after construction
                 fields.add(f);
             }
             current = current.getSuperclass();
