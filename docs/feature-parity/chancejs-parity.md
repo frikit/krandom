@@ -48,13 +48,24 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Documentation: Full Javadoc + usage examples
 - Pre-commit: All checks passing
 
+#### Booleans Section (2/2 features - 100% complete)
+
+- ✅ Random boolean - `Generators.ofBoolean()`
+- ✅ Weighted boolean (likelihood) - `ofBoolean().withLikelihood(percentage)`
+
+**Metrics**:
+
+- Test coverage: 100% for BooleanGenerator
+- New tests: 40+ comprehensive test cases covering all likelihood scenarios
+- Statistical validation: Empirical probability testing with 5% tolerance
+- Pre-commit: All checks passing
+
 ### In Progress
 
 _None - awaiting next feature selection_
 
 ### Planned
 
-- Boolean with likelihood (weighted)
 - Email generation
 - UUID generation
 - Character generators with custom pools
@@ -89,7 +100,7 @@ _None - awaiting next feature selection_
 |-----------------------|-------------------------------------------------------------|----------------|-------------------------|----------------------------------|
 | **Boolean**           |
 | Random boolean        | ✅ `bool()`                                                  | ✅ Yes          | ✓ DONE                  | `Generators.ofBoolean()`         |
-| Weighted boolean      | ✅ `bool({likelihood: 80})`                                  | ❌ No           | HIGH                    | Return true 80% of time - UNIQUE |
+| Weighted boolean      | ✅ `bool({likelihood: 80})`                                  | ✅ Yes          | ✓ DONE                  | `ofBoolean().withLikelihood(%)` - UNIQUE |
 | **Characters**        |
 | Random character      | ✅ `character({pool, alpha, numeric, symbols, casing})`      | ❌ No           | MEDIUM                  | Extensive options                |
 | Custom character pool | ✅ `character({pool: 'aeiou'})`                              | ❌ No           | MEDIUM                  | Select from custom set           |
@@ -592,7 +603,7 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 ### Top Priority Focus Areas (Remaining)
 
-1. ~~**Weighted Random & Normal Distribution**~~ - ✅ Normal distribution DONE, weighted random pending
+1. ~~**Weighted Random & Normal Distribution**~~ - ✅ COMPLETE (normal distribution + weighted boolean DONE)
 2. **Helper Methods** - `n()`, `unique()`, collection operations
 3. **Natural Language Generation** - Syllable-based words, sentences, paragraphs
 4. **Rich Options Parameterization** - Extensive parameter support on all methods
@@ -609,16 +620,17 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 ### Strategic Recommendation
 
-**Phase 1 Complete** ✅ - Implemented 8 features from Chance.js Numbers section (100% coverage):
+**Phase 1 Complete** ✅ - Implemented 10 features from Chance.js (Numbers + Booleans sections):
 
-- Natural numbers, primes, fixed precision, normal distribution, exclusion support
+- Numbers: Natural numbers, primes, fixed precision, normal distribution, exclusion support (8/8 - 100%)
+- Booleans: Random boolean, weighted boolean with likelihood (2/2 - 100%)
 
 **Next Phase** - Implement remaining high-value features:
 
-- Statistical features (~~normal distribution~~ ✅ DONE, weighted random) - HIGH VALUE
 - Helper methods (n, unique, pick) - HIGH LEVERAGE
 - Natural language (word, sentence, paragraph) - HIGH DEMAND
 - Core data (email, UUID, addresses, phones) - HIGH USAGE
+- Character generators with custom pools - MEDIUM VALUE
 - Rich parameterization - BETTER UX
 
 **Maintain krandom advantages**:
@@ -627,9 +639,9 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - ✅ ObjectGenerator for complex graphs
 - ✅ Clean architecture and test coverage (99.7%+)
 - ✅ JVM ecosystem integration
-- ✅ Statistical capabilities (normal distribution via Box-Muller)
+- ✅ Statistical capabilities (normal distribution via Box-Muller, weighted boolean)
 
-**Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **natural language generation** not found in other JVM
+**Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **probability control** not found in other JVM
 libraries.
 
-**Progress**: 8/60 core features implemented (13% complete)
+**Progress**: 10/60 core features implemented (17% complete)
