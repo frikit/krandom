@@ -33,6 +33,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 ### Completed Features ✅
 
 #### Numbers Section (8/8 features - 100% complete)
+
 - ✅ Natural numbers with exclusion - `Generators.ofNaturalNumber().excluding(...)`
 - ✅ Prime number generation - `Generators.ofPrime()`
 - ✅ Fixed decimal precision - `ofDouble().withPrecision(decimals)`, `ofFloat().withPrecision(decimals)`
@@ -41,6 +42,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - ✅ Random float - Already existed via `Generators.ofFloat()`
 
 **Metrics**:
+
 - Test coverage: 99.7% line, 99.1% branch
 - New tests: ~300 comprehensive test cases
 - Documentation: Full Javadoc + usage examples
@@ -66,20 +68,20 @@ _None - awaiting next feature selection_
 
 ### 1. NUMBERS
 
-| Feature                 | Chance.js Support                | krandom Status | Implementation Priority | Notes                                |
-|-------------------------|----------------------------------|----------------|-------------------------|--------------------------------------|
+| Feature                 | Chance.js Support                | krandom Status | Implementation Priority | Notes                               |
+|-------------------------|----------------------------------|----------------|-------------------------|-------------------------------------|
 | **Integer Generation**  |
-| Random integer          | ✅ `integer({min, max})`          | ✅ Yes          | ✓ DONE                  | `Generators.ofInt()`                 |
-| Natural numbers (≥0)    | ✅ `natural({min, max, exclude})` | ✅ Yes          | ✓ DONE                  | `Generators.ofNaturalNumber()`       |
-| Prime numbers           | ✅ `prime({min, max})`            | ✅ Yes          | ✓ DONE                  | `Generators.ofPrime()`               |
+| Random integer          | ✅ `integer({min, max})`          | ✅ Yes          | ✓ DONE                  | `Generators.ofInt()`                |
+| Natural numbers (≥0)    | ✅ `natural({min, max, exclude})` | ✅ Yes          | ✓ DONE                  | `Generators.ofNaturalNumber()`      |
+| Prime numbers           | ✅ `prime({min, max})`            | ✅ Yes          | ✓ DONE                  | `Generators.ofPrime()`              |
 | **Floating Point**      |
-| Random float            | ✅ `floating({min, max, fixed})`  | ✅ Yes          | ✓ DONE                  | `Generators.ofFloat()`               |
-| Fixed decimal places    | ✅ `fixed` parameter              | ✅ Yes          | ✓ DONE                  | `withPrecision(decimals)`            |
+| Random float            | ✅ `floating({min, max, fixed})`  | ✅ Yes          | ✓ DONE                  | `Generators.ofFloat()`              |
+| Fixed decimal places    | ✅ `fixed` parameter              | ✅ Yes          | ✓ DONE                  | `withPrecision(decimals)`           |
 | **Statistical**         |
-| Normal distribution     | ✅ `normal({mean, dev})`          | ✅ Yes          | ✓ DONE                  | `Generators.ofNormal(mean, stdDev)`  |
-| Standard deviation      | ✅ `dev` parameter                | ✅ Yes          | ✓ DONE                  | Second parameter in ofNormal()       |
+| Normal distribution     | ✅ `normal({mean, dev})`          | ✅ Yes          | ✓ DONE                  | `Generators.ofNormal(mean, stdDev)` |
+| Standard deviation      | ✅ `dev` parameter                | ✅ Yes          | ✓ DONE                  | Second parameter in ofNormal()      |
 | **Exclusion**           |
-| Exclude specific values | ✅ `natural({exclude: [1,2,3]})`  | ✅ Yes          | ✓ DONE                  | `ofNaturalNumber().excluding(...)`   |
+| Exclude specific values | ✅ `natural({exclude: [1,2,3]})`  | ✅ Yes          | ✓ DONE                  | `ofNaturalNumber().excluding(...)`  |
 
 ### 2. BOOLEANS & BASIC TYPES
 
@@ -573,6 +575,7 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 ### Completed Implementations ✅
 
 **Numbers Section (100% Complete)**:
+
 - ✅ Natural numbers with exclusion - `Generators.ofNaturalNumber().excluding(...)`
 - ✅ Prime number generation - `Generators.ofPrime()`
 - ✅ Fixed decimal precision - `ofDouble().withPrecision(decimals)`
@@ -580,6 +583,7 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - ✅ Exclusion support for natural numbers
 
 **Implementation Details**:
+
 - Test coverage: 99.7% line, 99.1% branch
 - ~300 new test cases added
 - Statistical validation (68-95-99.7 empirical rule)
@@ -606,6 +610,7 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 ### Strategic Recommendation
 
 **Phase 1 Complete** ✅ - Implemented 8 features from Chance.js Numbers section (100% coverage):
+
 - Natural numbers, primes, fixed precision, normal distribution, exclusion support
 
 **Next Phase** - Implement remaining high-value features:
@@ -624,6 +629,7 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - ✅ JVM ecosystem integration
 - ✅ Statistical capabilities (normal distribution via Box-Muller)
 
-**Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **natural language generation** not found in other JVM libraries.
+**Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **natural language generation** not found in other JVM
+libraries.
 
 **Progress**: 8/60 core features implemented (13% complete)

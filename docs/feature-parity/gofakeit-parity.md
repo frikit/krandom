@@ -616,16 +616,16 @@ It's designed for Go developers who need quick, type-safe fake data with minimal
 
 ```go
 type Order struct {
-    ID         string    `fake:"{uuid}"`
-    CustomerID int       `fake:"{number:1000,9999}"`
-    FirstName  string    `fake:"{firstname}"`
-    LastName   string    `fake:"{lastname}"`
-    Email      string    `fake:"{email}"`
-    Tags       []string  `fakesize:"3"`
-    Ref        string    `fake:"{regex:[A-Z]{3}-[0-9]{6}}"`
-    PlacedAt   time.Time `fake:"{year}-{month}-{day}" format:"2006-01-02"`
-    TotalPrice float64   `fake:"{price:5.00,500.00}"`
-    Internal   *string   `fake:"skip"`
+ID         string    `fake:"{uuid}"`
+CustomerID int       `fake:"{number:1000,9999}"`
+FirstName  string    `fake:"{firstname}"`
+LastName   string    `fake:"{lastname}"`
+Email      string    `fake:"{email}"`
+Tags       []string  `fakesize:"3"`
+Ref        string    `fake:"{regex:[A-Z]{3}-[0-9]{6}}"`
+PlacedAt   time.Time `fake:"{year}-{month}-{day}" format:"2006-01-02"`
+TotalPrice float64   `fake:"{price:5.00,500.00}"`
+Internal   *string   `fake:"skip"`
 }
 
 var o Order
@@ -692,26 +692,26 @@ GoFakeit can generate complete data files:
 ```go
 // CSV with 100 rows
 csv := gofakeit.CSV(&gofakeit.CSVOptions{
-    RowCount: 100,
-    Fields: []gofakeit.Field{
-        {Name: "id", Function: "number", Params: map[string][]string{"min": {"1"}, "max": {"1000"}}},
-        {Name: "first_name", Function: "firstname"},
-        {Name: "email", Function: "email"},
-    },
+RowCount: 100,
+Fields: []gofakeit.Field{
+{Name: "id", Function: "number", Params: map[string][]string{"min": {"1"}, "max": {"1000"}}},
+{Name: "first_name", Function: "firstname"},
+{Name: "email", Function: "email"},
+},
 })
 
 // JSON array
 json := gofakeit.JSON(&gofakeit.JSONOptions{
-    Type:     "array",
-    RowCount: 50,
-    Fields:   /* ... */,
+Type:     "array",
+RowCount: 50,
+Fields:   /* ... */,
 })
 
 // SQL INSERT statements
 sql := gofakeit.SQL(&gofakeit.SQLOptions{
-    Table:    "users",
-    RowCount: 25,
-    Fields:   /* ... */,
+Table:    "users",
+RowCount: 25,
+Fields:   /* ... */,
 })
 ```
 
@@ -727,15 +727,15 @@ sql := gofakeit.SQL(&gofakeit.SQLOptions{
 
 ```go
 gofakeit.AddFuncLookup("teamname", gofakeit.Info{
-    Category:    "custom",
-    Description: "Random sports team name",
-    Example:     "Blue Hawks",
-    Output:      "string",
-    Generate: func(f *gofakeit.Faker, m *gofakeit.MapParams, info *gofakeit.Info) (any, error) {
-        colors  := []string{"Blue", "Red", "Green", "Gold", "Silver"}
-        animals := []string{"Hawks", "Lions", "Bears", "Wolves", "Eagles"}
-        return f.RandomString(colors) + " " + f.RandomString(animals), nil
-    },
+Category:    "custom",
+Description: "Random sports team name",
+Example:     "Blue Hawks",
+Output:      "string",
+Generate: func (f *gofakeit.Faker, m *gofakeit.MapParams, info *gofakeit.Info) (any, error) {
+colors := []string{"Blue", "Red", "Green", "Gold", "Silver"}
+animals := []string{"Hawks", "Lions", "Bears", "Wolves", "Eagles"}
+return f.RandomString(colors) + " " + f.RandomString(animals), nil
+},
 })
 ```
 

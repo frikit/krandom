@@ -1183,7 +1183,7 @@ operator fun FieldPredicate.not(): FieldPredicate =
 
 // Usage:
 val predicate = FieldPredicates.named("password") and
-                FieldPredicates.inClass(User::class.java)
+        FieldPredicates.inClass(User::class.java)
 ```
 
 ---
