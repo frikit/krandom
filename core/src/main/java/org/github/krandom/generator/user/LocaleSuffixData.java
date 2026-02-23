@@ -17,52 +17,52 @@ import java.util.Locale;
 public enum LocaleSuffixData implements SuffixDataProvider {
 
     EN_US(
-        new Locale("en", "US"),
+        Locale.of("en", "US"),
         new String[] { "Jr.", "Sr.", "II", "III", "IV", "Esq.", "PhD", "MD", "JD", "DO", "DDS", "RN", "CPA" }
     ),
 
     EN_GB(
-        new Locale("en", "GB"),
+        Locale.of("en", "GB"),
         new String[] { "Jr", "Sr", "Jnr", "Snr", "Esq", "PhD", "MD", "OBE", "MBE", "CBE" }
     ),
 
     EN_AU(
-        new Locale("en", "AU"),
+        Locale.of("en", "AU"),
         new String[] { "Jr", "Sr", "Esq", "PhD", "MD", "OAM", "AM" }
     ),
 
     FR_FR(
-        new Locale("fr", "FR"),
+        Locale.of("fr", "FR"),
         new String[] { "fils", "père", "PhD", "MD" }
     ),
 
     DE_DE(
-        new Locale("de", "DE"),
+        Locale.of("de", "DE"),
         new String[] { "jun.", "sen.", "PhD", "Dr. h.c." }
     ),
 
     JA_JP(
-        new Locale("ja", "JP"),
+        Locale.of("ja", "JP"),
         new String[] { "博士", "学士", "修士" }
     ),
 
     ES_ES(
-        new Locale("es", "ES"),
+        Locale.of("es", "ES"),
         new String[] { "Jr.", "Sr.", "II", "III", "PhD", "MD" }
     ),
 
     IT_IT(
-        new Locale("it", "IT"),
+        Locale.of("it", "IT"),
         new String[] { "Jr.", "Sr.", "PhD", "MD" }
     ),
 
     PT_BR(
-        new Locale("pt", "BR"),
+        Locale.of("pt", "BR"),
         new String[] { "Filho", "Júnior", "Neto", "PhD", "MD" }
     ),
 
     ZH_CN(
-        new Locale("zh", "CN"),
+        Locale.of("zh", "CN"),
         new String[] { "博士", "硕士", "学士" }
     );
 

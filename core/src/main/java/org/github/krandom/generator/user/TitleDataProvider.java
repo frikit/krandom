@@ -15,10 +15,10 @@ import java.util.Locale;
  *
  * <pre>{@code
  * TitleDataRegistry.register(new TitleDataProvider() {
- *     public Locale getLocale() { return new Locale("ko", "KR"); }
+ *     public Locale getLocale() { return Locale.of("ko", "KR"); }
  *     public String[] getTitles() { return new String[]{"씨", "님", "박사", "교수"}; }
  * });
- * TitleGenerator gen = new TitleGenerator(new Locale("ko", "KR"));
+ * TitleGenerator gen = new TitleGenerator(Locale.of("ko", "KR"));
  * }</pre>
  *
  * <p>The built-in baseline is provided by {@link LocaleTitleData}, which implements this interface

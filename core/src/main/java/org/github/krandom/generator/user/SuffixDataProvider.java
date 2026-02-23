@@ -15,10 +15,10 @@ import java.util.Locale;
  *
  * <pre>{@code
  * SuffixDataRegistry.register(new SuffixDataProvider() {
- *     public Locale getLocale() { return new Locale("ko", "KR"); }
+ *     public Locale getLocale() { return Locale.of("ko", "KR"); }
  *     public String[] getSuffixes() { return new String[]{"박사", "학사"}; }
  * });
- * SuffixGenerator gen = new SuffixGenerator(new Locale("ko", "KR"));
+ * SuffixGenerator gen = new SuffixGenerator(Locale.of("ko", "KR"));
  * }</pre>
  *
  * <p>The built-in baseline is provided by {@link LocaleSuffixData}, which implements this

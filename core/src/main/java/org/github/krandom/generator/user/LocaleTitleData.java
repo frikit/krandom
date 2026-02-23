@@ -17,52 +17,52 @@ import java.util.Locale;
 public enum LocaleTitleData implements TitleDataProvider {
 
     EN_US(
-        new Locale("en", "US"),
+        Locale.of("en", "US"),
         new String[] { "Mr.", "Mrs.", "Ms.", "Miss", "Dr.", "Prof.", "Rev.", "Hon.", "Mx." }
     ),
 
     EN_GB(
-        new Locale("en", "GB"),
+        Locale.of("en", "GB"),
         new String[] { "Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", "Rev", "Sir", "Dame", "Lord", "Lady", "Mx" }
     ),
 
     EN_AU(
-        new Locale("en", "AU"),
+        Locale.of("en", "AU"),
         new String[] { "Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", "Rev", "Mx" }
     ),
 
     FR_FR(
-        new Locale("fr", "FR"),
+        Locale.of("fr", "FR"),
         new String[] { "M.", "Mme", "Mlle", "Dr", "Pr", "Me", "Mgr" }
     ),
 
     DE_DE(
-        new Locale("de", "DE"),
+        Locale.of("de", "DE"),
         new String[] { "Herr", "Frau", "Dr.", "Prof.", "Dr. med.", "Dr. jur.", "Dipl.-Ing." }
     ),
 
     JA_JP(
-        new Locale("ja", "JP"),
+        Locale.of("ja", "JP"),
         new String[] { "さん", "様", "殿", "君", "ちゃん", "先生", "博士" }
     ),
 
     ES_ES(
-        new Locale("es", "ES"),
+        Locale.of("es", "ES"),
         new String[] { "Sr.", "Sra.", "Srta.", "Dr.", "Dra.", "Prof.", "Don", "Doña" }
     ),
 
     IT_IT(
-        new Locale("it", "IT"),
+        Locale.of("it", "IT"),
         new String[] { "Sig.", "Sig.ra", "Sig.na", "Dott.", "Dott.ssa", "Prof.", "Avv." }
     ),
 
     PT_BR(
-        new Locale("pt", "BR"),
+        Locale.of("pt", "BR"),
         new String[] { "Sr.", "Sra.", "Srta.", "Dr.", "Dra.", "Prof.", "Profa." }
     ),
 
     ZH_CN(
-        new Locale("zh", "CN"),
+        Locale.of("zh", "CN"),
         new String[] { "先生", "女士", "小姐", "博士", "教授", "老师" }
     );
 

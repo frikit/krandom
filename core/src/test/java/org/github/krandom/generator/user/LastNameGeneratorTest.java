@@ -17,65 +17,65 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("SuffixGenerator")
-class SuffixGeneratorTest {
+@DisplayName("LastNameGenerator")
+class LastNameGeneratorTest {
 
     // ── Default / US ──────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("default constructor uses Locale.US")
     void defaultConstructorUsesUsLocale() {
-        SuffixGenerator gen = new SuffixGenerator();
+        LastNameGenerator gen = new LastNameGenerator();
         assertEquals(Locale.US, gen.getLocale());
     }
 
     @Test
     @DisplayName("generate() returns a non-null, non-empty string")
     void generateReturnsNonEmpty() {
-        SuffixGenerator gen = new SuffixGenerator();
-        String suffix = gen.generate();
-        assertNotNull(suffix);
-        assertFalse(suffix.isEmpty());
+        LastNameGenerator gen = new LastNameGenerator();
+        String name = gen.generate();
+        assertNotNull(name);
+        assertFalse(name.isEmpty());
     }
 
     @Test
-    @DisplayName("generate() returns a value from the configured locale's suffix list")
-    void generateReturnsKnownSuffix() {
-        SuffixGenerator gen = new SuffixGenerator(Locale.US);
-        Set<String> usExpected = Set.of(LocaleSuffixData.EN_US.getSuffixes());
+    @DisplayName("generate() returns a value from the configured locale's name list")
+    void generateReturnsKnownName() {
+        LastNameGenerator gen = new LastNameGenerator(Locale.US);
+        Set<String> usExpected = Set.of(LocaleLastNameData.EN_US.getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(usExpected.contains(gen.generate()),
-                    "Generated suffix not in EN_US list: " + gen.generate());
+                    "Generated name not in EN_US list: " + gen.generate());
         }
     }
 
     // ── Locale variety ────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("German locale produces German suffixes")
-    void germanSuffixes() {
-        SuffixGenerator gen = new SuffixGenerator(Locale.GERMANY);
-        Set<String> deExpected = Set.of(LocaleSuffixData.DE_DE.getSuffixes());
+    @DisplayName("German locale produces German last names")
+    void germanLastNames() {
+        LastNameGenerator gen = new LastNameGenerator(Locale.GERMANY);
+        Set<String> deExpected = Set.of(LocaleLastNameData.DE_DE.getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(deExpected.contains(gen.generate()));
         }
     }
 
     @Test
-    @DisplayName("Japanese locale produces Japanese suffixes")
-    void japaneseSuffixes() {
-        SuffixGenerator gen = new SuffixGenerator(Locale.JAPAN);
-        Set<String> jaExpected = Set.of(LocaleSuffixData.JA_JP.getSuffixes());
+    @DisplayName("Japanese locale produces Japanese last names")
+    void japaneseLastNames() {
+        LastNameGenerator gen = new LastNameGenerator(Locale.JAPAN);
+        Set<String> jaExpected = Set.of(LocaleLastNameData.JA_JP.getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(jaExpected.contains(gen.generate()));
         }
     }
 
     @Test
-    @DisplayName("French locale produces French suffixes")
-    void frenchSuffixes() {
-        SuffixGenerator gen = new SuffixGenerator(Locale.FRANCE);
-        Set<String> frExpected = Set.of(LocaleSuffixData.FR_FR.getSuffixes());
+    @DisplayName("French locale produces French last names")
+    void frenchLastNames() {
+        LastNameGenerator gen = new LastNameGenerator(Locale.FRANCE);
+        Set<String> frExpected = Set.of(LocaleLastNameData.FR_FR.getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(frExpected.contains(gen.generate()));
         }
@@ -87,8 +87,8 @@ class SuffixGeneratorTest {
     @DisplayName("seeded generator produces identical sequences")
     void seededReproducibility() {
         GeneratorConfig cfg = GeneratorConfig.builder().seed(42L).build();
-        SuffixGenerator a = new SuffixGenerator(cfg);
-        SuffixGenerator b = new SuffixGenerator(cfg);
+        LastNameGenerator a = new LastNameGenerator(cfg);
+        LastNameGenerator b = new LastNameGenerator(cfg);
         for (int i = 0; i < 20; i++) {
             assertEquals(a.generate(), b.generate());
         }
@@ -99,21 +99,21 @@ class SuffixGeneratorTest {
     @Test
     @DisplayName("getLocale() returns the configured locale")
     void getLocale() {
-        SuffixGenerator gen = new SuffixGenerator(Locale.UK);
+        LastNameGenerator gen = new LastNameGenerator(Locale.UK);
         assertEquals(Locale.of("en", "GB"), gen.getLocale());
     }
 
     @Test
-    @DisplayName("getSuffixCount() matches the locale's array length")
-    void getSuffixCount() {
-        SuffixGenerator gen = new SuffixGenerator(Locale.US);
-        assertEquals(LocaleSuffixData.EN_US.getSuffixes().length, gen.getSuffixCount());
+    @DisplayName("getLastNameCount() matches the locale's array length")
+    void getLastNameCount() {
+        LastNameGenerator gen = new LastNameGenerator(Locale.US);
+        assertEquals(LocaleLastNameData.EN_US.getLastNames().length, gen.getLastNameCount());
     }
 
     @Test
     @DisplayName("isLocaleExplicitlySupported() returns true for a registered locale")
     void isLocaleExplicitlySupported() {
-        assertTrue(new SuffixGenerator(Locale.US).isLocaleExplicitlySupported());
+        assertTrue(new LastNameGenerator(Locale.US).isLocaleExplicitlySupported());
     }
 
     // ── Unsupported locale ────────────────────────────────────────────────────
@@ -122,159 +122,146 @@ class SuffixGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         assertThrows(UnsupportedOperationException.class,
-                () -> new SuffixGenerator(Locale.of("xx", "YY")));
+                () -> new LastNameGenerator(Locale.of("xx", "YY")));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
 
     @Test
-    @DisplayName("generateList returns the requested number of suffixes")
+    @DisplayName("generateList returns the requested number of last names")
     void generateList() {
-        List<String> suffixes = new SuffixGenerator().generateList(10);
-        assertEquals(10, suffixes.size());
-        suffixes.forEach(s -> assertFalse(s.isEmpty()));
+        List<String> names = new LastNameGenerator().generateList(10);
+        assertEquals(10, names.size());
+        names.forEach(n -> assertFalse(n.isEmpty()));
     }
 
     @Test
     @DisplayName("stream() produces on-demand values")
     void streamProducesValues() {
-        List<String> suffixes = new SuffixGenerator().stream().limit(15).toList();
-        assertEquals(15, suffixes.size());
+        List<String> names = new LastNameGenerator().stream().limit(15).toList();
+        assertEquals(15, names.size());
     }
 
     // ── Registry extensibility ────────────────────────────────────────────────
 
     @Nested
-    @DisplayName("SuffixDataRegistry extensibility")
+    @DisplayName("LastNameDataRegistry extensibility")
     class RegistryTest {
 
         @Test
-        @DisplayName("custom locale registration is picked up by SuffixGenerator")
+        @DisplayName("custom locale registration is picked up by LastNameGenerator")
         void customLocaleRegistration() {
             Locale korean = Locale.of("ko", "KR");
-            SuffixDataRegistry.register(new SuffixDataProvider() {
+            LastNameDataRegistry.register(new LastNameDataProvider() {
                 public Locale getLocale() { return korean; }
-                public String[] getSuffixes() { return new String[]{"박사", "학사"}; }
+                public String[] getLastNames() { return new String[]{"김", "이", "박"}; }
             });
-            SuffixGenerator gen = new SuffixGenerator(korean);
-            assertTrue(Set.of("박사", "학사").contains(gen.generate()));
+            LastNameGenerator gen = new LastNameGenerator(korean);
+            assertTrue(Set.of("김", "이", "박").contains(gen.generate()));
         }
 
         @Test
         @DisplayName("custom provider overrides built-in locale data")
         void customProviderOverridesBuiltIn() {
-            String[] custom = { "Esq." };
-            SuffixDataRegistry.register(new SuffixDataProvider() {
+            String[] custom = { "TestSurname" };
+            LastNameDataRegistry.register(new LastNameDataProvider() {
                 public Locale getLocale() { return Locale.US; }
-                public String[] getSuffixes() { return custom; }
+                public String[] getLastNames() { return custom; }
             });
-            SuffixGenerator gen = new SuffixGenerator(Locale.US);
-            assertEquals("Esq.", gen.generate());
+            LastNameGenerator gen = new LastNameGenerator(Locale.US);
+            assertEquals("TestSurname", gen.generate());
 
             // Restore built-in
-            SuffixDataRegistry.register(LocaleSuffixData.EN_US);
+            LastNameDataRegistry.register(LocaleLastNameData.EN_US);
         }
 
         @Test
         @DisplayName("registered custom locale appears in registeredKeys()")
         void customLocaleAppearsInKeys() {
             Locale swahili = Locale.of("sw", "KE");
-            SuffixDataRegistry.register(new SuffixDataProvider() {
+            LastNameDataRegistry.register(new LastNameDataProvider() {
                 public Locale getLocale() { return swahili; }
-                public String[] getSuffixes() { return new String[]{"Jr.", "Sr."}; }
+                public String[] getLastNames() { return new String[]{"Omondi", "Wanjiku"}; }
             });
-            assertTrue(SuffixDataRegistry.registeredKeys().contains("sw_KE"));
+            assertTrue(LastNameDataRegistry.registeredKeys().contains("sw_KE"));
         }
 
         @Test
         @DisplayName("language-only locale falls back to language entry")
         void languageOnlyFallback() {
             Locale arabic = Locale.of("ar");
-            SuffixDataRegistry.register(new SuffixDataProvider() {
+            LastNameDataRegistry.register(new LastNameDataProvider() {
                 public Locale getLocale() { return arabic; }
-                public String[] getSuffixes() { return new String[]{"الابن", "الأب"}; }
+                public String[] getLastNames() { return new String[]{"العلي", "المحمد"}; }
             });
-            SuffixGenerator gen = new SuffixGenerator(Locale.of("ar", "EG"));
+            LastNameGenerator gen = new LastNameGenerator(Locale.of("ar", "EG"));
             assertNotNull(gen.generate());
         }
 
         @Test
         @DisplayName("register(null) throws NullPointerException")
         void registerRejectsNull() {
-            assertThrows(NullPointerException.class, () -> SuffixDataRegistry.register(null));
-        }
-
-        @Test
-        @DisplayName("generate() returns empty string when suffix array is empty")
-        void generateWithEmptySuffixArray() {
-            Locale empty = Locale.of("zz", "ZZ");
-            SuffixDataRegistry.register(new SuffixDataProvider() {
-                public Locale getLocale() { return empty; }
-                public String[] getSuffixes() { return new String[0]; }
-            });
-            SuffixGenerator gen = new SuffixGenerator(empty);
-            assertEquals("", gen.generate());
+            assertThrows(NullPointerException.class, () -> LastNameDataRegistry.register(null));
         }
 
         @Test
         @DisplayName("isRegistered(null) returns false")
         void isRegisteredNullReturnsFalse() {
-            assertFalse(SuffixDataRegistry.isRegistered(null));
+            assertFalse(LastNameDataRegistry.isRegistered(null));
         }
 
         @Test
         @DisplayName("forLocale(null) returns null")
         void forLocaleNullReturnsNull() {
-            assertNull(SuffixDataRegistry.forLocale(null));
+            assertNull(LastNameDataRegistry.forLocale(null));
         }
 
         @Test
         @DisplayName("isRegistered returns false for unknown locale")
         void isRegisteredUnknownLocale() {
-            assertFalse(SuffixDataRegistry.isRegistered(Locale.of("qq", "QQ")));
+            assertFalse(LastNameDataRegistry.isRegistered(Locale.of("qq", "QQ")));
         }
 
         @Test
         @DisplayName("forLocale returns null for unknown locale")
         void forLocaleUnknownReturnsNull() {
-            assertNull(SuffixDataRegistry.forLocale(Locale.of("qq", "QQ")));
+            assertNull(LastNameDataRegistry.forLocale(Locale.of("qq", "QQ")));
         }
 
         @Test
         @DisplayName("forLocale falls back to language-level entry for unknown country")
         void forLocaleLanguageFallback() {
-            SuffixDataProvider provider = SuffixDataRegistry.forLocale(Locale.of("en", "ZZ"));
+            LastNameDataProvider provider = LastNameDataRegistry.forLocale(Locale.of("en", "ZZ"));
             assertNotNull(provider);
         }
 
         @Test
         @DisplayName("isRegistered with language-only locale checks language-level entry")
         void isRegisteredWithLanguageOnlyLocale() {
-            assertTrue(SuffixDataRegistry.isRegistered(Locale.of("en")));
+            assertTrue(LastNameDataRegistry.isRegistered(Locale.of("en")));
         }
 
         @Test
         @DisplayName("forLocale with language-only locale returns language-level provider")
         void forLocaleWithLanguageOnlyLocale() {
-            assertNotNull(SuffixDataRegistry.forLocale(Locale.of("en")));
+            assertNotNull(LastNameDataRegistry.forLocale(Locale.of("en")));
         }
 
         @Test
         @DisplayName("language-only registration replaces the existing language fallback")
         void languageOnlyRegistrationReplacesFallback() {
-            String[] custom = { "Esq." };
             Locale enOnly = Locale.of("en");
-            SuffixDataRegistry.register(new SuffixDataProvider() {
+            LastNameDataRegistry.register(new LastNameDataProvider() {
                 public Locale getLocale() { return enOnly; }
-                public String[] getSuffixes() { return custom; }
+                public String[] getLastNames() { return new String[]{"FallbackSurname"}; }
             });
-            SuffixGenerator gen = new SuffixGenerator(Locale.of("en", "ZZ"));
-            assertEquals("Esq.", gen.generate());
+            LastNameGenerator gen = new LastNameGenerator(Locale.of("en", "ZZ"));
+            assertEquals("FallbackSurname", gen.generate());
 
             // Restore language fallback
-            SuffixDataRegistry.register(new SuffixDataProvider() {
+            LastNameDataRegistry.register(new LastNameDataProvider() {
                 public Locale getLocale() { return enOnly; }
-                public String[] getSuffixes() { return LocaleSuffixData.EN_US.getSuffixes(); }
+                public String[] getLastNames() { return LocaleLastNameData.EN_US.getLastNames(); }
             });
         }
     }
@@ -282,24 +269,24 @@ class SuffixGeneratorTest {
     // ── All built-in locales covered ──────────────────────────────────────────
 
     @Test
-    @DisplayName("all 10 built-in locales produce non-empty suffixes")
+    @DisplayName("all 10 built-in locales produce non-empty last names")
     void allBuiltInLocalesProduceValues() {
-        for (LocaleSuffixData data : LocaleSuffixData.values()) {
-            SuffixGenerator gen = new SuffixGenerator(data.getLocale());
-            String suffix = gen.generate();
-            assertNotNull(suffix, "Null for " + data);
-            assertFalse(suffix.isEmpty(), "Empty for " + data);
+        for (LocaleLastNameData data : LocaleLastNameData.values()) {
+            LastNameGenerator gen = new LastNameGenerator(data.getLocale());
+            String name = gen.generate();
+            assertNotNull(name, "Null for " + data);
+            assertFalse(name.isEmpty(), "Empty for " + data);
         }
     }
 
     @Test
     @DisplayName("all built-in locales produce variety of values over many samples")
     void allBuiltInLocalesProduceVariety() {
-        for (LocaleSuffixData data : LocaleSuffixData.values()) {
-            SuffixGenerator gen = new SuffixGenerator(data.getLocale());
+        for (LocaleLastNameData data : LocaleLastNameData.values()) {
+            LastNameGenerator gen = new LastNameGenerator(data.getLocale());
             Set<String> seen = new HashSet<>();
             for (int i = 0; i < 200; i++) seen.add(gen.generate());
-            assertFalse(seen.isEmpty(), "No variety for " + data);
+            assertTrue(seen.size() > 1, "No variety for " + data);
         }
     }
 }

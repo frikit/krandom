@@ -28,7 +28,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 ## Implementation Status
 
-**Last Updated**: 2026-02-23
+**Last Updated**: 2026-02-23 (session 2)
 
 ### Completed Features ✅
 
@@ -94,14 +94,19 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Seeded generation support (with documented limitations)
 - Pre-commit: All checks passing
 
-#### Person Identity Section (2/2 name decorators complete)
+#### Person Identity Section (4/4 name components complete)
 
 - ✅ Name prefix (title) - `TitleGenerator` with 10 built-in locales (en_US, en_GB, en_AU, fr_FR, de_DE, ja_JP, es_ES, it_IT, pt_BR, zh_CN), extensible via `TitleDataRegistry`
 - ✅ Name suffix - `SuffixGenerator` with 10 built-in locales, extensible via `SuffixDataRegistry`
+- ✅ First name - `FirstNameGenerator` with 10 locales, gender-aware via `generate(Gender.MALE/FEMALE)`
+- ✅ Last name - `LastNameGenerator` with 10 locales, extensible via `LastNameDataRegistry`
 
 **Metrics**:
 
-- Test coverage: 100% line, 100% branch for `generator.user` package
+- Test coverage: 100% branch for `generator.user` package
+- Name data loaded from 30 classpath resource files (`krandom/names/`)
+- ~75 male + ~75 female first names and ~80–100 last names per locale
+- Gender enum (`Gender.MALE`, `Gender.FEMALE`) with gender-neutral `generate()` fallback
 - Registry extensibility: custom providers register/override at runtime
 - Seeded generation, `generateList()`, and `stream()` all supported
 
@@ -165,17 +170,17 @@ _None - awaiting next feature selection_
 | Feature               | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                                           |
 |-----------------------|-------------------------------------------------------------------------|----------------|-------------------------|-------------------------------------------------|
 | **Names**             |
-| Full name             | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | HIGH                    | krandom lacks options                           |
-| First name            | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstName`                                     |
-| Last name             | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `SurName`                                       |
+| Full name             | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | HIGH                    | krandom lacks middle/nationality options        |
+| First name            | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator` (10 locales, gender-aware) |
+| Last name             | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `LastNameGenerator` (10 locales)                |
 | Middle name           | ✅ `name({middle: true})`                                                | ❌ No           | MEDIUM                  | Full middle name                                |
 | Middle initial        | ✅ `name({middle_initial: true})`                                        | ❌ No           | MEDIUM                  | 'J.' only                                       |
 | Name prefix           | ✅ `prefix({gender})`                                                    | ✅ Yes          | ✓ DONE                  | `TitleGenerator` (10 locales, no gender filter) |
 | Name suffix           | ✅ `suffix()`                                                            | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` (10 locales)                  |
-| Gender-specific names | ✅ `first({gender: 'male'/'female'})`                                    | ❌ No           | HIGH                    | Gender-aware                                    |
-| Nationality support   | ✅ `name({nationality: 'en'/'it'})`                                      | ❌ No           | MEDIUM                  | English/Italian                                 |
-| US nationality        | ✅ `first({nationality: 'us'})`                                          | ❌ No           | MEDIUM                  | American names                                  |
-| Italian nationality   | ✅ `first({nationality: 'it'})`                                          | ❌ No           | LOW                     | Alberto, Roberta                                |
+| Gender-specific names | ✅ `first({gender: 'male'/'female'})`                                    | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)`              |
+| Nationality support   | ✅ `name({nationality: 'en'/'it'})`                                      | ✅ Partial      | MEDIUM                  | Via locale (10 built-in), not a string param    |
+| US nationality        | ✅ `first({nationality: 'us'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.US)`             |
+| Italian nationality   | ✅ `first({nationality: 'it'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(new Locale("it","IT"))` |
 | **Demographics**      |
 | Age                   | ✅ `age({type: 'child'/'teen'/'adult'/'senior'})`                        | ✅ Yes          | ✓ DONE                  | Type-based ranges                               |
 | Age ranges            | ✅ child(1-12), teen(13-19), adult(18-65), senior(65-100)                | ❌ No           | MEDIUM                  | Predefined ranges                               |
@@ -529,15 +534,15 @@ _None - awaiting next feature selection_
 ### Chance.js Unique Strengths (vs krandom)
 
 1. **Weighted Random** - `weighted(['a','b'], [7,3])` for biased selection (NO EQUIVALENT)
-2. **Normal Distribution** - Box-Muller transform for realistic statistical data (NO EQUIVALENT)
-3. **Likelihood Control** - `bool({likelihood: 80})` for probability-based booleans (NO EQUIVALENT)
+2. **Normal Distribution** - Box-Muller transform for realistic statistical data (~~NO EQUIVALENT~~ ✅ DONE)
+3. **Likelihood Control** - `bool({likelihood: 80})` for probability-based booleans (~~NO EQUIVALENT~~ ✅ DONE)
 4. **Helper Methods** - `n()`, `unique()`, `pick()`, `pickset()`, `shuffle()` (NO EQUIVALENT)
 5. **Syllable-Based Words** - `word({syllables: 4})` for natural-looking text (NO EQUIVALENT)
 6. **Rich Options** - Extensive parameterization on every method (PARTIAL)
 7. **Mobile Detection** - `phone({mobile: true})` for mobile-specific formats (NO EQUIVALENT)
 8. **Currency Pairs** - `currency_pair()` for FX simulation (NO EQUIVALENT)
 9. **Ranked Professions** - `profession({ranked: true})` for biased selection (NO EQUIVALENT)
-10. **Exclude Arrays** - `natural({exclude: [1,2,3]})` to skip specific values (NO EQUIVALENT)
+10. **Exclude Arrays** - `natural({exclude: [1,2,3]})` to skip specific values (~~NO EQUIVALENT~~ ✅ DONE)
 11. **Natural Language** - Sentence/paragraph with proper capitalization and punctuation (NO EQUIVALENT)
 12. **Format Flexibility** - `date({string: true})`, `ssn({dashes: false})` for output control (PARTIAL)
 
@@ -637,11 +642,19 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - ✅ Normal distribution - `Generators.ofNormal(mean, stdDev)` with Box-Muller transform
 - ✅ Exclusion support for natural numbers
 
+**Person Names Section (100% Complete)**:
+
+- ✅ First name - `FirstNameGenerator` — 10 locales, gender-aware (`generate(Gender.MALE/FEMALE)`)
+- ✅ Last name - `LastNameGenerator` — 10 locales, extensible registry
+- ✅ Name prefix/title - `TitleGenerator` — 10 locales
+- ✅ Name suffix - `SuffixGenerator` — 10 locales
+- Architecture: file-based locale data (`krandom/names/*.txt`), `NameResourceLoader`, per-type registry+provider+enum pattern
+
 **Implementation Details**:
 
-- Test coverage: 99.7% line, 99.1% branch
-- ~300 new test cases added
-- Statistical validation (68-95-99.7 empirical rule)
+- Overall test coverage: 99.6% line, 99.4% branch
+- ~300 new test cases across names, booleans, chars, strings, numbers
+- Statistical validation (68-95-99.7 empirical rule for normal distribution)
 - Efficient algorithms (Sieve of Eratosthenes, Box-Muller)
 - Full Javadoc documentation
 
@@ -664,13 +677,13 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 ### Strategic Recommendation
 
-**Phase 1 Complete** ✅ - Implemented 24 features from Chance.js:
+**Phase 1 Complete** ✅ - Implemented 30 features from Chance.js:
 
 - Numbers: Natural numbers, primes, fixed precision, normal distribution, exclusion support (8/8 - 100%)
 - Booleans: Random boolean, weighted boolean with likelihood (2/2 - 100%)
 - Characters: Custom pools, alpha/numeric/symbols, case control (6/6 - 100%)
 - Strings: Custom pools, variable/fixed length, alpha/numeric strings (6/6 - 100%)
-- Person: Name prefix/title, name suffix (2/2 decorators - 100%)
+- Person names: First name (gender-aware, 10 locales), last name (10 locales), title/prefix, suffix (8/8 core name features - 100%)
 
 **Next Phase** - Implement remaining high-value features:
 
@@ -691,4 +704,4 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: 24/60 core features implemented (40% complete)
+**Progress**: 30/60 core features implemented (50% complete)

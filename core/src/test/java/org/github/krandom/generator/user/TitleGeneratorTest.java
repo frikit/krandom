@@ -177,7 +177,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws exception")
     void unsupportedLocaleThrowsException() {
-        Locale unsupported = new Locale("xx", "YY");
+        Locale unsupported = Locale.of("xx", "YY");
         
         UnsupportedOperationException exception = assertThrows(
             UnsupportedOperationException.class,
@@ -191,7 +191,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("language-only locale works (en -> matches en_US)")
     void languageOnlyLocale() {
-        Locale english = new Locale("en");
+        Locale english = Locale.of("en");
         TitleGenerator gen = new TitleGenerator(english);
         
         String title = gen.generate();
@@ -281,7 +281,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("custom provider registered for new locale is used by TitleGenerator")
     void customLocaleRegistration() {
-        Locale korean = new Locale("ko", "KR");
+        Locale korean = Locale.of("ko", "KR");
         String[] koreanTitles = {"씨", "님", "박사", "교수"};
 
         TitleDataRegistry.register(new TitleDataProvider() {
@@ -322,7 +322,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("registered custom locale appears in registeredKeys()")
     void customLocaleAppearsInKeys() {
-        Locale swahili = new Locale("sw");
+        Locale swahili = Locale.of("sw");
         TitleDataRegistry.register(new TitleDataProvider() {
             @Override public Locale getLocale() { return swahili; }
             @Override public String[] getTitles() { return new String[]{"Bwana", "Bibi"}; }
@@ -335,14 +335,14 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("language-only registration serves as fallback for any country variant")
     void languageOnlyFallback() {
-        Locale arabic = new Locale("ar");
+        Locale arabic = Locale.of("ar");
         TitleDataRegistry.register(new TitleDataProvider() {
             @Override public Locale getLocale() { return arabic; }
             @Override public String[] getTitles() { return new String[]{"السيد", "السيدة"}; }
         });
 
         // ar_EG should fall back to the "ar" language entry.
-        Locale arabicEgypt = new Locale("ar", "EG");
+        Locale arabicEgypt = Locale.of("ar", "EG");
         assertTrue(TitleDataRegistry.isRegistered(arabicEgypt));
 
         TitleGenerator gen = new TitleGenerator(arabicEgypt);
@@ -358,7 +358,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("generate() returns empty string when provider supplies empty titles array")
     void generateWithEmptyTitlesArray() {
-        Locale empty = new Locale("zz", "ZZ");
+        Locale empty = Locale.of("zz", "ZZ");
         TitleDataRegistry.register(new TitleDataProvider() {
             @Override public Locale getLocale() { return empty; }
             @Override public String[] getTitles() { return new String[0]; }
@@ -383,13 +383,13 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("isRegistered returns false for unregistered locale with country")
     void isRegisteredUnknownLocale() {
-        assertFalse(TitleDataRegistry.isRegistered(new Locale("xx", "YY")));
+        assertFalse(TitleDataRegistry.isRegistered(Locale.of("xx", "YY")));
     }
 
     @Test
     @DisplayName("forLocale returns null for completely unknown locale")
     void forLocaleUnknownReturnsNull() {
-        assertNull(TitleDataRegistry.forLocale(new Locale("xx", "YY")));
+        assertNull(TitleDataRegistry.forLocale(Locale.of("xx", "YY")));
     }
 
     @Test
@@ -397,7 +397,7 @@ class TitleGeneratorTest {
     void forLocaleLanguageFallbackInRegistry() {
         // "en" is registered (language-level entry seeded from EN_US).
         // "en_ZZ" has no exact entry but shares the "en" language key.
-        TitleDataProvider provider = TitleDataRegistry.forLocale(new Locale("en", "ZZ"));
+        TitleDataProvider provider = TitleDataRegistry.forLocale(Locale.of("en", "ZZ"));
         assertNotNull(provider);
         assertTrue(provider.getTitles().length > 0);
     }
@@ -405,7 +405,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("explicit language-only registration replaces language fallback")
     void languageOnlyRegistrationReplacesExistingFallback() {
-        Locale plain = new Locale("en");
+        Locale plain = Locale.of("en");
         String[] slim = {"Doc"};
 
         TitleDataRegistry.register(new TitleDataProvider() {
@@ -420,7 +420,7 @@ class TitleGeneratorTest {
         // Restore the language-level "en" fallback. Must use a locale with no country so
         // register() takes the explicit-put path rather than putIfAbsent.
         TitleDataRegistry.register(new TitleDataProvider() {
-            @Override public Locale getLocale() { return new Locale("en"); }
+            @Override public Locale getLocale() { return Locale.of("en"); }
             @Override public String[] getTitles() { return LocaleTitleData.EN_US.getTitles(); }
         });
     }

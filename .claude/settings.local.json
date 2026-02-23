@@ -13,7 +13,9 @@
       "Bash(./gradlew spotlessApply:*)",
       "Bash(./gradlew spotlessCheck:*)",
       "Bash(./gradlew:*)",
-      "Bash(bash scripts/:*)"
+      "Bash(bash scripts/:*)",
+      "Bash(bash:*)",
+      "Bash(cat:*)"
     ]
   }
 }
