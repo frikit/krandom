@@ -28,7 +28,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 ## Implementation Status
 
-**Last Updated**: 2026-02-22
+**Last Updated**: 2026-02-23
 
 ### Completed Features ✅
 
@@ -94,6 +94,17 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Seeded generation support (with documented limitations)
 - Pre-commit: All checks passing
 
+#### Person Identity Section (2/2 name decorators complete)
+
+- ✅ Name prefix (title) - `TitleGenerator` with 10 built-in locales (en_US, en_GB, en_AU, fr_FR, de_DE, ja_JP, es_ES, it_IT, pt_BR, zh_CN), extensible via `TitleDataRegistry`
+- ✅ Name suffix - `SuffixGenerator` with 10 built-in locales, extensible via `SuffixDataRegistry`
+
+**Metrics**:
+
+- Test coverage: 100% line, 100% branch for `generator.user` package
+- Registry extensibility: custom providers register/override at runtime
+- Seeded generation, `generateList()`, and `stream()` all supported
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -151,32 +162,32 @@ _None - awaiting next feature selection_
 
 ### 3. PERSON IDENTITY
 
-| Feature               | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                        |
-|-----------------------|-------------------------------------------------------------------------|----------------|-------------------------|------------------------------|
+| Feature               | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                                           |
+|-----------------------|-------------------------------------------------------------------------|----------------|-------------------------|-------------------------------------------------|
 | **Names**             |
-| Full name             | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | HIGH                    | krandom lacks options        |
-| First name            | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstName`                  |
-| Last name             | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `SurName`                    |
-| Middle name           | ✅ `name({middle: true})`                                                | ❌ No           | MEDIUM                  | Full middle name             |
-| Middle initial        | ✅ `name({middle_initial: true})`                                        | ❌ No           | MEDIUM                  | 'J.' only                    |
-| Name prefix           | ✅ `prefix({gender})`                                                    | ❌ No           | MEDIUM                  | Mr., Mrs., Dr.               |
-| Name suffix           | ✅ `suffix()`                                                            | ❌ No           | MEDIUM                  | Esq., Jr., Sr., III          |
-| Gender-specific names | ✅ `first({gender: 'male'/'female'})`                                    | ❌ No           | HIGH                    | Gender-aware                 |
-| Nationality support   | ✅ `name({nationality: 'en'/'it'})`                                      | ❌ No           | MEDIUM                  | English/Italian              |
-| US nationality        | ✅ `first({nationality: 'us'})`                                          | ❌ No           | MEDIUM                  | American names               |
-| Italian nationality   | ✅ `first({nationality: 'it'})`                                          | ❌ No           | LOW                     | Alberto, Roberta             |
+| Full name             | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | HIGH                    | krandom lacks options                           |
+| First name            | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstName`                                     |
+| Last name             | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `SurName`                                       |
+| Middle name           | ✅ `name({middle: true})`                                                | ❌ No           | MEDIUM                  | Full middle name                                |
+| Middle initial        | ✅ `name({middle_initial: true})`                                        | ❌ No           | MEDIUM                  | 'J.' only                                       |
+| Name prefix           | ✅ `prefix({gender})`                                                    | ✅ Yes          | ✓ DONE                  | `TitleGenerator` (10 locales, no gender filter) |
+| Name suffix           | ✅ `suffix()`                                                            | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` (10 locales)                  |
+| Gender-specific names | ✅ `first({gender: 'male'/'female'})`                                    | ❌ No           | HIGH                    | Gender-aware                                    |
+| Nationality support   | ✅ `name({nationality: 'en'/'it'})`                                      | ❌ No           | MEDIUM                  | English/Italian                                 |
+| US nationality        | ✅ `first({nationality: 'us'})`                                          | ❌ No           | MEDIUM                  | American names                                  |
+| Italian nationality   | ✅ `first({nationality: 'it'})`                                          | ❌ No           | LOW                     | Alberto, Roberta                                |
 | **Demographics**      |
-| Age                   | ✅ `age({type: 'child'/'teen'/'adult'/'senior'})`                        | ✅ Yes          | ✓ DONE                  | Type-based ranges            |
-| Age ranges            | ✅ child(1-12), teen(13-19), adult(18-65), senior(65-100)                | ❌ No           | MEDIUM                  | Predefined ranges            |
-| Gender                | ✅ `gender()`                                                            | ✅ Yes          | ✓ DONE                  | 'Male'/'Female'              |
-| Birthday              | ✅ `birthday({type, string, american})`                                  | ✅ Yes          | ✓ DONE                  | `BirthDay`                   |
-| Birthday as string    | ✅ `birthday({string: true})`                                            | ❌ No           | MEDIUM                  | '5/27/1983'                  |
-| American format       | ✅ `birthday({american: true})`                                          | ❌ No           | LOW                     | MM/DD/YYYY                   |
-| Type-based birthday   | ✅ `birthday({type: 'adult'})`                                           | ❌ No           | MEDIUM                  | Age-appropriate              |
+| Age                   | ✅ `age({type: 'child'/'teen'/'adult'/'senior'})`                        | ✅ Yes          | ✓ DONE                  | Type-based ranges                               |
+| Age ranges            | ✅ child(1-12), teen(13-19), adult(18-65), senior(65-100)                | ❌ No           | MEDIUM                  | Predefined ranges                               |
+| Gender                | ✅ `gender()`                                                            | ✅ Yes          | ✓ DONE                  | 'Male'/'Female'                                 |
+| Birthday              | ✅ `birthday({type, string, american})`                                  | ✅ Yes          | ✓ DONE                  | `BirthDay`                                      |
+| Birthday as string    | ✅ `birthday({string: true})`                                            | ❌ No           | MEDIUM                  | '5/27/1983'                                     |
+| American format       | ✅ `birthday({american: true})`                                          | ❌ No           | LOW                     | MM/DD/YYYY                                      |
+| Type-based birthday   | ✅ `birthday({type: 'adult'})`                                           | ❌ No           | MEDIUM                  | Age-appropriate                                 |
 | **ID Numbers**        |
-| SSN                   | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `SocialSecurityNumber`       |
-| Last 4 SSN            | ✅ `ssn({ssnFour: true})`                                                | ❌ No           | MEDIUM                  | '2938' only                  |
-| SSN format control    | ✅ `ssn({dashes: false})`                                                | ❌ No           | MEDIUM                  | '293839295' vs '411-90-0070' |
+| SSN                   | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `SocialSecurityNumber`                          |
+| Last 4 SSN            | ✅ `ssn({ssnFour: true})`                                                | ❌ No           | MEDIUM                  | '2938' only                                     |
+| SSN format control    | ✅ `ssn({dashes: false})`                                                | ❌ No           | MEDIUM                  | '293839295' vs '411-90-0070'                    |
 
 ### 4. LOCATION & ADDRESS
 
@@ -489,10 +500,10 @@ _None - awaiting next feature selection_
 2. **Currency** (1 day)
     - `currency()`, `currency_pair()` for FX simulation
     - `dollar({max})`, `euro({max})` for formatted amounts
-3. **Enhanced Names** (2 days)
+3. **Enhanced Names** (1 day — prefix/suffix done)
     - `name({middle, middle_initial, prefix, suffix, gender, nationality})`
-    - `prefix({gender})`, `suffix()` for title components
-    - Gender-specific and nationality support
+    - ~~`prefix({gender})`~~ ✅ `TitleGenerator`, ~~`suffix()`~~ ✅ `SuffixGenerator`
+    - Gender-specific and nationality support (remaining)
 4. **Date Components** (2 days)
     - `date({string, american, year, month, day})` with rich options
     - `year({min, max})`, `month({raw})`, `hour({twentyfour})`
@@ -653,12 +664,13 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 ### Strategic Recommendation
 
-**Phase 1 Complete** ✅ - Implemented 22 features from Chance.js:
+**Phase 1 Complete** ✅ - Implemented 24 features from Chance.js:
 
 - Numbers: Natural numbers, primes, fixed precision, normal distribution, exclusion support (8/8 - 100%)
 - Booleans: Random boolean, weighted boolean with likelihood (2/2 - 100%)
 - Characters: Custom pools, alpha/numeric/symbols, case control (6/6 - 100%)
 - Strings: Custom pools, variable/fixed length, alpha/numeric strings (6/6 - 100%)
+- Person: Name prefix/title, name suffix (2/2 decorators - 100%)
 
 **Next Phase** - Implement remaining high-value features:
 
@@ -679,4 +691,4 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: 16/60 core features implemented (27% complete)
+**Progress**: 24/60 core features implemented (40% complete)
