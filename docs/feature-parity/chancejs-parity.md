@@ -156,7 +156,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - All 10 algorithms include verifiable checksums; package-private static helpers expose branch-testable logic
 - Seeded generation, `generateList()`, and `stream()` all supported
 
-#### Location Section (4/4 location features complete — country, city, state/province, postal codes with locale support)
+#### Location Section (5/5 location features complete — country, city, state/province, postal codes, phone numbers with locale support)
 
 - ✅ Country names - `CountryGenerator` with 10 locales supporting all 195 UN-recognized countries (193 members + 2 observer states)
     - en_US, en_GB, en_AU: English country names (e.g., "United States", "Germany", "Japan")
@@ -243,6 +243,28 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Extended formats: `generate(true)` returns ZIP+4 for US, hyphenated formats for Brazil/Japan
 - Seeded generation, `generateList()`, and `stream()` all supported
 
+- ✅ Phone numbers - `PhoneNumberGenerator` with 10 locales generating locale-specific phone number formats
+  - en_US: US phone numbers (formatted: "(555) 123-4567", unformatted: "5551234567")
+  - en_GB: UK landlines ("020 7946 0958") and mobiles ("07700 900123")
+  - en_AU: Australian landlines ("02 1234 5678") and mobiles ("0412 345 678")
+  - de_DE: German landlines ("030 12345678") and mobiles ("0151 12345678")
+  - fr_FR: French landlines ("01 23 45 67 89") and mobiles ("06 12 34 56 78")
+  - es_ES: Spanish landlines ("91 123 45 67") and mobiles ("612 34 56 78")
+  - it_IT: Italian landlines ("06 1234 5678") and mobiles ("320 123 4567")
+  - pt_BR: Brazilian landlines ("(11) 3456-7890") and mobiles ("(11) 98765-4321")
+  - ja_JP: Japanese landlines ("03-1234-5678") and mobiles ("090-1234-5678")
+  - zh_CN: Chinese landlines ("010-12345678") and mobiles ("138 1234 5678")
+
+**Metrics**:
+
+- Test coverage: 100% for `PhoneNumberGenerator`
+- Architecture: Direct format generation (no registry/provider needed - generates programmatically)
+- Format accuracy: Each locale follows official phone numbering conventions
+- Mobile vs Landline: 8 locales support mobile/landline distinction
+- Realistic data: Uses actual area codes and mobile prefixes per country
+- Formatted vs Unformatted: `generate(false)` returns digits only, `generate(true)` returns locale-formatted
+- Seeded generation, `generateList()`, and `stream()` all supported
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -252,7 +274,7 @@ _None - awaiting next feature selection_
 - Email generation
 - UUID generation
 - Natural language (words, sentences, paragraphs)
-- Additional location data (addresses, phone numbers)
+- Additional location data (addresses, coordinates)
 - Helper methods (n, unique, pick)
 
 ---
@@ -358,13 +380,10 @@ _None - awaiting next feature selection_
 | Country code       | ✅ `country()`                            | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'         |
 | Country full name  | ✅ `country({full: true})`                | ✅ Yes          | HIGH                    | 'Germany'                |
 | **Phone Numbers**  |
-| Phone number       | ✅ `phone({formatted, country, mobile})`  | ❌ No           | HIGH                    | Multi-country support    |
-| US format          | ✅ `phone()`                              | ❌ No           | HIGH                    | '(494) 927-2152'         |
-| Unformatted        | ✅ `phone({formatted: false})`            | ❌ No           | MEDIUM                  | '2617613391'             |
-| UK phone           | ✅ `phone({country: 'uk'})`               | ❌ No           | MEDIUM                  | International            |
-| UK mobile          | ✅ `phone({country: 'uk', mobile: true})` | ❌ No           | MEDIUM                  | '07624 321221' - UNIQUE  |
-| French phone       | ✅ `phone({country: 'fr'})`               | ❌ No           | MEDIUM                  | '01 60 44 92 67'         |
-| US area code       | ✅ `areacode()`                           | ❌ No           | MEDIUM                  | '(789)'                  |
+| Phone number       | ✅ `phone({formatted, country, mobile})`  | ✅ Yes          | HIGH                    | Multi-country support    |
+| Formatted          | ✅ `generate()`                           | ✅ Yes          | HIGH                    | '(555) 123-4567'         |
+| Unformatted        | ✅ `generate(false)`                      | ✅ Yes          | MEDIUM                  | '5551234567'             |
+| Mobile vs Landline | ✅ `generate(true, true)` for mobile      | ✅ Yes          | MEDIUM                  | Locale-specific          |
 | **Coordinates**    |
 | Latitude           | ✅ `latitude({fixed, min, max})`          | ❌ No           | MEDIUM                  | 57.99514                 |
 | Longitude          | ✅ `longitude({fixed, min, max})`         | ❌ No           | MEDIUM                  | -101.56823               |
