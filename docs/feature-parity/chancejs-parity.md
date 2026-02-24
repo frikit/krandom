@@ -287,6 +287,27 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Precision variants: `generateLatitude(int precision)`, `generateLongitude(int precision)`
 - Seeded generation, `generateList()`, and `stream()` all supported
 
+#### Finance Section (1/1 finance feature complete — credit cards with Luhn validation)
+
+- ✅ Credit cards - `CreditCardGenerator` with 6 major card types and Luhn algorithm validation
+  - Visa: 16-digit cards (prefix: 4), formatted as "4532 1488 0343 6467"
+  - Mastercard: 16-digit cards (prefix: 51-55, 2221-2720), formatted as "5425 2334 3010 9903"
+  - American Express: 15-digit cards (prefix: 34, 37), formatted as "3782 822463 10005", 4-digit CVV
+  - Discover: 16-digit cards (prefix: 6011, 644-649, 65), formatted as "6011 1111 1111 1117"
+  - JCB: 16-digit cards (prefix: 3528-3589), formatted as "3530 1113 3330 0000"
+  - Diners Club: 14-digit cards (prefix: 300-305, 36, 38), formatted as "3056 9309 0259 04"
+
+**Metrics**:
+
+- Test coverage: 100% for `CreditCardGenerator`
+- Architecture: CardType enum + CardInfo record + CreditCardGenerator
+- Luhn validation: All generated cards pass Luhn checksum algorithm
+- CVV generation: 3 digits (most cards), 4 digits (American Express)
+- Expiration dates: MM/YY format, always 1-60 months in the future
+- Card-specific formatting: Amex (4-6-5), Diners (4-6-4), Standard (4-4-4-4)
+- Methods: `generate()`, `generate(boolean formatted)`, `generateWithType()`, `getCvv()`, `getExpirationDate()`
+- Seeded generation, `generateList()`, and `stream()` all supported
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -418,12 +439,14 @@ _None - awaiting next feature selection_
 | Feature             | Chance.js Support                         | krandom Status | Implementation Priority | Notes                                |
 |---------------------|-------------------------------------------|----------------|-------------------------|--------------------------------------|
 | **Credit Cards**    |
-| Credit card number  | ✅ `cc({type})`                            | ✅ Partial      | HIGH                    | Luhn-valid                           |
-| Visa                | ✅ `cc({type: 'Visa'/'visa'})`             | ❌ No           | HIGH                    | Long/short names                     |
-| Mastercard          | ✅ `cc({type: 'Mastercard'/'mc'})`         | ❌ No           | HIGH                    | Multiple formats                     |
-| American Express    | ✅ `cc({type: 'American Express'/'amex'})` | ❌ No           | HIGH                    | 15-digit                             |
-| Card type object    | ✅ `cc_type()`                             | ❌ No           | MEDIUM                  | {name, short_name, prefix, length}   |
-| Card type by name   | ✅ `cc_type({name: true})`                 | ❌ No           | LOW                     | Return name only                     |
+| Credit card number  | ✅ `cc({type})`                            | ✅ Yes          | HIGH                    | Luhn-valid                           |
+| Visa                | ✅ `generate(CardType.VISA)`               | ✅ Yes          | HIGH                    | 16 digits                            |
+| Mastercard          | ✅ `generate(CardType.MASTERCARD)`         | ✅ Yes          | HIGH                    | 16 digits                            |
+| American Express    | ✅ `generate(CardType.AMEX)`               | ✅ Yes          | HIGH                    | 15 digits, 4-digit CVV               |
+| All major cards     | ✅ 6 card types (Visa/MC/Amex/Discover/JCB/Diners) | ✅ Yes   | HIGH                    | Proper formatting                    |
+| CVV/CVC             | ✅ `getCvv()`                              | ✅ Yes          | MEDIUM                  | 3/4 digits based on type             |
+| Expiration date     | ✅ `getExpirationDate()`                   | ✅ Yes          | HIGH                    | MM/YY format, future                 |
+| Card info object    | ✅ `generateWithType()`                    | ✅ Yes          | MEDIUM                  | CardInfo with all details            |
 | **Currency**        |
 | Currency object     | ✅ `currency()`                            | ❌ No           | MEDIUM                  | {code: 'TVD', name: 'Tuvalu Dollar'} |
 | Currency pair       | ✅ `currency_pair()`                       | ❌ No           | MEDIUM                  | FX rate simulation - UNIQUE          |
