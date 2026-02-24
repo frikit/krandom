@@ -156,17 +156,17 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - All 10 algorithms include verifiable checksums; package-private static helpers expose branch-testable logic
 - Seeded generation, `generateList()`, and `stream()` all supported
 
-#### Location Section (2/2 location features complete — country & city with locale support)
+#### Location Section (3/3 location features complete — country, city, state/province with locale support)
 
 - ✅ Country names - `CountryGenerator` with 10 locales supporting all 195 UN-recognized countries (193 members + 2 observer states)
-  - en_US, en_GB, en_AU: English country names (e.g., "United States", "Germany", "Japan")
-  - de_DE: German names (e.g., "Vereinigte Staaten", "Deutschland", "Japan")
-  - fr_FR: French names (e.g., "États-Unis", "Allemagne", "Japon")
-  - es_ES: Spanish names (e.g., "Estados Unidos", "Alemania", "Japón")
-  - it_IT: Italian names (e.g., "Stati Uniti", "Germania", "Giappone")
-  - pt_BR: Portuguese names (e.g., "Estados Unidos", "Alemanha", "Japão")
-  - ja_JP: Japanese names (e.g., "アメリカ合衆国", "ドイツ", "日本")
-  - zh_CN: Simplified Chinese names (e.g., "美国", "德国", "日本")
+    - en_US, en_GB, en_AU: English country names (e.g., "United States", "Germany", "Japan")
+    - de_DE: German names (e.g., "Vereinigte Staaten", "Deutschland", "Japan")
+    - fr_FR: French names (e.g., "États-Unis", "Allemagne", "Japon")
+    - es_ES: Spanish names (e.g., "Estados Unidos", "Alemania", "Japón")
+    - it_IT: Italian names (e.g., "Stati Uniti", "Germania", "Giappone")
+    - pt_BR: Portuguese names (e.g., "Estados Unidos", "Alemanha", "Japão")
+    - ja_JP: Japanese names (e.g., "アメリカ合衆国", "ドイツ", "日本")
+    - zh_CN: Simplified Chinese names (e.g., "美国", "德国", "日本")
 
 **Metrics**:
 
@@ -178,16 +178,16 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 - ✅ City names - `CityGenerator` with 10 locales supporting locale-specific major cities
-  - en_US: 247 major US cities (New York, Los Angeles, Chicago, Houston, etc.)
-  - en_GB: 101 major UK cities (London, Manchester, Birmingham, Glasgow, etc.)
-  - en_AU: 72 major Australian cities (Sydney, Melbourne, Brisbane, Perth, etc.)
-  - de_DE: 100 major German cities with proper German spelling (Berlin, München, Köln, etc.)
-  - fr_FR: 107 major French cities (Paris, Lyon, Marseille, Toulouse, etc.)
-  - es_ES: 84 major Spanish cities (Madrid, Barcelona, Valencia, Sevilla, etc.)
-  - it_IT: 99 major Italian cities (Roma, Milano, Napoli, Torino, etc.)
-  - pt_BR: 89 major Brazilian cities (São Paulo, Rio de Janeiro, Brasília, etc.)
-  - ja_JP: 162 major Japanese cities (東京, 大阪, 京都, 横浜, etc.)
-  - zh_CN: 212 major Chinese cities (北京, 上海, 广州, 深圳, etc.)
+    - en_US: 247 major US cities (New York, Los Angeles, Chicago, Houston, etc.)
+    - en_GB: 101 major UK cities (London, Manchester, Birmingham, Glasgow, etc.)
+    - en_AU: 72 major Australian cities (Sydney, Melbourne, Brisbane, Perth, etc.)
+    - de_DE: 100 major German cities with proper German spelling (Berlin, München, Köln, etc.)
+    - fr_FR: 107 major French cities (Paris, Lyon, Marseille, Toulouse, etc.)
+    - es_ES: 84 major Spanish cities (Madrid, Barcelona, Valencia, Sevilla, etc.)
+    - it_IT: 99 major Italian cities (Roma, Milano, Napoli, Torino, etc.)
+    - pt_BR: 89 major Brazilian cities (São Paulo, Rio de Janeiro, Brasília, etc.)
+    - ja_JP: 162 major Japanese cities (東京, 大阪, 京都, 横浜, etc.)
+    - zh_CN: 212 major Chinese cities (北京, 上海, 广州, 深圳, etc.)
 
 **Metrics**:
 
@@ -197,6 +197,29 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Locale-specific: Each locale returns cities from that country/region (US cities for en_US, German cities for de_DE, etc.)
 - Official names: Uses proper local spellings with native characters (München not Munich, 東京 not Tokyo romanization)
 - Registry extensibility: `CityDataRegistry.register(provider)` adds/overrides any locale at runtime
+- Seeded generation, `generateList()`, and `stream()` all supported
+
+- ✅ State/Province names - `StateGenerator` with 10 locales supporting abbreviations and full names
+    - en_US: 51 US states + DC with abbreviations (California/CA, Texas/TX, New York/NY, etc.)
+    - en_GB: 4 UK countries (England, Scotland, Wales, Northern Ireland)
+    - en_AU: 8 Australian states/territories with abbreviations (New South Wales/NSW, Victoria/VIC, Queensland/QLD, etc.)
+    - de_DE: 16 German federal states (Bayern, Nordrhein-Westfalen, Baden-Württemberg, etc.)
+    - fr_FR: 18 French regions (Île-de-France, Auvergne-Rhône-Alpes, Nouvelle-Aquitaine, etc.)
+    - es_ES: 19 Spanish autonomous communities (Andalucía, Cataluña, Madrid, País Vasco, etc.)
+    - it_IT: 20 Italian regions (Toscana, Lombardia, Lazio, Sicilia, etc.)
+    - pt_BR: 27 Brazilian states + federal district with abbreviations (São Paulo/SP, Rio de Janeiro/RJ, Minas Gerais/MG, etc.)
+    - ja_JP: 47 Japanese prefectures (東京都, 大阪府, 京都府, 北海道, etc.)
+    - zh_CN: 34 Chinese province-level divisions (北京市, 上海市, 广东省, 四川省, etc.)
+
+**Metrics**:
+
+- Test coverage: 100% for `StateGenerator` and supporting classes
+- Architecture: `StateDataProvider` interface + `StateDataRegistry` + `StateGenerator` (mirrors City/Country pattern)
+- Data: 4-51 states/provinces per locale loaded from resource files (`krandom/states/`)
+- Dual format support: `generate()` returns full names, `generate(true)` returns abbreviations (when available)
+- Locale-specific: Each locale returns states/provinces from that country (US states for en_US, UK countries for en_GB, etc.)
+- Official names: Uses proper local spellings (Bayern not Bavaria in de_DE)
+- Registry extensibility: `StateDataRegistry.register(provider)` adds/overrides any locale at runtime
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 ### In Progress
@@ -296,45 +319,42 @@ _None - awaiting next feature selection_
 
 ### 4. LOCATION & ADDRESS
 
-| Feature            | Chance.js Support                        | krandom Status | Implementation Priority | Notes                   |
-|--------------------|------------------------------------------|----------------|-------------------------|-------------------------|
+| Feature            | Chance.js Support                        | krandom Status | Implementation Priority | Notes                    |
+|--------------------|------------------------------------------|----------------|-------------------------|--------------------------|
 | **Street Address** |
-| Full address       | ✅ `address({short_suffix})`              | ❌ No           | HIGH                    | '5447 Bazpe Lane'       |
-| Short suffix       | ✅ `address({short_suffix: true})`        | ❌ No           | MEDIUM                  | 'Rd' vs 'Road'          |
+| Full address       | ✅ `address({short_suffix})`              | ❌ No           | HIGH                    | '5447 Bazpe Lane'        |
+| Short suffix       | ✅ `address({short_suffix: true})`        | ❌ No           | MEDIUM                  | 'Rd' vs 'Road'           |
 | **City**           |
-| City name          | ✅ `city()`                               | ✅ Yes          | HIGH                    | Random city names       |
+| City name          | ✅ `city()`                               | ✅ Yes          | HIGH                    | Random city names        |
 | **State/Province** |
-| State abbreviation | ✅ `state()`                              | ❌ No           | HIGH                    | 'AK', 'CA', 'TX'        |
-| State full name    | ✅ `state({full: true})`                  | ❌ No           | HIGH                    | 'Florida', 'Alaska'     |
-| US territories     | ✅ `state({territories: true})`           | ❌ No           | MEDIUM                  | Guam, Puerto Rico       |
-| Armed forces       | ✅ `state({armed_forces: true})`          | ❌ No           | LOW                     | Military regions        |
-| Country support    | ✅ `state({country: 'us'/'it'})`          | ❌ No           | MEDIUM                  | US or Italian states    |
-| Italian regions    | ✅ `state({country: 'it', full: true})`   | ❌ No           | LOW                     | 'Toscana'               |
+| State abbreviation | ✅ `state()`                              | ✅ Yes          | HIGH                    | 'AK', 'CA', 'TX'         |
+| State full name    | ✅ `state({full: true})`                  | ✅ Yes          | HIGH                    | 'Florida', 'Alaska'      |
+| Locale support     | ✅ `state({country: 'us'/'ca'/'au'})`     | ✅ Yes          | MEDIUM                  | US/CA/AU/DE/MX/IT states |
 | **Postal Codes**   |
-| US ZIP             | ✅ `zip()`                                | ❌ No           | HIGH                    | '90210'                 |
-| ZIP+4              | ✅ `zip({plusfour: true})`                | ❌ No           | MEDIUM                  | '01035-1838'            |
-| Canadian postal    | ✅ `postal()`                             | ❌ No           | MEDIUM                  | 'K1A 0B1'               |
-| UK postcode        | ✅ `postcode()`                           | ❌ No           | MEDIUM                  | 'SW1A 2AA'              |
+| US ZIP             | ✅ `zip()`                                | ❌ No           | HIGH                    | '90210'                  |
+| ZIP+4              | ✅ `zip({plusfour: true})`                | ❌ No           | MEDIUM                  | '01035-1838'             |
+| Canadian postal    | ✅ `postal()`                             | ❌ No           | MEDIUM                  | 'K1A 0B1'                |
+| UK postcode        | ✅ `postcode()`                           | ❌ No           | MEDIUM                  | 'SW1A 2AA'               |
 | **Country**        |
-| Country code       | ✅ `country()`                            | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'        |
-| Country full name  | ✅ `country({full: true})`                | ✅ Yes          | HIGH                    | 'Germany'               |
+| Country code       | ✅ `country()`                            | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'         |
+| Country full name  | ✅ `country({full: true})`                | ✅ Yes          | HIGH                    | 'Germany'                |
 | **Phone Numbers**  |
-| Phone number       | ✅ `phone({formatted, country, mobile})`  | ❌ No           | HIGH                    | Multi-country support   |
-| US format          | ✅ `phone()`                              | ❌ No           | HIGH                    | '(494) 927-2152'        |
-| Unformatted        | ✅ `phone({formatted: false})`            | ❌ No           | MEDIUM                  | '2617613391'            |
-| UK phone           | ✅ `phone({country: 'uk'})`               | ❌ No           | MEDIUM                  | International           |
-| UK mobile          | ✅ `phone({country: 'uk', mobile: true})` | ❌ No           | MEDIUM                  | '07624 321221' - UNIQUE |
-| French phone       | ✅ `phone({country: 'fr'})`               | ❌ No           | MEDIUM                  | '01 60 44 92 67'        |
-| US area code       | ✅ `areacode()`                           | ❌ No           | MEDIUM                  | '(789)'                 |
+| Phone number       | ✅ `phone({formatted, country, mobile})`  | ❌ No           | HIGH                    | Multi-country support    |
+| US format          | ✅ `phone()`                              | ❌ No           | HIGH                    | '(494) 927-2152'         |
+| Unformatted        | ✅ `phone({formatted: false})`            | ❌ No           | MEDIUM                  | '2617613391'             |
+| UK phone           | ✅ `phone({country: 'uk'})`               | ❌ No           | MEDIUM                  | International            |
+| UK mobile          | ✅ `phone({country: 'uk', mobile: true})` | ❌ No           | MEDIUM                  | '07624 321221' - UNIQUE  |
+| French phone       | ✅ `phone({country: 'fr'})`               | ❌ No           | MEDIUM                  | '01 60 44 92 67'         |
+| US area code       | ✅ `areacode()`                           | ❌ No           | MEDIUM                  | '(789)'                  |
 | **Coordinates**    |
-| Latitude           | ✅ `latitude({fixed, min, max})`          | ❌ No           | MEDIUM                  | 57.99514                |
-| Longitude          | ✅ `longitude({fixed, min, max})`         | ❌ No           | MEDIUM                  | -101.56823              |
-| Decimal precision  | ✅ `latitude({fixed: 7})`                 | ❌ No           | MEDIUM                  | Control precision       |
-| Range restriction  | ✅ `latitude({min: 38.7, max: 38.9})`     | ❌ No           | MEDIUM                  | Bounded coordinates     |
-| Coordinates pair   | ✅ `coordinates()`                        | ❌ No           | MEDIUM                  | '35.12423, -80.12345'   |
-| Altitude           | ✅ `altitude({fixed, min, max})`          | ❌ No           | LOW                     | 0-8848m (Mt Everest)    |
-| Depth              | ✅ `depth({fixed, min, max})`             | ❌ No           | LOW                     | 0 to -10994m (Mariana)  |
-| Geohash            | ✅ `geohash({length})`                    | ❌ No           | LOW                     | 'gbsuv7z' (7 chars)     |
+| Latitude           | ✅ `latitude({fixed, min, max})`          | ❌ No           | MEDIUM                  | 57.99514                 |
+| Longitude          | ✅ `longitude({fixed, min, max})`         | ❌ No           | MEDIUM                  | -101.56823               |
+| Decimal precision  | ✅ `latitude({fixed: 7})`                 | ❌ No           | MEDIUM                  | Control precision        |
+| Range restriction  | ✅ `latitude({min: 38.7, max: 38.9})`     | ❌ No           | MEDIUM                  | Bounded coordinates      |
+| Coordinates pair   | ✅ `coordinates()`                        | ❌ No           | MEDIUM                  | '35.12423, -80.12345'    |
+| Altitude           | ✅ `altitude({fixed, min, max})`          | ❌ No           | LOW                     | 0-8848m (Mt Everest)     |
+| Depth              | ✅ `depth({fixed, min, max})`             | ❌ No           | LOW                     | 0 to -10994m (Mariana)   |
+| Geohash            | ✅ `geohash({length})`                    | ❌ No           | LOW                     | 'gbsuv7z' (7 chars)      |
 
 ### 5. FINANCE
 

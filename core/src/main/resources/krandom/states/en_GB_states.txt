@@ -1,0 +1,9 @@
+# UK countries - English (UK)
+England
+
+Scotland
+
+Wales
+
+Northern Ireland
+

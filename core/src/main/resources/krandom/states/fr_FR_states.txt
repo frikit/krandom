@@ -1,0 +1,37 @@
+# French regions - French (France)
+Île-de-France
+
+Auvergne-Rhône-Alpes
+
+Nouvelle-Aquitaine
+
+Occitanie
+
+Hauts-de-France
+
+Provence-Alpes-Côte d'Azur
+
+Grand Est
+
+Pays de la Loire
+
+Bretagne
+
+Normandie
+
+Bourgogne-Franche-Comté
+
+Centre-Val de Loire
+
+Corse
+
+Guadeloupe
+
+Martinique
+
+Guyane
+
+La Réunion
+
+Mayotte
+

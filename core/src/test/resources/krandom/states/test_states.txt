@@ -1,0 +1,11 @@
+# Test state file with comments and blank lines
+State One
+S1
+
+# Another comment
+State Two
+S2
+# Yet another comment
+
+State Three
+S3
