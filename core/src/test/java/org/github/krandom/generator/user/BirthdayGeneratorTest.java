@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -134,7 +135,7 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("null AgeType with seed throws NullPointerException")
     void nullAgeTypeWithSeedThrows() {
-        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(null, 1L));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator((Locale) null, 1L));
     }
 
     // ── Custom range constructor ──────────────────────────────────────────────
@@ -260,5 +261,159 @@ class BirthdayGeneratorTest {
         List<LocalDate> dates = gen.stream().limit(20).toList();
         assertEquals(20, dates.size());
         dates.forEach(d -> assertNotNull(d));
+    }
+
+    // ── Locale-aware generateAsString() ──────────────────────────────────────
+
+    @Test
+    @DisplayName("locale==null branch: no-locale constructor still returns M/d/yyyy")
+    void noLocaleBackwardCompat() {
+        BirthdayGenerator gen = new BirthdayGenerator(42L);
+        String s = gen.generateAsString();
+        assertTrue(M_D_YYYY.matcher(s).matches(), "Expected M/d/yyyy but got: " + s);
+        assertNull(gen.getLocale());
+    }
+
+    @Test
+    @DisplayName("German locale produces d.M.yyyy format")
+    void germanLocale() {
+        Pattern dotSeparated = Pattern.compile("^\\d{1,2}\\.\\d{1,2}\\.\\d{4}$");
+        BirthdayGenerator gen = new BirthdayGenerator(Locale.GERMANY);
+        for (int i = 0; i < 50; i++) {
+            String s = gen.generateAsString();
+            assertTrue(dotSeparated.matcher(s).matches(), "Expected d.M.yyyy but got: " + s);
+        }
+    }
+
+    @Test
+    @DisplayName("Japanese locale produces yyyy/M/d format")
+    void japaneseLocale() {
+        Pattern yearFirst = Pattern.compile("^\\d{4}/\\d{1,2}/\\d{1,2}$");
+        BirthdayGenerator gen = new BirthdayGenerator(Locale.JAPAN);
+        for (int i = 0; i < 50; i++) {
+            String s = gen.generateAsString();
+            assertTrue(yearFirst.matcher(s).matches(), "Expected yyyy/M/d but got: " + s);
+        }
+    }
+
+    @Test
+    @DisplayName("Chinese locale produces yyyy年M月d日 format")
+    void chineseLocale() {
+        BirthdayGenerator gen = new BirthdayGenerator(Locale.CHINA);
+        for (int i = 0; i < 50; i++) {
+            String s = gen.generateAsString();
+            assertTrue(s.contains("年") && s.contains("月") && s.contains("日"),
+                    "Expected 年月日 but got: " + s);
+        }
+    }
+
+    @Test
+    @DisplayName("UK locale produces d/M/yyyy format")
+    void ukLocale() {
+        BirthdayGenerator gen = new BirthdayGenerator(Locale.UK);
+        for (int i = 0; i < 50; i++) {
+            assertTrue(M_D_YYYY.matcher(gen.generateAsString()).matches());
+        }
+    }
+
+    @Test
+    @DisplayName("French locale with AgeType produces d/M/yyyy format")
+    void frenchLocaleWithAgeType() {
+        BirthdayGenerator gen = new BirthdayGenerator(AgeType.ADULT, Locale.FRANCE);
+        for (int i = 0; i < 50; i++) {
+            assertTrue(M_D_YYYY.matcher(gen.generateAsString()).matches());
+        }
+    }
+
+    @Test
+    @DisplayName("custom range + locale produces correct format")
+    void customRangeWithLocale() {
+        Pattern dotSeparated = Pattern.compile("^\\d{1,2}\\.\\d{1,2}\\.\\d{4}$");
+        BirthdayGenerator gen = new BirthdayGenerator(20, 30, Locale.GERMANY);
+        for (int i = 0; i < 50; i++) {
+            assertTrue(dotSeparated.matcher(gen.generateAsString()).matches());
+        }
+    }
+
+    @Test
+    @DisplayName("getLocale() returns configured locale")
+    void getLocaleReturnsConfigured() {
+        BirthdayGenerator gen = new BirthdayGenerator(Locale.GERMANY);
+        assertEquals(Locale.GERMANY, gen.getLocale());
+    }
+
+    @Test
+    @DisplayName("getLocale() returns null for no-locale constructors")
+    void getLocaleNullForNoLocale() {
+        assertNull(new BirthdayGenerator().getLocale());
+        assertNull(new BirthdayGenerator(42L).getLocale());
+        assertNull(new BirthdayGenerator(AgeType.ADULT).getLocale());
+        assertNull(new BirthdayGenerator(18, 65).getLocale());
+    }
+
+    @Test
+    @DisplayName("null locale constructor throws NullPointerException")
+    void nullLocaleConstructorThrows() {
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator((Locale) null));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(AgeType.ADULT, (Locale) null));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(18, 65, (Locale) null));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator((Locale) null, 1L));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(AgeType.ADULT, (Locale) null, 1L));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(18, 65, (Locale) null, 1L));
+    }
+
+    @Test
+    @DisplayName("unknown locale falls back to M/d/yyyy (both-null branch)")
+    void unknownLocaleFallback() {
+        // "xx_XX" not in map, "xx" not in map → falls back to STRING_FORMAT
+        BirthdayGenerator gen = new BirthdayGenerator(Locale.of("xx", "XX"));
+        String s = gen.generateAsString();
+        assertTrue(M_D_YYYY.matcher(s).matches(), "Expected M/d/yyyy fallback but got: " + s);
+    }
+
+    @Test
+    @DisplayName("language-only locale hits language-level fallback (first-key-miss branch)")
+    void languageOnlyLocaleFallback() {
+        // Locale.of("de") has no country; key "de_" misses, key "de" hits → d.M.yyyy
+        Pattern dotSeparated = Pattern.compile("^\\d{1,2}\\.\\d{1,2}\\.\\d{4}$");
+        BirthdayGenerator gen = new BirthdayGenerator(Locale.of("de"));
+        for (int i = 0; i < 50; i++) {
+            assertTrue(dotSeparated.matcher(gen.generateAsString()).matches());
+        }
+    }
+
+    @Test
+    @DisplayName("generateAsAmericanString() is unaffected by locale")
+    void americanStringUnaffectedByLocale() {
+        BirthdayGenerator gen = new BirthdayGenerator(Locale.GERMANY);
+        for (int i = 0; i < 50; i++) {
+            assertTrue(MM_DD_YYYY.matcher(gen.generateAsAmericanString()).matches());
+        }
+    }
+
+    @Test
+    @DisplayName("seeded + locale: reproducible sequence")
+    void seededWithLocale() {
+        BirthdayGenerator g1 = new BirthdayGenerator(Locale.GERMANY, 42L);
+        BirthdayGenerator g2 = new BirthdayGenerator(Locale.GERMANY, 42L);
+        for (int i = 0; i < 20; i++) {
+            assertEquals(g1.generateAsString(), g2.generateAsString());
+        }
+    }
+
+    @Test
+    @DisplayName("seeded + AgeType + locale: reproducible sequence")
+    void seededAgeTypeWithLocale() {
+        BirthdayGenerator g1 = new BirthdayGenerator(AgeType.ADULT, Locale.JAPAN, 99L);
+        BirthdayGenerator g2 = new BirthdayGenerator(AgeType.ADULT, Locale.JAPAN, 99L);
+        assertEquals(g1.generateList(20), g2.generateList(20));
+    }
+
+    @Test
+    @DisplayName("seeded + range + locale: reproducible sequence")
+    void seededRangeWithLocale() {
+        BirthdayGenerator g1 = new BirthdayGenerator(18, 65, Locale.FRANCE, 77L);
+        BirthdayGenerator g2 = new BirthdayGenerator(18, 65, Locale.FRANCE, 77L);
+        assertEquals(g1.generateList(20), g2.generateList(20));
     }
 }
