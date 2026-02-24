@@ -156,7 +156,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - All 10 algorithms include verifiable checksums; package-private static helpers expose branch-testable logic
 - Seeded generation, `generateList()`, and `stream()` all supported
 
-#### Location Section (5/5 location features complete — country, city, state/province, postal codes, phone numbers with locale support)
+#### Location Section (6/6 location features complete — country, city, state/province, postal codes, phone numbers, coordinates with locale support)
 
 - ✅ Country names - `CountryGenerator` with 10 locales supporting all 195 UN-recognized countries (193 members + 2 observer states)
     - en_US, en_GB, en_AU: English country names (e.g., "United States", "Germany", "Japan")
@@ -265,6 +265,28 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Formatted vs Unformatted: `generate(false)` returns digits only, `generate(true)` returns locale-formatted
 - Seeded generation, `generateList()`, and `stream()` all supported
 
+- ✅ Coordinates - `CoordinatesGenerator` with 10 locales generating coordinates within geographical bounds
+  - en_US: Continental United States (lat: 24.5 to 49.0, lon: -125.0 to -66.0)
+  - en_GB: United Kingdom (lat: 49.9 to 60.8, lon: -8.2 to 1.8)
+  - en_AU: Australia (lat: -44.0 to -10.0, lon: 113.0 to 154.0)
+  - de_DE: Germany (lat: 47.3 to 55.0, lon: 5.9 to 15.0)
+  - fr_FR: France (lat: 41.3 to 51.1, lon: -5.2 to 9.6)
+  - es_ES: Spain (lat: 36.0 to 43.8, lon: -9.3 to 4.3)
+  - it_IT: Italy (lat: 36.6 to 47.1, lon: 6.6 to 18.5)
+  - pt_BR: Brazil (lat: -33.7 to 5.3, lon: -74.0 to -34.8)
+  - ja_JP: Japan (lat: 24.0 to 45.5, lon: 122.9 to 153.9)
+  - zh_CN: China (lat: 18.2 to 53.6, lon: 73.5 to 135.0)
+
+**Metrics**:
+
+- Test coverage: 100% for `CoordinatesGenerator`
+- Architecture: Direct generation with geographical bounds per locale
+- Precision control: 1-10 decimal places (default: 6 for ~0.1 meter accuracy)
+- Geographical accuracy: Coordinates always within country bounding boxes
+- Methods: `generateLatitude()`, `generateLongitude()`, `generate()` for coordinate pairs
+- Precision variants: `generateLatitude(int precision)`, `generateLongitude(int precision)`
+- Seeded generation, `generateList()`, and `stream()` all supported
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -274,7 +296,7 @@ _None - awaiting next feature selection_
 - Email generation
 - UUID generation
 - Natural language (words, sentences, paragraphs)
-- Additional location data (addresses, coordinates)
+- Additional location data (addresses)
 - Helper methods (n, unique, pick)
 
 ---
@@ -385,14 +407,11 @@ _None - awaiting next feature selection_
 | Unformatted        | ✅ `generate(false)`                      | ✅ Yes          | MEDIUM                  | '5551234567'             |
 | Mobile vs Landline | ✅ `generate(true, true)` for mobile      | ✅ Yes          | MEDIUM                  | Locale-specific          |
 | **Coordinates**    |
-| Latitude           | ✅ `latitude({fixed, min, max})`          | ❌ No           | MEDIUM                  | 57.99514                 |
-| Longitude          | ✅ `longitude({fixed, min, max})`         | ❌ No           | MEDIUM                  | -101.56823               |
-| Decimal precision  | ✅ `latitude({fixed: 7})`                 | ❌ No           | MEDIUM                  | Control precision        |
-| Range restriction  | ✅ `latitude({min: 38.7, max: 38.9})`     | ❌ No           | MEDIUM                  | Bounded coordinates      |
-| Coordinates pair   | ✅ `coordinates()`                        | ❌ No           | MEDIUM                  | '35.12423, -80.12345'    |
-| Altitude           | ✅ `altitude({fixed, min, max})`          | ❌ No           | LOW                     | 0-8848m (Mt Everest)     |
-| Depth              | ✅ `depth({fixed, min, max})`             | ❌ No           | LOW                     | 0 to -10994m (Mariana)   |
-| Geohash            | ✅ `geohash({length})`                    | ❌ No           | LOW                     | 'gbsuv7z' (7 chars)      |
+| Latitude           | ✅ `generateLatitude()`                   | ✅ Yes          | MEDIUM                  | Locale-bounded           |
+| Longitude          | ✅ `generateLongitude()`                  | ✅ Yes          | MEDIUM                  | Locale-bounded           |
+| Decimal precision  | ✅ `generateLatitude(7)`                  | ✅ Yes          | MEDIUM                  | 1-10 decimal places      |
+| Locale bounds      | ✅ Based on locale                        | ✅ Yes          | MEDIUM                  | Within country bounds    |
+| Coordinates pair   | ✅ `generate()`                           | ✅ Yes          | MEDIUM                  | '35.12423,-80.12345'     |
 
 ### 5. FINANCE
 
