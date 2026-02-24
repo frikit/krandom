@@ -15,7 +15,8 @@
       "Bash(./gradlew:*)",
       "Bash(bash scripts/:*)",
       "Bash(bash:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }
