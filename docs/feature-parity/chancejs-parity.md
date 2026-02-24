@@ -156,6 +156,27 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - All 10 algorithms include verifiable checksums; package-private static helpers expose branch-testable logic
 - Seeded generation, `generateList()`, and `stream()` all supported
 
+#### Location Section (1/1 country feature complete — krandom extension with 195 countries)
+
+- ✅ Country names - `CountryGenerator` with 10 locales supporting all 195 UN-recognized countries (193 members + 2 observer states)
+  - en_US, en_GB, en_AU: English country names (e.g., "United States", "Germany", "Japan")
+  - de_DE: German names (e.g., "Vereinigte Staaten", "Deutschland", "Japan")
+  - fr_FR: French names (e.g., "États-Unis", "Allemagne", "Japon")
+  - es_ES: Spanish names (e.g., "Estados Unidos", "Alemania", "Japón")
+  - it_IT: Italian names (e.g., "Stati Uniti", "Germania", "Giappone")
+  - pt_BR: Portuguese names (e.g., "Estados Unidos", "Alemanha", "Japão")
+  - ja_JP: Japanese names (e.g., "アメリカ合衆国", "ドイツ", "日本")
+  - zh_CN: Simplified Chinese names (e.g., "美国", "德国", "日本")
+
+**Metrics**:
+
+- Test coverage: 100% for `CountryGenerator` and supporting classes
+- Architecture: `CountryDataProvider` interface + `CountryDataRegistry` (follows same pattern as other registries) + `CountryGenerator`
+- Data: 195 countries per locale loaded from resource files (`krandom/countries/`)
+- Official names: Sourced from UN documents and ISO 3166 standards for each language
+- Registry extensibility: `CountryDataRegistry.register(provider)` adds/overrides any locale at runtime
+- Seeded generation, `generateList()`, and `stream()` all supported
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -165,7 +186,7 @@ _None - awaiting next feature selection_
 - Email generation
 - UUID generation
 - Natural language (words, sentences, paragraphs)
-- Location data (addresses, cities, phones)
+- Additional location data (addresses, cities, states, postal codes, phone numbers)
 - Helper methods (n, unique, pick)
 
 ---
@@ -273,8 +294,8 @@ _None - awaiting next feature selection_
 | Canadian postal    | ✅ `postal()`                             | ❌ No           | MEDIUM                  | 'K1A 0B1'               |
 | UK postcode        | ✅ `postcode()`                           | ❌ No           | MEDIUM                  | 'SW1A 2AA'              |
 | **Country**        |
-| Country code       | ✅ `country()`                            | ❌ No           | HIGH                    | 'DE', 'FR', 'US'        |
-| Country full name  | ✅ `country({full: true})`                | ❌ No           | HIGH                    | 'Germany'               |
+| Country code       | ✅ `country()`                            | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'        |
+| Country full name  | ✅ `country({full: true})`                | ✅ Yes          | HIGH                    | 'Germany'               |
 | **Phone Numbers**  |
 | Phone number       | ✅ `phone({formatted, country, mobile})`  | ❌ No           | HIGH                    | Multi-country support   |
 | US format          | ✅ `phone()`                              | ❌ No           | HIGH                    | '(494) 927-2152'        |
@@ -540,8 +561,8 @@ _None - awaiting next feature selection_
     - `city()` for city names
     - `state({full, territories, country})` with rich options
     - `zip({plusfour})`, `postal()`, `postcode()` for postal codes
-2. **Country Support** (1 day)
-    - `country({full})` for country codes/names
+2. **Country Support** ~~(1 day)~~ ✅ **DONE**
+    - ✅ `country({full})` for country codes/names - **CountryGenerator** with 195 countries across 10 locales
 3. **Phone Numbers** (2 days)
     - `phone({formatted, country, mobile})` with multi-country
     - `areacode()` for US area codes
@@ -631,7 +652,7 @@ _None - awaiting next feature selection_
 ### Phase 2: Location & Web - 8 days
 
 - Address components: **2 days**
-- Country support: **1 day**
+- Country support: ~~**1 day**~~ ✅ **DONE** - CountryGenerator with 195 countries in 10 locales
 - Phone numbers (multi-country, mobile): **2 days**
 - Coordinates (lat/lon/geo): **1 day**
 - URL/domain with rich options: **2 days**
