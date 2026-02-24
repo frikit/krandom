@@ -1,0 +1,8 @@
+# Test city file with comments and blank lines
+City One
+
+# Another comment
+City Two
+# Yet another comment
+
+City Three

@@ -448,4 +448,32 @@ class CountryGeneratorTest {
         assertNotNull(provider);
         assertTrue(provider.getCountries().length > 0);
     }
+
+    @Test
+    @DisplayName("CountryResourceLoader loads valid resource file")
+    void resourceLoaderLoadsValidFile() {
+        String[] countries = CountryResourceLoader.load("krandom/countries/en_US_countries.txt");
+        assertEquals(195, countries.length);
+        assertTrue(Arrays.asList(countries).contains("United States"));
+    }
+
+    @Test
+    @DisplayName("CountryResourceLoader filters comments and blank lines")
+    void resourceLoaderFiltersCommentsAndBlanks() {
+        String[] countries = CountryResourceLoader.load("krandom/countries/test_countries.txt");
+        assertEquals(3, countries.length);
+        assertEquals("Country One", countries[0]);
+        assertEquals("Country Two", countries[1]);
+        assertEquals("Country Three", countries[2]);
+    }
+
+    @Test
+    @DisplayName("CountryResourceLoader throws for missing resource")
+    void resourceLoaderThrowsForMissingFile() {
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> CountryResourceLoader.load("krandom/countries/nonexistent.txt")
+        );
+        assertTrue(ex.getMessage().contains("Country resource not found"));
+    }
 }

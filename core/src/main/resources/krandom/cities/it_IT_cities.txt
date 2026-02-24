@@ -1,0 +1,100 @@
+# City names – Italian (it_IT)
+Ancona
+Andria
+Arezzo
+Asti
+Bari
+Barletta
+Bergamo
+Bologna
+Bolzano
+Brescia
+Brindisi
+Busto Arsizio
+Cagliari
+Campobasso
+Carpi
+Caserta
+Casoria
+Catania
+Catanzaro
+Cesena
+Chieti
+Cinisello Balsamo
+Como
+Cosenza
+Cremona
+Crotone
+Ferrara
+Firenze
+Foggia
+Forlì
+Genova
+Giugliano in Campania
+Gorizia
+Grosseto
+Imola
+L'Aquila
+La Spezia
+Latina
+Lecce
+Lecco
+Livorno
+Lodi
+Lucca
+Matera
+Messina
+Milano
+Modena
+Molfetta
+Monza
+Napoli
+Novara
+Nuoro
+Padova
+Palermo
+Parma
+Pavia
+Perugia
+Pesaro
+Pescara
+Piacenza
+Pisa
+Pistoia
+Pordenone
+Potenza
+Pozzuoli
+Prato
+Quartu Sant'Elena
+Ragusa
+Ravenna
+Reggio Calabria
+Reggio Emilia
+Rieti
+Rimini
+Roma
+Salerno
+Sassari
+Savona
+Sesto San Giovanni
+Siena
+Siracusa
+Taranto
+Teramo
+Terni
+Torino
+Trani
+Trento
+Treviso
+Trieste
+Udine
+Varese
+Venezia
+Verbania
+Vercelli
+Verona
+Viareggio
+Vicenza
+Vigevano
+Viterbo
+Vittoria

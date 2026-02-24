@@ -1,0 +1,85 @@
+# City names – Spanish (es_ES)
+A Coruña
+Albacete
+Alcalá de Henares
+Alcobendas
+Alcorcón
+Algeciras
+Alicante
+Almería
+Badajoz
+Badalona
+Barcelona
+Bilbao
+Burgos
+Cádiz
+Cartagena
+Castellón de la Plana
+Ceuta
+Ciudad Real
+Córdoba
+Cornellá de Llobregat
+Dos Hermanas
+Donostia-San Sebastián
+El Puerto de Santa María
+Elche
+Fuenlabrada
+Getafe
+Gijón
+Girona
+Granada
+Hospitalet de Llobregat
+Huelva
+Jaén
+Jerez de la Frontera
+Las Palmas de Gran Canaria
+Las Rozas de Madrid
+Leganés
+León
+Lleida
+Logroño
+Lugo
+Madrid
+Málaga
+Marbella
+Mataró
+Melilla
+Móstoles
+Murcia
+Ourense
+Oviedo
+Palencia
+Palma
+Pamplona
+Parla
+Pontevedra
+Pozuelo de Alarcón
+Reus
+Rivas-Vaciamadrid
+Sabadell
+Salamanca
+San Cristóbal de La Laguna
+San Fernando
+Sanlúcar de Barrameda
+Santa Coloma de Gramenet
+Santa Cruz de Tenerife
+Santander
+Santiago de Compostela
+Segovia
+Sevilla
+Soria
+Tarragona
+Tarrasa
+Telde
+Torrejón de Ardoz
+Torrent
+Torrevieja
+Toledo
+Valdemoro
+Valencia
+Valladolid
+Vélez-Málaga
+Vigo
+Vitoria-Gasteiz
+Zamora
+Zaragoza

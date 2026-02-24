@@ -1,0 +1,73 @@
+# City names – English (AU)
+Adelaide
+Albany
+Albury
+Alice Springs
+Armidale
+Ballarat
+Bathurst
+Bendigo
+Bowral
+Brisbane
+Broken Hill
+Bunbury
+Bundaberg
+Busselton
+Cairns
+Campbelltown
+Canberra
+Darwin
+Devonport
+Dubbo
+Esperance
+Fremantle
+Geelong
+Geraldton
+Gladstone
+Gold Coast
+Gosford
+Goulburn
+Griffith
+Hervey Bay
+Hobart
+Horsham
+Ipswich
+Kalgoorlie
+Karratha
+Launceston
+Lismore
+Lithgow
+Mackay
+Maitland
+Mandurah
+Melbourne
+Melton
+Mildura
+Moe
+Mount Gambier
+Mudgee
+Newcastle
+Nowra
+Orange
+Parramatta
+Penrith
+Perth
+Port Augusta
+Port Hedland
+Port Lincoln
+Port Macquarie
+Rockhampton
+Shepparton
+Sunshine Coast
+Surfers Paradise
+Sydney
+Tamworth
+Toowoomba
+Townsville
+Traralgon
+Wagga Wagga
+Wangaratta
+Warrnambool
+Whyalla
+Wollongong
+Wyndham

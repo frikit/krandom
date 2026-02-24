@@ -1,0 +1,8 @@
+# Test country file with comments and blank lines
+Country One
+
+# Another comment
+Country Two
+# Yet another comment
+
+Country Three

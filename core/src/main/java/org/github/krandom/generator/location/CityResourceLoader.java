@@ -12,29 +12,29 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Loads country name lists from classpath resource files.
+ * Loads city name lists from classpath resource files.
  *
- * <p>Each resource file is a plain UTF-8 text file with one country name per line.
+ * <p>Each resource file is a plain UTF-8 text file with one city name per line.
  * Blank lines and lines starting with {@code #} are ignored.
  */
-final class CountryResourceLoader {
+final class CityResourceLoader {
 
-    private CountryResourceLoader() {
+    private CityResourceLoader() {
         throw new UnsupportedOperationException("Utility class");
     }
 
     /**
-     * Loads country names from a classpath resource file.
+     * Loads city names from a classpath resource file.
      *
      * @param resourcePath path relative to the classpath root
-     *                     (e.g. {@code "krandom/countries/en_US_countries.txt"})
-     * @return non-empty array of country name strings
+     *                     (e.g. {@code "krandom/cities/en_US_cities.txt"})
+     * @return non-empty array of city name strings
      * @throws IllegalStateException if the resource cannot be found or read
      */
     static String[] load(String resourcePath) {
-        InputStream is = CountryResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = CityResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
         if (is == null) {
-            throw new IllegalStateException("Country resource not found: " + resourcePath);
+            throw new IllegalStateException("City resource not found: " + resourcePath);
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             return reader.lines()
@@ -42,7 +42,7 @@ final class CountryResourceLoader {
                     .filter(line -> !line.isEmpty() && !line.startsWith("#"))
                     .toArray(String[]::new);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to read country resource: " + resourcePath, e);
+            throw new IllegalStateException("Failed to read city resource: " + resourcePath, e);
         }
     }
 }

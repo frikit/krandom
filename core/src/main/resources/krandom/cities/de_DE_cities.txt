@@ -1,0 +1,101 @@
+# City names – German (de_DE)
+Aachen
+Augsburg
+Bergisch Gladbach
+Berlin
+Bielefeld
+Bochum
+Bonn
+Bottrop
+Braunschweig
+Bremen
+Bremerhaven
+Chemnitz
+Cottbus
+Darmstadt
+Dessau-Roßlau
+Dortmund
+Dresden
+Duisburg
+Düren
+Düsseldorf
+Erfurt
+Erlangen
+Essen
+Esslingen am Neckar
+Flensburg
+Frankfurt am Main
+Freiburg im Breisgau
+Fürth
+Gelsenkirchen
+Gera
+Gießen
+Göttingen
+Gütersloh
+Hagen
+Halle (Saale)
+Hamburg
+Hamm
+Hanau
+Hannover
+Heidelberg
+Heilbronn
+Herne
+Hildesheim
+Ingolstadt
+Iserlohn
+Jena
+Kaiserslautern
+Karlsruhe
+Kassel
+Kiel
+Koblenz
+Köln
+Konstanz
+Krefeld
+Leipzig
+Leverkusen
+Lübeck
+Ludwigsburg
+Ludwigshafen am Rhein
+Lüneburg
+Magdeburg
+Mainz
+Mannheim
+Marburg
+Moers
+Mönchengladbach
+Mülheim an der Ruhr
+München
+Münster
+Neuss
+Nürnberg
+Oberhausen
+Offenbach am Main
+Oldenburg
+Osnabrück
+Paderborn
+Pforzheim
+Potsdam
+Recklinghausen
+Regensburg
+Remscheid
+Reutlingen
+Rostock
+Saarbrücken
+Salzgitter
+Schwerin
+Siegen
+Solingen
+Stuttgart
+Trier
+Tübingen
+Ulm
+Weiden in der Oberpfalz
+Weimar
+Wiesbaden
+Wilhelmshaven
+Wolfsburg
+Wuppertal
+Würzburg
+Zwickau

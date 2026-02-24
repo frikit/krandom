@@ -1,0 +1,248 @@
+# City names – English (US)
+Akron
+Albany
+Alexandria
+Albuquerque
+Allentown
+Amarillo
+Anaheim
+Anchorage
+Ann Arbor
+Arlington
+Athens
+Atlanta
+Atlantic City
+Augusta
+Aurora
+Austin
+Bakersfield
+Baltimore
+Baton Rouge
+Beaumont
+Bellevue
+Berkeley
+Billings
+Birmingham
+Bloomington
+Boise
+Boston
+Boulder
+Bridgeport
+Brownsville
+Buffalo
+Cambridge
+Canton
+Cape Coral
+Carlsbad
+Cary
+Cedar Rapids
+Champaign
+Chandler
+Charleston
+Charlotte
+Chattanooga
+Chesapeake
+Chicago
+Chula Vista
+Cincinnati
+Clearwater
+Cleveland
+Columbia
+Colorado Springs
+Columbus
+Concord
+Corpus Christi
+Costa Mesa
+Dallas
+Dayton
+Denton
+Denver
+Des Moines
+Detroit
+Downey
+Durham
+El Paso
+Elk Grove
+Erie
+Escondido
+Eugene
+Evansville
+Fairfield
+Fargo
+Fayetteville
+Flint
+Fontana
+Fort Collins
+Fort Lauderdale
+Fort Wayne
+Fort Worth
+Fremont
+Fresno
+Garden Grove
+Garland
+Gateshead
+Gilbert
+Glendale
+Grand Prairie
+Grand Rapids
+Green Bay
+Greensboro
+Gresham
+Hampton
+Hartford
+Hayward
+Henderson
+Hialeah
+Honolulu
+Houston
+Huntington Beach
+Huntsville
+Independence
+Indianapolis
+Irvine
+Irving
+Jackson
+Jacksonville
+Jersey City
+Joliet
+Kansas City
+Knoxville
+Lafayette
+Lakeland
+Lancaster
+Lansing
+Laredo
+Las Vegas
+Lexington
+Lincoln
+Little Rock
+Long Beach
+Los Angeles
+Louisville
+Lowell
+Lubbock
+Madison
+Manchester
+McAllen
+McKinney
+Memphis
+Mesa
+Mesquite
+Miami
+Midland
+Milwaukee
+Minneapolis
+Miramar
+Mobile
+Modesto
+Montgomery
+Moreno Valley
+Murfreesboro
+Naperville
+Nashville
+New Haven
+New Orleans
+New York
+Newark
+Newport News
+Norfolk
+Norman
+North Las Vegas
+Oakland
+Oceanside
+Odessa
+Oklahoma City
+Omaha
+Ontario
+Orange
+Orlando
+Overland Park
+Oxnard
+Palm Bay
+Pasadena
+Paterson
+Peoria
+Philadelphia
+Phoenix
+Pittsburgh
+Plano
+Pompano Beach
+Port St. Lucie
+Portland
+Providence
+Provo
+Raleigh
+Rancho Cucamonga
+Reno
+Renton
+Richardson
+Richmond
+Rio Rancho
+Riverside
+Rochester
+Rockford
+Roseville
+Round Rock
+Sacramento
+Salem
+Salinas
+Salt Lake City
+San Antonio
+San Bernardino
+San Diego
+San Francisco
+San Jose
+San Mateo
+Sandy Springs
+Santa Ana
+Santa Clarita
+Santa Maria
+Santa Rosa
+Savannah
+Scottsdale
+Seattle
+Shreveport
+Sioux Falls
+South Bend
+Spokane
+Springfield
+St. Louis
+St. Paul
+St. Petersburg
+Sterling Heights
+Stockton
+Sunnyvale
+Surprise
+Syracuse
+Tacoma
+Tallahassee
+Tampa
+Temecula
+Tempe
+Thornton
+Thousand Oaks
+Toledo
+Topeka
+Torrance
+Trenton
+Tucson
+Tulsa
+Tuscaloosa
+Tyler
+Vallejo
+Vancouver
+Ventura
+Victorville
+Virginia Beach
+Waco
+Warren
+Washington
+Waterbury
+West Covina
+West Valley City
+Westminster
+Wichita
+Wilmington
+Winston-Salem
+Worcester
+Yonkers

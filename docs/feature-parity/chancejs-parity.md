@@ -156,7 +156,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - All 10 algorithms include verifiable checksums; package-private static helpers expose branch-testable logic
 - Seeded generation, `generateList()`, and `stream()` all supported
 
-#### Location Section (1/1 country feature complete — krandom extension with 195 countries)
+#### Location Section (2/2 location features complete — country & city with locale support)
 
 - ✅ Country names - `CountryGenerator` with 10 locales supporting all 195 UN-recognized countries (193 members + 2 observer states)
   - en_US, en_GB, en_AU: English country names (e.g., "United States", "Germany", "Japan")
@@ -175,6 +175,28 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Data: 195 countries per locale loaded from resource files (`krandom/countries/`)
 - Official names: Sourced from UN documents and ISO 3166 standards for each language
 - Registry extensibility: `CountryDataRegistry.register(provider)` adds/overrides any locale at runtime
+- Seeded generation, `generateList()`, and `stream()` all supported
+
+- ✅ City names - `CityGenerator` with 10 locales supporting locale-specific major cities
+  - en_US: 247 major US cities (New York, Los Angeles, Chicago, Houston, etc.)
+  - en_GB: 101 major UK cities (London, Manchester, Birmingham, Glasgow, etc.)
+  - en_AU: 72 major Australian cities (Sydney, Melbourne, Brisbane, Perth, etc.)
+  - de_DE: 100 major German cities with proper German spelling (Berlin, München, Köln, etc.)
+  - fr_FR: 107 major French cities (Paris, Lyon, Marseille, Toulouse, etc.)
+  - es_ES: 84 major Spanish cities (Madrid, Barcelona, Valencia, Sevilla, etc.)
+  - it_IT: 99 major Italian cities (Roma, Milano, Napoli, Torino, etc.)
+  - pt_BR: 89 major Brazilian cities (São Paulo, Rio de Janeiro, Brasília, etc.)
+  - ja_JP: 162 major Japanese cities (東京, 大阪, 京都, 横浜, etc.)
+  - zh_CN: 212 major Chinese cities (北京, 上海, 广州, 深圳, etc.)
+
+**Metrics**:
+
+- Test coverage: 100% for `CityGenerator` and supporting classes
+- Architecture: `CityDataProvider` interface + `CityDataRegistry` + `CityGenerator` (mirrors CountryGenerator pattern)
+- Data: 70-250 cities per locale loaded from resource files (`krandom/cities/`)
+- Locale-specific: Each locale returns cities from that country/region (US cities for en_US, German cities for de_DE, etc.)
+- Official names: Uses proper local spellings with native characters (München not Munich, 東京 not Tokyo romanization)
+- Registry extensibility: `CityDataRegistry.register(provider)` adds/overrides any locale at runtime
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 ### In Progress
@@ -280,7 +302,7 @@ _None - awaiting next feature selection_
 | Full address       | ✅ `address({short_suffix})`              | ❌ No           | HIGH                    | '5447 Bazpe Lane'       |
 | Short suffix       | ✅ `address({short_suffix: true})`        | ❌ No           | MEDIUM                  | 'Rd' vs 'Road'          |
 | **City**           |
-| City name          | ✅ `city()`                               | ❌ No           | HIGH                    | Random city names       |
+| City name          | ✅ `city()`                               | ✅ Yes          | HIGH                    | Random city names       |
 | **State/Province** |
 | State abbreviation | ✅ `state()`                              | ❌ No           | HIGH                    | 'AK', 'CA', 'TX'        |
 | State full name    | ✅ `state({full: true})`                  | ❌ No           | HIGH                    | 'Florida', 'Alaska'     |
@@ -551,6 +573,8 @@ _None - awaiting next feature selection_
     - `pick()`, `pickset()`, `shuffle()` for collections
 6. **Weighted Random** (1 day) - Unique differentiator
     - `weighted(values, weights)` for biased selection
+7. ~~**Location - City support** (1 day)~~ ✅ COMPLETED
+    - ~~`city()` for city names~~ - Now supports 10 locales with locale-specific major cities
 7. **Normal Distribution** (1 day) - Statistical feature
     - `normal({mean, dev})` with Box-Muller transform
 
