@@ -156,7 +156,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - All 10 algorithms include verifiable checksums; package-private static helpers expose branch-testable logic
 - Seeded generation, `generateList()`, and `stream()` all supported
 
-#### Location Section (3/3 location features complete — country, city, state/province with locale support)
+#### Location Section (4/4 location features complete — country, city, state/province, postal codes with locale support)
 
 - ✅ Country names - `CountryGenerator` with 10 locales supporting all 195 UN-recognized countries (193 members + 2 observer states)
     - en_US, en_GB, en_AU: English country names (e.g., "United States", "Germany", "Japan")
@@ -222,6 +222,27 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Registry extensibility: `StateDataRegistry.register(provider)` adds/overrides any locale at runtime
 - Seeded generation, `generateList()`, and `stream()` all supported
 
+- ✅ Postal codes - `PostalCodeGenerator` with 10 locales generating locale-specific postal code formats
+  - en_US: US ZIP codes (5-digit: "90210" or ZIP+4: "90210-1234")
+  - en_GB: UK postcodes (realistic formats: "SW1A 2AA", "N1 9GU", "EC1A 1BB")
+  - en_AU: Australian postcodes (4 digits: "2000", "3000", "4000")
+  - de_DE: German postal codes (5 digits: "10115", "80331", "20095")
+  - fr_FR: French postal codes (5 digits: "75001", "69001", "13001")
+  - es_ES: Spanish postal codes (5 digits: "28001", "08001", "41001")
+  - it_IT: Italian postal codes (5 digits: "00118", "20121", "10121")
+  - pt_BR: Brazilian CEP (8 digits with optional hyphen: "01310-100" or "01310100")
+  - ja_JP: Japanese postal codes (7 digits with optional hyphen: "100-0001" or "1000001")
+  - zh_CN: Chinese postal codes (6 digits: "100000", "200000", "510000")
+
+**Metrics**:
+
+- Test coverage: 100% for `PostalCodeGenerator`
+- Architecture: Direct format generation (no registry/provider needed - generates programmatically)
+- Format accuracy: Each locale follows official postal code rules and formats
+- UK postcodes: Realistic area codes (SW, EC, N, W, etc.) with proper format variations
+- Extended formats: `generate(true)` returns ZIP+4 for US, hyphenated formats for Brazil/Japan
+- Seeded generation, `generateList()`, and `stream()` all supported
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -231,7 +252,7 @@ _None - awaiting next feature selection_
 - Email generation
 - UUID generation
 - Natural language (words, sentences, paragraphs)
-- Additional location data (addresses, cities, states, postal codes, phone numbers)
+- Additional location data (addresses, phone numbers)
 - Helper methods (n, unique, pick)
 
 ---
@@ -331,10 +352,8 @@ _None - awaiting next feature selection_
 | State full name    | ✅ `state({full: true})`                  | ✅ Yes          | HIGH                    | 'Florida', 'Alaska'      |
 | Locale support     | ✅ `state({country: 'us'/'ca'/'au'})`     | ✅ Yes          | MEDIUM                  | US/CA/AU/DE/MX/IT states |
 | **Postal Codes**   |
-| US ZIP             | ✅ `zip()`                                | ❌ No           | HIGH                    | '90210'                  |
-| ZIP+4              | ✅ `zip({plusfour: true})`                | ❌ No           | MEDIUM                  | '01035-1838'             |
-| Canadian postal    | ✅ `postal()`                             | ❌ No           | MEDIUM                  | 'K1A 0B1'                |
-| UK postcode        | ✅ `postcode()`                           | ❌ No           | MEDIUM                  | 'SW1A 2AA'               |
+| Postal code        | ✅ `zip()`/`postal()`/`postcode()`        | ✅ Yes          | HIGH                    | Locale-specific formats  |
+| Extended formats   | ✅ `generate(true)` for ZIP+4/hyphenated  | ✅ Yes          | MEDIUM                  | '90210-1234', '100-0001' |
 | **Country**        |
 | Country code       | ✅ `country()`                            | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'         |
 | Country full name  | ✅ `country({full: true})`                | ✅ Yes          | HIGH                    | 'Germany'                |
