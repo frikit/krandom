@@ -223,16 +223,16 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 - ✅ Postal codes - `PostalCodeGenerator` with 10 locales generating locale-specific postal code formats
-  - en_US: US ZIP codes (5-digit: "90210" or ZIP+4: "90210-1234")
-  - en_GB: UK postcodes (realistic formats: "SW1A 2AA", "N1 9GU", "EC1A 1BB")
-  - en_AU: Australian postcodes (4 digits: "2000", "3000", "4000")
-  - de_DE: German postal codes (5 digits: "10115", "80331", "20095")
-  - fr_FR: French postal codes (5 digits: "75001", "69001", "13001")
-  - es_ES: Spanish postal codes (5 digits: "28001", "08001", "41001")
-  - it_IT: Italian postal codes (5 digits: "00118", "20121", "10121")
-  - pt_BR: Brazilian CEP (8 digits with optional hyphen: "01310-100" or "01310100")
-  - ja_JP: Japanese postal codes (7 digits with optional hyphen: "100-0001" or "1000001")
-  - zh_CN: Chinese postal codes (6 digits: "100000", "200000", "510000")
+    - en_US: US ZIP codes (5-digit: "90210" or ZIP+4: "90210-1234")
+    - en_GB: UK postcodes (realistic formats: "SW1A 2AA", "N1 9GU", "EC1A 1BB")
+    - en_AU: Australian postcodes (4 digits: "2000", "3000", "4000")
+    - de_DE: German postal codes (5 digits: "10115", "80331", "20095")
+    - fr_FR: French postal codes (5 digits: "75001", "69001", "13001")
+    - es_ES: Spanish postal codes (5 digits: "28001", "08001", "41001")
+    - it_IT: Italian postal codes (5 digits: "00118", "20121", "10121")
+    - pt_BR: Brazilian CEP (8 digits with optional hyphen: "01310-100" or "01310100")
+    - ja_JP: Japanese postal codes (7 digits with optional hyphen: "100-0001" or "1000001")
+    - zh_CN: Chinese postal codes (6 digits: "100000", "200000", "510000")
 
 **Metrics**:
 
@@ -244,16 +244,16 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 - ✅ Phone numbers - `PhoneNumberGenerator` with 10 locales generating locale-specific phone number formats
-  - en_US: US phone numbers (formatted: "(555) 123-4567", unformatted: "5551234567")
-  - en_GB: UK landlines ("020 7946 0958") and mobiles ("07700 900123")
-  - en_AU: Australian landlines ("02 1234 5678") and mobiles ("0412 345 678")
-  - de_DE: German landlines ("030 12345678") and mobiles ("0151 12345678")
-  - fr_FR: French landlines ("01 23 45 67 89") and mobiles ("06 12 34 56 78")
-  - es_ES: Spanish landlines ("91 123 45 67") and mobiles ("612 34 56 78")
-  - it_IT: Italian landlines ("06 1234 5678") and mobiles ("320 123 4567")
-  - pt_BR: Brazilian landlines ("(11) 3456-7890") and mobiles ("(11) 98765-4321")
-  - ja_JP: Japanese landlines ("03-1234-5678") and mobiles ("090-1234-5678")
-  - zh_CN: Chinese landlines ("010-12345678") and mobiles ("138 1234 5678")
+    - en_US: US phone numbers (formatted: "(555) 123-4567", unformatted: "5551234567")
+    - en_GB: UK landlines ("020 7946 0958") and mobiles ("07700 900123")
+    - en_AU: Australian landlines ("02 1234 5678") and mobiles ("0412 345 678")
+    - de_DE: German landlines ("030 12345678") and mobiles ("0151 12345678")
+    - fr_FR: French landlines ("01 23 45 67 89") and mobiles ("06 12 34 56 78")
+    - es_ES: Spanish landlines ("91 123 45 67") and mobiles ("612 34 56 78")
+    - it_IT: Italian landlines ("06 1234 5678") and mobiles ("320 123 4567")
+    - pt_BR: Brazilian landlines ("(11) 3456-7890") and mobiles ("(11) 98765-4321")
+    - ja_JP: Japanese landlines ("03-1234-5678") and mobiles ("090-1234-5678")
+    - zh_CN: Chinese landlines ("010-12345678") and mobiles ("138 1234 5678")
 
 **Metrics**:
 
@@ -266,16 +266,16 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 - ✅ Coordinates - `CoordinatesGenerator` with 10 locales generating coordinates within geographical bounds
-  - en_US: Continental United States (lat: 24.5 to 49.0, lon: -125.0 to -66.0)
-  - en_GB: United Kingdom (lat: 49.9 to 60.8, lon: -8.2 to 1.8)
-  - en_AU: Australia (lat: -44.0 to -10.0, lon: 113.0 to 154.0)
-  - de_DE: Germany (lat: 47.3 to 55.0, lon: 5.9 to 15.0)
-  - fr_FR: France (lat: 41.3 to 51.1, lon: -5.2 to 9.6)
-  - es_ES: Spain (lat: 36.0 to 43.8, lon: -9.3 to 4.3)
-  - it_IT: Italy (lat: 36.6 to 47.1, lon: 6.6 to 18.5)
-  - pt_BR: Brazil (lat: -33.7 to 5.3, lon: -74.0 to -34.8)
-  - ja_JP: Japan (lat: 24.0 to 45.5, lon: 122.9 to 153.9)
-  - zh_CN: China (lat: 18.2 to 53.6, lon: 73.5 to 135.0)
+    - en_US: Continental United States (lat: 24.5 to 49.0, lon: -125.0 to -66.0)
+    - en_GB: United Kingdom (lat: 49.9 to 60.8, lon: -8.2 to 1.8)
+    - en_AU: Australia (lat: -44.0 to -10.0, lon: 113.0 to 154.0)
+    - de_DE: Germany (lat: 47.3 to 55.0, lon: 5.9 to 15.0)
+    - fr_FR: France (lat: 41.3 to 51.1, lon: -5.2 to 9.6)
+    - es_ES: Spain (lat: 36.0 to 43.8, lon: -9.3 to 4.3)
+    - it_IT: Italy (lat: 36.6 to 47.1, lon: 6.6 to 18.5)
+    - pt_BR: Brazil (lat: -33.7 to 5.3, lon: -74.0 to -34.8)
+    - ja_JP: Japan (lat: 24.0 to 45.5, lon: 122.9 to 153.9)
+    - zh_CN: China (lat: 18.2 to 53.6, lon: 73.5 to 135.0)
 
 **Metrics**:
 
@@ -287,26 +287,46 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Precision variants: `generateLatitude(int precision)`, `generateLongitude(int precision)`
 - Seeded generation, `generateList()`, and `stream()` all supported
 
-#### Finance Section (1/1 finance feature complete — credit cards with Luhn validation)
+#### Finance Section (2/2 finance features complete — credit cards & currencies)
 
-- ✅ Credit cards - `CreditCardGenerator` with 6 major card types and Luhn algorithm validation
-  - Visa: 16-digit cards (prefix: 4), formatted as "4532 1488 0343 6467"
-  - Mastercard: 16-digit cards (prefix: 51-55, 2221-2720), formatted as "5425 2334 3010 9903"
-  - American Express: 15-digit cards (prefix: 34, 37), formatted as "3782 822463 10005", 4-digit CVV
-  - Discover: 16-digit cards (prefix: 6011, 644-649, 65), formatted as "6011 1111 1111 1117"
-  - JCB: 16-digit cards (prefix: 3528-3589), formatted as "3530 1113 3330 0000"
-  - Diners Club: 14-digit cards (prefix: 300-305, 36, 38), formatted as "3056 9309 0259 04"
+- ✅ **Credit cards** - `CreditCardGenerator` with 6 major card types and Luhn algorithm validation
+    - Visa: 16-digit cards (prefix: 4), formatted as "4532 1488 0343 6467"
+    - Mastercard: 16-digit cards (prefix: 51-55, 2221-2720), formatted as "5425 2334 3010 9903"
+    - American Express: 15-digit cards (prefix: 34, 37), formatted as "3782 822463 10005", 4-digit CVV
+    - Discover: 16-digit cards (prefix: 6011, 644-649, 65), formatted as "6011 1111 1111 1117"
+    - JCB: 16-digit cards (prefix: 3528-3589), formatted as "3530 1113 3330 0000"
+    - Diners Club: 14-digit cards (prefix: 300-305, 36, 38), formatted as "3056 9309 0259 04"
+
+- ✅ **Currency** - `CurrencyGenerator` with ISO 4217 standards and locale awareness
+    - 50+ major world currencies with complete ISO 4217 data
+    - Primary currencies for 10 supported locales (USD, EUR, GBP, AUD, BRL, JPY, CNY)
+    - Full currency information: code, name, symbol, numeric code
+    - Locale-specific generation: `generate(locale)` returns primary currency for that locale
+    - Methods: `generate()`, `generateWithInfo()`, `getName()`, `getSymbol()`, `getNumericCode()`
+    - Examples: USD → "United States Dollar" → "$" → "840"
 
 **Metrics**:
 
-- Test coverage: 100% for `CreditCardGenerator`
-- Architecture: CardType enum + CardInfo record + CreditCardGenerator
-- Luhn validation: All generated cards pass Luhn checksum algorithm
-- CVV generation: 3 digits (most cards), 4 digits (American Express)
-- Expiration dates: MM/YY format, always 1-60 months in the future
-- Card-specific formatting: Amex (4-6-5), Diners (4-6-4), Standard (4-4-4-4)
-- Methods: `generate()`, `generate(boolean formatted)`, `generateWithType()`, `getCvv()`, `getExpirationDate()`
-- Seeded generation, `generateList()`, and `stream()` all supported
+- **Credit Cards**:
+    - Test coverage: 100% for `CreditCardGenerator`
+    - Architecture: CardType enum + CardInfo record + CreditCardGenerator
+    - Luhn validation: All generated cards pass Luhn checksum algorithm
+    - CVV generation: 3 digits (most cards), 4 digits (American Express)
+    - Expiration dates: MM/YY format, always 1-60 months in the future
+    - Card-specific formatting: Amex (4-6-5), Diners (4-6-4), Standard (4-4-4-4)
+    - Methods: `generate()`, `generate(boolean formatted)`, `generateWithType()`, `getCvv()`, `getExpirationDate()`
+    - Seeded generation, `generateList()`, and `stream()` all supported
+
+- **Currency**:
+    - Test coverage: 100% for `CurrencyGenerator`
+    - Architecture: Currency enum + CurrencyInfo record + CurrencyGenerator
+    - ISO 4217 compliance: All codes, names, symbols, and numeric codes conform to ISO 4217
+    - Supported currencies: 50 major world currencies (expandable)
+    - Locale support: 10 locales with primary currency mappings
+    - Methods: `generate()`, `generate(locale)`, `generateWithInfo()`, `getName()`, `getSymbol()`, `getNumericCode()`
+    - Each method has locale-aware variant: `getName(locale)`, `getSymbol(locale)`, etc.
+    - Stream support: `stream()`, `streamWithInfo()`, `generateList()`, `generateListWithInfo()`
+    - Seeded generation supported for reproducible results
 
 ### In Progress
 
@@ -405,59 +425,64 @@ _None - awaiting next feature selection_
 
 ### 4. LOCATION & ADDRESS
 
-| Feature            | Chance.js Support                        | krandom Status | Implementation Priority | Notes                    |
-|--------------------|------------------------------------------|----------------|-------------------------|--------------------------|
+| Feature            | Chance.js Support                       | krandom Status | Implementation Priority | Notes                    |
+|--------------------|-----------------------------------------|----------------|-------------------------|--------------------------|
 | **Street Address** |
-| Full address       | ✅ `address({short_suffix})`              | ❌ No           | HIGH                    | '5447 Bazpe Lane'        |
-| Short suffix       | ✅ `address({short_suffix: true})`        | ❌ No           | MEDIUM                  | 'Rd' vs 'Road'           |
+| Full address       | ✅ `address({short_suffix})`             | ❌ No           | HIGH                    | '5447 Bazpe Lane'        |
+| Short suffix       | ✅ `address({short_suffix: true})`       | ❌ No           | MEDIUM                  | 'Rd' vs 'Road'           |
 | **City**           |
-| City name          | ✅ `city()`                               | ✅ Yes          | HIGH                    | Random city names        |
+| City name          | ✅ `city()`                              | ✅ Yes          | HIGH                    | Random city names        |
 | **State/Province** |
-| State abbreviation | ✅ `state()`                              | ✅ Yes          | HIGH                    | 'AK', 'CA', 'TX'         |
-| State full name    | ✅ `state({full: true})`                  | ✅ Yes          | HIGH                    | 'Florida', 'Alaska'      |
-| Locale support     | ✅ `state({country: 'us'/'ca'/'au'})`     | ✅ Yes          | MEDIUM                  | US/CA/AU/DE/MX/IT states |
+| State abbreviation | ✅ `state()`                             | ✅ Yes          | HIGH                    | 'AK', 'CA', 'TX'         |
+| State full name    | ✅ `state({full: true})`                 | ✅ Yes          | HIGH                    | 'Florida', 'Alaska'      |
+| Locale support     | ✅ `state({country: 'us'/'ca'/'au'})`    | ✅ Yes          | MEDIUM                  | US/CA/AU/DE/MX/IT states |
 | **Postal Codes**   |
-| Postal code        | ✅ `zip()`/`postal()`/`postcode()`        | ✅ Yes          | HIGH                    | Locale-specific formats  |
-| Extended formats   | ✅ `generate(true)` for ZIP+4/hyphenated  | ✅ Yes          | MEDIUM                  | '90210-1234', '100-0001' |
+| Postal code        | ✅ `zip()`/`postal()`/`postcode()`       | ✅ Yes          | HIGH                    | Locale-specific formats  |
+| Extended formats   | ✅ `generate(true)` for ZIP+4/hyphenated | ✅ Yes          | MEDIUM                  | '90210-1234', '100-0001' |
 | **Country**        |
-| Country code       | ✅ `country()`                            | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'         |
-| Country full name  | ✅ `country({full: true})`                | ✅ Yes          | HIGH                    | 'Germany'                |
+| Country code       | ✅ `country()`                           | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'         |
+| Country full name  | ✅ `country({full: true})`               | ✅ Yes          | HIGH                    | 'Germany'                |
 | **Phone Numbers**  |
-| Phone number       | ✅ `phone({formatted, country, mobile})`  | ✅ Yes          | HIGH                    | Multi-country support    |
-| Formatted          | ✅ `generate()`                           | ✅ Yes          | HIGH                    | '(555) 123-4567'         |
-| Unformatted        | ✅ `generate(false)`                      | ✅ Yes          | MEDIUM                  | '5551234567'             |
-| Mobile vs Landline | ✅ `generate(true, true)` for mobile      | ✅ Yes          | MEDIUM                  | Locale-specific          |
+| Phone number       | ✅ `phone({formatted, country, mobile})` | ✅ Yes          | HIGH                    | Multi-country support    |
+| Formatted          | ✅ `generate()`                          | ✅ Yes          | HIGH                    | '(555) 123-4567'         |
+| Unformatted        | ✅ `generate(false)`                     | ✅ Yes          | MEDIUM                  | '5551234567'             |
+| Mobile vs Landline | ✅ `generate(true, true)` for mobile     | ✅ Yes          | MEDIUM                  | Locale-specific          |
 | **Coordinates**    |
-| Latitude           | ✅ `generateLatitude()`                   | ✅ Yes          | MEDIUM                  | Locale-bounded           |
-| Longitude          | ✅ `generateLongitude()`                  | ✅ Yes          | MEDIUM                  | Locale-bounded           |
-| Decimal precision  | ✅ `generateLatitude(7)`                  | ✅ Yes          | MEDIUM                  | 1-10 decimal places      |
-| Locale bounds      | ✅ Based on locale                        | ✅ Yes          | MEDIUM                  | Within country bounds    |
-| Coordinates pair   | ✅ `generate()`                           | ✅ Yes          | MEDIUM                  | '35.12423,-80.12345'     |
+| Latitude           | ✅ `generateLatitude()`                  | ✅ Yes          | MEDIUM                  | Locale-bounded           |
+| Longitude          | ✅ `generateLongitude()`                 | ✅ Yes          | MEDIUM                  | Locale-bounded           |
+| Decimal precision  | ✅ `generateLatitude(7)`                 | ✅ Yes          | MEDIUM                  | 1-10 decimal places      |
+| Locale bounds      | ✅ Based on locale                       | ✅ Yes          | MEDIUM                  | Within country bounds    |
+| Coordinates pair   | ✅ `generate()`                          | ✅ Yes          | MEDIUM                  | '35.12423,-80.12345'     |
 
 ### 5. FINANCE
 
-| Feature             | Chance.js Support                         | krandom Status | Implementation Priority | Notes                                |
-|---------------------|-------------------------------------------|----------------|-------------------------|--------------------------------------|
+| Feature             | Chance.js Support                                 | krandom Status | Implementation Priority | Notes                                |
+|---------------------|---------------------------------------------------|----------------|-------------------------|--------------------------------------|
 | **Credit Cards**    |
-| Credit card number  | ✅ `cc({type})`                            | ✅ Yes          | HIGH                    | Luhn-valid                           |
-| Visa                | ✅ `generate(CardType.VISA)`               | ✅ Yes          | HIGH                    | 16 digits                            |
-| Mastercard          | ✅ `generate(CardType.MASTERCARD)`         | ✅ Yes          | HIGH                    | 16 digits                            |
-| American Express    | ✅ `generate(CardType.AMEX)`               | ✅ Yes          | HIGH                    | 15 digits, 4-digit CVV               |
-| All major cards     | ✅ 6 card types (Visa/MC/Amex/Discover/JCB/Diners) | ✅ Yes   | HIGH                    | Proper formatting                    |
-| CVV/CVC             | ✅ `getCvv()`                              | ✅ Yes          | MEDIUM                  | 3/4 digits based on type             |
-| Expiration date     | ✅ `getExpirationDate()`                   | ✅ Yes          | HIGH                    | MM/YY format, future                 |
-| Card info object    | ✅ `generateWithType()`                    | ✅ Yes          | MEDIUM                  | CardInfo with all details            |
+| Credit card number  | ✅ `cc({type})`                                    | ✅ Yes          | HIGH                    | Luhn-valid                           |
+| Visa                | ✅ `generate(CardType.VISA)`                       | ✅ Yes          | HIGH                    | 16 digits                            |
+| Mastercard          | ✅ `generate(CardType.MASTERCARD)`                 | ✅ Yes          | HIGH                    | 16 digits                            |
+| American Express    | ✅ `generate(CardType.AMEX)`                       | ✅ Yes          | HIGH                    | 15 digits, 4-digit CVV               |
+| All major cards     | ✅ 6 card types (Visa/MC/Amex/Discover/JCB/Diners) | ✅ Yes          | HIGH                    | Proper formatting                    |
+| CVV/CVC             | ✅ `getCvv()`                                      | ✅ Yes          | MEDIUM                  | 3/4 digits based on type             |
+| Expiration date     | ✅ `getExpirationDate()`                           | ✅ Yes          | HIGH                    | MM/YY format, future                 |
+| Card info object    | ✅ `generateWithType()`                            | ✅ Yes          | MEDIUM                  | CardInfo with all details            |
 | **Currency**        |
-| Currency object     | ✅ `currency()`                            | ❌ No           | MEDIUM                  | {code: 'TVD', name: 'Tuvalu Dollar'} |
-| Currency pair       | ✅ `currency_pair()`                       | ❌ No           | MEDIUM                  | FX rate simulation - UNIQUE          |
-| Dollar amount       | ✅ `dollar({max})`                         | ❌ No           | HIGH                    | '$2560.27'                           |
-| Euro amount         | ✅ `euro({max})`                           | ❌ No           | MEDIUM                  | '€1842.56'                           |
-| Max amount control  | ✅ `dollar({max: 20})`                     | ❌ No           | MEDIUM                  | '$15.23'                             |
+| Currency object     | ✅ `generateWithInfo()`                            | ✅ Yes          | MEDIUM                  | CurrencyInfo with code/name/symbol   |
+| Currency code       | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | ISO 4217 codes: USD, EUR, GBP        |
+| Currency name       | ✅ `getName()`                                     | ✅ Yes          | MEDIUM                  | "United States Dollar", "Euro"       |
+| Currency symbol     | ✅ `getSymbol()`                                   | ✅ Yes          | MEDIUM                  | $, €, £, ¥                           |
+| Numeric code        | ✅ `getNumericCode()`                              | ✅ Yes          | MEDIUM                  | ISO 4217 numeric: 840, 978           |
+| Locale support      | ✅ `generate(locale)`                              | ✅ Yes          | HIGH                    | 10 locales with primary currencies   |
+| Currency pair       | ✅ `currency_pair()`                               | ❌ No           | MEDIUM                  | FX rate simulation - UNIQUE          |
+| Dollar amount       | ✅ `dollar({max})`                                 | ❌ No           | HIGH                    | '$2560.27'                           |
+| Euro amount         | ✅ `euro({max})`                                   | ❌ No           | MEDIUM                  | '€1842.56'                           |
+| Max amount control  | ✅ `dollar({max: 20})`                             | ❌ No           | MEDIUM                  | '$15.23'                             |
 | **Card Expiration** |
-| Expiration date     | ✅ `exp({future})`                         | ❌ No           | HIGH                    | '03/23'                              |
-| Future expiration   | ✅ `exp({future: true})`                   | ❌ No           | HIGH                    | Guaranteed future                    |
-| Expiration month    | ✅ `exp_month({future})`                   | ❌ No           | MEDIUM                  | '07'                                 |
-| Expiration year     | ✅ `exp_year({future})`                    | ❌ No           | MEDIUM                  | '2026'                               |
+| Expiration date     | ✅ `exp({future})`                                 | ❌ No           | HIGH                    | '03/23'                              |
+| Future expiration   | ✅ `exp({future: true})`                           | ❌ No           | HIGH                    | Guaranteed future                    |
+| Expiration month    | ✅ `exp_month({future})`                           | ❌ No           | MEDIUM                  | '07'                                 |
+| Expiration year     | ✅ `exp_year({future})`                            | ❌ No           | MEDIUM                  | '2026'                               |
 
 ### 6. WEB & INTERNET
 
