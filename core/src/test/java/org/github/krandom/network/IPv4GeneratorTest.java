@@ -163,4 +163,45 @@ class IPv4GeneratorTest {
             assertTrue(VALIDATOR.isValidInet4Address(ip));
         }
     }
+
+    // ── Seeded Generation ─────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("Seeded generation")
+    class SeededGeneration {
+
+        @Test
+        @DisplayName("same seed produces same IP address")
+        void sameSeedSameIP() {
+            org.github.krandom.generator.GeneratorConfig config1 = 
+                org.github.krandom.generator.GeneratorConfig.builder().seed(42L).build();
+            org.github.krandom.generator.GeneratorConfig config2 = 
+                org.github.krandom.generator.GeneratorConfig.builder().seed(42L).build();
+
+            IPv4Generator gen1 = new IPv4Generator(config1);
+            IPv4Generator gen2 = new IPv4Generator(config2);
+
+            assertEquals(gen1.generate(), gen2.generate());
+            assertEquals(gen1.generate(), gen2.generate());
+            assertEquals(gen1.generate(), gen2.generate());
+        }
+
+        @Test
+        @DisplayName("different seeds produce different IPs")
+        void differentSeedsDifferentIPs() {
+            IPv4Generator gen1 = new IPv4Generator(
+                org.github.krandom.generator.GeneratorConfig.builder().seed(100L).build());
+            IPv4Generator gen2 = new IPv4Generator(
+                org.github.krandom.generator.GeneratorConfig.builder().seed(200L).build());
+
+            assertNotEquals(gen1.generate(), gen2.generate());
+        }
+
+        @Test
+        @DisplayName("null config throws NullPointerException")
+        void nullConfigThrows() {
+            assertThrows(NullPointerException.class, 
+                () -> new IPv4Generator((org.github.krandom.generator.GeneratorConfig) null));
+        }
+    }
 }

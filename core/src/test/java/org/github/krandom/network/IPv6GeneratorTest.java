@@ -160,4 +160,45 @@ class IPv6GeneratorTest {
             assertTrue(upper.matches("[0-9A-F:]+"), "Unexpected chars: " + upper);
         }
     }
+
+    // ── Seeded Generation ─────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("Seeded generation")
+    class SeededGeneration {
+
+        @Test
+        @DisplayName("same seed produces same IPv6 address")
+        void sameSeedSameIP() {
+            org.github.krandom.generator.GeneratorConfig config1 = 
+                org.github.krandom.generator.GeneratorConfig.builder().seed(42L).build();
+            org.github.krandom.generator.GeneratorConfig config2 = 
+                org.github.krandom.generator.GeneratorConfig.builder().seed(42L).build();
+
+            IPv6Generator gen1 = new IPv6Generator(config1);
+            IPv6Generator gen2 = new IPv6Generator(config2);
+
+            assertEquals(gen1.generate(), gen2.generate());
+            assertEquals(gen1.generate(), gen2.generate());
+            assertEquals(gen1.generate(), gen2.generate());
+        }
+
+        @Test
+        @DisplayName("different seeds produce different IPv6s")
+        void differentSeedsDifferentIPs() {
+            IPv6Generator gen1 = new IPv6Generator(
+                org.github.krandom.generator.GeneratorConfig.builder().seed(100L).build());
+            IPv6Generator gen2 = new IPv6Generator(
+                org.github.krandom.generator.GeneratorConfig.builder().seed(200L).build());
+
+            assertNotEquals(gen1.generate(), gen2.generate());
+        }
+
+        @Test
+        @DisplayName("null config throws NullPointerException")
+        void nullConfigThrows() {
+            assertThrows(NullPointerException.class, 
+                () -> new IPv6Generator((org.github.krandom.generator.GeneratorConfig) null));
+        }
+    }
 }

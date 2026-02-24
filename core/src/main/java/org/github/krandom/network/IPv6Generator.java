@@ -6,8 +6,11 @@
 package org.github.krandom.network;
 
 import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.Objects;
+import java.util.Random;
 import java.util.StringJoiner;
 
 /**
@@ -26,15 +29,27 @@ import java.util.StringJoiner;
  *       by all standard validators.</li>
  * </ul>
  *
+ * <p><strong>Basic Usage:</strong>
  * <pre>{@code
- *   IPv6Generator gen = new IPv6Generator();
- *   String ip   = gen.generate();             // "2001:db8:85a3:0:0:8a2e:370:7334"
- *   var    list = gen.generateList(10);
+ * IPv6Generator gen = new IPv6Generator();
+ * String ip = gen.generate();             // "2001:db8:85a3:0:0:8a2e:370:7334"
+ * var list = gen.generateList(10);
  * }</pre>
+ *
+ * <p><strong>Seeded Generation:</strong>
+ * <pre>{@code
+ * GeneratorConfig config = GeneratorConfig.builder().seed(12345L).build();
+ * IPv6Generator gen = new IPv6Generator(config);
+ * String ip = gen.generate();  // Reproducible output
+ * }</pre>
+ *
+ * <p><strong>Thread Safety:</strong>
+ * This generator is thread-safe and can be shared across threads.
  */
 public final class IPv6Generator implements Generator<String> {
 
-    private final SecureRandom random = new SecureRandom();
+    private final GeneratorConfig config;
+    private final Random random;
 
     /** Number of 16-bit groups in an IPv6 address (RFC 4291 §2.2). */
     private static final int GROUPS = 8;
@@ -42,6 +57,33 @@ public final class IPv6Generator implements Generator<String> {
     /** Maximum value of one 16-bit group (0xFFFF = 65535). */
     private static final int GROUP_MAX = 0x10000; // nextInt(exclusive upper bound)
 
+    /**
+     * Creates an IPv6 generator with default configuration.
+     */
+    public IPv6Generator() {
+        this(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Creates an IPv6 generator with the specified configuration.
+     *
+     * @param config the generator configuration; must not be {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
+     */
+    public IPv6Generator(GeneratorConfig config) {
+        this.config = Objects.requireNonNull(config, "config must not be null");
+        this.random = config.getSeed().isPresent()
+                ? new Random(config.getSeed().getAsLong())
+                : new SecureRandom();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Generates a random IPv6 address.
+     *
+     * @return an IPv6 address in colon-separated notation; never {@code null}
+     */
     @Override
     public String generate() {
         StringJoiner joiner = new StringJoiner(":");
