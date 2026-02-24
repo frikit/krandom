@@ -287,7 +287,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Precision variants: `generateLatitude(int precision)`, `generateLongitude(int precision)`
 - Seeded generation, `generateList()`, and `stream()` all supported
 
-#### Finance Section (2/2 finance features complete — credit cards & currencies)
+#### Finance Section (3/3 finance features complete — credit cards, currencies & card expiration)
 
 - ✅ **Credit cards** - `CreditCardGenerator` with 6 major card types and Luhn algorithm validation
     - Visa: 16-digit cards (prefix: 4), formatted as "4532 1488 0343 6467"
@@ -304,6 +304,15 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
     - Locale-specific generation: `generate(locale)` returns primary currency for that locale
     - Methods: `generate()`, `generateWithInfo()`, `getName()`, `getSymbol()`, `getNumericCode()`
     - Examples: USD → "United States Dollar" → "$" → "840"
+
+- ✅ **Card Expiration** - `CardExpirationGenerator` with locale-aware date formatting
+    - Future-only mode: Generates dates 1-60 months in the future (default)
+    - Flexible mode: Can generate dates up to 60 months in past or future
+    - Locale-specific formatting: MM/YY for Western locales, YY/MM for Asian locales
+    - Component extraction: `getMonth()` and `getYear()` methods
+    - Year formats: 2-digit (default) or 4-digit
+    - Methods: `generate()`, `generate(futureOnly)`, `generate(locale)`, `getMonth()`, `getYear()`
+    - Examples: "03/26" (US), "26/03" (JP), "07" (month), "2028" (full year)
 
 **Metrics**:
 
@@ -327,6 +336,17 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
     - Each method has locale-aware variant: `getName(locale)`, `getSymbol(locale)`, etc.
     - Stream support: `stream()`, `streamWithInfo()`, `generateList()`, `generateListWithInfo()`
     - Seeded generation supported for reproducible results
+
+- **Card Expiration**:
+    - Test coverage: 100% for `CardExpirationGenerator`
+    - Architecture: Standalone generator with YearMonth-based generation
+    - Locale support: 10 locales with format variations (MM/YY vs YY/MM)
+    - Future-only mode: Configurable at construction time
+    - Date range: 1-60 months future (default) or ±60 months (flexible mode)
+    - Methods: `generate()`, `generate(futureOnly)`, `generate(locale)`, `generate(locale, futureOnly)`, `getMonth()`, `getYear()`, `getYear(fullYear)`
+    - Component methods: All support optional futureOnly parameter
+    - Seeded generation supported for reproducible results
+    - Stream and list generation inherited from Generator interface
 
 ### In Progress
 
@@ -479,10 +499,11 @@ _None - awaiting next feature selection_
 | Euro amount         | ✅ `euro({max})`                                   | ❌ No           | MEDIUM                  | '€1842.56'                           |
 | Max amount control  | ✅ `dollar({max: 20})`                             | ❌ No           | MEDIUM                  | '$15.23'                             |
 | **Card Expiration** |
-| Expiration date     | ✅ `exp({future})`                                 | ❌ No           | HIGH                    | '03/23'                              |
-| Future expiration   | ✅ `exp({future: true})`                           | ❌ No           | HIGH                    | Guaranteed future                    |
-| Expiration month    | ✅ `exp_month({future})`                           | ❌ No           | MEDIUM                  | '07'                                 |
-| Expiration year     | ✅ `exp_year({future})`                            | ❌ No           | MEDIUM                  | '2026'                               |
+| Expiration date     | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | MM/YY format (03/26)                 |
+| Future expiration   | ✅ `generate(true)`                                | ✅ Yes          | HIGH                    | Guaranteed future dates              |
+| Expiration month    | ✅ `getMonth()`                                    | ✅ Yes          | MEDIUM                  | Zero-padded (01-12)                  |
+| Expiration year     | ✅ `getYear()`                                     | ✅ Yes          | MEDIUM                  | 2-digit (26) or 4-digit (2026)       |
+| Locale formatting   | ✅ `generate(locale)`                              | ✅ Yes          | MEDIUM                  | MM/YY (West) or YY/MM (Asia)         |
 
 ### 6. WEB & INTERNET
 
