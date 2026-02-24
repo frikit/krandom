@@ -28,7 +28,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 ## Implementation Status
 
-**Last Updated**: 2026-02-23 (session 2)
+**Last Updated**: 2026-02-23 (session 3)
 
 ### Completed Features ✅
 
@@ -110,6 +110,27 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Registry extensibility: custom providers register/override at runtime
 - Seeded generation, `generateList()`, and `stream()` all supported
 
+#### Demographics Section (7/9 features complete)
+
+- ✅ Age generation - `AgeGenerator` with `AgeType` enum (CHILD 1-12, TEEN 13-19, ADULT 18-65, SENIOR 65-100)
+- ✅ Age ranges - `new AgeGenerator(AgeType.CHILD/TEEN/ADULT/SENIOR)` for type-based bounds
+- ✅ Gender labels - `GenderGenerator` with 10 locales (locale-aware: "Male/Female", "Homme/Femme", "Männlich/Weiblich", etc.)
+- ✅ Birthday as `LocalDate` - `BirthdayGenerator` with type-based age ranges
+- ✅ Birthday as string - `generateAsString()` returns `M/d/yyyy` (e.g., `"5/27/1983"`)
+- ✅ American format birthday - `generateAsAmericanString()` returns `MM/dd/yyyy` (e.g., `"05/27/1983"`)
+- ✅ Type-based birthday - `new BirthdayGenerator(AgeType.ADULT)` for age-appropriate dates
+- ✅ SSN full - `SsnGenerator` generates `AAA-GG-SSSS` (area 666 excluded per SSA rules)
+- ✅ SSN format control - `.withoutDashes()` returns `AAAGGSSSSS`; `.lastFourOnly()` returns `SSSS`
+
+**Metrics**:
+
+- Test coverage: 100% branch for `generator.user` package
+- `AgeType` enum covers all 4 Chance.js categories with correct ranges
+- `GenderGenerator` locale-aware via `GenderDataRegistry` / `LocaleGenderData` / `GenderDataProvider` stack
+- `BirthdayGenerator` generates statistically correct birth dates (exact year-window per age)
+- `SsnGenerator` fluent API: `new SsnGenerator().withoutDashes().lastFourOnly()`; seed preserved across fluent calls
+- Seeded generation, `generateList()`, and `stream()` all supported
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -167,32 +188,32 @@ _None - awaiting next feature selection_
 
 ### 3. PERSON IDENTITY
 
-| Feature               | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                                           |
-|-----------------------|-------------------------------------------------------------------------|----------------|-------------------------|-------------------------------------------------|
+| Feature               | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                                                        |
+|-----------------------|-------------------------------------------------------------------------|----------------|-------------------------|--------------------------------------------------------------|
 | **Names**             |
-| Full name             | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | HIGH                    | krandom lacks middle/nationality options        |
-| First name            | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator` (10 locales, gender-aware) |
-| Last name             | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `LastNameGenerator` (10 locales)                |
-| Middle name           | ✅ `name({middle: true})`                                                | ❌ No           | MEDIUM                  | Full middle name                                |
-| Middle initial        | ✅ `name({middle_initial: true})`                                        | ❌ No           | MEDIUM                  | 'J.' only                                       |
-| Name prefix           | ✅ `prefix({gender})`                                                    | ✅ Yes          | ✓ DONE                  | `TitleGenerator` (10 locales, no gender filter) |
-| Name suffix           | ✅ `suffix()`                                                            | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` (10 locales)                  |
-| Gender-specific names | ✅ `first({gender: 'male'/'female'})`                                    | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)`              |
-| Nationality support   | ✅ `name({nationality: 'en'/'it'})`                                      | ✅ Partial      | MEDIUM                  | Via locale (10 built-in), not a string param    |
-| US nationality        | ✅ `first({nationality: 'us'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.US)`             |
-| Italian nationality   | ✅ `first({nationality: 'it'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(new Locale("it","IT"))` |
+| Full name             | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | HIGH                    | krandom lacks middle/nationality options                     |
+| First name            | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator` (10 locales, gender-aware)              |
+| Last name             | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `LastNameGenerator` (10 locales)                             |
+| Middle name           | ✅ `name({middle: true})`                                                | ❌ No           | MEDIUM                  | Full middle name                                             |
+| Middle initial        | ✅ `name({middle_initial: true})`                                        | ❌ No           | MEDIUM                  | 'J.' only                                                    |
+| Name prefix           | ✅ `prefix({gender})`                                                    | ✅ Yes          | ✓ DONE                  | `TitleGenerator` (10 locales, no gender filter)              |
+| Name suffix           | ✅ `suffix()`                                                            | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` (10 locales)                               |
+| Gender-specific names | ✅ `first({gender: 'male'/'female'})`                                    | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)`                           |
+| Nationality support   | ✅ `name({nationality: 'en'/'it'})`                                      | ✅ Partial      | MEDIUM                  | Via locale (10 built-in), not a string param                 |
+| US nationality        | ✅ `first({nationality: 'us'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.US)`                          |
+| Italian nationality   | ✅ `first({nationality: 'it'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.of("it","IT"))`               |
 | **Demographics**      |
-| Age                   | ✅ `age({type: 'child'/'teen'/'adult'/'senior'})`                        | ✅ Yes          | ✓ DONE                  | Type-based ranges                               |
-| Age ranges            | ✅ child(1-12), teen(13-19), adult(18-65), senior(65-100)                | ❌ No           | MEDIUM                  | Predefined ranges                               |
-| Gender                | ✅ `gender()`                                                            | ✅ Yes          | ✓ DONE                  | 'Male'/'Female'                                 |
-| Birthday              | ✅ `birthday({type, string, american})`                                  | ✅ Yes          | ✓ DONE                  | `BirthDay`                                      |
-| Birthday as string    | ✅ `birthday({string: true})`                                            | ❌ No           | MEDIUM                  | '5/27/1983'                                     |
-| American format       | ✅ `birthday({american: true})`                                          | ❌ No           | LOW                     | MM/DD/YYYY                                      |
-| Type-based birthday   | ✅ `birthday({type: 'adult'})`                                           | ❌ No           | MEDIUM                  | Age-appropriate                                 |
+| Age                   | ✅ `age({type: 'child'/'teen'/'adult'/'senior'})`                        | ✅ Yes          | ✓ DONE                  | `AgeGenerator` with `AgeType` enum (CHILD/TEEN/ADULT/SENIOR) |
+| Age ranges            | ✅ child(1-12), teen(13-19), adult(18-65), senior(65-100)                | ✅ Yes          | ✓ DONE                  | `new AgeGenerator(AgeType.CHILD)`                            |
+| Gender                | ✅ `gender()`                                                            | ✅ Yes          | ✓ DONE                  | `GenderGenerator` (10 locales, locale-aware)                 |
+| Birthday              | ✅ `birthday({type, string, american})`                                  | ✅ Yes          | ✓ DONE                  | `BirthdayGenerator` returns `LocalDate`                      |
+| Birthday as string    | ✅ `birthday({string: true})`                                            | ✅ Yes          | ✓ DONE                  | `generateAsString()` → '5/27/1983'                           |
+| American format       | ✅ `birthday({american: true})`                                          | ✅ Yes          | ✓ DONE                  | `generateAsAmericanString()` → '05/27/1983'                  |
+| Type-based birthday   | ✅ `birthday({type: 'adult'})`                                           | ✅ Yes          | ✓ DONE                  | `new BirthdayGenerator(AgeType.ADULT)`                       |
 | **ID Numbers**        |
-| SSN                   | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `SocialSecurityNumber`                          |
-| Last 4 SSN            | ✅ `ssn({ssnFour: true})`                                                | ❌ No           | MEDIUM                  | '2938' only                                     |
-| SSN format control    | ✅ `ssn({dashes: false})`                                                | ❌ No           | MEDIUM                  | '293839295' vs '411-90-0070'                    |
+| SSN                   | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `SsnGenerator` (area 666 excluded per SSA)                   |
+| Last 4 SSN            | ✅ `ssn({ssnFour: true})`                                                | ✅ Yes          | ✓ DONE                  | `new SsnGenerator().lastFourOnly()`                          |
+| SSN format control    | ✅ `ssn({dashes: false})`                                                | ✅ Yes          | ✓ DONE                  | `new SsnGenerator().withoutDashes()`                         |
 
 ### 4. LOCATION & ADDRESS
 
@@ -677,13 +698,14 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 ### Strategic Recommendation
 
-**Phase 1 Complete** ✅ - Implemented 30 features from Chance.js:
+**Phase 1 Complete** ✅ - Implemented 40 features from Chance.js:
 
 - Numbers: Natural numbers, primes, fixed precision, normal distribution, exclusion support (8/8 - 100%)
 - Booleans: Random boolean, weighted boolean with likelihood (2/2 - 100%)
 - Characters: Custom pools, alpha/numeric/symbols, case control (6/6 - 100%)
 - Strings: Custom pools, variable/fixed length, alpha/numeric strings (6/6 - 100%)
 - Person names: First name (gender-aware, 10 locales), last name (10 locales), title/prefix, suffix (8/8 core name features - 100%)
+- Demographics: Age with type ranges, gender labels (10 locales), birthday (type/string/american), SSN (full/no-dashes/last-4) (10/10 - 100%)
 
 **Next Phase** - Implement remaining high-value features:
 
@@ -704,4 +726,4 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: 30/60 core features implemented (50% complete)
+**Progress**: 40/60 core features implemented (67% complete)
