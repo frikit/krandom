@@ -7,11 +7,15 @@ package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.Generator;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Immutable configuration for {@link ObjectGenerator}.
@@ -22,6 +26,8 @@ import java.util.Optional;
  *       .maxDepth(3)
  *       .override(String.class, () -> "fixed")
  *       .override(Person.class, "firstName", () -> "Alice")
+ *       .excludeField("password")
+ *       .excludeType(String.class)
  *       .ignoreErrors(true)
  *       .build();
  * }</pre>
@@ -46,11 +52,18 @@ public final class ObjectGeneratorConfig {
      */
     private final Map<String, Generator<?>> fieldOverrides;
 
+    /**
+     * Predicates that identify fields to skip during population.
+     * Also honours the {@link Exclude} annotation directly.
+     */
+    private final List<Predicate<Field>> exclusionPredicates;
+
     private ObjectGeneratorConfig(Builder b) {
-        this.maxDepth      = b.maxDepth;
-        this.ignoreErrors  = b.ignoreErrors;
-        this.typeOverrides  = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
-        this.fieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.fieldOverrides));
+        this.maxDepth            = b.maxDepth;
+        this.ignoreErrors        = b.ignoreErrors;
+        this.typeOverrides        = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
+        this.fieldOverrides       = Collections.unmodifiableMap(new HashMap<>(b.fieldOverrides));
+        this.exclusionPredicates  = Collections.unmodifiableList(new ArrayList<>(b.exclusionPredicates));
     }
 
     /** Default configuration. */
@@ -90,6 +103,26 @@ public final class ObjectGeneratorConfig {
         return Optional.ofNullable(fieldOverrides.get(key));
     }
 
+    /**
+     * Returns {@code true} if the given field should be excluded from population.
+     *
+     * <p>A field is excluded when:
+     * <ul>
+     *   <li>it carries the {@link Exclude} annotation, or</li>
+     *   <li>any registered exclusion predicate returns {@code true} for it.</li>
+     * </ul>
+     *
+     * @param field the field to test; must not be {@code null}
+     * @return {@code true} if the field must be skipped
+     */
+    public boolean shouldExclude(Field field) {
+        if (field.isAnnotationPresent(Exclude.class)) return true;
+        for (Predicate<Field> predicate : exclusionPredicates) {
+            if (predicate.test(field)) return true;
+        }
+        return false;
+    }
+
     // ── Builder ───────────────────────────────────────────────────────────────
 
     public static final class Builder {
@@ -98,6 +131,7 @@ public final class ObjectGeneratorConfig {
         private boolean ignoreErrors = false;
         private final Map<Class<?>, Generator<?>> typeOverrides  = new HashMap<>();
         private final Map<String, Generator<?>>   fieldOverrides = new HashMap<>();
+        private final List<Predicate<Field>>       exclusionPredicates = new ArrayList<>();
 
         /**
          * Maximum nesting depth for object-graph generation.
@@ -130,6 +164,36 @@ public final class ObjectGeneratorConfig {
             Objects.requireNonNull(generator,  "generator must not be null");
             fieldOverrides.put(ownerType.getSimpleName() + "." + fieldName, generator);
             return this;
+        }
+
+        /**
+         * Add a custom predicate that identifies fields to skip.
+         *
+         * @param predicate a test applied to each field; must not be {@code null}
+         * @see FieldPredicates
+         */
+        public Builder exclude(Predicate<Field> predicate) {
+            Objects.requireNonNull(predicate, "predicate must not be null");
+            exclusionPredicates.add(predicate);
+            return this;
+        }
+
+        /**
+         * Exclude all fields whose name equals {@code name}.
+         *
+         * <pre>{@code .excludeField("password") }</pre>
+         */
+        public Builder excludeField(String name) {
+            return exclude(FieldPredicates.named(name));
+        }
+
+        /**
+         * Exclude all fields whose declared type is exactly {@code type}.
+         *
+         * <pre>{@code .excludeType(String.class) }</pre>
+         */
+        public Builder excludeType(Class<?> type) {
+            return exclude(FieldPredicates.ofType(type));
         }
 
         /**

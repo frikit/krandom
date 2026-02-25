@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+package org.github.krandom.generator.datetime;
+
+import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.GeneratorConfig;
+
+import java.security.SecureRandom;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Objects;
+import java.util.Random;
+
+/**
+ * Generates random {@link LocalDateTime} values.
+ *
+ * <p>The generated values fall within the range [1970-01-01T00:00:00, 2100-12-31T23:59:59].
+ * Days are calendar-correct (leap years are handled automatically).
+ *
+ * <p><strong>Basic Usage:</strong>
+ * <pre>{@code
+ * LocalDateTimeGenerator gen = new LocalDateTimeGenerator();
+ * LocalDateTime dt = gen.generate();  // e.g. 2047-08-19T14:32:07
+ * }</pre>
+ *
+ * <p><strong>Seeded Generation:</strong>
+ * <pre>{@code
+ * GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+ * LocalDateTimeGenerator gen = new LocalDateTimeGenerator(config);
+ * LocalDateTime dt = gen.generate();  // reproducible
+ * }</pre>
+ *
+ * <p><strong>Thread Safety:</strong>
+ * This generator is thread-safe and can be shared across threads.
+ *
+ * @see DateGenerator
+ * @see TimeGenerator
+ */
+public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
+
+    private static final int MIN_YEAR = 1970;
+    private static final int MAX_YEAR = 2100;
+
+    private final Random random;
+
+    /**
+     * Creates a local-date-time generator with default configuration.
+     */
+    public LocalDateTimeGenerator() {
+        this(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Creates a local-date-time generator with the specified configuration.
+     *
+     * @param config the generator configuration; must not be {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
+     */
+    public LocalDateTimeGenerator(GeneratorConfig config) {
+        Objects.requireNonNull(config, "config must not be null");
+        this.random = config.getSeed().isPresent()
+                ? new Random(config.getSeed().getAsLong())
+                : new SecureRandom();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Generates a random date-time between 1970-01-01T00:00:00 and 2100-12-31T23:59:59.
+     *
+     * @return a random local date-time; never {@code null}
+     */
+    @Override
+    public LocalDateTime generate() {
+        int year  = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
+        int month = 1 + random.nextInt(12);
+        int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
+        int day    = 1 + random.nextInt(maxDay);
+        int hour   = random.nextInt(24);
+        int minute = random.nextInt(60);
+        int second = random.nextInt(60);
+        return LocalDateTime.of(year, month, day, hour, minute, second);
+    }
+}

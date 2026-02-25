@@ -17,7 +17,9 @@
       "Bash(bash:*)",
       "Bash(cat:*)",
       "mcp__ide__getDiagnostics",
-      "WebFetch(domain:chancejs.com)"
+      "WebFetch(domain:chancejs.com)",
+      "Bash(echo === $f ===:*)",
+      "Bash(done)"
     ]
   }
 }

@@ -10,6 +10,8 @@
 - **Status**: Maintenance mode (since November 2020) — bug fixes only
 - **Key Strength**: Reflection-based object graph population, minimal configuration, ObjectMother pattern implementation
 
+*Last Updated: 2026-02-25*
+
 ## Executive Summary
 
 Easy Random is a specialized library focused on **object graph randomization** rather than realistic data generation. Unlike DataFaker (200+ providers for realistic data), Easy Random excels at *
@@ -65,12 +67,37 @@ Easy Random is a specialized library focused on **object graph randomization** r
 | char / Character   | `CharGenerator`        | ✓ DONE |
 | Enum randomization | `EnumGenerator<T>`     | ✓ DONE |
 
+**Realistic & Finance Generators (implemented)**
+
+| Feature              | krandom Implementation                                         | Status |
+|----------------------|----------------------------------------------------------------|--------|
+| First name           | `FirstNameGenerator` (10 locales, gender-aware)               | ✓ DONE |
+| Last name            | `LastNameGenerator` (10 locales)                              | ✓ DONE |
+| Email                | `EmailGenerator` (7 formats, locale-aware)                    | ✓ DONE |
+| Phone number         | `PhoneNumberGenerator` (10 locales, mobile support)           | ✓ DONE |
+| City                 | `CityGenerator` (10 locales)                                  | ✓ DONE |
+| State / Province     | `StateGenerator` (10 locales, full + abbrev)                  | ✓ DONE |
+| Country              | `CountryGenerator` (10 locales)                               | ✓ DONE |
+| ZIP / Postal code    | `PostalCodeGenerator` (10 locales)                            | ✓ DONE |
+| Latitude             | `CoordinateGenerator.latitude()`                              | ✓ DONE |
+| Longitude            | `CoordinateGenerator.longitude()`                             | ✓ DONE |
+| Credit card          | `CreditCardGenerator` (Visa/MC/Amex/Discover, Luhn-valid)     | ✓ DONE |
+| UUID v4              | `UUIDGenerator`                                               | ✓ DONE |
+| URL                  | `UrlGenerator` (http/https, path, query)                      | ✓ DONE |
+| Money / currency     | `MoneyGenerator` (10 locales, locale-aware formatting)        | ✓ DONE |
+| Currency pair        | `CurrencyPairGenerator` (44 currencies, locale base)          | ✓ DONE |
+| National ID          | `NationalIdGenerator` (10 countries: SSN, NI, TFN, NIR, etc.) | ✓ DONE |
+| Birthday             | `BirthdayGenerator` (age ranges, locale-aware string output)  | ✓ DONE |
+| Color (hex)          | `HexColorGenerator`                                           | ✓ DONE |
+| IPv4 address         | `IPv4Generator` (RFC-compliant)                               | ✓ DONE |
+| IPv6 address         | `IPv6Generator` (RFC-compliant)                               | ✓ DONE |
+
 **Implementation Metrics:**
 
-- **Total Features Implemented**: 17 features
-- **Test Coverage**: 99.7% line, 99.1% branch
-- **New Tests Added**: ~300 comprehensive test cases
-- **Algorithms**: Sieve of Eratosthenes (primes), Box-Muller transform (normal distribution)
+- **Total Features Implemented**: 37+ features (17 numeric/primitive + 20 realistic/finance)
+- **Test Coverage**: 99.2%+ line, 99.1%+ branch
+- **New Tests Added**: ~600 comprehensive test cases
+- **Algorithms**: Sieve of Eratosthenes (primes), Box-Muller (normal dist.), Luhn (cards), ISO 7064 (national IDs)
 - **Pre-commit Checks**: ALL PASSING ✅
 
 ### Planned Features ⏳
@@ -78,7 +105,6 @@ Easy Random is a specialized library focused on **object graph randomization** r
 **Phase 1: Statistical & Advanced Numbers** (Next Priority)
 
 - BigDecimal / BigInteger generators (arbitrary precision)
-- UUID generation
 - Regex-based string generation
 
 **Phase 2: Date/Time Generators**
@@ -87,13 +113,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - Range-based date/time randomizers
 - Instant, ZonedDateTime, OffsetDateTime
 
-**Phase 3: Realistic Data**
-
-- Email generation
-- URL/URI generation
-- Credit card numbers (Luhn-valid)
-
-**Phase 4: Object Generation Enhancements**
+**Phase 3: Object Generation Enhancements**
 
 - Circular reference handling (object pool)
 - Array/collection auto-population
@@ -250,10 +270,10 @@ Easy Random is a specialized library focused on **object graph randomization** r
 | GenericStringRandomizer           | ✅ DataFaker-backed                               | ❌ No           | LOW                     |                                |
 | RegularExpressionRandomizer       | ✅ Regex-based                                    | ❌ No           | HIGH                    | Pattern matching               |
 | **Standard Library Types**        |
-| UUID                              | ✅ Yes                                            | ❌ No           | HIGH                    | UUIDRandomizer                 |
+| UUID                              | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UUIDGenerator         |
 | Locale                            | ✅ Yes                                            | ❌ No           | MEDIUM                  | Random locale                  |
-| URI                               | ✅ Yes                                            | ❌ No           | MEDIUM                  | Network identifiers            |
-| URL                               | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
+| URI                               | ✅ Yes                                            | ✅ Partial      | MEDIUM                  | krandom: UrlGenerator (URLs)   |
+| URL                               | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UrlGenerator          |
 | **Date/Time (Legacy)**            |
 | java.util.Date                    | ✅ Yes                                            | ❌ No           | MEDIUM                  | Legacy support                 |
 | java.util.Calendar                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
@@ -320,36 +340,36 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ### 7. REALISTIC DATA (DataFaker Integration)
 
-| Feature           | Easy Random Support            | krandom Status | Implementation Priority | Notes                  |
-|-------------------|--------------------------------|----------------|-------------------------|------------------------|
+| Feature           | Easy Random Support            | krandom Status | Implementation Priority | Notes                                          |
+|-------------------|--------------------------------|----------------|-------------------------|------------------------------------------------|
 | **Personal Data** |
-| First name        | ✅ `FirstNameRandomizer`        | ❌ No           | MEDIUM                  | DataFaker-backed       |
-| Last name         | ✅ `LastNameRandomizer`         | ❌ No           | MEDIUM                  |                        |
-| Full name         | ✅ `FullNameRandomizer`         | ❌ No           | MEDIUM                  |                        |
-| Email             | ✅ `EmailRandomizer`            | ❌ No           | HIGH                    | Common test data       |
-| Phone number      | ✅ `PhoneNumberRandomizer`      | ❌ No           | MEDIUM                  |                        |
-| Password          | ✅ `PasswordRandomizer`         | ❌ No           | MEDIUM                  |                        |
+| First name        | ✅ `FirstNameRandomizer`        | ✅ Yes          | ✓ DONE                  | krandom: FirstNameGenerator (10 locales)       |
+| Last name         | ✅ `LastNameRandomizer`         | ✅ Yes          | ✓ DONE                  | krandom: LastNameGenerator (10 locales)        |
+| Full name         | ✅ `FullNameRandomizer`         | ✅ Partial      | MEDIUM                  | Compose First+Last; no single FullNameGenerator|
+| Email             | ✅ `EmailRandomizer`            | ✅ Yes          | ✓ DONE                  | krandom: EmailGenerator (7 formats)            |
+| Phone number      | ✅ `PhoneNumberRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: PhoneNumberGenerator (10 locales)     |
+| Password          | ✅ `PasswordRandomizer`         | ❌ No           | MEDIUM                  |                                                |
 | **Address Data**  |
-| Street            | ✅ `StreetRandomizer`           | ❌ No           | MEDIUM                  |                        |
-| City              | ✅ `CityRandomizer`             | ❌ No           | MEDIUM                  |                        |
-| State             | ✅ `StateRandomizer`            | ❌ No           | MEDIUM                  |                        |
-| Country           | ✅ `CountryRandomizer`          | ❌ No           | MEDIUM                  |                        |
-| ZIP code          | ✅ `ZipCodeRandomizer`          | ❌ No           | MEDIUM                  |                        |
-| Latitude          | ✅ `LatitudeRandomizer`         | ❌ No           | LOW                     | Geographic coordinates |
-| Longitude         | ✅ `LongitudeRandomizer`        | ❌ No           | LOW                     |                        |
+| Street            | ✅ `StreetRandomizer`           | ❌ No           | MEDIUM                  |                                                |
+| City              | ✅ `CityRandomizer`             | ✅ Yes          | ✓ DONE                  | krandom: CityGenerator (10 locales)            |
+| State             | ✅ `StateRandomizer`            | ✅ Yes          | ✓ DONE                  | krandom: StateGenerator (10 locales, full+abbrev)|
+| Country           | ✅ `CountryRandomizer`          | ✅ Yes          | ✓ DONE                  | krandom: CountryGenerator (10 locales)         |
+| ZIP code          | ✅ `ZipCodeRandomizer`          | ✅ Yes          | ✓ DONE                  | krandom: PostalCodeGenerator (10 locales)      |
+| Latitude          | ✅ `LatitudeRandomizer`         | ✅ Yes          | ✓ DONE                  | krandom: CoordinateGenerator.latitude()        |
+| Longitude         | ✅ `LongitudeRandomizer`        | ✅ Yes          | ✓ DONE                  | krandom: CoordinateGenerator.longitude()       |
 | **Company Data**  |
-| Company name      | ✅ `CompanyRandomizer`          | ❌ No           | MEDIUM                  |                        |
+| Company name      | ✅ `CompanyRandomizer`          | ❌ No           | MEDIUM                  |                                                |
 | **Text Data**     |
-| Paragraph         | ✅ `ParagraphRandomizer`        | ❌ No           | MEDIUM                  | Lorem ipsum            |
-| Sentence          | ✅ `SentenceRandomizer`         | ❌ No           | MEDIUM                  |                        |
-| Word              | ✅ `WordRandomizer`             | ❌ No           | MEDIUM                  |                        |
+| Paragraph         | ✅ `ParagraphRandomizer`        | ❌ No           | MEDIUM                  | Lorem ipsum                                    |
+| Sentence          | ✅ `SentenceRandomizer`         | ❌ No           | MEDIUM                  |                                                |
+| Word              | ✅ `WordRandomizer`             | ❌ No           | MEDIUM                  |                                                |
 | **Network Data**  |
-| IPv4 address      | ✅ `Ipv4AddressRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: IPv4Generator |
-| IPv6 address      | ✅ `Ipv6AddressRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: IPv6Generator |
-| MAC address       | ✅ `MacAddressRandomizer`       | ❌ No           | MEDIUM                  | Hardware addresses     |
+| IPv4 address      | ✅ `Ipv4AddressRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: IPv4Generator                         |
+| IPv6 address      | ✅ `Ipv6AddressRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: IPv6Generator                         |
+| MAC address       | ✅ `MacAddressRandomizer`       | ❌ No           | MEDIUM                  | Hardware addresses                             |
 | **Product Data**  |
-| ISBN              | ✅ `IsbnRandomizer`             | ❌ No           | MEDIUM                  | Book codes             |
-| Credit card       | ✅ `CreditCardNumberRandomizer` | ❌ No           | HIGH                    | Luhn-valid cards       |
+| ISBN              | ✅ `IsbnRandomizer`             | ❌ No           | MEDIUM                  | Book codes                                     |
+| Credit card       | ✅ `CreditCardNumberRandomizer` | ✅ Yes          | ✓ DONE                  | krandom: CreditCardGenerator (Luhn-valid)      |
 
 ### 8. CLASSPATH SCANNING
 
@@ -436,15 +456,16 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ### Realistic Data Generation
 
-| Aspect                    | Easy Random                    | krandom                       | Winner      |
-|---------------------------|--------------------------------|-------------------------------|-------------|
-| **DataFaker integration** | ✅ 20+ realistic randomizers    | ❌ No realistic data           | Easy Random |
-| **Personal data**         | ✅ Names, emails, phones        | ❌ Only TitleGenerator         | Easy Random |
-| **Address data**          | ✅ Streets, cities, states, ZIP | ❌ No                          | Easy Random |
-| **Network data**          | ✅ IPv4, IPv6, MAC              | ✅ IPv4, IPv6 only             | Easy Random |
-| **Company data**          | ✅ Company names                | ❌ No                          | Easy Random |
-| **Text generation**       | ✅ Paragraphs, sentences, words | ❌ Random strings only         | Easy Random |
-| **Locale support**        | ✅ Via DataFaker                | ✅ TitleGenerator (10 locales) | Easy Random |
+| Aspect                    | Easy Random                    | krandom                                         | Winner      |
+|---------------------------|--------------------------------|-------------------------------------------------|-------------|
+| **DataFaker integration** | ✅ 20+ realistic randomizers    | ✅ 50+ built-in generators (no extra dep)        | krandom     |
+| **Personal data**         | ✅ Names, emails, phones        | ✅ Names, email, phone, birthday, national IDs   | Tie         |
+| **Address data**          | ✅ Streets, cities, states, ZIP | ✅ City, state, country, ZIP, coordinates        | Easy Random |
+| **Finance data**          | ❌ No                          | ✅ Credit cards, money, currency pairs, FX pairs | krandom     |
+| **Network data**          | ✅ IPv4, IPv6, MAC              | ✅ IPv4, IPv6 only                               | Easy Random |
+| **Company data**          | ✅ Company names                | ❌ No                                            | Easy Random |
+| **Text generation**       | ✅ Paragraphs, sentences, words | ❌ Random strings only                           | Easy Random |
+| **Locale support**        | ✅ Via DataFaker                | ✅ 10 locales across all realistic generators    | Tie         |
 
 ### Configuration & Defaults
 
@@ -811,36 +832,13 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ### Phase 5: REALISTIC DATA GENERATORS (Nice to Have)
 
-**1. Email Generator** ⚡ HIGH PRIORITY
+**1. Email Generator** ~~DONE~~ ✅
 
-- **Gap**: No email generation
-- **Easy Random approach**: `EmailRandomizer` (DataFaker-backed)
-- **Implementation**:
-  ```kotlin
-  class EmailGenerator(private val domain: String = "example.com") : Generator<String> {
-      override fun generate(): String {
-          val username = StringGenerator(5, 15, lowercase = true).generate()
-          return "$username@$domain"
-      }
-  }
+- **Implemented**: `EmailGenerator` (7 formats: simple, domain-specific, first.last, UUID-based, safe, custom domain, locale-aware)
 
-  class SafeEmailGenerator : EmailGenerator("test.example.com")
-  ```
-- **Effort**: 0.5 days
-- **Value**: Most common test data need
+**2. UUID Generator** ~~DONE~~ ✅
 
-**2. UUID Generator** ⚡ HIGH PRIORITY
-
-- **Gap**: No UUID support
-- **Easy Random approach**: `UUIDRandomizer`
-- **Implementation**:
-  ```kotlin
-  class UUIDGenerator : Generator<UUID> {
-      override fun generate(): UUID = UUID.randomUUID()
-  }
-  ```
-- **Effort**: 0.25 days
-- **Value**: Universal identifier generation
+- **Implemented**: `UUIDGenerator` (UUID v4 with seeded support)
 
 **3. Regex-Based Generator** ⚡ HIGH PRIORITY
 
@@ -887,46 +885,19 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 1 day
 - **Value**: UI/content testing
 
-**5. Name Generators** ⚠️ MEDIUM PRIORITY
+**5. Name Generators** ~~DONE~~ ✅
 
-- **Easy Random approach**: `FirstNameRandomizer`, `LastNameRandomizer`, `FullNameRandomizer`
-- **Implementation**: Extend existing or use simple lists
-- **Effort**: 1 day
-- **Value**: Common test data
+- **Implemented**: `FirstNameGenerator` + `LastNameGenerator` (10 locales, gender-aware)
 
-**6. Address Components** ⚠️ MEDIUM PRIORITY
+**6. Address Components** ~~DONE~~ ✅
 
-- **Easy Random approach**: `StreetRandomizer`, `CityRandomizer`, `StateRandomizer`, `ZipCodeRandomizer`
-- **Implementation**: Static lists + templates
-- **Effort**: 2 days
-- **Value**: Geographic data
+- **Implemented**: `CityGenerator`, `StateGenerator`, `CountryGenerator`, `PostalCodeGenerator`, `CoordinateGenerator` (all 10 locales)
 
-**7. Credit Card Generator** ⚠️ MEDIUM PRIORITY
+**7. Credit Card Generator** ~~DONE~~ ✅
 
-- **Gap**: No Luhn-valid card generation
-- **Easy Random approach**: `CreditCardNumberRandomizer` (multiple types)
-- **Implementation**: Extend existing `LuhnGenerator`
-  ```kotlin
-  enum class CardType(val prefix: String, val length: Int) {
-      VISA("4", 16),
-      MASTERCARD("5", 16),
-      AMEX("37", 15),
-      DISCOVER("6011", 16)
-  }
+- **Implemented**: `CreditCardGenerator` (Visa/MC/Amex/Discover, Luhn-valid, with CVV and expiry generators)
 
-  class CreditCardGenerator(private val type: CardType) : Generator<String> {
-      override fun generate(): String {
-          val remaining = type.length - type.prefix.length - 1 // -1 for check digit
-          val digits = type.prefix +
-                      (1..remaining).map { Random.nextInt(0, 10) }.joinToString("")
-          return LuhnGenerator.addCheckDigit(digits)
-      }
-  }
-  ```
-- **Effort**: 1 day
-- **Value**: Payment testing
-
-**Total Phase 5: ~7 days**
+**Total Phase 5: ~~7 days~~ Completed ✅**
 
 ---
 
@@ -958,22 +929,21 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ## EFFORT ESTIMATES SUMMARY
 
-| Phase     | Focus Area                                                             | Effort                   | Priority   |
-|-----------|------------------------------------------------------------------------|--------------------------|------------|
-| Phase 1   | Object generation gaps (circular refs, arrays, collections, Objenesis) | 7 days                   | ⚡ CRITICAL |
-| Phase 2   | Customization & exclusion (predicates, @Randomizer, context)           | 6 days                   | HIGH       |
-| Phase 3   | Bean validation integration                                            | 5 days                   | MEDIUM     |
-| Phase 4   | Date/time generators                                                   | 4 days                   | MEDIUM     |
-| Phase 5   | Realistic data (email, UUID, regex, lorem, names, addresses, cards)    | 7 days                   | MEDIUM     |
-| Phase 6   | Advanced features (BigDecimal, Optional, scanning, SPI)                | 6.5 days                 | LOW        |
-| **TOTAL** |                                                                        | **35.5 days** (~7 weeks) |            |
+| Phase     | Focus Area                                                             | Effort                   | Priority   | Status       |
+|-----------|------------------------------------------------------------------------|--------------------------|------------|--------------|
+| Phase 1   | Object generation gaps (circular refs, arrays, collections, Objenesis) | 7 days                   | ⚡ CRITICAL | ❌ Pending   |
+| Phase 2   | Customization & exclusion (predicates, @Randomizer, context)           | 6 days                   | HIGH       | ❌ Pending   |
+| Phase 3   | Bean validation integration                                            | 5 days                   | MEDIUM     | ❌ Pending   |
+| Phase 4   | Date/time generators                                                   | 4 days                   | MEDIUM     | ❌ Pending   |
+| Phase 5   | Realistic data (email, UUID, regex, lorem, names, addresses, cards)    | 7 days                   | MEDIUM     | ✅ DONE      |
+| Phase 6   | Advanced features (BigDecimal, Optional, scanning, SPI)                | 6.5 days                 | LOW        | ❌ Pending   |
+| **TOTAL** |                                                                        | **28.5 days** (~6 weeks) |            |              |
 
 ### Recommended Implementation Order
 
-1. **Week 1-2**: Phase 1 (critical gaps) + Phase 5 subset (email, UUID, regex)
-2. **Week 3-4**: Phase 2 (customization) + Phase 4 (dates)
-3. **Week 5-6**: Phase 5 (realistic data) + Phase 3 (validation)
-4. **Week 7**: Phase 6 (nice-to-have) + documentation
+1. **Week 1-2**: Phase 1 (critical gaps) + Phase 4 (dates — now top priority since Phase 5 done)
+2. **Week 3-4**: Phase 2 (customization) + Phase 3 (validation)
+3. **Week 5**: Phase 6 (nice-to-have) + documentation
 
 ---
 
@@ -1043,7 +1013,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
 12. **DataFaker Integration** 🏆
     - 20+ realistic randomizers (names, emails, addresses, phones, companies)
     - Locale-aware via DataFaker
-    - krandom only has `TitleGenerator`
+    - krandom now has 50+ generators including names, email, phone, address, finance (no DataFaker dep)
 
 13. **Extensible Architecture** 🏆
     - 4 extension interfaces: `RandomizerProvider`, `RandomizerRegistry`, `ExclusionPolicy`, `ObjectFactory`
@@ -1077,18 +1047,18 @@ Easy Random is a specialized library focused on **object graph randomization** r
     - Easy Random uses DataFaker (less control)
 
 6. **Game Utilities** 🎯
-    - Dice (D4-D20) with fairness guarantee
+    - Dice (D4-D20) with fairness guarantee, dice sum
     - Coin flip
     - Easy Random has none
 
 7. **Algorithm Generators** 🎯
     - Fibonacci sequence
-    - Luhn check digit
+    - Luhn check digit, ISO 7064 (national IDs)
     - Easy Random has none (beyond Luhn randomizer)
 
 8. **Active Development** 🎯
     - Easy Random is in maintenance mode since 2020
-    - No new features planned
+    - krandom adds new generators regularly
 
 9. **Safer Defaults** 🎯
     - Max depth: 5 (vs Integer.MAX_VALUE)
@@ -1099,6 +1069,22 @@ Easy Random is a specialized library focused on **object graph randomization** r
     - `Generator<T>` with `map()`, `filter()`, `stream()`
     - Composable generators
     - Easy Random is imperative
+
+11. **Finance Generators** 🎯
+    - Credit cards (Luhn-valid, 4 card types), CVV, expiry
+    - Money/currency formatting (10 locales)
+    - FX currency pairs (44 currencies, locale-aware base)
+    - Easy Random has none
+
+12. **10-Country National IDs** 🎯
+    - US SSN, UK NI, AU TFN, FR NIR, DE Steuer-ID, JP My Number, ES DNI, IT Codice Fiscale, BR CPF, CN Resident ID
+    - Each with proper checksum/check-digit validation
+    - Easy Random has none
+
+13. **Locale-Aware Birthday Strings** 🎯
+    - `BirthdayGenerator.generateAsString()` uses locale-appropriate date format
+    - `de_DE` → `27.5.1983`, `ja_JP` → `1983/5/27`, `zh_CN` → `1983年5月27日`
+    - Easy Random has none
 
 ---
 

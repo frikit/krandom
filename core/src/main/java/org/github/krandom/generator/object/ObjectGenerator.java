@@ -29,6 +29,11 @@ import java.util.Objects;
  *       reflection (parent class fields included).</li>
  *   <li><b>Nested objects</b> — resolved recursively up to {@link ObjectGeneratorConfig#getMaxDepth()}.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
+ *   <li><b>Arrays</b> — auto-populated with {@value FieldGeneratorResolver#DEFAULT_ELEMENT_COUNT} elements.</li>
+ *   <li><b>Collections ({@code List}, {@code Set}, {@code Map})</b> — auto-populated with
+ *       {@value FieldGeneratorResolver#DEFAULT_ELEMENT_COUNT} elements using the declared generic type.</li>
+ *   <li><b>Circular references</b> — detected via an {@link ObjectPool} and broken by
+ *       returning a previously cached instance (or {@code null}) instead of recursing.</li>
  * </ul>
  *
  * <p><b>Usage</b>
@@ -41,6 +46,7 @@ import java.util.Objects;
  *       .maxDepth(3)
  *       .override(String.class, () -> "test-value")
  *       .override(Person.class, "firstName", () -> "Alice")
+ *       .excludeField("password")
  *       .build();
  *
  *   ObjectGenerator<Person> gen = new ObjectGenerator<>(Person.class, config);
@@ -63,20 +69,20 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     /** Creates a generator with default configuration. */
     public ObjectGenerator(Class<T> type) {
-        this(type, ObjectGeneratorConfig.defaults(), 0);
+        this(type, ObjectGeneratorConfig.defaults(), 0, new ObjectPool());
     }
 
     /** Creates a generator with custom configuration. */
     public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
-        this(type, config, 0);
+        this(type, config, 0, new ObjectPool());
     }
 
-    /** Internal constructor — depth is managed by {@link FieldGeneratorResolver}. */
-    ObjectGenerator(Class<T> type, ObjectGeneratorConfig config, int depth) {
+    /** Internal constructor — depth and pool are managed by {@link FieldGeneratorResolver}. */
+    ObjectGenerator(Class<T> type, ObjectGeneratorConfig config, int depth, ObjectPool pool) {
         this.type     = Objects.requireNonNull(type,   "type must not be null");
         this.config   = Objects.requireNonNull(config, "config must not be null");
         this.depth    = depth;
-        this.resolver = new FieldGeneratorResolver(config);
+        this.resolver = new FieldGeneratorResolver(config, pool);
     }
 
     // ── Generator<T> ─────────────────────────────────────────────────────────
@@ -103,11 +109,20 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
         Object[] args = new Object[components.length];
         for (int i = 0; i < components.length; i++) {
-            args[i] = resolver.resolveAndGenerate(
-                    components[i].getType(),
-                    components[i].getName(),
-                    type,
-                    depth);
+            RecordComponent comp = components[i];
+            // For a well-formed record, getDeclaredField(comp.getName()) never throws.
+            // NoSuchFieldException (a ReflectiveOperationException) propagates to generate().
+            Field backingField = type.getDeclaredField(comp.getName());
+            if (config.shouldExclude(backingField)) {
+                args[i] = defaultForType(comp.getType());
+            } else {
+                args[i] = resolver.resolveAndGenerate(
+                        comp.getGenericType(),
+                        comp.getType(),
+                        comp.getName(),
+                        type,
+                        depth);
+            }
         }
 
         Constructor<T> canonical = type.getDeclaredConstructor(paramTypes);
@@ -123,8 +138,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
         T instance = ctor.newInstance();
 
         for (Field field : collectSettableFields(type)) {
+            if (config.shouldExclude(field)) continue; // exclusion check
             field.setAccessible(true);
             Object value = resolver.resolveAndGenerate(
+                    field.getGenericType(),
                     field.getType(),
                     field.getName(),
                     field.getDeclaringClass(),
@@ -174,6 +191,23 @@ public final class ObjectGenerator<T> implements Generator<T> {
             current = current.getSuperclass();
         }
         return fields;
+    }
+
+    /**
+     * Returns the JVM default value for a primitive type, or {@code null} for reference types.
+     * Used when a record component is excluded from generation.
+     * Each primitive type gets its exact wrapper to satisfy {@link java.lang.reflect.Constructor#newInstance}.
+     */
+    private static Object defaultForType(Class<?> type) {
+        if (type == boolean.class) return false;
+        if (type == byte.class)    return (byte)  0;
+        if (type == short.class)   return (short) 0;
+        if (type == int.class)     return 0;
+        if (type == long.class)    return 0L;
+        if (type == float.class)   return 0.0f;
+        if (type == double.class)  return 0.0;
+        if (type == char.class)    return '\0';
+        return null;
     }
 
     // ── Diagnostic ───────────────────────────────────────────────────────────

@@ -421,11 +421,13 @@ class ObjectGeneratorTest {
         // ── Tests ─────────────────────────────────────────────────────────────
 
         @Test
-        @DisplayName("array-typed field is left null (isArray branch in isNestableType)")
-        void arrayFieldLeftNull() {
+        @DisplayName("array-typed field is auto-populated with 3 elements")
+        void arrayFieldAutoPopulated() {
             WithArrayField obj = new ObjectGenerator<>(WithArrayField.class).generate();
             assertNotNull(obj);
-            assertNull(obj.tags, "array-typed field should be null");
+            assertNotNull(obj.tags, "array-typed field should be auto-populated");
+            assertEquals(3, obj.tags.length, "array should have 3 elements");
+            for (String tag : obj.tags) assertNotNull(tag, "each array element should be non-null");
         }
 
         @Test

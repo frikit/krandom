@@ -13,6 +13,10 @@ import org.github.krandom.network.IPv6Generator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
+import org.github.krandom.generator.datetime.DateGenerator;
+import org.github.krandom.generator.datetime.InstantGenerator;
+import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
+import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -239,6 +243,28 @@ public final class Generators {
     /** Returns a generator that produces random IPv6 addresses (RFC 4291 / RFC 5952). */
     public static IPv6Generator ofIPv6() {
         return new IPv6Generator();
+    }
+
+    // ── Date / Time ───────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random {@link java.time.LocalDate} values (1970–2100). */
+    public static DateGenerator ofLocalDate() {
+        return new DateGenerator();
+    }
+
+    /** Returns a generator that produces random {@link java.time.LocalDateTime} values (1970–2100). */
+    public static LocalDateTimeGenerator ofLocalDateTime() {
+        return new LocalDateTimeGenerator();
+    }
+
+    /** Returns a generator that produces random {@link java.time.Instant} values (1970–2100 at UTC midnight). */
+    public static InstantGenerator ofInstant() {
+        return new InstantGenerator();
+    }
+
+    /** Returns a generator that produces random {@link java.time.ZonedDateTime} values (1970–2100). */
+    public static ZonedDateTimeGenerator ofZonedDateTime() {
+        return new ZonedDateTimeGenerator();
     }
 
     // ── Generic lookup by type ────────────────────────────────────────────────
