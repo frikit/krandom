@@ -745,34 +745,34 @@ _None - awaiting next feature selection_
 
 ### 5. FINANCE
 
-| Feature             | Chance.js Support                                 | krandom Status | Implementation Priority | Notes                              |
-|---------------------|---------------------------------------------------|----------------|-------------------------|------------------------------------|
+| Feature             | Chance.js Support                                 | krandom Status | Implementation Priority | Notes                                              |
+|---------------------|---------------------------------------------------|----------------|-------------------------|----------------------------------------------------|
 | **Credit Cards**    |
-| Credit card number  | ✅ `cc({type})`                                    | ✅ Yes          | HIGH                    | Luhn-valid                         |
-| Visa                | ✅ `generate(CardType.VISA)`                       | ✅ Yes          | HIGH                    | 16 digits                          |
-| Mastercard          | ✅ `generate(CardType.MASTERCARD)`                 | ✅ Yes          | HIGH                    | 16 digits                          |
-| American Express    | ✅ `generate(CardType.AMEX)`                       | ✅ Yes          | HIGH                    | 15 digits, 4-digit CVV             |
-| All major cards     | ✅ 6 card types (Visa/MC/Amex/Discover/JCB/Diners) | ✅ Yes          | HIGH                    | Proper formatting                  |
-| CVV/CVC             | ✅ `getCvv()`                                      | ✅ Yes          | MEDIUM                  | 3/4 digits based on type           |
-| Expiration date     | ✅ `getExpirationDate()`                           | ✅ Yes          | HIGH                    | MM/YY format, future               |
-| Card info object    | ✅ `generateWithType()`                            | ✅ Yes          | MEDIUM                  | CardInfo with all details          |
+| Credit card number  | ✅ `cc({type})`                                    | ✅ Yes          | HIGH                    | Luhn-valid                                         |
+| Visa                | ✅ `generate(CardType.VISA)`                       | ✅ Yes          | HIGH                    | 16 digits                                          |
+| Mastercard          | ✅ `generate(CardType.MASTERCARD)`                 | ✅ Yes          | HIGH                    | 16 digits                                          |
+| American Express    | ✅ `generate(CardType.AMEX)`                       | ✅ Yes          | HIGH                    | 15 digits, 4-digit CVV                             |
+| All major cards     | ✅ 6 card types (Visa/MC/Amex/Discover/JCB/Diners) | ✅ Yes          | HIGH                    | Proper formatting                                  |
+| CVV/CVC             | ✅ `getCvv()`                                      | ✅ Yes          | MEDIUM                  | 3/4 digits based on type                           |
+| Expiration date     | ✅ `getExpirationDate()`                           | ✅ Yes          | HIGH                    | MM/YY format, future                               |
+| Card info object    | ✅ `generateWithType()`                            | ✅ Yes          | MEDIUM                  | CardInfo with all details                          |
 | **Currency**        |
-| Currency object     | ✅ `generateWithInfo()`                            | ✅ Yes          | MEDIUM                  | CurrencyInfo with code/name/symbol |
-| Currency code       | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | ISO 4217 codes: USD, EUR, GBP      |
-| Currency name       | ✅ `getName()`                                     | ✅ Yes          | MEDIUM                  | "United States Dollar", "Euro"     |
-| Currency symbol     | ✅ `getSymbol()`                                   | ✅ Yes          | MEDIUM                  | $, €, £, ¥                         |
-| Numeric code        | ✅ `getNumericCode()`                              | ✅ Yes          | MEDIUM                  | ISO 4217 numeric: 840, 978         |
-| Locale support      | ✅ `generate(locale)`                              | ✅ Yes          | HIGH                    | 10 locales with primary currencies |
+| Currency object     | ✅ `generateWithInfo()`                            | ✅ Yes          | MEDIUM                  | CurrencyInfo with code/name/symbol                 |
+| Currency code       | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | ISO 4217 codes: USD, EUR, GBP                      |
+| Currency name       | ✅ `getName()`                                     | ✅ Yes          | MEDIUM                  | "United States Dollar", "Euro"                     |
+| Currency symbol     | ✅ `getSymbol()`                                   | ✅ Yes          | MEDIUM                  | $, €, £, ¥                                         |
+| Numeric code        | ✅ `getNumericCode()`                              | ✅ Yes          | MEDIUM                  | ISO 4217 numeric: 840, 978                         |
+| Locale support      | ✅ `generate(locale)`                              | ✅ Yes          | HIGH                    | 10 locales with primary currencies                 |
 | Currency pair       | ✅ `currency_pair()`                               | ✅ Yes          | ✓ DONE                  | `CurrencyPairGenerator` — `"EUR/USD"`, locale base |
-| Dollar amount       | ✅ `dollar({max})`                                 | ✅ Yes          | ✓ DONE                  | `MoneyGenerator.generateDollar()` → `"$4,231.87"` |
-| Euro amount         | ✅ `euro({max})`                                   | ✅ Yes          | ✓ DONE                  | `MoneyGenerator.generateEuro()` → `"4 231,87 €"` |
-| Max amount control  | ✅ `dollar({max: 20})`                             | ✅ Yes          | ✓ DONE                  | `generateDollar(50.0)`, `generate(Locale, max)` |
+| Dollar amount       | ✅ `dollar({max})`                                 | ✅ Yes          | ✓ DONE                  | `MoneyGenerator.generateDollar()` → `"$4,231.87"`  |
+| Euro amount         | ✅ `euro({max})`                                   | ✅ Yes          | ✓ DONE                  | `MoneyGenerator.generateEuro()` → `"4 231,87 €"`   |
+| Max amount control  | ✅ `dollar({max: 20})`                             | ✅ Yes          | ✓ DONE                  | `generateDollar(50.0)`, `generate(Locale, max)`    |
 | **Card Expiration** |
-| Expiration date     | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | MM/YY format (03/26)               |
-| Future expiration   | ✅ `generate(true)`                                | ✅ Yes          | HIGH                    | Guaranteed future dates            |
-| Expiration month    | ✅ `getMonth()`                                    | ✅ Yes          | MEDIUM                  | Zero-padded (01-12)                |
-| Expiration year     | ✅ `getYear()`                                     | ✅ Yes          | MEDIUM                  | 2-digit (26) or 4-digit (2026)     |
-| Locale formatting   | ✅ `generate(locale)`                              | ✅ Yes          | MEDIUM                  | MM/YY (West) or YY/MM (Asia)       |
+| Expiration date     | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | MM/YY format (03/26)                               |
+| Future expiration   | ✅ `generate(true)`                                | ✅ Yes          | HIGH                    | Guaranteed future dates                            |
+| Expiration month    | ✅ `getMonth()`                                    | ✅ Yes          | MEDIUM                  | Zero-padded (01-12)                                |
+| Expiration year     | ✅ `getYear()`                                     | ✅ Yes          | MEDIUM                  | 2-digit (26) or 4-digit (2026)                     |
+| Locale formatting   | ✅ `generate(locale)`                              | ✅ Yes          | MEDIUM                  | MM/YY (West) or YY/MM (Asia)                       |
 
 ### 6. WEB & INTERNET
 
@@ -855,29 +855,29 @@ _None - awaiting next feature selection_
 
 ### 9. IDENTIFIERS & HASHES
 
-| Feature          | Chance.js Support           | krandom Status | Implementation Priority | Notes              |
-|------------------|-----------------------------|----------------|-------------------------|--------------------|
+| Feature          | Chance.js Support           | krandom Status | Implementation Priority | Notes                 |
+|------------------|-----------------------------|----------------|-------------------------|-----------------------|
 | **UUIDs/GUIDs**  |
-| GUID v5          | ✅ `guid()` default          | ✅ Yes          | ✓ DONE                  | Name-based SHA-1   |
-| GUID v4          | ✅ `guid({version: 4})`      | ✅ Yes          | ✓ DONE                  | Random UUID        |
-| Version control  | ✅ `guid({version: 4/5})`    | ✅ Yes          | ✓ DONE                  | UUIDGenerator      |
+| GUID v5          | ✅ `guid()` default          | ✅ Yes          | ✓ DONE                  | Name-based SHA-1      |
+| GUID v4          | ✅ `guid({version: 4})`      | ✅ Yes          | ✓ DONE                  | Random UUID           |
+| Version control  | ✅ `guid({version: 4/5})`    | ✅ Yes          | ✓ DONE                  | UUIDGenerator         |
 | **Hashes**       |
-| Hash string      | ✅ `hash({length, casing})`  | ✅ Yes          | ✓ DONE                  | `HashGenerator`    |
-| Default 40 chars | ✅ Git commit length         | ✅ Yes          | ✓ DONE                  | SHA-1 compatible   |
-| Custom length    | ✅ `hash({length: 15})`      | ✅ Yes          | ✓ DONE                  | `generate(length)` |
+| Hash string      | ✅ `hash({length, casing})`  | ✅ Yes          | ✓ DONE                  | `HashGenerator`       |
+| Default 40 chars | ✅ Git commit length         | ✅ Yes          | ✓ DONE                  | SHA-1 compatible      |
+| Custom length    | ✅ `hash({length: 15})`      | ✅ Yes          | ✓ DONE                  | `generate(length)`    |
 | Case control     | ✅ `hash({casing: 'upper'})` | ✅ Yes          | ✓ DONE                  | `generateUppercase()` |
 
 ### 10. MISCELLANEOUS GENERATORS
 
-| Feature           | Chance.js Support            | krandom Status | Implementation Priority | Notes                   |
-|-------------------|------------------------------|----------------|-------------------------|-------------------------|
+| Feature           | Chance.js Support            | krandom Status | Implementation Priority | Notes                         |
+|-------------------|------------------------------|----------------|-------------------------|-------------------------------|
 | **Coin Flip**     |
-| Coin flip         | ✅ `coin()`                   | ✅ Yes          | ✓ DONE                  | 'heads'/'tails' vs enum |
+| Coin flip         | ✅ `coin()`                   | ✅ Yes          | ✓ DONE                  | 'heads'/'tails' vs enum       |
 | **Dice & RPG**    |
-| Dice notation     | ✅ `rpg('3d10')`              | ✅ Yes          | ✓ DONE                  | NdS pattern             |
-| Dice array        | ✅ Returns `[1, 6, 9]`        | ✅ Yes          | ✓ DONE                  | Individual rolls        |
+| Dice notation     | ✅ `rpg('3d10')`              | ✅ Yes          | ✓ DONE                  | NdS pattern                   |
+| Dice array        | ✅ Returns `[1, 6, 9]`        | ✅ Yes          | ✓ DONE                  | Individual rolls              |
 | Dice sum          | ✅ `rpg('3d10', {sum: true})` | ✅ Yes          | ✓ DONE                  | `rollSum(3)` → sum of 3 rolls |
-| Flexible notation | ✅ '5d6', '3d10', etc.        | ✅ Yes          | ✓ DONE                  | Standard RPG            |
+| Flexible notation | ✅ '5d6', '3d10', etc.        | ✅ Yes          | ✓ DONE                  | Standard RPG                  |
 
 ### 11. HELPER METHODS (UNIQUE TO CHANCE.JS)
 
@@ -917,45 +917,45 @@ _None - awaiting next feature selection_
 
 ### Options & Parameterization
 
-| Feature                | Chance.js                        | krandom | Priority | Implementation Notes                                |
-|------------------------|----------------------------------|---------|----------|-----------------------------------------------------|
+| Feature                | Chance.js                        | krandom | Priority | Implementation Notes                                   |
+|------------------------|----------------------------------|---------|----------|--------------------------------------------------------|
 | **Rich Options**       |
-| Extensive parameters   | ✅ Every method has options       | ❌ No    | HIGH     | name({middle, prefix, suffix, gender, nationality}) |
-| Default values         | ✅ Sensible defaults              | ✅ Yes   | ✓ DONE   | Works without options                               |
-| Option combinations    | ✅ Multiple options work together | ❌ No    | MEDIUM   | Composable parameters                               |
+| Extensive parameters   | ✅ Every method has options       | ❌ No    | HIGH     | name({middle, prefix, suffix, gender, nationality})    |
+| Default values         | ✅ Sensible defaults              | ✅ Yes   | ✓ DONE   | Works without options                                  |
+| Option combinations    | ✅ Multiple options work together | ❌ No    | MEDIUM   | Composable parameters                                  |
 | **Likelihood Control** |
-| Boolean likelihood     | ✅ `bool({likelihood: 80})`       | ❌ No    | HIGH     | Probability-based - UNIQUE                          |
+| Boolean likelihood     | ✅ `bool({likelihood: 80})`       | ✅ Yes   | ✓ DONE   | `ofBoolean().withLikelihood(80)` — UNIQUE              |
 | **Format Control**     |
-| String format          | ✅ `date({string: true})`         | ❌ No    | MEDIUM   | String vs object output                             |
-| Number format          | ✅ `floating({fixed: 2})`         | ❌ No    | MEDIUM   | Decimal precision                                   |
-| Formatted output       | ✅ `phone({formatted: false})`    | ❌ No    | MEDIUM   | With/without formatting                             |
+| String format          | ✅ `date({string: true})`         | ✅ Yes   | ✓ DONE   | `generateString()`, `generateAsString()` per generator |
+| Number format          | ✅ `floating({fixed: 2})`         | ✅ Yes   | ✓ DONE   | `withPrecision(2)` on DoubleGenerator/FloatGenerator   |
+| Formatted output       | ✅ `phone({formatted: false})`    | ✅ Yes   | ✓ DONE   | `PhoneNumberGenerator.generate(false)` → digits only   |
 
 ### Mobile & Device Support
 
-| Feature           | Chance.js                                | krandom | Priority | Implementation Notes    |
-|-------------------|------------------------------------------|---------|----------|-------------------------|
+| Feature           | Chance.js                                | krandom | Priority | Implementation Notes                                       |
+|-------------------|------------------------------------------|---------|----------|------------------------------------------------------------|
 | **Mobile Phones** |
-| UK mobile         | ✅ `phone({country: 'uk', mobile: true})` | ❌ No    | MEDIUM   | '07624 321221' - UNIQUE |
-| US mobile         | ✅ Standard format                        | ❌ No    | MEDIUM   | Mobile detection        |
-| French mobile     | ✅ `phone({country: 'fr'})`               | ❌ No    | LOW      | International mobile    |
+| UK mobile         | ✅ `phone({country: 'uk', mobile: true})` | ✅ Yes   | ✓ DONE   | `PhoneNumberGenerator(Locale.UK).generate(true, true)`     |
+| US mobile         | ✅ Standard format                        | ✅ Yes   | ✓ DONE   | `PhoneNumberGenerator(Locale.US).generate(true, true)`     |
+| French mobile     | ✅ `phone({country: 'fr'})`               | ✅ Yes   | ✓ DONE   | `PhoneNumberGenerator(Locale.FRANCE).generate(true, true)` |
 | **Multi-Country** |
-| US support        | ✅ Default                                | ❌ No    | HIGH     | Primary market          |
-| UK support        | ✅ Full support                           | ❌ No    | MEDIUM   | Phone, postcode         |
-| French support    | ✅ Phone numbers                          | ❌ No    | LOW      | Basic coverage          |
-| Italian support   | ✅ Names, states                          | ❌ No    | LOW      | Locale-specific         |
+| US support        | ✅ Default                                | ✅ Yes   | ✓ DONE   | `PhoneNumberGenerator(Locale.US)` + `PostalCodeGenerator`  |
+| UK support        | ✅ Full support                           | ✅ Yes   | ✓ DONE   | `PhoneNumberGenerator(Locale.UK)` + `PostalCodeGenerator`  |
+| French support    | ✅ Phone numbers                          | ✅ Yes   | ✓ DONE   | `PhoneNumberGenerator(Locale.FRANCE)`                      |
+| Italian support   | ✅ Names, states                          | ✅ Yes   | ✓ DONE   | All generators support `Locale.ITALY`                      |
 
 ### Statistical Features
 
-| Feature                | Chance.js                        | krandom | Priority | Implementation Notes          |
-|------------------------|----------------------------------|---------|----------|-------------------------------|
+| Feature                | Chance.js                        | krandom | Priority | Implementation Notes                           |
+|------------------------|----------------------------------|---------|----------|------------------------------------------------|
 | **Distributions**      |
-| Normal distribution    | ✅ `normal({mean, dev})`          | ❌ No    | HIGH     | Box-Muller transform - UNIQUE |
-| Mean control           | ✅ `mean` parameter               | ❌ No    | HIGH     | Distribution center           |
-| Std deviation          | ✅ `dev` parameter                | ❌ No    | HIGH     | Distribution spread           |
-| IQ-like data           | ✅ `normal({mean: 100, dev: 15})` | ❌ No    | MEDIUM   | Realistic distributions       |
+| Normal distribution    | ✅ `normal({mean, dev})`          | ✅ Yes   | ✓ DONE   | `Generators.ofNormal(mean, stdDev)` Box-Muller |
+| Mean control           | ✅ `mean` parameter               | ✅ Yes   | ✓ DONE   | First param of `ofNormal(mean, stdDev)`        |
+| Std deviation          | ✅ `dev` parameter                | ✅ Yes   | ✓ DONE   | Second param of `ofNormal(mean, stdDev)`       |
+| IQ-like data           | ✅ `normal({mean: 100, dev: 15})` | ✅ Yes   | ✓ DONE   | `Generators.ofNormal(100.0, 15.0)`             |
 | **Weighted Selection** |
-| Weighted arrays        | ✅ `weighted(['a','b'], [7,3])`   | ❌ No    | HIGH     | Biased random - UNIQUE        |
-| Integer weights        | ✅ Any positive integers          | ❌ No    | HIGH     | Flexible weighting            |
+| Weighted arrays        | ✅ `weighted(['a','b'], [7,3])`   | ❌ No    | HIGH     | Biased random — no equivalent yet              |
+| Integer weights        | ✅ Any positive integers          | ❌ No    | HIGH     | Flexible weighting — not yet                   |
 
 ### Natural Language Features
 
@@ -974,12 +974,9 @@ _None - awaiting next feature selection_
 
 ### Phase 1: CORE GAPS (Must Have) - 10 days
 
-1. **Email Generation** (1 day) - Essential for testing
-    - `email({domain})` with custom domain support
-2. **UUID/GUID Generation** (1 day) - Common identifier need
-    - `guid({version: 4/5})` with version control
-3. **Boolean Likelihood** (1 day) - Unique Chance.js feature
-    - `bool({likelihood: 80})` for weighted booleans
+1. ~~**Email Generation** (1 day)~~ ✅ DONE — `EmailGenerator` with 5 formats, 12 domains, 10 locales
+2. ~~**UUID/GUID Generation** (1 day)~~ ✅ DONE — `UUIDGenerator` (v4 + v5), `HashGenerator`
+3. ~~**Boolean Likelihood** (1 day)~~ ✅ DONE — `ofBoolean().withLikelihood(80)`
 4. **Natural Language** (3 days) - High-value feature
     - `word({syllables, length})` with syllable control
     - `sentence({words})` with capitalization
@@ -1060,12 +1057,12 @@ _None - awaiting next feature selection_
 4. **Helper Methods** - `n()`, `unique()`, `pick()`, `pickset()`, `shuffle()` (NO EQUIVALENT)
 5. **Syllable-Based Words** - `word({syllables: 4})` for natural-looking text (NO EQUIVALENT)
 6. **Rich Options** - Extensive parameterization on every method (PARTIAL)
-7. **Mobile Detection** - `phone({mobile: true})` for mobile-specific formats (NO EQUIVALENT)
+7. ~~**Mobile Detection** - `phone({mobile: true})` for mobile-specific formats~~ (~~NO EQUIVALENT~~ ✅ DONE — `PhoneNumberGenerator.generate(true, true)`)
 8. ~~**Currency Pairs** - `currency_pair()` for FX simulation (NO EQUIVALENT)~~ ✅ DONE — `CurrencyPairGenerator`
 9. **Ranked Professions** - `profession({ranked: true})` for biased selection (NO EQUIVALENT)
 10. **Exclude Arrays** - `natural({exclude: [1,2,3]})` to skip specific values (~~NO EQUIVALENT~~ ✅ DONE)
 11. **Natural Language** - Sentence/paragraph with proper capitalization and punctuation (NO EQUIVALENT)
-12. **Format Flexibility** - `date({string: true})`, `ssn({dashes: false})` for output control (PARTIAL)
+12. ~~**Format Flexibility** - `date({string: true})`, `ssn({dashes: false})` for output control~~ (~~PARTIAL~~ ✅ DONE — separate `generateString()`, `withoutDashes()` methods)
 
 ### krandom Unique Strengths (vs Chance.js)
 
@@ -1073,7 +1070,8 @@ _None - awaiting next feature selection_
 2. **ObjectGenerator** - Generate complex object graphs (Chance.js is manual only)
 3. **Multi-Locale National IDs** - 10 countries with verified checksums via `NationalIdGenerator`; extensible registry (NO CHANCE.JS EQUIVALENT)
 4. **Locale-Aware Birthday Strings** - `BirthdayGenerator(Locale)` formats `generateAsString()` per locale convention (de_DE: `d.M.yyyy`, ja_JP: `yyyy/M/d`, zh_CN: `yyyy年M月d日`)
-5. **Locale-Aware Money Formatting** - `MoneyGenerator(Locale)` uses `NumberFormat.getCurrencyInstance()` for correct symbol placement, thousand/decimal separators, and decimal places per locale (e.g., JPY has 0 decimal places)
+5. **Locale-Aware Money Formatting** - `MoneyGenerator(Locale)` uses `NumberFormat.getCurrencyInstance()` for correct symbol placement, thousand/decimal separators, and decimal places per locale (
+   e.g., JPY has 0 decimal places)
 6. **Fibonacci** - Dedicated Fibonacci number generator
 7. **Better Test Coverage** - 99%+ coverage
 8. **Cleaner Architecture** - More maintainable codebase
@@ -1263,4 +1261,5 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: 56/60 core Chance.js features implemented (93% complete) + 12 krandom-unique extensions
+**Progress**: ~75/85 countable Chance.js feature rows implemented (~88% complete) + 12 krandom-unique extensions. Remaining gaps: natural language (8 rows), helper methods/weighted (7 rows), street
+address (2 rows), company/profession (3 rows), middle name (2 rows), URL enhancements (4 rows), social/avatar (2 rows), weighted selection (2 rows).
