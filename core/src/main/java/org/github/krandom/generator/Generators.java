@@ -10,9 +10,15 @@ import org.github.krandom.games.dice.DiceGenerator;
 import org.github.krandom.games.dice.DiceType;
 import org.github.krandom.network.IPv4Generator;
 import org.github.krandom.network.IPv6Generator;
+import org.github.krandom.network.MacAddressGenerator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
+import org.github.krandom.generator.identifier.IsbnGenerator;
+import org.github.krandom.generator.location.StreetAddressGenerator;
+import org.github.krandom.generator.text.LoremIpsumGenerator;
+import org.github.krandom.generator.user.CompanyNameGenerator;
+import org.github.krandom.generator.user.FullNameGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -302,6 +308,68 @@ public final class Generators {
     /** Returns a generator that produces random {@link java.time.ZonedDateTime} values (1970–2100). */
     public static ZonedDateTimeGenerator ofZonedDateTime() {
         return new ZonedDateTimeGenerator();
+    }
+
+    // ── Full name ─────────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random full names (first + last) in {@link java.util.Locale#US}. */
+    public static FullNameGenerator ofFullName() {
+        return new FullNameGenerator();
+    }
+
+    // ── Street address ────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random US-style street addresses (e.g. {@code "123 Oak Ave"}). */
+    public static StreetAddressGenerator ofStreetAddress() {
+        return new StreetAddressGenerator();
+    }
+
+    // ── Company name ──────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random company names including a legal-form suffix. */
+    public static CompanyNameGenerator ofCompanyName() {
+        return new CompanyNameGenerator();
+    }
+
+    // ── Lorem Ipsum ───────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces Lorem Ipsum sentences (default {@link LoremIpsumGenerator.Mode#SENTENCE}). */
+    public static LoremIpsumGenerator ofLoremIpsum() {
+        return new LoremIpsumGenerator();
+    }
+
+    /**
+     * Returns a generator that produces Lorem Ipsum text in the specified mode.
+     *
+     * @param mode {@link LoremIpsumGenerator.Mode#WORD}, {@link LoremIpsumGenerator.Mode#SENTENCE},
+     *             or {@link LoremIpsumGenerator.Mode#PARAGRAPH}; must not be {@code null}
+     */
+    public static LoremIpsumGenerator ofLoremIpsum(LoremIpsumGenerator.Mode mode) {
+        return new LoremIpsumGenerator(mode);
+    }
+
+    // ── MAC address ───────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random MAC addresses ({@code "XX:XX:XX:XX:XX:XX"}). */
+    public static MacAddressGenerator ofMacAddress() {
+        return new MacAddressGenerator();
+    }
+
+    // ── ISBN ──────────────────────────────────────────────────────────────────
+
+    /** Returns a generator that produces random ISBN-13 numbers. */
+    public static IsbnGenerator ofIsbn() {
+        return new IsbnGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random ISBN numbers in the specified format.
+     *
+     * @param type {@link IsbnGenerator.IsbnType#ISBN_10} or {@link IsbnGenerator.IsbnType#ISBN_13};
+     *             must not be {@code null}
+     */
+    public static IsbnGenerator ofIsbn(IsbnGenerator.IsbnType type) {
+        return new IsbnGenerator(type);
     }
 
     // ── Generic lookup by type ────────────────────────────────────────────────
