@@ -28,7 +28,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 ## Implementation Status
 
-**Last Updated**: 2026-02-24 (session 4)
+**Last Updated**: 2026-02-25 (session 5)
 
 ### Completed Features ✅
 
@@ -287,7 +287,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Precision variants: `generateLatitude(int precision)`, `generateLongitude(int precision)`
 - Seeded generation, `generateList()`, and `stream()` all supported
 
-#### Finance Section (3/3 finance features complete — credit cards, currencies & card expiration)
+#### Finance Section (5/5 finance feature groups complete — credit cards, currencies, currency pairs, money amounts & card expiration)
 
 - ✅ **Credit cards** - `CreditCardGenerator` with 6 major card types and Luhn algorithm validation
     - Visa: 16-digit cards (prefix: 4), formatted as "4532 1488 0343 6467"
@@ -347,6 +347,32 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
     - Component methods: All support optional futureOnly parameter
     - Seeded generation supported for reproducible results
     - Stream and list generation inherited from Generator interface
+
+- ✅ **Currency Pairs** - `CurrencyPairGenerator` — random FX currency pairs with locale-aware base
+    - Random pair: `generate()` → `"EUR/USD"`, `"JPY/GBP"` (both currencies always differ)
+    - Locale-aware base: `generate(Locale.US)` → `"USD/..."`, `generate(Locale.JAPAN)` → `"JPY/..."`
+    - Rich pair object: `generateWithInfo()` / `generateWithInfo(Locale)` → `CurrencyPair` record
+    - `CurrencyPair` record: `base()`, `quote()` (both `CurrencyInfo`), `toPairString()` → `"EUR/USD"`
+    - Validates base ≠ quote in compact constructor; null/unknown locale falls back to random pair
+    - Constructors: `CurrencyPairGenerator()`, `CurrencyPairGenerator(config)` (seeded)
+
+- ✅ **Money Amounts** - `MoneyGenerator` — locale-aware formatted monetary amounts
+    - Default range `[0, 10 000)` (matches Chance.js `dollar()` default)
+    - Locale-aware: `generate()` uses instance locale (default `en_US` → `"$4,231.87"`)
+    - Locale override: `generate(Locale.GERMANY)` → `"4.231,87 €"`, `generate(Locale.JAPAN)` → `"￥4,232"`
+    - Max control: `generate(100.0)`, `generateDollar(50.0)`, `generateEuro(500.0)`
+    - Dollar helper: `generateDollar()` → `"$4,231.87"` (always USD regardless of instance locale)
+    - Euro helper: `generateEuro()` → `"4 231,87 €"` (always EUR/France formatting)
+    - Constructors: `MoneyGenerator()`, `MoneyGenerator(Locale)`, `MoneyGenerator(config)` (seeded)
+    - Unrecognized locales fall back to USD formatting
+
+**Metrics (Currency Pairs + Money)**:
+
+- Test coverage: 100% line and branch for both generators (`generator.finance` package)
+- Finance package now at 100% line and branch coverage
+- `MoneyGenerator` uses `NumberFormat.getCurrencyInstance(locale)` for locale-correct symbols, thousand/decimal separators, and decimal-place counts
+- `CurrencyPairGenerator` retry loop covered via 2000-iteration probabilistic test
+- Seeded generation, `generateList()`, and `stream()` all supported
 
 #### User Section (1/1 user feature complete — email generation with locale-aware names)
 
@@ -600,8 +626,8 @@ _None - awaiting next feature selection_
 ### Planned
 
 - Natural language (words, sentences, paragraphs)
-- Additional location data (addresses)
-- Helper methods (n, unique, pick)
+- Street address generation
+- Helper methods (n, unique, pick, pickset, shuffle, weighted)
 
 ---
 
@@ -737,10 +763,10 @@ _None - awaiting next feature selection_
 | Currency symbol     | ✅ `getSymbol()`                                   | ✅ Yes          | MEDIUM                  | $, €, £, ¥                         |
 | Numeric code        | ✅ `getNumericCode()`                              | ✅ Yes          | MEDIUM                  | ISO 4217 numeric: 840, 978         |
 | Locale support      | ✅ `generate(locale)`                              | ✅ Yes          | HIGH                    | 10 locales with primary currencies |
-| Currency pair       | ✅ `currency_pair()`                               | ❌ No           | MEDIUM                  | FX rate simulation - UNIQUE        |
-| Dollar amount       | ✅ `dollar({max})`                                 | ❌ No           | HIGH                    | '$2560.27'                         |
-| Euro amount         | ✅ `euro({max})`                                   | ❌ No           | MEDIUM                  | '€1842.56'                         |
-| Max amount control  | ✅ `dollar({max: 20})`                             | ❌ No           | MEDIUM                  | '$15.23'                           |
+| Currency pair       | ✅ `currency_pair()`                               | ✅ Yes          | ✓ DONE                  | `CurrencyPairGenerator` — `"EUR/USD"`, locale base |
+| Dollar amount       | ✅ `dollar({max})`                                 | ✅ Yes          | ✓ DONE                  | `MoneyGenerator.generateDollar()` → `"$4,231.87"` |
+| Euro amount         | ✅ `euro({max})`                                   | ✅ Yes          | ✓ DONE                  | `MoneyGenerator.generateEuro()` → `"4 231,87 €"` |
+| Max amount control  | ✅ `dollar({max: 20})`                             | ✅ Yes          | ✓ DONE                  | `generateDollar(50.0)`, `generate(Locale, max)` |
 | **Card Expiration** |
 | Expiration date     | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | MM/YY format (03/26)               |
 | Future expiration   | ✅ `generate(true)`                                | ✅ Yes          | HIGH                    | Guaranteed future dates            |
@@ -848,9 +874,9 @@ _None - awaiting next feature selection_
 | **Coin Flip**     |
 | Coin flip         | ✅ `coin()`                   | ✅ Yes          | ✓ DONE                  | 'heads'/'tails' vs enum |
 | **Dice & RPG**    |
-| Dice notation     | ✅ `rpg('3d10')`              | ✅ Partial      | ✓ DONE                  | NdS pattern             |
+| Dice notation     | ✅ `rpg('3d10')`              | ✅ Yes          | ✓ DONE                  | NdS pattern             |
 | Dice array        | ✅ Returns `[1, 6, 9]`        | ✅ Yes          | ✓ DONE                  | Individual rolls        |
-| Dice sum          | ✅ `rpg('3d10', {sum: true})` | ❌ No           | MEDIUM                  | Total of rolls          |
+| Dice sum          | ✅ `rpg('3d10', {sum: true})` | ✅ Yes          | ✓ DONE                  | `rollSum(3)` → sum of 3 rolls |
 | Flexible notation | ✅ '5d6', '3d10', etc.        | ✅ Yes          | ✓ DONE                  | Standard RPG            |
 
 ### 11. HELPER METHODS (UNIQUE TO CHANCE.JS)
@@ -995,9 +1021,11 @@ _None - awaiting next feature selection_
     - `cc({type})` with Visa/MC/Amex support
     - `cc_type()` for card metadata
     - `exp({future})`, `exp_month()`, `exp_year()` for expiration
-2. **Currency** (1 day)
-    - `currency()`, `currency_pair()` for FX simulation
-    - `dollar({max})`, `euro({max})` for formatted amounts
+2. ~~**Currency** (1 day)~~ ✅ **DONE**
+    - ✅ `currency()` — `CurrencyGenerator` with ISO 4217, 50+ currencies, 10 locales
+    - ✅ `currency_pair()` — `CurrencyPairGenerator` (random FX pairs, locale-aware base)
+    - ✅ `dollar({max})` — `MoneyGenerator.generateDollar(max)` → `"$4,231.87"`
+    - ✅ `euro({max})` — `MoneyGenerator.generateEuro(max)` → `"4 231,87 €"`
 3. **Enhanced Names** (1 day — prefix/suffix done)
     - `name({middle, middle_initial, prefix, suffix, gender, nationality})`
     - ~~`prefix({gender})`~~ ✅ `TitleGenerator`, ~~`suffix()`~~ ✅ `SuffixGenerator`
@@ -1033,7 +1061,7 @@ _None - awaiting next feature selection_
 5. **Syllable-Based Words** - `word({syllables: 4})` for natural-looking text (NO EQUIVALENT)
 6. **Rich Options** - Extensive parameterization on every method (PARTIAL)
 7. **Mobile Detection** - `phone({mobile: true})` for mobile-specific formats (NO EQUIVALENT)
-8. **Currency Pairs** - `currency_pair()` for FX simulation (NO EQUIVALENT)
+8. ~~**Currency Pairs** - `currency_pair()` for FX simulation (NO EQUIVALENT)~~ ✅ DONE — `CurrencyPairGenerator`
 9. **Ranked Professions** - `profession({ranked: true})` for biased selection (NO EQUIVALENT)
 10. **Exclude Arrays** - `natural({exclude: [1,2,3]})` to skip specific values (~~NO EQUIVALENT~~ ✅ DONE)
 11. **Natural Language** - Sentence/paragraph with proper capitalization and punctuation (NO EQUIVALENT)
@@ -1045,10 +1073,11 @@ _None - awaiting next feature selection_
 2. **ObjectGenerator** - Generate complex object graphs (Chance.js is manual only)
 3. **Multi-Locale National IDs** - 10 countries with verified checksums via `NationalIdGenerator`; extensible registry (NO CHANCE.JS EQUIVALENT)
 4. **Locale-Aware Birthday Strings** - `BirthdayGenerator(Locale)` formats `generateAsString()` per locale convention (de_DE: `d.M.yyyy`, ja_JP: `yyyy/M/d`, zh_CN: `yyyy年M月d日`)
-5. **Fibonacci** - Dedicated Fibonacci number generator
-6. **Better Test Coverage** - 99%+ coverage
-7. **Cleaner Architecture** - More maintainable codebase
-8. **JVM Interop** - Works with Java/Scala/Kotlin
+5. **Locale-Aware Money Formatting** - `MoneyGenerator(Locale)` uses `NumberFormat.getCurrencyInstance()` for correct symbol placement, thousand/decimal separators, and decimal places per locale (e.g., JPY has 0 decimal places)
+6. **Fibonacci** - Dedicated Fibonacci number generator
+7. **Better Test Coverage** - 99%+ coverage
+8. **Cleaner Architecture** - More maintainable codebase
+9. **JVM Interop** - Works with Java/Scala/Kotlin
 
 ---
 
@@ -1074,8 +1103,8 @@ _None - awaiting next feature selection_
 
 ### Phase 3: Finance & Text - 7 days
 
-- Credit cards (types, expiration): **2 days**
-- Currency (objects, pairs, formatted): **1 day**
+- Credit cards (types, expiration): ~~**2 days**~~ ✅ **DONE**
+- Currency (objects, pairs, formatted): ~~**1 day**~~ ✅ **DONE**
 - Enhanced names (options): **2 days**
 - Date components: **2 days**
 
@@ -1166,10 +1195,20 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - Supported patterns: en_US `M/d/yyyy`, en_GB/en_AU/fr_FR/es_ES/it_IT/pt_BR `d/M/yyyy`, de_DE `d.M.yyyy`, ja_JP `yyyy/M/d`, zh_CN `yyyy年M月d日`
 - 6 new constructors (3 unseeded + 3 seeded with locale); `getLocale()` accessor; `generateAsAmericanString()` unchanged
 
+**Finance Section (100% Complete)**:
+
+- ✅ Credit cards — `CreditCardGenerator` — 6 card types (Visa/MC/Amex/Discover/JCB/Diners), Luhn-valid, CVV, formatted
+- ✅ Currency — `CurrencyGenerator` — ISO 4217, 50+ currencies, code/name/symbol/numericCode, 10 locales
+- ✅ Card expiration — `CardExpirationGenerator` — MM/YY, future-only mode, locale formatting (MM/YY vs YY/MM)
+- ✅ Currency pairs — `CurrencyPairGenerator` — `generate()` → `"EUR/USD"`, `generate(Locale)` → locale base, `generateWithInfo()` → `CurrencyPair`
+- ✅ Money amounts — `MoneyGenerator` — `generateDollar()` → `"$4,231.87"`, `generateEuro()` → `"4 231,87 €"`, `generate(Locale)`, `generate(max)`
+- Architecture: `Currency` enum + `CurrencyInfo` record + `CurrencyPair` record + separate generators; `Currency.forLocale()` maps 10 locales
+
 **Implementation Details**:
 
 - Overall test coverage: 99%+ line and branch (all gates passing)
-- ~400 new test cases across names, booleans, chars, strings, numbers, national IDs, locale birthdays
+- `generator.finance` package: 100% line and branch coverage
+- ~400 new test cases across names, booleans, chars, strings, numbers, national IDs, locale birthdays, finance
 - Statistical validation (68-95-99.7 empirical rule for normal distribution)
 - Efficient algorithms (Sieve of Eratosthenes, Box-Muller, ISO 7064 Mod 11,2 and Mod 11,10)
 - Full Javadoc documentation
@@ -1180,9 +1219,9 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 2. **Helper Methods** - `n()`, `unique()`, collection operations
 3. **Natural Language Generation** - Syllable-based words, sentences, paragraphs
 4. **Rich Options Parameterization** - Extensive parameter support on all methods
-5. **Email & UUID** - Essential missing generators
-6. **Location Data** - Address, city, state, phone, coordinates
-7. **Finance Enhancement** - Credit cards, currency pairs, formatted amounts
+5. ~~**Email & UUID**~~ - ✅ COMPLETE
+6. ~~**Location Data**~~ - ✅ COMPLETE (address still missing)
+7. ~~**Finance Enhancement**~~ - ✅ COMPLETE — credit cards, currency pairs, formatted amounts all done
 
 ### Skip/Low Priority
 
@@ -1208,7 +1247,7 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 - Helper methods (n, unique, pick) - HIGH LEVERAGE
 - Natural language (word, sentence, paragraph) - HIGH DEMAND
-- Core data (email, UUID, addresses, phones) - HIGH USAGE
+- Street address generation - HIGH USAGE
 - Rich parameterization - BETTER UX
 
 **Maintain krandom advantages**:
@@ -1219,8 +1258,9 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - ✅ JVM ecosystem integration
 - ✅ Statistical capabilities (normal distribution via Box-Muller, weighted boolean)
 - ✅ Flexible character/string generation (custom pools, builder pattern)
+- ✅ Complete finance suite: locale-aware money formatting, FX pairs, 6 card types, 10 currency locales
 
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: 52/60 core Chance.js features implemented (87% complete) + 12 krandom-unique extensions
+**Progress**: 56/60 core Chance.js features implemented (93% complete) + 12 krandom-unique extensions

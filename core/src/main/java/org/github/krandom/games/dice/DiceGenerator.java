@@ -59,6 +59,20 @@ public final class DiceGenerator implements Generator<Integer> {
     }
 
     /**
+     * Roll {@code n} times and return the sum of all results.
+     *
+     * <p>The returned value is always in {@code [n, n * sides]} (inclusive).
+     * Equivalent to Chance.js {@code rpg('3d6', {sum: true})}.
+     *
+     * @param n number of rolls; must be &gt; 0
+     * @return sum of {@code n} independent rolls
+     * @throws IllegalArgumentException if {@code n <= 0}
+     */
+    public int rollSum(int n) {
+        return roll(n).stream().mapToInt(Integer::intValue).sum();
+    }
+
+    /**
      * Roll {@code n} times and return the results as an immutable list.
      *
      * <p>Fairness guarantee: if {@code n > sides}, every face value appears at least

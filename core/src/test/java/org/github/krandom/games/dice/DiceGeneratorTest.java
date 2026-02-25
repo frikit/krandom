@@ -97,7 +97,7 @@ class DiceGeneratorTest {
             for (int i = 0; i < 100; i++) {
                 List<Integer> result = gen.roll(1);
                 assertEquals(1, result.size());
-                int v = result.get(0);
+                int v = result.getFirst();
                 assertTrue(v >= 1 && v <= type.sides());
             }
         }
@@ -145,6 +145,72 @@ class DiceGeneratorTest {
         void rollNegativeThrows(DiceType type) {
             assertThrows(IllegalArgumentException.class,
                     () -> new DiceGenerator(type).roll(-1));
+        }
+    }
+
+    // ── rollSum(n) ────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("rollSum(n)")
+    class RollSum {
+
+        @ParameterizedTest(name = "{0} rollSum(1) equals a single roll in [1, sides]")
+        @EnumSource(DiceType.class)
+        @DisplayName("rollSum(1) is in [1, sides]")
+        void rollSumOne(DiceType type) {
+            DiceGenerator gen = new DiceGenerator(type);
+            for (int i = 0; i < 200; i++) {
+                int sum = gen.rollSum(1);
+                assertTrue(sum >= 1 && sum <= type.sides(),
+                        () -> type + ": rollSum(1) expected [1," + type.sides() + "] but got " + sum);
+            }
+        }
+
+        @ParameterizedTest(name = "{0} rollSum(n) is in [n, n*sides]")
+        @EnumSource(DiceType.class)
+        @DisplayName("rollSum(n) is in [n, n*sides] for n=3")
+        void rollSumNInRange(DiceType type) {
+            DiceGenerator gen = new DiceGenerator(type);
+            int n = 3;
+            for (int i = 0; i < 100; i++) {
+                int sum = gen.rollSum(n);
+                assertTrue(sum >= n && sum <= n * type.sides(),
+                        () -> type + ": rollSum(" + n + ") expected [" + n + "," + (n * type.sides()) + "] but got " + sum);
+            }
+        }
+
+        @ParameterizedTest(name = "{0} rollSum(n) min/max bounds are reachable over many rolls")
+        @EnumSource(DiceType.class)
+        @DisplayName("rollSum(n) achieves values across the full range")
+        void rollSumCoversRange(DiceType type) {
+            DiceGenerator gen = new DiceGenerator(type);
+            int min = 2;
+            int max = min * type.sides();
+            int observedMin = Integer.MAX_VALUE;
+            int observedMax = Integer.MIN_VALUE;
+            for (int i = 0; i < 2000; i++) {
+                int sum = gen.rollSum(min);
+                if (sum < observedMin) observedMin = sum;
+                if (sum > observedMax) observedMax = sum;
+            }
+            assertTrue(observedMin <= min + 2, type + ": min sum never approached lower bound");
+            assertTrue(observedMax >= max - 2, type + ": max sum never approached upper bound");
+        }
+
+        @ParameterizedTest(name = "{0} rollSum(0) throws")
+        @EnumSource(DiceType.class)
+        @DisplayName("rollSum(0) throws IllegalArgumentException")
+        void rollSumZeroThrows(DiceType type) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> new DiceGenerator(type).rollSum(0));
+        }
+
+        @ParameterizedTest(name = "{0} rollSum(-1) throws")
+        @EnumSource(DiceType.class)
+        @DisplayName("rollSum(-1) throws IllegalArgumentException")
+        void rollSumNegativeThrows(DiceType type) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> new DiceGenerator(type).rollSum(-1));
         }
     }
 
