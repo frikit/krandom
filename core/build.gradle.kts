@@ -10,6 +10,8 @@ kotlin {
 dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.slf4j.api)
+    implementation(libs.objenesis)
+    implementation(libs.jakarta.validation.api)
     runtimeOnly(libs.logback.classic)
 
     testImplementation(libs.commons.validator)

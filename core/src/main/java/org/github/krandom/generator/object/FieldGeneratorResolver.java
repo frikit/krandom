@@ -5,6 +5,7 @@
  */
 package org.github.krandom.generator.object;
 
+import org.github.krandom.generator.GenerationContext;
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.datetime.DateGenerator;
@@ -15,9 +16,12 @@ import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,10 +44,13 @@ import java.util.function.Supplier;
  *
  * <p>Resolution order (first match wins):
  * <ol>
+ *   <li>Contextual field-level override from {@link ObjectGeneratorConfig}</li>
+ *   <li>Contextual type-level override from {@link ObjectGeneratorConfig}</li>
  *   <li>Field-level override from {@link ObjectGeneratorConfig} ({@code "OwnerType.fieldName"})</li>
  *   <li>Type-level override from {@link ObjectGeneratorConfig}</li>
+ *   <li>Bean Validation constraint annotation (e.g. {@code @Size}, {@code @Min}, {@code @Max})</li>
  *   <li>Built-in generator for Java primitives / wrappers / {@code String} / JSR-310 types /
- *       {@link UUID}</li>
+ *       {@link UUID} / {@link BigDecimal} / {@link BigInteger}</li>
  *   <li>Enum: random constant</li>
  *   <li>Array ({@code T[]}): auto-populated with {@value #DEFAULT_ELEMENT_COUNT} elements</li>
  *   <li>{@code List<T>} or {@code Set<T>}: auto-populated with {@value #DEFAULT_ELEMENT_COUNT}
@@ -61,36 +68,31 @@ final class FieldGeneratorResolver {
     static final int DEFAULT_ELEMENT_COUNT = 3;
 
     /**
-     * Factories for all built-in Java base types (both primitive and wrapper forms),
-     * plus JSR-310 date/time types and {@link UUID}.
-     * Each call to the supplier creates a fresh generator instance.
+     * Factories for non-date built-in Java base types (both primitive and wrapper forms),
+     * plus {@link BigDecimal} and {@link BigInteger}.
      */
-    private static final Map<Class<?>, Supplier<Generator<?>>> BUILTINS = new HashMap<>();
+    private static final Map<Class<?>, Supplier<Generator<?>>> STATIC_BUILTINS = new HashMap<>();
 
     static {
-        BUILTINS.put(byte.class,       ByteGenerator::new);
-        BUILTINS.put(Byte.class,       ByteGenerator::new);
-        BUILTINS.put(short.class,      ShortGenerator::new);
-        BUILTINS.put(Short.class,      ShortGenerator::new);
-        BUILTINS.put(int.class,        IntGenerator::new);
-        BUILTINS.put(Integer.class,    IntGenerator::new);
-        BUILTINS.put(long.class,       LongGenerator::new);
-        BUILTINS.put(Long.class,       LongGenerator::new);
-        BUILTINS.put(float.class,      FloatGenerator::new);
-        BUILTINS.put(Float.class,      FloatGenerator::new);
-        BUILTINS.put(double.class,     DoubleGenerator::new);
-        BUILTINS.put(Double.class,     DoubleGenerator::new);
-        BUILTINS.put(char.class,       CharGenerator::letters);
-        BUILTINS.put(Character.class,  CharGenerator::letters);
-        BUILTINS.put(boolean.class,    BooleanGenerator::new);
-        BUILTINS.put(Boolean.class,    BooleanGenerator::new);
-        BUILTINS.put(String.class,     StringGenerator::letters);
-        BUILTINS.put(LocalDate.class,  DateGenerator::new);
-        BUILTINS.put(LocalTime.class,  TimeGenerator::new);
-        BUILTINS.put(LocalDateTime.class, LocalDateTimeGenerator::new);
-        BUILTINS.put(Instant.class,    InstantGenerator::new);
-        BUILTINS.put(ZonedDateTime.class, ZonedDateTimeGenerator::new);
-        BUILTINS.put(UUID.class,       UUIDGenerator::new);
+        STATIC_BUILTINS.put(byte.class,       ByteGenerator::new);
+        STATIC_BUILTINS.put(Byte.class,       ByteGenerator::new);
+        STATIC_BUILTINS.put(short.class,      ShortGenerator::new);
+        STATIC_BUILTINS.put(Short.class,      ShortGenerator::new);
+        STATIC_BUILTINS.put(int.class,        IntGenerator::new);
+        STATIC_BUILTINS.put(Integer.class,    IntGenerator::new);
+        STATIC_BUILTINS.put(long.class,       LongGenerator::new);
+        STATIC_BUILTINS.put(Long.class,       LongGenerator::new);
+        STATIC_BUILTINS.put(float.class,      FloatGenerator::new);
+        STATIC_BUILTINS.put(Float.class,      FloatGenerator::new);
+        STATIC_BUILTINS.put(double.class,     DoubleGenerator::new);
+        STATIC_BUILTINS.put(Double.class,     DoubleGenerator::new);
+        STATIC_BUILTINS.put(char.class,       CharGenerator::letters);
+        STATIC_BUILTINS.put(Character.class,  CharGenerator::letters);
+        STATIC_BUILTINS.put(boolean.class,    BooleanGenerator::new);
+        STATIC_BUILTINS.put(Boolean.class,    BooleanGenerator::new);
+        STATIC_BUILTINS.put(String.class,     StringGenerator::letters);
+        STATIC_BUILTINS.put(BigDecimal.class, BigDecimalGenerator::new);
+        STATIC_BUILTINS.put(BigInteger.class, BigIntegerGenerator::new);
     }
 
     /**
@@ -113,9 +115,26 @@ final class FieldGeneratorResolver {
     private final ObjectGeneratorConfig config;
     private final ObjectPool pool;
 
+    /** Instance-level map that combines STATIC_BUILTINS with config-specific date factories. */
+    private final Map<Class<?>, Supplier<Generator<?>>> builtins;
+
     FieldGeneratorResolver(ObjectGeneratorConfig config, ObjectPool pool) {
-        this.config = config;
-        this.pool   = pool;
+        this.config  = config;
+        this.pool    = pool;
+        this.builtins = buildBuiltins(config);
+    }
+
+    private static Map<Class<?>, Supplier<Generator<?>>> buildBuiltins(ObjectGeneratorConfig cfg) {
+        Map<Class<?>, Supplier<Generator<?>>> m = new HashMap<>(STATIC_BUILTINS);
+        LocalDate lo = cfg.getDateMin() != null ? cfg.getDateMin() : LocalDate.of(1970,  1,  1);
+        LocalDate hi = cfg.getDateMax() != null ? cfg.getDateMax() : LocalDate.of(2100, 12, 31);
+        m.put(LocalDate.class,     () -> new DateGenerator(lo, hi));
+        m.put(LocalTime.class,     TimeGenerator::new);
+        m.put(LocalDateTime.class, () -> new LocalDateTimeGenerator(lo, hi));
+        m.put(Instant.class,       () -> new InstantGenerator(lo, hi));
+        m.put(ZonedDateTime.class, () -> new ZonedDateTimeGenerator(lo, hi));
+        m.put(UUID.class,          UUIDGenerator::new);
+        return Collections.unmodifiableMap(m);
     }
 
     // ── Primary entry point ───────────────────────────────────────────────────
@@ -128,11 +147,26 @@ final class FieldGeneratorResolver {
      * @param fieldName    name of the field (used for field-level override lookup)
      * @param ownerType    class that declares the field
      * @param currentDepth nesting depth of the parent {@link ObjectGenerator} (0 = root)
+     * @param element      the annotated element (field or record component) for BV constraint lookup;
+     *                     {@code null} for synthetic recursive calls (collection elements etc.)
      * @return generated value, or a safe default / {@code null} when the type is unsupported
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     Object resolveAndGenerate(Type genericType, Class<?> rawType,
-                              String fieldName, Class<?> ownerType, int currentDepth) {
+                              String fieldName, Class<?> ownerType,
+                              int currentDepth, AnnotatedElement element) {
+
+        // ── 0a. Contextual field-level override ───────────────────────────────
+        var ctxField = config.getContextualFieldOverride(ownerType, fieldName);
+        if (ctxField.isPresent()) {
+            return ctxField.get().generate(new GenerationContext(fieldName, ownerType, currentDepth));
+        }
+
+        // ── 0b. Contextual type-level override ────────────────────────────────
+        var ctxType = config.getContextualTypeOverride(rawType);
+        if (ctxType.isPresent()) {
+            return ctxType.get().generate(new GenerationContext(fieldName, ownerType, currentDepth));
+        }
 
         // ── 1. Field-level override ───────────────────────────────────────────
         var fieldOverride = config.getFieldOverride(ownerType, fieldName);
@@ -146,8 +180,14 @@ final class FieldGeneratorResolver {
             return typeOverride.get().generate();
         }
 
-        // ── 3. Built-in (primitives, wrappers, String, JSR-310, UUID) ─────────
-        var builtinFactory = BUILTINS.get(rawType);
+        // ── 3b. Bean Validation constraint override ───────────────────────────
+        if (element != null) {
+            Generator<?> bvGen = BeanValidationSupport.constraintGeneratorFor(element, rawType);
+            if (bvGen != null) return bvGen.generate();
+        }
+
+        // ── 3. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
+        var builtinFactory = builtins.get(rawType);
         if (builtinFactory != null) {
             return builtinFactory.get().generate();
         }
@@ -169,7 +209,7 @@ final class FieldGeneratorResolver {
             Class<?> elem = typeArg(genericType, 0);
             List<Object> els = new ArrayList<>(DEFAULT_ELEMENT_COUNT);
             for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
-                els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth));
+                els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
             }
             return List.class.isAssignableFrom(rawType)
                     ? Collections.unmodifiableList(els)
@@ -182,8 +222,8 @@ final class FieldGeneratorResolver {
             Class<?> v = typeArg(genericType, 1);
             Map<Object, Object> map = new LinkedHashMap<>();
             for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
-                Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth);
-                Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth);
+                Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth, null);
+                Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth, null);
                 if (key != null) map.put(key, val);
             }
             return Collections.unmodifiableMap(map);
@@ -227,7 +267,7 @@ final class FieldGeneratorResolver {
      */
     Object resolveAndGenerate(Class<?> rawType, String fieldName,
                               Class<?> ownerType, int currentDepth) {
-        return resolveAndGenerate(rawType, rawType, fieldName, ownerType, currentDepth);
+        return resolveAndGenerate(rawType, rawType, fieldName, ownerType, currentDepth, null);
     }
 
     // ── Array generation ──────────────────────────────────────────────────────

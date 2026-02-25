@@ -11,6 +11,7 @@ import org.github.krandom.generator.GeneratorConfig;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -60,7 +61,9 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime> {
         ZONE_IDS = java.util.Collections.unmodifiableList(zones);
     }
 
-    private final Random random;
+    private final Random    random;
+    private final LocalDate rangeMin;
+    private final LocalDate rangeMax;
 
     /**
      * Creates a zoned-date-time generator with default configuration.
@@ -77,9 +80,24 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime> {
      */
     public ZonedDateTimeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
+        this.random   = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();
+        this.rangeMin = null;
+        this.rangeMax = null;
+    }
+
+    /**
+     * Creates a zoned-date-time generator restricted to the given date range.
+     * Intended for use by {@code FieldGeneratorResolver} when a date range is configured.
+     *
+     * @param min earliest date (inclusive)
+     * @param max latest date (inclusive)
+     */
+    public ZonedDateTimeGenerator(LocalDate min, LocalDate max) {
+        this.random   = new SecureRandom();
+        this.rangeMin = min;
+        this.rangeMax = max;
     }
 
     /**
@@ -92,14 +110,22 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime> {
      */
     @Override
     public ZonedDateTime generate() {
-        int year   = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
-        int month  = 1 + random.nextInt(12);
-        int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
-        int day    = 1 + random.nextInt(maxDay);
+        LocalDate date;
+        if (rangeMin != null) {
+            long lo = rangeMin.toEpochDay();
+            long hi = rangeMax.toEpochDay();
+            date = LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
+        } else {
+            int year   = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
+            int month  = 1 + random.nextInt(12);
+            int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
+            int day    = 1 + random.nextInt(maxDay);
+            date = LocalDate.of(year, month, day);
+        }
         int hour   = random.nextInt(24);
         int minute = random.nextInt(60);
         int second = random.nextInt(60);
-        LocalDateTime ldt = LocalDateTime.of(year, month, day, hour, minute, second);
+        LocalDateTime ldt = LocalDateTime.of(date, LocalTime.of(hour, minute, second));
         ZoneId zone = ZONE_IDS.get(random.nextInt(ZONE_IDS.size()));
         return ZonedDateTime.of(ldt, zone);
     }

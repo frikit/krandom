@@ -101,6 +101,17 @@ public final class StringGenerator implements Generator<String> {
         return builder().charGenerator(CharGenerator.letters()).build();
     }
 
+    /**
+     * Letters only, with a specified length range.
+     *
+     * @param minLength minimum length (inclusive, must be &gt;= 1)
+     * @param maxLength maximum length (inclusive, must be &gt;= {@code minLength})
+     * @return a generator producing letter strings in the given length range
+     */
+    public static StringGenerator letters(int minLength, int maxLength) {
+        return builder().charGenerator(CharGenerator.letters()).minLength(minLength).maxLength(maxLength).build();
+    }
+
     /** Digits only, 5–20 characters. */
     public static StringGenerator digits() {
         return builder().charGenerator(CharGenerator.digits()).build();

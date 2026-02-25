@@ -45,7 +45,9 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
 
-    private final Random random;
+    private final Random    random;
+    private final LocalDate rangeMin;
+    private final LocalDate rangeMax;
 
     /**
      * Creates a local-date-time generator with default configuration.
@@ -62,9 +64,24 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
      */
     public LocalDateTimeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
+        this.random   = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();
+        this.rangeMin = null;
+        this.rangeMax = null;
+    }
+
+    /**
+     * Creates a local-date-time generator restricted to the given date range.
+     * Intended for use by {@code FieldGeneratorResolver} when a date range is configured.
+     *
+     * @param min earliest date (inclusive)
+     * @param max latest date (inclusive)
+     */
+    public LocalDateTimeGenerator(LocalDate min, LocalDate max) {
+        this.random   = new SecureRandom();
+        this.rangeMin = min;
+        this.rangeMax = max;
     }
 
     /**
@@ -76,13 +93,21 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
      */
     @Override
     public LocalDateTime generate() {
-        int year  = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
-        int month = 1 + random.nextInt(12);
-        int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
-        int day    = 1 + random.nextInt(maxDay);
+        LocalDate date;
+        if (rangeMin != null) {
+            long lo = rangeMin.toEpochDay();
+            long hi = rangeMax.toEpochDay();
+            date = LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
+        } else {
+            int year   = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
+            int month  = 1 + random.nextInt(12);
+            int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
+            int day    = 1 + random.nextInt(maxDay);
+            date = LocalDate.of(year, month, day);
+        }
         int hour   = random.nextInt(24);
         int minute = random.nextInt(60);
         int second = random.nextInt(60);
-        return LocalDateTime.of(year, month, day, hour, minute, second);
+        return LocalDateTime.of(date, LocalTime.of(hour, minute, second));
     }
 }

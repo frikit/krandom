@@ -334,13 +334,12 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("missing no-arg constructor throws ObjectGenerationException")
-        void missingNoArgCtorThrows() {
-            ObjectGenerationException ex = assertThrows(
-                    ObjectGenerationException.class,
+        @DisplayName("class without no-arg constructor is instantiated via Objenesis")
+        void missingNoArgCtorHandledByObjenesis() {
+            // Objenesis bypasses the constructor — generation succeeds without throwing.
+            NoDefaultCtor result = assertDoesNotThrow(
                     () -> new ObjectGenerator<>(NoDefaultCtor.class).generate());
-            assertTrue(ex.getMessage().contains("no-arg constructor"),
-                    "Expected helpful message, got: " + ex.getMessage());
+            assertNotNull(result);
         }
 
         @Test
@@ -411,8 +410,9 @@ class ObjectGeneratorTest {
         static class Middle { Inner inner; }
         static class Outer  { Middle middle; }
 
-        static class HasNoDefaultCtor   { HasNoDefaultCtor(String x) {} }
-        static class WithBadNestedField { HasNoDefaultCtor nested; String name; }
+        // Objenesis now handles no-arg-constructor-free classes; use a throwing ctor for error cases
+        static class ThrowsOnCreate   { ThrowsOnCreate() { throw new RuntimeException("deliberate"); } String v; }
+        static class WithThrowingNestedField { ThrowsOnCreate nested; String name; }
 
         // For Exception-catch branch in resolveAndGenerate (non-OGE from nested generation)
         static class InnerWithString { String value; }
@@ -482,20 +482,20 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("ignoreErrors=true swallows ObjectGenerationException from nested type with no no-arg ctor")
+        @DisplayName("ignoreErrors=true swallows ObjectGenerationException from nested type with throwing ctor")
         void ignoreErrorsSwallowsNestedOGE() {
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder().ignoreErrors(true).build();
-            WithBadNestedField obj = new ObjectGenerator<>(WithBadNestedField.class, cfg).generate();
+            WithThrowingNestedField obj = new ObjectGenerator<>(WithThrowingNestedField.class, cfg).generate();
             assertNotNull(obj);
             assertNull(obj.nested, "nested field should be null when OGE is swallowed");
-            assertNotNull(obj.name,   "other fields should still be populated");
+            assertNotNull(obj.name, "other fields should still be populated");
         }
 
         @Test
-        @DisplayName("ignoreErrors=false re-throws ObjectGenerationException from nested type with no no-arg ctor")
+        @DisplayName("ignoreErrors=false re-throws ObjectGenerationException from nested type with throwing ctor")
         void ignoreErrorsRethrowsNestedOGE() {
             assertThrows(ObjectGenerationException.class,
-                    () -> new ObjectGenerator<>(WithBadNestedField.class).generate());
+                    () -> new ObjectGenerator<>(WithThrowingNestedField.class).generate());
         }
 
         @Test

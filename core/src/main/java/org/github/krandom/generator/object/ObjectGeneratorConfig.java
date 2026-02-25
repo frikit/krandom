@@ -5,9 +5,11 @@
  */
 package org.github.krandom.generator.object;
 
+import org.github.krandom.generator.ContextualGenerator;
 import org.github.krandom.generator.Generator;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ import java.util.function.Predicate;
  *       .excludeField("password")
  *       .excludeType(String.class)
  *       .ignoreErrors(true)
+ *       .dateRange(LocalDate.of(2020, 1, 1), LocalDate.of(2023, 12, 31))
  *       .build();
  * }</pre>
  */
@@ -38,6 +41,13 @@ public final class ObjectGeneratorConfig {
 
     private final int maxDepth;
     private final boolean ignoreErrors;
+
+    /**
+     * Global date range applied to all JSR-310 date/time fields.
+     * {@code null} means use each generator's built-in default.
+     */
+    private final LocalDate dateMin;
+    private final LocalDate dateMax;
 
     /**
      * Type-level overrides: when a field has this type, use this generator instead of
@@ -53,17 +63,32 @@ public final class ObjectGeneratorConfig {
     private final Map<String, Generator<?>> fieldOverrides;
 
     /**
+     * Context-aware type-level overrides.  Checked before plain type overrides.
+     */
+    private final Map<Class<?>, ContextualGenerator<?>> contextualTypeOverrides;
+
+    /**
+     * Context-aware field-level overrides keyed by {@code "SimpleClassName.fieldName"}.
+     * Checked before plain field overrides.
+     */
+    private final Map<String, ContextualGenerator<?>> contextualFieldOverrides;
+
+    /**
      * Predicates that identify fields to skip during population.
      * Also honours the {@link Exclude} annotation directly.
      */
     private final List<Predicate<Field>> exclusionPredicates;
 
     private ObjectGeneratorConfig(Builder b) {
-        this.maxDepth            = b.maxDepth;
-        this.ignoreErrors        = b.ignoreErrors;
-        this.typeOverrides        = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
-        this.fieldOverrides       = Collections.unmodifiableMap(new HashMap<>(b.fieldOverrides));
-        this.exclusionPredicates  = Collections.unmodifiableList(new ArrayList<>(b.exclusionPredicates));
+        this.maxDepth                  = b.maxDepth;
+        this.ignoreErrors              = b.ignoreErrors;
+        this.dateMin                   = b.dateMin;
+        this.dateMax                   = b.dateMax;
+        this.typeOverrides              = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
+        this.fieldOverrides             = Collections.unmodifiableMap(new HashMap<>(b.fieldOverrides));
+        this.contextualTypeOverrides    = Collections.unmodifiableMap(new HashMap<>(b.contextualTypeOverrides));
+        this.contextualFieldOverrides   = Collections.unmodifiableMap(new HashMap<>(b.contextualFieldOverrides));
+        this.exclusionPredicates        = Collections.unmodifiableList(new ArrayList<>(b.exclusionPredicates));
     }
 
     /** Default configuration. */
@@ -71,6 +96,7 @@ public final class ObjectGeneratorConfig {
         return builder().build();
     }
 
+    /** Returns a new {@link Builder}. */
     public static Builder builder() {
         return new Builder();
     }
@@ -89,6 +115,18 @@ public final class ObjectGeneratorConfig {
      */
     public boolean isIgnoreErrors() { return ignoreErrors; }
 
+    /**
+     * Earliest date (inclusive) used for all JSR-310 date/time fields.
+     * {@code null} means use the generator's built-in default (1970-01-01).
+     */
+    public LocalDate getDateMin() { return dateMin; }
+
+    /**
+     * Latest date (inclusive) used for all JSR-310 date/time fields.
+     * {@code null} means use the generator's built-in default (2100-12-31).
+     */
+    public LocalDate getDateMax() { return dateMax; }
+
     /** Return the type-level override for {@code type}, if any. */
     public Optional<Generator<?>> getTypeOverride(Class<?> type) {
         return Optional.ofNullable(typeOverrides.get(type));
@@ -101,6 +139,20 @@ public final class ObjectGeneratorConfig {
     public Optional<Generator<?>> getFieldOverride(Class<?> ownerType, String fieldName) {
         String key = ownerType.getSimpleName() + "." + fieldName;
         return Optional.ofNullable(fieldOverrides.get(key));
+    }
+
+    /** Return the contextual type-level override for {@code type}, if any. */
+    public Optional<ContextualGenerator<?>> getContextualTypeOverride(Class<?> type) {
+        return Optional.ofNullable(contextualTypeOverrides.get(type));
+    }
+
+    /**
+     * Return the contextual field-level override for {@code fieldName} declared in
+     * {@code ownerType}, if any.
+     */
+    public Optional<ContextualGenerator<?>> getContextualFieldOverride(Class<?> ownerType, String fieldName) {
+        String key = ownerType.getSimpleName() + "." + fieldName;
+        return Optional.ofNullable(contextualFieldOverrides.get(key));
     }
 
     /**
@@ -125,13 +177,18 @@ public final class ObjectGeneratorConfig {
 
     // ── Builder ───────────────────────────────────────────────────────────────
 
+    /** Fluent builder for {@link ObjectGeneratorConfig}. */
     public static final class Builder {
 
         private int  maxDepth     = DEFAULT_MAX_DEPTH;
         private boolean ignoreErrors = false;
-        private final Map<Class<?>, Generator<?>> typeOverrides  = new HashMap<>();
-        private final Map<String, Generator<?>>   fieldOverrides = new HashMap<>();
-        private final List<Predicate<Field>>       exclusionPredicates = new ArrayList<>();
+        private LocalDate dateMin = null;
+        private LocalDate dateMax = null;
+        private final Map<Class<?>, Generator<?>>             typeOverrides            = new HashMap<>();
+        private final Map<String, Generator<?>>               fieldOverrides           = new HashMap<>();
+        private final Map<Class<?>, ContextualGenerator<?>>   contextualTypeOverrides  = new HashMap<>();
+        private final Map<String, ContextualGenerator<?>>     contextualFieldOverrides = new HashMap<>();
+        private final List<Predicate<Field>>                  exclusionPredicates      = new ArrayList<>();
 
         /**
          * Maximum nesting depth for object-graph generation.
@@ -140,6 +197,24 @@ public final class ObjectGeneratorConfig {
         public Builder maxDepth(int maxDepth) {
             if (maxDepth < 1) throw new IllegalArgumentException("maxDepth must be >= 1, was: " + maxDepth);
             this.maxDepth = maxDepth;
+            return this;
+        }
+
+        /**
+         * Global date range applied to all JSR-310 date/time fields generated by
+         * {@link ObjectGenerator}.
+         *
+         * @param min earliest date (inclusive); must not be {@code null}
+         * @param max latest date (inclusive); must not be {@code null} and must be &gt;= {@code min}
+         */
+        public Builder dateRange(LocalDate min, LocalDate max) {
+            Objects.requireNonNull(min, "min must not be null");
+            Objects.requireNonNull(max, "max must not be null");
+            if (min.isAfter(max)) {
+                throw new IllegalArgumentException("dateMin must be <= dateMax, got " + min + " > " + max);
+            }
+            this.dateMin = min;
+            this.dateMax = max;
             return this;
         }
 
@@ -163,6 +238,32 @@ public final class ObjectGeneratorConfig {
             Objects.requireNonNull(fieldName,  "fieldName must not be null");
             Objects.requireNonNull(generator,  "generator must not be null");
             fieldOverrides.put(ownerType.getSimpleName() + "." + fieldName, generator);
+            return this;
+        }
+
+        /**
+         * Register a context-aware {@link ContextualGenerator} for all fields of the given type.
+         * The generator receives a {@link org.github.krandom.generator.GenerationContext}
+         * describing the field being populated.
+         * <pre>{@code .override(String.class, ctx -> ctx.getFieldName() + "_value") }</pre>
+         */
+        public <T> Builder override(Class<T> type, ContextualGenerator<? extends T> generator) {
+            Objects.requireNonNull(type,      "type must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            contextualTypeOverrides.put(type, generator);
+            return this;
+        }
+
+        /**
+         * Register a context-aware {@link ContextualGenerator} for a specific field on a
+         * specific class.
+         * <pre>{@code .override(Person.class, "name", ctx -> "Alice_" + ctx.getDepth()) }</pre>
+         */
+        public <T> Builder override(Class<?> ownerType, String fieldName, ContextualGenerator<T> generator) {
+            Objects.requireNonNull(ownerType,  "ownerType must not be null");
+            Objects.requireNonNull(fieldName,  "fieldName must not be null");
+            Objects.requireNonNull(generator,  "generator must not be null");
+            contextualFieldOverrides.put(ownerType.getSimpleName() + "." + fieldName, generator);
             return this;
         }
 
@@ -206,6 +307,7 @@ public final class ObjectGeneratorConfig {
             return this;
         }
 
+        /** Build the immutable config. */
         public ObjectGeneratorConfig build() {
             return new ObjectGeneratorConfig(this);
         }

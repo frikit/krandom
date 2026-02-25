@@ -7,6 +7,8 @@ package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -24,9 +26,9 @@ import java.util.Objects;
  * <p><b>Supported types</b>
  * <ul>
  *   <li><b>Records</b> — all components are populated and the canonical constructor is invoked.</li>
- *   <li><b>Plain classes</b> — instantiated via a public or package-private no-arg constructor;
- *       all non-static, non-final, non-synthetic instance fields are then populated via
- *       reflection (parent class fields included).</li>
+ *   <li><b>Plain classes</b> — instantiated via a public or package-private no-arg constructor
+ *       when available; when absent, Objenesis bypasses the constructor entirely so that classes
+ *       with only all-args constructors can still be populated via field reflection.</li>
  *   <li><b>Nested objects</b> — resolved recursively up to {@link ObjectGeneratorConfig#getMaxDepth()}.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated with {@value FieldGeneratorResolver#DEFAULT_ELEMENT_COUNT} elements.</li>
@@ -59,6 +61,9 @@ import java.util.Objects;
  * @param <T> the type to generate
  */
 public final class ObjectGenerator<T> implements Generator<T> {
+
+    /** Thread-safe Objenesis instance; caches instantiation strategies per class. */
+    private static final Objenesis OBJENESIS = new ObjenesisStd();
 
     private final Class<T> type;
     private final ObjectGeneratorConfig config;
@@ -121,7 +126,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                         comp.getType(),
                         comp.getName(),
                         type,
-                        depth);
+                        depth,
+                        backingField);
             }
         }
 
@@ -133,9 +139,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
     // ── Class population ──────────────────────────────────────────────────────
 
     private T generateClass() throws ReflectiveOperationException {
-        Constructor<T> ctor = findNoArgConstructor();
-        ctor.setAccessible(true);
-        T instance = ctor.newInstance();
+        T instance = instantiate(); // may throw ReflectiveOperationException for throwing constructors
 
         for (Field field : collectSettableFields(type)) {
             if (config.shouldExclude(field)) continue; // exclusion check
@@ -145,7 +149,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     field.getType(),
                     field.getName(),
                     field.getDeclaringClass(),
-                    depth);
+                    depth,
+                    field);
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -162,14 +167,26 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private Constructor<T> findNoArgConstructor() {
+    /**
+     * Instantiate {@code type} without populating fields.
+     *
+     * <p>Attempts to use a no-arg constructor first (public or package-private).
+     * If none is found, falls back to Objenesis which bypasses the constructor entirely —
+     * allowing generation for classes that only have all-args constructors.
+     *
+     * <p>Any {@link ReflectiveOperationException} thrown by {@link Constructor#newInstance}
+     * (e.g. {@link java.lang.reflect.InvocationTargetException} when the constructor body
+     * throws) propagates to the caller and is wrapped by {@link #generate()}.
+     *
+     * @throws ReflectiveOperationException if the constructor is found but throws at runtime
+     */
+    private T instantiate() throws ReflectiveOperationException {
         try {
-            return type.getDeclaredConstructor();
-        } catch (NoSuchMethodException e) {
-            throw new ObjectGenerationException(
-                    "No no-arg constructor found on class '" + type.getName() + "'. " +
-                    "Add a no-arg constructor, or use a record if all fields are set at construction time.",
-                    e);
+            Constructor<T> ctor = type.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            return ctor.newInstance();
+        } catch (NoSuchMethodException ignored) {
+            return OBJENESIS.newInstance(type);
         }
     }
 

@@ -13,6 +13,9 @@ import org.github.krandom.network.IPv6Generator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
@@ -243,6 +246,40 @@ public final class Generators {
     /** Returns a generator that produces random IPv6 addresses (RFC 4291 / RFC 5952). */
     public static IPv6Generator ofIPv6() {
         return new IPv6Generator();
+    }
+
+    // ── BigDecimal ────────────────────────────────────────────────────────────
+
+    /** Returns a generator producing random {@link BigDecimal} values ([0, 1&nbsp;000&nbsp;000], scale 2). */
+    public static BigDecimalGenerator ofBigDecimal() {
+        return new BigDecimalGenerator();
+    }
+
+    /**
+     * Returns a generator producing random {@link BigDecimal} values in [min, max] with scale 2.
+     *
+     * @param min lower bound (inclusive)
+     * @param max upper bound (inclusive)
+     */
+    public static BigDecimalGenerator ofBigDecimal(BigDecimal min, BigDecimal max) {
+        return new BigDecimalGenerator(min, max);
+    }
+
+    // ── BigInteger ────────────────────────────────────────────────────────────
+
+    /** Returns a generator producing random {@link BigInteger} values ([0, {@link Long#MAX_VALUE}]). */
+    public static BigIntegerGenerator ofBigInteger() {
+        return new BigIntegerGenerator();
+    }
+
+    /**
+     * Returns a generator producing random {@link BigInteger} values in [min, max].
+     *
+     * @param min lower bound (inclusive)
+     * @param max upper bound (inclusive)
+     */
+    public static BigIntegerGenerator ofBigInteger(BigInteger min, BigInteger max) {
+        return new BigIntegerGenerator(min, max);
     }
 
     // ── Date / Time ───────────────────────────────────────────────────────────

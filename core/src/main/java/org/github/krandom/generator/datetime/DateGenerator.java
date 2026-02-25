@@ -75,6 +75,10 @@ public final class DateGenerator implements Generator<LocalDate> {
     private final GeneratorConfig config;
     private final Random random;
 
+    /** Non-null only when constructed via the bounded constructor. */
+    private final LocalDate rangeMin;
+    private final LocalDate rangeMax;
+
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
     
@@ -97,10 +101,26 @@ public final class DateGenerator implements Generator<LocalDate> {
      * @throws NullPointerException if {@code config} is {@code null}
      */
     public DateGenerator(GeneratorConfig config) {
-        this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
+        this.config   = Objects.requireNonNull(config, "config must not be null");
+        this.random   = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();
+        this.rangeMin = null;
+        this.rangeMax = null;
+    }
+
+    /**
+     * Creates a date generator restricted to the given date range.
+     * Intended for use by {@code FieldGeneratorResolver} when a date range is configured.
+     *
+     * @param min earliest date (inclusive)
+     * @param max latest date (inclusive)
+     */
+    public DateGenerator(LocalDate min, LocalDate max) {
+        this.config   = GeneratorConfig.defaults();
+        this.random   = new SecureRandom();
+        this.rangeMin = min;
+        this.rangeMax = max;
     }
 
     /**
@@ -112,6 +132,11 @@ public final class DateGenerator implements Generator<LocalDate> {
      */
     @Override
     public LocalDate generate() {
+        if (rangeMin != null) {
+            long lo = rangeMin.toEpochDay();
+            long hi = rangeMax.toEpochDay();
+            return LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
+        }
         int year = generateYear();
         int month = generateMonth();
         int day = generateValidDay(year, month);
