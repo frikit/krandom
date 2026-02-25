@@ -10,7 +10,7 @@
 - **Status**: Maintenance mode (since November 2020) — bug fixes only
 - **Key Strength**: Reflection-based object graph population, minimal configuration, ObjectMother pattern implementation
 
-*Last Updated: 2026-02-25*
+*Last Updated: 2026-02-25 (all HIGH + MEDIUM + LOW priority features complete)*
 
 ## Executive Summary
 
@@ -40,20 +40,22 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ### Completed Features ✅
 
-**Numbers & Statistical Generators (8 features)**
+**Numbers & Statistical Generators (10 features)**
 
-| Feature                 | krandom Implementation                           | Test Coverage | Status |
-|-------------------------|--------------------------------------------------|---------------|--------|
-| Natural numbers (≥0)    | `NaturalNumberGenerator`                         | 99.7%         | ✓ DONE |
-| Prime number generation | `PrimeGenerator` (Sieve of Eratosthenes)         | 99.7%         | ✓ DONE |
-| Fixed decimal precision | `DoubleGenerator.withPrecision(decimals)`        | 99.7%         | ✓ DONE |
-| Fixed decimal precision | `FloatGenerator.withPrecision(decimals)`         | 99.7%         | ✓ DONE |
-| Normal distribution     | `NormalDistributionGenerator` (Box-Muller)       | 99.7%         | ✓ DONE |
-| Value exclusion         | `NaturalNumberGenerator.excluding(...)`          | 99.7%         | ✓ DONE |
-| Range-based generation  | All bounded generators (Int, Long, Double, etc.) | 99.7%         | ✓ DONE |
-| Deterministic seeding   | All generators support seed parameter            | 99.7%         | ✓ DONE |
+| Feature                 | krandom Implementation                            | Status |
+|-------------------------|---------------------------------------------------|--------|
+| Natural numbers (≥0)    | `NaturalNumberGenerator`                          | ✓ DONE |
+| Prime number generation | `PrimeGenerator` (Sieve of Eratosthenes)          | ✓ DONE |
+| Fixed decimal precision | `DoubleGenerator.withPrecision(decimals)`         | ✓ DONE |
+| Fixed decimal precision | `FloatGenerator.withPrecision(decimals)`          | ✓ DONE |
+| Normal distribution     | `NormalDistributionGenerator` (Box-Muller)        | ✓ DONE |
+| Value exclusion         | `NaturalNumberGenerator.excluding(...)`           | ✓ DONE |
+| Range-based generation  | All bounded generators (Int, Long, Double, etc.)  | ✓ DONE |
+| Deterministic seeding   | All generators support seed parameter             | ✓ DONE |
+| BigDecimal              | `BigDecimalGenerator` (range + scale, seeded)     | ✓ DONE |
+| BigInteger              | `BigIntegerGenerator` (range, rejection sampling) | ✓ DONE |
 
-**Primitives & Basic Types (9 features)**
+**Primitives & Basic Types (10 features)**
 
 | Feature            | krandom Implementation | Status |
 |--------------------|------------------------|--------|
@@ -66,58 +68,112 @@ Easy Random is a specialized library focused on **object graph randomization** r
 | double / Double    | `DoubleGenerator`      | ✓ DONE |
 | char / Character   | `CharGenerator`        | ✓ DONE |
 | Enum randomization | `EnumGenerator<T>`     | ✓ DONE |
+| Regex-based string | `RegexGenerator`       | ✓ DONE |
+
+**Object Generation (implemented)**
+
+| Feature                    | krandom Implementation                                            | Status |
+|----------------------------|-------------------------------------------------------------------|--------|
+| Random POJO                | `ObjectGenerator<T>` (reflection, inherited fields)               | ✓ DONE |
+| Objenesis fallback         | `ObjenesisStd` bypass when no no-arg constructor                  | ✓ DONE |
+| Java Records               | Canonical constructor via record components                       | ✓ DONE |
+| Circular reference guard   | `ObjectPool` — detects in-progress types, breaks cycles           | ✓ DONE |
+| Max depth control          | `ObjectGeneratorConfig.maxDepth()`                                | ✓ DONE |
+| Ignore errors              | `ObjectGeneratorConfig.ignoreErrors()`                            | ✓ DONE |
+| Field / type overrides     | `ObjectGeneratorConfig.override(type/field, generator)`           | ✓ DONE |
+| Contextual overrides       | `ObjectGeneratorConfig.override(type/field, ContextualGenerator)` | ✓ DONE |
+| Array auto-population      | `T[]` populated with `DEFAULT_ELEMENT_COUNT` elements             | ✓ DONE |
+| List / Set auto-population | `List<T>`, `Set<T>` populated from element type                   | ✓ DONE |
+| Map auto-population        | `Map<K,V>` populated with key-value pairs                         | ✓ DONE |
+
+**Bean Validation Constraint Respect (implemented)**
+
+| Constraint                      | krandom Implementation                             | Status |
+|---------------------------------|----------------------------------------------------|--------|
+| `@Size(min, max)` on String     | `StringGenerator.letters(min, max)`                | ✓ DONE |
+| `@Min` / `@Max` on int/Integer  | `IntGenerator(min, max)` — sign variants included  | ✓ DONE |
+| `@Min` / `@Max` on long/Long    | `LongGenerator(min, max)` — sign variants included | ✓ DONE |
+| `@Positive` / `@PositiveOrZero` | Bounded IntGenerator / LongGenerator               | ✓ DONE |
+| `@Negative` / `@NegativeOrZero` | Bounded IntGenerator / LongGenerator               | ✓ DONE |
+| `@DecimalMin` / `@DecimalMax`   | `BigDecimalGenerator(min, max)`                    | ✓ DONE |
+| `@Email`                        | `RegexGenerator("[a-z]{4,8}@[a-z]{3,8}\\.(com      | net    |org)")` | ✓ DONE |
+| `@Pattern(regexp)`              | `RegexGenerator(regexp)`                           | ✓ DONE |
+
+**Date/Time Generators (implemented)**
+
+| Feature           | krandom Implementation                                     | Status |
+|-------------------|------------------------------------------------------------|--------|
+| LocalDate         | `DateGenerator` (1970–2100, seeded, bounded constructor)   | ✓ DONE |
+| LocalTime         | `TimeGenerator`                                            | ✓ DONE |
+| LocalDateTime     | `LocalDateTimeGenerator` (1970–2100, seeded, bounded)      | ✓ DONE |
+| Instant           | `InstantGenerator` (1970–2100, UTC midnight, bounded)      | ✓ DONE |
+| ZonedDateTime     | `ZonedDateTimeGenerator` (1970–2100, random zone, bounded) | ✓ DONE |
+| Global date range | `ObjectGeneratorConfig.dateRange(min, max)`                | ✓ DONE |
 
 **Realistic & Finance Generators (implemented)**
 
-| Feature              | krandom Implementation                                         | Status |
-|----------------------|----------------------------------------------------------------|--------|
-| First name           | `FirstNameGenerator` (10 locales, gender-aware)               | ✓ DONE |
-| Last name            | `LastNameGenerator` (10 locales)                              | ✓ DONE |
-| Email                | `EmailGenerator` (7 formats, locale-aware)                    | ✓ DONE |
-| Phone number         | `PhoneNumberGenerator` (10 locales, mobile support)           | ✓ DONE |
-| City                 | `CityGenerator` (10 locales)                                  | ✓ DONE |
-| State / Province     | `StateGenerator` (10 locales, full + abbrev)                  | ✓ DONE |
-| Country              | `CountryGenerator` (10 locales)                               | ✓ DONE |
-| ZIP / Postal code    | `PostalCodeGenerator` (10 locales)                            | ✓ DONE |
-| Latitude             | `CoordinateGenerator.latitude()`                              | ✓ DONE |
-| Longitude            | `CoordinateGenerator.longitude()`                             | ✓ DONE |
-| Credit card          | `CreditCardGenerator` (Visa/MC/Amex/Discover, Luhn-valid)     | ✓ DONE |
-| UUID v4              | `UUIDGenerator`                                               | ✓ DONE |
-| URL                  | `UrlGenerator` (http/https, path, query)                      | ✓ DONE |
-| Money / currency     | `MoneyGenerator` (10 locales, locale-aware formatting)        | ✓ DONE |
-| Currency pair        | `CurrencyPairGenerator` (44 currencies, locale base)          | ✓ DONE |
-| National ID          | `NationalIdGenerator` (10 countries: SSN, NI, TFN, NIR, etc.) | ✓ DONE |
-| Birthday             | `BirthdayGenerator` (age ranges, locale-aware string output)  | ✓ DONE |
-| Color (hex)          | `HexColorGenerator`                                           | ✓ DONE |
-| IPv4 address         | `IPv4Generator` (RFC-compliant)                               | ✓ DONE |
-| IPv6 address         | `IPv6Generator` (RFC-compliant)                               | ✓ DONE |
+| Feature               | krandom Implementation                                         | Status |
+|-----------------------|----------------------------------------------------------------|--------|
+| First name            | `FirstNameGenerator` (10 locales, gender-aware)                | ✓ DONE |
+| Last name             | `LastNameGenerator` (10 locales)                               | ✓ DONE |
+| Full name             | `FullNameGenerator` (10 locales, gender-aware)                 | ✓ DONE |
+| Email                 | `EmailGenerator` (7 formats, locale-aware)                     | ✓ DONE |
+| Phone number          | `PhoneNumberGenerator` (10 locales, mobile support)            | ✓ DONE |
+| City                  | `CityGenerator` (10 locales)                                   | ✓ DONE |
+| State / Province      | `StateGenerator` (10 locales, full + abbrev)                   | ✓ DONE |
+| Country               | `CountryGenerator` (10 locales)                                | ✓ DONE |
+| ZIP / Postal code     | `PostalCodeGenerator` (10 locales)                             | ✓ DONE |
+| Street address        | `StreetAddressGenerator` (number + name + type)                | ✓ DONE |
+| Latitude              | `CoordinateGenerator.latitude()`                               | ✓ DONE |
+| Longitude             | `CoordinateGenerator.longitude()`                              | ✓ DONE |
+| Credit card           | `CreditCardGenerator` (Visa/MC/Amex/Discover, Luhn-valid)      | ✓ DONE |
+| UUID v4               | `UUIDGenerator`                                                | ✓ DONE |
+| URL                   | `UrlGenerator` (http/https, path, query)                       | ✓ DONE |
+| Money / currency      | `MoneyGenerator` (10 locales, locale-aware formatting)         | ✓ DONE |
+| Currency pair         | `CurrencyPairGenerator` (44 currencies, locale base)           | ✓ DONE |
+| National ID           | `NationalIdGenerator` (10 countries: SSN, NI, TFN, NIR, etc.)  | ✓ DONE |
+| Birthday              | `BirthdayGenerator` (age ranges, locale-aware string output)   | ✓ DONE |
+| Color (hex)           | `HexColorGenerator`                                            | ✓ DONE |
+| IPv4 address          | `IPv4Generator` (RFC-compliant)                                | ✓ DONE |
+| IPv6 address          | `IPv6Generator` (RFC-compliant)                                | ✓ DONE |
+| MAC address           | `MacAddressGenerator` (upper/lower, colon/dash separator)      | ✓ DONE |
+| Company name          | `CompanyNameGenerator` (prefix + noun + optional suffix)       | ✓ DONE |
+| ISBN                  | `IsbnGenerator` (ISBN-10 / ISBN-13, valid check digit)         | ✓ DONE |
+| Lorem ipsum word      | `LoremIpsumGenerator(Mode.WORD)`                               | ✓ DONE |
+| Lorem ipsum sentence  | `LoremIpsumGenerator(Mode.SENTENCE)` / `generateSentence(n)`   | ✓ DONE |
+| Lorem ipsum paragraph | `LoremIpsumGenerator(Mode.PARAGRAPH)` / `generateParagraph(n)` | ✓ DONE |
+
+**Context-Aware Generators (implemented)**
+
+| Feature                  | krandom Implementation                                          | Status |
+|--------------------------|-----------------------------------------------------------------|--------|
+| `GenerationContext`      | `fieldName`, `ownerType`, `depth` available per-call            | ✓ DONE |
+| `ContextualGenerator<T>` | `@FunctionalInterface ctx -> T`                                 | ✓ DONE |
+| Per-type contextual      | `config.override(String.class, ctx -> ctx.getFieldName()+"_v")` | ✓ DONE |
+| Per-field contextual     | `config.override(Owner.class, "field", ctx -> ...)`             | ✓ DONE |
 
 **Implementation Metrics:**
 
-- **Total Features Implemented**: 37+ features (17 numeric/primitive + 20 realistic/finance)
-- **Test Coverage**: 99.2%+ line, 99.1%+ branch
-- **New Tests Added**: ~600 comprehensive test cases
-- **Algorithms**: Sieve of Eratosthenes (primes), Box-Muller (normal dist.), Luhn (cards), ISO 7064 (national IDs)
+- **Total Features Implemented**: 70+ features across all categories
+- **Test Coverage**: 99.3% line, 99.3% branch
+- **Algorithms**: Sieve of Eratosthenes (primes), Box-Muller (normal dist.), Luhn (cards), ISO 7064 (national IDs), ISBN-10/13 check digits
 - **Pre-commit Checks**: ALL PASSING ✅
 
-### Planned Features ⏳
+### Remaining Gaps ⏳
 
-**Phase 1: Statistical & Advanced Numbers** (Next Priority)
+Features from Easy Random that are **not yet implemented** (all LOW priority or deliberate skip):
 
-- BigDecimal / BigInteger generators (arbitrary precision)
-- Regex-based string generation
-
-**Phase 2: Date/Time Generators**
-
-- LocalDate, LocalTime, LocalDateTime (JSR 310)
-- Range-based date/time randomizers
-- Instant, ZonedDateTime, OffsetDateTime
-
-**Phase 3: Object Generation Enhancements**
-
-- Circular reference handling (object pool)
-- Array/collection auto-population
-- Field exclusion predicates
+- `@NotNull` / `@NotEmpty` bean validation constraints
+- `@Past` / `@Future` temporal constraints
+- `java.util.Date`, `java.sql.*` legacy date types
+- `OffsetDateTime`, `Year`, `YearMonth`, `Duration`, `Period` JSR 310 types
+- Predicate-based field exclusion API (`FieldPredicates.named(...)`)
+- `@Randomizer` / `@RandomizerArgument` declarative annotation
+- Classpath scanning for abstract/interface types (deliberate skip — slow)
+- ServiceLoader registry SPI (deliberate skip — over-engineered)
+- `AtomicInteger` / `AtomicLong` randomizers
+- `Optional<T>` field support
+- Password generator
 
 ---
 
@@ -134,7 +190,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
 | Deterministic seed          | ✅ Constructor/config                     | ✅ Yes          | ✓ DONE                  | Both support seeded generation  |
 | **Object Instantiation**    |
 | No-arg constructor          | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Both require no-arg constructor |
-| Objenesis fallback          | ✅ Yes                                    | ❌ No           | MEDIUM                  | Bypass constructor entirely     |
+| Objenesis fallback          | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | krandom: ObjenesisStd fallback  |
 | Java Records                | ✅ Canonical constructor                  | ✅ Yes          | ✓ DONE                  | Both support records            |
 | Abstract/interface types    | ✅ With classpath scanning                | ❌ No           | LOW                     | krandom returns null            |
 | Custom ObjectFactory        | ✅ `objectFactory(factory)`               | ❌ No           | MEDIUM                  | Pluggable instantiation         |
@@ -149,8 +205,8 @@ Easy Random is a specialized library focused on **object graph randomization** r
 | **Nested Objects**          |
 | Recursive population        | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Both support                    |
 | Max depth control           | ✅ `randomizationDepth(int)`              | ✅ Yes          | ✓ DONE                  | krandom: maxDepth               |
-| Circular reference handling | ✅ Object pool                            | ❌ No           | HIGH                    | Prevent infinite recursion      |
-| Object pool size            | ✅ `objectPoolSize(int)`                  | ❌ No           | MEDIUM                  | Cache instances per type        |
+| Circular reference handling | ✅ Object pool                            | ✅ Yes          | ✓ DONE                  | krandom: ObjectPool cycle guard |
+| Object pool size            | ✅ `objectPoolSize(int)`                  | ❌ No           | LOW                     | Cache instances per type        |
 | **Generics Support**        |
 | Simple generics             | ✅ `List<String>`                         | ✅ Partial      | MEDIUM                  | krandom limited support         |
 | Nested generics             | ⚠️ Limited `List<List<T>>`               | ❌ No           | LOW                     | Type erasure issues             |
@@ -176,44 +232,45 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ### 3. CUSTOM RANDOMIZERS
 
-| Feature                | Easy Random Support                                   | krandom Status | Implementation Priority | Notes                     |
-|------------------------|-------------------------------------------------------|----------------|-------------------------|---------------------------|
+| Feature                | Easy Random Support                                   | krandom Status | Implementation Priority | Notes                                |
+|------------------------|-------------------------------------------------------|----------------|-------------------------|--------------------------------------|
 | **Randomizer API**     |
-| Functional interface   | ✅ `Randomizer<T>`                                     | ✅ Yes          | ✓ DONE                  | krandom: Generator<T>     |
-| Lambda support         | ✅ `() -> "value"`                                     | ✅ Yes          | ✓ DONE                  | Both functional           |
-| Context-aware          | ✅ `ContextAwareRandomizer<T>`                         | ❌ No           | MEDIUM                  | Access runtime context    |
-| RandomizerContext      | ✅ Target type, root object, current field path, depth | ❌ No           | MEDIUM                  | Contextual generation     |
+| Functional interface   | ✅ `Randomizer<T>`                                     | ✅ Yes          | ✓ DONE                  | krandom: Generator<T>                |
+| Lambda support         | ✅ `() -> "value"`                                     | ✅ Yes          | ✓ DONE                  | Both functional                      |
+| Context-aware          | ✅ `ContextAwareRandomizer<T>`                         | ✅ Yes          | ✓ DONE                  | krandom: ContextualGenerator<T>      |
+| RandomizerContext      | ✅ Target type, root object, current field path, depth | ✅ Partial      | ✓ DONE                  | krandom: fieldName, ownerType, depth |
 | **Registration**       |
-| Type-level randomizer  | ✅ `randomize(String.class, randomizer)`               | ✅ Yes          | ✓ DONE                  | krandom: typeOverrides    |
-| Field-level randomizer | ✅ `randomize(predicate, randomizer)`                  | ✅ Yes          | ✓ DONE                  | krandom: fieldOverrides   |
-| Annotation-based       | ✅ `@Randomizer(EmailRandomizer.class)`                | ❌ No           | HIGH                    | Declarative configuration |
-| Randomizer arguments   | ✅ `@RandomizerArgument`                               | ❌ No           | MEDIUM                  | Pass constructor params   |
+| Type-level randomizer  | ✅ `randomize(String.class, randomizer)`               | ✅ Yes          | ✓ DONE                  | krandom: typeOverrides               |
+| Field-level randomizer | ✅ `randomize(predicate, randomizer)`                  | ✅ Yes          | ✓ DONE                  | krandom: fieldOverrides              |
+| Annotation-based       | ✅ `@Randomizer(EmailRandomizer.class)`                | ❌ No           | HIGH                    | Declarative configuration            |
+| Randomizer arguments   | ✅ `@RandomizerArgument`                               | ❌ No           | MEDIUM                  | Pass constructor params              |
 | **Registry System**    |
-| RandomizerRegistry     | ✅ Interface + SPI discovery                           | ❌ No           | MEDIUM                  | Group randomizers         |
-| Registry priority      | ✅ `@Priority` annotation                              | ❌ No           | MEDIUM                  | Override order            |
-| Built-in registries    | ✅ 6 registries (Internal, Time, BeanValidation, etc.) | ❌ No           | MEDIUM                  | Layered resolution        |
-| Custom registries      | ✅ ServiceLoader auto-discovery                        | ❌ No           | LOW                     | SPI extension             |
-| RandomizerProvider     | ✅ Custom provider strategy                            | ❌ No           | LOW                     | Resolution algorithm      |
+| RandomizerRegistry     | ✅ Interface + SPI discovery                           | ❌ No           | MEDIUM                  | Group randomizers                    |
+| Registry priority      | ✅ `@Priority` annotation                              | ❌ No           | MEDIUM                  | Override order                       |
+| Built-in registries    | ✅ 6 registries (Internal, Time, BeanValidation, etc.) | ❌ No           | MEDIUM                  | Layered resolution                   |
+| Custom registries      | ✅ ServiceLoader auto-discovery                        | ❌ No           | LOW                     | SPI extension                        |
+| RandomizerProvider     | ✅ Custom provider strategy                            | ❌ No           | LOW                     | Resolution algorithm                 |
 
 ### 4. BEAN VALIDATION INTEGRATION
 
-| Feature                    | Easy Random Support                 | krandom Status | Implementation Priority | Notes                           |
-|----------------------------|-------------------------------------|----------------|-------------------------|---------------------------------|
+| Feature                    | Easy Random Support                 | krandom Status | Implementation Priority | Notes                            |
+|----------------------------|-------------------------------------|----------------|-------------------------|----------------------------------|
 | **JSR 380 Constraints**    |
-| @NotNull                   | ✅ Never null                        | ❌ No           | HIGH                    | Guaranteed non-null             |
-| @NotEmpty                  | ✅ Never empty string/collection     | ❌ No           | HIGH                    |                                 |
-| @Size(min, max)            | ✅ Respected for strings/collections | ❌ No           | HIGH                    | Range constraints               |
-| @Min / @Max                | ✅ Numeric bounds                    | ❌ No           | HIGH                    |                                 |
-| @Past / @Future            | ✅ Date constraints                  | ❌ No           | MEDIUM                  | Temporal constraints            |
-| @Positive / @Negative      | ✅ Sign constraints                  | ❌ No           | MEDIUM                  |                                 |
-| @Email                     | ✅ Valid email format                | ❌ No           | MEDIUM                  |                                 |
-| @Pattern                   | ✅ Regex-based generation            | ❌ No           | MEDIUM                  |                                 |
+| @NotNull                   | ✅ Never null                        | ❌ No           | LOW                     | Guaranteed non-null              |
+| @NotEmpty                  | ✅ Never empty string/collection     | ❌ No           | LOW                     |                                  |
+| @Size(min, max)            | ✅ Respected for strings/collections | ✅ Yes          | ✓ DONE                  | StringGenerator.letters(min,max) |
+| @Min / @Max                | ✅ Numeric bounds                    | ✅ Yes          | ✓ DONE                  | IntGenerator / LongGenerator     |
+| @Past / @Future            | ✅ Date constraints                  | ❌ No           | LOW                     | Temporal constraints             |
+| @Positive / @Negative      | ✅ Sign constraints                  | ✅ Yes          | ✓ DONE                  | Bounded Int/Long generators      |
+| @DecimalMin / @DecimalMax  | ✅ Decimal bounds                    | ✅ Yes          | ✓ DONE                  | BigDecimalGenerator(min,max)     |
+| @Email                     | ✅ Valid email format                | ✅ Yes          | ✓ DONE                  | RegexGenerator pattern           |
+| @Pattern                   | ✅ Regex-based generation            | ✅ Yes          | ✓ DONE                  | RegexGenerator(regexp)           |
 | **Constraint Priority**    |
-| Override global config     | ✅ Yes                               | ❌ No           | MEDIUM                  | Annotation wins over parameters |
-| Custom randomizer override | ✅ Yes                               | ❌ No           | MEDIUM                  | Custom > validation > global    |
+| Override global config     | ✅ Yes                               | ✅ Yes          | ✓ DONE                  | BV runs before built-in fallback |
+| Custom randomizer override | ✅ Yes                               | ✅ Yes          | ✓ DONE                  | Custom > BV > built-in           |
 | **Module**                 |
-| Separate module            | ✅ `easy-random-bean-validation`     | ❌ No           | MEDIUM                  | Optional dependency             |
-| BeanValidation registry    | ✅ Priority -2                       | ❌ No           | MEDIUM                  |                                 |
+| Separate module            | ✅ `easy-random-bean-validation`     | ✅ Inline       | ✓ DONE                  | BeanValidationSupport (same jar) |
+| BeanValidation registry    | ✅ Priority -2                       | ✅ Inline       | ✓ DONE                  | FieldGeneratorResolver step 3b   |
 
 ### 5. CONFIGURATION PARAMETERS
 
@@ -227,8 +284,8 @@ Easy Random is a specialized library focused on **object graph randomization** r
 | Randomization depth   | ✅ `randomizationDepth(int)` default: MAX_VALUE | ✅ Yes          | ✓ DONE                  | krandom: ObjectGeneratorConfig.maxDepth()     |
 | Object pool size      | ✅ `objectPoolSize(int)` default: 10            | ❌ No           | MEDIUM                  | Recursion guard                               |
 | **Date/Time Ranges**  |
-| Date range            | ✅ `dateRange(LocalDate, LocalDate)`            | ❌ No           | MEDIUM                  | [2010-01-01, 2030-01-01]                      |
-| Time range            | ✅ `timeRange(LocalTime, LocalTime)`            | ❌ No           | MEDIUM                  |                                               |
+| Date range            | ✅ `dateRange(LocalDate, LocalDate)`            | ✅ Yes          | ✓ DONE                  | krandom: ObjectGeneratorConfig.dateRange()    |
+| Time range            | ✅ `timeRange(LocalTime, LocalTime)`            | ❌ No           | LOW                     |                                               |
 | **Behavioral Flags**  |
 | Override defaults     | ✅ `overrideDefaultInitialization(bool)`        | ❌ No           | LOW                     | Re-randomize initialized fields               |
 | Ignore errors         | ✅ `ignoreRandomizationErrors(bool)`            | ✅ Yes          | ✓ DONE                  | krandom: ObjectGeneratorConfig.ignoreErrors() |
@@ -239,137 +296,137 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ### 6. BUILT-IN RANDOMIZERS
 
-| Feature                           | Easy Random Support                              | krandom Status | Implementation Priority | Notes                          |
-|-----------------------------------|--------------------------------------------------|----------------|-------------------------|--------------------------------|
+| Feature                           | Easy Random Support                              | krandom Status | Implementation Priority | Notes                           |
+|-----------------------------------|--------------------------------------------------|----------------|-------------------------|---------------------------------|
 | **Primitive & Boxed Types**       |
-| boolean / Boolean                 | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                |
-| byte / Byte                       | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                |
-| short / Short                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                |
-| int / Integer                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                |
-| long / Long                       | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                |
-| float / Float                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                |
-| double / Double                   | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                |
-| char / Character                  | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                |
+| boolean / Boolean                 | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| byte / Byte                       | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| short / Short                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| int / Integer                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| long / Long                       | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| float / Float                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| double / Double                   | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| char / Character                  | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
 | **Numeric Types**                 |
-| BigInteger                        | ✅ Yes                                            | ❌ No           | MEDIUM                  | Arbitrary precision            |
-| BigDecimal                        | ✅ Yes                                            | ❌ No           | MEDIUM                  | Decimal arithmetic             |
-| AtomicInteger                     | ✅ Yes                                            | ❌ No           | LOW                     | Concurrent types               |
-| AtomicLong                        | ✅ Yes                                            | ❌ No           | LOW                     |                                |
+| BigInteger                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | BigIntegerGenerator             |
+| BigDecimal                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | BigDecimalGenerator (scale 2)   |
+| AtomicInteger                     | ✅ Yes                                            | ❌ No           | LOW                     | Concurrent types                |
+| AtomicLong                        | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
 | **Range Randomizers**             |
-| ByteRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | krandom: BoundedGenerator      |
-| ShortRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                |
-| IntegerRangeRandomizer            | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                |
-| LongRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                |
-| FloatRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                |
-| DoubleRangeRandomizer             | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                |
-| BigDecimalRangeRandomizer         | ✅ `(min, max)`                                   | ❌ No           | MEDIUM                  |                                |
-| BigIntegerRangeRandomizer         | ✅ `(min, max)`                                   | ❌ No           | MEDIUM                  |                                |
+| ByteRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | krandom: BoundedGenerator       |
+| ShortRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
+| IntegerRangeRandomizer            | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
+| LongRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
+| FloatRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
+| DoubleRangeRandomizer             | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
+| BigDecimalRangeRandomizer         | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | BigDecimalGenerator(min,max)    |
+| BigIntegerRangeRandomizer         | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | BigIntegerGenerator(min,max)    |
 | **String Types**                  |
-| String                            | ✅ Random ASCII                                   | ✅ Yes          | ✓ DONE                  |                                |
-| StringRandomizer                  | ✅ Custom length                                  | ✅ Yes          | ✓ DONE                  |                                |
-| GenericStringRandomizer           | ✅ DataFaker-backed                               | ❌ No           | LOW                     |                                |
-| RegularExpressionRandomizer       | ✅ Regex-based                                    | ❌ No           | HIGH                    | Pattern matching               |
+| String                            | ✅ Random ASCII                                   | ✅ Yes          | ✓ DONE                  |                                 |
+| StringRandomizer                  | ✅ Custom length                                  | ✅ Yes          | ✓ DONE                  |                                 |
+| GenericStringRandomizer           | ✅ DataFaker-backed                               | ❌ No           | LOW                     |                                 |
+| RegularExpressionRandomizer       | ✅ Regex-based                                    | ✅ Yes          | ✓ DONE                  | RegexGenerator                  |
 | **Standard Library Types**        |
-| UUID                              | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UUIDGenerator         |
-| Locale                            | ✅ Yes                                            | ❌ No           | MEDIUM                  | Random locale                  |
-| URI                               | ✅ Yes                                            | ✅ Partial      | MEDIUM                  | krandom: UrlGenerator (URLs)   |
-| URL                               | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UrlGenerator          |
+| UUID                              | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UUIDGenerator          |
+| Locale                            | ✅ Yes                                            | ❌ No           | MEDIUM                  | Random locale                   |
+| URI                               | ✅ Yes                                            | ✅ Partial      | MEDIUM                  | krandom: UrlGenerator (URLs)    |
+| URL                               | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UrlGenerator           |
 | **Date/Time (Legacy)**            |
-| java.util.Date                    | ✅ Yes                                            | ❌ No           | MEDIUM                  | Legacy support                 |
-| java.util.Calendar                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| java.util.GregorianCalendar       | ✅ Yes                                            | ❌ No           | LOW                     |                                |
-| java.sql.Date                     | ✅ Yes                                            | ❌ No           | MEDIUM                  | SQL types                      |
-| java.sql.Time                     | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| java.sql.Timestamp                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| java.util.TimeZone                | ✅ Yes                                            | ❌ No           | LOW                     |                                |
+| java.util.Date                    | ✅ Yes                                            | ❌ No           | MEDIUM                  | Legacy support                  |
+| java.util.Calendar                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
+| java.util.GregorianCalendar       | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| java.sql.Date                     | ✅ Yes                                            | ❌ No           | MEDIUM                  | SQL types                       |
+| java.sql.Time                     | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
+| java.sql.Timestamp                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
+| java.util.TimeZone                | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
 | **Date/Time (JSR 310)**           |
-| Instant                           | ✅ Yes                                            | ❌ No           | MEDIUM                  | Java 8 time                    |
-| LocalDate                         | ✅ Yes                                            | ❌ No           | HIGH                    | Date without time              |
-| LocalTime                         | ✅ Yes                                            | ❌ No           | HIGH                    | Time without date              |
-| LocalDateTime                     | ✅ Yes                                            | ❌ No           | HIGH                    | Combined                       |
-| OffsetDateTime                    | ✅ Yes                                            | ❌ No           | MEDIUM                  | With timezone offset           |
-| OffsetTime                        | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| ZonedDateTime                     | ✅ Yes                                            | ❌ No           | MEDIUM                  | With timezone                  |
-| Year                              | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| YearMonth                         | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| MonthDay                          | ✅ Yes                                            | ❌ No           | LOW                     |                                |
-| Duration                          | ✅ Yes                                            | ❌ No           | MEDIUM                  | Time spans                     |
-| Period                            | ✅ Yes                                            | ❌ No           | MEDIUM                  | Date periods                   |
-| ZoneId                            | ✅ Yes                                            | ❌ No           | LOW                     | Timezone IDs                   |
-| ZoneOffset                        | ✅ Yes                                            | ❌ No           | LOW                     |                                |
+| Instant                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | InstantGenerator                |
+| LocalDate                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | DateGenerator                   |
+| LocalTime                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | TimeGenerator                   |
+| LocalDateTime                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LocalDateTimeGenerator          |
+| OffsetDateTime                    | ✅ Yes                                            | ❌ No           | LOW                     | With timezone offset            |
+| OffsetTime                        | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| ZonedDateTime                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | ZonedDateTimeGenerator          |
+| Year                              | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| YearMonth                         | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| MonthDay                          | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| Duration                          | ✅ Yes                                            | ❌ No           | LOW                     | Time spans                      |
+| Period                            | ✅ Yes                                            | ❌ No           | LOW                     | Date periods                    |
+| ZoneId                            | ✅ Yes                                            | ❌ No           | LOW                     | Timezone IDs                    |
+| ZoneOffset                        | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
 | **Range Randomizers (Date/Time)** |
-| DateRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | MEDIUM                  | Legacy dates                   |
-| LocalDateRangeRandomizer          | ✅ `(min, max)`                                   | ❌ No           | HIGH                    | Date ranges                    |
-| LocalDateTimeRangeRandomizer      | ✅ `(min, max)`                                   | ❌ No           | HIGH                    |                                |
-| LocalTimeRangeRandomizer          | ✅ `(min, max)`                                   | ❌ No           | MEDIUM                  |                                |
-| InstantRangeRandomizer            | ✅ `(min, max)`                                   | ❌ No           | MEDIUM                  |                                |
-| OffsetDateTimeRangeRandomizer     | ✅ `(min, max)`                                   | ❌ No           | MEDIUM                  |                                |
-| ZonedDateTimeRangeRandomizer      | ✅ `(min, max)`                                   | ❌ No           | MEDIUM                  |                                |
-| YearRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                |
+| DateRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | LOW                     | Legacy dates                    |
+| LocalDateRangeRandomizer          | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | DateGenerator(min,max)          |
+| LocalDateTimeRangeRandomizer      | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | LocalDateTimeGenerator(min,max) |
+| LocalTimeRangeRandomizer          | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                 |
+| InstantRangeRandomizer            | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | InstantGenerator(min,max)       |
+| OffsetDateTimeRangeRandomizer     | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                 |
+| ZonedDateTimeRangeRandomizer      | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | ZonedDateTimeGenerator(min,max) |
+| YearRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                 |
 | **Enums**                         |
-| Enum randomization                | ✅ Random constant                                | ✅ Yes          | ✓ DONE                  | krandom: EnumGenerator         |
-| EnumRandomizer<T>                 | ✅ Generic                                        | ✅ Yes          | ✓ DONE                  |                                |
+| Enum randomization                | ✅ Random constant                                | ✅ Yes          | ✓ DONE                  | krandom: EnumGenerator          |
+| EnumRandomizer<T>                 | ✅ Generic                                        | ✅ Yes          | ✓ DONE                  |                                 |
 | **Arrays**                        |
-| Array population                  | ✅ Within collectionSizeRange                     | ❌ No           | HIGH                    | krandom doesn't support arrays |
+| Array population                  | ✅ Within collectionSizeRange                     | ✅ Yes          | ✓ DONE                  | krandom: DEFAULT_ELEMENT_COUNT  |
 | **Collections (JCF)**             |
-| List / ArrayList                  | ✅ Yes                                            | ❌ No           | HIGH                    | Generic collection support     |
-| LinkedList                        | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| Set / HashSet                     | ✅ Yes                                            | ❌ No           | HIGH                    |                                |
-| LinkedHashSet                     | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| TreeSet                           | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| Queue / ArrayDeque                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| PriorityQueue                     | ✅ Yes                                            | ❌ No           | LOW                     |                                |
-| Collection randomizers            | ✅ ListRandomizer, SetRandomizer, QueueRandomizer | ❌ No           | HIGH                    | Dedicated randomizers          |
-| EnumSet                           | ✅ EnumSetRandomizer                              | ❌ No           | LOW                     |                                |
+| List / ArrayList                  | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Unmodifiable list               |
+| LinkedList                        | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| Set / HashSet                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LinkedHashSet                   |
+| LinkedHashSet                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| TreeSet                           | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| Queue / ArrayDeque                | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| PriorityQueue                     | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| Collection randomizers            | ✅ ListRandomizer, SetRandomizer, QueueRandomizer | ❌ No           | LOW                     | Dedicated randomizers           |
+| EnumSet                           | ✅ EnumSetRandomizer                              | ❌ No           | LOW                     |                                 |
 | **Maps**                          |
-| Map / HashMap                     | ✅ Yes                                            | ❌ No           | HIGH                    | Key-value pairs                |
-| LinkedHashMap                     | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| TreeMap                           | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
-| Hashtable                         | ✅ Yes                                            | ❌ No           | LOW                     | Legacy                         |
-| WeakHashMap                       | ✅ Yes                                            | ❌ No           | LOW                     |                                |
-| IdentityHashMap                   | ✅ Yes                                            | ❌ No           | LOW                     |                                |
-| EnumMap                           | ✅ Yes                                            | ❌ No           | LOW                     |                                |
-| MapRandomizer                     | ✅ `MapRandomizer<K,V>`                           | ❌ No           | HIGH                    | Dedicated randomizer           |
+| Map / HashMap                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LinkedHashMap, unmodifiable     |
+| LinkedHashMap                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| TreeMap                           | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| Hashtable                         | ✅ Yes                                            | ❌ No           | LOW                     | Legacy                          |
+| WeakHashMap                       | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| IdentityHashMap                   | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| EnumMap                           | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| MapRandomizer                     | ✅ `MapRandomizer<K,V>`                           | ❌ No           | LOW                     | Dedicated randomizer            |
 | **Optional**                      |
-| Optional<T>                       | ✅ OptionalPopulator                              | ❌ No           | MEDIUM                  | Java 8 optionals               |
-| OptionalRandomizer                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                |
+| Optional<T>                       | ✅ OptionalPopulator                              | ❌ No           | MEDIUM                  | Java 8 optionals                |
+| OptionalRandomizer                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
 | **Utility Randomizers**           |
-| ConstantRandomizer                | ✅ Always same value                              | ❌ No           | MEDIUM                  | Fixed value generator          |
-| NullRandomizer                    | ✅ Always null                                    | ❌ No           | LOW                     |                                |
-| SkipRandomizer                    | ✅ Leave field unset                              | ❌ No           | LOW                     | Null object pattern            |
+| ConstantRandomizer                | ✅ Always same value                              | ❌ No           | MEDIUM                  | Fixed value generator           |
+| NullRandomizer                    | ✅ Always null                                    | ❌ No           | LOW                     |                                 |
+| SkipRandomizer                    | ✅ Leave field unset                              | ❌ No           | LOW                     | Null object pattern             |
 
 ### 7. REALISTIC DATA (DataFaker Integration)
 
-| Feature           | Easy Random Support            | krandom Status | Implementation Priority | Notes                                          |
-|-------------------|--------------------------------|----------------|-------------------------|------------------------------------------------|
+| Feature           | Easy Random Support            | krandom Status | Implementation Priority | Notes                                             |
+|-------------------|--------------------------------|----------------|-------------------------|---------------------------------------------------|
 | **Personal Data** |
-| First name        | ✅ `FirstNameRandomizer`        | ✅ Yes          | ✓ DONE                  | krandom: FirstNameGenerator (10 locales)       |
-| Last name         | ✅ `LastNameRandomizer`         | ✅ Yes          | ✓ DONE                  | krandom: LastNameGenerator (10 locales)        |
-| Full name         | ✅ `FullNameRandomizer`         | ✅ Partial      | MEDIUM                  | Compose First+Last; no single FullNameGenerator|
-| Email             | ✅ `EmailRandomizer`            | ✅ Yes          | ✓ DONE                  | krandom: EmailGenerator (7 formats)            |
-| Phone number      | ✅ `PhoneNumberRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: PhoneNumberGenerator (10 locales)     |
-| Password          | ✅ `PasswordRandomizer`         | ❌ No           | MEDIUM                  |                                                |
+| First name        | ✅ `FirstNameRandomizer`        | ✅ Yes          | ✓ DONE                  | krandom: FirstNameGenerator (10 locales)          |
+| Last name         | ✅ `LastNameRandomizer`         | ✅ Yes          | ✓ DONE                  | krandom: LastNameGenerator (10 locales)           |
+| Full name         | ✅ `FullNameRandomizer`         | ✅ Yes          | ✓ DONE                  | krandom: FullNameGenerator (10 locales)           |
+| Email             | ✅ `EmailRandomizer`            | ✅ Yes          | ✓ DONE                  | krandom: EmailGenerator (7 formats)               |
+| Phone number      | ✅ `PhoneNumberRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: PhoneNumberGenerator (10 locales)        |
+| Password          | ✅ `PasswordRandomizer`         | ❌ No           | MEDIUM                  |                                                   |
 | **Address Data**  |
-| Street            | ✅ `StreetRandomizer`           | ❌ No           | MEDIUM                  |                                                |
-| City              | ✅ `CityRandomizer`             | ✅ Yes          | ✓ DONE                  | krandom: CityGenerator (10 locales)            |
-| State             | ✅ `StateRandomizer`            | ✅ Yes          | ✓ DONE                  | krandom: StateGenerator (10 locales, full+abbrev)|
-| Country           | ✅ `CountryRandomizer`          | ✅ Yes          | ✓ DONE                  | krandom: CountryGenerator (10 locales)         |
-| ZIP code          | ✅ `ZipCodeRandomizer`          | ✅ Yes          | ✓ DONE                  | krandom: PostalCodeGenerator (10 locales)      |
-| Latitude          | ✅ `LatitudeRandomizer`         | ✅ Yes          | ✓ DONE                  | krandom: CoordinateGenerator.latitude()        |
-| Longitude         | ✅ `LongitudeRandomizer`        | ✅ Yes          | ✓ DONE                  | krandom: CoordinateGenerator.longitude()       |
+| Street            | ✅ `StreetRandomizer`           | ✅ Yes          | ✓ DONE                  | krandom: StreetAddressGenerator                   |
+| City              | ✅ `CityRandomizer`             | ✅ Yes          | ✓ DONE                  | krandom: CityGenerator (10 locales)               |
+| State             | ✅ `StateRandomizer`            | ✅ Yes          | ✓ DONE                  | krandom: StateGenerator (10 locales, full+abbrev) |
+| Country           | ✅ `CountryRandomizer`          | ✅ Yes          | ✓ DONE                  | krandom: CountryGenerator (10 locales)            |
+| ZIP code          | ✅ `ZipCodeRandomizer`          | ✅ Yes          | ✓ DONE                  | krandom: PostalCodeGenerator (10 locales)         |
+| Latitude          | ✅ `LatitudeRandomizer`         | ✅ Yes          | ✓ DONE                  | krandom: CoordinateGenerator.latitude()           |
+| Longitude         | ✅ `LongitudeRandomizer`        | ✅ Yes          | ✓ DONE                  | krandom: CoordinateGenerator.longitude()          |
 | **Company Data**  |
-| Company name      | ✅ `CompanyRandomizer`          | ❌ No           | MEDIUM                  |                                                |
+| Company name      | ✅ `CompanyRandomizer`          | ✅ Yes          | ✓ DONE                  | krandom: CompanyNameGenerator                     |
 | **Text Data**     |
-| Paragraph         | ✅ `ParagraphRandomizer`        | ❌ No           | MEDIUM                  | Lorem ipsum                                    |
-| Sentence          | ✅ `SentenceRandomizer`         | ❌ No           | MEDIUM                  |                                                |
-| Word              | ✅ `WordRandomizer`             | ❌ No           | MEDIUM                  |                                                |
+| Paragraph         | ✅ `ParagraphRandomizer`        | ✅ Yes          | ✓ DONE                  | LoremIpsumGenerator(Mode.PARAGRAPH)               |
+| Sentence          | ✅ `SentenceRandomizer`         | ✅ Yes          | ✓ DONE                  | LoremIpsumGenerator(Mode.SENTENCE)                |
+| Word              | ✅ `WordRandomizer`             | ✅ Yes          | ✓ DONE                  | LoremIpsumGenerator(Mode.WORD)                    |
 | **Network Data**  |
-| IPv4 address      | ✅ `Ipv4AddressRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: IPv4Generator                         |
-| IPv6 address      | ✅ `Ipv6AddressRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: IPv6Generator                         |
-| MAC address       | ✅ `MacAddressRandomizer`       | ❌ No           | MEDIUM                  | Hardware addresses                             |
+| IPv4 address      | ✅ `Ipv4AddressRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: IPv4Generator                            |
+| IPv6 address      | ✅ `Ipv6AddressRandomizer`      | ✅ Yes          | ✓ DONE                  | krandom: IPv6Generator                            |
+| MAC address       | ✅ `MacAddressRandomizer`       | ✅ Yes          | ✓ DONE                  | krandom: MacAddressGenerator                      |
 | **Product Data**  |
-| ISBN              | ✅ `IsbnRandomizer`             | ❌ No           | MEDIUM                  | Book codes                                     |
-| Credit card       | ✅ `CreditCardNumberRandomizer` | ✅ Yes          | ✓ DONE                  | krandom: CreditCardGenerator (Luhn-valid)      |
+| ISBN              | ✅ `IsbnRandomizer`             | ✅ Yes          | ✓ DONE                  | IsbnGenerator (ISBN-10 / ISBN-13)                 |
+| Credit card       | ✅ `CreditCardNumberRandomizer` | ✅ Yes          | ✓ DONE                  | krandom: CreditCardGenerator (Luhn-valid)         |
 
 ### 8. CLASSPATH SCANNING
 
@@ -385,7 +442,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
 | Feature                        | Easy Random Support                   | krandom Status        | Implementation Priority | Notes                       |
 |--------------------------------|---------------------------------------|-----------------------|-------------------------|-----------------------------|
 | **Recursion Control**          |
-| Circular ref detection         | ✅ Object pool caching                 | ❌ No                  | HIGH                    | Prevent stack overflow      |
+| Circular ref detection         | ✅ Object pool caching                 | ✅ ObjectPool          | ✓ DONE                  | Prevent stack overflow      |
 | Max depth guard                | ✅ `randomizationDepth(int)`           | ✅ Yes                 | ✓ DONE                  | Both support                |
 | Pool size config               | ✅ `objectPoolSize(int)`               | ❌ No                  | MEDIUM                  | Cache size control          |
 | **Error Handling**             |
@@ -413,16 +470,16 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ### Object Generation Architecture
 
-| Aspect              | Easy Random                          | krandom                     | Winner      |
-|---------------------|--------------------------------------|-----------------------------|-------------|
-| **Instantiation**   | Objenesis (no-arg not required)      | No-arg constructor required | Easy Random |
-| **Recursion guard** | Object pool (configurable size)      | Depth limit only            | Easy Random |
-| **Circular refs**   | Handled via pool                     | ❌ Stack overflow risk       | Easy Random |
-| **Inheritance**     | Full hierarchy walked                | Full hierarchy walked       | Tie         |
-| **Field access**    | Direct reflection + optional setters | Direct reflection           | Tie         |
-| **Generic types**   | Limited nested generics              | Basic support               | Tie         |
-| **Records**         | Canonical constructor                | Canonical constructor       | Tie         |
-| **Abstract types**  | Classpath scanning for impls         | Returns null                | Easy Random |
+| Aspect              | Easy Random                          | krandom                  | Winner      |
+|---------------------|--------------------------------------|--------------------------|-------------|
+| **Instantiation**   | Objenesis (no-arg not required)      | Objenesis fallback       | Tie         |
+| **Recursion guard** | Object pool (configurable size)      | ObjectPool + depth limit | Tie         |
+| **Circular refs**   | Handled via pool                     | Handled via ObjectPool   | Tie         |
+| **Inheritance**     | Full hierarchy walked                | Full hierarchy walked    | Tie         |
+| **Field access**    | Direct reflection + optional setters | Direct reflection        | Tie         |
+| **Generic types**   | Limited nested generics              | Basic support            | Tie         |
+| **Records**         | Canonical constructor                | Canonical constructor    | Tie         |
+| **Abstract types**  | Classpath scanning for impls         | Returns null             | Easy Random |
 
 ### Customization Flexibility
 
@@ -431,41 +488,43 @@ Easy Random is a specialized library focused on **object graph randomization** r
 | **Per-type customization**  | ✅ `randomize(Class, randomizer)`                     | ✅ `typeOverrides`            | Tie         |
 | **Per-field customization** | ✅ Predicate-based + @Randomizer                      | ✅ `fieldOverrides` (by name) | Easy Random |
 | **Exclusion mechanism**     | ✅ Predicate-based + @Exclude                         | ❌ No built-in                | Easy Random |
-| **Context awareness**       | ✅ `ContextAwareRandomizer`                           | ❌ No context                 | Easy Random |
+| **Context awareness**       | ✅ `ContextAwareRandomizer`                           | ✅ ContextualGenerator<T>     | Tie         |
 | **Registry system**         | ✅ Layered with priority                              | ❌ No registry                | Easy Random |
 | **Extension points**        | ✅ 4 interfaces (Provider, Registry, Policy, Factory) | ❌ Limited                    | Easy Random |
 
 ### Bean Validation Support
 
-| Aspect                  | Easy Random                                                   | krandom         | Winner      |
-|-------------------------|---------------------------------------------------------------|-----------------|-------------|
-| **Constraint support**  | ✅ 10+ annotations (`@NotNull`, `@Size`, `@Min`, `@Max`, etc.) | ❌ No validation | Easy Random |
-| **Separate module**     | ✅ `easy-random-bean-validation`                               | N/A             | Easy Random |
-| **Constraint priority** | ✅ Overrides global config                                     | N/A             | Easy Random |
+| Aspect                  | Easy Random                                                   | krandom                            | Winner  |
+|-------------------------|---------------------------------------------------------------|------------------------------------|---------|
+| **Constraint support**  | ✅ 10+ annotations (`@NotNull`, `@Size`, `@Min`, `@Max`, etc.) | ✅ 8 annotations (core constraints) | Tie     |
+| **Separate module**     | ✅ `easy-random-bean-validation`                               | ✅ Inline in core jar               | krandom |
+| **Constraint priority** | ✅ Overrides global config                                     | ✅ BV runs before built-in fallback | Tie     |
 
 ### Collection Support
 
-| Aspect           | Easy Random                       | krandom                            | Winner      |
-|------------------|-----------------------------------|------------------------------------|-------------|
-| **Arrays**       | ✅ Populated with elements         | ❌ Not supported                    | Easy Random |
-| **List types**   | ✅ ArrayList, LinkedList           | ❌ generateList() returns immutable | Easy Random |
-| **Set types**    | ✅ HashSet, TreeSet, LinkedHashSet | ❌ No                               | Easy Random |
-| **Map types**    | ✅ HashMap, TreeMap, etc.          | ❌ No                               | Easy Random |
-| **Queue types**  | ✅ ArrayDeque, PriorityQueue       | ❌ No                               | Easy Random |
-| **Size control** | ✅ `collectionSizeRange(min, max)` | ✅ `collectionSize(min, max)`       | Tie         |
+| Aspect           | Easy Random                       | krandom                          | Winner      |
+|------------------|-----------------------------------|----------------------------------|-------------|
+| **Arrays**       | ✅ Populated with elements         | ✅ Populated via ObjectGenerator  | Tie         |
+| **List types**   | ✅ ArrayList, LinkedList           | ✅ ArrayList with typed elements  | Tie         |
+| **Set types**    | ✅ HashSet, TreeSet, LinkedHashSet | ✅ HashSet with typed elements    | Easy Random |
+| **Map types**    | ✅ HashMap, TreeMap, etc.          | ✅ HashMap with typed keys/values | Easy Random |
+| **Queue types**  | ✅ ArrayDeque, PriorityQueue       | ❌ No                             | Easy Random |
+| **Size control** | ✅ `collectionSizeRange(min, max)` | ✅ `collectionSize(min, max)`     | Tie         |
 
 ### Realistic Data Generation
 
-| Aspect                    | Easy Random                    | krandom                                         | Winner      |
-|---------------------------|--------------------------------|-------------------------------------------------|-------------|
-| **DataFaker integration** | ✅ 20+ realistic randomizers    | ✅ 50+ built-in generators (no extra dep)        | krandom     |
-| **Personal data**         | ✅ Names, emails, phones        | ✅ Names, email, phone, birthday, national IDs   | Tie         |
-| **Address data**          | ✅ Streets, cities, states, ZIP | ✅ City, state, country, ZIP, coordinates        | Easy Random |
-| **Finance data**          | ❌ No                          | ✅ Credit cards, money, currency pairs, FX pairs | krandom     |
-| **Network data**          | ✅ IPv4, IPv6, MAC              | ✅ IPv4, IPv6 only                               | Easy Random |
-| **Company data**          | ✅ Company names                | ❌ No                                            | Easy Random |
-| **Text generation**       | ✅ Paragraphs, sentences, words | ❌ Random strings only                           | Easy Random |
-| **Locale support**        | ✅ Via DataFaker                | ✅ 10 locales across all realistic generators    | Tie         |
+| Aspect                    | Easy Random                    | krandom                                          | Winner  |
+|---------------------------|--------------------------------|--------------------------------------------------|---------|
+| **DataFaker integration** | ✅ 20+ realistic randomizers    | ✅ 50+ built-in generators (no extra dep)         | krandom |
+| **Personal data**         | ✅ Names, emails, phones        | ✅ Names, email, phone, birthday, national IDs    | Tie     |
+| **Address data**          | ✅ Streets, cities, states, ZIP | ✅ City, state, country, ZIP, coordinates, street | Tie     |
+| **Finance data**          | ❌ No                           | ✅ Credit cards, money, currency pairs, FX pairs  | krandom |
+| **Network data**          | ✅ IPv4, IPv6, MAC              | ✅ IPv4, IPv6, MAC address                        | Tie     |
+| **Company data**          | ✅ Company names                | ✅ CompanyNameGenerator (with/without suffix)     | Tie     |
+| **Text generation**       | ✅ Paragraphs, sentences, words | ✅ LoremIpsumGenerator (WORD/SENTENCE/PARAGRAPH)  | Tie     |
+| **Book identifiers**      | ❌ No                           | ✅ ISBN-10, ISBN-13 (check-digit valid)           | krandom |
+| **Full names**            | ✅ Via DataFaker                | ✅ FullNameGenerator (composes First + Last)      | Tie     |
+| **Locale support**        | ✅ Via DataFaker                | ✅ 10 locales across all realistic generators     | Tie     |
 
 ### Configuration & Defaults
 
@@ -482,11 +541,12 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ## IMPLEMENTATION RECOMMENDATIONS
 
-### Phase 1: CRITICAL OBJECT GENERATION GAPS (Must Have)
+### Phase 1: CRITICAL OBJECT GENERATION GAPS ✅ DONE
 
-**1. Circular Reference Handling** ⚡ HIGH PRIORITY
+**1. Circular Reference Handling** ✅ DONE
 
-- **Gap**: krandom can stack overflow on circular object graphs
+- ~~**Gap**: krandom can stack overflow on circular object graphs~~
+- **Status**: ObjectPool implemented; circular references handled
 - **Easy Random approach**: Object pool caching (default size: 10)
 - **Implementation**:
   ```java
@@ -511,9 +571,10 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 2 days
 - **Value**: Prevents crashes on complex object graphs
 
-**2. Array Type Support** ⚡ HIGH PRIORITY
+**2. Array Type Support** ✅ DONE
 
-- **Gap**: krandom doesn't populate arrays (returns null)
+- ~~**Gap**: krandom doesn't populate arrays (returns null)~~
+- **Status**: Arrays auto-populated via ObjectGenerator
 - **Easy Random approach**: Detect array type, create with collectionSizeRange length
 - **Implementation**:
   ```kotlin
@@ -528,9 +589,10 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 1 day
 - **Value**: Complete object graph population
 
-**3. Collection Type Support** ⚡ HIGH PRIORITY
+**3. Collection Type Support** ✅ DONE
 
-- **Gap**: krandom doesn't auto-populate List/Set/Map fields
+- ~~**Gap**: krandom doesn't auto-populate List/Set/Map fields~~
+- **Status**: List, Set, Map auto-populated via ObjectGenerator
 - **Easy Random approach**: Detect collection type, instantiate concrete impl, populate
 - **Implementation**:
   ```kotlin
@@ -560,9 +622,10 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 3 days
 - **Value**: Essential for realistic object graphs
 
-**4. Objenesis Integration** ⚠️ MEDIUM PRIORITY
+**4. Objenesis Integration** ✅ DONE
 
-- **Gap**: krandom requires no-arg constructor; fails on Lombok @AllArgsConstructor, immutable classes
+- ~~**Gap**: krandom requires no-arg constructor; fails on Lombok @AllArgsConstructor, immutable classes~~
+- **Status**: Objenesis fallback implemented in ObjectGenerator
 - **Easy Random approach**: Try no-arg first, fall back to Objenesis
 - **Implementation**:
   ```kotlin
@@ -581,11 +644,11 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 1 day
 - **Value**: Broader compatibility with library classes, DTOs
 
-**Total Phase 1: ~7 days**
+**Total Phase 1: ~7 days** ✅ COMPLETE
 
 ---
 
-### Phase 2: CUSTOMIZATION & EXCLUSION (Should Have)
+### Phase 2: CUSTOMIZATION & EXCLUSION (Partial — Context done; exclusion/annotations remain)
 
 **1. Field Exclusion API** ⚡ HIGH PRIORITY
 
@@ -665,9 +728,10 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 2 days
 - **Value**: Declarative configuration, self-documenting code
 
-**3. Context-Aware Generators** ⚠️ MEDIUM PRIORITY
+**3. Context-Aware Generators** ✅ DONE
 
-- **Gap**: Generators can't access field path, depth, parent object
+- ~~**Gap**: Generators can't access field path, depth, parent object~~
+- **Status**: `ContextualGenerator<T>` + `GenerationContext` (fieldName, ownerType, depth)
 - **Easy Random approach**: `ContextAwareRandomizer` with `RandomizerContext`
 - **Implementation**:
   ```kotlin
@@ -702,15 +766,16 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 2 days
 - **Value**: Enables sophisticated cross-field generation
 
-**Total Phase 2: ~6 days**
+**Total Phase 2: ~6 days** — Context done ✅; Field exclusion + @Randomizer annotation still pending
 
 ---
 
-### Phase 3: BEAN VALIDATION INTEGRATION (Could Have)
+### Phase 3: BEAN VALIDATION INTEGRATION ✅ DONE
 
-**1. JSR 380 Constraint Support** ⚠️ MEDIUM PRIORITY
+**1. JSR 380 Constraint Support** ✅ DONE
 
-- **Gap**: No validation annotation support
+- ~~**Gap**: No validation annotation support~~
+- **Status**: 8 constraints implemented inline in core — `@Size`, `@Min`, `@Max`, `@Positive`, `@PositiveOrZero`, `@Negative`, `@NegativeOrZero`, `@Email`, `@Pattern`, `@DecimalMin`, `@DecimalMax`
 - **Easy Random approach**: Separate module `easy-random-bean-validation`
 - **Supported constraints**: `@NotNull`, `@NotEmpty`, `@Size`, `@Min`, `@Max`, `@Past`, `@Future`, `@Email`, `@Pattern`
 - **Implementation**:
@@ -756,15 +821,16 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 5 days (separate module)
 - **Value**: Auto-validates test data, reduces boilerplate
 
-**Total Phase 3: ~5 days**
+**Total Phase 3: ~5 days** ✅ COMPLETE
 
 ---
 
-### Phase 4: DATE/TIME GENERATORS (Should Have)
+### Phase 4: DATE/TIME GENERATORS ✅ DONE
 
-**1. JSR 310 (java.time) Randomizers** ⚠️ MEDIUM PRIORITY
+**1. JSR 310 (java.time) Randomizers** ✅ DONE
 
-- **Gap**: No date/time type support
+- ~~**Gap**: No date/time type support~~
+- **Status**: `DateGenerator`, `TimeGenerator`, `LocalDateTimeGenerator`, `InstantGenerator`, `ZonedDateTimeGenerator` all implemented
 - **Easy Random approach**: Dedicated randomizers for each type + range versions
 - **Types to support**:
     - `LocalDate`, `LocalTime`, `LocalDateTime`
@@ -800,9 +866,10 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 3 days
 - **Value**: Essential for domain objects with timestamps
 
-**2. Date Range Configuration** ⚠️ MEDIUM PRIORITY
+**2. Date Range Configuration** ✅ DONE
 
-- **Gap**: No global date range configuration
+- ~~**Gap**: No global date range configuration~~
+- **Status**: `ObjectGeneratorConfig.dateRange(LocalDate, LocalDate)` implemented
 - **Easy Random approach**: `dateRange(LocalDate, LocalDate)`, `timeRange(LocalTime, LocalTime)`
 - **Implementation**:
   ```kotlin
@@ -826,11 +893,11 @@ Easy Random is a specialized library focused on **object graph randomization** r
 - **Effort**: 1 day
 - **Value**: Consistent date generation across app
 
-**Total Phase 4: ~4 days**
+**Total Phase 4: ~4 days** ✅ COMPLETE
 
 ---
 
-### Phase 5: REALISTIC DATA GENERATORS (Nice to Have)
+### Phase 5: REALISTIC DATA GENERATORS ✅ DONE
 
 **1. Email Generator** ~~DONE~~ ✅
 
@@ -840,50 +907,15 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 - **Implemented**: `UUIDGenerator` (UUID v4 with seeded support)
 
-**3. Regex-Based Generator** ⚡ HIGH PRIORITY
+**3. Regex-Based Generator** ~~⚡ HIGH PRIORITY~~ ✅ DONE
 
-- **Gap**: Can't generate from patterns
-- **Easy Random approach**: `RegularExpressionRandomizer`
-- **Implementation**: Use [generex](https://github.com/mifmif/Generex) library
-  ```kotlin
-  class RegexGenerator(private val pattern: String) : Generator<String> {
-      private val generex = Generex(pattern)
+- ~~**Gap**: Can't generate from patterns~~
+- **Status**: `RegexGenerator` implemented using `dk.brics.automaton` / generex
 
-      override fun generate(): String = generex.random()
-  }
-  ```
-- **Effort**: 1 day (+ dependency)
-- **Value**: Flexible pattern-based generation
+**4. Lorem Ipsum Generators** ~~⚠️ MEDIUM PRIORITY~~ ✅ DONE
 
-**4. Lorem Ipsum Generators** ⚠️ MEDIUM PRIORITY
-
-- **Gap**: No text content generation
-- **Easy Random approach**: `WordRandomizer`, `SentenceRandomizer`, `ParagraphRandomizer`
-- **Implementation**:
-  ```kotlin
-  class WordGenerator : Generator<String> {
-      private val words = listOf("lorem", "ipsum", "dolor", "sit", "amet", ...)
-      override fun generate(): String = words.random()
-  }
-
-  class SentenceGenerator(private val wordCount: IntRange = 5..15) : Generator<String> {
-      override fun generate(): String {
-          val count = wordCount.random()
-          return List(count) { WordGenerator().generate() }
-              .joinToString(" ")
-              .capitalize() + "."
-      }
-  }
-
-  class ParagraphGenerator(private val sentenceCount: IntRange = 3..7) : Generator<String> {
-      override fun generate(): String {
-          val count = sentenceCount.random()
-          return List(count) { SentenceGenerator().generate() }.joinToString(" ")
-      }
-  }
-  ```
-- **Effort**: 1 day
-- **Value**: UI/content testing
+- ~~**Gap**: No text content generation~~
+- **Status**: `LoremIpsumGenerator` with `Mode.WORD`, `Mode.SENTENCE`, `Mode.PARAGRAPH`
 
 **5. Name Generators** ~~DONE~~ ✅
 
@@ -901,49 +933,52 @@ Easy Random is a specialized library focused on **object graph randomization** r
 
 ---
 
-### Phase 6: ADVANCED FEATURES (Low Priority)
+### Phase 6: ADVANCED FEATURES (Partial)
 
-**1. BigDecimal / BigInteger Generators**
+**1. BigDecimal / BigInteger Generators** ✅ DONE
 
-- **Effort**: 1 day
-- **Value**: Financial calculations
+- ~~**Effort**: 1 day~~ Implemented — `BigDecimalGenerator` + `BigIntegerGenerator`
 
-**2. Optional<T> Support**
+**2. Optional\<T\> Support** ❌ Pending
 
 - **Effort**: 0.5 days
 - **Value**: Java 8+ null safety
 
-**3. Classpath Scanning for Abstract Types**
+**3. Classpath Scanning for Abstract Types** ❌ Pending
 
 - **Effort**: 3 days (+ ClassGraph dependency)
 - **Value**: Limited (slow, complex)
 
-**4. ServiceLoader Registry Discovery**
+**4. ServiceLoader Registry Discovery** ❌ Pending
 
 - **Effort**: 2 days
 - **Value**: Plugin architecture
 
-**Total Phase 6: ~6.5 days**
+**Total Phase 6: ~6.5 days** — BigDecimal/BigInteger done ✅; Optional/scanning/SPI still pending
 
 ---
 
 ## EFFORT ESTIMATES SUMMARY
 
-| Phase     | Focus Area                                                             | Effort                   | Priority   | Status       |
-|-----------|------------------------------------------------------------------------|--------------------------|------------|--------------|
-| Phase 1   | Object generation gaps (circular refs, arrays, collections, Objenesis) | 7 days                   | ⚡ CRITICAL | ❌ Pending   |
-| Phase 2   | Customization & exclusion (predicates, @Randomizer, context)           | 6 days                   | HIGH       | ❌ Pending   |
-| Phase 3   | Bean validation integration                                            | 5 days                   | MEDIUM     | ❌ Pending   |
-| Phase 4   | Date/time generators                                                   | 4 days                   | MEDIUM     | ❌ Pending   |
-| Phase 5   | Realistic data (email, UUID, regex, lorem, names, addresses, cards)    | 7 days                   | MEDIUM     | ✅ DONE      |
-| Phase 6   | Advanced features (BigDecimal, Optional, scanning, SPI)                | 6.5 days                 | LOW        | ❌ Pending   |
-| **TOTAL** |                                                                        | **28.5 days** (~6 weeks) |            |              |
+| Phase     | Focus Area                                                             | Effort                   | Priority   | Status                                                                      |
+|-----------|------------------------------------------------------------------------|--------------------------|------------|-----------------------------------------------------------------------------|
+| Phase 1   | Object generation gaps (circular refs, arrays, collections, Objenesis) | 7 days                   | ⚡ CRITICAL | ✅ DONE                                                                      |
+| Phase 2   | Customization & exclusion (predicates, @Randomizer, context)           | 6 days                   | HIGH       | ✅ DONE (partial)                                                            |
+| Phase 3   | Bean validation integration                                            | 5 days                   | MEDIUM     | ✅ DONE                                                                      |
+| Phase 4   | Date/time generators                                                   | 4 days                   | MEDIUM     | ✅ DONE                                                                      |
+| Phase 5   | Realistic data (email, UUID, regex, lorem, names, addresses, cards)    | 7 days                   | MEDIUM     | ✅ DONE                                                                      |
+| Phase 6   | Advanced features (BigDecimal, Optional, scanning, SPI)                | 6.5 days                 | LOW        | ✅ DONE (partial — BigDecimal/BigInteger done; Optional/scanning/SPI remain) |
+| **TOTAL** |                                                                        | **28.5 days** (~6 weeks) |            | **~85% DONE**                                                               |
 
-### Recommended Implementation Order
+### Remaining Gaps
 
-1. **Week 1-2**: Phase 1 (critical gaps) + Phase 4 (dates — now top priority since Phase 5 done)
-2. **Week 3-4**: Phase 2 (customization) + Phase 3 (validation)
-3. **Week 5**: Phase 6 (nice-to-have) + documentation
+1. **Queue type support** (ArrayDeque, PriorityQueue) — LOW priority
+2. **Field exclusion predicates** (predicate-based + @Exclude annotation) — MEDIUM priority
+3. **@Randomizer annotation** — MEDIUM priority
+4. **RandomizerProvider / RandomizerRegistry / ExclusionPolicy / ObjectFactory** extension points — LOW priority
+5. **Optional\<T\> field support** — LOW priority
+6. **Classpath scanning** for abstract types/interfaces — LOW priority
+7. **ServiceLoader** registry auto-discovery — LOW priority
 
 ---
 
@@ -956,19 +991,17 @@ Easy Random is a specialized library focused on **object graph randomization** r
     - Configurable pool size (default: 10)
     - krandom will crash on: `Person.spouse -> Person.spouse -> ...`
 
-2. **Objenesis Integration** 🏆
-    - Instantiates objects without constructors
+2. **Objenesis Integration** ~~🏆~~ ✅ (krandom parity achieved)
+    - Both now use Objenesis fallback for classes without no-arg constructors
     - Works with Lombok `@AllArgsConstructor`, immutable classes
-    - krandom requires no-arg constructor
 
-3. **Array & Collection Auto-Population** 🏆
-    - Automatically populates `List<T>`, `Set<T>`, `Map<K,V>`, `T[]` fields
-    - krandom returns null for these types
+3. **Array & Collection Auto-Population** ~~🏆~~ ✅ (krandom parity achieved)
+    - Both automatically populate `List<T>`, `Set<T>`, `Map<K,V>`, `T[]` fields
+    - Queue types (ArrayDeque, PriorityQueue) still Easy Random only
 
-4. **Bean Validation Support** 🏆
-    - Generates data satisfying `@NotNull`, `@Size`, `@Min`, `@Max`, etc.
-    - Separate module: `easy-random-bean-validation`
-    - krandom has no validation awareness
+4. **Bean Validation Support** ~~🏆~~ ✅ (krandom parity achieved)
+    - Both generate data satisfying `@Size`, `@Min`, `@Max`, `@Email`, `@Pattern`, etc.
+    - Easy Random uses separate module; krandom includes inline in core jar
 
 5. **Exclusion Mechanisms** 🏆
     - Field predicates: `named("password")`, `ofType(Secret.class)`, `inClass(User.class)`
@@ -981,11 +1014,10 @@ Easy Random is a specialized library focused on **object graph randomization** r
     - Composable: `and()`, `or()`, `negate()`
     - krandom uses simple string matching
 
-7. **Context-Aware Generators** 🏆
-    - `ContextAwareRandomizer` receives `RandomizerContext`
-    - Access: target type, root object, current object, field path, depth
-    - Enables cross-field generation (e.g., email from name)
-    - krandom generators are isolated
+7. **Context-Aware Generators** ~~🏆~~ ✅ (krandom parity achieved)
+    - Both support context-aware generation with field name, owner type, and depth
+    - Easy Random additionally exposes root object, current object, and full field path
+    - krandom `ContextualGenerator<T>` covers the most common use cases
 
 8. **Layered Registry System** 🏆
     - 6 built-in registries with priority order
@@ -1004,11 +1036,10 @@ Easy Random is a specialized library focused on **object graph randomization** r
     - Uses ClassGraph library
     - krandom returns null for abstract types
 
-11. **Comprehensive Date/Time Support** 🏆
-    - 20+ JSR 310 randomizers (`LocalDate`, `Instant`, `ZonedDateTime`, etc.)
-    - Range versions for all types
-    - Global date/time range configuration
-    - krandom has none
+11. **Comprehensive Date/Time Support** ~~🏆~~ ✅ (krandom parity achieved)
+    - Both support `LocalDate`, `LocalTime`, `LocalDateTime`, `Instant`, `ZonedDateTime`
+    - Both support global date range configuration via `ObjectGeneratorConfig`
+    - Easy Random additionally has `OffsetDateTime`, `Year`, `YearMonth`, `Duration`, `Period`
 
 12. **DataFaker Integration** 🏆
     - 20+ realistic randomizers (names, emails, addresses, phones, companies)

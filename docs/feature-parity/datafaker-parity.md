@@ -22,149 +22,149 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 ### 1. PERSONAL IDENTITY
 
-| Feature                     | DataFaker Support                            | krandom Status | Implementation Priority | Notes                                     |
-|-----------------------------|----------------------------------------------|----------------|-------------------------|-------------------------------------------|
+| Feature                     | DataFaker Support                            | krandom Status | Implementation Priority | Notes                                                  |
+|-----------------------------|----------------------------------------------|----------------|-------------------------|--------------------------------------------------------|
 | **Name Generation**         |
-| Full name                   | ✅ `name()`, `fullName()`, `nameWithMiddle()` | ✅ Partial      | HIGH                    | krandom has basic name, needs middle name |
-| First name                  | ✅ `firstName()`                              | ✅ Yes          | ✓ DONE                  |                                           |
-| Last name                   | ✅ `lastName()`                               | ✅ Yes          | ✓ DONE                  |                                           |
-| Gender-specific first names | ✅ `femaleFirstName()`, `maleFirstName()`     | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)` — 10 locales |
-| Name prefix                 | ✅ `prefix()` (Mr., Mrs., Dr.)                | ✅ Yes          | ✓ DONE                  | `TitleGenerator` — 10 locales, extensible |
-| Name suffix                 | ✅ `suffix()` (Jr., Sr., III)                 | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` — 10 locales            |
-| Title                       | ✅ `title()` (professional titles)            | ✅ Yes          | ✓ DONE                  | `TitleGenerator` for honorifics           |
+| Full name                   | ✅ `name()`, `fullName()`, `nameWithMiddle()` | ✅ Partial      | HIGH                    | krandom has basic name, needs middle name              |
+| First name                  | ✅ `firstName()`                              | ✅ Yes          | ✓ DONE                  |                                                        |
+| Last name                   | ✅ `lastName()`                               | ✅ Yes          | ✓ DONE                  |                                                        |
+| Gender-specific first names | ✅ `femaleFirstName()`, `maleFirstName()`     | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)` — 10 locales        |
+| Name prefix                 | ✅ `prefix()` (Mr., Mrs., Dr.)                | ✅ Yes          | ✓ DONE                  | `TitleGenerator` — 10 locales, extensible              |
+| Name suffix                 | ✅ `suffix()` (Jr., Sr., III)                 | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` — 10 locales                         |
+| Title                       | ✅ `title()` (professional titles)            | ✅ Yes          | ✓ DONE                  | `TitleGenerator` for honorifics                        |
 | **ID Numbers**              |
-| SSN (US)                    | ✅ `ssnValid()`                               | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.US)` — area 666 excluded |
-| Singapore FIN/UIN           | ✅ `singaporeanFin()`, `singaporeanUin()`     | ❌ No           | LOW                     | Locale-specific                           |
-| Poland PESEL                | ✅ `peselNumber()`                            | ❌ No           | LOW                     | Locale-specific                           |
+| SSN (US)                    | ✅ `ssnValid()`                               | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.US)` — area 666 excluded   |
+| Singapore FIN/UIN           | ✅ `singaporeanFin()`, `singaporeanUin()`     | ❌ No           | LOW                     | Locale-specific                                        |
+| Poland PESEL                | ✅ `peselNumber()`                            | ❌ No           | LOW                     | Locale-specific                                        |
 | China SSN                   | ✅ `validZhCNSsn()`                           | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.CHINA)` — 18-char ISO 7064 |
-| Portugal NIF                | ✅ `validPtNif()`                             | ❌ No           | LOW                     | Locale-specific                           |
-| Mexico SSN                  | ✅ `validEsMXSsn()`                           | ❌ No           | LOW                     | Locale-specific                           |
-| South Africa SSN            | ✅ `validEnZaSsn()`                           | ❌ No           | LOW                     | Locale-specific                           |
+| Portugal NIF                | ✅ `validPtNif()`                             | ❌ No           | LOW                     | Locale-specific                                        |
+| Mexico SSN                  | ✅ `validEsMXSsn()`                           | ❌ No           | LOW                     | Locale-specific                                        |
+| South Africa SSN            | ✅ `validEnZaSsn()`                           | ❌ No           | LOW                     | Locale-specific                                        |
 | **Gender & Demographics**   |
-| Gender types                | ✅ `types()`, `binaryTypes()`                 | ✅ Yes          | ✓ DONE                  | `GenderGenerator` — 10 locales, locale-aware labels |
-| Race                        | ✅ `race()`                                   | ❌ No           | LOW                     | Sensitive data                            |
-| Education level             | ✅ `educationalAttainment()`                  | ❌ No           | MEDIUM                  | Useful for profiles                       |
-| Marital status              | ✅ `maritalStatus()`                          | ❌ No           | MEDIUM                  | Common demographic                        |
+| Gender types                | ✅ `types()`, `binaryTypes()`                 | ✅ Yes          | ✓ DONE                  | `GenderGenerator` — 10 locales, locale-aware labels    |
+| Race                        | ✅ `race()`                                   | ❌ No           | LOW                     | Sensitive data                                         |
+| Education level             | ✅ `educationalAttainment()`                  | ❌ No           | MEDIUM                  | Useful for profiles                                    |
+| Marital status              | ✅ `maritalStatus()`                          | ❌ No           | MEDIUM                  | Common demographic                                     |
 | **Relationships**           |
-| Direct relationships        | ✅ `direct()` (mother, father)                | ❌ No           | LOW                     | Nice-to-have                              |
-| Extended family             | ✅ `extended()`, `inLaw()`                    | ❌ No           | LOW                     |                                           |
+| Direct relationships        | ✅ `direct()` (mother, father)                | ❌ No           | LOW                     | Nice-to-have                                           |
+| Extended family             | ✅ `extended()`, `inLaw()`                    | ❌ No           | LOW                     |                                                        |
 | **Other Personal**          |
-| Passport number             | ✅ `valid()`                                  | ❌ No           | MEDIUM                  | Travel documents                          |
-| Driver's license            | ✅ `drivingLicense()`                         | ❌ No           | MEDIUM                  | ID documents                              |
+| Passport number             | ✅ `valid()`                                  | ❌ No           | MEDIUM                  | Travel documents                                       |
+| Driver's license            | ✅ `drivingLicense()`                         | ❌ No           | MEDIUM                  | ID documents                                           |
 
 ### 2. ADDRESS & LOCATION
 
-| Feature                  | DataFaker Support                                     | krandom Status | Implementation Priority | Notes                      |
-|--------------------------|-------------------------------------------------------|----------------|-------------------------|----------------------------|
+| Feature                  | DataFaker Support                                     | krandom Status | Implementation Priority | Notes                                                       |
+|--------------------------|-------------------------------------------------------|----------------|-------------------------|-------------------------------------------------------------|
 | **Street Address**       |
-| Street name              | ✅ `streetName()`                                      | ❌ No           | HIGH                    | Core address component     |
-| Street address           | ✅ `streetAddress()`                                   | ❌ No           | HIGH                    | Full street with number    |
-| Street number            | ✅ `streetAddressNumber()`, `buildingNumber()`         | ❌ No           | HIGH                    |                            |
-| Secondary address        | ✅ `secondaryAddress()` (Apt, Suite)                   | ❌ No           | MEDIUM                  | Common for apartments      |
-| Street suffix/prefix     | ✅ `streetSuffix()`, `streetPrefix()`                  | ❌ No           | MEDIUM                  | St, Ave, Blvd              |
+| Street name              | ✅ `streetName()`                                      | ❌ No           | HIGH                    | Core address component                                      |
+| Street address           | ✅ `streetAddress()`                                   | ❌ No           | HIGH                    | Full street with number                                     |
+| Street number            | ✅ `streetAddressNumber()`, `buildingNumber()`         | ❌ No           | HIGH                    |                                                             |
+| Secondary address        | ✅ `secondaryAddress()` (Apt, Suite)                   | ❌ No           | MEDIUM                  | Common for apartments                                       |
+| Street suffix/prefix     | ✅ `streetSuffix()`, `streetPrefix()`                  | ❌ No           | MEDIUM                  | St, Ave, Blvd                                               |
 | **City & State**         |
-| City name                | ✅ `city()`, `cityName()`                              | ✅ Yes          | ✓ DONE                  | `CityGenerator` — 10 locales, locale-specific cities |
-| City prefix/suffix       | ✅ `cityPrefix()`, `citySuffix()`                      | ❌ No           | LOW                     | Building blocks            |
-| State                    | ✅ `state()`                                           | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate()` — 10 locales             |
-| State abbreviation       | ✅ `stateAbbr()`                                       | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate(true)` — CA, TX, NSW, etc.  |
+| City name                | ✅ `city()`, `cityName()`                              | ✅ Yes          | ✓ DONE                  | `CityGenerator` — 10 locales, locale-specific cities        |
+| City prefix/suffix       | ✅ `cityPrefix()`, `citySuffix()`                      | ❌ No           | LOW                     | Building blocks                                             |
+| State                    | ✅ `state()`                                           | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate()` — 10 locales                    |
+| State abbreviation       | ✅ `stateAbbr()`                                       | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate(true)` — CA, TX, NSW, etc.         |
 | **Postal Codes**         |
-| ZIP code                 | ✅ `zipCode()`                                         | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator` — 10 locales                   |
-| ZIP+4                    | ✅ `zipCodePlus4()`                                    | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator.generate(true)` → "90210-1234"  |
-| ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No           | MEDIUM                  | State-specific mapping not implemented               |
-| County by ZIP            | ✅ `countyByZipCode()`                                 | ❌ No           | LOW                     | Geographic mapping         |
-| Postcode (generic)       | ✅ `postcode()`                                        | ✅ Yes          | ✓ DONE                  | 10 locale-specific formats (JP: "100-0001", DE: "10115") |
-| Eircode (Ireland)        | ✅ `eircode()`                                         | ❌ No           | LOW                     | Locale-specific            |
-| Mailbox                  | ✅ `mailBox()` (PO Box)                                | ❌ No           | LOW                     |                            |
+| ZIP code                 | ✅ `zipCode()`                                         | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator` — 10 locales                          |
+| ZIP+4                    | ✅ `zipCodePlus4()`                                    | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator.generate(true)` → "90210-1234"         |
+| ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No           | MEDIUM                  | State-specific mapping not implemented                      |
+| County by ZIP            | ✅ `countyByZipCode()`                                 | ❌ No           | LOW                     | Geographic mapping                                          |
+| Postcode (generic)       | ✅ `postcode()`                                        | ✅ Yes          | ✓ DONE                  | 10 locale-specific formats (JP: "100-0001", DE: "10115")    |
+| Eircode (Ireland)        | ✅ `eircode()`                                         | ❌ No           | LOW                     | Locale-specific                                             |
+| Mailbox                  | ✅ `mailBox()` (PO Box)                                | ❌ No           | LOW                     |                                                             |
 | **Country & Nation**     |
-| Country name             | ✅ `country()`                                         | ✅ Yes          | ✓ DONE                  | `CountryGenerator` — 195 countries, 10 locales       |
-| Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ❌ No           | MEDIUM                  | CountryGenerator returns names, not ISO codes        |
-| Capital city             | ✅ `capital()`                                         | ❌ No           | MEDIUM                  | Geographic data            |
-| Currency                 | ✅ `currency()`, `currencyCode()`                      | ✅ Yes          | ✓ DONE                  | Already in Money generator |
-| Flag emoji               | ✅ `flag()`                                            | ❌ No           | LOW                     | Unicode flags              |
-| Nationality              | ✅ `nationality()`                                     | ❌ No           | MEDIUM                  | Citizen of...              |
-| Language                 | ✅ `language()`, `isoLanguage()`                       | ❌ No           | MEDIUM                  | Spoken languages           |
+| Country name             | ✅ `country()`                                         | ✅ Yes          | ✓ DONE                  | `CountryGenerator` — 195 countries, 10 locales              |
+| Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ❌ No           | MEDIUM                  | CountryGenerator returns names, not ISO codes               |
+| Capital city             | ✅ `capital()`                                         | ❌ No           | MEDIUM                  | Geographic data                                             |
+| Currency                 | ✅ `currency()`, `currencyCode()`                      | ✅ Yes          | ✓ DONE                  | Already in Money generator                                  |
+| Flag emoji               | ✅ `flag()`                                            | ❌ No           | LOW                     | Unicode flags                                               |
+| Nationality              | ✅ `nationality()`                                     | ❌ No           | MEDIUM                  | Citizen of...                                               |
+| Language                 | ✅ `language()`, `isoLanguage()`                       | ❌ No           | MEDIUM                  | Spoken languages                                            |
 | **Coordinates**          |
-| Latitude                 | ✅ `latitude()`                                        | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` — locale-bounded |
+| Latitude                 | ✅ `latitude()`                                        | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` — locale-bounded  |
 | Longitude                | ✅ `longitude()`                                       | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLongitude()` — locale-bounded |
-| Lat/Lon pair             | ✅ `latLon()`, `lonLat()`                              | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generate()` → "35.12,-80.12"  |
+| Lat/Lon pair             | ✅ `latLon()`, `lonLat()`                              | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generate()` → "35.12,-80.12"          |
 | **Direction & Location** |
-| Compass direction        | ✅ `word()`, `abbreviation()`, `azimuth()`             | ❌ No           | LOW                     | N, NE, NNE                 |
-| Time zone                | ✅ `timeZone()`                                        | ❌ No           | MEDIUM                  | America/New_York           |
-| Full address             | ✅ `fullAddress()`                                     | ❌ No           | HIGH                    | Complete formatted address |
+| Compass direction        | ✅ `word()`, `abbreviation()`, `azimuth()`             | ❌ No           | LOW                     | N, NE, NNE                                                  |
+| Time zone                | ✅ `timeZone()`                                        | ❌ No           | MEDIUM                  | America/New_York                                            |
+| Full address             | ✅ `fullAddress()`                                     | ❌ No           | HIGH                    | Complete formatted address                                  |
 
 ### 3. INTERNET & NETWORKING
 
-| Feature           | DataFaker Support                    | krandom Status | Implementation Priority | Notes                   |
-|-------------------|--------------------------------------|----------------|-------------------------|-------------------------|
+| Feature           | DataFaker Support                    | krandom Status | Implementation Priority | Notes                                                 |
+|-------------------|--------------------------------------|----------------|-------------------------|-------------------------------------------------------|
 | **Email**         |
-| Email address     | ✅ `emailAddress()`                   | ✅ Yes          | ✓ DONE                  | `EmailGenerator` — 5 formats, 12 domains, 10 locales |
+| Email address     | ✅ `emailAddress()`                   | ✅ Yes          | ✓ DONE                  | `EmailGenerator` — 5 formats, 12 domains, 10 locales  |
 | Safe email        | ✅ `safeEmailAddress()` (example.com) | ✅ Yes          | ✓ DONE                  | `gen.generate("example.com")` — custom domain support |
-| Email subject     | ✅ `emailSubject()`                   | ❌ No           | LOW                     |                         |
+| Email subject     | ✅ `emailSubject()`                   | ❌ No           | LOW                     |                                                       |
 | **Domain & URLs** |
-| Domain name       | ✅ `domainName()`                     | ✅ Yes          | ✓ DONE                  | `DomainGenerator` — 12 popular TLDs, 10 locale TLDs |
-| Domain word       | ✅ `domainWord()`                     | ✅ Partial      | ✓ DONE                  | Embedded in `DomainGenerator` (1-2 word combos)     |
-| Domain suffix     | ✅ `domainSuffix()` (.com, .org)      | ✅ Yes          | ✓ DONE                  | `DomainGenerator.getTLD()` → "com", "io", "de"      |
-| URL               | ✅ `url()`                            | ✅ Yes          | ✓ DONE                  | `URLGenerator` — 5 protocols, path, query params    |
-| Web domain        | ✅ `webdomain()`                      | ✅ Partial      | ✓ DONE                  | Covered by `DomainGenerator`                        |
-| Slug              | ✅ `slug()`                           | ❌ No           | MEDIUM                  | URL-friendly strings    |
+| Domain name       | ✅ `domainName()`                     | ✅ Yes          | ✓ DONE                  | `DomainGenerator` — 12 popular TLDs, 10 locale TLDs   |
+| Domain word       | ✅ `domainWord()`                     | ✅ Partial      | ✓ DONE                  | Embedded in `DomainGenerator` (1-2 word combos)       |
+| Domain suffix     | ✅ `domainSuffix()` (.com, .org)      | ✅ Yes          | ✓ DONE                  | `DomainGenerator.getTLD()` → "com", "io", "de"        |
+| URL               | ✅ `url()`                            | ✅ Yes          | ✓ DONE                  | `URLGenerator` — 5 protocols, path, query params      |
+| Web domain        | ✅ `webdomain()`                      | ✅ Partial      | ✓ DONE                  | Covered by `DomainGenerator`                          |
+| Slug              | ✅ `slug()`                           | ❌ No           | MEDIUM                  | URL-friendly strings                                  |
 | **IP Addresses**  |
-| IPv4              | ✅ `ipV4Address()`                    | ✅ Yes          | ✓ DONE                  | Already implemented     |
-| IPv4 private      | ✅ `privateIpV4Address()`             | ❌ No           | MEDIUM                  | RFC1918 addresses       |
-| IPv4 public       | ✅ `publicIpV4Address()`              | ❌ No           | MEDIUM                  | Non-private             |
-| IPv4 CIDR         | ✅ `ipV4Cidr()`                       | ❌ No           | MEDIUM                  | Network notation        |
-| IPv6              | ✅ `ipV6Address()`                    | ✅ Yes          | ✓ DONE                  | Already implemented     |
-| IPv6 CIDR         | ✅ `ipV6Cidr()`                       | ❌ No           | MEDIUM                  | IPv6 networks           |
+| IPv4              | ✅ `ipV4Address()`                    | ✅ Yes          | ✓ DONE                  | Already implemented                                   |
+| IPv4 private      | ✅ `privateIpV4Address()`             | ❌ No           | MEDIUM                  | RFC1918 addresses                                     |
+| IPv4 public       | ✅ `publicIpV4Address()`              | ❌ No           | MEDIUM                  | Non-private                                           |
+| IPv4 CIDR         | ✅ `ipV4Cidr()`                       | ❌ No           | MEDIUM                  | Network notation                                      |
+| IPv6              | ✅ `ipV6Address()`                    | ✅ Yes          | ✓ DONE                  | Already implemented                                   |
+| IPv6 CIDR         | ✅ `ipV6Cidr()`                       | ❌ No           | MEDIUM                  | IPv6 networks                                         |
 | **Network**       |
-| MAC address       | ✅ `macAddress()`                     | ❌ No           | MEDIUM                  | Hardware addresses      |
-| Port              | ✅ `port()`                           | ❌ No           | MEDIUM                  | 1-65535                 |
-| HTTP method       | ✅ `httpMethod()` (GET, POST)         | ❌ No           | LOW                     | REST APIs               |
+| MAC address       | ✅ `macAddress()`                     | ❌ No           | MEDIUM                  | Hardware addresses                                    |
+| Port              | ✅ `port()`                           | ❌ No           | MEDIUM                  | 1-65535                                               |
+| HTTP method       | ✅ `httpMethod()` (GET, POST)         | ❌ No           | LOW                     | REST APIs                                             |
 | **Identifiers**   |
-| UUID v3           | ✅ `uuidv3()`                         | ❌ No           | LOW                     | Not implemented (v5 SHA-1 is similar) |
-| UUID v4           | ✅ `uuid()`, `uuidv4()`               | ✅ Yes          | ✓ DONE                  | `UUIDGenerator.generateV4()` — RFC 4122 §4.4        |
-| UUID v7           | ✅ `uuidv7()`                         | ❌ No           | LOW                     | Time-ordered            |
+| UUID v3           | ✅ `uuidv3()`                         | ❌ No           | LOW                     | Not implemented (v5 SHA-1 is similar)                 |
+| UUID v4           | ✅ `uuid()`, `uuidv4()`               | ✅ Yes          | ✓ DONE                  | `UUIDGenerator.generateV4()` — RFC 4122 §4.4          |
+| UUID v7           | ✅ `uuidv7()`                         | ❌ No           | LOW                     | Time-ordered                                          |
 | **User Agents**   |
-| User agent        | ✅ `userAgent()`                      | ❌ No           | MEDIUM                  | Browser strings         |
-| Bot user agent    | ✅ `botUserAgent()`                   | ❌ No           | LOW                     | Crawler UAs             |
+| User agent        | ✅ `userAgent()`                      | ❌ No           | MEDIUM                  | Browser strings                                       |
+| Bot user agent    | ✅ `botUserAgent()`                   | ❌ No           | LOW                     | Crawler UAs                                           |
 | **Other**         |
-| Image URL         | ✅ `image()`                          | ❌ No           | LOW                     | Placeholder images      |
+| Image URL         | ✅ `image()`                          | ❌ No           | LOW                     | Placeholder images                                    |
 
 ### 4. FINANCE & COMMERCE
 
-| Feature               | DataFaker Support                                                                             | krandom Status | Implementation Priority | Notes                 |
-|-----------------------|-----------------------------------------------------------------------------------------------|----------------|-------------------------|-----------------------|
+| Feature               | DataFaker Support                                                                             | krandom Status | Implementation Priority | Notes                                                        |
+|-----------------------|-----------------------------------------------------------------------------------------------|----------------|-------------------------|--------------------------------------------------------------|
 | **Credit Cards**      |
-| Credit card number    | ✅ 10 types, Luhn-valid                                                                        | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator` — Luhn-valid, 6 card types |
-| Card types            | ✅ VISA, MASTERCARD, DISCOVER, AMEX, DINERS, JCB, DANKORT, FORBRUGSFORENINGEN, LASER, UNIONPAY | ✅ Yes          | ✓ DONE                  | Visa/MC/Amex/Discover/JCB/Diners supported       |
+| Credit card number    | ✅ 10 types, Luhn-valid                                                                        | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator` — Luhn-valid, 6 card types             |
+| Card types            | ✅ VISA, MASTERCARD, DISCOVER, AMEX, DINERS, JCB, DANKORT, FORBRUGSFORENINGEN, LASER, UNIONPAY | ✅ Yes          | ✓ DONE                  | Visa/MC/Amex/Discover/JCB/Diners supported                   |
 | Card expiry           | ✅ `creditCardExpiry()`                                                                        | ✅ Yes          | ✓ DONE                  | `CardExpirationGenerator` — MM/YY, future-only, locale-aware |
-| Security code         | ✅ `securityCode()` (CVV)                                                                      | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.getCvv()` — 3 or 4 digits  |
+| Security code         | ✅ `securityCode()` (CVV)                                                                      | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.getCvv()` — 3 or 4 digits               |
 | **Banking**           |
-| BIC/SWIFT             | ✅ `bic()`                                                                                     | ❌ No           | MEDIUM                  | Bank identifier       |
-| IBAN                  | ✅ `iban()`                                                                                    | ❌ No           | MEDIUM                  | International account |
-| US routing number     | ✅ `usRoutingNumber()`                                                                         | ❌ No           | MEDIUM                  | ACH routing           |
+| BIC/SWIFT             | ✅ `bic()`                                                                                     | ❌ No           | MEDIUM                  | Bank identifier                                              |
+| IBAN                  | ✅ `iban()`                                                                                    | ❌ No           | MEDIUM                  | International account                                        |
+| US routing number     | ✅ `usRoutingNumber()`                                                                         | ❌ No           | MEDIUM                  | ACH routing                                                  |
 | **Money & Currency**  |
-| Currency name         | ✅ `currency()`                                                                                | ✅ Yes          | ✓ DONE                  |                       |
-| Currency code         | ✅ `currencyCode()` (USD, EUR)                                                                 | ✅ Yes          | ✓ DONE                  |                       |
-| Currency symbol       | ✅ `currencySymbol()` ($, €)                                                                   | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.getSymbol()` / `getSymbol(locale)` |
-| Currency numeric code | ✅ `currencyNumericCode()` (840)                                                               | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.getNumericCode()` — ISO 4217      |
-| Price                 | ✅ `price()`                                                                                   | ✅ Yes          | ✓ DONE                  | `MoneyGenerator` — locale-aware, dollar/euro helpers |
+| Currency name         | ✅ `currency()`                                                                                | ✅ Yes          | ✓ DONE                  |                                                              |
+| Currency code         | ✅ `currencyCode()` (USD, EUR)                                                                 | ✅ Yes          | ✓ DONE                  |                                                              |
+| Currency symbol       | ✅ `currencySymbol()` ($, €)                                                                   | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.getSymbol()` / `getSymbol(locale)`        |
+| Currency numeric code | ✅ `currencyNumericCode()` (840)                                                               | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.getNumericCode()` — ISO 4217              |
+| Price                 | ✅ `price()`                                                                                   | ✅ Yes          | ✓ DONE                  | `MoneyGenerator` — locale-aware, dollar/euro helpers         |
 | **Stock Market**      |
-| NASDAQ symbol         | ✅ `nsdqSymbol()`                                                                              | ❌ No           | LOW                     | Stock tickers         |
-| NYSE symbol           | ✅ `nyseSymbol()`                                                                              | ❌ No           | LOW                     |                       |
-| NSE symbol            | ✅ `nseSymbol()`                                                                               | ❌ No           | LOW                     | India                 |
-| LSE symbol            | ✅ `lseSymbol()`                                                                               | ❌ No           | LOW                     | London                |
-| Exchange names        | ✅ `exchanges()`                                                                               | ❌ No           | LOW                     |                       |
+| NASDAQ symbol         | ✅ `nsdqSymbol()`                                                                              | ❌ No           | LOW                     | Stock tickers                                                |
+| NYSE symbol           | ✅ `nyseSymbol()`                                                                              | ❌ No           | LOW                     |                                                              |
+| NSE symbol            | ✅ `nseSymbol()`                                                                               | ❌ No           | LOW                     | India                                                        |
+| LSE symbol            | ✅ `lseSymbol()`                                                                               | ❌ No           | LOW                     | London                                                       |
+| Exchange names        | ✅ `exchanges()`                                                                               | ❌ No           | LOW                     |                                                              |
 | **Commerce**          |
-| Department            | ✅ `department()`                                                                              | ❌ No           | LOW                     | Store departments     |
-| Product name          | ✅ `productName()`                                                                             | ❌ No           | MEDIUM                  | E-commerce            |
-| Material              | ✅ `material()`                                                                                | ❌ No           | LOW                     | Product materials     |
-| Brand                 | ✅ `brand()`, `sport()`, `car()`, `watch()`                                                    | ❌ No           | MEDIUM                  | Brand names           |
-| Vendor                | ✅ `vendor()`                                                                                  | ❌ No           | LOW                     | Suppliers             |
-| Promotion code        | ✅ `promotionCode()`                                                                           | ❌ No           | LOW                     | Discount codes        |
+| Department            | ✅ `department()`                                                                              | ❌ No           | LOW                     | Store departments                                            |
+| Product name          | ✅ `productName()`                                                                             | ❌ No           | MEDIUM                  | E-commerce                                                   |
+| Material              | ✅ `material()`                                                                                | ❌ No           | LOW                     | Product materials                                            |
+| Brand                 | ✅ `brand()`, `sport()`, `car()`, `watch()`                                                    | ❌ No           | MEDIUM                  | Brand names                                                  |
+| Vendor                | ✅ `vendor()`                                                                                  | ❌ No           | LOW                     | Suppliers                                                    |
+| Promotion code        | ✅ `promotionCode()`                                                                           | ❌ No           | LOW                     | Discount codes                                               |
 | **Subscriptions**     |
-| Plans                 | ✅ `plans()`                                                                                   | ❌ No           | LOW                     | Free, Premium, etc.   |
-| Statuses              | ✅ `statuses()`                                                                                | ❌ No           | LOW                     | Active, Cancelled     |
-| Payment methods       | ✅ `paymentMethods()`                                                                          | ❌ No           | LOW                     | Card, PayPal, etc.    |
-| Payment terms         | ✅ `paymentTerms()`                                                                            | ❌ No           | LOW                     | Net 30, etc.          |
+| Plans                 | ✅ `plans()`                                                                                   | ❌ No           | LOW                     | Free, Premium, etc.                                          |
+| Statuses              | ✅ `statuses()`                                                                                | ❌ No           | LOW                     | Active, Cancelled                                            |
+| Payment methods       | ✅ `paymentMethods()`                                                                          | ❌ No           | LOW                     | Card, PayPal, etc.                                           |
+| Payment terms         | ✅ `paymentTerms()`                                                                            | ❌ No           | LOW                     | Net 30, etc.                                                 |
 
 ### 5. COMPANY & BUSINESS
 
@@ -214,26 +214,26 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 ### 8. DATE & TIME
 
-| Feature      | DataFaker Support                     | krandom Status | Implementation Priority | Notes              |
-|--------------|---------------------------------------|----------------|-------------------------|--------------------|
-| Future date  | ✅ `future()`                          | ❌ No           | HIGH                    | Configurable range |
-| Past date    | ✅ `past()`                            | ❌ No           | HIGH                    | Configurable range |
-| Date between | ✅ `between()`                         | ❌ No           | HIGH                    | Range generation   |
+| Feature      | DataFaker Support                     | krandom Status | Implementation Priority | Notes                                                        |
+|--------------|---------------------------------------|----------------|-------------------------|--------------------------------------------------------------|
+| Future date  | ✅ `future()`                          | ❌ No           | HIGH                    | Configurable range                                           |
+| Past date    | ✅ `past()`                            | ❌ No           | HIGH                    | Configurable range                                           |
+| Date between | ✅ `between()`                         | ❌ No           | HIGH                    | Range generation                                             |
 | Birthday     | ✅ `birthday()`, `birthdayLocalDate()` | ✅ Yes          | ✓ DONE                  | `BirthdayGenerator` — type-based, locale-aware string format |
-| Duration     | ✅ `duration()`                        | ❌ No           | MEDIUM                  | Time spans         |
-| Period       | ✅ `period()`                          | ❌ No           | MEDIUM                  | Date periods       |
+| Duration     | ✅ `duration()`                        | ❌ No           | MEDIUM                  | Time spans                                                   |
+| Period       | ✅ `period()`                          | ❌ No           | MEDIUM                  | Date periods                                                 |
 
 ### 9. PHONE NUMBERS
 
-| Feature              | DataFaker Support              | krandom Status | Implementation Priority | Notes           |
-|----------------------|--------------------------------|----------------|-------------------------|-----------------|
+| Feature              | DataFaker Support              | krandom Status | Implementation Priority | Notes                                                      |
+|----------------------|--------------------------------|----------------|-------------------------|------------------------------------------------------------|
 | Phone number         | ✅ `phoneNumber()`              | ✅ Yes          | ✓ DONE                  | `PhoneNumberGenerator` — 10 locales, formatted/unformatted |
-| National format      | ✅ `phoneNumberNational()`      | ✅ Yes          | ✓ DONE                  | `generate(true)` → "(555) 123-4567", "020 7946 0958" |
-| International format | ✅ `phoneNumberInternational()` | ❌ No           | LOW                     | No +country prefix implemented yet |
-| Cell phone           | ✅ `cellPhone()`                | ✅ Yes          | ✓ DONE                  | `generate(true, true)` → mobile numbers per locale |
-| Cell international   | ✅ `cellPhoneInternational()`   | ❌ No           | MEDIUM                  |                 |
-| Extension            | ✅ `extension()`                | ❌ No           | LOW                     | x1234           |
-| Subscriber number    | ✅ `subscriberNumber()`         | ❌ No           | LOW                     |                 |
+| National format      | ✅ `phoneNumberNational()`      | ✅ Yes          | ✓ DONE                  | `generate(true)` → "(555) 123-4567", "020 7946 0958"       |
+| International format | ✅ `phoneNumberInternational()` | ❌ No           | LOW                     | No +country prefix implemented yet                         |
+| Cell phone           | ✅ `cellPhone()`                | ✅ Yes          | ✓ DONE                  | `generate(true, true)` → mobile numbers per locale         |
+| Cell international   | ✅ `cellPhoneInternational()`   | ❌ No           | MEDIUM                  |                                                            |
+| Extension            | ✅ `extension()`                | ❌ No           | LOW                     | x1234                                                      |
+| Subscriber number    | ✅ `subscriberNumber()`         | ❌ No           | LOW                     |                                                            |
 
 ### 10. NUMBERS & CODES
 
@@ -262,10 +262,10 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 ### 11. COLOR
 
-| Feature    | DataFaker Support | krandom Status | Implementation Priority | Notes         |
-|------------|-------------------|----------------|-------------------------|---------------|
-| Color name | ✅ `name()`        | ❌ No           | MEDIUM                  | "Red", "Blue" |
-| Hex color  | ✅ `hex()`         | ✅ Yes          | ✓ DONE                  | `ColorGenerator` — HEX/SHORT_HEX/RGB/0x formats     |
+| Feature    | DataFaker Support | krandom Status | Implementation Priority | Notes                                           |
+|------------|-------------------|----------------|-------------------------|-------------------------------------------------|
+| Color name | ✅ `name()`        | ❌ No           | MEDIUM                  | "Red", "Blue"                                   |
+| Hex color  | ✅ `hex()`         | ✅ Yes          | ✓ DONE                  | `ColorGenerator` — HEX/SHORT_HEX/RGB/0x formats |
 
 ### 12. ANIMALS
 
@@ -493,42 +493,42 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 ### Configuration & Customization
 
-| Feature                  | DataFaker                          | krandom | Priority | Implementation Notes        |
-|--------------------------|------------------------------------|---------|----------|-----------------------------|
+| Feature                  | DataFaker                          | krandom | Priority | Implementation Notes                                                   |
+|--------------------------|------------------------------------|---------|----------|------------------------------------------------------------------------|
 | **Locale Support**       |
-| Multiple locales         | ✅ 60+ locales                      | ✅ Yes   | ✓ DONE   | 10 built-in locales (en_US/GB/AU, de/fr/es/it, pt_BR, ja, zh_CN) |
+| Multiple locales         | ✅ 60+ locales                      | ✅ Yes   | ✓ DONE   | 10 built-in locales (en_US/GB/AU, de/fr/es/it, pt_BR, ja, zh_CN)       |
 | Locale-aware data        | ✅ Names, addresses, phones         | ✅ Yes   | ✓ DONE   | Names, cities, states, postcodes, phones, coordinates all locale-aware |
-| Runtime locale switching | ✅ Yes                              | ✅ Yes   | ✓ DONE   | Pass different `Locale` to constructor per call |
+| Runtime locale switching | ✅ Yes                              | ✅ Yes   | ✓ DONE   | Pass different `Locale` to constructor per call                        |
 | **Seeding**              |
-| Reproducible output      | ✅ Constructor with seed            | ✅ Yes   | ✓ DONE   | Most generators support     |
+| Reproducible output      | ✅ Constructor with seed            | ✅ Yes   | ✓ DONE   | Most generators support                                                |
 | **String Utilities**     |
-| Numerify                 | ✅ `numerify("###-####")`           | ❌ No    | HIGH     | Template-based generation   |
-| Letterify                | ✅ `letterify("???-???")`           | ❌ No    | HIGH     |                             |
-| Bothify                  | ✅ `bothify("???-###")`             | ❌ No    | HIGH     | Combined                    |
-| Regexify                 | ✅ `regexify("[A-Z]{3}\\d{4}")`     | ❌ No    | HIGH     | Regex-based generation      |
-| Examplify                | ✅ `examplify("ABC-1234")`          | ❌ No    | MEDIUM   | Match pattern               |
-| Templatify               | ✅ Custom templates                 | ❌ No    | MEDIUM   |                             |
+| Numerify                 | ✅ `numerify("###-####")`           | ❌ No    | HIGH     | Template-based generation                                              |
+| Letterify                | ✅ `letterify("???-???")`           | ❌ No    | HIGH     |                                                                        |
+| Bothify                  | ✅ `bothify("???-###")`             | ❌ No    | HIGH     | Combined                                                               |
+| Regexify                 | ✅ `regexify("[A-Z]{3}\\d{4}")`     | ❌ No    | HIGH     | Regex-based generation                                                 |
+| Examplify                | ✅ `examplify("ABC-1234")`          | ❌ No    | MEDIUM   | Match pattern                                                          |
+| Templatify               | ✅ Custom templates                 | ❌ No    | MEDIUM   |                                                                        |
 | **Data Sources**         |
-| Custom YAML              | ✅ `addPath()`, `addUrl()`          | ❌ No    | MEDIUM   | Extensibility               |
-| YAML key resolution      | ✅ `resolve(key)`                   | ❌ No    | LOW      |                             |
+| Custom YAML              | ✅ `addPath()`, `addUrl()`          | ❌ No    | MEDIUM   | Extensibility                                                          |
+| YAML key resolution      | ✅ `resolve(key)`                   | ❌ No    | LOW      |                                                                        |
 | **Collections**          |
-| Generate lists           | ✅ `collection().len(n).generate()` | ✅ Yes   | ✓ DONE   | `gen.generateList(n)` on every generator            |
-| Variable length          | ✅ `minLen()`, `maxLen()`           | ✅ Yes   | ✓ DONE   | `generateList(n)` with any n                        |
-| Nullable values          | ✅ `nullRate(0.1)`                  | ❌ No    | MEDIUM   | Realistic nulls             |
-| Stream API               | ✅ `stream().limit(n)`              | ✅ Yes   | ✓ DONE   | `gen.stream().limit(n)` on every generator          |
+| Generate lists           | ✅ `collection().len(n).generate()` | ✅ Yes   | ✓ DONE   | `gen.generateList(n)` on every generator                               |
+| Variable length          | ✅ `minLen()`, `maxLen()`           | ✅ Yes   | ✓ DONE   | `generateList(n)` with any n                                           |
+| Nullable values          | ✅ `nullRate(0.1)`                  | ❌ No    | MEDIUM   | Realistic nulls                                                        |
+| Stream API               | ✅ `stream().limit(n)`              | ✅ Yes   | ✓ DONE   | `gen.stream().limit(n)` on every generator                             |
 | **Unique Values**        |
-| Unique enforcement       | ✅ `faker.unique()`                 | ❌ No    | HIGH     | No duplicates               |
+| Unique enforcement       | ✅ `faker.unique()`                 | ❌ No    | HIGH     | No duplicates                                                          |
 | **Output Formats**       |
-| CSV generation           | ✅ Schema-based                     | ❌ No    | MEDIUM   | Structured output           |
-| JSON generation          | ✅ Schema-based                     | ❌ No    | MEDIUM   |                             |
-| YAML generation          | ✅ Schema-based                     | ❌ No    | LOW      |                             |
-| XML generation           | ✅ Schema-based                     | ❌ No    | LOW      |                             |
+| CSV generation           | ✅ Schema-based                     | ❌ No    | MEDIUM   | Structured output                                                      |
+| JSON generation          | ✅ Schema-based                     | ❌ No    | MEDIUM   |                                                                        |
+| YAML generation          | ✅ Schema-based                     | ❌ No    | LOW      |                                                                        |
+| XML generation           | ✅ Schema-based                     | ❌ No    | LOW      |                                                                        |
 | **Expressions**          |
-| YAML expressions         | ✅ `#{Provider.method}`             | ❌ No    | MEDIUM   | Composable generators       |
+| YAML expressions         | ✅ `#{Provider.method}`             | ❌ No    | MEDIUM   | Composable generators                                                  |
 | **Custom Providers**     |
-| Extend with custom       | ✅ `AbstractProvider<T>`            | ❌ No    | LOW      | Plugin system               |
+| Extend with custom       | ✅ `AbstractProvider<T>`            | ❌ No    | LOW      | Plugin system                                                          |
 | **Object Population**    |
-| POJO population          | ✅ `@Fake` annotation               | ❌ No    | LOW      | Auto-fill objects           |
+| POJO population          | ✅ `@Fake` annotation               | ❌ No    | LOW      | Auto-fill objects                                                      |
 
 ---
 
