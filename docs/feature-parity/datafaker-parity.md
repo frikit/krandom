@@ -9,6 +9,8 @@
 - **License**: Apache 2.0
 - **Key Strength**: 200+ providers, extensive localization, schema-based output
 
+**Last Updated**: 2026-02-25
+
 ## Executive Summary
 
 DataFaker is the most feature-rich Java faker library with 200+ generator providers, 60+ locales, and advanced features like schema-based output formats (CSV/JSON/YAML/XML), unique value enforcement,
@@ -26,20 +28,20 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Full name                   | ✅ `name()`, `fullName()`, `nameWithMiddle()` | ✅ Partial      | HIGH                    | krandom has basic name, needs middle name |
 | First name                  | ✅ `firstName()`                              | ✅ Yes          | ✓ DONE                  |                                           |
 | Last name                   | ✅ `lastName()`                               | ✅ Yes          | ✓ DONE                  |                                           |
-| Gender-specific first names | ✅ `femaleFirstName()`, `maleFirstName()`     | ❌ No           | HIGH                    | Important for realistic data              |
-| Name prefix                 | ✅ `prefix()` (Mr., Mrs., Dr.)                | ❌ No           | MEDIUM                  | Common requirement                        |
-| Name suffix                 | ✅ `suffix()` (Jr., Sr., III)                 | ❌ No           | MEDIUM                  |                                           |
-| Title                       | ✅ `title()` (professional titles)            | ❌ No           | MEDIUM                  | Job titles available via TitleGenerator   |
+| Gender-specific first names | ✅ `femaleFirstName()`, `maleFirstName()`     | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)` — 10 locales |
+| Name prefix                 | ✅ `prefix()` (Mr., Mrs., Dr.)                | ✅ Yes          | ✓ DONE                  | `TitleGenerator` — 10 locales, extensible |
+| Name suffix                 | ✅ `suffix()` (Jr., Sr., III)                 | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` — 10 locales            |
+| Title                       | ✅ `title()` (professional titles)            | ✅ Yes          | ✓ DONE                  | `TitleGenerator` for honorifics           |
 | **ID Numbers**              |
-| SSN (US)                    | ✅ `ssnValid()`                               | ❌ No           | HIGH                    | Luhn-valid, country-specific              |
+| SSN (US)                    | ✅ `ssnValid()`                               | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.US)` — area 666 excluded |
 | Singapore FIN/UIN           | ✅ `singaporeanFin()`, `singaporeanUin()`     | ❌ No           | LOW                     | Locale-specific                           |
 | Poland PESEL                | ✅ `peselNumber()`                            | ❌ No           | LOW                     | Locale-specific                           |
-| China SSN                   | ✅ `validZhCNSsn()`                           | ❌ No           | LOW                     | Locale-specific                           |
+| China SSN                   | ✅ `validZhCNSsn()`                           | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.CHINA)` — 18-char ISO 7064 |
 | Portugal NIF                | ✅ `validPtNif()`                             | ❌ No           | LOW                     | Locale-specific                           |
 | Mexico SSN                  | ✅ `validEsMXSsn()`                           | ❌ No           | LOW                     | Locale-specific                           |
 | South Africa SSN            | ✅ `validEnZaSsn()`                           | ❌ No           | LOW                     | Locale-specific                           |
 | **Gender & Demographics**   |
-| Gender types                | ✅ `types()`, `binaryTypes()`                 | ❌ No           | MEDIUM                  | Useful for forms                          |
+| Gender types                | ✅ `types()`, `binaryTypes()`                 | ✅ Yes          | ✓ DONE                  | `GenderGenerator` — 10 locales, locale-aware labels |
 | Race                        | ✅ `race()`                                   | ❌ No           | LOW                     | Sensitive data                            |
 | Education level             | ✅ `educationalAttainment()`                  | ❌ No           | MEDIUM                  | Useful for profiles                       |
 | Marital status              | ✅ `maritalStatus()`                          | ❌ No           | MEDIUM                  | Common demographic                        |
@@ -61,30 +63,30 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Secondary address        | ✅ `secondaryAddress()` (Apt, Suite)                   | ❌ No           | MEDIUM                  | Common for apartments      |
 | Street suffix/prefix     | ✅ `streetSuffix()`, `streetPrefix()`                  | ❌ No           | MEDIUM                  | St, Ave, Blvd              |
 | **City & State**         |
-| City name                | ✅ `city()`, `cityName()`                              | ❌ No           | HIGH                    | Essential                  |
+| City name                | ✅ `city()`, `cityName()`                              | ✅ Yes          | ✓ DONE                  | `CityGenerator` — 10 locales, locale-specific cities |
 | City prefix/suffix       | ✅ `cityPrefix()`, `citySuffix()`                      | ❌ No           | LOW                     | Building blocks            |
-| State                    | ✅ `state()`                                           | ❌ No           | HIGH                    | US states                  |
-| State abbreviation       | ✅ `stateAbbr()`                                       | ❌ No           | HIGH                    | CA, TX, NY                 |
+| State                    | ✅ `state()`                                           | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate()` — 10 locales             |
+| State abbreviation       | ✅ `stateAbbr()`                                       | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate(true)` — CA, TX, NSW, etc.  |
 | **Postal Codes**         |
-| ZIP code                 | ✅ `zipCode()`                                         | ❌ No           | HIGH                    | US postal codes            |
-| ZIP+4                    | ✅ `zipCodePlus4()`                                    | ❌ No           | MEDIUM                  | Extended ZIP               |
-| ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No           | MEDIUM                  | State-specific             |
+| ZIP code                 | ✅ `zipCode()`                                         | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator` — 10 locales                   |
+| ZIP+4                    | ✅ `zipCodePlus4()`                                    | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator.generate(true)` → "90210-1234"  |
+| ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No           | MEDIUM                  | State-specific mapping not implemented               |
 | County by ZIP            | ✅ `countyByZipCode()`                                 | ❌ No           | LOW                     | Geographic mapping         |
-| Postcode (generic)       | ✅ `postcode()`                                        | ❌ No           | MEDIUM                  | International              |
+| Postcode (generic)       | ✅ `postcode()`                                        | ✅ Yes          | ✓ DONE                  | 10 locale-specific formats (JP: "100-0001", DE: "10115") |
 | Eircode (Ireland)        | ✅ `eircode()`                                         | ❌ No           | LOW                     | Locale-specific            |
 | Mailbox                  | ✅ `mailBox()` (PO Box)                                | ❌ No           | LOW                     |                            |
 | **Country & Nation**     |
-| Country name             | ✅ `country()`                                         | ❌ No           | HIGH                    | Essential                  |
-| Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ❌ No           | HIGH                    | ISO codes                  |
+| Country name             | ✅ `country()`                                         | ✅ Yes          | ✓ DONE                  | `CountryGenerator` — 195 countries, 10 locales       |
+| Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ❌ No           | MEDIUM                  | CountryGenerator returns names, not ISO codes        |
 | Capital city             | ✅ `capital()`                                         | ❌ No           | MEDIUM                  | Geographic data            |
 | Currency                 | ✅ `currency()`, `currencyCode()`                      | ✅ Yes          | ✓ DONE                  | Already in Money generator |
 | Flag emoji               | ✅ `flag()`                                            | ❌ No           | LOW                     | Unicode flags              |
 | Nationality              | ✅ `nationality()`                                     | ❌ No           | MEDIUM                  | Citizen of...              |
 | Language                 | ✅ `language()`, `isoLanguage()`                       | ❌ No           | MEDIUM                  | Spoken languages           |
 | **Coordinates**          |
-| Latitude                 | ✅ `latitude()`                                        | ❌ No           | MEDIUM                  | Geographic coordinates     |
-| Longitude                | ✅ `longitude()`                                       | ❌ No           | MEDIUM                  |                            |
-| Lat/Lon pair             | ✅ `latLon()`, `lonLat()`                              | ❌ No           | MEDIUM                  | Combined coordinates       |
+| Latitude                 | ✅ `latitude()`                                        | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` — locale-bounded |
+| Longitude                | ✅ `longitude()`                                       | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLongitude()` — locale-bounded |
+| Lat/Lon pair             | ✅ `latLon()`, `lonLat()`                              | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generate()` → "35.12,-80.12"  |
 | **Direction & Location** |
 | Compass direction        | ✅ `word()`, `abbreviation()`, `azimuth()`             | ❌ No           | LOW                     | N, NE, NNE                 |
 | Time zone                | ✅ `timeZone()`                                        | ❌ No           | MEDIUM                  | America/New_York           |
@@ -95,15 +97,15 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Feature           | DataFaker Support                    | krandom Status | Implementation Priority | Notes                   |
 |-------------------|--------------------------------------|----------------|-------------------------|-------------------------|
 | **Email**         |
-| Email address     | ✅ `emailAddress()`                   | ❌ No           | HIGH                    | Essential for testing   |
-| Safe email        | ✅ `safeEmailAddress()` (example.com) | ❌ No           | HIGH                    | Non-deliverable domains |
+| Email address     | ✅ `emailAddress()`                   | ✅ Yes          | ✓ DONE                  | `EmailGenerator` — 5 formats, 12 domains, 10 locales |
+| Safe email        | ✅ `safeEmailAddress()` (example.com) | ✅ Yes          | ✓ DONE                  | `gen.generate("example.com")` — custom domain support |
 | Email subject     | ✅ `emailSubject()`                   | ❌ No           | LOW                     |                         |
 | **Domain & URLs** |
-| Domain name       | ✅ `domainName()`                     | ❌ No           | HIGH                    | example.com             |
-| Domain word       | ✅ `domainWord()`                     | ❌ No           | MEDIUM                  |                         |
-| Domain suffix     | ✅ `domainSuffix()` (.com, .org)      | ❌ No           | MEDIUM                  | TLDs                    |
-| URL               | ✅ `url()`                            | ❌ No           | HIGH                    | Full URLs               |
-| Web domain        | ✅ `webdomain()`                      | ❌ No           | MEDIUM                  |                         |
+| Domain name       | ✅ `domainName()`                     | ✅ Yes          | ✓ DONE                  | `DomainGenerator` — 12 popular TLDs, 10 locale TLDs |
+| Domain word       | ✅ `domainWord()`                     | ✅ Partial      | ✓ DONE                  | Embedded in `DomainGenerator` (1-2 word combos)     |
+| Domain suffix     | ✅ `domainSuffix()` (.com, .org)      | ✅ Yes          | ✓ DONE                  | `DomainGenerator.getTLD()` → "com", "io", "de"      |
+| URL               | ✅ `url()`                            | ✅ Yes          | ✓ DONE                  | `URLGenerator` — 5 protocols, path, query params    |
+| Web domain        | ✅ `webdomain()`                      | ✅ Partial      | ✓ DONE                  | Covered by `DomainGenerator`                        |
 | Slug              | ✅ `slug()`                           | ❌ No           | MEDIUM                  | URL-friendly strings    |
 | **IP Addresses**  |
 | IPv4              | ✅ `ipV4Address()`                    | ✅ Yes          | ✓ DONE                  | Already implemented     |
@@ -117,8 +119,8 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Port              | ✅ `port()`                           | ❌ No           | MEDIUM                  | 1-65535                 |
 | HTTP method       | ✅ `httpMethod()` (GET, POST)         | ❌ No           | LOW                     | REST APIs               |
 | **Identifiers**   |
-| UUID v3           | ✅ `uuidv3()`                         | ❌ No           | MEDIUM                  | Name-based              |
-| UUID v4           | ✅ `uuid()`, `uuidv4()`               | ❌ No           | HIGH                    | Random UUID             |
+| UUID v3           | ✅ `uuidv3()`                         | ❌ No           | LOW                     | Not implemented (v5 SHA-1 is similar) |
+| UUID v4           | ✅ `uuid()`, `uuidv4()`               | ✅ Yes          | ✓ DONE                  | `UUIDGenerator.generateV4()` — RFC 4122 §4.4        |
 | UUID v7           | ✅ `uuidv7()`                         | ❌ No           | LOW                     | Time-ordered            |
 | **User Agents**   |
 | User agent        | ✅ `userAgent()`                      | ❌ No           | MEDIUM                  | Browser strings         |
@@ -131,10 +133,10 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Feature               | DataFaker Support                                                                             | krandom Status | Implementation Priority | Notes                 |
 |-----------------------|-----------------------------------------------------------------------------------------------|----------------|-------------------------|-----------------------|
 | **Credit Cards**      |
-| Credit card number    | ✅ 10 types, Luhn-valid                                                                        | ❌ No           | HIGH                    | VISA, MC, AMEX, etc.  |
-| Card types            | ✅ VISA, MASTERCARD, DISCOVER, AMEX, DINERS, JCB, DANKORT, FORBRUGSFORENINGEN, LASER, UNIONPAY | ❌ No           | HIGH                    | Comprehensive         |
-| Card expiry           | ✅ `creditCardExpiry()`                                                                        | ❌ No           | HIGH                    | MM/YY format          |
-| Security code         | ✅ `securityCode()` (CVV)                                                                      | ❌ No           | HIGH                    | 3-4 digits            |
+| Credit card number    | ✅ 10 types, Luhn-valid                                                                        | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator` — Luhn-valid, 6 card types |
+| Card types            | ✅ VISA, MASTERCARD, DISCOVER, AMEX, DINERS, JCB, DANKORT, FORBRUGSFORENINGEN, LASER, UNIONPAY | ✅ Yes          | ✓ DONE                  | Visa/MC/Amex/Discover/JCB/Diners supported       |
+| Card expiry           | ✅ `creditCardExpiry()`                                                                        | ✅ Yes          | ✓ DONE                  | `CardExpirationGenerator` — MM/YY, future-only, locale-aware |
+| Security code         | ✅ `securityCode()` (CVV)                                                                      | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.getCvv()` — 3 or 4 digits  |
 | **Banking**           |
 | BIC/SWIFT             | ✅ `bic()`                                                                                     | ❌ No           | MEDIUM                  | Bank identifier       |
 | IBAN                  | ✅ `iban()`                                                                                    | ❌ No           | MEDIUM                  | International account |
@@ -142,9 +144,9 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | **Money & Currency**  |
 | Currency name         | ✅ `currency()`                                                                                | ✅ Yes          | ✓ DONE                  |                       |
 | Currency code         | ✅ `currencyCode()` (USD, EUR)                                                                 | ✅ Yes          | ✓ DONE                  |                       |
-| Currency symbol       | ✅ `currencySymbol()` ($, €)                                                                   | ❌ No           | MEDIUM                  |                       |
-| Currency numeric code | ✅ `currencyNumericCode()` (840)                                                               | ❌ No           | LOW                     | ISO 4217              |
-| Price                 | ✅ `price()`                                                                                   | ❌ No           | MEDIUM                  | Formatted prices      |
+| Currency symbol       | ✅ `currencySymbol()` ($, €)                                                                   | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.getSymbol()` / `getSymbol(locale)` |
+| Currency numeric code | ✅ `currencyNumericCode()` (840)                                                               | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.getNumericCode()` — ISO 4217      |
+| Price                 | ✅ `price()`                                                                                   | ✅ Yes          | ✓ DONE                  | `MoneyGenerator` — locale-aware, dollar/euro helpers |
 | **Stock Market**      |
 | NASDAQ symbol         | ✅ `nsdqSymbol()`                                                                              | ❌ No           | LOW                     | Stock tickers         |
 | NYSE symbol           | ✅ `nyseSymbol()`                                                                              | ❌ No           | LOW                     |                       |
@@ -217,7 +219,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Future date  | ✅ `future()`                          | ❌ No           | HIGH                    | Configurable range |
 | Past date    | ✅ `past()`                            | ❌ No           | HIGH                    | Configurable range |
 | Date between | ✅ `between()`                         | ❌ No           | HIGH                    | Range generation   |
-| Birthday     | ✅ `birthday()`, `birthdayLocalDate()` | ❌ No           | MEDIUM                  | Age-appropriate    |
+| Birthday     | ✅ `birthday()`, `birthdayLocalDate()` | ✅ Yes          | ✓ DONE                  | `BirthdayGenerator` — type-based, locale-aware string format |
 | Duration     | ✅ `duration()`                        | ❌ No           | MEDIUM                  | Time spans         |
 | Period       | ✅ `period()`                          | ❌ No           | MEDIUM                  | Date periods       |
 
@@ -225,10 +227,10 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 | Feature              | DataFaker Support              | krandom Status | Implementation Priority | Notes           |
 |----------------------|--------------------------------|----------------|-------------------------|-----------------|
-| Phone number         | ✅ `phoneNumber()`              | ❌ No           | HIGH                    | General format  |
-| National format      | ✅ `phoneNumberNational()`      | ❌ No           | HIGH                    | (555) 123-4567  |
-| International format | ✅ `phoneNumberInternational()` | ❌ No           | HIGH                    | +1 555 123 4567 |
-| Cell phone           | ✅ `cellPhone()`                | ❌ No           | MEDIUM                  | Mobile numbers  |
+| Phone number         | ✅ `phoneNumber()`              | ✅ Yes          | ✓ DONE                  | `PhoneNumberGenerator` — 10 locales, formatted/unformatted |
+| National format      | ✅ `phoneNumberNational()`      | ✅ Yes          | ✓ DONE                  | `generate(true)` → "(555) 123-4567", "020 7946 0958" |
+| International format | ✅ `phoneNumberInternational()` | ❌ No           | LOW                     | No +country prefix implemented yet |
+| Cell phone           | ✅ `cellPhone()`                | ✅ Yes          | ✓ DONE                  | `generate(true, true)` → mobile numbers per locale |
 | Cell international   | ✅ `cellPhoneInternational()`   | ❌ No           | MEDIUM                  |                 |
 | Extension            | ✅ `extension()`                | ❌ No           | LOW                     | x1234           |
 | Subscriber number    | ✅ `subscriberNumber()`         | ❌ No           | LOW                     |                 |
@@ -263,7 +265,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Feature    | DataFaker Support | krandom Status | Implementation Priority | Notes         |
 |------------|-------------------|----------------|-------------------------|---------------|
 | Color name | ✅ `name()`        | ❌ No           | MEDIUM                  | "Red", "Blue" |
-| Hex color  | ✅ `hex()`         | ❌ No           | MEDIUM                  | #FF5733       |
+| Hex color  | ✅ `hex()`         | ✅ Yes          | ✓ DONE                  | `ColorGenerator` — HEX/SHORT_HEX/RGB/0x formats     |
 
 ### 12. ANIMALS
 
@@ -494,9 +496,9 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Feature                  | DataFaker                          | krandom | Priority | Implementation Notes        |
 |--------------------------|------------------------------------|---------|----------|-----------------------------|
 | **Locale Support**       |
-| Multiple locales         | ✅ 60+ locales                      | ❌ No    | HIGH     | Essential for i18n          |
-| Locale-aware data        | ✅ Names, addresses, phones         | ❌ No    | HIGH     | Currently no locale support |
-| Runtime locale switching | ✅ Yes                              | ❌ No    | MEDIUM   |                             |
+| Multiple locales         | ✅ 60+ locales                      | ✅ Yes   | ✓ DONE   | 10 built-in locales (en_US/GB/AU, de/fr/es/it, pt_BR, ja, zh_CN) |
+| Locale-aware data        | ✅ Names, addresses, phones         | ✅ Yes   | ✓ DONE   | Names, cities, states, postcodes, phones, coordinates all locale-aware |
+| Runtime locale switching | ✅ Yes                              | ✅ Yes   | ✓ DONE   | Pass different `Locale` to constructor per call |
 | **Seeding**              |
 | Reproducible output      | ✅ Constructor with seed            | ✅ Yes   | ✓ DONE   | Most generators support     |
 | **String Utilities**     |
@@ -510,10 +512,10 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Custom YAML              | ✅ `addPath()`, `addUrl()`          | ❌ No    | MEDIUM   | Extensibility               |
 | YAML key resolution      | ✅ `resolve(key)`                   | ❌ No    | LOW      |                             |
 | **Collections**          |
-| Generate lists           | ✅ `collection().len(n).generate()` | ❌ No    | HIGH     | Bulk generation             |
-| Variable length          | ✅ `minLen()`, `maxLen()`           | ❌ No    | MEDIUM   |                             |
+| Generate lists           | ✅ `collection().len(n).generate()` | ✅ Yes   | ✓ DONE   | `gen.generateList(n)` on every generator            |
+| Variable length          | ✅ `minLen()`, `maxLen()`           | ✅ Yes   | ✓ DONE   | `generateList(n)` with any n                        |
 | Nullable values          | ✅ `nullRate(0.1)`                  | ❌ No    | MEDIUM   | Realistic nulls             |
-| Stream API               | ✅ `stream().limit(n)`              | ❌ No    | HIGH     | Java 8 streams              |
+| Stream API               | ✅ `stream().limit(n)`              | ✅ Yes   | ✓ DONE   | `gen.stream().limit(n)` on every generator          |
 | **Unique Values**        |
 | Unique enforcement       | ✅ `faker.unique()`                 | ❌ No    | HIGH     | No duplicates               |
 | **Output Formats**       |
@@ -534,39 +536,27 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 ### Phase 1: CRITICAL GAPS (Must Have)
 
-1. **Email Generation** - Essential for testing
-    - `emailAddress()`, `safeEmailAddress()`
-2. **UUID Generation** - Common identifier need
-    - `uuid()` (v4 minimum)
-3. **Boolean Generator** - Basic data type missing
-    - `bool()`
+1. ~~**Email Generation**~~ ✅ DONE — `EmailGenerator` (5 formats, 12 domains, 10 locales)
+2. ~~**UUID Generation**~~ ✅ DONE — `UUIDGenerator` (v4 + v5, RFC 4122)
+3. ~~**Boolean Generator**~~ ✅ DONE — `BooleanGenerator` with `withLikelihood()`
 4. **Lorem Text** - Critical for UI/content testing
-    - `word()`, `words()`, `sentence()`, `paragraph()`
-5. **Locale Support Infrastructure** - Foundation for i18n
-    - Basic locale framework
+    - `word()`, `words()`, `sentence()`, `paragraph()` — still missing
+5. ~~**Locale Support Infrastructure**~~ ✅ DONE — 10 locales, all major generators locale-aware
 6. **String Templates** - Powerful generation tool
-    - `numerify()`, `letterify()`, `bothify()`
-7. **Collection Generation** - Bulk data needs
-    - `collection().len(n).generate()`
+    - `numerify()`, `letterify()`, `bothify()` — still missing
+7. ~~**Collection Generation**~~ ✅ DONE — `gen.generateList(n)` and `gen.stream()` on every generator
 8. **Unique Value Enforcement** - Prevent duplicates
-    - `unique()` wrapper
+    - `unique()` wrapper — still missing
 
 ### Phase 2: HIGH VALUE (Should Have)
 
-1. **Address Components**
-    - Street, city, state, ZIP, country
-2. **Phone Numbers**
-    - National and international formats
-3. **Credit Cards**
-    - Luhn-valid cards with multiple types
-4. **Names Enhancement**
-    - Gender-specific first names, prefixes, suffixes
-5. **Date Generators**
-    - Past, future, birthday, between
-6. **Company Data**
-    - Company names, industries, buzzwords
-7. **URL/Domain Generation**
-    - Full URLs, domain names
+1. ~~**Address Components**~~ ✅ PARTIAL — city, state, ZIP, country all done; **street address still missing**
+2. ~~**Phone Numbers**~~ ✅ DONE — `PhoneNumberGenerator` (10 locales, mobile/landline, formatted/unformatted)
+3. ~~**Credit Cards**~~ ✅ DONE — `CreditCardGenerator` (6 types, Luhn-valid, CVV, expiry)
+4. ~~**Names Enhancement**~~ ✅ DONE — gender-specific names, prefix/suffix/title all done
+5. ~~**Date Generators**~~ ✅ PARTIAL — `BirthdayGenerator` done; future/past/between still missing
+6. **Company Data** - Company names, industries, buzzwords — still missing
+7. ~~**URL/Domain Generation**~~ ✅ DONE — `URLGenerator`, `DomainGenerator`
 
 ### Phase 3: NICE TO HAVE (Could Have)
 
@@ -590,25 +580,28 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 ### DataFaker Strengths (vs krandom)
 
-1. **200+ providers** vs ~15 in krandom
-2. **60+ locales** with locale-aware data
-3. **Schema-based output** (CSV/JSON/YAML/XML)
-4. **Template-based generation** (numerify, regexify)
-5. **Unique value enforcement** built-in
-6. **Expression language** for composable generators
+1. **200+ providers** vs ~50 in krandom (krandom has grown significantly)
+2. **60+ locales** vs 10 in krandom — DataFaker has broader locale coverage
+3. **Schema-based output** (CSV/JSON/YAML/XML) — no equivalent in krandom
+4. **Template-based generation** (numerify, regexify, bothify) — no equivalent in krandom
+5. **Unique value enforcement** built-in (`faker.unique()`) — no equivalent in krandom
+6. **Expression language** for composable generators (`#{Name.firstName}`)
 7. **GraalVM native image** support
-8. **Collections/Stream API** integration
-9. **POJO auto-population** via annotations
-10. **Comprehensive entertainment data** (40+ franchises)
+8. **POJO auto-population** via `@Fake` annotations
+9. **Comprehensive domain data** (sports, healthcare, entertainment, 40+ franchises)
+10. **Banking codes** (IBAN, BIC/SWIFT, routing numbers)
 
 ### krandom Strengths (vs DataFaker)
 
-1. **Simpler, focused API** - easier to learn
-2. **Kotlin-first** design
-3. **Type-safe builders** for complex generators
-4. **Custom algorithms** (Fibonacci, Luhn)
-5. **Cleaner project structure**
-6. **Better test coverage** (99%+)
+1. **Kotlin-first** design with type-safe API
+2. **ObjectGenerator** — generate complex object graphs (DataFaker requires manual assembly)
+3. **Multi-locale National IDs** — 10 countries with verified checksums (US/UK/AU/FR/DE/JP/ES/IT/BR/CN) — DataFaker has only a few
+4. **Locale-aware money formatting** — `MoneyGenerator(Locale)` uses `NumberFormat` for correct symbols/separators/decimal places
+5. **Locale-aware birthday strings** — `BirthdayGenerator(Locale).generateAsString()` formats per locale convention
+6. **Statistical generators** — `NormalDistributionGenerator`, `BooleanGenerator.withLikelihood()`, `PrimeGenerator`
+7. **99%+ test coverage** — DataFaker has much lower coverage guarantees
+8. **Fibonacci generator** — not available in DataFaker
+9. **FX currency pairs** — `CurrencyPairGenerator` with locale-aware base currency
 
 ---
 
