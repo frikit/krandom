@@ -484,6 +484,57 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
     - Case control: Uppercase converts hex letters (a-f) to (A-F) while keeping 0x prefix lowercase
     - Seeded generation supported for reproducible results
 
+#### DateTime Section (18/18 date/time features complete — comprehensive date and time generation)
+
+- ✅ **DateGenerator** - Date generation and date components
+    - Date generation: Random dates between 1970-2100
+    - Multiple formats: ISO (YYYY-MM-DD), American (MM/DD/YYYY), European (DD/MM/YYYY)
+    - Constrained dates: Generate with specific year, month, or day
+    - Date components: Year, month (1-12), month names, day
+    - Unix timestamps: Generate Unix timestamps in seconds (midnight)
+    - Methods: `generate()`, `generateString()`, `generateAmerican()`, `generateEuropean()`
+    - Constraint methods: `generateWithYear()`, `generateWithMonth()`, `generateWithDay()`
+    - Component methods: `generateYear()`, `generateMonth()`, `generateMonthName()`, `generateTimestamp()`
+    - Leap year handling: Properly handles February in leap/non-leap years
+    - Constructors: `DateGenerator()`, `DateGenerator(config)`
+    - Examples: "2078-05-27", "05/27/2078", "27/05/2078", "October", 1482975167
+    - Returns: LocalDate objects for date manipulation
+
+- ✅ **TimeGenerator** - Time generation and time components
+    - Time generation: Random times with hour, minute, second, millisecond precision
+    - Time string format: ISO format (HH:MM:SS)
+    - Time components: Hour (12/24), minute, second, millisecond, AM/PM
+    - Methods: `generate()`, `generateString()`
+    - Component methods: `generateHour()`, `generateHour24()`, `generateMinute()`, `generateSecond()`, `generateMillisecond()`, `generateAmPm()`
+    - Hour formats: 12-hour (1-12) and 24-hour (0-23)
+    - Constructors: `TimeGenerator()`, `TimeGenerator(config)`
+    - Examples: LocalTime objects, "14:23:45", hour=14, minute=23, second=45, millisecond=123, "am"/"pm"
+    - Returns: LocalTime objects for time manipulation
+
+**Metrics**:
+
+- **DateGenerator**:
+    - Test coverage: 100% branch coverage for `DateGenerator`
+    - Total tests: 33 comprehensive tests
+    - Date range: 1970-2100 (131 years)
+    - Date formats: 3 formats (ISO, American, European)
+    - Methods: 11 generation methods
+    - Month names: 12 full month names (January-December)
+    - Leap year support: Proper handling of February 29th
+    - Validation: All dates are valid (no invalid combinations like Feb 30)
+    - Seeded generation supported for reproducible results
+
+- **TimeGenerator**:
+    - Test coverage: 100% branch coverage for `TimeGenerator`
+    - Total tests: 25 comprehensive tests
+    - Time components: Hour (12/24), minute (0-59), second (0-59), millisecond (0-999)
+    - Methods: 8 generation methods
+    - Hour formats: Both 12-hour (1-12) and 24-hour (0-23) formats
+    - Precision: Millisecond precision via LocalTime nanoseconds
+    - AM/PM: Random "am" or "pm" generation
+    - Time strings: ISO format (HH:MM:SS)
+    - Seeded generation supported for reproducible results
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -612,95 +663,95 @@ _None - awaiting next feature selection_
 
 ### 5. FINANCE
 
-| Feature             | Chance.js Support                                 | krandom Status | Implementation Priority | Notes                                |
-|---------------------|---------------------------------------------------|----------------|-------------------------|--------------------------------------|
+| Feature             | Chance.js Support                                 | krandom Status | Implementation Priority | Notes                              |
+|---------------------|---------------------------------------------------|----------------|-------------------------|------------------------------------|
 | **Credit Cards**    |
-| Credit card number  | ✅ `cc({type})`                                    | ✅ Yes          | HIGH                    | Luhn-valid                           |
-| Visa                | ✅ `generate(CardType.VISA)`                       | ✅ Yes          | HIGH                    | 16 digits                            |
-| Mastercard          | ✅ `generate(CardType.MASTERCARD)`                 | ✅ Yes          | HIGH                    | 16 digits                            |
-| American Express    | ✅ `generate(CardType.AMEX)`                       | ✅ Yes          | HIGH                    | 15 digits, 4-digit CVV               |
-| All major cards     | ✅ 6 card types (Visa/MC/Amex/Discover/JCB/Diners) | ✅ Yes          | HIGH                    | Proper formatting                    |
-| CVV/CVC             | ✅ `getCvv()`                                      | ✅ Yes          | MEDIUM                  | 3/4 digits based on type             |
-| Expiration date     | ✅ `getExpirationDate()`                           | ✅ Yes          | HIGH                    | MM/YY format, future                 |
-| Card info object    | ✅ `generateWithType()`                            | ✅ Yes          | MEDIUM                  | CardInfo with all details            |
+| Credit card number  | ✅ `cc({type})`                                    | ✅ Yes          | HIGH                    | Luhn-valid                         |
+| Visa                | ✅ `generate(CardType.VISA)`                       | ✅ Yes          | HIGH                    | 16 digits                          |
+| Mastercard          | ✅ `generate(CardType.MASTERCARD)`                 | ✅ Yes          | HIGH                    | 16 digits                          |
+| American Express    | ✅ `generate(CardType.AMEX)`                       | ✅ Yes          | HIGH                    | 15 digits, 4-digit CVV             |
+| All major cards     | ✅ 6 card types (Visa/MC/Amex/Discover/JCB/Diners) | ✅ Yes          | HIGH                    | Proper formatting                  |
+| CVV/CVC             | ✅ `getCvv()`                                      | ✅ Yes          | MEDIUM                  | 3/4 digits based on type           |
+| Expiration date     | ✅ `getExpirationDate()`                           | ✅ Yes          | HIGH                    | MM/YY format, future               |
+| Card info object    | ✅ `generateWithType()`                            | ✅ Yes          | MEDIUM                  | CardInfo with all details          |
 | **Currency**        |
-| Currency object     | ✅ `generateWithInfo()`                            | ✅ Yes          | MEDIUM                  | CurrencyInfo with code/name/symbol   |
-| Currency code       | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | ISO 4217 codes: USD, EUR, GBP        |
-| Currency name       | ✅ `getName()`                                     | ✅ Yes          | MEDIUM                  | "United States Dollar", "Euro"       |
-| Currency symbol     | ✅ `getSymbol()`                                   | ✅ Yes          | MEDIUM                  | $, €, £, ¥                           |
-| Numeric code        | ✅ `getNumericCode()`                              | ✅ Yes          | MEDIUM                  | ISO 4217 numeric: 840, 978           |
-| Locale support      | ✅ `generate(locale)`                              | ✅ Yes          | HIGH                    | 10 locales with primary currencies   |
-| Currency pair       | ✅ `currency_pair()`                               | ❌ No           | MEDIUM                  | FX rate simulation - UNIQUE          |
-| Dollar amount       | ✅ `dollar({max})`                                 | ❌ No           | HIGH                    | '$2560.27'                           |
-| Euro amount         | ✅ `euro({max})`                                   | ❌ No           | MEDIUM                  | '€1842.56'                           |
-| Max amount control  | ✅ `dollar({max: 20})`                             | ❌ No           | MEDIUM                  | '$15.23'                             |
+| Currency object     | ✅ `generateWithInfo()`                            | ✅ Yes          | MEDIUM                  | CurrencyInfo with code/name/symbol |
+| Currency code       | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | ISO 4217 codes: USD, EUR, GBP      |
+| Currency name       | ✅ `getName()`                                     | ✅ Yes          | MEDIUM                  | "United States Dollar", "Euro"     |
+| Currency symbol     | ✅ `getSymbol()`                                   | ✅ Yes          | MEDIUM                  | $, €, £, ¥                         |
+| Numeric code        | ✅ `getNumericCode()`                              | ✅ Yes          | MEDIUM                  | ISO 4217 numeric: 840, 978         |
+| Locale support      | ✅ `generate(locale)`                              | ✅ Yes          | HIGH                    | 10 locales with primary currencies |
+| Currency pair       | ✅ `currency_pair()`                               | ❌ No           | MEDIUM                  | FX rate simulation - UNIQUE        |
+| Dollar amount       | ✅ `dollar({max})`                                 | ❌ No           | HIGH                    | '$2560.27'                         |
+| Euro amount         | ✅ `euro({max})`                                   | ❌ No           | MEDIUM                  | '€1842.56'                         |
+| Max amount control  | ✅ `dollar({max: 20})`                             | ❌ No           | MEDIUM                  | '$15.23'                           |
 | **Card Expiration** |
-| Expiration date     | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | MM/YY format (03/26)                 |
-| Future expiration   | ✅ `generate(true)`                                | ✅ Yes          | HIGH                    | Guaranteed future dates              |
-| Expiration month    | ✅ `getMonth()`                                    | ✅ Yes          | MEDIUM                  | Zero-padded (01-12)                  |
-| Expiration year     | ✅ `getYear()`                                     | ✅ Yes          | MEDIUM                  | 2-digit (26) or 4-digit (2026)       |
-| Locale formatting   | ✅ `generate(locale)`                              | ✅ Yes          | MEDIUM                  | MM/YY (West) or YY/MM (Asia)         |
+| Expiration date     | ✅ `generate()`                                    | ✅ Yes          | HIGH                    | MM/YY format (03/26)               |
+| Future expiration   | ✅ `generate(true)`                                | ✅ Yes          | HIGH                    | Guaranteed future dates            |
+| Expiration month    | ✅ `getMonth()`                                    | ✅ Yes          | MEDIUM                  | Zero-padded (01-12)                |
+| Expiration year     | ✅ `getYear()`                                     | ✅ Yes          | MEDIUM                  | 2-digit (26) or 4-digit (2026)     |
+| Locale formatting   | ✅ `generate(locale)`                              | ✅ Yes          | MEDIUM                  | MM/YY (West) or YY/MM (Asia)       |
 
 ### 6. WEB & INTERNET
 
-| Feature           | Chance.js Support                                            | krandom Status | Implementation Priority | Notes                         |
-|-------------------|--------------------------------------------------------------|----------------|-------------------------|-------------------------------|
+| Feature           | Chance.js Support                                            | krandom Status | Implementation Priority | Notes                           |
+|-------------------|--------------------------------------------------------------|----------------|-------------------------|---------------------------------|
 | **Email**         |
-| Email address     | ✅ `generate()`                                               | ✅ Yes          | HIGH                    | 'john.smith@gmail.com'       |
-| Custom domain     | ✅ `generate("example.com")`                                  | ✅ Yes          | HIGH                    | 'john.smith@example.com'     |
-| Email formats     | ✅ `generate(EmailFormat)`                                    | ✅ Yes          | MEDIUM                  | 5 formats supported          |
-| Locale-aware      | ✅ `EmailGenerator(Locale)`                                   | ✅ Yes          | HIGH                    | Uses locale-appropriate names|
+| Email address     | ✅ `generate()`                                               | ✅ Yes          | HIGH                    | 'john.smith@gmail.com'          |
+| Custom domain     | ✅ `generate("example.com")`                                  | ✅ Yes          | HIGH                    | 'john.smith@example.com'        |
+| Email formats     | ✅ `generate(EmailFormat)`                                    | ✅ Yes          | MEDIUM                  | 5 formats supported             |
+| Locale-aware      | ✅ `EmailGenerator(Locale)`                                   | ✅ Yes          | HIGH                    | Uses locale-appropriate names   |
 | **Domain & URL**  |
-| Domain name       | ✅ `domain({tld})`                                            | ✅ Yes          | HIGH                    | DomainGenerator 'techcloud.com'  |
-| Custom TLD        | ✅ `domain({tld: 'ie'})`                                      | ✅ Yes          | MEDIUM                  | generate("ie") → 'datahub.ie'    |
-| TLD only          | ✅ `tld()`                                                    | ✅ Yes          | MEDIUM                  | getTLD() → 'com', 'org', 'net'   |
-| Full URL          | ✅ `url({protocol, domain, domain_prefix, path, extensions})` | ✅ Partial      | HIGH                    | URLGenerator with path/query     |
-| Custom protocol   | ✅ `url({protocol: 'ftp'})`                                   | ✅ Yes          | MEDIUM                  | generate("ftp") → 'ftp://...'    |
-| Fixed domain      | ✅ `url({domain: 'example.com'})`                             | ❌ No           | MEDIUM                  | Control domain - not yet         |
-| Domain prefix     | ✅ `url({domain_prefix: 'api'})`                              | ❌ No           | MEDIUM                  | Subdomain control - not yet      |
-| Fixed path        | ✅ `url({path: '/api/v1'})`                                   | ❌ No           | MEDIUM                  | Control path - not yet           |
-| File extensions   | ✅ `url({extensions: ['gif','jpg']})`                         | ❌ No           | MEDIUM                  | Random file type - not yet       |
+| Domain name       | ✅ `domain({tld})`                                            | ✅ Yes          | HIGH                    | DomainGenerator 'techcloud.com' |
+| Custom TLD        | ✅ `domain({tld: 'ie'})`                                      | ✅ Yes          | MEDIUM                  | generate("ie") → 'datahub.ie'   |
+| TLD only          | ✅ `tld()`                                                    | ✅ Yes          | MEDIUM                  | getTLD() → 'com', 'org', 'net'  |
+| Full URL          | ✅ `url({protocol, domain, domain_prefix, path, extensions})` | ✅ Partial      | HIGH                    | URLGenerator with path/query    |
+| Custom protocol   | ✅ `url({protocol: 'ftp'})`                                   | ✅ Yes          | MEDIUM                  | generate("ftp") → 'ftp://...'   |
+| Fixed domain      | ✅ `url({domain: 'example.com'})`                             | ❌ No           | MEDIUM                  | Control domain - not yet        |
+| Domain prefix     | ✅ `url({domain_prefix: 'api'})`                              | ❌ No           | MEDIUM                  | Subdomain control - not yet     |
+| Fixed path        | ✅ `url({path: '/api/v1'})`                                   | ❌ No           | MEDIUM                  | Control path - not yet          |
+| File extensions   | ✅ `url({extensions: ['gif','jpg']})`                         | ❌ No           | MEDIUM                  | Random file type - not yet      |
 | **IP Addresses**  |
-| IPv4              | ✅ `ip()`                                                     | ✅ Yes          | ✓ DONE                  | IPv4Generator with seeding    |
-| IPv6              | ✅ `ipv6()`                                                   | ✅ Yes          | ✓ DONE                  | IPv6Generator with seeding    |
+| IPv4              | ✅ `ip()`                                                     | ✅ Yes          | ✓ DONE                  | IPv4Generator with seeding      |
+| IPv6              | ✅ `ipv6()`                                                   | ✅ Yes          | ✓ DONE                  | IPv6Generator with seeding      |
 | **Colors**        |
-| Color hex         | ✅ `color({format: 'hex'})`                                   | ✅ Yes          | ✓ DONE                  | ColorGenerator HEX format     |
-| Short hex         | ✅ `color({format: 'shorthex'})`                              | ✅ Yes          | ✓ DONE                  | ColorGenerator SHORT_HEX      |
-| RGB format        | ✅ `color({format: 'rgb'})`                                   | ✅ Yes          | ✓ DONE                  | ColorGenerator RGB format     |
-| 0x format         | ✅ `color({format: '0x'})`                                    | ✅ Yes          | ✓ DONE                  | ColorGenerator HEX_0X format  |
-| Grayscale         | ✅ `color({grayscale: true})`                                 | ✅ Yes          | ✓ DONE                  | generateGrayscale()           |
-| Case control      | ✅ `color({casing: 'upper'})`                                 | ✅ Yes          | ✓ DONE                  | generateUppercase()           |
+| Color hex         | ✅ `color({format: 'hex'})`                                   | ✅ Yes          | ✓ DONE                  | ColorGenerator HEX format       |
+| Short hex         | ✅ `color({format: 'shorthex'})`                              | ✅ Yes          | ✓ DONE                  | ColorGenerator SHORT_HEX        |
+| RGB format        | ✅ `color({format: 'rgb'})`                                   | ✅ Yes          | ✓ DONE                  | ColorGenerator RGB format       |
+| 0x format         | ✅ `color({format: '0x'})`                                    | ✅ Yes          | ✓ DONE                  | ColorGenerator HEX_0X format    |
+| Grayscale         | ✅ `color({grayscale: true})`                                 | ✅ Yes          | ✓ DONE                  | generateGrayscale()             |
+| Case control      | ✅ `color({casing: 'upper'})`                                 | ✅ Yes          | ✓ DONE                  | generateUppercase()             |
 | **Social**        |
-| Twitter handle    | ✅ `twitter()`                                                | ❌ No           | LOW                     | '@dafivatemin'                |
-| Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | LOW                     | Gravatar URLs                 |
+| Twitter handle    | ✅ `twitter()`                                                | ❌ No           | LOW                     | '@dafivatemin'                  |
+| Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | LOW                     | Gravatar URLs                   |
 | **Business**      |
-| Company name      | ✅ `company()`                                                | ❌ No           | MEDIUM                  | 'Jombo LLC'                   |
-| Profession        | ✅ `profession({ranked})`                                     | ❌ No           | MEDIUM                  | Job titles                    |
-| Ranked profession | ✅ `profession({ranked: true})`                               | ❌ No           | MEDIUM                  | Biased toward common - UNIQUE |
+| Company name      | ✅ `company()`                                                | ❌ No           | MEDIUM                  | 'Jombo LLC'                     |
+| Profession        | ✅ `profession({ranked})`                                     | ❌ No           | MEDIUM                  | Job titles                      |
+| Ranked profession | ✅ `profession({ranked: true})`                               | ❌ No           | MEDIUM                  | Biased toward common - UNIQUE   |
 
 ### 7. TIME & DATES
 
 | Feature             | Chance.js Support                              | krandom Status | Implementation Priority | Notes                       |
 |---------------------|------------------------------------------------|----------------|-------------------------|-----------------------------|
 | **Date Objects**    |
-| Random date         | ✅ `date({string, american, year, month, day})` | ❌ No           | HIGH                    | Date object or string       |
-| Date as string      | ✅ `date({string: true})`                       | ❌ No           | HIGH                    | '5/27/2078'                 |
-| American format     | ✅ `date({american: true})`                     | ❌ No           | MEDIUM                  | MM/DD/YYYY                  |
-| European format     | ✅ `date({american: false})`                    | ❌ No           | MEDIUM                  | DD/MM/YYYY                  |
-| Fixed year          | ✅ `date({year: 1990})`                         | ❌ No           | MEDIUM                  | Date in specific year       |
-| Fixed month         | ✅ `date({month: 5})`                           | ❌ No           | MEDIUM                  | 0-indexed like Date()       |
-| Fixed day           | ✅ `date({day: 15})`                            | ❌ No           | MEDIUM                  | Day of month                |
+| Random date         | ✅ `date({string, american, year, month, day})` | ✅ Yes          | ✓ DONE                  | DateGenerator generate()    |
+| Date as string      | ✅ `date({string: true})`                       | ✅ Yes          | ✓ DONE                  | generateString()            |
+| American format     | ✅ `date({american: true})`                     | ✅ Yes          | ✓ DONE                  | generateAmerican()          |
+| European format     | ✅ `date({american: false})`                    | ✅ Yes          | ✓ DONE                  | generateEuropean()          |
+| Fixed year          | ✅ `date({year: 1990})`                         | ✅ Yes          | ✓ DONE                  | generateWithYear(1990)      |
+| Fixed month         | ✅ `date({month: 5})`                           | ✅ Yes          | ✓ DONE                  | generateWithMonth(5)        |
+| Fixed day           | ✅ `date({day: 15})`                            | ✅ Yes          | ✓ DONE                  | generateWithDay(15)         |
 | **Date Components** |
-| Year                | ✅ `year({min, max})`                           | ❌ No           | MEDIUM                  | Random year with range      |
-| Month name          | ✅ `month()`                                    | ❌ No           | MEDIUM                  | 'October'                   |
-| Month object        | ✅ `month({raw: true})`                         | ❌ No           | MEDIUM                  | {name, short_name, numeric} |
-| Hour (12-hour)      | ✅ `hour()`                                     | ❌ No           | MEDIUM                  | 1-12                        |
-| Hour (24-hour)      | ✅ `hour({twentyfour: true})`                   | ❌ No           | MEDIUM                  | 0-23                        |
-| Minute              | ✅ `minute()`                                   | ❌ No           | MEDIUM                  | 0-59                        |
-| Second              | ✅ `second()`                                   | ❌ No           | MEDIUM                  | 0-59                        |
-| Millisecond         | ✅ `millisecond()`                              | ❌ No           | MEDIUM                  | 0-999                       |
-| AM/PM               | ✅ `ampm()`                                     | ❌ No           | LOW                     | 'am'/'pm'                   |
-| Unix timestamp      | ✅ `timestamp()`                                | ❌ No           | MEDIUM                  | 1482975167                  |
+| Year                | ✅ `year({min, max})`                           | ✅ Yes          | ✓ DONE                  | generateYear() / (min,max)  |
+| Month name          | ✅ `month()`                                    | ✅ Yes          | ✓ DONE                  | generateMonthName()         |
+| Month object        | ✅ `month({raw: true})`                         | ✅ Partial      | MEDIUM                  | generateMonth() returns int |
+| Hour (12-hour)      | ✅ `hour()`                                     | ✅ Yes          | ✓ DONE                  | generateHour()              |
+| Hour (24-hour)      | ✅ `hour({twentyfour: true})`                   | ✅ Yes          | ✓ DONE                  | generateHour24()            |
+| Minute              | ✅ `minute()`                                   | ✅ Yes          | ✓ DONE                  | generateMinute()            |
+| Second              | ✅ `second()`                                   | ✅ Yes          | ✓ DONE                  | generateSecond()            |
+| Millisecond         | ✅ `millisecond()`                              | ✅ Yes          | ✓ DONE                  | generateMillisecond()       |
+| AM/PM               | ✅ `ampm()`                                     | ✅ Yes          | ✓ DONE                  | generateAmPm()              |
+| Unix timestamp      | ✅ `timestamp()`                                | ✅ Yes          | ✓ DONE                  | generateTimestamp()         |
 
 ### 8. TEXT & NATURAL LANGUAGE
 

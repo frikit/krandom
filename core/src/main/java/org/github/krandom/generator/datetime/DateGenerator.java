@@ -1,0 +1,253 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+package org.github.krandom.generator.datetime;
+
+import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.GeneratorConfig;
+
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Objects;
+import java.util.Random;
+
+/**
+ * Generates random dates and date components.
+ *
+ * <p>This generator produces dates in various formats and provides methods
+ * to generate individual date components like year, month, day, etc.
+ *
+ * <p><strong>Basic Usage:</strong>
+ * <pre>{@code
+ * DateGenerator gen = new DateGenerator();
+ * LocalDate date = gen.generate();  // Random date
+ * String dateStr = gen.generateString();  // "2078-05-27"
+ * }</pre>
+ *
+ * <p><strong>Date Formatting:</strong>
+ * <pre>{@code
+ * DateGenerator gen = new DateGenerator();
+ * String american = gen.generateAmerican();  // "05/27/2078" (MM/DD/YYYY)
+ * String european = gen.generateEuropean();  // "27/05/2078" (DD/MM/YYYY)
+ * }</pre>
+ *
+ * <p><strong>Date Components:</strong>
+ * <pre>{@code
+ * DateGenerator gen = new DateGenerator();
+ * int year = gen.generateYear();        // Random year
+ * int month = gen.generateMonth();      // 1-12
+ * String monthName = gen.generateMonthName();  // "October"
+ * }</pre>
+ *
+ * <p><strong>Timestamps:</strong>
+ * <pre>{@code
+ * DateGenerator gen = new DateGenerator();
+ * long timestamp = gen.generateTimestamp();  // Unix timestamp in seconds
+ * }</pre>
+ *
+ * <p><strong>Constrained Dates:</strong>
+ * <pre>{@code
+ * DateGenerator gen = new DateGenerator();
+ * LocalDate date2020 = gen.generateWithYear(2020);  // Date in year 2020
+ * LocalDate dateInMay = gen.generateWithMonth(5);   // Date in May
+ * LocalDate date15th = gen.generateWithDay(15);     // Date on the 15th
+ * }</pre>
+ *
+ * <p><strong>Seeded Generation:</strong>
+ * <pre>{@code
+ * GeneratorConfig config = GeneratorConfig.builder().seed(12345L).build();
+ * DateGenerator gen = new DateGenerator(config);
+ * LocalDate date = gen.generate();  // Reproducible output
+ * }</pre>
+ *
+ * <p><strong>Thread Safety:</strong>
+ * This generator is thread-safe and can be shared across threads.
+ *
+ * @see TimeGenerator for time component generation
+ */
+public final class DateGenerator implements Generator<LocalDate> {
+
+    private final GeneratorConfig config;
+    private final Random random;
+
+    private static final int MIN_YEAR = 1970;
+    private static final int MAX_YEAR = 2100;
+    
+    private static final String[] MONTH_NAMES = {
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    };
+
+    /**
+     * Creates a date generator with default configuration.
+     */
+    public DateGenerator() {
+        this(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Creates a date generator with the specified configuration.
+     *
+     * @param config the generator configuration; must not be {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
+     */
+    public DateGenerator(GeneratorConfig config) {
+        this.config = Objects.requireNonNull(config, "config must not be null");
+        this.random = config.getSeed().isPresent()
+                ? new Random(config.getSeed().getAsLong())
+                : new SecureRandom();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Generates a random date between 1970 and 2100.
+     *
+     * @return a random date; never {@code null}
+     */
+    @Override
+    public LocalDate generate() {
+        int year = generateYear();
+        int month = generateMonth();
+        int day = generateValidDay(year, month);
+        return LocalDate.of(year, month, day);
+    }
+
+    /**
+     * Generates a random date with the specified year.
+     *
+     * @param year the year (1-9999)
+     * @return a random date in the specified year; never {@code null}
+     */
+    public LocalDate generateWithYear(int year) {
+        int month = generateMonth();
+        int day = generateValidDay(year, month);
+        return LocalDate.of(year, month, day);
+    }
+
+    /**
+     * Generates a random date with the specified month.
+     *
+     * @param month the month (1-12)
+     * @return a random date in the specified month; never {@code null}
+     */
+    public LocalDate generateWithMonth(int month) {
+        int year = generateYear();
+        int day = generateValidDay(year, month);
+        return LocalDate.of(year, month, day);
+    }
+
+    /**
+     * Generates a random date with the specified day of month.
+     *
+     * @param day the day (1-28, safe for all months)
+     * @return a random date on the specified day; never {@code null}
+     */
+    public LocalDate generateWithDay(int day) {
+        int year = generateYear();
+        int month = generateMonth();
+        // Ensure day is valid for the month
+        int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
+        int actualDay = Math.min(day, maxDay);
+        return LocalDate.of(year, month, actualDay);
+    }
+
+    /**
+     * Generates a date as a string in ISO format (YYYY-MM-DD).
+     *
+     * @return a date string; never {@code null}
+     */
+    public String generateString() {
+        return generate().toString();
+    }
+
+    /**
+     * Generates a date in American format (MM/DD/YYYY).
+     *
+     * @return a date string in American format; never {@code null}
+     */
+    public String generateAmerican() {
+        LocalDate date = generate();
+        return String.format("%02d/%02d/%04d", 
+            date.getMonthValue(), date.getDayOfMonth(), date.getYear());
+    }
+
+    /**
+     * Generates a date in European format (DD/MM/YYYY).
+     *
+     * @return a date string in European format; never {@code null}
+     */
+    public String generateEuropean() {
+        LocalDate date = generate();
+        return String.format("%02d/%02d/%04d", 
+            date.getDayOfMonth(), date.getMonthValue(), date.getYear());
+    }
+
+    /**
+     * Generates a random year between 1970 and 2100.
+     *
+     * @return a year
+     */
+    public int generateYear() {
+        return MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
+    }
+
+    /**
+     * Generates a random year within the specified range.
+     *
+     * @param min minimum year (inclusive)
+     * @param max maximum year (inclusive)
+     * @return a year
+     */
+    public int generateYear(int min, int max) {
+        return min + random.nextInt(max - min + 1);
+    }
+
+    /**
+     * Generates a random month (1-12).
+     *
+     * @return a month
+     */
+    public int generateMonth() {
+        return 1 + random.nextInt(12);
+    }
+
+    /**
+     * Generates a random month name.
+     *
+     * @return a month name; never {@code null}
+     */
+    public String generateMonthName() {
+        return MONTH_NAMES[random.nextInt(12)];
+    }
+
+    /**
+     * Generates a random Unix timestamp in seconds.
+     * <p>Range: January 1, 1970 to December 31, 2100
+     *
+     * @return a Unix timestamp
+     */
+    public long generateTimestamp() {
+        LocalDate date = generate();
+        // Use midnight for the timestamp
+        LocalDateTime dateTime = date.atStartOfDay();
+        return dateTime.atZone(ZoneId.systemDefault()).toEpochSecond();
+    }
+
+    /**
+     * Generates a valid day for the given year and month.
+     *
+     * @param year the year
+     * @param month the month
+     * @return a valid day
+     */
+    private int generateValidDay(int year, int month) {
+        int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
+        return 1 + random.nextInt(maxDay);
+    }
+}
