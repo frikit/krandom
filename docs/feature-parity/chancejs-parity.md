@@ -564,6 +564,35 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
     - Seeded generation: V4 supports seeded reproducible generation
     - Thread safety: Safe for concurrent use
 
+#### Hash Section (4/4 hash features complete — hexadecimal hash string generation)
+
+- ✅ **HashGenerator** - Random hexadecimal hash string generation
+    - Default length: 40 characters (SHA-1 compatible)
+    - Custom lengths: Any positive length via `generate(length)`
+    - Case control: Lowercase (default) or uppercase
+    - Hash generation: `generate()` → "d96eb2e7e85c3f4f4a7f0e51f5f3b9c6d89c3f4f"
+    - Custom length: `generate(16)` → "d96eb2e7e85c3f4f"
+    - Uppercase: `generateUppercase()` → "D96EB2E7E85C3F4F4A7F0E51F5F3B9C6D89C3F4F"
+    - Uppercase custom: `generateUppercase(32)` → "D96EB2E7E85C3F4F4A7F0E51F5F3B9C6"
+    - Hash formats: Compatible with SHA-1 (40), MD5 (32), SHA-256 (64)
+    - Constructors: `HashGenerator()`, `HashGenerator(config)`
+    - Returns: Hexadecimal strings (0-9, a-f or A-F)
+    - Examples: "a3f9c2d5...", "F9A3C2D5..." (uppercase)
+
+**Metrics**:
+
+- **HashGenerator**:
+    - Test coverage: 100% branch coverage for `HashGenerator`
+    - Total tests: 31 comprehensive tests
+    - Hash lengths: 1 to 1000+ characters supported
+    - Case formats: 2 formats (lowercase, uppercase)
+    - Methods: 4 generation methods
+    - Hex validation: All characters are valid hexadecimal (0-9, a-f or A-F)
+    - Uniqueness: All generated hashes are statistically unique
+    - Common formats: SHA-1 (40), MD5 (32), SHA-256 (64) compatible
+    - Seeded generation: Reproducible hashes via GeneratorConfig
+    - Thread safety: Safe for concurrent use
+
 ### In Progress
 
 _None - awaiting next feature selection_
@@ -807,10 +836,10 @@ _None - awaiting next feature selection_
 | GUID v4          | ✅ `guid({version: 4})`      | ✅ Yes          | ✓ DONE                  | Random UUID        |
 | Version control  | ✅ `guid({version: 4/5})`    | ✅ Yes          | ✓ DONE                  | UUIDGenerator      |
 | **Hashes**       |
-| Hash string      | ✅ `hash({length, casing})`  | ✅ Yes          | ✓ DONE                  | `HexHashGenerator` |
+| Hash string      | ✅ `hash({length, casing})`  | ✅ Yes          | ✓ DONE                  | `HashGenerator`    |
 | Default 40 chars | ✅ Git commit length         | ✅ Yes          | ✓ DONE                  | SHA-1 compatible   |
-| Custom length    | ✅ `hash({length: 15})`      | ❌ No           | MEDIUM                  | Variable length    |
-| Case control     | ✅ `hash({casing: 'upper'})` | ❌ No           | MEDIUM                  | Uppercase hex      |
+| Custom length    | ✅ `hash({length: 15})`      | ✅ Yes          | ✓ DONE                  | `generate(length)` |
+| Case control     | ✅ `hash({casing: 'upper'})` | ✅ Yes          | ✓ DONE                  | `generateUppercase()` |
 
 ### 10. MISCELLANEOUS GENERATORS
 
