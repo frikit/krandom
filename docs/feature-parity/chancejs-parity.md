@@ -674,74 +674,74 @@ _None - awaiting next feature selection_
 
 ### 3. PERSON IDENTITY
 
-| Feature                                                        | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                                                                               |
-|----------------------------------------------------------------|-------------------------------------------------------------------------|----------------|-------------------------|-------------------------------------------------------------------------------------|
-| **Names**                                                      |                                                                         |                |                         |                                                                                     |
+| Feature                                                        | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                                                                                              |
+|----------------------------------------------------------------|-------------------------------------------------------------------------|----------------|-------------------------|----------------------------------------------------------------------------------------------------|
+| **Names**                                                      |                                                                         |                |                         |                                                                                                    |
 | Full name                                                      | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Yes          | ✓ DONE                  | `FullNameGenerator.generate(NameOptions)` supports middle/initial/prefix/suffix/gender/nationality |
-| First name                                                     | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator` (10 locales, gender-aware)                                     |
-| Last name                                                      | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `LastNameGenerator` (10 locales)                                                    |
-| Middle name                                                    | ✅ `name({middle: true})`                                                | ✅ Yes          | ✓ DONE                  | `MiddleNameGenerator` + `FullNameGenerator.generateWithMiddleName(...)`             |
-| Middle initial                                                 | ✅ `name({middle_initial: true})`                                        | ✅ Yes          | ✓ DONE                  | `MiddleNameGenerator.generateInitial(...)` + full-name middle initial support       |
-| Name prefix                                                    | ✅ `prefix({gender})`                                                    | ✅ Yes          | ✓ DONE                  | `TitleGenerator` (10 locales, no gender filter)                                     |
-| Name suffix                                                    | ✅ `suffix()`                                                            | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` (10 locales)                                                      |
-| Gender-specific names                                          | ✅ `first({gender: 'male'/'female'})`                                    | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)`                                                  |
-| Nationality support                                            | ✅ `name({nationality: 'en'/'it'})`                                      | ✅ Yes          | ✓ DONE                  | `NameOptions.nationality` supports language/country tokens mapped to locales        |
-| US nationality                                                 | ✅ `first({nationality: 'us'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.US)`                                                 |
-| Italian nationality                                            | ✅ `first({nationality: 'it'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.of("it","IT"))`                                      |
-| **Demographics**                                               |                                                                         |                |                         |                                                                                     |
-| Age                                                            | ✅ `age({type: 'child'/'teen'/'adult'/'senior'})`                        | ✅ Yes          | ✓ DONE                  | `AgeGenerator` with `AgeType` enum (CHILD/TEEN/ADULT/SENIOR)                        |
-| Age ranges                                                     | ✅ child(1-12), teen(13-19), adult(18-65), senior(65-100)                | ✅ Yes          | ✓ DONE                  | `new AgeGenerator(AgeType.CHILD)`                                                   |
-| Gender                                                         | ✅ `gender()`                                                            | ✅ Yes          | ✓ DONE                  | `GenderGenerator` (10 locales, locale-aware)                                        |
-| Birthday                                                       | ✅ `birthday({type, string, american})`                                  | ✅ Yes          | ✓ DONE                  | `BirthdayGenerator` returns `LocalDate`                                             |
-| Birthday as string                                             | ✅ `birthday({string: true})`                                            | ✅ Yes          | ✓ DONE                  | `generateAsString()` → '5/27/1983'                                                  |
-| American format                                                | ✅ `birthday({american: true})`                                          | ✅ Yes          | ✓ DONE                  | `generateAsAmericanString()` → '05/27/1983'                                         |
-| Type-based birthday                                            | ✅ `birthday({type: 'adult'})`                                           | ✅ Yes          | ✓ DONE                  | `new BirthdayGenerator(AgeType.ADULT)`                                              |
-| **ID Numbers**                                                 |                                                                         |                |                         |                                                                                     |
-| SSN (US)                                                       | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.US)` via `UsNationalIdProvider` (area 666 excluded) |
-| Last 4 SSN                                                     | ✅ `ssn({ssnFour: true})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().lastFourOnly().generate(random)`                        |
-| SSN format control                                             | ✅ `ssn({dashes: false})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().withoutDashes().generate(random)`                       |
-| **National IDs (krandom extension — no Chance.js equivalent)** |                                                                         |                |                         |                                                                                     |
-| UK NI number                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.UK)` → `"AB 12 34 56 C"`                            |
-| AU TFN                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("en","AU"))` → `"123 456 782"`                   |
-| FR NIR                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.FRANCE)` → 15-digit                                 |
-| DE Steuer-ID                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.GERMANY)` → 11 digits                               |
-| JP My Number                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.JAPAN)` → 12 digits                                 |
-| ES DNI                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("es","ES"))` → `"12345678Z"`                     |
-| IT Codice Fiscale                                              | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.ITALY)` → 16 chars                                  |
-| BR CPF                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("pt","BR"))` → `"123.456.789-09"`                |
-| CN Resident ID                                                 | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.CHINA)` → 18 chars                                  |
-| Custom locale ID                                               | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `NationalIdRegistry.register(provider)` at runtime                                  |
+| First name                                                     | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator` (10 locales, gender-aware)                                                    |
+| Last name                                                      | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `LastNameGenerator` (10 locales)                                                                   |
+| Middle name                                                    | ✅ `name({middle: true})`                                                | ✅ Yes          | ✓ DONE                  | `MiddleNameGenerator` + `FullNameGenerator.generateWithMiddleName(...)`                            |
+| Middle initial                                                 | ✅ `name({middle_initial: true})`                                        | ✅ Yes          | ✓ DONE                  | `MiddleNameGenerator.generateInitial(...)` + full-name middle initial support                      |
+| Name prefix                                                    | ✅ `prefix({gender})`                                                    | ✅ Yes          | ✓ DONE                  | `TitleGenerator` (10 locales, no gender filter)                                                    |
+| Name suffix                                                    | ✅ `suffix()`                                                            | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` (10 locales)                                                                     |
+| Gender-specific names                                          | ✅ `first({gender: 'male'/'female'})`                                    | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)`                                                                 |
+| Nationality support                                            | ✅ `name({nationality: 'en'/'it'})`                                      | ✅ Yes          | ✓ DONE                  | `NameOptions.nationality` supports language/country tokens mapped to locales                       |
+| US nationality                                                 | ✅ `first({nationality: 'us'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.US)`                                                                |
+| Italian nationality                                            | ✅ `first({nationality: 'it'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.of("it","IT"))`                                                     |
+| **Demographics**                                               |                                                                         |                |                         |                                                                                                    |
+| Age                                                            | ✅ `age({type: 'child'/'teen'/'adult'/'senior'})`                        | ✅ Yes          | ✓ DONE                  | `AgeGenerator` with `AgeType` enum (CHILD/TEEN/ADULT/SENIOR)                                       |
+| Age ranges                                                     | ✅ child(1-12), teen(13-19), adult(18-65), senior(65-100)                | ✅ Yes          | ✓ DONE                  | `new AgeGenerator(AgeType.CHILD)`                                                                  |
+| Gender                                                         | ✅ `gender()`                                                            | ✅ Yes          | ✓ DONE                  | `GenderGenerator` (10 locales, locale-aware)                                                       |
+| Birthday                                                       | ✅ `birthday({type, string, american})`                                  | ✅ Yes          | ✓ DONE                  | `BirthdayGenerator` returns `LocalDate`                                                            |
+| Birthday as string                                             | ✅ `birthday({string: true})`                                            | ✅ Yes          | ✓ DONE                  | `generateAsString()` → '5/27/1983'                                                                 |
+| American format                                                | ✅ `birthday({american: true})`                                          | ✅ Yes          | ✓ DONE                  | `generateAsAmericanString()` → '05/27/1983'                                                        |
+| Type-based birthday                                            | ✅ `birthday({type: 'adult'})`                                           | ✅ Yes          | ✓ DONE                  | `new BirthdayGenerator(AgeType.ADULT)`                                                             |
+| **ID Numbers**                                                 |                                                                         |                |                         |                                                                                                    |
+| SSN (US)                                                       | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.US)` via `UsNationalIdProvider` (area 666 excluded)                |
+| Last 4 SSN                                                     | ✅ `ssn({ssnFour: true})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().lastFourOnly().generate(random)`                                       |
+| SSN format control                                             | ✅ `ssn({dashes: false})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().withoutDashes().generate(random)`                                      |
+| **National IDs (krandom extension — no Chance.js equivalent)** |                                                                         |                |                         |                                                                                                    |
+| UK NI number                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.UK)` → `"AB 12 34 56 C"`                                           |
+| AU TFN                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("en","AU"))` → `"123 456 782"`                                  |
+| FR NIR                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.FRANCE)` → 15-digit                                                |
+| DE Steuer-ID                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.GERMANY)` → 11 digits                                              |
+| JP My Number                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.JAPAN)` → 12 digits                                                |
+| ES DNI                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("es","ES"))` → `"12345678Z"`                                    |
+| IT Codice Fiscale                                              | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.ITALY)` → 16 chars                                                 |
+| BR CPF                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("pt","BR"))` → `"123.456.789-09"`                               |
+| CN Resident ID                                                 | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.CHINA)` → 18 chars                                                 |
+| Custom locale ID                                               | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `NationalIdRegistry.register(provider)` at runtime                                                 |
 
 ### 4. LOCATION & ADDRESS
 
-| Feature            | Chance.js Support                       | krandom Status | Implementation Priority | Notes                    |
-|--------------------|-----------------------------------------|----------------|-------------------------|--------------------------|
+| Feature            | Chance.js Support                       | krandom Status | Implementation Priority | Notes                                                        |
+|--------------------|-----------------------------------------|----------------|-------------------------|--------------------------------------------------------------|
 | **Street Address** |
-| Full address       | ✅ `address({short_suffix})`             | ✅ Yes          | ✓ DONE                  | Locale-aware `StreetAddressGenerator` (10 locales) |
+| Full address       | ✅ `address({short_suffix})`             | ✅ Yes          | ✓ DONE                  | Locale-aware `StreetAddressGenerator` (10 locales)           |
 | Short suffix       | ✅ `address({short_suffix: true})`       | ✅ Yes          | ✓ DONE                  | `generate(true)` short suffix, `generate(false)` long suffix |
 | **City**           |
-| City name          | ✅ `city()`                              | ✅ Yes          | HIGH                    | Random city names        |
+| City name          | ✅ `city()`                              | ✅ Yes          | HIGH                    | Random city names                                            |
 | **State/Province** |
-| State abbreviation | ✅ `state()`                             | ✅ Yes          | HIGH                    | 'AK', 'CA', 'TX'         |
-| State full name    | ✅ `state({full: true})`                 | ✅ Yes          | HIGH                    | 'Florida', 'Alaska'      |
-| Locale support     | ✅ `state({country: 'us'/'ca'/'au'})`    | ✅ Yes          | MEDIUM                  | US/CA/AU/DE/MX/IT states |
+| State abbreviation | ✅ `state()`                             | ✅ Yes          | HIGH                    | 'AK', 'CA', 'TX'                                             |
+| State full name    | ✅ `state({full: true})`                 | ✅ Yes          | HIGH                    | 'Florida', 'Alaska'                                          |
+| Locale support     | ✅ `state({country: 'us'/'ca'/'au'})`    | ✅ Yes          | MEDIUM                  | US/CA/AU/DE/MX/IT states                                     |
 | **Postal Codes**   |
-| Postal code        | ✅ `zip()`/`postal()`/`postcode()`       | ✅ Yes          | HIGH                    | Locale-specific formats  |
-| Extended formats   | ✅ `generate(true)` for ZIP+4/hyphenated | ✅ Yes          | MEDIUM                  | '90210-1234', '100-0001' |
+| Postal code        | ✅ `zip()`/`postal()`/`postcode()`       | ✅ Yes          | HIGH                    | Locale-specific formats                                      |
+| Extended formats   | ✅ `generate(true)` for ZIP+4/hyphenated | ✅ Yes          | MEDIUM                  | '90210-1234', '100-0001'                                     |
 | **Country**        |
-| Country code       | ✅ `country()`                           | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'         |
-| Country full name  | ✅ `country({full: true})`               | ✅ Yes          | HIGH                    | 'Germany'                |
+| Country code       | ✅ `country()`                           | ✅ Yes          | HIGH                    | 'DE', 'FR', 'US'                                             |
+| Country full name  | ✅ `country({full: true})`               | ✅ Yes          | HIGH                    | 'Germany'                                                    |
 | **Phone Numbers**  |
-| Phone number       | ✅ `phone({formatted, country, mobile})` | ✅ Yes          | HIGH                    | Multi-country support    |
-| Formatted          | ✅ `generate()`                          | ✅ Yes          | HIGH                    | '(555) 123-4567'         |
-| Unformatted        | ✅ `generate(false)`                     | ✅ Yes          | MEDIUM                  | '5551234567'             |
-| Mobile vs Landline | ✅ `generate(true, true)` for mobile     | ✅ Yes          | MEDIUM                  | Locale-specific          |
+| Phone number       | ✅ `phone({formatted, country, mobile})` | ✅ Yes          | HIGH                    | Multi-country support                                        |
+| Formatted          | ✅ `generate()`                          | ✅ Yes          | HIGH                    | '(555) 123-4567'                                             |
+| Unformatted        | ✅ `generate(false)`                     | ✅ Yes          | MEDIUM                  | '5551234567'                                                 |
+| Mobile vs Landline | ✅ `generate(true, true)` for mobile     | ✅ Yes          | MEDIUM                  | Locale-specific                                              |
 | **Coordinates**    |
-| Latitude           | ✅ `generateLatitude()`                  | ✅ Yes          | MEDIUM                  | Locale-bounded           |
-| Longitude          | ✅ `generateLongitude()`                 | ✅ Yes          | MEDIUM                  | Locale-bounded           |
-| Decimal precision  | ✅ `generateLatitude(7)`                 | ✅ Yes          | MEDIUM                  | 1-10 decimal places      |
-| Locale bounds      | ✅ Based on locale                       | ✅ Yes          | MEDIUM                  | Within country bounds    |
-| Coordinates pair   | ✅ `generate()`                          | ✅ Yes          | MEDIUM                  | '35.12423,-80.12345'     |
+| Latitude           | ✅ `generateLatitude()`                  | ✅ Yes          | MEDIUM                  | Locale-bounded                                               |
+| Longitude          | ✅ `generateLongitude()`                 | ✅ Yes          | MEDIUM                  | Locale-bounded                                               |
+| Decimal precision  | ✅ `generateLatitude(7)`                 | ✅ Yes          | MEDIUM                  | 1-10 decimal places                                          |
+| Locale bounds      | ✅ Based on locale                       | ✅ Yes          | MEDIUM                  | Within country bounds                                        |
+| Coordinates pair   | ✅ `generate()`                          | ✅ Yes          | MEDIUM                  | '35.12423,-80.12345'                                         |
 
 ### 5. FINANCE
 
@@ -776,39 +776,39 @@ _None - awaiting next feature selection_
 
 ### 6. WEB & INTERNET
 
-| Feature           | Chance.js Support                                            | krandom Status | Implementation Priority | Notes                           |
-|-------------------|--------------------------------------------------------------|----------------|-------------------------|---------------------------------|
+| Feature           | Chance.js Support                                            | krandom Status | Implementation Priority | Notes                                                     |
+|-------------------|--------------------------------------------------------------|----------------|-------------------------|-----------------------------------------------------------|
 | **Email**         |
-| Email address     | ✅ `generate()`                                               | ✅ Yes          | HIGH                    | 'john.smith@gmail.com'          |
-| Custom domain     | ✅ `generate("example.com")`                                  | ✅ Yes          | HIGH                    | 'john.smith@example.com'        |
-| Email formats     | ✅ `generate(EmailFormat)`                                    | ✅ Yes          | MEDIUM                  | 5 formats supported             |
-| Locale-aware      | ✅ `EmailGenerator(Locale)`                                   | ✅ Yes          | HIGH                    | Uses locale-appropriate names   |
+| Email address     | ✅ `generate()`                                               | ✅ Yes          | HIGH                    | 'john.smith@gmail.com'                                    |
+| Custom domain     | ✅ `generate("example.com")`                                  | ✅ Yes          | HIGH                    | 'john.smith@example.com'                                  |
+| Email formats     | ✅ `generate(EmailFormat)`                                    | ✅ Yes          | MEDIUM                  | 5 formats supported                                       |
+| Locale-aware      | ✅ `EmailGenerator(Locale)`                                   | ✅ Yes          | HIGH                    | Uses locale-appropriate names                             |
 | **Domain & URL**  |
-| Domain name       | ✅ `domain({tld})`                                            | ✅ Yes          | HIGH                    | DomainGenerator 'techcloud.com' |
-| Custom TLD        | ✅ `domain({tld: 'ie'})`                                      | ✅ Yes          | MEDIUM                  | generate("ie") → 'datahub.ie'   |
-| TLD only          | ✅ `tld()`                                                    | ✅ Yes          | MEDIUM                  | getTLD() → 'com', 'org', 'net'  |
-| Full URL          | ✅ `url({protocol, domain, domain_prefix, path, extensions})` | ✅ Yes          | ✓ DONE                  | `URLGenerator.generateWithOptions(...)` |
-| Custom protocol   | ✅ `url({protocol: 'ftp'})`                                   | ✅ Yes          | MEDIUM                  | generate("ftp") → 'ftp://...'   |
-| Fixed domain      | ✅ `url({domain: 'example.com'})`                             | ✅ Yes          | ✓ DONE                  | `generateWithDomain(...)`       |
-| Domain prefix     | ✅ `url({domain_prefix: 'api'})`                              | ✅ Yes          | ✓ DONE                  | `generateWithDomainPrefix(...)` |
-| Fixed path        | ✅ `url({path: '/api/v1'})`                                   | ✅ Yes          | ✓ DONE                  | `generateWithFixedPath(...)`    |
-| File extensions   | ✅ `url({extensions: ['gif','jpg']})`                         | ✅ Yes          | ✓ DONE                  | `generateWithExtensions(...)` or options |
+| Domain name       | ✅ `domain({tld})`                                            | ✅ Yes          | HIGH                    | DomainGenerator 'techcloud.com'                           |
+| Custom TLD        | ✅ `domain({tld: 'ie'})`                                      | ✅ Yes          | MEDIUM                  | generate("ie") → 'datahub.ie'                             |
+| TLD only          | ✅ `tld()`                                                    | ✅ Yes          | MEDIUM                  | getTLD() → 'com', 'org', 'net'                            |
+| Full URL          | ✅ `url({protocol, domain, domain_prefix, path, extensions})` | ✅ Yes          | ✓ DONE                  | `URLGenerator.generateWithOptions(...)`                   |
+| Custom protocol   | ✅ `url({protocol: 'ftp'})`                                   | ✅ Yes          | MEDIUM                  | generate("ftp") → 'ftp://...'                             |
+| Fixed domain      | ✅ `url({domain: 'example.com'})`                             | ✅ Yes          | ✓ DONE                  | `generateWithDomain(...)`                                 |
+| Domain prefix     | ✅ `url({domain_prefix: 'api'})`                              | ✅ Yes          | ✓ DONE                  | `generateWithDomainPrefix(...)`                           |
+| Fixed path        | ✅ `url({path: '/api/v1'})`                                   | ✅ Yes          | ✓ DONE                  | `generateWithFixedPath(...)`                              |
+| File extensions   | ✅ `url({extensions: ['gif','jpg']})`                         | ✅ Yes          | ✓ DONE                  | `generateWithExtensions(...)` or options                  |
 | **IP Addresses**  |
-| IPv4              | ✅ `ip()`                                                     | ✅ Yes          | ✓ DONE                  | IPv4Generator with seeding      |
-| IPv6              | ✅ `ipv6()`                                                   | ✅ Yes          | ✓ DONE                  | IPv6Generator with seeding      |
+| IPv4              | ✅ `ip()`                                                     | ✅ Yes          | ✓ DONE                  | IPv4Generator with seeding                                |
+| IPv6              | ✅ `ipv6()`                                                   | ✅ Yes          | ✓ DONE                  | IPv6Generator with seeding                                |
 | **Colors**        |
-| Color hex         | ✅ `color({format: 'hex'})`                                   | ✅ Yes          | ✓ DONE                  | ColorGenerator HEX format       |
-| Short hex         | ✅ `color({format: 'shorthex'})`                              | ✅ Yes          | ✓ DONE                  | ColorGenerator SHORT_HEX        |
-| RGB format        | ✅ `color({format: 'rgb'})`                                   | ✅ Yes          | ✓ DONE                  | ColorGenerator RGB format       |
-| 0x format         | ✅ `color({format: '0x'})`                                    | ✅ Yes          | ✓ DONE                  | ColorGenerator HEX_0X format    |
-| Grayscale         | ✅ `color({grayscale: true})`                                 | ✅ Yes          | ✓ DONE                  | generateGrayscale()             |
-| Case control      | ✅ `color({casing: 'upper'})`                                 | ✅ Yes          | ✓ DONE                  | generateUppercase()             |
+| Color hex         | ✅ `color({format: 'hex'})`                                   | ✅ Yes          | ✓ DONE                  | ColorGenerator HEX format                                 |
+| Short hex         | ✅ `color({format: 'shorthex'})`                              | ✅ Yes          | ✓ DONE                  | ColorGenerator SHORT_HEX                                  |
+| RGB format        | ✅ `color({format: 'rgb'})`                                   | ✅ Yes          | ✓ DONE                  | ColorGenerator RGB format                                 |
+| 0x format         | ✅ `color({format: '0x'})`                                    | ✅ Yes          | ✓ DONE                  | ColorGenerator HEX_0X format                              |
+| Grayscale         | ✅ `color({grayscale: true})`                                 | ✅ Yes          | ✓ DONE                  | generateGrayscale()                                       |
+| Case control      | ✅ `color({casing: 'upper'})`                                 | ✅ Yes          | ✓ DONE                  | generateUppercase()                                       |
 | **Social**        |
-| Twitter handle    | ✅ `twitter()`                                                | ❌ No           | LOW                     | '@dafivatemin'                  |
-| Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | LOW                     | Gravatar URLs                   |
+| Twitter handle    | ✅ `twitter()`                                                | ❌ No           | LOW                     | '@dafivatemin'                                            |
+| Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | LOW                     | Gravatar URLs                                             |
 | **Business**      |
-| Company name      | ✅ `company()`                                                | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate()` |
-| Profession        | ✅ `profession({ranked})`                                     | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()` |
+| Company name      | ✅ `company()`                                                | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate()`                         |
+| Profession        | ✅ `profession({ranked})`                                     | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()`                          |
 | Ranked profession | ✅ `profession({ranked: true})`                               | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate(true)` / `generateRanked()` |
 
 ### 7. TIME & DATES
@@ -837,21 +837,21 @@ _None - awaiting next feature selection_
 
 ### 8. TEXT & NATURAL LANGUAGE
 
-| Feature          | Chance.js Support             | krandom Status | Implementation Priority | Notes                   |
-|------------------|-------------------------------|----------------|-------------------------|-------------------------|
+| Feature          | Chance.js Support             | krandom Status | Implementation Priority | Notes                                               |
+|------------------|-------------------------------|----------------|-------------------------|-----------------------------------------------------|
 | **Words**        |
-| Random word      | ✅ `word({syllables, length})` | ✅ Yes          | ✓ DONE                  | `WordGenerator` + `WordOptions` |
-| Syllable control | ✅ `word({syllables: 4})`      | ✅ Yes          | ✓ DONE                  | `WordOptions.withSyllables(int)` |
-| Length control   | ✅ `word({length: 10})`        | ✅ Yes          | ✓ DONE                  | `WordOptions.withLength(int)` |
+| Random word      | ✅ `word({syllables, length})` | ✅ Yes          | ✓ DONE                  | `WordGenerator` + `WordOptions`                     |
+| Syllable control | ✅ `word({syllables: 4})`      | ✅ Yes          | ✓ DONE                  | `WordOptions.withSyllables(int)`                    |
+| Length control   | ✅ `word({length: 10})`        | ✅ Yes          | ✓ DONE                  | `WordOptions.withLength(int)`                       |
 | Syllable         | ✅ `syllable({length})`        | ✅ Yes          | ✓ DONE                  | `SyllableGenerator.generate()` / `generate(length)` |
 | **Sentences**    |
-| Random sentence  | ✅ `sentence({words})`         | ✅ Yes          | ✓ DONE                  | `SentenceGenerator.generate()` |
-| Word count       | ✅ `sentence({words: 5})`      | ✅ Yes          | ✓ DONE                  | `SentenceGenerator.generate(int)` |
-| Default range    | ✅ 12-18 words                 | ✅ Yes          | ✓ DONE                  | `SentenceGenerator` default range |
+| Random sentence  | ✅ `sentence({words})`         | ✅ Yes          | ✓ DONE                  | `SentenceGenerator.generate()`                      |
+| Word count       | ✅ `sentence({words: 5})`      | ✅ Yes          | ✓ DONE                  | `SentenceGenerator.generate(int)`                   |
+| Default range    | ✅ 12-18 words                 | ✅ Yes          | ✓ DONE                  | `SentenceGenerator` default range                   |
 | **Paragraphs**   |
-| Random paragraph | ✅ `paragraph({sentences})`    | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generate()` |
-| Sentence count   | ✅ `paragraph({sentences: 3})` | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generate(int)` |
-| Default range    | ✅ 3-7 sentences               | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator` default range |
+| Random paragraph | ✅ `paragraph({sentences})`    | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generate()`                     |
+| Sentence count   | ✅ `paragraph({sentences: 3})` | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generate(int)`                  |
+| Default range    | ✅ 3-7 sentences               | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator` default range                  |
 
 ### 9. IDENTIFIERS & HASHES
 
@@ -881,23 +881,23 @@ _None - awaiting next feature selection_
 
 ### 11. HELPER METHODS (UNIQUE TO CHANCE.JS)
 
-| Feature                | Chance.js Support                           | krandom Status | Implementation Priority | Notes                        |
-|------------------------|---------------------------------------------|----------------|-------------------------|------------------------------|
+| Feature                | Chance.js Support                           | krandom Status | Implementation Priority | Notes                                                             |
+|------------------------|---------------------------------------------|----------------|-------------------------|-------------------------------------------------------------------|
 | **Repeat Generation**  |
-| n() method             | ✅ `n(fn, count, options)`                   | ✅ Yes          | ✓ DONE                  | `RepeatGenerator<T>` via `Generators.repeat(source, count)` |
-| Example                | ✅ `n(chance.integer, 5, {min: 1, max: 10})` | ✅ Yes          | ✓ DONE                  | `Generators.repeat(Generators.ofInt(1, 10), 5)`             |
+| n() method             | ✅ `n(fn, count, options)`                   | ✅ Yes          | ✓ DONE                  | `RepeatGenerator<T>` via `Generators.repeat(source, count)`       |
+| Example                | ✅ `n(chance.integer, 5, {min: 1, max: 10})` | ✅ Yes          | ✓ DONE                  | `Generators.repeat(Generators.ofInt(1, 10), 5)`                   |
 | **Unique Values**      |
-| unique() method        | ✅ `unique(fn, count, options)`              | ✅ Yes          | ✓ DONE                  | `UniqueGenerator<T>` via `Generators.unique(source)`         |
-| Example                | ✅ `unique(chance.state, 5)`                 | ✅ Yes          | ✓ DONE                  | `Generators.repeat(Generators.unique(stateGen), 5)`          |
-| RangeError             | ✅ Throws if pool too small                  | ✅ Yes          | ✓ DONE                  | Throws `IllegalStateException` when unique pool is exhausted |
-| Custom comparator      | ✅ `{comparator: (arr, val) => ...}`         | ✅ Yes          | ✓ DONE                  | `Generators.unique(source, comparator)`                      |
+| unique() method        | ✅ `unique(fn, count, options)`              | ✅ Yes          | ✓ DONE                  | `UniqueGenerator<T>` via `Generators.unique(source)`              |
+| Example                | ✅ `unique(chance.state, 5)`                 | ✅ Yes          | ✓ DONE                  | `Generators.repeat(Generators.unique(stateGen), 5)`               |
+| RangeError             | ✅ Throws if pool too small                  | ✅ Yes          | ✓ DONE                  | Throws `IllegalStateException` when unique pool is exhausted      |
+| Custom comparator      | ✅ `{comparator: (arr, val) => ...}`         | ✅ Yes          | ✓ DONE                  | `Generators.unique(source, comparator)`                           |
 | **Collection Helpers** |
-| pick()                 | ✅ `pick(['a','b','c'])`                     | ✅ Yes          | ✓ DONE                  | `PickGenerator<T>` via `Generators.pickFrom(source)`         |
-| pickset()              | ✅ `pickset(['a','b','c'], 2)`               | ✅ Yes          | ✓ DONE                  | `PickSetGenerator<T>` via `Generators.pickSetFrom(source, n)`|
-| shuffle()              | ✅ `shuffle([1,2,3,4])`                      | ✅ Yes          | ✓ DONE                  | `ShuffleGenerator<T>` via `Generators.shuffleOf(source)`     |
+| pick()                 | ✅ `pick(['a','b','c'])`                     | ✅ Yes          | ✓ DONE                  | `PickGenerator<T>` via `Generators.pickFrom(source)`              |
+| pickset()              | ✅ `pickset(['a','b','c'], 2)`               | ✅ Yes          | ✓ DONE                  | `PickSetGenerator<T>` via `Generators.pickSetFrom(source, n)`     |
+| shuffle()              | ✅ `shuffle([1,2,3,4])`                      | ✅ Yes          | ✓ DONE                  | `ShuffleGenerator<T>` via `Generators.shuffleOf(source)`          |
 | **Weighted Random**    |
 | weighted()             | ✅ `weighted(values, weights)`               | ✅ Yes          | ✓ DONE                  | `WeightedGenerator<T>` via `Generators.weighted(values, weights)` |
-| Example                | ✅ `weighted(['heads','tails'], [7,3])`      | ✅ Yes          | ✓ DONE                  | Weighted selection verified with statistical tests            |
+| Example                | ✅ `weighted(['heads','tails'], [7,3])`      | ✅ Yes          | ✓ DONE                  | Weighted selection verified with statistical tests                |
 
 ---
 
@@ -917,18 +917,18 @@ _None - awaiting next feature selection_
 
 ### Options & Parameterization
 
-| Feature                | Chance.js                        | krandom | Priority | Implementation Notes                                   |
-|------------------------|----------------------------------|---------|----------|--------------------------------------------------------|
+| Feature                | Chance.js                        | krandom   | Priority | Implementation Notes                                                                                             |
+|------------------------|----------------------------------|-----------|----------|------------------------------------------------------------------------------------------------------------------|
 | **Rich Options**       |
 | Extensive parameters   | ✅ Every method has options       | ✅ Partial | MEDIUM   | `FullNameGenerator` now supports Chance-style composite options; broader API-wide option parity still incomplete |
-| Default values         | ✅ Sensible defaults              | ✅ Yes   | ✓ DONE   | Works without options                                  |
-| Option combinations    | ✅ Multiple options work together | ❌ No    | MEDIUM   | Composable parameters                                  |
+| Default values         | ✅ Sensible defaults              | ✅ Yes     | ✓ DONE   | Works without options                                                                                            |
+| Option combinations    | ✅ Multiple options work together | ❌ No      | MEDIUM   | Composable parameters                                                                                            |
 | **Likelihood Control** |
-| Boolean likelihood     | ✅ `bool({likelihood: 80})`       | ✅ Yes   | ✓ DONE   | `ofBoolean().withLikelihood(80)` — UNIQUE              |
+| Boolean likelihood     | ✅ `bool({likelihood: 80})`       | ✅ Yes     | ✓ DONE   | `ofBoolean().withLikelihood(80)` — UNIQUE                                                                        |
 | **Format Control**     |
-| String format          | ✅ `date({string: true})`         | ✅ Yes   | ✓ DONE   | `generateString()`, `generateAsString()` per generator |
-| Number format          | ✅ `floating({fixed: 2})`         | ✅ Yes   | ✓ DONE   | `withPrecision(2)` on DoubleGenerator/FloatGenerator   |
-| Formatted output       | ✅ `phone({formatted: false})`    | ✅ Yes   | ✓ DONE   | `PhoneNumberGenerator.generate(false)` → digits only   |
+| String format          | ✅ `date({string: true})`         | ✅ Yes     | ✓ DONE   | `generateString()`, `generateAsString()` per generator                                                           |
+| Number format          | ✅ `floating({fixed: 2})`         | ✅ Yes     | ✓ DONE   | `withPrecision(2)` on DoubleGenerator/FloatGenerator                                                             |
+| Formatted output       | ✅ `phone({formatted: false})`    | ✅ Yes     | ✓ DONE   | `PhoneNumberGenerator.generate(false)` → digits only                                                             |
 
 ### Mobile & Device Support
 
@@ -946,27 +946,27 @@ _None - awaiting next feature selection_
 
 ### Statistical Features
 
-| Feature                | Chance.js                        | krandom | Priority | Implementation Notes                           |
-|------------------------|----------------------------------|---------|----------|------------------------------------------------|
+| Feature                | Chance.js                        | krandom | Priority | Implementation Notes                                 |
+|------------------------|----------------------------------|---------|----------|------------------------------------------------------|
 | **Distributions**      |
-| Normal distribution    | ✅ `normal({mean, dev})`          | ✅ Yes   | ✓ DONE   | `Generators.ofNormal(mean, stdDev)` Box-Muller |
-| Mean control           | ✅ `mean` parameter               | ✅ Yes   | ✓ DONE   | First param of `ofNormal(mean, stdDev)`        |
-| Std deviation          | ✅ `dev` parameter                | ✅ Yes   | ✓ DONE   | Second param of `ofNormal(mean, stdDev)`       |
-| IQ-like data           | ✅ `normal({mean: 100, dev: 15})` | ✅ Yes   | ✓ DONE   | `Generators.ofNormal(100.0, 15.0)`             |
+| Normal distribution    | ✅ `normal({mean, dev})`          | ✅ Yes   | ✓ DONE   | `Generators.ofNormal(mean, stdDev)` Box-Muller       |
+| Mean control           | ✅ `mean` parameter               | ✅ Yes   | ✓ DONE   | First param of `ofNormal(mean, stdDev)`              |
+| Std deviation          | ✅ `dev` parameter                | ✅ Yes   | ✓ DONE   | Second param of `ofNormal(mean, stdDev)`             |
+| IQ-like data           | ✅ `normal({mean: 100, dev: 15})` | ✅ Yes   | ✓ DONE   | `Generators.ofNormal(100.0, 15.0)`                   |
 | **Weighted Selection** |
-| Weighted arrays        | ✅ `weighted(['a','b'], [7,3])`   | ✅ Yes   | ✓ DONE   | `Generators.weighted(values, weights)`         |
+| Weighted arrays        | ✅ `weighted(['a','b'], [7,3])`   | ✅ Yes   | ✓ DONE   | `Generators.weighted(values, weights)`               |
 | Integer weights        | ✅ Any positive integers          | ✅ Yes   | ✓ DONE   | `WeightedGenerator` accepts positive integer weights |
 
 ### Natural Language Features
 
-| Feature                | Chance.js                | krandom | Priority | Implementation Notes          |
-|------------------------|--------------------------|---------|----------|-------------------------------|
+| Feature                | Chance.js                | krandom | Priority | Implementation Notes                  |
+|------------------------|--------------------------|---------|----------|---------------------------------------|
 | **Pronounceable Text** |
-| Syllable generation    | ✅ `syllable()`           | ✅ Yes   | ✓ DONE   | `SyllableGenerator` (locale-aware) |
+| Syllable generation    | ✅ `syllable()`           | ✅ Yes   | ✓ DONE   | `SyllableGenerator` (locale-aware)    |
 | Word generation        | ✅ `word({syllables: 4})` | ✅ Yes   | ✓ DONE   | `WordGenerator.generate(WordOptions)` |
-| Sentence structure     | ✅ Capital + period       | ✅ Yes   | ✓ DONE   | `SentenceGenerator` formatting |
-| Paragraph structure    | ✅ Multiple sentences     | ✅ Yes   | ✓ DONE   | `ParagraphGenerator` structure |
-| Variable length        | ✅ Default ranges         | ✅ Yes   | ✓ DONE   | 12-18 words, 3-7 sentences    |
+| Sentence structure     | ✅ Capital + period       | ✅ Yes   | ✓ DONE   | `SentenceGenerator` formatting        |
+| Paragraph structure    | ✅ Multiple sentences     | ✅ Yes   | ✓ DONE   | `ParagraphGenerator` structure        |
+| Variable length        | ✅ Default ranges         | ✅ Yes   | ✓ DONE   | 12-18 words, 3-7 sentences            |
 
 ---
 

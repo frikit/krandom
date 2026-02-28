@@ -615,17 +615,17 @@ public class OrderTests
 
 ### Medium priority (domain-specific)
 
-| Bogus feature                | Category | Suggested krandom location                 |
-|------------------------------|----------|--------------------------------------------|
+| Bogus feature                | Category | Suggested krandom location                           |
+|------------------------------|----------|------------------------------------------------------|
 | `f.Internet.UserAgent()`     | Internet | `UserAgentGenerator` in `generator.network` package  |
-| `f.Internet.Password()`      | Internet | `PasswordGenerator` in `user` package      |
+| `f.Internet.Password()`      | Internet | `PasswordGenerator` in `user` package                |
 | `f.Internet.Mac()`           | Network  | `MacAddressGenerator` in `generator.network` package |
-| `f.Internet.Color()`         | Color    | `ColorGenerator`                           |
-| `f.Finance.Iban()`           | Finance  | `IbanGenerator`                            |
-| `f.Finance.BitcoinAddress()` | Finance  | `CryptoAddressGenerator`                   |
-| `f.System.Semver()`          | System   | `SemverGenerator`                          |
-| `f.System.MimeType()`        | System   | `MimeTypeGenerator`                        |
-| `f.Vehicle.Vin()`            | Vehicle  | `VinGenerator` in new `vehicle` package    |
+| `f.Internet.Color()`         | Color    | `ColorGenerator`                                     |
+| `f.Finance.Iban()`           | Finance  | `IbanGenerator`                                      |
+| `f.Finance.BitcoinAddress()` | Finance  | `CryptoAddressGenerator`                             |
+| `f.System.Semver()`          | System   | `SemverGenerator`                                    |
+| `f.System.MimeType()`        | System   | `MimeTypeGenerator`                                  |
+| `f.Vehicle.Vin()`            | Vehicle  | `VinGenerator` in new `vehicle` package              |
 
 ### Architectural gaps
 

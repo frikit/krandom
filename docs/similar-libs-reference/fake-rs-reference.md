@@ -727,18 +727,18 @@ let fr_name: String = fake::faker::name::fr_FR::Name().fake();  // "Jean Dupont"
 
 ### Internet / Network
 
-| fake-rs type                      | krandom equivalent                            | Status  |
-|-----------------------------------|-----------------------------------------------|---------|
-| `faker::internet::en::FreeEmail`  | `org.github.krandom.user.Email`               | Has it  |
-| `faker::internet::en::SafeEmail`  | —                                             | Gap     |
-| `faker::internet::en::Username`   | `org.github.krandom.user.Username`            | Has it  |
-| `faker::internet::en::Password`   | `StringGenerator` (no dedicated password API) | Partial |
+| fake-rs type                      | krandom equivalent                                   | Status  |
+|-----------------------------------|------------------------------------------------------|---------|
+| `faker::internet::en::FreeEmail`  | `org.github.krandom.user.Email`                      | Has it  |
+| `faker::internet::en::SafeEmail`  | —                                                    | Gap     |
+| `faker::internet::en::Username`   | `org.github.krandom.user.Username`                   | Has it  |
+| `faker::internet::en::Password`   | `StringGenerator` (no dedicated password API)        | Partial |
 | `faker::internet::en::IPv4`       | `org.github.krandom.generator.network.IPv4Generator` | Has it  |
 | `faker::internet::en::IPv6`       | `org.github.krandom.generator.network.IPv6Generator` | Has it  |
-| `faker::internet::en::IP`         | — (no "either v4 or v6" selector)             | Gap     |
-| `faker::internet::en::MACAddress` | —                                             | Gap     |
-| `faker::internet::en::UserAgent`  | —                                             | Gap     |
-| `faker::internet::en::Slug`       | —                                             | Gap     |
+| `faker::internet::en::IP`         | — (no "either v4 or v6" selector)                    | Gap     |
+| `faker::internet::en::MACAddress` | —                                                    | Gap     |
+| `faker::internet::en::UserAgent`  | —                                                    | Gap     |
+| `faker::internet::en::Slug`       | —                                                    | Gap     |
 
 ### Address / Location
 
