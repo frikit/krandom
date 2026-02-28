@@ -73,11 +73,11 @@ This section is the current source of truth for Java-core parity status. Some le
 | IPv4 private/public/CIDR | ✅ Exists | `IPv4Generator.generatePrivate/public/cidr`. |
 | IPv6 CIDR | ✅ Exists | `IPv6Generator.generateCidr`. |
 | MACAddress / Port / UserAgent | ✅ Exists | Implemented in `network` package. |
-| HTTP status code | ❌ Missing | No dedicated HTTP status-code generator. |
+| HTTP status code | ✅ Exists | `HttpStatusCodeGenerator`. |
 | UUID | ✅ Exists | `UUIDGenerator` supports v4/v5/v7 (fake-rs commonly v4 via feature flag). |
 | CurrencyCode / Name / Symbol | ✅ Exists | `CurrencyGenerator` supports all three. |
 | Credit card number / expiry / CVV | ✅ Exists | `CreditCardGenerator` + `CardExpirationGenerator`. |
-| BIC / ISIN | ❌ Missing | Not implemented. |
+| BIC / ISIN | ✅ Exists | `BicGenerator` and `IsinGenerator`. |
 | CompanyName / Industry / Profession | ✅ Exists | Implemented; `ProfessionGenerator` is locale-extensible. |
 | JobField / JobSeniority / JobTitle(Position) | ✅ Exists | `JobFieldGenerator`, `SeniorityGenerator`, `PositionGenerator`. |
 | JobType | ✅ Exists | `JobTypeGenerator`. |
@@ -87,13 +87,14 @@ This section is the current source of truth for Java-core parity status. Some le
 | DateTimeBefore / After / Between | ✅ Exists | `LocalDateTimeGenerator.before()`, `.after()`, `.between()`. |
 | Duration | ✅ Exists | `DurationGenerator`. |
 | PhoneNumber / CellNumber | ✅ Exists | `PhoneNumberGenerator` supports formatted + mobile/landline selection. |
-| NumberWithFormat | ❌ Missing | No dedicated fake-rs-like formatting API. |
+| NumberWithFormat | ✅ Exists | `NumberWithFormatGenerator` (`#` placeholder format). |
+| Digit | ✅ Exists | `DigitGenerator`. |
 | ISBN / ISBN10 / ISBN13 | ✅ Exists | `IsbnGenerator` supports both formats. |
 | Hex/RGB color | ✅ Exists | `ColorGenerator` supports multiple color formats. |
-| RGBA/HSL/HSLA strings | ❌ Missing | Not currently in `ColorFormat`. |
+| RGBA/HSL/HSLA strings | ✅ Exists | Added in `ColorFormat` + `ColorGenerator`. |
 | License plate | ❌ Missing | Not implemented. |
 | FileName / FileExtension | ✅ Exists | Implemented in `file` package. |
-| FilePath / DirPath / MimeType / Semver | ❌ Missing | Not implemented. |
+| FilePath / DirPath / MimeType / Semver | ✅ Exists | `FilePathGenerator`, `DirPathGenerator`, `MimeTypeGenerator`, `SemverGenerator`. |
 
 ### Architecture-level Differences (Intentional / Significant)
 

@@ -69,6 +69,27 @@ class ColorGeneratorTest {
     }
 
     @Test
+    void testGenerateWithRGBAFormat() {
+        ColorGenerator generator = new ColorGenerator();
+        String color = generator.generate(ColorFormat.RGBA);
+        assertTrue(color.matches("rgba\\(\\d{1,3},\\d{1,3},\\d{1,3},\\d\\.\\d{3}\\)"), "Expected RGBA format: " + color);
+    }
+
+    @Test
+    void testGenerateWithHSLFormat() {
+        ColorGenerator generator = new ColorGenerator();
+        String color = generator.generate(ColorFormat.HSL);
+        assertTrue(color.matches("hsl\\(\\d{1,3},\\d{1,3}%,\\d{1,3}%\\)"), "Expected HSL format: " + color);
+    }
+
+    @Test
+    void testGenerateWithHSLAFormat() {
+        ColorGenerator generator = new ColorGenerator();
+        String color = generator.generate(ColorFormat.HSLA);
+        assertTrue(color.matches("hsla\\(\\d{1,3},\\d{1,3}%,\\d{1,3}%,\\d\\.\\d{3}\\)"), "Expected HSLA format: " + color);
+    }
+
+    @Test
     void testGenerateWithHex0xFormat() {
         ColorGenerator generator = new ColorGenerator();
         String color = generator.generate(ColorFormat.HEX_0X);
@@ -246,6 +267,15 @@ class ColorGeneratorTest {
         
         String rgb = generator.generate(ColorFormat.RGB);
         assertTrue(rgb.matches("rgb\\(\\d{1,3},\\d{1,3},\\d{1,3}\\)"));
+
+        String rgba = generator.generate(ColorFormat.RGBA);
+        assertTrue(rgba.matches("rgba\\(\\d{1,3},\\d{1,3},\\d{1,3},\\d\\.\\d{3}\\)"));
+
+        String hsl = generator.generate(ColorFormat.HSL);
+        assertTrue(hsl.matches("hsl\\(\\d{1,3},\\d{1,3}%,\\d{1,3}%\\)"));
+
+        String hsla = generator.generate(ColorFormat.HSLA);
+        assertTrue(hsla.matches("hsla\\(\\d{1,3},\\d{1,3}%,\\d{1,3}%,\\d\\.\\d{3}\\)"));
         
         String hex0x = generator.generate(ColorFormat.HEX_0X);
         assertTrue(hex0x.matches("0x[0-9a-f]{6}"));
@@ -335,6 +365,21 @@ class ColorGeneratorTest {
             String color = generator.generate(ColorFormat.RGB);
             assertTrue(color.startsWith("rgb("), "Should start with rgb(: " + color);
             assertTrue(color.endsWith(")"), "Should end with ): " + color);
+        }
+    }
+
+    @Test
+    void testHslValuesInRange() {
+        ColorGenerator generator = new ColorGenerator();
+        for (int i = 0; i < 50; i++) {
+            String color = generator.generate(ColorFormat.HSL);
+            String[] parts = color.substring(4, color.length() - 1).split(",");
+            int h = Integer.parseInt(parts[0]);
+            int s = Integer.parseInt(parts[1].replace("%", ""));
+            int l = Integer.parseInt(parts[2].replace("%", ""));
+            assertTrue(h >= 0 && h <= 359);
+            assertTrue(s >= 0 && s <= 100);
+            assertTrue(l >= 0 && l <= 100);
         }
     }
 }

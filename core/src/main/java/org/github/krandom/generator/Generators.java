@@ -13,8 +13,13 @@ import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
+import org.github.krandom.generator.file.FilePathGenerator;
+import org.github.krandom.generator.file.DirPathGenerator;
+import org.github.krandom.generator.file.MimeTypeGenerator;
+import org.github.krandom.generator.file.SemverGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
+import org.github.krandom.generator.network.HttpStatusCodeGenerator;
 import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
 import org.github.krandom.generator.network.IPGenerator;
@@ -47,6 +52,8 @@ import org.github.krandom.generator.user.ProfessionGenerator;
 import org.github.krandom.generator.user.PasswordGenerator;
 import org.github.krandom.generator.user.SeniorityGenerator;
 import org.github.krandom.generator.user.UsernameGenerator;
+import org.github.krandom.generator.finance.BicGenerator;
+import org.github.krandom.generator.finance.IsinGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -249,6 +256,16 @@ public final class Generators {
         return Objects.requireNonNull(builder, "builder").build();
     }
 
+    /** Returns a generator that produces single decimal digits as strings. */
+    public static DigitGenerator ofDigit() {
+        return new DigitGenerator();
+    }
+
+    /** Returns a generator that produces numbers from '#' placeholder formats. */
+    public static NumberWithFormatGenerator ofNumberWithFormat() {
+        return new NumberWithFormatGenerator();
+    }
+
     // ── Algorithms ────────────────────────────────────────────────────────────
 
     /** Returns a generator that produces random Fibonacci numbers. */
@@ -303,6 +320,11 @@ public final class Generators {
     /** Returns a generator that produces browser and bot user-agent strings. */
     public static UserAgentGenerator ofUserAgent() {
         return new UserAgentGenerator();
+    }
+
+    /** Returns a generator that produces standard HTTP status codes. */
+    public static HttpStatusCodeGenerator ofHttpStatusCode() {
+        return new HttpStatusCodeGenerator();
     }
 
     // ── BigDecimal ────────────────────────────────────────────────────────────
@@ -437,9 +459,39 @@ public final class Generators {
         return new FileNameGenerator();
     }
 
+    /** Returns a generator that produces locale-aware directory paths. */
+    public static DirPathGenerator ofDirPath() {
+        return new DirPathGenerator();
+    }
+
+    /** Returns a generator that produces locale-aware file paths. */
+    public static FilePathGenerator ofFilePath() {
+        return new FilePathGenerator();
+    }
+
+    /** Returns a generator that produces MIME content types. */
+    public static MimeTypeGenerator ofMimeType() {
+        return new MimeTypeGenerator();
+    }
+
+    /** Returns a generator that produces semantic version strings. */
+    public static SemverGenerator ofSemver() {
+        return new SemverGenerator();
+    }
+
     /** Returns a generator that produces locale-aware profession/job-title values. */
     public static ProfessionGenerator ofProfession() {
         return new ProfessionGenerator();
+    }
+
+    /** Returns a generator that produces SWIFT/BIC codes. */
+    public static BicGenerator ofBic() {
+        return new BicGenerator();
+    }
+
+    /** Returns a generator that produces valid ISIN codes. */
+    public static IsinGenerator ofIsin() {
+        return new IsinGenerator();
     }
 
     /** Returns a generator that produces locale-aware usernames. */

@@ -13,6 +13,9 @@ package org.github.krandom.generator.color;
  *   <li>{@link #HEX} - Standard 6-digit hexadecimal with # prefix (e.g., "#79c157")</li>
  *   <li>{@link #SHORT_HEX} - Abbreviated 3-digit hexadecimal with # prefix (e.g., "#60f")</li>
  *   <li>{@link #RGB} - CSS RGB function notation (e.g., "rgb(110,52,164)")</li>
+ *   <li>{@link #RGBA} - CSS RGBA function notation (e.g., "rgba(110,52,164,0.5)")</li>
+ *   <li>{@link #HSL} - CSS HSL function notation (e.g., "hsl(210,60%,45%)")</li>
+ *   <li>{@link #HSLA} - CSS HSLA function notation (e.g., "hsla(210,60%,45%,0.5)")</li>
  *   <li>{@link #HEX_0X} - Hexadecimal number with 0x prefix (e.g., "0x79c157")</li>
  * </ul>
  *
@@ -39,6 +42,24 @@ public enum ColorFormat {
      * <p>Example: {@code "rgb(110,52,164)"}
      */
     RGB,
+
+    /**
+     * CSS RGBA function notation.
+     * <p>Format: {@code rgba(R,G,B,A)} where RGB are integers in [0,255] and A in [0.0,1.0].
+     */
+    RGBA,
+
+    /**
+     * CSS HSL function notation.
+     * <p>Format: {@code hsl(H,S%,L%)} where H in [0,359], S and L in [0,100].
+     */
+    HSL,
+
+    /**
+     * CSS HSLA function notation.
+     * <p>Format: {@code hsla(H,S%,L%,A)} where H in [0,359], S/L in [0,100], A in [0.0,1.0].
+     */
+    HSLA,
     
     /**
      * Hexadecimal number with 0x prefix.

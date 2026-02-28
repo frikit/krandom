@@ -175,6 +175,9 @@ public final class ColorGenerator implements Generator<String> {
             case HEX -> formatHex(r, g, b, uppercase);
             case SHORT_HEX -> formatShortHex(r, g, b, uppercase);
             case RGB -> formatRGB(r, g, b);
+            case RGBA -> formatRGBA(r, g, b);
+            case HSL -> formatHSL();
+            case HSLA -> formatHSLA();
             case HEX_0X -> format0x(r, g, b, uppercase);
         };
     }
@@ -205,6 +208,35 @@ public final class ColorGenerator implements Generator<String> {
      */
     private String formatRGB(int r, int g, int b) {
         return String.format("rgb(%d,%d,%d)", r, g, b);
+    }
+
+    /**
+     * Formats RGB as CSS rgba() function.
+     */
+    private String formatRGBA(int r, int g, int b) {
+        double alpha = random.nextDouble();
+        return String.format("rgba(%d,%d,%d,%.3f)", r, g, b, alpha);
+    }
+
+    /**
+     * Generates and formats CSS hsl() value.
+     */
+    private String formatHSL() {
+        int h = random.nextInt(360);
+        int s = random.nextInt(101);
+        int l = random.nextInt(101);
+        return String.format("hsl(%d,%d%%,%d%%)", h, s, l);
+    }
+
+    /**
+     * Generates and formats CSS hsla() value.
+     */
+    private String formatHSLA() {
+        int h = random.nextInt(360);
+        int s = random.nextInt(101);
+        int l = random.nextInt(101);
+        double alpha = random.nextDouble();
+        return String.format("hsla(%d,%d%%,%d%%,%.3f)", h, s, l, alpha);
     }
 
     /**

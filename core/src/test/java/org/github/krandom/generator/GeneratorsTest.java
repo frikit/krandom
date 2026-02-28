@@ -13,11 +13,16 @@ import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
+import org.github.krandom.generator.file.FilePathGenerator;
+import org.github.krandom.generator.file.DirPathGenerator;
+import org.github.krandom.generator.file.MimeTypeGenerator;
+import org.github.krandom.generator.file.SemverGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.DurationGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
+import org.github.krandom.generator.network.HttpStatusCodeGenerator;
 import org.github.krandom.generator.network.IPGenerator;
 import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
@@ -31,6 +36,8 @@ import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.SyllableGenerator;
 import org.github.krandom.generator.text.WordGenerator;
+import org.github.krandom.generator.finance.BicGenerator;
+import org.github.krandom.generator.finance.IsinGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
 import org.junit.jupiter.api.DisplayName;
@@ -172,6 +179,16 @@ class GeneratorsTest {
                 Generators.ofString(StringGenerator.builder().length(5)));
     }
 
+    @Test @DisplayName("ofDigit() returns DigitGenerator")
+    void ofDigit() {
+        assertInstanceOf(DigitGenerator.class, Generators.ofDigit());
+    }
+
+    @Test @DisplayName("ofNumberWithFormat() returns NumberWithFormatGenerator")
+    void ofNumberWithFormat() {
+        assertInstanceOf(NumberWithFormatGenerator.class, Generators.ofNumberWithFormat());
+    }
+
     // ── Algorithms ────────────────────────────────────────────────────────────
 
     @Test @DisplayName("ofFibonacci() returns FibonacciGenerator")
@@ -227,6 +244,16 @@ class GeneratorsTest {
         assertInstanceOf(ProfessionGenerator.class, Generators.ofProfession());
     }
 
+    @Test @DisplayName("ofBic() returns BicGenerator")
+    void ofBic() {
+        assertInstanceOf(BicGenerator.class, Generators.ofBic());
+    }
+
+    @Test @DisplayName("ofIsin() returns IsinGenerator")
+    void ofIsin() {
+        assertInstanceOf(IsinGenerator.class, Generators.ofIsin());
+    }
+
     @Test @DisplayName("ofWord() returns WordGenerator")
     void ofWord() {
         assertInstanceOf(WordGenerator.class, Generators.ofWord());
@@ -255,6 +282,26 @@ class GeneratorsTest {
     @Test @DisplayName("ofFileName() returns FileNameGenerator")
     void ofFileName() {
         assertInstanceOf(FileNameGenerator.class, Generators.ofFileName());
+    }
+
+    @Test @DisplayName("ofDirPath() returns DirPathGenerator")
+    void ofDirPath() {
+        assertInstanceOf(DirPathGenerator.class, Generators.ofDirPath());
+    }
+
+    @Test @DisplayName("ofFilePath() returns FilePathGenerator")
+    void ofFilePath() {
+        assertInstanceOf(FilePathGenerator.class, Generators.ofFilePath());
+    }
+
+    @Test @DisplayName("ofMimeType() returns MimeTypeGenerator")
+    void ofMimeType() {
+        assertInstanceOf(MimeTypeGenerator.class, Generators.ofMimeType());
+    }
+
+    @Test @DisplayName("ofSemver() returns SemverGenerator")
+    void ofSemver() {
+        assertInstanceOf(SemverGenerator.class, Generators.ofSemver());
     }
 
     @Test @DisplayName("date/time factories return corresponding generators")
@@ -289,6 +336,9 @@ class GeneratorsTest {
 
     @Test @DisplayName("ofIP() returns IPGenerator")
     void ofIP() { assertInstanceOf(IPGenerator.class, Generators.ofIP()); }
+
+    @Test @DisplayName("ofHttpStatusCode() returns HttpStatusCodeGenerator")
+    void ofHttpStatusCode() { assertInstanceOf(HttpStatusCodeGenerator.class, Generators.ofHttpStatusCode()); }
 
     // ── forType ───────────────────────────────────────────────────────────────
 

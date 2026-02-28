@@ -81,23 +81,23 @@ Acceptance:
 
 - Phase-2 rows move to `Yes` or well-justified `Partial`.
 
-### Phase 3: Finance/Code/Color/File Utilities (P1)
+### Phase 3: Finance/Code/Color/File Utilities (P1) ✅
 
 Goal: complete medium-value fake-rs provider coverage.
 
-- [ ] Finance/codes:
-    - [ ] `Bic`, `Isin`
+- [x] Finance/codes:
+    - [x] `Bic`, `Isin`
     - [x] `CurrencySymbol`
-    - [ ] `NumberWithFormat`, `Digit`
+    - [x] `NumberWithFormat`, `Digit`
     - [x] `Isbn`, `Isbn10`, `Isbn13` parity check
-- [ ] Internet/utilities:
+- [x] Internet/utilities:
     - [x] `Slug`
-    - [ ] `HTTP status code` generator
+    - [x] `HTTP status code` generator
     - [x] `UUID` parity validation (`v4` + v5/v7 present)
-- [ ] Color/file:
-    - [ ] `Hex/RGB/RGBA/HSL/HSLA` color output parity (HEX/RGB done; others missing)
-    - [ ] `FilePath`, `DirPath`, `FileName`, `FileExtension`, `MimeType` (name/ext done; path/dir/mime missing)
-    - [ ] `Semver` support
+- [x] Color/file:
+    - [x] `Hex/RGB/RGBA/HSL/HSLA` color output parity
+    - [x] `FilePath`, `DirPath`, `FileName`, `FileExtension`, `MimeType`
+    - [x] `Semver` support
 
 Acceptance:
 
@@ -127,9 +127,9 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 2 complete**
-- Status: **In progress (Phase 3+ remaining)**
+- Current step: **Phase 3 complete**
+- Status: **In progress (Phase 4 remaining)**
 - Next deliverable:
-    - Implement remaining Phase 3 gaps (`Bic`, `Isin`, `NumberWithFormat`, `Digit`, HTTP status code, color/file residuals, `Semver`).
+    - Finalize Phase 4 intentional-deviation documentation and close remaining non-Java-meaningful rows.
     - Run `./scripts/pre_commit_check.sh`.
     - Update parity rows and this checklist.
