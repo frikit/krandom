@@ -105,3 +105,6 @@ resume.txt
 .factorypath
 *.code-workspace
 **/bin/
+
+.kotlin
+.idea

@@ -21,6 +21,8 @@ import org.github.krandom.generator.selection.RepeatGenerator;
 import org.github.krandom.generator.selection.ShuffleGenerator;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.selection.WeightedGenerator;
+import org.github.krandom.generator.text.ParagraphGenerator;
+import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.SyllableGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
@@ -221,6 +223,16 @@ class GeneratorsTest {
     @Test @DisplayName("ofSyllable() returns SyllableGenerator")
     void ofSyllable() {
         assertInstanceOf(SyllableGenerator.class, Generators.ofSyllable());
+    }
+
+    @Test @DisplayName("ofSentence() returns SentenceGenerator")
+    void ofSentence() {
+        assertInstanceOf(SentenceGenerator.class, Generators.ofSentence());
+    }
+
+    @Test @DisplayName("ofParagraph() returns ParagraphGenerator")
+    void ofParagraph() {
+        assertInstanceOf(ParagraphGenerator.class, Generators.ofParagraph());
     }
 
     @Test @DisplayName("ofFileExtension() returns FileExtensionGenerator")

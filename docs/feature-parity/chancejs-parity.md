@@ -845,13 +845,13 @@ _None - awaiting next feature selection_
 | Length control   | ✅ `word({length: 10})`        | ✅ Yes          | ✓ DONE                  | `WordOptions.withLength(int)` |
 | Syllable         | ✅ `syllable({length})`        | ✅ Yes          | ✓ DONE                  | `SyllableGenerator.generate()` / `generate(length)` |
 | **Sentences**    |
-| Random sentence  | ✅ `sentence({words})`         | ❌ No           | HIGH                    | Capitalized, punctuated |
-| Word count       | ✅ `sentence({words: 5})`      | ❌ No           | HIGH                    | Exact word count        |
-| Default range    | ✅ 12-18 words                 | ❌ No           | MEDIUM                  | Variable by default     |
+| Random sentence  | ✅ `sentence({words})`         | ✅ Yes          | ✓ DONE                  | `SentenceGenerator.generate()` |
+| Word count       | ✅ `sentence({words: 5})`      | ✅ Yes          | ✓ DONE                  | `SentenceGenerator.generate(int)` |
+| Default range    | ✅ 12-18 words                 | ✅ Yes          | ✓ DONE                  | `SentenceGenerator` default range |
 | **Paragraphs**   |
-| Random paragraph | ✅ `paragraph({sentences})`    | ❌ No           | HIGH                    | Multiple sentences      |
-| Sentence count   | ✅ `paragraph({sentences: 3})` | ❌ No           | MEDIUM                  | Exact sentence count    |
-| Default range    | ✅ 3-7 sentences               | ❌ No           | MEDIUM                  | Variable by default     |
+| Random paragraph | ✅ `paragraph({sentences})`    | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generate()` |
+| Sentence count   | ✅ `paragraph({sentences: 3})` | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generate(int)` |
+| Default range    | ✅ 3-7 sentences               | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator` default range |
 
 ### 9. IDENTIFIERS & HASHES
 
@@ -964,9 +964,9 @@ _None - awaiting next feature selection_
 | **Pronounceable Text** |
 | Syllable generation    | ✅ `syllable()`           | ✅ Yes   | ✓ DONE   | `SyllableGenerator` (locale-aware) |
 | Word generation        | ✅ `word({syllables: 4})` | ✅ Yes   | ✓ DONE   | `WordGenerator.generate(WordOptions)` |
-| Sentence structure     | ✅ Capital + period       | ❌ No    | HIGH     | Proper formatting             |
-| Paragraph structure    | ✅ Multiple sentences     | ❌ No    | HIGH     | Natural paragraphs            |
-| Variable length        | ✅ Default ranges         | ❌ No    | MEDIUM   | 12-18 words, 3-7 sentences    |
+| Sentence structure     | ✅ Capital + period       | ✅ Yes   | ✓ DONE   | `SentenceGenerator` formatting |
+| Paragraph structure    | ✅ Multiple sentences     | ✅ Yes   | ✓ DONE   | `ParagraphGenerator` structure |
+| Variable length        | ✅ Default ranges         | ✅ Yes   | ✓ DONE   | 12-18 words, 3-7 sentences    |
 
 ---
 
@@ -1270,5 +1270,4 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in sentence/paragraph text APIs, richer options parameterization, and low-priority
-social/avatar generators.
+**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in richer options parameterization and low-priority social/avatar generators.
