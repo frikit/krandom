@@ -161,7 +161,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
 **Implementation Metrics:**
 
 - **Total Features Implemented**: 70+ features across all categories
-- **Test Coverage**: 99.9% line, 100.0% branch
+- **Test Coverage**: 99.9% line, 99.8% branch
 - **Algorithms**: Sieve of Eratosthenes (primes), Box-Muller (normal dist.), Luhn (cards), ISO 7064 (national IDs), ISBN-10/13 check digits
 - **Pre-commit Checks**: ALL PASSING ✅
 
@@ -171,10 +171,8 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 
 - `@NotNull` / `@NotEmpty` bean validation constraints
 - `@Past` / `@Future` temporal constraints
-- `java.util.Date`, `java.sql.*` legacy date types
-- `OffsetDateTime`, `Year`, `YearMonth`, `Duration`, `Period` JSR 310 types
-- Classpath scanning for abstract/interface types (deliberate skip — slow)
-- ServiceLoader registry SPI (deliberate skip — over-engineered)
+- Classpath scanning for abstract/interface types (intentionally skipped — slow/complex)
+- ServiceLoader registry SPI (intentionally skipped — over-engineered)
 - Password generator
 
 ---
@@ -334,28 +332,28 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | URI                               | ✅ Yes                                            | ✅ Partial      | MEDIUM                  | krandom: UrlGenerator (URLs)    |
 | URL                               | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UrlGenerator           |
 | **Date/Time (Legacy)**            |
-| java.util.Date                    | ✅ Yes                                            | ❌ No           | MEDIUM                  | Legacy support                  |
+| java.util.Date                    | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Legacy support                  |
 | java.util.Calendar                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
 | java.util.GregorianCalendar       | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| java.sql.Date                     | ✅ Yes                                            | ❌ No           | MEDIUM                  | SQL types                       |
-| java.sql.Time                     | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
-| java.sql.Timestamp                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
+| java.sql.Date                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | SQL types                       |
+| java.sql.Time                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| java.sql.Timestamp                | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
 | java.util.TimeZone                | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
 | **Date/Time (JSR 310)**           |
 | Instant                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | InstantGenerator                |
 | LocalDate                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | DateGenerator                   |
 | LocalTime                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | TimeGenerator                   |
 | LocalDateTime                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LocalDateTimeGenerator          |
-| OffsetDateTime                    | ✅ Yes                                            | ❌ No           | LOW                     | With timezone offset            |
-| OffsetTime                        | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| OffsetDateTime                    | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | With timezone offset            |
+| OffsetTime                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
 | ZonedDateTime                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | ZonedDateTimeGenerator          |
-| Year                              | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| YearMonth                         | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| MonthDay                          | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| Duration                          | ✅ Yes                                            | ❌ No           | LOW                     | Time spans                      |
-| Period                            | ✅ Yes                                            | ❌ No           | LOW                     | Date periods                    |
-| ZoneId                            | ✅ Yes                                            | ❌ No           | LOW                     | Timezone IDs                    |
-| ZoneOffset                        | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| Year                              | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| YearMonth                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| MonthDay                          | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| Duration                          | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Time spans                      |
+| Period                            | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Date periods                    |
+| ZoneId                            | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Timezone IDs                    |
+| ZoneOffset                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
 | **Range Randomizers (Date/Time)** |
 | DateRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | LOW                     | Legacy dates                    |
 | LocalDateRangeRandomizer          | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | DateGenerator(min,max)          |
@@ -1154,7 +1152,7 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 1. ❌ Classpath scanning (slow, edge case)
 2. ❌ Full registry system (over-engineered)
 3. ❌ ServiceLoader SPI (unnecessary complexity)
-4. ❌ Legacy date/time types (`java.util.Date`, etc.) - obsolete
+4. ❌ Classpath scanning for abstract/interface types - slow and edge-case heavy
 5. ❌ All DataFaker randomizers (dependency bloat) - cherry-pick essentials
 
 **ADAPT**:

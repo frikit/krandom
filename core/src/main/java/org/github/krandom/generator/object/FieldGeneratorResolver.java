@@ -11,7 +11,11 @@ import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
+import org.github.krandom.generator.datetime.SqlDateGenerator;
+import org.github.krandom.generator.datetime.SqlTimeGenerator;
+import org.github.krandom.generator.datetime.SqlTimestampGenerator;
 import org.github.krandom.generator.datetime.TimeGenerator;
+import org.github.krandom.generator.datetime.UtilDateGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
@@ -23,10 +27,19 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.MonthDay;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -163,6 +177,31 @@ final class FieldGeneratorResolver {
         m.put(LocalDateTime.class, () -> new LocalDateTimeGenerator(lo, hi));
         m.put(Instant.class,       () -> new InstantGenerator(lo, hi));
         m.put(ZonedDateTime.class, () -> new ZonedDateTimeGenerator(lo, hi));
+        m.put(OffsetDateTime.class, () -> () -> new ZonedDateTimeGenerator(lo, hi).generate().toOffsetDateTime());
+        m.put(OffsetTime.class, () -> () -> {
+            int quarterHours = ThreadLocalRandom.current().nextInt(-72, 73);
+            return new TimeGenerator().generate().atOffset(ZoneOffset.ofTotalSeconds(quarterHours * 15 * 60));
+        });
+        m.put(Year.class, () -> () -> Year.of(ThreadLocalRandom.current().nextInt(lo.getYear(), hi.getYear() + 1)));
+        m.put(YearMonth.class, () -> () -> YearMonth.from(new DateGenerator(lo, hi).generate()));
+        m.put(MonthDay.class, () -> () -> MonthDay.from(new DateGenerator(lo, hi).generate()));
+        m.put(Duration.class, () -> () -> Duration.ofSeconds(ThreadLocalRandom.current().nextLong(0, 10L * 365 * 24 * 60 * 60 + 1)));
+        m.put(Period.class, () -> () -> Period.of(
+                ThreadLocalRandom.current().nextInt(0, 11),
+                ThreadLocalRandom.current().nextInt(0, 12),
+                ThreadLocalRandom.current().nextInt(0, 31)));
+        m.put(ZoneId.class, () -> () -> {
+            List<String> ids = new ArrayList<>(ZoneId.getAvailableZoneIds());
+            return ZoneId.of(ids.get(ThreadLocalRandom.current().nextInt(ids.size())));
+        });
+        m.put(ZoneOffset.class, () -> () -> {
+            int quarterHours = ThreadLocalRandom.current().nextInt(-72, 73);
+            return ZoneOffset.ofTotalSeconds(quarterHours * 15 * 60);
+        });
+        m.put(java.util.Date.class, () -> new UtilDateGenerator(lo, hi));
+        m.put(java.sql.Date.class, () -> new SqlDateGenerator(lo, hi));
+        m.put(java.sql.Time.class, SqlTimeGenerator::new);
+        m.put(java.sql.Timestamp.class, () -> new SqlTimestampGenerator(lo, hi));
         m.put(UUID.class,          UUIDGenerator::new);
         return Collections.unmodifiableMap(m);
     }

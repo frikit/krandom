@@ -460,7 +460,7 @@ class ObjectGeneratorTest {
         static class WithInterfaceField { Runnable runner; }
         static abstract class AbstractBase {}
         static class WithAbstractField  { AbstractBase base; }
-        static class WithJdkTypeField   { java.util.Date created; }
+        static class WithJdkTypeField   { java.util.Locale locale; }
         static class WithEmptyEnumField { EmptyStatus status; }
 
         static class WithStaticAndFinalFields {
@@ -514,7 +514,7 @@ class ObjectGeneratorTest {
         void jdkTypeFieldLeftNull() {
             WithJdkTypeField obj = new ObjectGenerator<>(WithJdkTypeField.class).generate();
             assertNotNull(obj);
-            assertNull(obj.created, "JDK-typed field should be null");
+            assertNull(obj.locale, "unsupported JDK-typed field should be null");
         }
 
         @Test
