@@ -819,27 +819,27 @@ _None - awaiting next feature selection_
 
 ### 7. TIME & DATES
 
-| Feature             | Chance.js Support                              | krandom Status | Implementation Priority | Notes                       |
-|---------------------|------------------------------------------------|----------------|-------------------------|-----------------------------|
+| Feature             | Chance.js Support                              | krandom Status | Implementation Priority | Notes                                                                               |
+|---------------------|------------------------------------------------|----------------|-------------------------|-------------------------------------------------------------------------------------|
 | **Date Objects**    |
-| Random date         | ✅ `date({string, american, year, month, day})` | ✅ Yes          | ✓ DONE                  | DateGenerator generate()    |
-| Date as string      | ✅ `date({string: true})`                       | ✅ Yes          | ✓ DONE                  | generateString()            |
-| American format     | ✅ `date({american: true})`                     | ✅ Yes          | ✓ DONE                  | generateAmerican()          |
-| European format     | ✅ `date({american: false})`                    | ✅ Yes          | ✓ DONE                  | generateEuropean()          |
-| Fixed year          | ✅ `date({year: 1990})`                         | ✅ Yes          | ✓ DONE                  | generateWithYear(1990)      |
-| Fixed month         | ✅ `date({month: 5})`                           | ✅ Yes          | ✓ DONE                  | generateWithMonth(5)        |
-| Fixed day           | ✅ `date({day: 15})`                            | ✅ Yes          | ✓ DONE                  | generateWithDay(15)         |
+| Random date         | ✅ `date({string, american, year, month, day})` | ✅ Yes          | ✓ DONE                  | DateGenerator generate()                                                            |
+| Date as string      | ✅ `date({string: true})`                       | ✅ Yes          | ✓ DONE                  | generateString()                                                                    |
+| American format     | ✅ `date({american: true})`                     | ✅ Yes          | ✓ DONE                  | generateAmerican()                                                                  |
+| European format     | ✅ `date({american: false})`                    | ✅ Yes          | ✓ DONE                  | generateEuropean()                                                                  |
+| Fixed year          | ✅ `date({year: 1990})`                         | ✅ Yes          | ✓ DONE                  | generateWithYear(1990)                                                              |
+| Fixed month         | ✅ `date({month: 5})`                           | ✅ Yes          | ✓ DONE                  | generateWithMonth(5)                                                                |
+| Fixed day           | ✅ `date({day: 15})`                            | ✅ Yes          | ✓ DONE                  | generateWithDay(15)                                                                 |
 | **Date Components** |
-| Year                | ✅ `year({min, max})`                           | ✅ Yes          | ✓ DONE                  | generateYear() / (min,max)  |
-| Month name          | ✅ `month()`                                    | ✅ Yes          | ✓ DONE                  | generateMonthName()         |
+| Year                | ✅ `year({min, max})`                           | ✅ Yes          | ✓ DONE                  | generateYear() / (min,max)                                                          |
+| Month name          | ✅ `month()`                                    | ✅ Yes          | ✓ DONE                  | generateMonthName()                                                                 |
 | Month object        | ✅ `month({raw: true})`                         | ❌ No           | INTENTIONAL SKIP        | Java-native equivalent is `java.time.Month` enum; JS raw month object is not needed |
-| Hour (12-hour)      | ✅ `hour()`                                     | ✅ Yes          | ✓ DONE                  | generateHour()              |
-| Hour (24-hour)      | ✅ `hour({twentyfour: true})`                   | ✅ Yes          | ✓ DONE                  | generateHour24()            |
-| Minute              | ✅ `minute()`                                   | ✅ Yes          | ✓ DONE                  | generateMinute()            |
-| Second              | ✅ `second()`                                   | ✅ Yes          | ✓ DONE                  | generateSecond()            |
-| Millisecond         | ✅ `millisecond()`                              | ✅ Yes          | ✓ DONE                  | generateMillisecond()       |
-| AM/PM               | ✅ `ampm()`                                     | ✅ Yes          | ✓ DONE                  | generateAmPm()              |
-| Unix timestamp      | ✅ `timestamp()`                                | ✅ Yes          | ✓ DONE                  | generateTimestamp()         |
+| Hour (12-hour)      | ✅ `hour()`                                     | ✅ Yes          | ✓ DONE                  | generateHour()                                                                      |
+| Hour (24-hour)      | ✅ `hour({twentyfour: true})`                   | ✅ Yes          | ✓ DONE                  | generateHour24()                                                                    |
+| Minute              | ✅ `minute()`                                   | ✅ Yes          | ✓ DONE                  | generateMinute()                                                                    |
+| Second              | ✅ `second()`                                   | ✅ Yes          | ✓ DONE                  | generateSecond()                                                                    |
+| Millisecond         | ✅ `millisecond()`                              | ✅ Yes          | ✓ DONE                  | generateMillisecond()                                                               |
+| AM/PM               | ✅ `ampm()`                                     | ✅ Yes          | ✓ DONE                  | generateAmPm()                                                                      |
+| Unix timestamp      | ✅ `timestamp()`                                | ✅ Yes          | ✓ DONE                  | generateTimestamp()                                                                 |
 
 ### 8. TEXT & NATURAL LANGUAGE
 

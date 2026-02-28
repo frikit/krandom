@@ -9,7 +9,13 @@
 - **License**: Apache 2.0
 - **Key Strength**: 200+ providers, extensive localization, schema-based output
 
-**Last Updated**: 2026-02-25
+**Last Updated**: 2026-02-28 (Java phased plan moved to `docs/plans/datafaker-java-plan.md`)
+
+## Java Execution Plan
+
+- Active plan: `docs/plans/datafaker-java-plan.md`
+- Current scope: Java parity only (Kotlin/Scala deferred)
+- Delivery model: one parity slice at a time with tests + `./scripts/pre_commit_check.sh`
 
 ## Executive Summary
 
