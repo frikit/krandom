@@ -93,4 +93,12 @@ public final class IPv6Generator implements Generator<String> {
         }
         return joiner.toString();
     }
+
+    /**
+     * Generates IPv6 CIDR notation such as {@code 2001:db8::/64} (without zero-compression).
+     */
+    public String generateCidr() {
+        int prefix = 16 + random.nextInt(113); // [16, 128]
+        return generate() + "/" + prefix;
+    }
 }

@@ -140,6 +140,44 @@ public final class UUIDGenerator implements Generator<UUID> {
     }
 
     /**
+     * Generates a UUID version 7 (time-ordered).
+     */
+    public UUID generateV7() {
+        byte[] bytes = new byte[16];
+        long unixMillis = System.currentTimeMillis();
+
+        // 48-bit unix_ts_ms
+        bytes[0] = (byte) (unixMillis >>> 40);
+        bytes[1] = (byte) (unixMillis >>> 32);
+        bytes[2] = (byte) (unixMillis >>> 24);
+        bytes[3] = (byte) (unixMillis >>> 16);
+        bytes[4] = (byte) (unixMillis >>> 8);
+        bytes[5] = (byte) unixMillis;
+
+        // Fill remaining 10 bytes with randomness
+        byte[] rnd = new byte[10];
+        random.nextBytes(rnd);
+        System.arraycopy(rnd, 0, bytes, 6, 10);
+
+        // Set version 7
+        bytes[6] &= 0x0f;
+        bytes[6] |= 0x70;
+
+        // Set RFC4122 variant
+        bytes[8] &= 0x3f;
+        bytes[8] |= (byte) 0x80;
+
+        return bytesToUuid(bytes);
+    }
+
+    /**
+     * Generates a UUID version 7 as a string.
+     */
+    public String generateV7String() {
+        return generateV7().toString();
+    }
+
+    /**
      * Generates a UUID version 5 using the DNS namespace and the given name.
      * <p>UUIDv5 uses SHA-1 hashing as per RFC 4122 §4.3.
      *

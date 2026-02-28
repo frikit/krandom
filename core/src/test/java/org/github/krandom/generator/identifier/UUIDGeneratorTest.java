@@ -61,6 +61,22 @@ class UUIDGeneratorTest {
     }
 
     @Test
+    void testGenerateV7() {
+        UUIDGenerator gen = new UUIDGenerator();
+        UUID uuid = gen.generateV7();
+        assertNotNull(uuid);
+        assertEquals(7, uuid.version());
+        assertEquals(2, uuid.variant());
+    }
+
+    @Test
+    void testGenerateV7String() {
+        UUIDGenerator gen = new UUIDGenerator();
+        String uuidStr = gen.generateV7String();
+        assertTrue(uuidStr.matches("[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"));
+    }
+
+    @Test
     void testGenerateV5WithName() {
         UUIDGenerator gen = new UUIDGenerator();
         UUID uuid = gen.generateV5("example.com");

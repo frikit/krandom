@@ -230,7 +230,32 @@ class StreetAddressGeneratorTest {
 
         StreetAddressGenerator gen = new StreetAddressGenerator(koKr);
         assertNotNull(gen.generate());
+        assertNotNull(gen.generateFullAddress());
         assertTrue(StreetAddressDataRegistry.registeredKeys().contains("ko_KR"));
+    }
+
+    @Test
+    @DisplayName("full address works when city/state/country registries are absent for locale")
+    void fullAddressWithoutOtherRegistries() {
+        Locale zzZz = Locale.of("zz", "ZZ");
+        StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
+            @Override
+            public Locale getLocale() { return zzZz; }
+
+            @Override
+            public String[] getStreetNames() { return new String[]{"Fallback"}; }
+
+            @Override
+            public String[] getStreetTypesShort() { return new String[]{"St"}; }
+
+            @Override
+            public String[] getStreetTypesLong() { return new String[]{"Street"}; }
+        });
+
+        StreetAddressGenerator gen = new StreetAddressGenerator(zzZz);
+        String full = gen.generateFullAddress();
+        assertTrue(full.contains("Fallback"));
+        assertNotNull(full);
     }
 
     @Test

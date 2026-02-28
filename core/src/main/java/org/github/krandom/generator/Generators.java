@@ -18,6 +18,9 @@ import org.github.krandom.generator.location.StreetAddressGenerator;
 import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
 import org.github.krandom.generator.network.MacAddressGenerator;
+import org.github.krandom.generator.network.PortGenerator;
+import org.github.krandom.generator.network.SlugGenerator;
+import org.github.krandom.generator.network.UserAgentGenerator;
 import org.github.krandom.generator.selection.PickGenerator;
 import org.github.krandom.generator.selection.PickSetGenerator;
 import org.github.krandom.generator.selection.RepeatGenerator;
@@ -31,8 +34,15 @@ import org.github.krandom.generator.text.SyllableGenerator;
 import org.github.krandom.generator.text.TemplateStringGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
+import org.github.krandom.generator.user.CompanyUrlGenerator;
+import org.github.krandom.generator.user.EducationalAttainmentGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.IndustryGenerator;
+import org.github.krandom.generator.user.JobFieldGenerator;
+import org.github.krandom.generator.user.MaritalStatusGenerator;
+import org.github.krandom.generator.user.PositionGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
+import org.github.krandom.generator.user.SeniorityGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -270,6 +280,21 @@ public final class Generators {
         return new IPv6Generator();
     }
 
+    /** Returns a generator that produces TCP/UDP ports in [1, 65535]. */
+    public static PortGenerator ofPort() {
+        return new PortGenerator();
+    }
+
+    /** Returns a generator that produces URL-friendly slugs. */
+    public static SlugGenerator ofSlug() {
+        return new SlugGenerator();
+    }
+
+    /** Returns a generator that produces browser and bot user-agent strings. */
+    public static UserAgentGenerator ofUserAgent() {
+        return new UserAgentGenerator();
+    }
+
     // ── BigDecimal ────────────────────────────────────────────────────────────
 
     /** Returns a generator producing random {@link BigDecimal} values ([0, 1&nbsp;000&nbsp;000], scale 2). */
@@ -345,6 +370,41 @@ public final class Generators {
     /** Returns a generator that produces random company names including a legal-form suffix. */
     public static CompanyNameGenerator ofCompanyName() {
         return new CompanyNameGenerator();
+    }
+
+    /** Returns a generator that produces company website URLs. */
+    public static CompanyUrlGenerator ofCompanyUrl() {
+        return new CompanyUrlGenerator();
+    }
+
+    /** Returns a generator that produces industry values. */
+    public static IndustryGenerator ofIndustry() {
+        return new IndustryGenerator();
+    }
+
+    /** Returns a generator that produces job field categories. */
+    public static JobFieldGenerator ofJobField() {
+        return new JobFieldGenerator();
+    }
+
+    /** Returns a generator that produces job seniority labels. */
+    public static SeniorityGenerator ofSeniority() {
+        return new SeniorityGenerator();
+    }
+
+    /** Returns a generator that produces position/job titles. */
+    public static PositionGenerator ofPosition() {
+        return new PositionGenerator();
+    }
+
+    /** Returns a generator that produces educational attainment values. */
+    public static EducationalAttainmentGenerator ofEducationalAttainment() {
+        return new EducationalAttainmentGenerator();
+    }
+
+    /** Returns a generator that produces marital status values. */
+    public static MaritalStatusGenerator ofMaritalStatus() {
+        return new MaritalStatusGenerator();
     }
 
     /** Returns a generator that produces file extensions (for example: {@code "png"}, {@code "pdf"}). */

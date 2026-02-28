@@ -49,8 +49,8 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | **Gender & Demographics**   |
 | Gender types                | ✅ `types()`, `binaryTypes()`                 | ✅ Yes          | ✓ DONE                  | `GenderGenerator` — 10 locales, locale-aware labels    |
 | Race                        | ✅ `race()`                                   | ❌ No           | LOW                     | Sensitive data                                         |
-| Education level             | ✅ `educationalAttainment()`                  | ❌ No           | MEDIUM                  | Useful for profiles                                    |
-| Marital status              | ✅ `maritalStatus()`                          | ❌ No           | MEDIUM                  | Common demographic                                     |
+| Education level             | ✅ `educationalAttainment()`                  | ✅ Yes          | ✓ DONE                  | `EducationalAttainmentGenerator`                       |
+| Marital status              | ✅ `maritalStatus()`                          | ✅ Yes          | ✓ DONE                  | `MaritalStatusGenerator`                               |
 | **Relationships**           |
 | Direct relationships        | ✅ `direct()` (mother, father)                | ❌ No           | LOW                     | Nice-to-have                                           |
 | Extended family             | ✅ `extended()`, `inLaw()`                    | ❌ No           | LOW                     |                                                        |
@@ -112,25 +112,25 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Domain suffix     | ✅ `domainSuffix()` (.com, .org)      | ✅ Yes          | ✓ DONE                  | `DomainGenerator.getTLD()` → "com", "io", "de"        |
 | URL               | ✅ `url()`                            | ✅ Yes          | ✓ DONE                  | `URLGenerator` — 5 protocols, path, query params      |
 | Web domain        | ✅ `webdomain()`                      | ✅ Partial      | ✓ DONE                  | Covered by `DomainGenerator`                          |
-| Slug              | ✅ `slug()`                           | ❌ No           | MEDIUM                  | URL-friendly strings                                  |
+| Slug              | ✅ `slug()`                           | ✅ Yes          | ✓ DONE                  | `SlugGenerator.generate()` / `slugify(...)`          |
 | **IP Addresses**  |
 | IPv4              | ✅ `ipV4Address()`                    | ✅ Yes          | ✓ DONE                  | Already implemented                                   |
-| IPv4 private      | ✅ `privateIpV4Address()`             | ❌ No           | MEDIUM                  | RFC1918 addresses                                     |
-| IPv4 public       | ✅ `publicIpV4Address()`              | ❌ No           | MEDIUM                  | Non-private                                           |
-| IPv4 CIDR         | ✅ `ipV4Cidr()`                       | ❌ No           | MEDIUM                  | Network notation                                      |
+| IPv4 private      | ✅ `privateIpV4Address()`             | ✅ Yes          | ✓ DONE                  | `IPv4Generator.generatePrivate()`                     |
+| IPv4 public       | ✅ `publicIpV4Address()`              | ✅ Yes          | ✓ DONE                  | `IPv4Generator.generatePublic()`                      |
+| IPv4 CIDR         | ✅ `ipV4Cidr()`                       | ✅ Yes          | ✓ DONE                  | `IPv4Generator.generateCidr()`                        |
 | IPv6              | ✅ `ipV6Address()`                    | ✅ Yes          | ✓ DONE                  | Already implemented                                   |
-| IPv6 CIDR         | ✅ `ipV6Cidr()`                       | ❌ No           | MEDIUM                  | IPv6 networks                                         |
+| IPv6 CIDR         | ✅ `ipV6Cidr()`                       | ✅ Yes          | ✓ DONE                  | `IPv6Generator.generateCidr()`                        |
 | **Network**       |
-| MAC address       | ✅ `macAddress()`                     | ❌ No           | MEDIUM                  | Hardware addresses                                    |
-| Port              | ✅ `port()`                           | ❌ No           | MEDIUM                  | 1-65535                                               |
+| MAC address       | ✅ `macAddress()`                     | ✅ Yes          | ✓ DONE                  | `MacAddressGenerator`                                 |
+| Port              | ✅ `port()`                           | ✅ Yes          | ✓ DONE                  | `PortGenerator`                                       |
 | HTTP method       | ✅ `httpMethod()` (GET, POST)         | ❌ No           | LOW                     | REST APIs                                             |
 | **Identifiers**   |
 | UUID v3           | ✅ `uuidv3()`                         | ❌ No           | LOW                     | Not implemented (v5 SHA-1 is similar)                 |
 | UUID v4           | ✅ `uuid()`, `uuidv4()`               | ✅ Yes          | ✓ DONE                  | `UUIDGenerator.generateV4()` — RFC 4122 §4.4          |
-| UUID v7           | ✅ `uuidv7()`                         | ❌ No           | LOW                     | Time-ordered                                          |
+| UUID v7           | ✅ `uuidv7()`                         | ✅ Yes          | ✓ DONE                  | `UUIDGenerator.generateV7()`                          |
 | **User Agents**   |
-| User agent        | ✅ `userAgent()`                      | ❌ No           | MEDIUM                  | Browser strings                                       |
-| Bot user agent    | ✅ `botUserAgent()`                   | ❌ No           | LOW                     | Crawler UAs                                           |
+| User agent        | ✅ `userAgent()`                      | ✅ Yes          | ✓ DONE                  | `UserAgentGenerator.generate()`                       |
+| Bot user agent    | ✅ `botUserAgent()`                   | ✅ Yes          | ✓ DONE                  | `UserAgentGenerator.generateBot()`                    |
 | **Other**         |
 | Image URL         | ✅ `image()`                          | ❌ No           | LOW                     | Placeholder images                                    |
 
@@ -176,23 +176,23 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 | Feature        | DataFaker Support            | krandom Status | Implementation Priority | Notes                   |
 |----------------|------------------------------|----------------|-------------------------|-------------------------|
-| Company name   | ✅ `name()`                   | ❌ No           | HIGH                    | Essential business data |
-| Company suffix | ✅ `suffix()` (Inc, LLC, Ltd) | ❌ No           | MEDIUM                  | Legal entities          |
-| Industry       | ✅ `industry()`               | ❌ No           | MEDIUM                  | Business sectors        |
-| Profession     | ✅ `profession()`             | ❌ No           | MEDIUM                  |                         |
+| Company name   | ✅ `name()`                   | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate()` |
+| Company suffix | ✅ `suffix()` (Inc, LLC, Ltd) | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate(true)` |
+| Industry       | ✅ `industry()`               | ✅ Yes          | ✓ DONE                  | `IndustryGenerator.generate()` |
+| Profession     | ✅ `profession()`             | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()` |
 | Buzzword       | ✅ `buzzword()`               | ❌ No           | LOW                     | Marketing speak         |
 | Catch phrase   | ✅ `catchPhrase()`            | ❌ No           | LOW                     | Company slogans         |
 | BS phrase      | ✅ `bs()`                     | ❌ No           | LOW                     | Corporate BS            |
 | Logo URL       | ✅ `logo()`                   | ❌ No           | LOW                     | Company logos           |
-| Company URL    | ✅ `url()`                    | ❌ No           | MEDIUM                  | Corporate websites      |
+| Company URL    | ✅ `url()`                    | ✅ Yes          | ✓ DONE                  | `CompanyUrlGenerator.generate()`      |
 
 ### 6. JOB & CAREER
 
 | Feature    | DataFaker Support | krandom Status | Implementation Priority | Notes                  |
 |------------|-------------------|----------------|-------------------------|------------------------|
-| Job field  | ✅ `field()`       | ❌ No           | MEDIUM                  | Engineering, Marketing |
-| Seniority  | ✅ `seniority()`   | ❌ No           | MEDIUM                  | Junior, Senior, Lead   |
-| Position   | ✅ `position()`    | ❌ No           | MEDIUM                  | Developer, Manager     |
+| Job field  | ✅ `field()`       | ✅ Yes          | ✓ DONE                  | `JobFieldGenerator.generate()` |
+| Seniority  | ✅ `seniority()`   | ✅ Yes          | ✓ DONE                  | `SeniorityGenerator.generate()`   |
+| Position   | ✅ `position()`    | ✅ Yes          | ✓ DONE                  | `PositionGenerator.generate()`     |
 | Job title  | ✅ `title()`       | ✅ Yes          | ✓ DONE                  | Combined title         |
 | Key skills | ✅ `keySkills()`   | ❌ No           | LOW                     | Job requirements       |
 
@@ -561,7 +561,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 3. ~~**Credit Cards**~~ ✅ DONE — `CreditCardGenerator` (6 types, Luhn-valid, CVV, expiry)
 4. ~~**Names Enhancement**~~ ✅ DONE — gender-specific names, prefix/suffix/title all done
 5. ~~**Date Generators**~~ ✅ DONE — `BirthdayGenerator` + `DateGenerator.future/past/between`
-6. **Company Data** - Company names, industries, buzzwords — still missing
+6. ~~**Company Data**~~ ✅ DONE — company name/suffix, industry, company URL, profession
 7. ~~**URL/Domain Generation**~~ ✅ DONE — `URLGenerator`, `DomainGenerator`
 
 ### Phase 3: NICE TO HAVE (Could Have)

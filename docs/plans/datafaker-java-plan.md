@@ -71,17 +71,17 @@ Acceptance:
 
 Goal: close common enterprise test-data gaps.
 
-- [ ] Company/business generators:
-    - [ ] company name/suffix
-    - [ ] industry
-    - [ ] company URL
-- [ ] Job/profile generators:
-    - [ ] field
-    - [ ] seniority
-    - [ ] position
-- [ ] Demographics (non-sensitive core):
-    - [ ] educational attainment
-    - [ ] marital status
+- [x] Company/business generators:
+    - [x] company name/suffix
+    - [x] industry
+    - [x] company URL
+- [x] Job/profile generators:
+    - [x] field
+    - [x] seniority
+    - [x] position
+- [x] Demographics (non-sensitive core):
+    - [x] educational attainment
+    - [x] marital status
 
 Acceptance:
 
@@ -91,16 +91,16 @@ Acceptance:
 
 Goal: close practical infrastructure-data gaps for integration tests.
 
-- [ ] Network primitives:
-    - [ ] private/public IPv4
-    - [ ] IPv4/IPv6 CIDR
-    - [ ] MAC address
-    - [ ] port
-- [ ] Web/platform helpers:
-    - [ ] slug
-    - [ ] user agent
-- [ ] Optional identifiers:
-    - [ ] UUID v7 (if kept in scope)
+- [x] Network primitives:
+    - [x] private/public IPv4
+    - [x] IPv4/IPv6 CIDR
+    - [x] MAC address
+    - [x] port
+- [x] Web/platform helpers:
+    - [x] slug
+    - [x] user agent
+- [x] Optional identifiers:
+    - [x] UUID v7 (kept in scope and implemented)
 
 Acceptance:
 
@@ -122,15 +122,13 @@ Acceptance:
 
 ## Execution Order (next steps)
 
-1. Implement **Phase 3 / Business Profile Pack**.
-2. Implement **Phase 4 / Networking & Platform IDs**.
-3. Finalize **Phase 5 / Intentional Scope Decisions**.
+1. Finalize **Phase 5 / Intentional Scope Decisions**.
 
 ## Task Tracker
 
-- Current step: **Phase 3 planning ready**
-- Status: **P0 complete (Phases 1-2 completed)**
+- Current step: **Phase 5 planning ready**
+- Status: **P1 complete (Phases 1-4 completed)**
 - Next deliverable:
-    - Build business profile generators (company/job/demographics core) with tests.
+    - Mark intentional skips for low-ROI providers and publish final parity summary.
     - Run `./scripts/pre_commit_check.sh`.
     - Update parity rows and this checklist.
