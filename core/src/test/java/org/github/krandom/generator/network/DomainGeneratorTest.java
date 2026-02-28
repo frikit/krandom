@@ -56,6 +56,16 @@ class DomainGeneratorTest {
     }
 
     @Test
+    void testGenerateName() {
+        DomainGenerator generator = new DomainGenerator();
+        String name = generator.generateName();
+        assertNotNull(name);
+        assertFalse(name.isBlank());
+        assertFalse(name.contains("."));
+        assertTrue(name.matches("[a-z]+"));
+    }
+
+    @Test
     void testGenerateHasValidFormat() {
         DomainGenerator generator = new DomainGenerator();
         String domain = generator.generate();

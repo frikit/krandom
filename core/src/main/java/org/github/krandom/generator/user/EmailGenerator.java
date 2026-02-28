@@ -99,6 +99,14 @@ public final class EmailGenerator implements Generator<String> {
         "yandex.com",
         "qq.com"
     };
+
+    private static final String[] POPULAR_DOMAINS_DE = {"gmx.de", "web.de", "gmail.com", "outlook.com"};
+    private static final String[] POPULAR_DOMAINS_FR = {"orange.fr", "laposte.net", "gmail.com", "outlook.com"};
+    private static final String[] POPULAR_DOMAINS_ES = {"hotmail.es", "gmail.com", "outlook.com", "yahoo.com"};
+    private static final String[] POPULAR_DOMAINS_IT = {"libero.it", "gmail.com", "outlook.com", "yahoo.com"};
+    private static final String[] POPULAR_DOMAINS_PT = {"uol.com.br", "bol.com.br", "gmail.com", "outlook.com"};
+    private static final String[] POPULAR_DOMAINS_JA = {"yahoo.co.jp", "gmail.com", "outlook.com"};
+    private static final String[] POPULAR_DOMAINS_ZH = {"qq.com", "163.com", "126.com", "gmail.com"};
     
     private final GeneratorConfig config;
     private final Random random;
@@ -220,7 +228,7 @@ public final class EmailGenerator implements Generator<String> {
      * @return provider domain (for example, {@code gmail.com})
      */
     public String getFreeEmailProvider() {
-        return getRandomDomain();
+        return getRandomFreeDomain();
     }
     
     /**
@@ -261,5 +269,20 @@ public final class EmailGenerator implements Generator<String> {
      */
     private String getRandomDomain() {
         return POPULAR_DOMAINS[random.nextInt(POPULAR_DOMAINS.length)];
+    }
+
+    private String getRandomFreeDomain() {
+        String language = config.getLocale().getLanguage();
+        String[] providers = switch (language) {
+            case "de" -> POPULAR_DOMAINS_DE;
+            case "fr" -> POPULAR_DOMAINS_FR;
+            case "es" -> POPULAR_DOMAINS_ES;
+            case "it" -> POPULAR_DOMAINS_IT;
+            case "pt" -> POPULAR_DOMAINS_PT;
+            case "ja" -> POPULAR_DOMAINS_JA;
+            case "zh" -> POPULAR_DOMAINS_ZH;
+            default -> POPULAR_DOMAINS;
+        };
+        return providers[random.nextInt(providers.length)];
     }
 }

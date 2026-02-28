@@ -17,6 +17,7 @@ import org.github.krandom.generator.identifier.IsbnGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
 import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
+import org.github.krandom.generator.network.IPGenerator;
 import org.github.krandom.generator.network.MacAddressGenerator;
 import org.github.krandom.generator.network.PortGenerator;
 import org.github.krandom.generator.network.SlugGenerator;
@@ -39,6 +40,7 @@ import org.github.krandom.generator.user.EducationalAttainmentGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.IndustryGenerator;
 import org.github.krandom.generator.user.JobFieldGenerator;
+import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.MaritalStatusGenerator;
 import org.github.krandom.generator.user.PositionGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
@@ -52,6 +54,7 @@ import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
+import org.github.krandom.generator.datetime.DurationGenerator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -282,6 +285,11 @@ public final class Generators {
         return new IPv6Generator();
     }
 
+    /** Returns a generator that produces either IPv4 or IPv6 addresses per call. */
+    public static IPGenerator ofIP() {
+        return new IPGenerator();
+    }
+
     /** Returns a generator that produces TCP/UDP ports in [1, 65535]. */
     public static PortGenerator ofPort() {
         return new PortGenerator();
@@ -353,6 +361,11 @@ public final class Generators {
         return new ZonedDateTimeGenerator();
     }
 
+    /** Returns a generator that produces random {@link java.time.Duration} values. */
+    public static DurationGenerator ofDuration() {
+        return new DurationGenerator();
+    }
+
     // ── Full name ─────────────────────────────────────────────────────────────
 
     /** Returns a generator that produces random full names (first + last) in {@link java.util.Locale#US}. */
@@ -387,6 +400,11 @@ public final class Generators {
     /** Returns a generator that produces job field categories. */
     public static JobFieldGenerator ofJobField() {
         return new JobFieldGenerator();
+    }
+
+    /** Returns a generator that produces employment type values. */
+    public static JobTypeGenerator ofJobType() {
+        return new JobTypeGenerator();
     }
 
     /** Returns a generator that produces job seniority labels. */

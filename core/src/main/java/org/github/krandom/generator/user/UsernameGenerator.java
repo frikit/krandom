@@ -9,6 +9,7 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -17,6 +18,7 @@ import java.util.Random;
  */
 public final class UsernameGenerator implements Generator<String> {
 
+    private final GeneratorConfig config;
     private final Random random;
     private final FirstNameGenerator firstNameGenerator;
     private final LastNameGenerator lastNameGenerator;
@@ -25,8 +27,12 @@ public final class UsernameGenerator implements Generator<String> {
         this(GeneratorConfig.defaults());
     }
 
+    public UsernameGenerator(Locale locale) {
+        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+    }
+
     public UsernameGenerator(GeneratorConfig config) {
-        Objects.requireNonNull(config, "config must not be null");
+        this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();
@@ -52,5 +58,9 @@ public final class UsernameGenerator implements Generator<String> {
 
     private static String fallback(String value, String defaultValue) {
         return value.isBlank() ? defaultValue : value;
+    }
+
+    public Locale getLocale() {
+        return config.getLocale();
     }
 }

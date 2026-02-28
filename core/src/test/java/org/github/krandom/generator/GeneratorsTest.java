@@ -14,9 +14,11 @@ import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
+import org.github.krandom.generator.datetime.DurationGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
+import org.github.krandom.generator.network.IPGenerator;
 import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
 import org.github.krandom.generator.selection.PickGenerator;
@@ -29,6 +31,7 @@ import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.SyllableGenerator;
 import org.github.krandom.generator.text.WordGenerator;
+import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -260,6 +263,12 @@ class GeneratorsTest {
         assertInstanceOf(LocalDateTimeGenerator.class, Generators.ofLocalDateTime());
         assertInstanceOf(InstantGenerator.class, Generators.ofInstant());
         assertInstanceOf(ZonedDateTimeGenerator.class, Generators.ofZonedDateTime());
+        assertInstanceOf(DurationGenerator.class, Generators.ofDuration());
+    }
+
+    @Test @DisplayName("ofJobType() returns JobTypeGenerator")
+    void ofJobType() {
+        assertInstanceOf(JobTypeGenerator.class, Generators.ofJobType());
     }
 
     // ── Games ─────────────────────────────────────────────────────────────────
@@ -277,6 +286,9 @@ class GeneratorsTest {
 
     @Test @DisplayName("ofIPv6() returns IPv6Generator")
     void ofIPv6() { assertInstanceOf(IPv6Generator.class, Generators.ofIPv6()); }
+
+    @Test @DisplayName("ofIP() returns IPGenerator")
+    void ofIP() { assertInstanceOf(IPGenerator.class, Generators.ofIP()); }
 
     // ── forType ───────────────────────────────────────────────────────────────
 

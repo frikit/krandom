@@ -55,27 +55,27 @@ Acceptance:
 
 - Core identity/address/text high-priority rows move to `Yes`.
 
-### Phase 2: Network + Date-Time + Business Core (P0)
+### Phase 2: Network + Date-Time + Business Core (P0) ✅
 
 Goal: close practical integration-test generators.
 
-- [ ] Networking:
+- [x] Networking:
     - [x] `IPv4`
     - [x] `IPv6`
     - [x] `IPv4 private/public/CIDR`
     - [x] `IPv6 CIDR`
-    - [ ] `IP` (single API that randomly returns v4 or v6)
+    - [x] `IP` (single API that randomly returns v4 or v6)
     - [x] `MACAddress`
     - [x] `UserAgent`
-    - [ ] `DomainSuffix`, `DomainName` composition helper (`DomainSuffix` done; `DomainName` partial)
-- [ ] Date/time:
+    - [x] `DomainSuffix`, `DomainName` composition helper
+- [x] Date/time:
     - [x] `DateTime`, `Date`, `Time`
-    - [ ] `DateTimeBefore`, `DateTimeAfter`, `DateTimeBetween` (partial via `DateGenerator`)
-    - [ ] `Duration`
-- [ ] Business:
+    - [x] `DateTimeBefore`, `DateTimeAfter`, `DateTimeBetween`
+    - [x] `Duration`
+- [x] Business:
     - [x] `CompanyName`, `CompanySuffix` (suffix via boolean option)
     - [x] `Industry`, `Profession`
-    - [ ] `JobField`, `JobSeniority`, `JobType` (`JobType` missing)
+    - [x] `JobField`, `JobSeniority`, `JobType`
 
 Acceptance:
 
@@ -127,9 +127,9 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 1 complete**
-- Status: **In progress (Phase 2+ remaining)**
+- Current step: **Phase 2 complete**
+- Status: **In progress (Phase 3+ remaining)**
 - Next deliverable:
-    - Implement remaining missing P0 items first (combined `IP`, `JobType`, datetime before/after/between API parity).
+    - Implement remaining Phase 3 gaps (`Bic`, `Isin`, `NumberWithFormat`, `Digit`, HTTP status code, color/file residuals, `Semver`).
     - Run `./scripts/pre_commit_check.sh`.
     - Update parity rows and this checklist.

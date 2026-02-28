@@ -144,6 +144,35 @@ class EmailGeneratorTest {
         assertFalse(provider.contains("@"));
         assertTrue(provider.contains("."));
     }
+
+    @Test
+    void testGetFreeEmailProviderLocaleAware() {
+        EmailGenerator de = new EmailGenerator(Locale.GERMANY);
+        String provider = de.getFreeEmailProvider();
+        assertTrue(List.of("gmx.de", "web.de", "gmail.com", "outlook.com").contains(provider));
+    }
+
+    @Test
+    void testGetFreeEmailProviderAllLocaleBranches() {
+        assertTrue(List.of("gmx.de", "web.de", "gmail.com", "outlook.com")
+                .contains(new EmailGenerator(Locale.GERMANY).getFreeEmailProvider()));
+        assertTrue(List.of("orange.fr", "laposte.net", "gmail.com", "outlook.com")
+                .contains(new EmailGenerator(Locale.FRANCE).getFreeEmailProvider()));
+        assertTrue(List.of("hotmail.es", "gmail.com", "outlook.com", "yahoo.com")
+                .contains(new EmailGenerator(Locale.of("es", "ES")).getFreeEmailProvider()));
+        assertTrue(List.of("libero.it", "gmail.com", "outlook.com", "yahoo.com")
+                .contains(new EmailGenerator(Locale.ITALY).getFreeEmailProvider()));
+        assertTrue(List.of("uol.com.br", "bol.com.br", "gmail.com", "outlook.com")
+                .contains(new EmailGenerator(Locale.of("pt", "BR")).getFreeEmailProvider()));
+        assertTrue(List.of("yahoo.co.jp", "gmail.com", "outlook.com")
+                .contains(new EmailGenerator(Locale.JAPAN).getFreeEmailProvider()));
+        assertTrue(List.of("qq.com", "163.com", "126.com", "gmail.com")
+                .contains(new EmailGenerator(Locale.CHINA).getFreeEmailProvider()));
+        assertTrue(List.of("gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
+                        "protonmail.com", "mail.com", "aol.com", "zoho.com", "gmx.com", "yandex.com",
+                        "qq.com")
+                .contains(new EmailGenerator(Locale.US).getFreeEmailProvider()));
+    }
     
     @Test
     void testPopularDomains() {

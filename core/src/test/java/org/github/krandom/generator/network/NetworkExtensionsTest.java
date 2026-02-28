@@ -154,8 +154,31 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("factory methods return working generators")
     void generatorFactories() {
+        assertNotNull(Generators.ofIP().generate());
         assertNotNull(Generators.ofPort().generate());
         assertNotNull(Generators.ofSlug().generate());
         assertNotNull(Generators.ofUserAgent().generate());
+    }
+
+    @Test
+    @DisplayName("IP generator returns valid v4 or v6 values")
+    void ipGenerator() {
+        IPGenerator gen = new IPGenerator(GeneratorConfig.builder().seed(55L).build());
+        boolean sawV4 = false;
+        boolean sawV6 = false;
+        for (int i = 0; i < 200; i++) {
+            String ip = gen.generate();
+            if (VALIDATOR.isValidInet4Address(ip)) {
+                sawV4 = true;
+            } else if (VALIDATOR.isValidInet6Address(ip)) {
+                sawV6 = true;
+            } else {
+                fail("Generated invalid IP: " + ip);
+            }
+        }
+        assertTrue(sawV4);
+        assertTrue(sawV6);
+        assertTrue(VALIDATOR.isValidInet4Address(gen.generateIPv4()));
+        assertTrue(VALIDATOR.isValidInet6Address(gen.generateIPv6()));
     }
 }

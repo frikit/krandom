@@ -80,4 +80,38 @@ class LocalDateTimeGeneratorTest {
     void nullConfigThrows() {
         assertThrows(NullPointerException.class, () -> new LocalDateTimeGenerator(null));
     }
+
+    @Test
+    @DisplayName("between(start,end) returns value in inclusive range")
+    void between() {
+        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(91L).build());
+        LocalDateTime start = LocalDateTime.of(2020, 1, 1, 0, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2020, 1, 2, 0, 0, 0);
+        for (int i = 0; i < 40; i++) {
+            LocalDateTime value = gen.between(start, end);
+            assertFalse(value.isBefore(start));
+            assertFalse(value.isAfter(end));
+        }
+        assertEquals(start, gen.between(start, start));
+        assertThrows(IllegalArgumentException.class, () -> gen.between(end, start));
+        assertThrows(NullPointerException.class, () -> gen.between(null, end));
+        assertThrows(NullPointerException.class, () -> gen.between(start, null));
+    }
+
+    @Test
+    @DisplayName("before(reference) and after(reference) obey strict bounds")
+    void beforeAfter() {
+        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(92L).build());
+        LocalDateTime ref = LocalDateTime.of(2050, 1, 1, 0, 0, 0);
+        for (int i = 0; i < 40; i++) {
+            assertTrue(gen.before(ref).isBefore(ref));
+            assertTrue(gen.after(ref).isAfter(ref));
+        }
+        assertThrows(NullPointerException.class, () -> gen.before(null));
+        assertThrows(NullPointerException.class, () -> gen.after(null));
+        assertThrows(IllegalArgumentException.class,
+                () -> gen.before(LocalDateTime.of(1970, 1, 1, 0, 0, 0)));
+        assertThrows(IllegalArgumentException.class,
+                () -> gen.after(LocalDateTime.of(2100, 12, 31, 23, 59, 59)));
+    }
 }

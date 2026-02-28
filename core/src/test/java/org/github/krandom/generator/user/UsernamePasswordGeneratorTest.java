@@ -10,6 +10,8 @@ import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Username and Password generators")
@@ -31,7 +33,11 @@ class UsernamePasswordGeneratorTest {
             assertEquals(a.generate(), b.generate());
         }
 
-        assertThrows(NullPointerException.class, () -> new UsernameGenerator(null));
+        assertThrows(NullPointerException.class, () -> new UsernameGenerator((GeneratorConfig) null));
+
+        UsernameGenerator de = new UsernameGenerator(Locale.GERMANY);
+        assertEquals(Locale.GERMANY, de.getLocale());
+        assertNotNull(de.generate());
     }
 
     @Test

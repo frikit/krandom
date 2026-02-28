@@ -64,12 +64,12 @@ This section is the current source of truth for Java-core parity status. Some le
 | FreeEmail / SafeEmail / FreeEmailProvider | ✅ Exists | `EmailGenerator.generateFreeEmail()`, `generateSafeEmail()`, `getFreeEmailProvider()`. |
 | DomainSuffix | ✅ Exists | `DomainGenerator.getTLD()`. |
 | Slug | ✅ Exists | `SlugGenerator`. |
-| DomainName | ⚠️ Partial | Domain generation exists, but no dedicated "name-only" public API. |
+| DomainName | ✅ Exists | `DomainGenerator.generateName()` plus full-domain composition methods. |
 | URL | ✅ Exists | `URLGenerator` with options/path/query and encoded file-name segment support. |
 | Username | ✅ Exists | `UsernameGenerator`. |
 | Password(range) | ✅ Exists | `PasswordGenerator.generate(min,max)` and fixed-length overload. |
 | IPv4 / IPv6 | ✅ Exists | Both implemented. |
-| IP (v4 or v6) | ❌ Missing | No combined generator method. |
+| IP (v4 or v6) | ✅ Exists | `IPGenerator` returns either v4 or v6 per call. |
 | IPv4 private/public/CIDR | ✅ Exists | `IPv4Generator.generatePrivate/public/cidr`. |
 | IPv6 CIDR | ✅ Exists | `IPv6Generator.generateCidr`. |
 | MACAddress / Port / UserAgent | ✅ Exists | Implemented in `network` package. |
@@ -80,11 +80,12 @@ This section is the current source of truth for Java-core parity status. Some le
 | BIC / ISIN | ❌ Missing | Not implemented. |
 | CompanyName / Industry / Profession | ✅ Exists | Implemented; `ProfessionGenerator` is locale-extensible. |
 | JobField / JobSeniority / JobTitle(Position) | ✅ Exists | `JobFieldGenerator`, `SeniorityGenerator`, `PositionGenerator`. |
-| JobType | ❌ Missing | No dedicated job-type generator class. |
+| JobType | ✅ Exists | `JobTypeGenerator`. |
 | Word / Sentence / Paragraph | ✅ Exists | Locale-aware text generators implemented. |
 | Words/Sentences/Paragraphs with fake-rs `Range` API | ✅ Exists | Range-style min/max APIs added on word/sentence/paragraph generators. |
 | DateTime / Date / Time | ✅ Exists | `LocalDateTimeGenerator`, `DateGenerator`, `TimeGenerator`. |
-| DateTimeBefore / After / Between | ⚠️ Partial | `DateGenerator.between/future/past` exists; no dedicated `LocalDateTime before/after/between` API. |
+| DateTimeBefore / After / Between | ✅ Exists | `LocalDateTimeGenerator.before()`, `.after()`, `.between()`. |
+| Duration | ✅ Exists | `DurationGenerator`. |
 | PhoneNumber / CellNumber | ✅ Exists | `PhoneNumberGenerator` supports formatted + mobile/landline selection. |
 | NumberWithFormat | ❌ Missing | No dedicated fake-rs-like formatting API. |
 | ISBN / ISBN10 / ISBN13 | ✅ Exists | `IsbnGenerator` supports both formats. |

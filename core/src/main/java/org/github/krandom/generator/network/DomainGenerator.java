@@ -138,6 +138,15 @@ public final class DomainGenerator implements Generator<String> {
         String name = generateDomainName();
         return name + "." + tld;
     }
+
+    /**
+     * Generates a domain name label without TLD.
+     *
+     * @return a domain label such as {@code "techcloud"} or {@code "data"}
+     */
+    public String generateName() {
+        return generateDomainName();
+    }
     
     /**
      * Generates just a TLD (top-level domain).
