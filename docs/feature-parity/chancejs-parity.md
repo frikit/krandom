@@ -810,8 +810,8 @@ _None - awaiting next feature selection_
 | Grayscale         | ✅ `color({grayscale: true})`                                 | ✅ Yes          | ✓ DONE                  | generateGrayscale()                                       |
 | Case control      | ✅ `color({casing: 'upper'})`                                 | ✅ Yes          | ✓ DONE                  | generateUppercase()                                       |
 | **Social**        |
-| Twitter handle    | ✅ `twitter()`                                                | ❌ No           | LOW                     | '@dafivatemin'                                            |
-| Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | LOW                     | Gravatar URLs                                             |
+| Twitter handle    | ✅ `twitter()`                                                | ❌ No           | INTENTIONAL SKIP        | Out of Java parity scope by project decision              |
+| Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | INTENTIONAL SKIP        | Out of Java parity scope by project decision              |
 | **Business**      |
 | Company name      | ✅ `company()`                                                | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate()`                         |
 | Profession        | ✅ `profession({ranked})`                                     | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()`                          |
@@ -832,7 +832,7 @@ _None - awaiting next feature selection_
 | **Date Components** |
 | Year                | ✅ `year({min, max})`                           | ✅ Yes          | ✓ DONE                  | generateYear() / (min,max)  |
 | Month name          | ✅ `month()`                                    | ✅ Yes          | ✓ DONE                  | generateMonthName()         |
-| Month object        | ✅ `month({raw: true})`                         | ✅ Partial      | MEDIUM                  | generateMonth() returns int |
+| Month object        | ✅ `month({raw: true})`                         | ❌ No           | INTENTIONAL SKIP        | Java-native equivalent is `java.time.Month` enum; JS raw month object is not needed |
 | Hour (12-hour)      | ✅ `hour()`                                     | ✅ Yes          | ✓ DONE                  | generateHour()              |
 | Hour (24-hour)      | ✅ `hour({twentyfour: true})`                   | ✅ Yes          | ✓ DONE                  | generateHour24()            |
 | Minute              | ✅ `minute()`                                   | ✅ Yes          | ✓ DONE                  | generateMinute()            |

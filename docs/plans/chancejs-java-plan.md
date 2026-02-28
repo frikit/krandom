@@ -56,18 +56,21 @@ Acceptance:
 
 - `Extensive parameters` and `Option combinations` rows move to `Yes` (or reduced to documented intentional scope limits).
 
-### Phase 3: Web/Social + Date Option Gap (P1)
+### Phase 3: Intentional Deviation Documentation (completed)
 
-Goal: close remaining low/medium user-facing API gaps.
+Goal: formalize skipped/obsolete Chance.js APIs for Java.
 
-- [ ] Implement `twitter()` parity generator.
-- [ ] Implement `avatar({type, fileExtension, protocol, email})` parity generator.
-- [ ] Complete month object parity (`month({raw: true})`) to move from Partial -> Yes.
+- [x] Mark social providers as intentional scope skip:
+    - [x] `twitter()`
+    - [x] `avatar({type, fileExtension, protocol, email})`
+- [x] Mark `month({raw: true})` as intentional Java-native deviation.
+    - Java equivalent is `java.time.Month` enum and existing numeric/name methods.
+    - JS-style `{name, short_name, numeric}` object is unnecessary in this API.
 
 Acceptance:
 
-- Web/social rows (`Twitter handle`, `Avatar URL`) move to `Yes`.
-- Date month object row moves to `Yes`.
+- Web/social rows are documented intentional deviations.
+- Month raw-object row is documented as intentional deviation (Java Month enum equivalent).
 
 ### Phase 4: Optional RNG Hook + Final Hardening (P2)
 
@@ -85,7 +88,7 @@ Acceptance:
 
 1. Implement **Phase 1 / Core Seeding Parity** first.
 2. Implement **Phase 2 / Options Composition** next.
-3. Implement **Phase 3 / Web-Social + Date Gap**.
+3. Keep **Phase 3 / Intentional Deviation Documentation** aligned with parity doc.
 4. Close with **Phase 4 / Optional RNG Hook + hardening**.
 
 ## Task Tracker
