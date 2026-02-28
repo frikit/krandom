@@ -1,0 +1,4 @@
+# Italian phonetics profile
+onsets=b,c,d,f,g,l,m,n,p,r,s,t,v,gl,gn,br,tr,sc,sp
+nuclei=a,e,i,o,u,ia,io,ie,ua,uo
+codas=,n,r,s,l,t

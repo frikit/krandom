@@ -1,0 +1,4 @@
+# French phonetics profile
+onsets=b,c,d,f,g,j,l,m,n,p,r,s,t,v,ch,cl,fr,gr,pl,tr
+nuclei=a,e,i,o,u,ai,au,oi,eu,ou
+codas=,n,r,s,t,l,m,nt,rt

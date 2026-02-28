@@ -1,0 +1,4 @@
+# English (UK) phonetics profile
+onsets=b,c,d,f,g,h,k,l,m,n,p,r,s,t,v,w,br,cr,dr,fr,gr,pr,tr,st,ch,sh,thr,cl,gl,pl
+nuclei=a,e,i,o,u,ou,ow,ea,ee,ie,oi,oo
+codas=,n,r,s,t,l,m,nd,nt,rst,st,ght

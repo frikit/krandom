@@ -28,7 +28,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 ## Implementation Status
 
-**Last Updated**: 2026-02-25 (session 5)
+**Last Updated**: 2026-02-28 (session 6)
 
 ### Completed Features ✅
 
@@ -840,9 +840,9 @@ _None - awaiting next feature selection_
 | Feature          | Chance.js Support             | krandom Status | Implementation Priority | Notes                   |
 |------------------|-------------------------------|----------------|-------------------------|-------------------------|
 | **Words**        |
-| Random word      | ✅ `word({syllables, length})` | ❌ No           | HIGH                    | Natural-looking words   |
-| Syllable control | ✅ `word({syllables: 4})`      | ❌ No           | HIGH                    | 'pugilefe' - UNIQUE     |
-| Length control   | ✅ `word({length: 10})`        | ❌ No           | HIGH                    | Exact character count   |
+| Random word      | ✅ `word({syllables, length})` | ✅ Yes          | ✓ DONE                  | `WordGenerator` + `WordOptions` |
+| Syllable control | ✅ `word({syllables: 4})`      | ✅ Yes          | ✓ DONE                  | `WordOptions.withSyllables(int)` |
+| Length control   | ✅ `word({length: 10})`        | ✅ Yes          | ✓ DONE                  | `WordOptions.withLength(int)` |
 | Syllable         | ✅ `syllable({length})`        | ❌ No           | MEDIUM                  | Single syllable 'ko'    |
 | **Sentences**    |
 | Random sentence  | ✅ `sentence({words})`         | ❌ No           | HIGH                    | Capitalized, punctuated |
@@ -963,7 +963,7 @@ _None - awaiting next feature selection_
 |------------------------|--------------------------|---------|----------|-------------------------------|
 | **Pronounceable Text** |
 | Syllable generation    | ✅ `syllable()`           | ❌ No    | MEDIUM   | Natural-sounding - UNIQUE     |
-| Word generation        | ✅ `word({syllables: 4})` | ❌ No    | HIGH     | Syllable-based words - UNIQUE |
+| Word generation        | ✅ `word({syllables: 4})` | ✅ Yes   | ✓ DONE   | `WordGenerator.generate(WordOptions)` |
 | Sentence structure     | ✅ Capital + period       | ❌ No    | HIGH     | Proper formatting             |
 | Paragraph structure    | ✅ Multiple sentences     | ❌ No    | HIGH     | Natural paragraphs            |
 | Variable length        | ✅ Default ranges         | ❌ No    | MEDIUM   | 12-18 words, 3-7 sentences    |
@@ -1270,5 +1270,5 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in natural language syllable behavior, richer options parameterization, URL option
-richness, and low-priority social/avatar generators.
+**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in sentence/paragraph text APIs, standalone syllable generation, richer options
+parameterization, and low-priority social/avatar generators.

@@ -1,0 +1,4 @@
+# Portuguese phonetics profile
+onsets=b,c,d,f,g,j,l,m,n,p,r,s,t,v,ch,lh,nh,br,tr,gr
+nuclei=a,e,i,o,u,ao,ai,ei,ou,ua
+codas=,n,r,s,l,m

@@ -1,0 +1,2 @@
+onsets=a,b
+nuclei=e,i

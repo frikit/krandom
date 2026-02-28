@@ -1,0 +1,4 @@
+# Chinese (pinyin-oriented) phonetics profile
+onsets=b,p,m,f,d,t,n,l,g,k,h,j,q,x,zh,ch,sh,r
+nuclei=a,e,i,o,u,ai,ao,ei,ou,ia,ie,uo
+codas=,n,ng

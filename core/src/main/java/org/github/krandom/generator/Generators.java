@@ -25,6 +25,7 @@ import org.github.krandom.generator.selection.ShuffleGenerator;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.selection.WeightedGenerator;
 import org.github.krandom.generator.text.LoremIpsumGenerator;
+import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
@@ -372,6 +373,11 @@ public final class Generators {
      */
     public static LoremIpsumGenerator ofLoremIpsum(LoremIpsumGenerator.Mode mode) {
         return new LoremIpsumGenerator(mode);
+    }
+
+    /** Returns a generator that produces natural-looking pseudo-words. */
+    public static WordGenerator ofWord() {
+        return new WordGenerator();
     }
 
     // ── MAC address ───────────────────────────────────────────────────────────

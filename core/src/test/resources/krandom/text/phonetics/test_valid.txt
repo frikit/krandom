@@ -1,0 +1,4 @@
+# test profile
+onsets=a,b
+nuclei=e,i
+codas=,n

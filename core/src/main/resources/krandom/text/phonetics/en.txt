@@ -1,0 +1,4 @@
+# English (default) phonetics profile
+onsets=b,c,d,f,g,h,j,k,l,m,n,p,r,s,t,v,w,z,br,cr,dr,fr,gr,pr,tr,st,ch,sh,th,cl,gl,pl,sl,sm,sn,sp,sw
+nuclei=a,e,i,o,u,ae,ai,ea,ee,ie,oa,oo,ou,ui
+codas=,n,r,s,t,l,m,nd,nt,rd,rk,rt,st,th,sh,ng,mp,ld

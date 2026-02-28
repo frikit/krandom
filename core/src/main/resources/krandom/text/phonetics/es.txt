@@ -1,0 +1,4 @@
+# Spanish phonetics profile
+onsets=b,c,d,f,g,j,l,m,n,p,r,s,t,v,ch,ll,tr,br,gr,pl
+nuclei=a,e,i,o,u,ia,ie,io,ua,ue
+codas=,n,r,s,l,d,z

@@ -757,4 +757,40 @@ class StateGeneratorTest {
         assertTrue(ex.getCause() instanceof UnsupportedOperationException);
         assertEquals("Utility class", ex.getCause().getMessage());
     }
+
+    @Test
+    @DisplayName("abbreviation mode falls back when abbreviation entry is blank")
+    void abbreviationFallbackWhenBlankEntry() {
+        Locale locale = Locale.of("zz", "BL");
+        StateDataRegistry.register(new StateDataProvider() {
+            @Override public Locale getLocale() { return locale; }
+            @Override public String[] getStates() { return new String[]{"Alpha"}; }
+            @Override public String[] getAbbreviations() { return new String[]{""}; }
+        });
+
+        StateGenerator gen = new StateGenerator(
+                GeneratorConfig.builder().locale(locale).seed(1L).build()
+        );
+        assertEquals("Alpha", gen.generate(true));
+    }
+
+    @Test
+    @DisplayName("abbreviation mode falls back when index exceeds abbreviation array length")
+    void abbreviationFallbackWhenIndexOutOfBounds() {
+        Locale locale = Locale.of("zz", "SH");
+        StateDataRegistry.register(new StateDataProvider() {
+            @Override public Locale getLocale() { return locale; }
+            @Override public String[] getStates() { return new String[]{"First", "Second"}; }
+            @Override public String[] getAbbreviations() { return new String[]{"F"}; }
+        });
+
+        StateGenerator gen = new StateGenerator(
+                GeneratorConfig.builder().locale(locale).seed(2L).build()
+        );
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < 50; i++) {
+            seen.add(gen.generate(true));
+        }
+        assertTrue(seen.contains("Second"), "Expected fallback to full state for missing abbreviation index");
+    }
 }

@@ -1,0 +1,4 @@
+# Japanese (romaji-oriented) phonetics profile
+onsets=k,s,t,n,h,m,y,r,w,ky,sh,ch,ny,ry
+nuclei=a,i,u,e,o
+codas=,n

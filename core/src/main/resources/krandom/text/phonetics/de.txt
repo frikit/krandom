@@ -1,0 +1,4 @@
+# German phonetics profile
+onsets=b,d,f,g,h,k,l,m,n,p,r,s,t,w,z,sch,sp,st,pf,kl,gr,tr
+nuclei=a,e,i,o,u,ei,ie,au,eu,ue
+codas=,n,r,s,t,l,m,nd,ng,ch
