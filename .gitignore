@@ -96,3 +96,12 @@ gradle-app.setting
 **/build/
 
 resume.txt
+
+# VS Code and VS Code Java plugin artifacts
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+*.code-workspace
+**/bin/

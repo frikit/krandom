@@ -13,8 +13,16 @@ import org.github.krandom.network.IPv6Generator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
+import org.github.krandom.generator.selection.PickGenerator;
+import org.github.krandom.generator.selection.PickSetGenerator;
+import org.github.krandom.generator.selection.RepeatGenerator;
+import org.github.krandom.generator.selection.ShuffleGenerator;
+import org.github.krandom.generator.selection.UniqueGenerator;
+import org.github.krandom.generator.selection.WeightedGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -157,6 +165,43 @@ class GeneratorsTest {
 
     @Test @DisplayName("ofLuhn() returns LuhnGenerator")
     void ofLuhn() { assertInstanceOf(LuhnGenerator.class, Generators.ofLuhn()); }
+
+    // ── Selection / helper-style generators ──────────────────────────────────
+
+    @Test @DisplayName("pickFrom(source) returns PickGenerator")
+    void pickFrom() {
+        assertInstanceOf(PickGenerator.class, Generators.pickFrom(List.of("a", "b")));
+    }
+
+    @Test @DisplayName("pickSetFrom(source, count) returns PickSetGenerator")
+    void pickSetFrom() {
+        assertInstanceOf(PickSetGenerator.class, Generators.pickSetFrom(List.of(1, 2, 3), 2));
+    }
+
+    @Test @DisplayName("shuffleOf(source) returns ShuffleGenerator")
+    void shuffleOf() {
+        assertInstanceOf(ShuffleGenerator.class, Generators.shuffleOf(List.of(1, 2, 3)));
+    }
+
+    @Test @DisplayName("weighted(values, weights) returns WeightedGenerator")
+    void weighted() {
+        assertInstanceOf(WeightedGenerator.class, Generators.weighted(List.of("h", "t"), List.of(7, 3)));
+    }
+
+    @Test @DisplayName("unique(source) returns UniqueGenerator")
+    void unique() {
+        assertInstanceOf(UniqueGenerator.class, Generators.unique(() -> 1));
+    }
+
+    @Test @DisplayName("unique(source, maxAttempts) returns UniqueGenerator")
+    void uniqueMaxAttempts() {
+        assertInstanceOf(UniqueGenerator.class, Generators.unique(() -> 1, 5));
+    }
+
+    @Test @DisplayName("repeat(source, count) returns RepeatGenerator")
+    void repeat() {
+        assertInstanceOf(RepeatGenerator.class, Generators.repeat(() -> 1, 3));
+    }
 
     // ── Games ─────────────────────────────────────────────────────────────────
 

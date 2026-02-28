@@ -884,20 +884,20 @@ _None - awaiting next feature selection_
 | Feature                | Chance.js Support                           | krandom Status | Implementation Priority | Notes                        |
 |------------------------|---------------------------------------------|----------------|-------------------------|------------------------------|
 | **Repeat Generation**  |
-| n() method             | ✅ `n(fn, count, options)`                   | ❌ No           | HIGH                    | Call method N times - UNIQUE |
-| Example                | ✅ `n(chance.integer, 5, {min: 1, max: 10})` | ❌ No           | HIGH                    | [4, 7, 1, 9, 3]              |
+| n() method             | ✅ `n(fn, count, options)`                   | ✅ Yes          | ✓ DONE                  | `RepeatGenerator<T>` via `Generators.repeat(source, count)` |
+| Example                | ✅ `n(chance.integer, 5, {min: 1, max: 10})` | ✅ Yes          | ✓ DONE                  | `Generators.repeat(Generators.ofInt(1, 10), 5)`             |
 | **Unique Values**      |
-| unique() method        | ✅ `unique(fn, count, options)`              | ❌ No           | HIGH                    | No duplicates - UNIQUE       |
-| Example                | ✅ `unique(chance.state, 5)`                 | ❌ No           | HIGH                    | 5 distinct states            |
-| RangeError             | ✅ Throws if pool too small                  | ❌ No           | HIGH                    | Smart validation             |
-| Custom comparator      | ✅ `{comparator: (arr, val) => ...}`         | ❌ No           | MEDIUM                  | Object uniqueness            |
+| unique() method        | ✅ `unique(fn, count, options)`              | ✅ Yes          | ✓ DONE                  | `UniqueGenerator<T>` via `Generators.unique(source)`         |
+| Example                | ✅ `unique(chance.state, 5)`                 | ✅ Yes          | ✓ DONE                  | `Generators.repeat(Generators.unique(stateGen), 5)`          |
+| RangeError             | ✅ Throws if pool too small                  | ✅ Yes          | ✓ DONE                  | Throws `IllegalStateException` when unique pool is exhausted |
+| Custom comparator      | ✅ `{comparator: (arr, val) => ...}`         | ✅ Yes          | ✓ DONE                  | `Generators.unique(source, comparator)`                      |
 | **Collection Helpers** |
-| pick()                 | ✅ `pick(['a','b','c'])`                     | ❌ No           | HIGH                    | Random element               |
-| pickset()              | ✅ `pickset(['a','b','c'], 2)`               | ❌ No           | HIGH                    | Random N elements            |
-| shuffle()              | ✅ `shuffle([1,2,3,4])`                      | ❌ No           | MEDIUM                  | Randomize array              |
+| pick()                 | ✅ `pick(['a','b','c'])`                     | ✅ Yes          | ✓ DONE                  | `PickGenerator<T>` via `Generators.pickFrom(source)`         |
+| pickset()              | ✅ `pickset(['a','b','c'], 2)`               | ✅ Yes          | ✓ DONE                  | `PickSetGenerator<T>` via `Generators.pickSetFrom(source, n)`|
+| shuffle()              | ✅ `shuffle([1,2,3,4])`                      | ✅ Yes          | ✓ DONE                  | `ShuffleGenerator<T>` via `Generators.shuffleOf(source)`     |
 | **Weighted Random**    |
-| weighted()             | ✅ `weighted(values, weights)`               | ❌ No           | HIGH                    | Biased selection - UNIQUE    |
-| Example                | ✅ `weighted(['heads','tails'], [7,3])`      | ❌ No           | HIGH                    | 70% heads                    |
+| weighted()             | ✅ `weighted(values, weights)`               | ✅ Yes          | ✓ DONE                  | `WeightedGenerator<T>` via `Generators.weighted(values, weights)` |
+| Example                | ✅ `weighted(['heads','tails'], [7,3])`      | ✅ Yes          | ✓ DONE                  | Weighted selection verified with statistical tests            |
 
 ---
 
@@ -1202,6 +1202,16 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - ✅ Money amounts — `MoneyGenerator` — `generateDollar()` → `"$4,231.87"`, `generateEuro()` → `"4 231,87 €"`, `generate(Locale)`, `generate(max)`
 - Architecture: `Currency` enum + `CurrencyInfo` record + `CurrencyPair` record + separate generators; `Currency.forLocale()` maps 10 locales
 
+**Helper Methods Section (100% Complete)**:
+
+- ✅ Repeat generation (`n` equivalent) — `RepeatGenerator<T>` via `Generators.repeat(source, count)`
+- ✅ Unique values — `UniqueGenerator<T>` via `Generators.unique(source)` / `Generators.unique(source, comparator)`
+- ✅ Random element pick — `PickGenerator<T>` via `Generators.pickFrom(source)`
+- ✅ Random subset pick — `PickSetGenerator<T>` via `Generators.pickSetFrom(source, count)`
+- ✅ Collection shuffle — `ShuffleGenerator<T>` via `Generators.shuffleOf(source)`
+- ✅ Weighted random selection — `WeightedGenerator<T>` via `Generators.weighted(values, weights)`
+- ✅ Coverage quality: `org.github.krandom.generator.selection` at 100% line + 100% branch in pre-commit coverage report
+
 **Implementation Details**:
 
 - Overall test coverage: 99%+ line and branch (all gates passing)
@@ -1214,7 +1224,7 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 ### Top Priority Focus Areas (Remaining)
 
 1. ~~**Weighted Random & Normal Distribution**~~ - ✅ COMPLETE (normal distribution + weighted boolean DONE)
-2. **Helper Methods** - `n()`, `unique()`, collection operations
+2. ~~**Helper Methods**~~ - ✅ COMPLETE (`repeat`, `unique`, `pick`, `pickset`, `shuffle`, `weighted`)
 3. **Natural Language Generation** - Syllable-based words, sentences, paragraphs
 4. **Rich Options Parameterization** - Extensive parameter support on all methods
 5. ~~**Email & UUID**~~ - ✅ COMPLETE
@@ -1243,7 +1253,6 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 **Next Phase** - Implement remaining high-value features:
 
-- Helper methods (n, unique, pick) - HIGH LEVERAGE
 - Natural language (word, sentence, paragraph) - HIGH DEMAND
 - Street address generation - HIGH USAGE
 - Rich parameterization - BETTER UX
@@ -1261,5 +1270,5 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: ~75/85 countable Chance.js feature rows implemented (~88% complete) + 12 krandom-unique extensions. Remaining gaps: natural language (8 rows), helper methods/weighted (7 rows), street
-address (2 rows), company/profession (3 rows), middle name (2 rows), URL enhancements (4 rows), social/avatar (2 rows), weighted selection (2 rows).
+**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in natural language syllable behavior, richer options parameterization, middle-name
+support, URL option richness, and low-priority social/avatar generators.

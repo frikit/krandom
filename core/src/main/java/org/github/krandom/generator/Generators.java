@@ -16,6 +16,12 @@ import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.identifier.IsbnGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
+import org.github.krandom.generator.selection.PickGenerator;
+import org.github.krandom.generator.selection.PickSetGenerator;
+import org.github.krandom.generator.selection.RepeatGenerator;
+import org.github.krandom.generator.selection.ShuffleGenerator;
+import org.github.krandom.generator.selection.UniqueGenerator;
+import org.github.krandom.generator.selection.WeightedGenerator;
 import org.github.krandom.generator.text.LoremIpsumGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
@@ -28,8 +34,10 @@ import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
 /**
@@ -370,6 +378,48 @@ public final class Generators {
      */
     public static IsbnGenerator ofIsbn(IsbnGenerator.IsbnType type) {
         return new IsbnGenerator(type);
+    }
+
+    // ── Selection / helper-style generators ──────────────────────────────────
+
+    /** Returns a generator that picks one random element from the given source list. */
+    public static <T> PickGenerator<T> pickFrom(List<T> source) {
+        return new PickGenerator<>(source);
+    }
+
+    /** Returns a generator that picks {@code count} distinct elements without replacement. */
+    public static <T> PickSetGenerator<T> pickSetFrom(List<T> source, int count) {
+        return new PickSetGenerator<>(source, count);
+    }
+
+    /** Returns a generator that returns a shuffled copy of the given list. */
+    public static <T> ShuffleGenerator<T> shuffleOf(List<T> source) {
+        return new ShuffleGenerator<>(source);
+    }
+
+    /** Returns a weighted generator that selects values according to positive integer weights. */
+    public static <T> WeightedGenerator<T> weighted(List<T> values, List<Integer> weights) {
+        return new WeightedGenerator<>(values, weights);
+    }
+
+    /** Returns a unique-value decorator using {@link Objects#equals(Object, Object)} semantics. */
+    public static <T> UniqueGenerator<T> unique(Generator<T> source) {
+        return new UniqueGenerator<>(source);
+    }
+
+    /** Returns a unique-value decorator with bounded attempts for each generated value. */
+    public static <T> UniqueGenerator<T> unique(Generator<T> source, int maxAttempts) {
+        return new UniqueGenerator<>(source, maxAttempts);
+    }
+
+    /** Returns a unique-value decorator with a custom equality comparator. */
+    public static <T> UniqueGenerator<T> unique(Generator<T> source, BiPredicate<T, T> comparator) {
+        return new UniqueGenerator<>(source, comparator);
+    }
+
+    /** Returns a generator that invokes the given source generator {@code count} times per call. */
+    public static <T> RepeatGenerator<T> repeat(Generator<T> source, int count) {
+        return new RepeatGenerator<>(source, count);
     }
 
     // ── Generic lookup by type ────────────────────────────────────────────────
