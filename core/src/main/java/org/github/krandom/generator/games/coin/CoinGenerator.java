@@ -3,7 +3,7 @@
  *
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
-package org.github.krandom.games.coin;
+package org.github.krandom.generator.games.coin;
 
 import org.github.krandom.generator.Generator;
 

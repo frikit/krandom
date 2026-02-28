@@ -3,7 +3,7 @@
  *
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
-package org.github.krandom.games.dice;
+package org.github.krandom.generator.games.dice;
 
 import org.github.krandom.generator.Generator;
 

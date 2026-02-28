@@ -3,9 +3,11 @@
  *
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
-package org.github.krandom.games.dice;
+package org.github.krandom.generator.games.dice;
 
 import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.games.dice.DiceGenerator;
+import org.github.krandom.generator.games.dice.DiceType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

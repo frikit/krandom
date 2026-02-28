@@ -3,9 +3,11 @@
  *
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
-package org.github.krandom.games.coin;
+package org.github.krandom.generator.games.coin;
 
 import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.games.coin.CoinGenerator;
+import org.github.krandom.generator.games.coin.CoinResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;

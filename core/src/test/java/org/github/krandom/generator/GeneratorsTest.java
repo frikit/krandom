@@ -5,9 +5,9 @@
  */
 package org.github.krandom.generator;
 
-import org.github.krandom.games.coin.CoinGenerator;
-import org.github.krandom.games.dice.DiceGenerator;
-import org.github.krandom.games.dice.DiceType;
+import org.github.krandom.generator.games.coin.CoinGenerator;
+import org.github.krandom.generator.games.dice.DiceGenerator;
+import org.github.krandom.generator.games.dice.DiceType;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
