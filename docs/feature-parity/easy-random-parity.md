@@ -181,75 +181,75 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 
 ### 1. OBJECT GENERATION (Core Capability)
 
-| Feature                     | Easy Random Support                      | krandom Status | Implementation Priority | Notes                           |
-|-----------------------------|------------------------------------------|----------------|-------------------------|---------------------------------|
+| Feature                     | Easy Random Support                      | krandom Status | Implementation Priority | Notes                                                             |
+|-----------------------------|------------------------------------------|----------------|-------------------------|-------------------------------------------------------------------|
 | **Basic Object Creation**   |
-| Generate random POJO        | ✅ `nextObject(Class<T>)`                 | ✅ Yes          | ✓ DONE                  | krandom has ObjectGenerator<T>  |
-| Generate object stream      | ✅ `objects(Class<T>, int)`               | ✅ Partial      | MEDIUM                  | krandom uses Generator.stream() |
-| Extend java.util.Random     | ✅ Yes                                    | ❌ No           | LOW                     | EasyRandom extends Random       |
-| Deterministic seed          | ✅ Constructor/config                     | ✅ Yes          | ✓ DONE                  | Both support seeded generation  |
+| Generate random POJO        | ✅ `nextObject(Class<T>)`                 | ✅ Yes          | ✓ DONE                  | krandom has ObjectGenerator<T>                                    |
+| Generate object stream      | ✅ `objects(Class<T>, int)`               | ✅ Partial      | MEDIUM                  | krandom uses Generator.stream()                                   |
+| Extend java.util.Random     | ✅ Yes                                    | ❌ No           | LOW                     | EasyRandom extends Random                                         |
+| Deterministic seed          | ✅ Constructor/config                     | ✅ Yes          | ✓ DONE                  | Both support seeded generation                                    |
 | **Object Instantiation**    |
-| No-arg constructor          | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Both require no-arg constructor |
-| Objenesis fallback          | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | krandom: ObjenesisStd fallback  |
-| Java Records                | ✅ Canonical constructor                  | ✅ Yes          | ✓ DONE                  | Both support records            |
-| Abstract/interface types    | ✅ With classpath scanning                | ❌ No           | LOW                     | krandom returns null            |
-| Custom ObjectFactory        | ✅ `objectFactory(factory)`               | ❌ No           | MEDIUM                  | Pluggable instantiation         |
+| No-arg constructor          | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Both require no-arg constructor                                   |
+| Objenesis fallback          | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | krandom: ObjenesisStd fallback                                    |
+| Java Records                | ✅ Canonical constructor                  | ✅ Yes          | ✓ DONE                  | Both support records                                              |
+| Abstract/interface types    | ✅ With classpath scanning                | ❌ No           | LOW                     | krandom returns null                                              |
+| Custom ObjectFactory        | ✅ `objectFactory(factory)`               | ❌ No           | MEDIUM                  | Pluggable instantiation                                           |
 | **Field Population**        |
-| Declared fields             | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Instance fields only            |
-| Inherited fields            | ✅ Full hierarchy                         | ✅ Yes          | ✓ DONE                  | Both walk class hierarchy       |
-| Static fields               | ✅ Skipped                                | ✅ Skipped      | ✓ DONE                  | Both skip static                |
-| Final fields                | ✅ Yes (reflection)                       | ✅ Yes          | ✓ DONE                  |                                 |
-| Transient fields            | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Populated by default            |
+| Declared fields             | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Instance fields only                                              |
+| Inherited fields            | ✅ Full hierarchy                         | ✅ Yes          | ✓ DONE                  | Both walk class hierarchy                                         |
+| Static fields               | ✅ Skipped                                | ✅ Skipped      | ✓ DONE                  | Both skip static                                                  |
+| Final fields                | ✅ Yes (reflection)                       | ✅ Yes          | ✓ DONE                  |                                                                   |
+| Transient fields            | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Populated by default                                              |
 | Override existing values    | ✅ `overrideDefaultInitialization(true)`  | ✅ Yes          | ✓ DONE                  | Preserves non-default initial values by default; opt-in overwrite |
-| Bypass setters              | ✅ `bypassSetters(true)`                  | ✅ Yes          | ✓ DONE                  | Direct field access             |
+| Bypass setters              | ✅ `bypassSetters(true)`                  | ✅ Yes          | ✓ DONE                  | Direct field access                                               |
 | **Nested Objects**          |
-| Recursive population        | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Both support                    |
-| Max depth control           | ✅ `randomizationDepth(int)`              | ✅ Yes          | ✓ DONE                  | krandom: maxDepth               |
-| Circular reference handling | ✅ Object pool                            | ✅ Yes          | ✓ DONE                  | krandom: ObjectPool cycle guard |
-| Object pool size            | ✅ `objectPoolSize(int)`                  | ✅ Yes          | ✓ DONE                  | Configurable bounded per-type cache |
+| Recursive population        | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Both support                                                      |
+| Max depth control           | ✅ `randomizationDepth(int)`              | ✅ Yes          | ✓ DONE                  | krandom: maxDepth                                                 |
+| Circular reference handling | ✅ Object pool                            | ✅ Yes          | ✓ DONE                  | krandom: ObjectPool cycle guard                                   |
+| Object pool size            | ✅ `objectPoolSize(int)`                  | ✅ Yes          | ✓ DONE                  | Configurable bounded per-type cache                               |
 | **Generics Support**        |
-| Simple generics             | ✅ `List<String>`                         | ✅ Partial      | MEDIUM                  | krandom limited support         |
-| Nested generics             | ⚠️ Limited `List<List<T>>`               | ❌ No           | LOW                     | Type erasure issues             |
-| Generic inheritance         | ✅ `StringList extends ArrayList<String>` | ❌ No           | LOW                     |                                 |
+| Simple generics             | ✅ `List<String>`                         | ✅ Partial      | MEDIUM                  | krandom limited support                                           |
+| Nested generics             | ⚠️ Limited `List<List<T>>`               | ❌ No           | LOW                     | Type erasure issues                                               |
+| Generic inheritance         | ✅ `StringList extends ArrayList<String>` | ❌ No           | LOW                     |                                                                   |
 
 ### 2. EXCLUSION & FILTERING
 
-| Feature                   | Easy Random Support                          | krandom Status | Implementation Priority | Notes                   |
-|---------------------------|----------------------------------------------|----------------|-------------------------|-------------------------|
+| Feature                   | Easy Random Support                          | krandom Status | Implementation Priority | Notes                                                                                     |
+|---------------------------|----------------------------------------------|----------------|-------------------------|-------------------------------------------------------------------------------------------|
 | **Field Exclusion**       |
-| Exclude by annotation     | ✅ `@Exclude`                                 | ✅ Yes          | ✓ DONE                  | Declarative exclusion   |
-| Exclude by name           | ✅ `FieldPredicates.named("password")`        | ✅ Yes          | ✓ DONE                  | Exact-name matching     |
-| Exclude by type           | ✅ `FieldPredicates.ofType(Class)`            | ✅ Yes          | ✓ DONE                  | Type-based filtering    |
-| Exclude by class          | ✅ `FieldPredicates.inClass(Class)`           | ✅ Yes          | ✓ DONE                  | Scope to specific class |
-| Exclude by annotation     | ✅ `FieldPredicates.isAnnotatedWith()`        | ✅ Yes          | ✓ DONE                  | Match annotated fields  |
-| Exclude by modifiers      | ✅ `FieldPredicates.hasModifiers(int)`        | ✅ Yes          | ✓ DONE                  | Access-level filtering  |
+| Exclude by annotation     | ✅ `@Exclude`                                 | ✅ Yes          | ✓ DONE                  | Declarative exclusion                                                                     |
+| Exclude by name           | ✅ `FieldPredicates.named("password")`        | ✅ Yes          | ✓ DONE                  | Exact-name matching                                                                       |
+| Exclude by type           | ✅ `FieldPredicates.ofType(Class)`            | ✅ Yes          | ✓ DONE                  | Type-based filtering                                                                      |
+| Exclude by class          | ✅ `FieldPredicates.inClass(Class)`           | ✅ Yes          | ✓ DONE                  | Scope to specific class                                                                   |
+| Exclude by annotation     | ✅ `FieldPredicates.isAnnotatedWith()`        | ✅ Yes          | ✓ DONE                  | Match annotated fields                                                                    |
+| Exclude by modifiers      | ✅ `FieldPredicates.hasModifiers(int)`        | ✅ Yes          | ✓ DONE                  | Access-level filtering                                                                    |
 | Exclude entire types      | ✅ `TypePredicates.inPackage("com.internal")` | ✅ Partial      | In progress             | Package-based type exclusion implemented via `excludeType(TypePredicates.inPackage(...))` |
-| Custom ExclusionPolicy    | ✅ `exclusionPolicy(policy)`                  | ❌ No           | MEDIUM                  | Pluggable strategy      |
+| Custom ExclusionPolicy    | ✅ `exclusionPolicy(policy)`                  | ❌ No           | MEDIUM                  | Pluggable strategy                                                                        |
 | **Predicate Composition** |
-| AND logic                 | ✅ `predicate1.and(predicate2)`               | ✅ Yes          | ✓ DONE                  | Combine predicates      |
-| OR logic                  | ✅ `predicate1.or(predicate2)`                | ✅ Yes          | ✓ DONE                  |                         |
-| NOT logic                 | ✅ `predicate.negate()`                       | ✅ Yes          | ✓ DONE                  |                         |
+| AND logic                 | ✅ `predicate1.and(predicate2)`               | ✅ Yes          | ✓ DONE                  | Combine predicates                                                                        |
+| OR logic                  | ✅ `predicate1.or(predicate2)`                | ✅ Yes          | ✓ DONE                  |                                                                                           |
+| NOT logic                 | ✅ `predicate.negate()`                       | ✅ Yes          | ✓ DONE                  |                                                                                           |
 
 ### 3. CUSTOM RANDOMIZERS
 
-| Feature                | Easy Random Support                                   | krandom Status | Implementation Priority | Notes                                |
-|------------------------|-------------------------------------------------------|----------------|-------------------------|--------------------------------------|
+| Feature                | Easy Random Support                                   | krandom Status | Implementation Priority | Notes                                     |
+|------------------------|-------------------------------------------------------|----------------|-------------------------|-------------------------------------------|
 | **Randomizer API**     |
-| Functional interface   | ✅ `Randomizer<T>`                                     | ✅ Yes          | ✓ DONE                  | krandom: Generator<T>                |
-| Lambda support         | ✅ `() -> "value"`                                     | ✅ Yes          | ✓ DONE                  | Both functional                      |
-| Context-aware          | ✅ `ContextAwareRandomizer<T>`                         | ✅ Yes          | ✓ DONE                  | krandom: ContextualGenerator<T>      |
-| RandomizerContext      | ✅ Target type, root object, current field path, depth | ✅ Partial      | ✓ DONE                  | krandom: fieldName, ownerType, depth |
+| Functional interface   | ✅ `Randomizer<T>`                                     | ✅ Yes          | ✓ DONE                  | krandom: Generator<T>                     |
+| Lambda support         | ✅ `() -> "value"`                                     | ✅ Yes          | ✓ DONE                  | Both functional                           |
+| Context-aware          | ✅ `ContextAwareRandomizer<T>`                         | ✅ Yes          | ✓ DONE                  | krandom: ContextualGenerator<T>           |
+| RandomizerContext      | ✅ Target type, root object, current field path, depth | ✅ Partial      | ✓ DONE                  | krandom: fieldName, ownerType, depth      |
 | **Registration**       |
-| Type-level randomizer  | ✅ `randomize(String.class, randomizer)`               | ✅ Yes          | ✓ DONE                  | krandom: typeOverrides               |
-| Field-level randomizer | ✅ `randomize(predicate, randomizer)`                  | ✅ Yes          | ✓ DONE                  | krandom: fieldOverrides              |
-| Annotation-based       | ✅ `@Randomizer(EmailRandomizer.class)`                | ✅ Yes          | ✓ DONE                  | Declarative field/component randomizer |
+| Type-level randomizer  | ✅ `randomize(String.class, randomizer)`               | ✅ Yes          | ✓ DONE                  | krandom: typeOverrides                    |
+| Field-level randomizer | ✅ `randomize(predicate, randomizer)`                  | ✅ Yes          | ✓ DONE                  | krandom: fieldOverrides                   |
+| Annotation-based       | ✅ `@Randomizer(EmailRandomizer.class)`                | ✅ Yes          | ✓ DONE                  | Declarative field/component randomizer    |
 | Randomizer arguments   | ✅ `@RandomizerArgument`                               | ✅ Yes          | ✓ DONE                  | Declarative constructor parameter binding |
 | **Registry System**    |
-| RandomizerRegistry     | ✅ Interface + SPI discovery                           | ❌ No           | MEDIUM                  | Group randomizers                    |
-| Registry priority      | ✅ `@Priority` annotation                              | ❌ No           | MEDIUM                  | Override order                       |
-| Built-in registries    | ✅ 6 registries (Internal, Time, BeanValidation, etc.) | ❌ No           | MEDIUM                  | Layered resolution                   |
-| Custom registries      | ✅ ServiceLoader auto-discovery                        | ❌ No           | LOW                     | SPI extension                        |
-| RandomizerProvider     | ✅ Custom provider strategy                            | ❌ No           | LOW                     | Resolution algorithm                 |
+| RandomizerRegistry     | ✅ Interface + SPI discovery                           | ❌ No           | MEDIUM                  | Group randomizers                         |
+| Registry priority      | ✅ `@Priority` annotation                              | ❌ No           | MEDIUM                  | Override order                            |
+| Built-in registries    | ✅ 6 registries (Internal, Time, BeanValidation, etc.) | ❌ No           | MEDIUM                  | Layered resolution                        |
+| Custom registries      | ✅ ServiceLoader auto-discovery                        | ❌ No           | LOW                     | SPI extension                             |
+| RandomizerProvider     | ✅ Custom provider strategy                            | ❌ No           | LOW                     | Resolution algorithm                      |
 
 ### 4. BEAN VALIDATION INTEGRATION
 
@@ -296,104 +296,104 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 
 ### 6. BUILT-IN RANDOMIZERS
 
-| Feature                           | Easy Random Support                              | krandom Status | Implementation Priority | Notes                           |
-|-----------------------------------|--------------------------------------------------|----------------|-------------------------|---------------------------------|
+| Feature                           | Easy Random Support                              | krandom Status | Implementation Priority | Notes                                            |
+|-----------------------------------|--------------------------------------------------|----------------|-------------------------|--------------------------------------------------|
 | **Primitive & Boxed Types**       |
-| boolean / Boolean                 | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| byte / Byte                       | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| short / Short                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| int / Integer                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| long / Long                       | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| float / Float                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| double / Double                   | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| char / Character                  | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| boolean / Boolean                 | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| byte / Byte                       | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| short / Short                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| int / Integer                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| long / Long                       | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| float / Float                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| double / Double                   | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| char / Character                  | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
 | **Numeric Types**                 |
-| BigInteger                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | BigIntegerGenerator             |
-| BigDecimal                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | BigDecimalGenerator (scale 2)   |
-| AtomicInteger                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Concurrent types                |
-| AtomicLong                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| BigInteger                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | BigIntegerGenerator                              |
+| BigDecimal                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | BigDecimalGenerator (scale 2)                    |
+| AtomicInteger                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Concurrent types                                 |
+| AtomicLong                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
 | **Range Randomizers**             |
-| ByteRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | krandom: BoundedGenerator       |
-| ShortRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
-| IntegerRangeRandomizer            | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
-| LongRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
-| FloatRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
-| DoubleRangeRandomizer             | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
-| BigDecimalRangeRandomizer         | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | BigDecimalGenerator(min,max)    |
-| BigIntegerRangeRandomizer         | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | BigIntegerGenerator(min,max)    |
+| ByteRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | krandom: BoundedGenerator                        |
+| ShortRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                                  |
+| IntegerRangeRandomizer            | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                                  |
+| LongRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                                  |
+| FloatRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                                  |
+| DoubleRangeRandomizer             | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                                  |
+| BigDecimalRangeRandomizer         | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | BigDecimalGenerator(min,max)                     |
+| BigIntegerRangeRandomizer         | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | BigIntegerGenerator(min,max)                     |
 | **String Types**                  |
-| String                            | ✅ Random ASCII                                   | ✅ Yes          | ✓ DONE                  |                                 |
-| StringRandomizer                  | ✅ Custom length                                  | ✅ Yes          | ✓ DONE                  |                                 |
-| GenericStringRandomizer           | ✅ DataFaker-backed                               | ❌ No           | LOW                     |                                 |
-| RegularExpressionRandomizer       | ✅ Regex-based                                    | ✅ Yes          | ✓ DONE                  | RegexGenerator                  |
+| String                            | ✅ Random ASCII                                   | ✅ Yes          | ✓ DONE                  |                                                  |
+| StringRandomizer                  | ✅ Custom length                                  | ✅ Yes          | ✓ DONE                  |                                                  |
+| GenericStringRandomizer           | ✅ DataFaker-backed                               | ❌ No           | LOW                     |                                                  |
+| RegularExpressionRandomizer       | ✅ Regex-based                                    | ✅ Yes          | ✓ DONE                  | RegexGenerator                                   |
 | **Standard Library Types**        |
-| UUID                              | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UUIDGenerator          |
-| Locale                            | ✅ Yes                                            | ❌ No           | MEDIUM                  | Random locale                   |
-| URI                               | ✅ Yes                                            | ✅ Partial      | MEDIUM                  | krandom: UrlGenerator (URLs)    |
-| URL                               | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UrlGenerator           |
+| UUID                              | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UUIDGenerator                           |
+| Locale                            | ✅ Yes                                            | ❌ No           | MEDIUM                  | Random locale                                    |
+| URI                               | ✅ Yes                                            | ✅ Partial      | MEDIUM                  | krandom: UrlGenerator (URLs)                     |
+| URL                               | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | krandom: UrlGenerator                            |
 | **Date/Time (Legacy)**            |
-| java.util.Date                    | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Legacy support                  |
-| java.util.Calendar                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
-| java.util.GregorianCalendar       | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| java.sql.Date                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | SQL types                       |
-| java.sql.Time                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| java.sql.Timestamp                | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| java.util.TimeZone                | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| java.util.Date                    | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Legacy support                                   |
+| java.util.Calendar                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                                  |
+| java.util.GregorianCalendar       | ✅ Yes                                            | ❌ No           | LOW                     |                                                  |
+| java.sql.Date                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | SQL types                                        |
+| java.sql.Time                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| java.sql.Timestamp                | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| java.util.TimeZone                | ✅ Yes                                            | ❌ No           | LOW                     |                                                  |
 | **Date/Time (JSR 310)**           |
-| Instant                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | InstantGenerator                |
-| LocalDate                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | DateGenerator                   |
-| LocalTime                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | TimeGenerator                   |
-| LocalDateTime                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LocalDateTimeGenerator          |
-| OffsetDateTime                    | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | With timezone offset            |
-| OffsetTime                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| ZonedDateTime                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | ZonedDateTimeGenerator          |
-| Year                              | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| YearMonth                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| MonthDay                          | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| Duration                          | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Time spans                      |
-| Period                            | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Date periods                    |
-| ZoneId                            | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Timezone IDs                    |
-| ZoneOffset                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| Instant                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | InstantGenerator                                 |
+| LocalDate                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | DateGenerator                                    |
+| LocalTime                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | TimeGenerator                                    |
+| LocalDateTime                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LocalDateTimeGenerator                           |
+| OffsetDateTime                    | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | With timezone offset                             |
+| OffsetTime                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| ZonedDateTime                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | ZonedDateTimeGenerator                           |
+| Year                              | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| YearMonth                         | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| MonthDay                          | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| Duration                          | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Time spans                                       |
+| Period                            | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Date periods                                     |
+| ZoneId                            | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Timezone IDs                                     |
+| ZoneOffset                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
 | **Range Randomizers (Date/Time)** |
-| DateRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | LOW                     | Legacy dates                    |
-| LocalDateRangeRandomizer          | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | DateGenerator(min,max)          |
-| LocalDateTimeRangeRandomizer      | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | LocalDateTimeGenerator(min,max) |
-| LocalTimeRangeRandomizer          | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                 |
-| InstantRangeRandomizer            | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | InstantGenerator(min,max)       |
-| OffsetDateTimeRangeRandomizer     | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                 |
-| ZonedDateTimeRangeRandomizer      | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | ZonedDateTimeGenerator(min,max) |
-| YearRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                 |
+| DateRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | LOW                     | Legacy dates                                     |
+| LocalDateRangeRandomizer          | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | DateGenerator(min,max)                           |
+| LocalDateTimeRangeRandomizer      | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | LocalDateTimeGenerator(min,max)                  |
+| LocalTimeRangeRandomizer          | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                                  |
+| InstantRangeRandomizer            | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | InstantGenerator(min,max)                        |
+| OffsetDateTimeRangeRandomizer     | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                                  |
+| ZonedDateTimeRangeRandomizer      | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | ZonedDateTimeGenerator(min,max)                  |
+| YearRangeRandomizer               | ✅ `(min, max)`                                   | ❌ No           | LOW                     |                                                  |
 | **Enums**                         |
-| Enum randomization                | ✅ Random constant                                | ✅ Yes          | ✓ DONE                  | krandom: EnumGenerator          |
-| EnumRandomizer<T>                 | ✅ Generic                                        | ✅ Yes          | ✓ DONE                  |                                 |
+| Enum randomization                | ✅ Random constant                                | ✅ Yes          | ✓ DONE                  | krandom: EnumGenerator                           |
+| EnumRandomizer<T>                 | ✅ Generic                                        | ✅ Yes          | ✓ DONE                  |                                                  |
 | **Arrays**                        |
-| Array population                  | ✅ Within collectionSizeRange                     | ✅ Yes          | ✓ DONE                  | krandom: DEFAULT_ELEMENT_COUNT  |
+| Array population                  | ✅ Within collectionSizeRange                     | ✅ Yes          | ✓ DONE                  | krandom: DEFAULT_ELEMENT_COUNT                   |
 | **Collections (JCF)**             |
-| List / ArrayList                  | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Unmodifiable list               |
-| LinkedList                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| Set / HashSet                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LinkedHashSet                   |
-| LinkedHashSet                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| TreeSet                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| Queue / ArrayDeque                | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| PriorityQueue                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| Collection randomizers            | ✅ ListRandomizer, SetRandomizer, QueueRandomizer | ❌ No           | LOW                     | Dedicated randomizers           |
-| EnumSet                           | ✅ EnumSetRandomizer                              | ❌ No           | LOW                     |                                 |
+| List / ArrayList                  | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Unmodifiable list                                |
+| LinkedList                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| Set / HashSet                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LinkedHashSet                                    |
+| LinkedHashSet                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| TreeSet                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| Queue / ArrayDeque                | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| PriorityQueue                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| Collection randomizers            | ✅ ListRandomizer, SetRandomizer, QueueRandomizer | ❌ No           | LOW                     | Dedicated randomizers                            |
+| EnumSet                           | ✅ EnumSetRandomizer                              | ❌ No           | LOW                     |                                                  |
 | **Maps**                          |
-| Map / HashMap                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LinkedHashMap, unmodifiable     |
-| LinkedHashMap                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| TreeMap                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| Hashtable                         | ✅ Yes                                            | ❌ No           | LOW                     | Legacy                          |
-| WeakHashMap                       | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| IdentityHashMap                   | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| EnumMap                           | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| MapRandomizer                     | ✅ `MapRandomizer<K,V>`                           | ❌ No           | LOW                     | Dedicated randomizer            |
+| Map / HashMap                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LinkedHashMap, unmodifiable                      |
+| LinkedHashMap                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| TreeMap                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                                  |
+| Hashtable                         | ✅ Yes                                            | ❌ No           | LOW                     | Legacy                                           |
+| WeakHashMap                       | ✅ Yes                                            | ❌ No           | LOW                     |                                                  |
+| IdentityHashMap                   | ✅ Yes                                            | ❌ No           | LOW                     |                                                  |
+| EnumMap                           | ✅ Yes                                            | ❌ No           | LOW                     |                                                  |
+| MapRandomizer                     | ✅ `MapRandomizer<K,V>`                           | ❌ No           | LOW                     | Dedicated randomizer                             |
 | **Optional**                      |
-| Optional<T>                       | ✅ OptionalPopulator                              | ✅ Yes          | ✓ DONE                  | Java 8 optionals via resolver   |
+| Optional<T>                       | ✅ OptionalPopulator                              | ✅ Yes          | ✓ DONE                  | Java 8 optionals via resolver                    |
 | OptionalRandomizer                | ✅ Yes                                            | ✅ Partial      | In progress             | No dedicated class; behavior covered in resolver |
 | **Utility Randomizers**           |
-| ConstantRandomizer                | ✅ Always same value                              | ❌ No           | MEDIUM                  | Fixed value generator           |
-| NullRandomizer                    | ✅ Always null                                    | ❌ No           | LOW                     |                                 |
-| SkipRandomizer                    | ✅ Leave field unset                              | ❌ No           | LOW                     | Null object pattern             |
+| ConstantRandomizer                | ✅ Always same value                              | ❌ No           | MEDIUM                  | Fixed value generator                            |
+| NullRandomizer                    | ✅ Always null                                    | ❌ No           | LOW                     |                                                  |
+| SkipRandomizer                    | ✅ Leave field unset                              | ❌ No           | LOW                     | Null object pattern                              |
 
 ### 7. REALISTIC DATA (DataFaker Integration)
 
