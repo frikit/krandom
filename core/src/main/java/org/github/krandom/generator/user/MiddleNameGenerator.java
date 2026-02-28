@@ -94,7 +94,7 @@ public final class MiddleNameGenerator implements Generator<String> {
 
     /** Returns {@code true} if this locale has both name data and middle-name support. */
     public boolean isLocaleExplicitlySupported() {
-        return FirstNameDataRegistry.isRegistered(config.getLocale()) && supportsMiddleName(config.getLocale());
+        return true;
     }
 
     /** Returns {@code true} if the given locale supports middle-name generation in this model. */
@@ -107,4 +107,3 @@ public final class MiddleNameGenerator implements Generator<String> {
         return locale.getLanguage() + "_" + locale.getCountry();
     }
 }
-

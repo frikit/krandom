@@ -677,11 +677,11 @@ _None - awaiting next feature selection_
 | Feature                                                        | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                                                                               |
 |----------------------------------------------------------------|-------------------------------------------------------------------------|----------------|-------------------------|-------------------------------------------------------------------------------------|
 | **Names**                                                      |                                                                         |                |                         |                                                                                     |
-| Full name                                                      | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | HIGH                    | krandom lacks middle/nationality options                                            |
+| Full name                                                      | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | MEDIUM                  | Middle + middle-initial supported; nationality remains locale-based                 |
 | First name                                                     | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator` (10 locales, gender-aware)                                     |
 | Last name                                                      | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `LastNameGenerator` (10 locales)                                                    |
-| Middle name                                                    | ✅ `name({middle: true})`                                                | ❌ No           | MEDIUM                  | Full middle name                                                                    |
-| Middle initial                                                 | ✅ `name({middle_initial: true})`                                        | ❌ No           | MEDIUM                  | 'J.' only                                                                           |
+| Middle name                                                    | ✅ `name({middle: true})`                                                | ✅ Yes          | ✓ DONE                  | `MiddleNameGenerator` + `FullNameGenerator.generateWithMiddleName(...)`             |
+| Middle initial                                                 | ✅ `name({middle_initial: true})`                                        | ✅ Yes          | ✓ DONE                  | `MiddleNameGenerator.generateInitial(...)` + full-name middle initial support       |
 | Name prefix                                                    | ✅ `prefix({gender})`                                                    | ✅ Yes          | ✓ DONE                  | `TitleGenerator` (10 locales, no gender filter)                                     |
 | Name suffix                                                    | ✅ `suffix()`                                                            | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` (10 locales)                                                      |
 | Gender-specific names                                          | ✅ `first({gender: 'male'/'female'})`                                    | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)`                                                  |
@@ -808,8 +808,8 @@ _None - awaiting next feature selection_
 | Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | LOW                     | Gravatar URLs                   |
 | **Business**      |
 | Company name      | ✅ `company()`                                                | ❌ No           | MEDIUM                  | 'Jombo LLC'                     |
-| Profession        | ✅ `profession({ranked})`                                     | ❌ No           | MEDIUM                  | Job titles                      |
-| Ranked profession | ✅ `profession({ranked: true})`                               | ❌ No           | MEDIUM                  | Biased toward common - UNIQUE   |
+| Profession        | ✅ `profession({ranked})`                                     | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()` |
+| Ranked profession | ✅ `profession({ranked: true})`                               | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate(true)` / `generateRanked()` |
 
 ### 7. TIME & DATES
 
@@ -954,7 +954,7 @@ _None - awaiting next feature selection_
 | Std deviation          | ✅ `dev` parameter                | ✅ Yes   | ✓ DONE   | Second param of `ofNormal(mean, stdDev)`       |
 | IQ-like data           | ✅ `normal({mean: 100, dev: 15})` | ✅ Yes   | ✓ DONE   | `Generators.ofNormal(100.0, 15.0)`             |
 | **Weighted Selection** |
-| Weighted arrays        | ✅ `weighted(['a','b'], [7,3])`   | ❌ No    | HIGH     | Biased random — no equivalent yet              |
+| Weighted arrays        | ✅ `weighted(['a','b'], [7,3])`   | ✅ Yes   | ✓ DONE   | `Generators.weighted(values, weights)`         |
 | Integer weights        | ✅ Any positive integers          | ❌ No    | HIGH     | Flexible weighting — not yet                   |
 
 ### Natural Language Features
@@ -1051,15 +1051,15 @@ _None - awaiting next feature selection_
 
 ### Chance.js Unique Strengths (vs krandom)
 
-1. **Weighted Random** - `weighted(['a','b'], [7,3])` for biased selection (NO EQUIVALENT)
+1. ~~**Weighted Random** - `weighted(['a','b'], [7,3])` for biased selection~~ (~~NO EQUIVALENT~~ ✅ DONE — `Generators.weighted(values, weights)`)
 2. **Normal Distribution** - Box-Muller transform for realistic statistical data (~~NO EQUIVALENT~~ ✅ DONE)
 3. **Likelihood Control** - `bool({likelihood: 80})` for probability-based booleans (~~NO EQUIVALENT~~ ✅ DONE)
-4. **Helper Methods** - `n()`, `unique()`, `pick()`, `pickset()`, `shuffle()` (NO EQUIVALENT)
+4. ~~**Helper Methods** - `n()`, `unique()`, `pick()`, `pickset()`, `shuffle()`~~ (~~NO EQUIVALENT~~ ✅ DONE — selection package parity complete)
 5. **Syllable-Based Words** - `word({syllables: 4})` for natural-looking text (NO EQUIVALENT)
 6. **Rich Options** - Extensive parameterization on every method (PARTIAL)
 7. ~~**Mobile Detection** - `phone({mobile: true})` for mobile-specific formats~~ (~~NO EQUIVALENT~~ ✅ DONE — `PhoneNumberGenerator.generate(true, true)`)
 8. ~~**Currency Pairs** - `currency_pair()` for FX simulation (NO EQUIVALENT)~~ ✅ DONE — `CurrencyPairGenerator`
-9. **Ranked Professions** - `profession({ranked: true})` for biased selection (NO EQUIVALENT)
+9. ~~**Ranked Professions** - `profession({ranked: true})` for biased selection~~ (~~NO EQUIVALENT~~ ✅ DONE — `ProfessionGenerator.generateRanked()`)
 10. **Exclude Arrays** - `natural({exclude: [1,2,3]})` to skip specific values (~~NO EQUIVALENT~~ ✅ DONE)
 11. **Natural Language** - Sentence/paragraph with proper capitalization and punctuation (NO EQUIVALENT)
 12. ~~**Format Flexibility** - `date({string: true})`, `ssn({dashes: false})` for output control~~ (~~PARTIAL~~ ✅ DONE — separate `generateString()`, `withoutDashes()` methods)
@@ -1270,5 +1270,5 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in natural language syllable behavior, richer options parameterization, middle-name
-support, URL option richness, and low-priority social/avatar generators.
+**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in natural language syllable behavior, richer options parameterization, URL option
+richness, and low-priority social/avatar generators.

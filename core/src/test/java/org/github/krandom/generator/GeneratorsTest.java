@@ -19,6 +19,7 @@ import org.github.krandom.generator.selection.RepeatGenerator;
 import org.github.krandom.generator.selection.ShuffleGenerator;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.selection.WeightedGenerator;
+import org.github.krandom.generator.user.ProfessionGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -201,6 +202,11 @@ class GeneratorsTest {
     @Test @DisplayName("repeat(source, count) returns RepeatGenerator")
     void repeat() {
         assertInstanceOf(RepeatGenerator.class, Generators.repeat(() -> 1, 3));
+    }
+
+    @Test @DisplayName("ofProfession() returns ProfessionGenerator")
+    void ofProfession() {
+        assertInstanceOf(ProfessionGenerator.class, Generators.ofProfession());
     }
 
     // ── Games ─────────────────────────────────────────────────────────────────

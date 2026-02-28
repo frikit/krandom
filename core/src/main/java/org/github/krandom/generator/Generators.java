@@ -25,6 +25,7 @@ import org.github.krandom.generator.selection.WeightedGenerator;
 import org.github.krandom.generator.text.LoremIpsumGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.ProfessionGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -337,6 +338,11 @@ public final class Generators {
     /** Returns a generator that produces random company names including a legal-form suffix. */
     public static CompanyNameGenerator ofCompanyName() {
         return new CompanyNameGenerator();
+    }
+
+    /** Returns a generator that produces locale-aware profession/job-title values. */
+    public static ProfessionGenerator ofProfession() {
+        return new ProfessionGenerator();
     }
 
     // ── Lorem Ipsum ───────────────────────────────────────────────────────────
