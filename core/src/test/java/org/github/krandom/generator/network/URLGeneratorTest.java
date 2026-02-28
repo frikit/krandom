@@ -360,6 +360,145 @@ class URLGeneratorTest {
     }
 
     @Test
+    void testGenerateWithDomain() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(1L).build());
+        String url = generator.generateWithDomain("example.com");
+        assertTrue(url.contains("://example.com"));
+    }
+
+    @Test
+    void testGenerateWithDomainNullThrows() {
+        URLGenerator generator = new URLGenerator();
+        assertThrows(IllegalArgumentException.class, () -> generator.generateWithDomain(null));
+    }
+
+    @Test
+    void testGenerateWithDomainPrefix() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(2L).build());
+        String url = generator.generateWithDomainPrefix("api");
+        assertTrue(url.contains("://api."));
+    }
+
+    @Test
+    void testGenerateWithDomainPrefixNullThrows() {
+        URLGenerator generator = new URLGenerator();
+        assertThrows(IllegalArgumentException.class, () -> generator.generateWithDomainPrefix(null));
+    }
+
+    @Test
+    void testGenerateWithFixedPath() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(3L).build());
+        String url = generator.generateWithFixedPath("/api/v1");
+        assertTrue(url.contains("/api/v1"));
+    }
+
+    @Test
+    void testGenerateWithFixedPathNullThrows() {
+        URLGenerator generator = new URLGenerator();
+        assertThrows(IllegalArgumentException.class, () -> generator.generateWithFixedPath(null));
+    }
+
+    @Test
+    void testGenerateWithFixedPathWithoutLeadingSlash() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(4L).build());
+        String url = generator.generateWithFixedPath("api/v1");
+        assertTrue(url.contains("/api/v1"));
+    }
+
+    @Test
+    void testGenerateWithExtensions() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(5L).build());
+        String url = generator.generateWithExtensions("gif", "jpg");
+        assertTrue(url.matches(".*\\.(gif|jpg)$"));
+        assertTrue(url.contains("/"));
+    }
+
+    @Test
+    void testGenerateWithOptionsComposite() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(6L).build());
+        URLGenerator.URLOptions options = new URLGenerator.URLOptions(
+                "https", "example.com", "cdn", "/assets/logo", new String[]{"png"}, true
+        );
+        String url = generator.generateWithOptions(options);
+        assertTrue(url.startsWith("https://cdn.example.com/assets/logo/"));
+        assertTrue(url.contains(".png?"));
+    }
+
+    @Test
+    void testGenerateWithOptionsNullThrows() {
+        URLGenerator generator = new URLGenerator();
+        assertThrows(NullPointerException.class, () -> generator.generateWithOptions(null));
+    }
+
+    @Test
+    void testGenerateWithOptionsBlankDomainThrows() {
+        URLGenerator generator = new URLGenerator();
+        URLGenerator.URLOptions options = new URLGenerator.URLOptions("https", " ", null, null, null, false);
+        assertThrows(IllegalArgumentException.class, () -> generator.generateWithOptions(options));
+    }
+
+    @Test
+    void testGenerateWithOptionsBlankPathThrows() {
+        URLGenerator generator = new URLGenerator();
+        URLGenerator.URLOptions options = new URLGenerator.URLOptions(null, null, null, " ", null, false);
+        assertThrows(IllegalArgumentException.class, () -> generator.generateWithOptions(options));
+    }
+
+    @Test
+    void testGenerateWithOptionsEmptyExtensionsThrows() {
+        URLGenerator generator = new URLGenerator();
+        URLGenerator.URLOptions options = new URLGenerator.URLOptions(null, null, null, null, new String[0], false);
+        assertThrows(IllegalArgumentException.class, () -> generator.generateWithOptions(options));
+    }
+
+    @Test
+    void testGenerateWithOptionsBlankExtensionThrows() {
+        URLGenerator generator = new URLGenerator();
+        URLGenerator.URLOptions options = new URLGenerator.URLOptions(null, null, null, null, new String[]{" "}, false);
+        assertThrows(IllegalArgumentException.class, () -> generator.generateWithOptions(options));
+    }
+
+    @Test
+    void testGenerateWithOptionsNormalizesDotExtensions() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(7L).build());
+        URLGenerator.URLOptions options = new URLGenerator.URLOptions(
+                "https", "example.com", null, "/download/file", new String[]{".zip"}, false
+        );
+        String url = generator.generateWithOptions(options);
+        assertTrue(url.contains(".zip"));
+        assertTrue(url.contains("%20") || url.contains("-"));
+    }
+
+    @Test
+    void testGenerateWithOptionsQueryWithoutPathCreatesPath() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(8L).build());
+        URLGenerator.URLOptions options = new URLGenerator.URLOptions(
+                "https", "example.com", null, null, null, true
+        );
+        String url = generator.generateWithOptions(options);
+        assertTrue(url.contains("/"));
+        assertTrue(url.contains("?"));
+    }
+
+    @Test
+    void testDefaultExtensionsExposed() {
+        String[] extensions = URLGenerator.URLOptions.defaultExtensions();
+        assertNotNull(extensions);
+        assertTrue(extensions.length > 0);
+    }
+
+    @Test
+    void testUrlOptionsDefaultConstructor() {
+        URLGenerator.URLOptions options = new URLGenerator.URLOptions();
+        assertNull(options.protocol());
+        assertNull(options.domain());
+        assertNull(options.domainPrefix());
+        assertNull(options.path());
+        assertNull(options.extensions());
+        assertFalse(options.withQuery());
+    }
+
+    @Test
     void testGenerateWithSpecificProtocolConsistentWithSeed() {
         URLGenerator gen1 = new URLGenerator(GeneratorConfig.builder().seed(999L).build());
         URLGenerator gen2 = new URLGenerator(GeneratorConfig.builder().seed(999L).build());

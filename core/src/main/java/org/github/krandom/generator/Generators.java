@@ -14,6 +14,8 @@ import org.github.krandom.network.MacAddressGenerator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
+import org.github.krandom.generator.file.FileExtensionGenerator;
+import org.github.krandom.generator.file.FileNameGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
 import org.github.krandom.generator.selection.PickGenerator;
@@ -338,6 +340,16 @@ public final class Generators {
     /** Returns a generator that produces random company names including a legal-form suffix. */
     public static CompanyNameGenerator ofCompanyName() {
         return new CompanyNameGenerator();
+    }
+
+    /** Returns a generator that produces file extensions (for example: {@code "png"}, {@code "pdf"}). */
+    public static FileExtensionGenerator ofFileExtension() {
+        return new FileExtensionGenerator();
+    }
+
+    /** Returns a generator that produces file names and file names with extensions. */
+    public static FileNameGenerator ofFileName() {
+        return new FileNameGenerator();
     }
 
     /** Returns a generator that produces locale-aware profession/job-title values. */

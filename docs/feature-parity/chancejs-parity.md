@@ -787,12 +787,12 @@ _None - awaiting next feature selection_
 | Domain name       | ✅ `domain({tld})`                                            | ✅ Yes          | HIGH                    | DomainGenerator 'techcloud.com' |
 | Custom TLD        | ✅ `domain({tld: 'ie'})`                                      | ✅ Yes          | MEDIUM                  | generate("ie") → 'datahub.ie'   |
 | TLD only          | ✅ `tld()`                                                    | ✅ Yes          | MEDIUM                  | getTLD() → 'com', 'org', 'net'  |
-| Full URL          | ✅ `url({protocol, domain, domain_prefix, path, extensions})` | ✅ Partial      | HIGH                    | URLGenerator with path/query    |
+| Full URL          | ✅ `url({protocol, domain, domain_prefix, path, extensions})` | ✅ Yes          | ✓ DONE                  | `URLGenerator.generateWithOptions(...)` |
 | Custom protocol   | ✅ `url({protocol: 'ftp'})`                                   | ✅ Yes          | MEDIUM                  | generate("ftp") → 'ftp://...'   |
-| Fixed domain      | ✅ `url({domain: 'example.com'})`                             | ❌ No           | MEDIUM                  | Control domain - not yet        |
-| Domain prefix     | ✅ `url({domain_prefix: 'api'})`                              | ❌ No           | MEDIUM                  | Subdomain control - not yet     |
-| Fixed path        | ✅ `url({path: '/api/v1'})`                                   | ❌ No           | MEDIUM                  | Control path - not yet          |
-| File extensions   | ✅ `url({extensions: ['gif','jpg']})`                         | ❌ No           | MEDIUM                  | Random file type - not yet      |
+| Fixed domain      | ✅ `url({domain: 'example.com'})`                             | ✅ Yes          | ✓ DONE                  | `generateWithDomain(...)`       |
+| Domain prefix     | ✅ `url({domain_prefix: 'api'})`                              | ✅ Yes          | ✓ DONE                  | `generateWithDomainPrefix(...)` |
+| Fixed path        | ✅ `url({path: '/api/v1'})`                                   | ✅ Yes          | ✓ DONE                  | `generateWithFixedPath(...)`    |
+| File extensions   | ✅ `url({extensions: ['gif','jpg']})`                         | ✅ Yes          | ✓ DONE                  | `generateWithExtensions(...)` or options |
 | **IP Addresses**  |
 | IPv4              | ✅ `ip()`                                                     | ✅ Yes          | ✓ DONE                  | IPv4Generator with seeding      |
 | IPv6              | ✅ `ipv6()`                                                   | ✅ Yes          | ✓ DONE                  | IPv6Generator with seeding      |

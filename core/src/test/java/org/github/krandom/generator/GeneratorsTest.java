@@ -13,6 +13,8 @@ import org.github.krandom.network.IPv6Generator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
+import org.github.krandom.generator.file.FileExtensionGenerator;
+import org.github.krandom.generator.file.FileNameGenerator;
 import org.github.krandom.generator.selection.PickGenerator;
 import org.github.krandom.generator.selection.PickSetGenerator;
 import org.github.krandom.generator.selection.RepeatGenerator;
@@ -207,6 +209,16 @@ class GeneratorsTest {
     @Test @DisplayName("ofProfession() returns ProfessionGenerator")
     void ofProfession() {
         assertInstanceOf(ProfessionGenerator.class, Generators.ofProfession());
+    }
+
+    @Test @DisplayName("ofFileExtension() returns FileExtensionGenerator")
+    void ofFileExtension() {
+        assertInstanceOf(FileExtensionGenerator.class, Generators.ofFileExtension());
+    }
+
+    @Test @DisplayName("ofFileName() returns FileNameGenerator")
+    void ofFileName() {
+        assertInstanceOf(FileNameGenerator.class, Generators.ofFileName());
     }
 
     // ── Games ─────────────────────────────────────────────────────────────────
