@@ -63,10 +63,10 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Feature                  | DataFaker Support                                     | krandom Status | Implementation Priority | Notes                                                       |
 |--------------------------|-------------------------------------------------------|----------------|-------------------------|-------------------------------------------------------------|
 | **Street Address**       |
-| Street name              | ✅ `streetName()`                                      | ❌ No           | HIGH                    | Core address component                                      |
-| Street address           | ✅ `streetAddress()`                                   | ❌ No           | HIGH                    | Full street with number                                     |
-| Street number            | ✅ `streetAddressNumber()`, `buildingNumber()`         | ❌ No           | HIGH                    |                                                             |
-| Secondary address        | ✅ `secondaryAddress()` (Apt, Suite)                   | ❌ No           | MEDIUM                  | Common for apartments                                       |
+| Street name              | ✅ `streetName()`                                      | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateStreetName()`               |
+| Street address           | ✅ `streetAddress()`                                   | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generate()`                         |
+| Street number            | ✅ `streetAddressNumber()`, `buildingNumber()`         | ✅ Yes          | ✓ DONE                  | `generateStreetAddressNumber()` and `generateBuildingNumber()` |
+| Secondary address        | ✅ `secondaryAddress()` (Apt, Suite)                   | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateSecondaryAddress()`         |
 | Street suffix/prefix     | ✅ `streetSuffix()`, `streetPrefix()`                  | ❌ No           | MEDIUM                  | St, Ave, Blvd                                               |
 | **City & State**         |
 | City name                | ✅ `city()`, `cityName()`                              | ✅ Yes          | ✓ DONE                  | `CityGenerator` — 10 locales, locale-specific cities        |
@@ -96,7 +96,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | **Direction & Location** |
 | Compass direction        | ✅ `word()`, `abbreviation()`, `azimuth()`             | ❌ No           | LOW                     | N, NE, NNE                                                  |
 | Time zone                | ✅ `timeZone()`                                        | ❌ No           | MEDIUM                  | America/New_York                                            |
-| Full address             | ✅ `fullAddress()`                                     | ❌ No           | HIGH                    | Complete formatted address                                  |
+| Full address             | ✅ `fullAddress()`                                     | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateFullAddress()`              |
 
 ### 3. INTERNET & NETWORKING
 
@@ -222,9 +222,9 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 | Feature      | DataFaker Support                     | krandom Status | Implementation Priority | Notes                                                        |
 |--------------|---------------------------------------|----------------|-------------------------|--------------------------------------------------------------|
-| Future date  | ✅ `future()`                          | ❌ No           | HIGH                    | Configurable range                                           |
-| Past date    | ✅ `past()`                            | ❌ No           | HIGH                    | Configurable range                                           |
-| Date between | ✅ `between()`                         | ❌ No           | HIGH                    | Range generation                                             |
+| Future date  | ✅ `future()`                          | ✅ Yes          | ✓ DONE                  | `DateGenerator.future()` / `future(int)`                    |
+| Past date    | ✅ `past()`                            | ✅ Yes          | ✓ DONE                  | `DateGenerator.past()` / `past(int)`                        |
+| Date between | ✅ `between()`                         | ✅ Yes          | ✓ DONE                  | `DateGenerator.between(LocalDate, LocalDate)`               |
 | Birthday     | ✅ `birthday()`, `birthdayLocalDate()` | ✅ Yes          | ✓ DONE                  | `BirthdayGenerator` — type-based, locale-aware string format |
 | Duration     | ✅ `duration()`                        | ❌ No           | MEDIUM                  | Time spans                                                   |
 | Period       | ✅ `period()`                          | ❌ No           | MEDIUM                  | Date periods                                                 |
@@ -508,9 +508,9 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | **Seeding**              |
 | Reproducible output      | ✅ Constructor with seed            | ✅ Yes   | ✓ DONE   | Most generators support                                                |
 | **String Utilities**     |
-| Numerify                 | ✅ `numerify("###-####")`           | ❌ No    | HIGH     | Template-based generation                                              |
-| Letterify                | ✅ `letterify("???-???")`           | ❌ No    | HIGH     |                                                                        |
-| Bothify                  | ✅ `bothify("???-###")`             | ❌ No    | HIGH     | Combined                                                               |
+| Numerify                 | ✅ `numerify("###-####")`           | ✅ Yes   | ✓ DONE   | `TemplateStringGenerator.numerify(...)`                                |
+| Letterify                | ✅ `letterify("???-???")`           | ✅ Yes   | ✓ DONE   | `TemplateStringGenerator.letterify(...)`                               |
+| Bothify                  | ✅ `bothify("???-###")`             | ✅ Yes   | ✓ DONE   | `TemplateStringGenerator.bothify(...)`                                 |
 | Regexify                 | ✅ `regexify("[A-Z]{3}\\d{4}")`     | ❌ No    | HIGH     | Regex-based generation                                                 |
 | Examplify                | ✅ `examplify("ABC-1234")`          | ❌ No    | MEDIUM   | Match pattern                                                          |
 | Templatify               | ✅ Custom templates                 | ❌ No    | MEDIUM   |                                                                        |
@@ -523,7 +523,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Nullable values          | ✅ `nullRate(0.1)`                  | ❌ No    | MEDIUM   | Realistic nulls                                                        |
 | Stream API               | ✅ `stream().limit(n)`              | ✅ Yes   | ✓ DONE   | `gen.stream().limit(n)` on every generator                             |
 | **Unique Values**        |
-| Unique enforcement       | ✅ `faker.unique()`                 | ❌ No    | HIGH     | No duplicates                                                          |
+| Unique enforcement       | ✅ `faker.unique()`                 | ✅ Yes   | ✓ DONE   | `Generators.unique(...)` and `Generators.uniqueValues(...)`            |
 | **Output Formats**       |
 | CSV generation           | ✅ Schema-based                     | ❌ No    | MEDIUM   | Structured output                                                      |
 | JSON generation          | ✅ Schema-based                     | ❌ No    | MEDIUM   |                                                                        |
@@ -545,22 +545,22 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 1. ~~**Email Generation**~~ ✅ DONE — `EmailGenerator` (5 formats, 12 domains, 10 locales)
 2. ~~**UUID Generation**~~ ✅ DONE — `UUIDGenerator` (v4 + v5, RFC 4122)
 3. ~~**Boolean Generator**~~ ✅ DONE — `BooleanGenerator` with `withLikelihood()`
-4. **Lorem Text** - Critical for UI/content testing
-    - `word()`, `words()`, `sentence()`, `paragraph()` — still missing
+4. ~~**Lorem Text**~~ ✅ DONE
+    - `WordGenerator`, `SentenceGenerator`, `ParagraphGenerator` available
 5. ~~**Locale Support Infrastructure**~~ ✅ DONE — 10 locales, all major generators locale-aware
-6. **String Templates** - Powerful generation tool
-    - `numerify()`, `letterify()`, `bothify()` — still missing
+6. ~~**String Templates**~~ ✅ DONE
+    - `TemplateStringGenerator` supports `numerify()`, `letterify()`, `bothify()`
 7. ~~**Collection Generation**~~ ✅ DONE — `gen.generateList(n)` and `gen.stream()` on every generator
-8. **Unique Value Enforcement** - Prevent duplicates
-    - `unique()` wrapper — still missing
+8. ~~**Unique Value Enforcement**~~ ✅ DONE
+    - `Generators.unique(...)` and `Generators.uniqueValues(...)`
 
 ### Phase 2: HIGH VALUE (Should Have)
 
-1. ~~**Address Components**~~ ✅ PARTIAL — city, state, ZIP, country all done; **street address still missing**
+1. ~~**Address Components**~~ ✅ DONE — city/state/ZIP/country/street/full-address covered
 2. ~~**Phone Numbers**~~ ✅ DONE — `PhoneNumberGenerator` (10 locales, mobile/landline, formatted/unformatted)
 3. ~~**Credit Cards**~~ ✅ DONE — `CreditCardGenerator` (6 types, Luhn-valid, CVV, expiry)
 4. ~~**Names Enhancement**~~ ✅ DONE — gender-specific names, prefix/suffix/title all done
-5. ~~**Date Generators**~~ ✅ PARTIAL — `BirthdayGenerator` done; future/past/between still missing
+5. ~~**Date Generators**~~ ✅ DONE — `BirthdayGenerator` + `DateGenerator.future/past/between`
 6. **Company Data** - Company names, industries, buzzwords — still missing
 7. ~~**URL/Domain Generation**~~ ✅ DONE — `URLGenerator`, `DomainGenerator`
 
@@ -589,8 +589,8 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 1. **200+ providers** vs ~50 in krandom (krandom has grown significantly)
 2. **60+ locales** vs 10 in krandom — DataFaker has broader locale coverage
 3. **Schema-based output** (CSV/JSON/YAML/XML) — no equivalent in krandom
-4. **Template-based generation** (numerify, regexify, bothify) — no equivalent in krandom
-5. **Unique value enforcement** built-in (`faker.unique()`) — no equivalent in krandom
+4. **Template-based generation breadth** (`numerify`, `letterify`, `bothify`, `regexify`) — partial in krandom (`numerify/letterify/bothify` implemented)
+5. **Unique value enforcement ergonomics** (`faker.unique()` fluent provider chaining) — partial in krandom (`Generators.unique(...)`)
 6. **Expression language** for composable generators (`#{Name.firstName}`)
 7. **GraalVM native image** support
 8. **POJO auto-population** via `@Fake` annotations

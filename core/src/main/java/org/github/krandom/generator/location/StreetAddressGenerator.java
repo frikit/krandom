@@ -8,6 +8,7 @@ package org.github.krandom.generator.location;
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
+import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
@@ -26,6 +27,12 @@ public final class StreetAddressGenerator implements Generator<String> {
     private final String[] streetNames;
     private final String[] streetTypesShort;
     private final String[] streetTypesLong;
+    private final String[] secondaryUnits;
+
+    private final CityGenerator cityGenerator;
+    private final StateGenerator stateGenerator;
+    private final PostalCodeGenerator postalCodeGenerator;
+    private final CountryGenerator countryGenerator;
 
     /** Creates a street-address generator with default configuration (Locale.US). */
     public StreetAddressGenerator() {
@@ -61,6 +68,12 @@ public final class StreetAddressGenerator implements Generator<String> {
         this.streetNames = provider.getStreetNames();
         this.streetTypesShort = provider.getStreetTypesShort();
         this.streetTypesLong = provider.getStreetTypesLong();
+        this.secondaryUnits = loadSecondaryUnits(locale);
+
+        this.cityGenerator = CityDataRegistry.isRegistered(locale) ? new CityGenerator(config) : null;
+        this.stateGenerator = StateDataRegistry.isRegistered(locale) ? new StateGenerator(config) : null;
+        this.postalCodeGenerator = new PostalCodeGenerator(config);
+        this.countryGenerator = CountryDataRegistry.isRegistered(locale) ? new CountryGenerator(config) : null;
     }
 
     /**
@@ -81,11 +94,93 @@ public final class StreetAddressGenerator implements Generator<String> {
      * @return a street-address string; never {@code null}
      */
     public String generate(boolean shortSuffix) {
-        int number = random.nextInt(1, 10000);
-        String name = streetNames[random.nextInt(streetNames.length)];
+        return generateStreetAddressNumber()
+                + " "
+                + generateStreetName()
+                + " "
+                + generateStreetSuffix(shortSuffix);
+    }
+
+    /**
+     * Generates a locale-aware street name.
+     *
+     * @return street name
+     */
+    public String generateStreetName() {
+        return streetNames[random.nextInt(streetNames.length)];
+    }
+
+    /**
+     * Generates a street suffix using short form by default (for example, {@code St}, {@code Ave}).
+     *
+     * @return short street suffix
+     */
+    public String generateStreetSuffix() {
+        return generateStreetSuffix(true);
+    }
+
+    /**
+     * Generates a street suffix in short or long form.
+     *
+     * @param shortSuffix true for short form, false for long form
+     * @return street suffix
+     */
+    public String generateStreetSuffix(boolean shortSuffix) {
         String[] types = shortSuffix ? streetTypesShort : streetTypesLong;
-        String type = types[random.nextInt(types.length)];
-        return number + " " + name + " " + type;
+        return types[random.nextInt(types.length)];
+    }
+
+    /**
+     * Generates a numeric street/building number in [1, 9999].
+     *
+     * @return building number as text
+     */
+    public String generateStreetAddressNumber() {
+        return Integer.toString(random.nextInt(1, 10000));
+    }
+
+    /**
+     * Alias of {@link #generateStreetAddressNumber()}.
+     *
+     * @return building number as text
+     */
+    public String generateBuildingNumber() {
+        return generateStreetAddressNumber();
+    }
+
+    /**
+     * Generates a secondary address component (for example, {@code Apt 12}, {@code Suite 201}).
+     *
+     * @return secondary address component
+     */
+    public String generateSecondaryAddress() {
+        String unit = secondaryUnits[random.nextInt(secondaryUnits.length)];
+        int number = random.nextInt(1, 1000);
+        return unit + " " + number;
+    }
+
+    /**
+     * Generates a full address string combining street, city, state, postal code and country
+     * where locale providers are available.
+     *
+     * @return full address string
+     */
+    public String generateFullAddress() {
+        StringBuilder sb = new StringBuilder(generate());
+
+        if (cityGenerator != null) {
+            sb.append(", ").append(cityGenerator.generate());
+        }
+        if (stateGenerator != null) {
+            sb.append(", ").append(stateGenerator.generate(true));
+        }
+        if (postalCodeGenerator != null) {
+            sb.append(" ").append(postalCodeGenerator.generate());
+        }
+        if (countryGenerator != null) {
+            sb.append(", ").append(countryGenerator.generate());
+        }
+        return sb.toString();
     }
 
     /** Returns configured locale. */
@@ -101,5 +196,15 @@ public final class StreetAddressGenerator implements Generator<String> {
     /** Returns true when configured locale is registered. */
     public boolean isLocaleExplicitlySupported() {
         return StreetAddressDataRegistry.isRegistered(config.getLocale());
+    }
+
+    private static String[] loadSecondaryUnits(Locale locale) {
+        String key = locale.getLanguage() + "_" + locale.getCountry();
+        String resourcePath = "krandom/streets/" + key + "_secondary_units.txt";
+        InputStream is = StreetAddressGenerator.class.getClassLoader().getResourceAsStream(resourcePath);
+        if (is != null) {
+            return StreetAddressResourceLoader.load(is, resourcePath);
+        }
+        return new String[]{"Apt", "Suite", "Unit", "Floor", "Room"};
     }
 }

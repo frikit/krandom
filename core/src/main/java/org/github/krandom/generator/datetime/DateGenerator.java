@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Random;
 
@@ -262,6 +263,81 @@ public final class DateGenerator implements Generator<LocalDate> {
         // Use midnight for the timestamp
         LocalDateTime dateTime = date.atStartOfDay();
         return dateTime.atZone(ZoneId.systemDefault()).toEpochSecond();
+    }
+
+    /**
+     * Generates a future date in the range [tomorrow, tomorrow + 10 years].
+     *
+     * @return a future date; never {@code null}
+     */
+    public LocalDate future() {
+        return future(3650);
+    }
+
+    /**
+     * Generates a future date in the range [tomorrow, tomorrow + maxDaysAhead].
+     *
+     * @param maxDaysAhead maximum days ahead; must be {@code > 0}
+     * @return a future date; never {@code null}
+     * @throws IllegalArgumentException if {@code maxDaysAhead <= 0}
+     */
+    public LocalDate future(int maxDaysAhead) {
+        if (maxDaysAhead <= 0) {
+            throw new IllegalArgumentException("maxDaysAhead must be > 0, got: " + maxDaysAhead);
+        }
+        LocalDate start = LocalDate.now().plusDays(1);
+        LocalDate end = start.plusDays(maxDaysAhead);
+        return between(start, end);
+    }
+
+    /**
+     * Generates a past date in the range [today - 10 years, yesterday].
+     *
+     * @return a past date; never {@code null}
+     */
+    public LocalDate past() {
+        return past(3650);
+    }
+
+    /**
+     * Generates a past date in the range [today - maxDaysBack, yesterday].
+     *
+     * @param maxDaysBack maximum days back; must be {@code > 0}
+     * @return a past date; never {@code null}
+     * @throws IllegalArgumentException if {@code maxDaysBack <= 0}
+     */
+    public LocalDate past(int maxDaysBack) {
+        if (maxDaysBack <= 0) {
+            throw new IllegalArgumentException("maxDaysBack must be > 0, got: " + maxDaysBack);
+        }
+        LocalDate end = LocalDate.now().minusDays(1);
+        LocalDate start = end.minusDays(maxDaysBack);
+        return between(start, end);
+    }
+
+    /**
+     * Generates a date between the given bounds (inclusive).
+     *
+     * @param fromInclusive lower bound (inclusive)
+     * @param toInclusive upper bound (inclusive)
+     * @return a date in the provided range; never {@code null}
+     * @throws NullPointerException if either bound is {@code null}
+     * @throws IllegalArgumentException if {@code fromInclusive} is after {@code toInclusive}
+     */
+    public LocalDate between(LocalDate fromInclusive, LocalDate toInclusive) {
+        Objects.requireNonNull(fromInclusive, "fromInclusive must not be null");
+        Objects.requireNonNull(toInclusive, "toInclusive must not be null");
+        if (fromInclusive.isAfter(toInclusive)) {
+            throw new IllegalArgumentException(
+                    "fromInclusive must be <= toInclusive, got: " + fromInclusive + " > " + toInclusive);
+        }
+
+        long days = ChronoUnit.DAYS.between(fromInclusive, toInclusive);
+        if (days == 0) {
+            return fromInclusive;
+        }
+        long offset = random.nextLong(days + 1);
+        return fromInclusive.plusDays(offset);
     }
 
     /**

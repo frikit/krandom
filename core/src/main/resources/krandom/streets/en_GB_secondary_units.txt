@@ -1,0 +1,5 @@
+Flat
+Suite
+Unit
+Floor
+Room

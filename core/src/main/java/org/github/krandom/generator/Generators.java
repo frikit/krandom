@@ -28,6 +28,7 @@ import org.github.krandom.generator.text.LoremIpsumGenerator;
 import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.SyllableGenerator;
+import org.github.krandom.generator.text.TemplateStringGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
@@ -398,6 +399,16 @@ public final class Generators {
         return new ParagraphGenerator();
     }
 
+    /** Returns a template generator supporting DataFaker-style {@code #} and {@code ?} placeholders. */
+    public static TemplateStringGenerator ofTemplate(String template) {
+        return new TemplateStringGenerator(template);
+    }
+
+    /** Returns a seeded template generator supporting DataFaker-style {@code #} and {@code ?} placeholders. */
+    public static TemplateStringGenerator ofTemplate(String template, long seed) {
+        return new TemplateStringGenerator(template, seed);
+    }
+
     // ── MAC address ───────────────────────────────────────────────────────────
 
     /** Returns a generator that produces random MAC addresses ({@code "XX:XX:XX:XX:XX:XX"}). */
@@ -447,6 +458,11 @@ public final class Generators {
     /** Returns a unique-value decorator using {@link Objects#equals(Object, Object)} semantics. */
     public static <T> UniqueGenerator<T> unique(Generator<T> source) {
         return new UniqueGenerator<>(source);
+    }
+
+    /** DataFaker-style alias for {@link #unique(Generator)}. */
+    public static <T> UniqueGenerator<T> uniqueValues(Generator<T> source) {
+        return unique(source);
     }
 
     /** Returns a unique-value decorator with bounded attempts for each generated value. */

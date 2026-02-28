@@ -6,6 +6,7 @@
 package org.github.krandom.generator.selection;
 
 import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -145,6 +146,22 @@ class SelectionGeneratorsTest {
     void uniqueComparatorOverloadWorks() {
         UniqueGenerator<String> unique = new UniqueGenerator<>(() -> "a", String::equalsIgnoreCase);
         assertEquals("a", unique.generate());
+    }
+
+    @Test
+    @DisplayName("Generators.uniqueValues alias wraps source generator")
+    void generatorsUniqueValuesAliasWorks() {
+        Generator<Integer> bounded = new Generator<>() {
+            private int n = 0;
+
+            @Override
+            public Integer generate() {
+                return n++ % 2;
+            }
+        };
+        UniqueGenerator<Integer> unique = Generators.uniqueValues(bounded);
+        assertDoesNotThrow(unique::generate);
+        assertDoesNotThrow(unique::generate);
     }
 
     @Test

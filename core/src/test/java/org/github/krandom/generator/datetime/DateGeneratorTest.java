@@ -327,4 +327,76 @@ class DateGeneratorTest {
             }
         }
     }
+
+    @Test
+    void testFutureProducesFutureDates() {
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(101L).build());
+        LocalDate today = LocalDate.now();
+        for (int i = 0; i < 50; i++) {
+            assertTrue(generator.future().isAfter(today));
+        }
+    }
+
+    @Test
+    void testFutureWithMaxDaysRange() {
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(202L).build());
+        LocalDate start = LocalDate.now().plusDays(1);
+        LocalDate end = start.plusDays(30);
+        for (int i = 0; i < 50; i++) {
+            LocalDate date = generator.future(30);
+            assertFalse(date.isBefore(start));
+            assertFalse(date.isAfter(end));
+        }
+    }
+
+    @Test
+    void testPastProducesPastDates() {
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(303L).build());
+        LocalDate today = LocalDate.now();
+        for (int i = 0; i < 50; i++) {
+            assertTrue(generator.past().isBefore(today));
+        }
+    }
+
+    @Test
+    void testPastWithMaxDaysRange() {
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(404L).build());
+        LocalDate end = LocalDate.now().minusDays(1);
+        LocalDate start = end.minusDays(30);
+        for (int i = 0; i < 50; i++) {
+            LocalDate date = generator.past(30);
+            assertFalse(date.isBefore(start));
+            assertFalse(date.isAfter(end));
+        }
+    }
+
+    @Test
+    void testBetweenWithinBounds() {
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(505L).build());
+        LocalDate min = LocalDate.of(2020, 1, 1);
+        LocalDate max = LocalDate.of(2020, 12, 31);
+        for (int i = 0; i < 50; i++) {
+            LocalDate date = generator.between(min, max);
+            assertFalse(date.isBefore(min));
+            assertFalse(date.isAfter(max));
+        }
+    }
+
+    @Test
+    void testBetweenSingleDayReturnsExactDate() {
+        DateGenerator generator = new DateGenerator();
+        LocalDate date = LocalDate.of(2024, 6, 15);
+        assertEquals(date, generator.between(date, date));
+    }
+
+    @Test
+    void testFuturePastAndBetweenValidation() {
+        DateGenerator generator = new DateGenerator();
+        assertThrows(IllegalArgumentException.class, () -> generator.future(0));
+        assertThrows(IllegalArgumentException.class, () -> generator.past(0));
+        assertThrows(NullPointerException.class, () -> generator.between(null, LocalDate.now()));
+        assertThrows(NullPointerException.class, () -> generator.between(LocalDate.now(), null));
+        assertThrows(IllegalArgumentException.class,
+                () -> generator.between(LocalDate.of(2025, 1, 2), LocalDate.of(2025, 1, 1)));
+    }
 }

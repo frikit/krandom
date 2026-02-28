@@ -60,9 +60,39 @@ class StreetAddressGeneratorTest {
     void numberRange() {
         StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
         for (int i = 0; i < SAMPLES; i++) {
-            int number = Integer.parseInt(gen.generate().split(" ")[0]);
+            int number = Integer.parseInt(gen.generateStreetAddressNumber());
             assertTrue(number >= 1 && number <= 9999);
         }
+    }
+
+    @Test
+    @DisplayName("street-level component methods return non-empty values")
+    void streetComponentMethods() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        assertFalse(gen.generateStreetName().isBlank());
+        assertFalse(gen.generateStreetSuffix().isBlank());
+        assertFalse(gen.generateStreetSuffix(false).isBlank());
+        assertFalse(gen.generateBuildingNumber().isBlank());
+        assertFalse(gen.generateSecondaryAddress().isBlank());
+    }
+
+    @Test
+    @DisplayName("secondary address follows unit + number pattern")
+    void secondaryAddressPattern() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        for (int i = 0; i < SAMPLES; i++) {
+            String value = gen.generateSecondaryAddress();
+            assertTrue(value.matches(".+ \\d{1,3}"), "Unexpected secondary address format: " + value);
+        }
+    }
+
+    @Test
+    @DisplayName("full address includes core components")
+    void fullAddressIncludesComponents() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        String full = gen.generateFullAddress();
+        assertTrue(full.contains(", "), "Full address should contain comma separators: " + full);
+        assertTrue(full.matches(".*\\d{5}(-\\d{4})?.*"), "Full address should contain postal code: " + full);
     }
 
     @Test
@@ -120,6 +150,8 @@ class StreetAddressGeneratorTest {
         for (int i = 0; i < SAMPLES; i++) {
             assertEquals(a.generate(), b.generate());
             assertEquals(a.generate(false), b.generate(false));
+            assertEquals(a.generateSecondaryAddress(), b.generateSecondaryAddress());
+            assertEquals(a.generateFullAddress(), b.generateFullAddress());
         }
     }
 

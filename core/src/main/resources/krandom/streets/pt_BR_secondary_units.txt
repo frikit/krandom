@@ -1,0 +1,5 @@
+Apto
+Sala
+Unidade
+Andar
+Quarto

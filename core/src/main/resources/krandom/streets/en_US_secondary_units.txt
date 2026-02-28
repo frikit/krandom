@@ -1,0 +1,5 @@
+Apt
+Suite
+Unit
+Floor
+Room

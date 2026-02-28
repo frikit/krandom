@@ -37,12 +37,12 @@
 
 Goal: close cross-domain capabilities used broadly across tests and fixtures.
 
-- [ ] Implement template helpers parity:
-    - [ ] `numerify()`
-    - [ ] `letterify()`
-    - [ ] `bothify()`
-- [ ] Implement unique value wrapper parity (`faker.unique()` equivalent).
-- [ ] Add API-level option composition tests for new helpers.
+- [x] Implement template helpers parity:
+    - [x] `numerify()`
+    - [x] `letterify()`
+    - [x] `bothify()`
+- [x] Implement unique value wrapper parity (`faker.unique()` equivalent).
+- [x] Add API-level option composition tests for new helpers.
 
 Acceptance:
 
@@ -52,16 +52,16 @@ Acceptance:
 
 Goal: cover the highest-value missing business fixture data.
 
-- [ ] Street/address components:
-    - [ ] `streetName`
-    - [ ] `streetAddress`
-    - [ ] `streetAddressNumber/buildingNumber`
-    - [ ] `secondaryAddress`
-    - [ ] `fullAddress`
-- [ ] Date range methods:
-    - [ ] `future()`
-    - [ ] `past()`
-    - [ ] `between()`
+- [x] Street/address components:
+    - [x] `streetName`
+    - [x] `streetAddress`
+    - [x] `streetAddressNumber/buildingNumber`
+    - [x] `secondaryAddress`
+    - [x] `fullAddress`
+- [x] Date range methods:
+    - [x] `future()`
+    - [x] `past()`
+    - [x] `between()`
 
 Acceptance:
 
@@ -122,17 +122,15 @@ Acceptance:
 
 ## Execution Order (next steps)
 
-1. Implement **Phase 1 / Core API Gaps**.
-2. Implement **Phase 2 / Address & Date Foundations**.
-3. Implement **Phase 3 / Business Profile Pack**.
-4. Implement **Phase 4 / Networking & Platform IDs**.
-5. Finalize **Phase 5 / Intentional Scope Decisions**.
+1. Implement **Phase 3 / Business Profile Pack**.
+2. Implement **Phase 4 / Networking & Platform IDs**.
+3. Finalize **Phase 5 / Intentional Scope Decisions**.
 
 ## Task Tracker
 
-- Current step: **Phase 1 planning ready**
-- Status: **Not started (implementation pending)**
+- Current step: **Phase 3 planning ready**
+- Status: **P0 complete (Phases 1-2 completed)**
 - Next deliverable:
-    - Build template helpers + unique wrapper with tests.
+    - Build business profile generators (company/job/demographics core) with tests.
     - Run `./scripts/pre_commit_check.sh`.
     - Update parity rows and this checklist.
