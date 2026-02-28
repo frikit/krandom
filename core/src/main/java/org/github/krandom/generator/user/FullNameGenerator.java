@@ -72,6 +72,74 @@ public final class FullNameGenerator implements Generator<String> {
         return firstNameGenerator.generate(gender) + " " + lastNameGenerator.generate();
     }
 
+    /**
+     * Generates a full name that includes a middle name.
+     *
+     * <p>For locales where middle names are not part of the naming model (for example
+     * {@code es_ES}, {@code ja_JP}, {@code zh_CN}), this method throws
+     * {@link UnsupportedOperationException}.
+     *
+     * @return a three-part full name string; never {@code null}
+     * @throws UnsupportedOperationException if middle names are not supported for this locale
+     */
+    public String generateWithMiddleName() {
+        MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config);
+        return firstNameGenerator.generate()
+                + " " + middleNameGenerator.generate()
+                + " " + lastNameGenerator.generate();
+    }
+
+    /**
+     * Generates a full name that includes a middle name for the specified gender.
+     *
+     * <p>For locales where middle names are not part of the naming model (for example
+     * {@code es_ES}, {@code ja_JP}, {@code zh_CN}), this method throws
+     * {@link UnsupportedOperationException}.
+     *
+     * @param gender {@link Gender#MALE} or {@link Gender#FEMALE}; must not be {@code null}
+     * @return a three-part full name string; never {@code null}
+     * @throws NullPointerException if {@code gender} is {@code null}
+     * @throws UnsupportedOperationException if middle names are not supported for this locale
+     */
+    public String generateWithMiddleName(Gender gender) {
+        Objects.requireNonNull(gender, "gender must not be null");
+        MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config);
+        return firstNameGenerator.generate(gender)
+                + " " + middleNameGenerator.generate(gender)
+                + " " + lastNameGenerator.generate();
+    }
+
+    /**
+     * Generates a full name with a middle initial (for example, {@code "John P. Smith"}).
+     *
+     * <p>For locales where middle names are not part of the naming model (for example
+     * {@code es_ES}, {@code ja_JP}, {@code zh_CN}), this method throws
+     * {@link UnsupportedOperationException}.
+     *
+     * @return a three-part full name with middle initial; never {@code null}
+     * @throws UnsupportedOperationException if middle names are not supported for this locale
+     */
+    public String generateWithMiddleInitial() {
+        return firstNameGenerator.generate()
+                + " " + new MiddleNameGenerator(config).generateInitial()
+                + " " + lastNameGenerator.generate();
+    }
+
+    /**
+     * Generates a full name with a middle initial for the specified gender.
+     *
+     * @param gender {@link Gender#MALE} or {@link Gender#FEMALE}; must not be {@code null}
+     * @return a three-part full name with middle initial; never {@code null}
+     * @throws NullPointerException if {@code gender} is {@code null}
+     * @throws UnsupportedOperationException if middle names are not supported for this locale
+     */
+    public String generateWithMiddleInitial(Gender gender) {
+        Objects.requireNonNull(gender, "gender must not be null");
+        return firstNameGenerator.generate(gender)
+                + " " + new MiddleNameGenerator(config).generateInitial(gender)
+                + " " + lastNameGenerator.generate();
+    }
+
     /** Returns the locale this generator was configured with. */
     public Locale getLocale() {
         return config.getLocale();

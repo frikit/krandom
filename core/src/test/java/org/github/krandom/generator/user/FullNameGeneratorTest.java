@@ -110,6 +110,68 @@ class FullNameGeneratorTest {
         }
 
         @Test
+        @DisplayName("generateWithMiddleName() returns three-part name in supported locale")
+        void generateWithMiddleName() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            for (int i = 0; i < SAMPLES; i++) {
+                String[] parts = gen.generateWithMiddleName().split(" ", 3);
+                assertEquals(3, parts.length);
+                assertFalse(parts[0].isBlank());
+                assertFalse(parts[1].isBlank());
+                assertFalse(parts[2].isBlank());
+            }
+        }
+
+        @Test
+        @DisplayName("generateWithMiddleName(gender) returns three-part name in supported locale")
+        void generateWithMiddleNameGender() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.GERMANY);
+            for (int i = 0; i < SAMPLES; i++) {
+                String[] parts = gen.generateWithMiddleName(Gender.FEMALE).split(" ", 3);
+                assertEquals(3, parts.length);
+                assertFalse(parts[0].isBlank());
+                assertFalse(parts[1].isBlank());
+                assertFalse(parts[2].isBlank());
+            }
+        }
+
+        @Test
+        @DisplayName("generateWithMiddleInitial() uses middle initial format")
+        void generateWithMiddleInitial() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            for (int i = 0; i < SAMPLES; i++) {
+                String[] parts = gen.generateWithMiddleInitial().split(" ", 3);
+                assertEquals(3, parts.length);
+                assertTrue(parts[1].matches(".\\."), "Expected middle initial, got: " + parts[1]);
+            }
+        }
+
+        @Test
+        @DisplayName("generateWithMiddleInitial(gender) uses middle initial format")
+        void generateWithMiddleInitialGender() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.ITALY);
+            for (int i = 0; i < SAMPLES; i++) {
+                String[] parts = gen.generateWithMiddleInitial(Gender.MALE).split(" ", 3);
+                assertEquals(3, parts.length);
+                assertTrue(parts[1].matches(".\\."), "Expected middle initial, got: " + parts[1]);
+            }
+        }
+
+        @Test
+        @DisplayName("generateWithMiddleName throws UnsupportedOperationException for unsupported locale")
+        void generateWithMiddleNameUnsupportedLocale() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.of("es", "ES"));
+            assertThrows(UnsupportedOperationException.class, gen::generateWithMiddleName);
+        }
+
+        @Test
+        @DisplayName("generateWithMiddleInitial throws UnsupportedOperationException for unsupported locale")
+        void generateWithMiddleInitialUnsupportedLocale() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.JAPAN);
+            assertThrows(UnsupportedOperationException.class, gen::generateWithMiddleInitial);
+        }
+
+        @Test
         @DisplayName("generate() produces variety across calls")
         void producesVariety() {
             Set<String> names = new HashSet<>();
@@ -146,6 +208,14 @@ class FullNameGeneratorTest {
         void isExplicitlySupported() {
             assertTrue(new FullNameGenerator().isLocaleExplicitlySupported());
             assertTrue(new FullNameGenerator(Locale.GERMANY).isLocaleExplicitlySupported());
+        }
+
+        @Test
+        @DisplayName("middle-name methods throw for Chinese locale")
+        void middleNameUnsupportedForChinese() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.CHINA);
+            assertThrows(UnsupportedOperationException.class, gen::generateWithMiddleName);
+            assertThrows(UnsupportedOperationException.class, gen::generateWithMiddleInitial);
         }
     }
 
