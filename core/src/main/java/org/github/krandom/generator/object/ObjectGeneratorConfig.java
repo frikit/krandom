@@ -38,8 +38,11 @@ import java.util.function.Predicate;
 public final class ObjectGeneratorConfig {
 
     static final int DEFAULT_MAX_DEPTH = 5;
+    static final int DEFAULT_OBJECT_POOL_SIZE = 10;
 
     private final int maxDepth;
+    private final int objectPoolSize;
+    private final boolean overrideDefaultInitialization;
     private final boolean ignoreErrors;
 
     /**
@@ -78,9 +81,15 @@ public final class ObjectGeneratorConfig {
      * Also honours the {@link Exclude} annotation directly.
      */
     private final List<Predicate<Field>> exclusionPredicates;
+    /**
+     * Predicates that identify field types to skip during population.
+     */
+    private final List<Predicate<Class<?>>> typeExclusionPredicates;
 
     private ObjectGeneratorConfig(Builder b) {
         this.maxDepth                  = b.maxDepth;
+        this.objectPoolSize            = b.objectPoolSize;
+        this.overrideDefaultInitialization = b.overrideDefaultInitialization;
         this.ignoreErrors              = b.ignoreErrors;
         this.dateMin                   = b.dateMin;
         this.dateMax                   = b.dateMax;
@@ -89,6 +98,7 @@ public final class ObjectGeneratorConfig {
         this.contextualTypeOverrides    = Collections.unmodifiableMap(new HashMap<>(b.contextualTypeOverrides));
         this.contextualFieldOverrides   = Collections.unmodifiableMap(new HashMap<>(b.contextualFieldOverrides));
         this.exclusionPredicates        = Collections.unmodifiableList(new ArrayList<>(b.exclusionPredicates));
+        this.typeExclusionPredicates    = Collections.unmodifiableList(new ArrayList<>(b.typeExclusionPredicates));
     }
 
     /** Default configuration. */
@@ -108,6 +118,19 @@ public final class ObjectGeneratorConfig {
      * Default: {@value DEFAULT_MAX_DEPTH}.
      */
     public int getMaxDepth() { return maxDepth; }
+
+    /**
+     * Maximum number of completed instances cached per type for cycle handling.
+     * Default: {@value DEFAULT_OBJECT_POOL_SIZE}.
+     */
+    public int getObjectPoolSize() { return objectPoolSize; }
+
+    /**
+     * When {@code true}, existing field values are overwritten during population.
+     * When {@code false}, only fields currently at JVM defaults are populated.
+     * Default: {@code false}.
+     */
+    public boolean isOverrideDefaultInitialization() { return overrideDefaultInitialization; }
 
     /**
      * When {@code true}, exceptions during field population are swallowed and the field
@@ -161,7 +184,8 @@ public final class ObjectGeneratorConfig {
      * <p>A field is excluded when:
      * <ul>
      *   <li>it carries the {@link Exclude} annotation, or</li>
-     *   <li>any registered exclusion predicate returns {@code true} for it.</li>
+     *   <li>any registered field exclusion predicate returns {@code true} for it, or</li>
+     *   <li>any registered type exclusion predicate returns {@code true} for its type.</li>
      * </ul>
      *
      * @param field the field to test; must not be {@code null}
@@ -172,6 +196,9 @@ public final class ObjectGeneratorConfig {
         for (Predicate<Field> predicate : exclusionPredicates) {
             if (predicate.test(field)) return true;
         }
+        for (Predicate<Class<?>> predicate : typeExclusionPredicates) {
+            if (predicate.test(field.getType())) return true;
+        }
         return false;
     }
 
@@ -181,6 +208,8 @@ public final class ObjectGeneratorConfig {
     public static final class Builder {
 
         private int  maxDepth     = DEFAULT_MAX_DEPTH;
+        private int  objectPoolSize = DEFAULT_OBJECT_POOL_SIZE;
+        private boolean overrideDefaultInitialization = false;
         private boolean ignoreErrors = false;
         private LocalDate dateMin = null;
         private LocalDate dateMax = null;
@@ -189,6 +218,7 @@ public final class ObjectGeneratorConfig {
         private final Map<Class<?>, ContextualGenerator<?>>   contextualTypeOverrides  = new HashMap<>();
         private final Map<String, ContextualGenerator<?>>     contextualFieldOverrides = new HashMap<>();
         private final List<Predicate<Field>>                  exclusionPredicates      = new ArrayList<>();
+        private final List<Predicate<Class<?>>>               typeExclusionPredicates  = new ArrayList<>();
 
         /**
          * Maximum nesting depth for object-graph generation.
@@ -197,6 +227,29 @@ public final class ObjectGeneratorConfig {
         public Builder maxDepth(int maxDepth) {
             if (maxDepth < 1) throw new IllegalArgumentException("maxDepth must be >= 1, was: " + maxDepth);
             this.maxDepth = maxDepth;
+            return this;
+        }
+
+        /**
+         * Maximum number of completed instances to retain per type in the object pool.
+         * Use {@code 0} to disable completed-instance caching while still detecting cycles.
+         */
+        public Builder objectPoolSize(int objectPoolSize) {
+            if (objectPoolSize < 0) {
+                throw new IllegalArgumentException("objectPoolSize must be >= 0, was: " + objectPoolSize);
+            }
+            this.objectPoolSize = objectPoolSize;
+            return this;
+        }
+
+        /**
+         * Controls whether non-default field values are overwritten.
+         *
+         * <p>When set to {@code false}, fields that already hold non-default values
+         * (constructor/initializer assigned) are preserved.
+         */
+        public Builder overrideDefaultInitialization(boolean overrideDefaultInitialization) {
+            this.overrideDefaultInitialization = overrideDefaultInitialization;
             return this;
         }
 
@@ -295,6 +348,17 @@ public final class ObjectGeneratorConfig {
          */
         public Builder excludeType(Class<?> type) {
             return exclude(FieldPredicates.ofType(type));
+        }
+
+        /**
+         * Exclude all fields whose declared type matches {@code predicate}.
+         *
+         * <pre>{@code .excludeType(TypePredicates.inPackage("java.time")) }</pre>
+         */
+        public Builder excludeType(Predicate<Class<?>> predicate) {
+            Objects.requireNonNull(predicate, "predicate must not be null");
+            typeExclusionPredicates.add(predicate);
+            return this;
         }
 
         /**

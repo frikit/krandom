@@ -18,6 +18,8 @@ class ObjectGeneratorConfigTest {
     void defaultValues() {
         ObjectGeneratorConfig c = ObjectGeneratorConfig.defaults();
         assertEquals(ObjectGeneratorConfig.DEFAULT_MAX_DEPTH, c.getMaxDepth());
+        assertEquals(ObjectGeneratorConfig.DEFAULT_OBJECT_POOL_SIZE, c.getObjectPoolSize());
+        assertFalse(c.isOverrideDefaultInitialization());
         assertFalse(c.isIgnoreErrors());
         assertTrue(c.getTypeOverride(String.class).isEmpty());
         assertTrue(c.getFieldOverride(String.class, "value").isEmpty());
@@ -31,6 +33,13 @@ class ObjectGeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("objectPoolSize(3) stores the value")
+    void objectPoolSizeStored() {
+        ObjectGeneratorConfig c = ObjectGeneratorConfig.builder().objectPoolSize(3).build();
+        assertEquals(3, c.getObjectPoolSize());
+    }
+
+    @Test
     @DisplayName("maxDepth(0) throws IllegalArgumentException")
     void maxDepthZeroThrows() {
         assertThrows(IllegalArgumentException.class,
@@ -38,10 +47,26 @@ class ObjectGeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("objectPoolSize(-1) throws IllegalArgumentException")
+    void objectPoolSizeNegativeThrows() {
+        assertThrows(IllegalArgumentException.class,
+                () -> ObjectGeneratorConfig.builder().objectPoolSize(-1));
+    }
+
+    @Test
     @DisplayName("ignoreErrors(true) stores the flag")
     void ignoreErrorsStored() {
         ObjectGeneratorConfig c = ObjectGeneratorConfig.builder().ignoreErrors(true).build();
         assertTrue(c.isIgnoreErrors());
+    }
+
+    @Test
+    @DisplayName("overrideDefaultInitialization(false) stores the flag")
+    void overrideDefaultInitializationStored() {
+        ObjectGeneratorConfig c = ObjectGeneratorConfig.builder()
+                .overrideDefaultInitialization(false)
+                .build();
+        assertFalse(c.isOverrideDefaultInitialization());
     }
 
     @Test
@@ -76,5 +101,12 @@ class ObjectGeneratorConfigTest {
     void fieldOverrideNullFieldThrows() {
         assertThrows(NullPointerException.class,
                 () -> ObjectGeneratorConfig.builder().override(String.class, null, () -> "x"));
+    }
+
+    @Test
+    @DisplayName("excludeType(null predicate) throws NullPointerException")
+    void excludeTypeNullPredicateThrows() {
+        assertThrows(NullPointerException.class,
+                () -> ObjectGeneratorConfig.builder().excludeType((java.util.function.Predicate<Class<?>>) null));
     }
 }

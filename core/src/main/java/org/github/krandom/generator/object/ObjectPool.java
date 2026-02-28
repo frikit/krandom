@@ -8,6 +8,8 @@ package org.github.krandom.generator.object;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Set;
 
 /**
@@ -26,8 +28,20 @@ import java.util.Set;
  */
 final class ObjectPool {
 
+    private final int maxCachedPerType;
     private final Set<Class<?>> inProgress = new HashSet<>();
-    private final Map<Class<?>, Object> instances = new HashMap<>();
+    private final Map<Class<?>, Deque<Object>> instances = new HashMap<>();
+
+    ObjectPool() {
+        this(ObjectGeneratorConfig.DEFAULT_OBJECT_POOL_SIZE);
+    }
+
+    ObjectPool(int maxCachedPerType) {
+        if (maxCachedPerType < 0) {
+            throw new IllegalArgumentException("maxCachedPerType must be >= 0, was: " + maxCachedPerType);
+        }
+        this.maxCachedPerType = maxCachedPerType;
+    }
 
     /**
      * Returns {@code true} if construction of an instance of {@code type} has begun
@@ -57,8 +71,13 @@ final class ObjectPool {
      */
     void end(Class<?> type, Object instance) {
         inProgress.remove(type);
-        if (instance != null) {
-            instances.put(type, instance);
+        if (instance == null || maxCachedPerType == 0) {
+            return;
+        }
+        Deque<Object> perType = instances.computeIfAbsent(type, ignored -> new ArrayDeque<>());
+        perType.addLast(instance);
+        while (perType.size() > maxCachedPerType) {
+            perType.removeFirst();
         }
     }
 
@@ -70,6 +89,7 @@ final class ObjectPool {
      * @return a cached instance, or {@code null}
      */
     Object getCached(Class<?> type) {
-        return instances.get(type);
+        Deque<Object> perType = instances.get(type);
+        return perType == null ? null : perType.peekLast();
     }
 }

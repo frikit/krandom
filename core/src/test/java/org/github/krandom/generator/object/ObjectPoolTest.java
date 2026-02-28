@@ -77,4 +77,38 @@ class ObjectPoolTest {
         assertFalse(pool.isInProgress(String.class));
         assertTrue(pool.isInProgress(Integer.class));
     }
+
+    @Test
+    @DisplayName("pool with size 0 never caches completed instances")
+    void zeroSizedPoolDoesNotCache() {
+        ObjectPool pool = new ObjectPool(0);
+        pool.begin(String.class);
+        pool.end(String.class, "value");
+        assertNull(pool.getCached(String.class));
+    }
+
+    @Test
+    @DisplayName("pool evicts oldest entries when capacity is exceeded")
+    void poolEvictsOldestEntries() {
+        ObjectPool pool = new ObjectPool(2);
+        Object first = new Object();
+        Object second = new Object();
+        Object third = new Object();
+
+        pool.begin(Object.class);
+        pool.end(Object.class, first);
+        pool.begin(Object.class);
+        pool.end(Object.class, second);
+        pool.begin(Object.class);
+        pool.end(Object.class, third);
+
+        assertSame(third, pool.getCached(Object.class),
+                "most recent cached instance should be returned");
+    }
+
+    @Test
+    @DisplayName("negative pool size throws IllegalArgumentException")
+    void negativePoolSizeThrows() {
+        assertThrows(IllegalArgumentException.class, () -> new ObjectPool(-1));
+    }
 }

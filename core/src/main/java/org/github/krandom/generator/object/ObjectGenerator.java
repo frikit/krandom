@@ -74,12 +74,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     /** Creates a generator with default configuration. */
     public ObjectGenerator(Class<T> type) {
-        this(type, ObjectGeneratorConfig.defaults(), 0, new ObjectPool());
+        this(type, ObjectGeneratorConfig.defaults());
     }
 
     /** Creates a generator with custom configuration. */
     public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
-        this(type, config, 0, new ObjectPool());
+        this(type, config, 0, new ObjectPool(config.getObjectPoolSize()));
     }
 
     /** Internal constructor — depth and pool are managed by {@link FieldGeneratorResolver}. */
@@ -144,6 +144,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
         for (Field field : collectSettableFields(type)) {
             if (config.shouldExclude(field)) continue; // exclusion check
             field.setAccessible(true);
+            if (!config.isOverrideDefaultInitialization() && hasNonDefaultValue(instance, field)) {
+                continue;
+            }
             Object value = resolver.resolveAndGenerate(
                     field.getGenericType(),
                     field.getType(),
@@ -210,6 +213,16 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return fields;
     }
 
+    private boolean hasNonDefaultValue(T instance, Field field) {
+        try {
+            Object currentValue = field.get(instance);
+            return !isDefaultValue(currentValue, field.getType());
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Field should be accessible: "
+                    + field.getDeclaringClass().getSimpleName() + "." + field.getName(), e);
+        }
+    }
+
     /**
      * Returns the JVM default value for a primitive type, or {@code null} for reference types.
      * Used when a record component is excluded from generation.
@@ -225,6 +238,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (type == double.class)  return 0.0;
         if (type == char.class)    return '\0';
         return null;
+    }
+
+    private static boolean isDefaultValue(Object value, Class<?> type) {
+        if (!type.isPrimitive()) return value == null;
+        return Objects.equals(value, defaultForType(type));
     }
 
     // ── Diagnostic ───────────────────────────────────────────────────────────

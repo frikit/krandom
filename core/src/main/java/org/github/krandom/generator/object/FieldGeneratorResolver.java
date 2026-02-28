@@ -18,6 +18,7 @@ import org.github.krandom.generator.object.exception.ObjectGenerationException;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -34,8 +35,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -48,6 +53,7 @@ import java.util.function.Supplier;
  *   <li>Contextual type-level override from {@link ObjectGeneratorConfig}</li>
  *   <li>Field-level override from {@link ObjectGeneratorConfig} ({@code "OwnerType.fieldName"})</li>
  *   <li>Type-level override from {@link ObjectGeneratorConfig}</li>
+ *   <li>Declarative {@link Randomizer} annotation on the field/component</li>
  *   <li>Bean Validation constraint annotation (e.g. {@code @Size}, {@code @Min}, {@code @Max})</li>
  *   <li>Built-in generator for Java primitives / wrappers / {@code String} / JSR-310 types /
  *       {@link UUID} / {@link BigDecimal} / {@link BigInteger}</li>
@@ -56,6 +62,7 @@ import java.util.function.Supplier;
  *   <li>{@code List<T>} or {@code Set<T>}: auto-populated with {@value #DEFAULT_ELEMENT_COUNT}
  *       elements resolved from the declared generic element type</li>
  *   <li>{@code Map<K,V>}: auto-populated with {@value #DEFAULT_ELEMENT_COUNT} entries</li>
+ *   <li>{@code Optional<T>}: populated as {@code Optional.ofNullable(value)}</li>
  *   <li>Depth guard: if {@code currentDepth >= maxDepth} return primitive zero / {@code null}</li>
  *   <li>Nested class or record: delegate to a child {@link ObjectGenerator} (cycle-safe via
  *       {@link ObjectPool})</li>
@@ -93,6 +100,8 @@ final class FieldGeneratorResolver {
         STATIC_BUILTINS.put(String.class,     StringGenerator::letters);
         STATIC_BUILTINS.put(BigDecimal.class, BigDecimalGenerator::new);
         STATIC_BUILTINS.put(BigInteger.class, BigIntegerGenerator::new);
+        STATIC_BUILTINS.put(AtomicInteger.class, () -> () -> new AtomicInteger(new IntGenerator().generate()));
+        STATIC_BUILTINS.put(AtomicLong.class, () -> () -> new AtomicLong(new LongGenerator().generate()));
     }
 
     /**
@@ -100,6 +109,7 @@ final class FieldGeneratorResolver {
      * (e.g. at max depth, or when {@code ignoreErrors=true}).
      */
     private static final Map<Class<?>, Object> PRIMITIVE_DEFAULTS = new HashMap<>();
+    private static final Map<Class<?>, Function<String, Object>> ARGUMENT_PARSERS = new HashMap<>();
 
     static {
         PRIMITIVE_DEFAULTS.put(byte.class,    (byte)  0);
@@ -110,6 +120,26 @@ final class FieldGeneratorResolver {
         PRIMITIVE_DEFAULTS.put(double.class,  0.0);
         PRIMITIVE_DEFAULTS.put(char.class,    '\0');
         PRIMITIVE_DEFAULTS.put(boolean.class, false);
+    }
+
+    static {
+        ARGUMENT_PARSERS.put(String.class, s -> s);
+        ARGUMENT_PARSERS.put(int.class, Integer::parseInt);
+        ARGUMENT_PARSERS.put(Integer.class, Integer::valueOf);
+        ARGUMENT_PARSERS.put(long.class, Long::parseLong);
+        ARGUMENT_PARSERS.put(Long.class, Long::valueOf);
+        ARGUMENT_PARSERS.put(double.class, Double::parseDouble);
+        ARGUMENT_PARSERS.put(Double.class, Double::valueOf);
+        ARGUMENT_PARSERS.put(float.class, Float::parseFloat);
+        ARGUMENT_PARSERS.put(Float.class, Float::valueOf);
+        ARGUMENT_PARSERS.put(boolean.class, Boolean::parseBoolean);
+        ARGUMENT_PARSERS.put(Boolean.class, Boolean::valueOf);
+        ARGUMENT_PARSERS.put(short.class, Short::parseShort);
+        ARGUMENT_PARSERS.put(Short.class, Short::valueOf);
+        ARGUMENT_PARSERS.put(byte.class, Byte::parseByte);
+        ARGUMENT_PARSERS.put(Byte.class, Byte::valueOf);
+        ARGUMENT_PARSERS.put(char.class, FieldGeneratorResolver::parseChar);
+        ARGUMENT_PARSERS.put(Character.class, FieldGeneratorResolver::parseChar);
     }
 
     private final ObjectGeneratorConfig config;
@@ -180,6 +210,12 @@ final class FieldGeneratorResolver {
             return typeOverride.get().generate();
         }
 
+        // ── 3a. Declarative @Randomizer override ─────────────────────────────
+        if (element != null) {
+            Generator<?> annotationGenerator = annotationRandomizerFor(element);
+            if (annotationGenerator != null) return annotationGenerator.generate();
+        }
+
         // ── 3b. Bean Validation constraint override ───────────────────────────
         if (element != null) {
             Generator<?> bvGen = BeanValidationSupport.constraintGeneratorFor(element, rawType);
@@ -227,6 +263,13 @@ final class FieldGeneratorResolver {
                 if (key != null) map.put(key, val);
             }
             return Collections.unmodifiableMap(map);
+        }
+
+        // ── 5d. Optional ──────────────────────────────────────────────────────
+        if (Optional.class == rawType) {
+            Class<?> valueType = typeArg(genericType, 0);
+            Object value = resolveAndGenerate(valueType, valueType, fieldName + ".value", ownerType, currentDepth, null);
+            return Optional.ofNullable(value);
         }
 
         // ── 6. Depth guard ────────────────────────────────────────────────────
@@ -299,6 +342,46 @@ final class FieldGeneratorResolver {
             if (arg[idx] instanceof Class<?> c) return c;
         }
         return Object.class; // raw or erased — resolveAndGenerate handles Object gracefully
+    }
+
+    private static Generator<?> annotationRandomizerFor(AnnotatedElement element) {
+        Randomizer annotation = element.getAnnotation(Randomizer.class);
+        if (annotation == null) return null;
+        Class<? extends Generator<?>> generatorType = annotation.value();
+        try {
+            RandomizerArgument[] args = element.getAnnotationsByType(RandomizerArgument.class);
+            Class<?>[] parameterTypes = new Class<?>[args.length];
+            Object[] parameterValues = new Object[args.length];
+            for (int i = 0; i < args.length; i++) {
+                parameterTypes[i] = args[i].type();
+                parameterValues[i] = convertArgumentValue(args[i].value(), parameterTypes[i]);
+            }
+            Constructor<? extends Generator<?>> ctor = generatorType.getDeclaredConstructor(parameterTypes);
+            ctor.setAccessible(true);
+            return ctor.newInstance(parameterValues);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            throw new ObjectGenerationException(
+                    "Failed to instantiate @" + Randomizer.class.getSimpleName()
+                            + " generator: " + generatorType.getName(), e);
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static Object convertArgumentValue(String rawValue, Class<?> type) {
+        Function<String, Object> parser = ARGUMENT_PARSERS.get(type);
+        if (parser != null) return parser.apply(rawValue);
+        if (type.isEnum()) {
+            return Enum.valueOf((Class<? extends Enum>) type.asSubclass(Enum.class), rawValue);
+        }
+        throw new IllegalArgumentException("Unsupported @" + RandomizerArgument.class.getSimpleName()
+                + " type: " + type.getName());
+    }
+
+    private static Character parseChar(String rawValue) {
+        if (rawValue.length() != 1) {
+            throw new IllegalArgumentException("Expected single character value but got: " + rawValue);
+        }
+        return rawValue.charAt(0);
     }
 
     /**

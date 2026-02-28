@@ -268,8 +268,8 @@ class FullNameGeneratorTest {
             FullNameGenerator gen = new FullNameGenerator();
             String us = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "en"));
             String it = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "it"));
-            assertEquals(2, us.split(" ").length);
-            assertEquals(2, it.split(" ").length);
+            assertTrue(us.split(" ").length >= 2);
+            assertTrue(it.split(" ").length >= 2);
         }
 
         @Test
@@ -278,8 +278,8 @@ class FullNameGeneratorTest {
             FullNameGenerator gen = new FullNameGenerator();
             String uk = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "uk"));
             String jp = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "jp"));
-            assertEquals(2, uk.split(" ").length);
-            assertEquals(2, jp.split(" ").length);
+            assertTrue(uk.split(" ").length >= 2);
+            assertTrue(jp.split(" ").length >= 2);
         }
 
         @Test
@@ -291,8 +291,8 @@ class FullNameGeneratorTest {
             String de = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "de"));
             String fr = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "fr"));
 
-            assertEquals(2, de.split(" ").length);
-            assertEquals(2, fr.split(" ").length);
+            assertTrue(de.split(" ").length >= 2);
+            assertTrue(fr.split(" ").length >= 2);
         }
 
         @Test

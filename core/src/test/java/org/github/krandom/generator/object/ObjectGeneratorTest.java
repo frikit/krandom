@@ -23,6 +23,30 @@ class ObjectGeneratorTest {
 
     private static final int SAMPLES = 50;
 
+    static class PreInitializedFields {
+        private String presetName = "PRESET";
+        private String unsetName;
+        private int presetAge = 42;
+        private int defaultAge;
+
+        String getPresetName() { return presetName; }
+        String getUnsetName()  { return unsetName; }
+        int getPresetAge()     { return presetAge; }
+        int getDefaultAge()    { return defaultAge; }
+    }
+
+    static class SetterTrap {
+        private String value;
+
+        public void setValue(String value) {
+            throw new IllegalStateException("Setter must not be called");
+        }
+
+        String getValue() {
+            return value;
+        }
+    }
+
     // ── Plain class — flat (Address) ──────────────────────────────────────────
 
     @Nested
@@ -274,6 +298,45 @@ class ObjectGeneratorTest {
                     .build();
             // Even if some field can't be set, the generator should not throw
             assertDoesNotThrow(() -> new ObjectGenerator<>(Person.class, config).generate());
+        }
+
+        @Test
+        @DisplayName("overrideDefaultInitialization=false preserves non-default initialized values")
+        void doesNotOverrideInitializedValuesWhenDisabled() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .overrideDefaultInitialization(false)
+                    .override(String.class, () -> "OVERRIDDEN")
+                    .override(int.class, () -> 7)
+                    .build();
+
+            PreInitializedFields value = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
+            assertEquals("PRESET", value.getPresetName(), "non-default String initializer should be preserved");
+            assertEquals(42, value.getPresetAge(), "non-default primitive initializer should be preserved");
+            assertEquals("OVERRIDDEN", value.getUnsetName(), "null field should still be generated");
+            assertEquals(7, value.getDefaultAge(), "default primitive value should still be generated");
+        }
+
+        @Test
+        @DisplayName("overrideDefaultInitialization=true overwrites initialized values")
+        void overridesInitializedValuesWhenEnabled() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .overrideDefaultInitialization(true)
+                    .override(String.class, () -> "OVERRIDDEN")
+                    .override(int.class, () -> 7)
+                    .build();
+
+            PreInitializedFields value = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
+            assertEquals("OVERRIDDEN", value.getPresetName());
+            assertEquals("OVERRIDDEN", value.getUnsetName());
+            assertEquals(7, value.getPresetAge());
+            assertEquals(7, value.getDefaultAge());
+        }
+
+        @Test
+        @DisplayName("population bypasses setters and writes fields directly")
+        void populationBypassesSetters() {
+            SetterTrap value = new ObjectGenerator<>(SetterTrap.class).generate();
+            assertNotNull(value.getValue());
         }
     }
 

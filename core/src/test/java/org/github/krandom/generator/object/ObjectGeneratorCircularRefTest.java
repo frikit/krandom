@@ -59,4 +59,13 @@ class ObjectGeneratorCircularRefTest {
         assertEquals(5, list.size());
         list.forEach(n -> assertNotNull(n, "each generated node must be non-null"));
     }
+
+    @Test
+    @DisplayName("objectPoolSize(0) still prevents stack overflow via in-progress cycle detection")
+    void zeroSizedObjectPoolStillPreventsOverflow() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .objectPoolSize(0)
+                .build();
+        assertDoesNotThrow(() -> new ObjectGenerator<>(CircularNode.class, config).generate());
+    }
 }

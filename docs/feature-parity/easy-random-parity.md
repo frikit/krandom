@@ -10,7 +10,13 @@
 - **Status**: Maintenance mode (since November 2020) — bug fixes only
 - **Key Strength**: Reflection-based object graph population, minimal configuration, ObjectMother pattern implementation
 
-*Last Updated: 2026-02-25 (all HIGH + MEDIUM + LOW priority features complete)*
+*Last Updated: 2026-02-28 (Java-only execution plan refreshed; incremental parity slices in progress)*
+
+## Java Execution Plan
+
+- Active plan: `docs/feature-parity/easy-random-java-plan.md`
+- Current scope: Java parity only (Kotlin/Scala deferred)
+- Delivery model: one parity slice at a time with tests + `./scripts/pre_commit_check.sh`
 
 ## Executive Summary
 
@@ -155,7 +161,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
 **Implementation Metrics:**
 
 - **Total Features Implemented**: 70+ features across all categories
-- **Test Coverage**: 99.3% line, 99.3% branch
+- **Test Coverage**: 99.9% line, 100.0% branch
 - **Algorithms**: Sieve of Eratosthenes (primes), Box-Muller (normal dist.), Luhn (cards), ISO 7064 (national IDs), ISBN-10/13 check digits
 - **Pre-commit Checks**: ALL PASSING ✅
 
@@ -167,12 +173,8 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 - `@Past` / `@Future` temporal constraints
 - `java.util.Date`, `java.sql.*` legacy date types
 - `OffsetDateTime`, `Year`, `YearMonth`, `Duration`, `Period` JSR 310 types
-- Predicate-based field exclusion API (`FieldPredicates.named(...)`)
-- `@Randomizer` / `@RandomizerArgument` declarative annotation
 - Classpath scanning for abstract/interface types (deliberate skip — slow)
 - ServiceLoader registry SPI (deliberate skip — over-engineered)
-- `AtomicInteger` / `AtomicLong` randomizers
-- `Optional<T>` field support
 - Password generator
 
 ---
@@ -200,13 +202,13 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | Static fields               | ✅ Skipped                                | ✅ Skipped      | ✓ DONE                  | Both skip static                |
 | Final fields                | ✅ Yes (reflection)                       | ✅ Yes          | ✓ DONE                  |                                 |
 | Transient fields            | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Populated by default            |
-| Override existing values    | ✅ `overrideDefaultInitialization(true)`  | ❌ No           | LOW                     | Re-randomize initialized fields |
+| Override existing values    | ✅ `overrideDefaultInitialization(true)`  | ✅ Yes          | ✓ DONE                  | Preserves non-default initial values by default; opt-in overwrite |
 | Bypass setters              | ✅ `bypassSetters(true)`                  | ✅ Yes          | ✓ DONE                  | Direct field access             |
 | **Nested Objects**          |
 | Recursive population        | ✅ Yes                                    | ✅ Yes          | ✓ DONE                  | Both support                    |
 | Max depth control           | ✅ `randomizationDepth(int)`              | ✅ Yes          | ✓ DONE                  | krandom: maxDepth               |
 | Circular reference handling | ✅ Object pool                            | ✅ Yes          | ✓ DONE                  | krandom: ObjectPool cycle guard |
-| Object pool size            | ✅ `objectPoolSize(int)`                  | ❌ No           | LOW                     | Cache instances per type        |
+| Object pool size            | ✅ `objectPoolSize(int)`                  | ✅ Yes          | ✓ DONE                  | Configurable bounded per-type cache |
 | **Generics Support**        |
 | Simple generics             | ✅ `List<String>`                         | ✅ Partial      | MEDIUM                  | krandom limited support         |
 | Nested generics             | ⚠️ Limited `List<List<T>>`               | ❌ No           | LOW                     | Type erasure issues             |
@@ -217,18 +219,18 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | Feature                   | Easy Random Support                          | krandom Status | Implementation Priority | Notes                   |
 |---------------------------|----------------------------------------------|----------------|-------------------------|-------------------------|
 | **Field Exclusion**       |
-| Exclude by annotation     | ✅ `@Exclude`                                 | ❌ No           | HIGH                    | Declarative exclusion   |
-| Exclude by name           | ✅ `FieldPredicates.named("password")`        | ❌ No           | HIGH                    | Regex-based matching    |
-| Exclude by type           | ✅ `FieldPredicates.ofType(Class)`            | ❌ No           | HIGH                    | Type-based filtering    |
-| Exclude by class          | ✅ `FieldPredicates.inClass(Class)`           | ❌ No           | MEDIUM                  | Scope to specific class |
-| Exclude by annotation     | ✅ `FieldPredicates.isAnnotatedWith()`        | ❌ No           | MEDIUM                  | Match annotated fields  |
-| Exclude by modifiers      | ✅ `FieldPredicates.hasModifiers(int)`        | ❌ No           | LOW                     | Access level filtering  |
-| Exclude entire types      | ✅ `TypePredicates.inPackage("com.internal")` | ❌ No           | MEDIUM                  | Skip packages           |
+| Exclude by annotation     | ✅ `@Exclude`                                 | ✅ Yes          | ✓ DONE                  | Declarative exclusion   |
+| Exclude by name           | ✅ `FieldPredicates.named("password")`        | ✅ Yes          | ✓ DONE                  | Exact-name matching     |
+| Exclude by type           | ✅ `FieldPredicates.ofType(Class)`            | ✅ Yes          | ✓ DONE                  | Type-based filtering    |
+| Exclude by class          | ✅ `FieldPredicates.inClass(Class)`           | ✅ Yes          | ✓ DONE                  | Scope to specific class |
+| Exclude by annotation     | ✅ `FieldPredicates.isAnnotatedWith()`        | ✅ Yes          | ✓ DONE                  | Match annotated fields  |
+| Exclude by modifiers      | ✅ `FieldPredicates.hasModifiers(int)`        | ✅ Yes          | ✓ DONE                  | Access-level filtering  |
+| Exclude entire types      | ✅ `TypePredicates.inPackage("com.internal")` | ✅ Partial      | In progress             | Package-based type exclusion implemented via `excludeType(TypePredicates.inPackage(...))` |
 | Custom ExclusionPolicy    | ✅ `exclusionPolicy(policy)`                  | ❌ No           | MEDIUM                  | Pluggable strategy      |
 | **Predicate Composition** |
-| AND logic                 | ✅ `predicate1.and(predicate2)`               | ❌ No           | MEDIUM                  | Combine predicates      |
-| OR logic                  | ✅ `predicate1.or(predicate2)`                | ❌ No           | MEDIUM                  |                         |
-| NOT logic                 | ✅ `predicate.negate()`                       | ❌ No           | MEDIUM                  |                         |
+| AND logic                 | ✅ `predicate1.and(predicate2)`               | ✅ Yes          | ✓ DONE                  | Combine predicates      |
+| OR logic                  | ✅ `predicate1.or(predicate2)`                | ✅ Yes          | ✓ DONE                  |                         |
+| NOT logic                 | ✅ `predicate.negate()`                       | ✅ Yes          | ✓ DONE                  |                         |
 
 ### 3. CUSTOM RANDOMIZERS
 
@@ -242,8 +244,8 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | **Registration**       |
 | Type-level randomizer  | ✅ `randomize(String.class, randomizer)`               | ✅ Yes          | ✓ DONE                  | krandom: typeOverrides               |
 | Field-level randomizer | ✅ `randomize(predicate, randomizer)`                  | ✅ Yes          | ✓ DONE                  | krandom: fieldOverrides              |
-| Annotation-based       | ✅ `@Randomizer(EmailRandomizer.class)`                | ❌ No           | HIGH                    | Declarative configuration            |
-| Randomizer arguments   | ✅ `@RandomizerArgument`                               | ❌ No           | MEDIUM                  | Pass constructor params              |
+| Annotation-based       | ✅ `@Randomizer(EmailRandomizer.class)`                | ✅ Yes          | ✓ DONE                  | Declarative field/component randomizer |
+| Randomizer arguments   | ✅ `@RandomizerArgument`                               | ✅ Yes          | ✓ DONE                  | Declarative constructor parameter binding |
 | **Registry System**    |
 | RandomizerRegistry     | ✅ Interface + SPI discovery                           | ❌ No           | MEDIUM                  | Group randomizers                    |
 | Registry priority      | ✅ `@Priority` annotation                              | ❌ No           | MEDIUM                  | Override order                       |
@@ -282,12 +284,12 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | String length range   | ✅ `stringLengthRange(min, max)` [1, 32]        | ✅ Yes          | ✓ DONE                  | krandom: GeneratorConfig.stringLength()       |
 | Collection size range | ✅ `collectionSizeRange(min, max)` [1, 100]     | ✅ Yes          | ✓ DONE                  | krandom: GeneratorConfig.collectionSize()     |
 | Randomization depth   | ✅ `randomizationDepth(int)` default: MAX_VALUE | ✅ Yes          | ✓ DONE                  | krandom: ObjectGeneratorConfig.maxDepth()     |
-| Object pool size      | ✅ `objectPoolSize(int)` default: 10            | ❌ No           | MEDIUM                  | Recursion guard                               |
+| Object pool size      | ✅ `objectPoolSize(int)` default: 10            | ✅ Yes          | ✓ DONE                  | Recursion guard with configurable cache limit |
 | **Date/Time Ranges**  |
 | Date range            | ✅ `dateRange(LocalDate, LocalDate)`            | ✅ Yes          | ✓ DONE                  | krandom: ObjectGeneratorConfig.dateRange()    |
 | Time range            | ✅ `timeRange(LocalTime, LocalTime)`            | ❌ No           | LOW                     |                                               |
 | **Behavioral Flags**  |
-| Override defaults     | ✅ `overrideDefaultInitialization(bool)`        | ❌ No           | LOW                     | Re-randomize initialized fields               |
+| Override defaults     | ✅ `overrideDefaultInitialization(bool)`        | ✅ Yes          | ✓ DONE                  | Re-randomize initialized fields               |
 | Ignore errors         | ✅ `ignoreRandomizationErrors(bool)`            | ✅ Yes          | ✓ DONE                  | krandom: ObjectGeneratorConfig.ignoreErrors() |
 | Bypass setters        | ✅ `bypassSetters(bool)`                        | ✅ Yes          | ✓ DONE                  | Direct field access                           |
 | Scan classpath        | ✅ `scanClasspathForConcreteTypes(bool)`        | ❌ No           | LOW                     | Find implementations                          |
@@ -310,8 +312,8 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | **Numeric Types**                 |
 | BigInteger                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | BigIntegerGenerator             |
 | BigDecimal                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | BigDecimalGenerator (scale 2)   |
-| AtomicInteger                     | ✅ Yes                                            | ❌ No           | LOW                     | Concurrent types                |
-| AtomicLong                        | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| AtomicInteger                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Concurrent types                |
+| AtomicLong                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
 | **Range Randomizers**             |
 | ByteRangeRandomizer               | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  | krandom: BoundedGenerator       |
 | ShortRangeRandomizer              | ✅ `(min, max)`                                   | ✅ Yes          | ✓ DONE                  |                                 |
@@ -388,8 +390,8 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | EnumMap                           | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
 | MapRandomizer                     | ✅ `MapRandomizer<K,V>`                           | ❌ No           | LOW                     | Dedicated randomizer            |
 | **Optional**                      |
-| Optional<T>                       | ✅ OptionalPopulator                              | ❌ No           | MEDIUM                  | Java 8 optionals                |
-| OptionalRandomizer                | ✅ Yes                                            | ❌ No           | MEDIUM                  |                                 |
+| Optional<T>                       | ✅ OptionalPopulator                              | ✅ Yes          | ✓ DONE                  | Java 8 optionals via resolver   |
+| OptionalRandomizer                | ✅ Yes                                            | ✅ Partial      | In progress             | No dedicated class; behavior covered in resolver |
 | **Utility Randomizers**           |
 | ConstantRandomizer                | ✅ Always same value                              | ❌ No           | MEDIUM                  | Fixed value generator           |
 | NullRandomizer                    | ✅ Always null                                    | ❌ No           | LOW                     |                                 |
@@ -444,7 +446,7 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | **Recursion Control**          |
 | Circular ref detection         | ✅ Object pool caching                 | ✅ ObjectPool          | ✓ DONE                  | Prevent stack overflow      |
 | Max depth guard                | ✅ `randomizationDepth(int)`           | ✅ Yes                 | ✓ DONE                  | Both support                |
-| Pool size config               | ✅ `objectPoolSize(int)`               | ❌ No                  | MEDIUM                  | Cache size control          |
+| Pool size config               | ✅ `objectPoolSize(int)`               | ✅ Yes                 | ✓ DONE                  | Cache size control          |
 | **Error Handling**             |
 | Ignore errors                  | ✅ `ignoreRandomizationErrors(true)`   | ✅ Yes                 | ✓ DONE                  | Silently set null           |
 | Throw exceptions               | ✅ `ignoreRandomizationErrors(false)`  | ✅ Default             | ✓ DONE                  | Fail fast                   |
@@ -939,7 +941,7 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 
 - ~~**Effort**: 1 day~~ Implemented — `BigDecimalGenerator` + `BigIntegerGenerator`
 
-**2. Optional\<T\> Support** ❌ Pending
+**2. Optional\<T\> Support** ✅ DONE
 
 - **Effort**: 0.5 days
 - **Value**: Java 8+ null safety
@@ -954,7 +956,7 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 - **Effort**: 2 days
 - **Value**: Plugin architecture
 
-**Total Phase 6: ~6.5 days** — BigDecimal/BigInteger done ✅; Optional/scanning/SPI still pending
+**Total Phase 6: ~6.5 days** — BigDecimal/BigInteger/Optional done ✅; scanning/SPI pending
 
 ---
 
@@ -967,18 +969,15 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | Phase 3   | Bean validation integration                                            | 5 days                   | MEDIUM     | ✅ DONE                                                                      |
 | Phase 4   | Date/time generators                                                   | 4 days                   | MEDIUM     | ✅ DONE                                                                      |
 | Phase 5   | Realistic data (email, UUID, regex, lorem, names, addresses, cards)    | 7 days                   | MEDIUM     | ✅ DONE                                                                      |
-| Phase 6   | Advanced features (BigDecimal, Optional, scanning, SPI)                | 6.5 days                 | LOW        | ✅ DONE (partial — BigDecimal/BigInteger done; Optional/scanning/SPI remain) |
+| Phase 6   | Advanced features (BigDecimal, Optional, scanning, SPI)                | 6.5 days                 | LOW        | ✅ DONE (partial — BigDecimal/BigInteger/Optional done; scanning/SPI remain) |
 | **TOTAL** |                                                                        | **28.5 days** (~6 weeks) |            | **~85% DONE**                                                               |
 
 ### Remaining Gaps
 
 1. **Queue type support** (ArrayDeque, PriorityQueue) — LOW priority
-2. **Field exclusion predicates** (predicate-based + @Exclude annotation) — MEDIUM priority
-3. **@Randomizer annotation** — MEDIUM priority
-4. **RandomizerProvider / RandomizerRegistry / ExclusionPolicy / ObjectFactory** extension points — LOW priority
-5. **Optional\<T\> field support** — LOW priority
-6. **Classpath scanning** for abstract types/interfaces — LOW priority
-7. **ServiceLoader** registry auto-discovery — LOW priority
+2. **RandomizerProvider / RandomizerRegistry / ExclusionPolicy / ObjectFactory** extension points — LOW priority
+3. **Classpath scanning** for abstract types/interfaces — LOW priority
+4. **ServiceLoader** registry auto-discovery — LOW priority
 
 ---
 

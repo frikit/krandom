@@ -11,10 +11,52 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Modifier;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("ObjectGenerator — field exclusion")
 class ObjectGeneratorExclusionTest {
+
+    static class AnnotationPredicateTarget {
+        @Deprecated
+        private String legacyValue;
+        private String activeValue;
+
+        String getLegacyValue() {
+            return legacyValue;
+        }
+
+        String getActiveValue() {
+            return activeValue;
+        }
+    }
+
+    static class ModifierPredicateTarget {
+        private String hidden;
+        String visible;
+
+        String getHidden() {
+            return hidden;
+        }
+
+        String getVisible() {
+            return visible;
+        }
+    }
+
+    static class PackageTypeExclusionTarget {
+        java.time.LocalDate date;
+        String title;
+
+        java.time.LocalDate getDate() {
+            return date;
+        }
+
+        String getTitle() {
+            return title;
+        }
+    }
 
     // ── @Exclude annotation ───────────────────────────────────────────────────
 
@@ -62,6 +104,17 @@ class ObjectGeneratorExclusionTest {
         assertNull(p.getUsername(), "String field must be null (excluded by type)");
     }
 
+    @Test
+    @DisplayName("excludeType(TypePredicates.inPackage(...)) suppresses matching package types")
+    void excludeTypeByPackagePredicate() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .excludeType(TypePredicates.inPackage("java.time"))
+                .build();
+        PackageTypeExclusionTarget target = new ObjectGenerator<>(PackageTypeExclusionTarget.class, config).generate();
+        assertNull(target.getDate(), "java.time type should be excluded");
+        assertNotNull(target.getTitle(), "non-matching package type must still be populated");
+    }
+
     // ── exclude(Predicate<Field>) ─────────────────────────────────────────────
 
     @Test
@@ -72,6 +125,61 @@ class ObjectGeneratorExclusionTest {
                 .build();
         PersonWithExcludes p = new ObjectGenerator<>(PersonWithExcludes.class, config).generate();
         assertNull(p.getUsername(), "field matched by predicate must be null");
+    }
+
+    @Test
+    @DisplayName("exclude(FieldPredicates.isAnnotatedWith(...)) suppresses annotated fields")
+    void excludeViaAnnotationPredicate() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .exclude(FieldPredicates.isAnnotatedWith(Deprecated.class))
+                .build();
+        AnnotationPredicateTarget target = new ObjectGenerator<>(AnnotationPredicateTarget.class, config).generate();
+        assertNull(target.getLegacyValue(), "annotated field must be excluded");
+        assertNotNull(target.getActiveValue(), "non-annotated field must be populated");
+    }
+
+    @Test
+    @DisplayName("exclude(FieldPredicates.hasModifiers(...)) suppresses fields by modifiers")
+    void excludeViaModifierPredicate() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .exclude(FieldPredicates.hasModifiers(Modifier.PRIVATE))
+                .build();
+        ModifierPredicateTarget target = new ObjectGenerator<>(ModifierPredicateTarget.class, config).generate();
+        assertNull(target.getHidden(), "private field must be excluded");
+        assertNotNull(target.getVisible(), "non-private field must still be populated");
+    }
+
+    @Test
+    @DisplayName("exclude(predicate.and(...)) supports AND composition")
+    void excludeViaAndComposition() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .exclude(FieldPredicates.named("hidden").and(FieldPredicates.hasModifiers(Modifier.PRIVATE)))
+                .build();
+        ModifierPredicateTarget target = new ObjectGenerator<>(ModifierPredicateTarget.class, config).generate();
+        assertNull(target.getHidden(), "AND predicate should exclude matching private hidden field");
+        assertNotNull(target.getVisible(), "AND predicate should not exclude non-matching field");
+    }
+
+    @Test
+    @DisplayName("exclude(predicate.or(...)) supports OR composition")
+    void excludeViaOrComposition() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .exclude(FieldPredicates.named("hidden").or(FieldPredicates.named("visible")))
+                .build();
+        ModifierPredicateTarget target = new ObjectGenerator<>(ModifierPredicateTarget.class, config).generate();
+        assertNull(target.getHidden(), "OR predicate should exclude hidden");
+        assertNull(target.getVisible(), "OR predicate should exclude visible");
+    }
+
+    @Test
+    @DisplayName("exclude(predicate.negate()) supports NOT composition")
+    void excludeViaNegateComposition() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .exclude(FieldPredicates.named("hidden").negate())
+                .build();
+        ModifierPredicateTarget target = new ObjectGenerator<>(ModifierPredicateTarget.class, config).generate();
+        assertNotNull(target.getHidden(), "negated predicate should keep the original match");
+        assertNull(target.getVisible(), "negated predicate should exclude non-matching field");
     }
 
     // ── FieldPredicates.inClass ───────────────────────────────────────────────
