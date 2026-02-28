@@ -114,6 +114,36 @@ class EmailGeneratorTest {
         assertThrows(NullPointerException.class, 
             () -> generator.generate((String) null));
     }
+
+    @Test
+    void testGenerateFreeEmail() {
+        String email = generator.generateFreeEmail();
+        assertNotNull(email);
+        assertValidEmail(email);
+        String domain = email.substring(email.indexOf('@') + 1);
+        assertTrue(List.of("gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
+                "protonmail.com", "mail.com", "aol.com", "zoho.com", "gmx.com", "yandex.com",
+                "qq.com").contains(domain));
+    }
+
+    @Test
+    void testGenerateSafeEmail() {
+        String email = generator.generateSafeEmail();
+        assertNotNull(email);
+        assertValidEmail(email);
+        assertTrue(email.endsWith("@example.com")
+                || email.endsWith("@example.org")
+                || email.endsWith("@example.net"));
+    }
+
+    @Test
+    void testGetFreeEmailProvider() {
+        String provider = generator.getFreeEmailProvider();
+        assertNotNull(provider);
+        assertFalse(provider.isBlank());
+        assertFalse(provider.contains("@"));
+        assertTrue(provider.contains("."));
+    }
     
     @Test
     void testPopularDomains() {

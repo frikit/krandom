@@ -68,6 +68,24 @@ class WordGeneratorTest {
     }
 
     @Test
+    @DisplayName("generateWords(count) and generateWords(min,max) support range-style generation")
+    void generateWordsRangeStyle() {
+        WordGenerator gen = new WordGenerator(GeneratorConfig.builder().seed(31L).build());
+        String fixed = gen.generateWords(4);
+        assertEquals(4, fixed.split(" ").length);
+
+        for (int i = 0; i < 20; i++) {
+            String ranged = gen.generateWords(3, 6);
+            int count = ranged.split(" ").length;
+            assertTrue(count >= 3 && count <= 6);
+        }
+
+        assertThrows(IllegalArgumentException.class, () -> gen.generateWords(0));
+        assertThrows(IllegalArgumentException.class, () -> gen.generateWords(0, 2));
+        assertThrows(IllegalArgumentException.class, () -> gen.generateWords(5, 4));
+    }
+
+    @Test
     @DisplayName("generate(options) validates null")
     void optionsNullValidation() {
         WordGenerator gen = new WordGenerator();

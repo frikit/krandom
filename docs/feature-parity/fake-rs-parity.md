@@ -7,6 +7,7 @@
 - **Version Analyzed**: 2.x (Latest)
 - **GitHub**: https://github.com/cksac/fake-rs
 - **License**: MIT OR Apache-2.0
+- **Last Updated**: 2026-02-28 (Java phased plan moved to `docs/plans/fake-rs-java-plan.md`)
 - **Key Strengths**:
     - Trait-based architecture for type safety
     - Procedural macros (`#[derive(Dummy)]`) for automatic fake data generation
@@ -14,6 +15,12 @@
     - Compile-time type safety with zero-cost abstractions
     - Custom RNG support for deterministic testing
     - Modular feature flags for minimal dependencies
+
+## Java Execution Plan
+
+- Active plan: `docs/plans/fake-rs-java-plan.md`
+- Current scope: Java parity only (Kotlin/Scala deferred)
+- Delivery model: one parity slice at a time with tests + `./scripts/pre_commit_check.sh`
 
 ## Executive Summary
 
@@ -34,6 +41,65 @@ While fake-rs has fewer domain-specific providers compared to Java/JavaScript li
 *Rust-native design philosophy**. The library excels at generating basic data types with strong type safety and locale support, making it ideal for Rust testing, fuzzing, and fixture generation.
 
 ---
+
+## Audited Java Status (2026-02-28)
+
+This section is the current source of truth for Java-core parity status. Some legacy table rows below are stale.
+
+| fake-rs Feature | Java Status | Notes / Differences |
+|---|---|---|
+| FirstName / LastName | ✅ Exists | Locale-aware generators exist. |
+| Name (full) | ✅ Exists | `FullNameGenerator` implemented. |
+| NameWithTitle | ✅ Exists | Via `FullNameGenerator.generate(NameOptions)` with `prefix=true`; API shape differs. |
+| Title / Suffix | ✅ Exists | `TitleGenerator`, `SuffixGenerator` implemented. |
+| CityName / StateName / StateAbbr | ✅ Exists | `CityGenerator`, `StateGenerator.generate(boolean)` implemented. |
+| StreetName / StreetSuffix / BuildingNumber | ✅ Exists | In `StreetAddressGenerator` as dedicated methods. |
+| Full street address | ✅ Exists | `StreetAddressGenerator.generateFullAddress()`. |
+| Secondary address | ✅ Exists | `StreetAddressGenerator.generateSecondaryAddress()`. |
+| PostCode | ✅ Exists | `PostalCodeGenerator` supports locale formats (including US ZIP+4 option). |
+| CountryName | ✅ Exists | `CountryGenerator`. |
+| CountryCode | ✅ Exists | `CountryGenerator.generateCode()` returns ISO alpha-2 codes. |
+| Latitude / Longitude | ✅ Exists | `CoordinatesGenerator` provides both. |
+| Geohash | ❌ Missing | Not implemented. |
+| FreeEmail / SafeEmail / FreeEmailProvider | ✅ Exists | `EmailGenerator.generateFreeEmail()`, `generateSafeEmail()`, `getFreeEmailProvider()`. |
+| DomainSuffix | ✅ Exists | `DomainGenerator.getTLD()`. |
+| Slug | ✅ Exists | `SlugGenerator`. |
+| DomainName | ⚠️ Partial | Domain generation exists, but no dedicated "name-only" public API. |
+| URL | ✅ Exists | `URLGenerator` with options/path/query and encoded file-name segment support. |
+| Username | ✅ Exists | `UsernameGenerator`. |
+| Password(range) | ✅ Exists | `PasswordGenerator.generate(min,max)` and fixed-length overload. |
+| IPv4 / IPv6 | ✅ Exists | Both implemented. |
+| IP (v4 or v6) | ❌ Missing | No combined generator method. |
+| IPv4 private/public/CIDR | ✅ Exists | `IPv4Generator.generatePrivate/public/cidr`. |
+| IPv6 CIDR | ✅ Exists | `IPv6Generator.generateCidr`. |
+| MACAddress / Port / UserAgent | ✅ Exists | Implemented in `network` package. |
+| HTTP status code | ❌ Missing | No dedicated HTTP status-code generator. |
+| UUID | ✅ Exists | `UUIDGenerator` supports v4/v5/v7 (fake-rs commonly v4 via feature flag). |
+| CurrencyCode / Name / Symbol | ✅ Exists | `CurrencyGenerator` supports all three. |
+| Credit card number / expiry / CVV | ✅ Exists | `CreditCardGenerator` + `CardExpirationGenerator`. |
+| BIC / ISIN | ❌ Missing | Not implemented. |
+| CompanyName / Industry / Profession | ✅ Exists | Implemented; `ProfessionGenerator` is locale-extensible. |
+| JobField / JobSeniority / JobTitle(Position) | ✅ Exists | `JobFieldGenerator`, `SeniorityGenerator`, `PositionGenerator`. |
+| JobType | ❌ Missing | No dedicated job-type generator class. |
+| Word / Sentence / Paragraph | ✅ Exists | Locale-aware text generators implemented. |
+| Words/Sentences/Paragraphs with fake-rs `Range` API | ✅ Exists | Range-style min/max APIs added on word/sentence/paragraph generators. |
+| DateTime / Date / Time | ✅ Exists | `LocalDateTimeGenerator`, `DateGenerator`, `TimeGenerator`. |
+| DateTimeBefore / After / Between | ⚠️ Partial | `DateGenerator.between/future/past` exists; no dedicated `LocalDateTime before/after/between` API. |
+| PhoneNumber / CellNumber | ✅ Exists | `PhoneNumberGenerator` supports formatted + mobile/landline selection. |
+| NumberWithFormat | ❌ Missing | No dedicated fake-rs-like formatting API. |
+| ISBN / ISBN10 / ISBN13 | ✅ Exists | `IsbnGenerator` supports both formats. |
+| Hex/RGB color | ✅ Exists | `ColorGenerator` supports multiple color formats. |
+| RGBA/HSL/HSLA strings | ❌ Missing | Not currently in `ColorFormat`. |
+| License plate | ❌ Missing | Not implemented. |
+| FileName / FileExtension | ✅ Exists | Implemented in `file` package. |
+| FilePath / DirPath / MimeType / Semver | ❌ Missing | Not implemented. |
+
+### Architecture-level Differences (Intentional / Significant)
+
+- fake-rs trait/macro model (`Fake`, `Dummy`, `#[derive(Dummy)]`) does not map 1:1 to Java; Java uses explicit generator classes.
+- fake-rs locale selection is compile-time module-path based; Java locale is runtime via `GeneratorConfig`.
+- fake-rs feature flags are crate-level compile features; Java currently exposes modules directly without an equivalent flag system.
+- fake-rs RNG extensibility accepts any `rand::Rng`; Java supports deterministic seed via `GeneratorConfig` but not pluggable RNG interfaces across all generators.
 
 ## Feature Categories
 

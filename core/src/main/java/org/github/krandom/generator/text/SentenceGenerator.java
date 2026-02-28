@@ -76,6 +76,46 @@ public final class SentenceGenerator implements Generator<String> {
     }
 
     /**
+     * Generates multiple sentences and joins them with a single space.
+     *
+     * @param count number of sentences; must be positive
+     * @return multi-sentence text
+     */
+    public String generateSentences(int count) {
+        if (count <= 0) {
+            throw new IllegalArgumentException("count must be positive, got: " + count);
+        }
+        StringBuilder sb = new StringBuilder(count * 96);
+        for (int i = 0; i < count; i++) {
+            if (i > 0) {
+                sb.append(' ');
+            }
+            sb.append(generate());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Generates multiple sentences where sentence count is sampled from the inclusive range
+     * [{@code minSentences}, {@code maxSentences}].
+     *
+     * @param minSentences minimum sentence count (inclusive); must be positive
+     * @param maxSentences maximum sentence count (inclusive); must be >= minSentences
+     * @return multi-sentence text
+     */
+    public String generateSentences(int minSentences, int maxSentences) {
+        if (minSentences <= 0) {
+            throw new IllegalArgumentException("minSentences must be positive, got: " + minSentences);
+        }
+        if (maxSentences < minSentences) {
+            throw new IllegalArgumentException("maxSentences must be >= minSentences, got: "
+                    + maxSentences + " < " + minSentences);
+        }
+        int count = minSentences + random.nextInt(maxSentences - minSentences + 1);
+        return generateSentences(count);
+    }
+
+    /**
      * Generates a sentence with an option bag similar to Chance.js {@code sentence({words})}.
      *
      * @param options option bag; must not be null

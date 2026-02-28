@@ -54,6 +54,24 @@ class SentenceGeneratorTest {
     }
 
     @Test
+    @DisplayName("generateSentences(count/range) supports range-style sentence batches")
+    void generateSentencesRangeStyle() {
+        SentenceGenerator gen = new SentenceGenerator(GeneratorConfig.builder().seed(29L).build());
+        String fixed = gen.generateSentences(3);
+        assertEquals(3, fixed.length() - fixed.replace(".", "").length());
+
+        for (int i = 0; i < 20; i++) {
+            String ranged = gen.generateSentences(2, 4);
+            int sentences = ranged.length() - ranged.replace(".", "").length();
+            assertTrue(sentences >= 2 && sentences <= 4);
+        }
+
+        assertThrows(IllegalArgumentException.class, () -> gen.generateSentences(0));
+        assertThrows(IllegalArgumentException.class, () -> gen.generateSentences(0, 2));
+        assertThrows(IllegalArgumentException.class, () -> gen.generateSentences(5, 4));
+    }
+
+    @Test
     @DisplayName("generate(options) supports words option")
     void generateOptions() {
         SentenceGenerator gen = new SentenceGenerator(GeneratorConfig.builder().seed(7L).build());

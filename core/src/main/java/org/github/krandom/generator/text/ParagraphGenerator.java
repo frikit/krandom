@@ -74,6 +74,46 @@ public final class ParagraphGenerator implements Generator<String> {
     }
 
     /**
+     * Generates multiple paragraphs and joins them with blank lines.
+     *
+     * @param count number of paragraphs; must be positive
+     * @return multi-paragraph text separated by {@code "\n\n"}
+     */
+    public String generateParagraphs(int count) {
+        if (count <= 0) {
+            throw new IllegalArgumentException("count must be positive, got: " + count);
+        }
+        StringBuilder sb = new StringBuilder(count * 480);
+        for (int i = 0; i < count; i++) {
+            if (i > 0) {
+                sb.append("\n\n");
+            }
+            sb.append(generate());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Generates multiple paragraphs where paragraph count is sampled from the inclusive range
+     * [{@code minParagraphs}, {@code maxParagraphs}].
+     *
+     * @param minParagraphs minimum paragraph count (inclusive); must be positive
+     * @param maxParagraphs maximum paragraph count (inclusive); must be >= minParagraphs
+     * @return multi-paragraph text separated by {@code "\n\n"}
+     */
+    public String generateParagraphs(int minParagraphs, int maxParagraphs) {
+        if (minParagraphs <= 0) {
+            throw new IllegalArgumentException("minParagraphs must be positive, got: " + minParagraphs);
+        }
+        if (maxParagraphs < minParagraphs) {
+            throw new IllegalArgumentException("maxParagraphs must be >= minParagraphs, got: "
+                    + maxParagraphs + " < " + minParagraphs);
+        }
+        int count = minParagraphs + random.nextInt(maxParagraphs - minParagraphs + 1);
+        return generateParagraphs(count);
+    }
+
+    /**
      * Generates a paragraph with an option bag similar to Chance.js {@code paragraph({sentences})}.
      *
      * @param options option bag; must not be null

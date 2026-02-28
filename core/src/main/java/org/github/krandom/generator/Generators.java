@@ -42,7 +42,9 @@ import org.github.krandom.generator.user.JobFieldGenerator;
 import org.github.krandom.generator.user.MaritalStatusGenerator;
 import org.github.krandom.generator.user.PositionGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
+import org.github.krandom.generator.user.PasswordGenerator;
 import org.github.krandom.generator.user.SeniorityGenerator;
+import org.github.krandom.generator.user.UsernameGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -420,6 +422,16 @@ public final class Generators {
     /** Returns a generator that produces locale-aware profession/job-title values. */
     public static ProfessionGenerator ofProfession() {
         return new ProfessionGenerator();
+    }
+
+    /** Returns a generator that produces locale-aware usernames. */
+    public static UsernameGenerator ofUsername() {
+        return new UsernameGenerator();
+    }
+
+    /** Returns a generator that produces random passwords with configurable length ranges. */
+    public static PasswordGenerator ofPassword() {
+        return new PasswordGenerator();
     }
 
     // ── Lorem Ipsum ───────────────────────────────────────────────────────────

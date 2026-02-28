@@ -9,6 +9,8 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -66,6 +68,43 @@ public final class WordGenerator implements Generator<String> {
             sb.append(syllableGenerator.generate());
         }
         return sb.toString();
+    }
+
+    /**
+     * Generates a space-separated sequence of pseudo-words with fixed count.
+     *
+     * @param count number of words; must be positive
+     * @return words separated by single spaces
+     */
+    public String generateWords(int count) {
+        if (count <= 0) {
+            throw new IllegalArgumentException("count must be positive, got: " + count);
+        }
+        List<String> words = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            words.add(generate());
+        }
+        return String.join(" ", words);
+    }
+
+    /**
+     * Generates a space-separated sequence of pseudo-words where the word count is sampled
+     * from the inclusive range [{@code minWords}, {@code maxWords}].
+     *
+     * @param minWords minimum number of words (inclusive), must be positive
+     * @param maxWords maximum number of words (inclusive), must be >= minWords
+     * @return words separated by single spaces
+     */
+    public String generateWords(int minWords, int maxWords) {
+        if (minWords <= 0) {
+            throw new IllegalArgumentException("minWords must be positive, got: " + minWords);
+        }
+        if (maxWords < minWords) {
+            throw new IllegalArgumentException("maxWords must be >= minWords, got: "
+                    + maxWords + " < " + minWords);
+        }
+        int count = minWords + random.nextInt(maxWords - minWords + 1);
+        return generateWords(count);
     }
 
     /**

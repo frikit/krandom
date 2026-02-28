@@ -52,6 +52,24 @@ class ParagraphGeneratorTest {
     }
 
     @Test
+    @DisplayName("generateParagraphs(count/range) supports range-style paragraph batches")
+    void generateParagraphsRangeStyle() {
+        ParagraphGenerator gen = new ParagraphGenerator(GeneratorConfig.builder().seed(27L).build());
+        String fixed = gen.generateParagraphs(2);
+        assertEquals(2, fixed.split("\\n\\n").length);
+
+        for (int i = 0; i < 20; i++) {
+            String ranged = gen.generateParagraphs(2, 4);
+            int paragraphs = ranged.split("\\n\\n").length;
+            assertTrue(paragraphs >= 2 && paragraphs <= 4);
+        }
+
+        assertThrows(IllegalArgumentException.class, () -> gen.generateParagraphs(0));
+        assertThrows(IllegalArgumentException.class, () -> gen.generateParagraphs(0, 2));
+        assertThrows(IllegalArgumentException.class, () -> gen.generateParagraphs(5, 4));
+    }
+
+    @Test
     @DisplayName("generate(options) supports sentence count option")
     void generateOptions() {
         ParagraphGenerator gen = new ParagraphGenerator(GeneratorConfig.builder().seed(9L).build());

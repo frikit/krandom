@@ -78,6 +78,12 @@ import java.util.Random;
  * @see EmailFormat
  */
 public final class EmailGenerator implements Generator<String> {
+
+    private static final String[] SAFE_DOMAINS = {
+        "example.com",
+        "example.org",
+        "example.net"
+    };
     
     private static final String[] POPULAR_DOMAINS = {
         "gmail.com",
@@ -188,6 +194,33 @@ public final class EmailGenerator implements Generator<String> {
         
         String localPart = formatLocalPart(firstName, lastName, format);
         return localPart + "@" + domain;
+    }
+
+    /**
+     * Generates an email address using a commonly used free-email provider domain.
+     *
+     * @return an email with a free provider domain
+     */
+    public String generateFreeEmail() {
+        return generate(getFreeEmailProvider());
+    }
+
+    /**
+     * Generates an email address using a safe/reserved test domain.
+     *
+     * @return an email with {@code example.com}, {@code example.org}, or {@code example.net}
+     */
+    public String generateSafeEmail() {
+        return generate(SAFE_DOMAINS[random.nextInt(SAFE_DOMAINS.length)]);
+    }
+
+    /**
+     * Returns a free-email provider domain.
+     *
+     * @return provider domain (for example, {@code gmail.com})
+     */
+    public String getFreeEmailProvider() {
+        return getRandomDomain();
     }
     
     /**

@@ -40,6 +40,16 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("generateCode() returns ISO alpha-2 code")
+    void generateCode() {
+        CountryGenerator gen = new CountryGenerator(Locale.US);
+        String code = gen.generateCode();
+        assertNotNull(code);
+        assertTrue(code.matches("[A-Z]{2}"));
+        assertTrue(Arrays.asList(Locale.getISOCountries()).contains(code));
+    }
+
+    @Test
     @DisplayName("US locale returns English country names")
     void usLocaleEnglish() {
         CountryGenerator gen = new CountryGenerator(Locale.US);

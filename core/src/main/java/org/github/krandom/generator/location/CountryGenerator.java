@@ -26,6 +26,8 @@ import java.util.Random;
  */
 public final class CountryGenerator implements Generator<String> {
 
+    private static final String[] ISO_ALPHA2_CODES = Locale.getISOCountries();
+
     private final GeneratorConfig config;
     private final Random random;
     private final String[] countries;
@@ -74,6 +76,15 @@ public final class CountryGenerator implements Generator<String> {
     @Override
     public String generate() {
         return countries[random.nextInt(countries.length)];
+    }
+
+    /**
+     * Returns a random ISO 3166-1 alpha-2 country code (for example, {@code "US"}, {@code "DE"}).
+     *
+     * @return an upper-case country code; never {@code null}
+     */
+    public String generateCode() {
+        return ISO_ALPHA2_CODES[random.nextInt(ISO_ALPHA2_CODES.length)];
     }
 
     /**
