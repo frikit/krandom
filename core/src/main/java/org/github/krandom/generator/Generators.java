@@ -25,6 +25,7 @@ import org.github.krandom.generator.selection.ShuffleGenerator;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.selection.WeightedGenerator;
 import org.github.krandom.generator.text.LoremIpsumGenerator;
+import org.github.krandom.generator.text.SyllableGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
@@ -378,6 +379,11 @@ public final class Generators {
     /** Returns a generator that produces natural-looking pseudo-words. */
     public static WordGenerator ofWord() {
         return new WordGenerator();
+    }
+
+    /** Returns a generator that produces locale-aware pronounceable syllables. */
+    public static SyllableGenerator ofSyllable() {
+        return new SyllableGenerator();
     }
 
     // ── MAC address ───────────────────────────────────────────────────────────

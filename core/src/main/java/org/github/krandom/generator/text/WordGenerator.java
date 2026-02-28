@@ -9,9 +9,7 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -20,13 +18,9 @@ import java.util.Random;
  */
 public final class WordGenerator implements Generator<String> {
 
-    private static final String PHONETICS_PATH_PREFIX = "krandom/text/phonetics/";
-    private static final WordPhonetics DEFAULT_EN = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "en.txt");
-    private static final Map<String, WordPhonetics> LOCALE_PROFILES = localeProfiles();
-
     private final Random random;
     private final Locale locale;
-    private final WordPhonetics phonetics;
+    private final SyllableGenerator syllableGenerator;
 
     /**
      * Creates a generator with default configuration.
@@ -46,7 +40,7 @@ public final class WordGenerator implements Generator<String> {
         this.random = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();
-        this.phonetics = forLocale(locale);
+        this.syllableGenerator = new SyllableGenerator(config);
     }
 
     /**
@@ -69,7 +63,7 @@ public final class WordGenerator implements Generator<String> {
         }
         StringBuilder sb = new StringBuilder(syllables * 4);
         for (int i = 0; i < syllables; i++) {
-            sb.append(generateSyllable());
+            sb.append(syllableGenerator.generate());
         }
         return sb.toString();
     }
@@ -86,7 +80,7 @@ public final class WordGenerator implements Generator<String> {
         }
         StringBuilder sb = new StringBuilder(length + 4);
         while (sb.length() < length) {
-            sb.append(generateSyllable());
+            sb.append(syllableGenerator.generate());
         }
         if (sb.length() > length) {
             sb.setLength(length);
@@ -113,73 +107,11 @@ public final class WordGenerator implements Generator<String> {
         return generate();
     }
 
-    private String generateSyllable() {
-        String onset = phonetics.onsets()[random.nextInt(phonetics.onsets().length)];
-        String nucleus = phonetics.nuclei()[random.nextInt(phonetics.nuclei().length)];
-        String coda = phonetics.codas()[random.nextInt(phonetics.codas().length)];
-        return onset + nucleus + coda;
-    }
-
     /**
      * Returns the locale this generator is configured with.
      */
     public Locale getLocale() {
         return locale;
-    }
-
-    private static WordPhonetics forLocale(Locale locale) {
-        String language = locale.getLanguage();
-        String country = locale.getCountry();
-        if (!country.isEmpty()) {
-            WordPhonetics exact = LOCALE_PROFILES.get(language + "_" + country);
-            if (exact != null) {
-                return exact;
-            }
-        }
-        WordPhonetics byLanguage = LOCALE_PROFILES.get(language);
-        return byLanguage != null ? byLanguage : DEFAULT_EN;
-    }
-
-    private static Map<String, WordPhonetics> localeProfiles() {
-        Map<String, WordPhonetics> map = new HashMap<>();
-
-        WordPhonetics en = DEFAULT_EN;
-        WordPhonetics enGb = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "en_GB.txt");
-        WordPhonetics de = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "de.txt");
-        WordPhonetics fr = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "fr.txt");
-        WordPhonetics es = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "es.txt");
-        WordPhonetics it = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "it.txt");
-        WordPhonetics pt = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "pt.txt");
-        WordPhonetics ja = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "ja.txt");
-        WordPhonetics zh = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "zh.txt");
-
-        map.put("en", en);
-        map.put("en_US", en);
-        map.put("en_GB", enGb);
-        map.put("en_AU", en);
-
-        map.put("de", de);
-        map.put("de_DE", de);
-
-        map.put("fr", fr);
-        map.put("fr_FR", fr);
-
-        map.put("es", es);
-        map.put("es_ES", es);
-
-        map.put("it", it);
-        map.put("it_IT", it);
-
-        map.put("pt", pt);
-        map.put("pt_BR", pt);
-
-        map.put("ja", ja);
-        map.put("ja_JP", ja);
-
-        map.put("zh", zh);
-        map.put("zh_CN", zh);
-
-        return Map.copyOf(map);
     }
 
     /**

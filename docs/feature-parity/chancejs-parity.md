@@ -843,7 +843,7 @@ _None - awaiting next feature selection_
 | Random word      | ✅ `word({syllables, length})` | ✅ Yes          | ✓ DONE                  | `WordGenerator` + `WordOptions` |
 | Syllable control | ✅ `word({syllables: 4})`      | ✅ Yes          | ✓ DONE                  | `WordOptions.withSyllables(int)` |
 | Length control   | ✅ `word({length: 10})`        | ✅ Yes          | ✓ DONE                  | `WordOptions.withLength(int)` |
-| Syllable         | ✅ `syllable({length})`        | ❌ No           | MEDIUM                  | Single syllable 'ko'    |
+| Syllable         | ✅ `syllable({length})`        | ✅ Yes          | ✓ DONE                  | `SyllableGenerator.generate()` / `generate(length)` |
 | **Sentences**    |
 | Random sentence  | ✅ `sentence({words})`         | ❌ No           | HIGH                    | Capitalized, punctuated |
 | Word count       | ✅ `sentence({words: 5})`      | ❌ No           | HIGH                    | Exact word count        |
@@ -962,7 +962,7 @@ _None - awaiting next feature selection_
 | Feature                | Chance.js                | krandom | Priority | Implementation Notes          |
 |------------------------|--------------------------|---------|----------|-------------------------------|
 | **Pronounceable Text** |
-| Syllable generation    | ✅ `syllable()`           | ❌ No    | MEDIUM   | Natural-sounding - UNIQUE     |
+| Syllable generation    | ✅ `syllable()`           | ✅ Yes   | ✓ DONE   | `SyllableGenerator` (locale-aware) |
 | Word generation        | ✅ `word({syllables: 4})` | ✅ Yes   | ✓ DONE   | `WordGenerator.generate(WordOptions)` |
 | Sentence structure     | ✅ Capital + period       | ❌ No    | HIGH     | Proper formatting             |
 | Paragraph structure    | ✅ Multiple sentences     | ❌ No    | HIGH     | Natural paragraphs            |
@@ -1270,5 +1270,5 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 **Target outcome**: krandom becomes the **most developer-friendly** random data generator for JVM with **unique statistical capabilities** and **flexible character/string generation** not found in
 other JVM libraries.
 
-**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in sentence/paragraph text APIs, standalone syllable generation, richer options
-parameterization, and low-priority social/avatar generators.
+**Progress**: parity materially improved with helper/selection coverage complete. Remaining gaps are concentrated in sentence/paragraph text APIs, richer options parameterization, and low-priority
+social/avatar generators.
