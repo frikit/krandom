@@ -9,8 +9,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.random.RandomGenerator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -202,6 +204,34 @@ class NormalDistributionGeneratorTest {
             assertTrue(Math.abs(sampleMean - (-10.0)) < 0.5,
                     "Sample mean should be close to -10, got: " + sampleMean);
         }
+    }
+
+    @Test
+    @DisplayName("generate retries when first u1 is zero")
+    void retriesWhenUniformZero() throws Exception {
+        NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0);
+        Field randomField = NormalDistributionGenerator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+        randomField.set(generator, new RandomGenerator() {
+            private int call;
+
+            @Override
+            public long nextLong() {
+                return 0L;
+            }
+
+            @Override
+            public double nextDouble() {
+                // u1 (0.0) -> retry branch, then u1 (0.5), then u2 (0.25)
+                return switch (call++) {
+                    case 0 -> 0.0;
+                    case 1 -> 0.5;
+                    default -> 0.25;
+                };
+            }
+        });
+
+        assertNotNull(generator.generate());
     }
 
     @Nested

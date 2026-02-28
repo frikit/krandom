@@ -33,6 +33,10 @@ final class NameResourceLoader {
         if (is == null) {
             throw new IllegalStateException("Name resource not found: " + resourcePath);
         }
+        return load(is, resourcePath);
+    }
+
+    static String[] load(InputStream is, String resourcePath) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             return reader.lines()
                     .map(String::trim)

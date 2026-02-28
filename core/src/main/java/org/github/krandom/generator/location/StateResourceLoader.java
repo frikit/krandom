@@ -50,6 +50,10 @@ final class StateResourceLoader {
         if (is == null) {
             throw new IllegalStateException("State resource not found: " + resourcePath);
         }
+        return load(is, resourcePath);
+    }
+
+    static StateData load(InputStream is, String resourcePath) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             List<String> states = new ArrayList<>();
             List<String> abbreviations = new ArrayList<>();

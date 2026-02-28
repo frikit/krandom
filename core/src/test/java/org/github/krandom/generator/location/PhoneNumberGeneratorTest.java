@@ -9,9 +9,11 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -66,6 +68,15 @@ class PhoneNumberGeneratorTest {
                 () -> new PhoneNumberGenerator((Locale) null)
         );
         assertTrue(ex.getMessage().contains("locale must not be null"));
+    }
+
+    @Test
+    @DisplayName("language-only locale is accepted")
+    void languageOnlyLocaleAccepted() {
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("en"));
+        String phone = gen.generate(false, false);
+        assertNotNull(phone);
+        assertFalse(phone.isBlank());
     }
 
     // ── US phone numbers (en_US) ──────────────────────────────────────────────
@@ -134,6 +145,29 @@ class PhoneNumberGeneratorTest {
         // Match patterns like "020 7946 0958", "0161 496 0123", "01202 123456"
         assertTrue(phone.matches("0\\d{2,4} \\d{3,4} \\d{4}|0\\d{2,4} \\d{6,8}"),
                 "Expected UK landline format, got: " + phone);
+    }
+
+    @Test
+    @DisplayName("UK formatted landline covers London split formatting branch")
+    void ukFormattedLondonBranch() throws Exception {
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.UK);
+        Field randomField = PhoneNumberGenerator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+        randomField.set(gen, new Random(0L) {
+            private int intCalls;
+
+            @Override
+            public int nextInt(int bound) {
+                // 1st call picks area-code index 0 => "020", 2nd call picks number
+                if (intCalls++ == 0) {
+                    return 0;
+                }
+                return 0;
+            }
+        });
+
+        String phone = gen.generate(true, false);
+        assertTrue(phone.matches("020 \\d{4} \\d{4}"), "Expected London format, got: " + phone);
     }
 
     @Test

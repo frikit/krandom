@@ -13,6 +13,10 @@ import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
+import org.github.krandom.generator.datetime.DateGenerator;
+import org.github.krandom.generator.datetime.InstantGenerator;
+import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
+import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
 import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
 import org.github.krandom.generator.selection.PickGenerator;
@@ -205,6 +209,11 @@ class GeneratorsTest {
         assertInstanceOf(UniqueGenerator.class, Generators.unique(() -> 1, 5));
     }
 
+    @Test @DisplayName("unique(source, comparator) returns UniqueGenerator")
+    void uniqueWithComparator() {
+        assertInstanceOf(UniqueGenerator.class, Generators.unique(() -> "a", String::equalsIgnoreCase));
+    }
+
     @Test @DisplayName("repeat(source, count) returns RepeatGenerator")
     void repeat() {
         assertInstanceOf(RepeatGenerator.class, Generators.repeat(() -> 1, 3));
@@ -243,6 +252,14 @@ class GeneratorsTest {
     @Test @DisplayName("ofFileName() returns FileNameGenerator")
     void ofFileName() {
         assertInstanceOf(FileNameGenerator.class, Generators.ofFileName());
+    }
+
+    @Test @DisplayName("date/time factories return corresponding generators")
+    void dateTimeFactories() {
+        assertInstanceOf(DateGenerator.class, Generators.ofLocalDate());
+        assertInstanceOf(LocalDateTimeGenerator.class, Generators.ofLocalDateTime());
+        assertInstanceOf(InstantGenerator.class, Generators.ofInstant());
+        assertInstanceOf(ZonedDateTimeGenerator.class, Generators.ofZonedDateTime());
     }
 
     // ── Games ─────────────────────────────────────────────────────────────────

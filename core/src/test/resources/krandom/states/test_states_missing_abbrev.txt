@@ -1,0 +1,6 @@
+# state / optional abbreviation pairs
+Alpha
+AL
+Beta
+
+Gamma

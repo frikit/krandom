@@ -36,6 +36,10 @@ final class CountryResourceLoader {
         if (is == null) {
             throw new IllegalStateException("Country resource not found: " + resourcePath);
         }
+        return load(is, resourcePath);
+    }
+
+    static String[] load(InputStream is, String resourcePath) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             return reader.lines()
                     .map(String::trim)

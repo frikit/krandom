@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -31,6 +32,10 @@ final class WordPhoneticsLoader {
         if (is == null) {
             throw new IllegalStateException("Word phonetics resource not found: " + resourcePath);
         }
+        return load(is, resourcePath);
+    }
+
+    static WordPhonetics load(InputStream is, String resourcePath) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             List<String> lines = reader.lines()
                     .map(String::trim)
@@ -41,7 +46,7 @@ final class WordPhoneticsLoader {
             String[] nuclei = csv(valuesAfter(lines, "nuclei="));
             String[] codas = csv(valuesAfter(lines, "codas="));
             return new WordPhonetics(onsets, nuclei, codas);
-        } catch (IOException e) {
+        } catch (IOException | UncheckedIOException e) {
             throw new IllegalStateException("Failed to read word phonetics resource: " + resourcePath, e);
         }
     }

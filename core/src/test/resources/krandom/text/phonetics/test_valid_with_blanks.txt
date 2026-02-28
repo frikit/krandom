@@ -1,0 +1,8 @@
+# profile with blank lines
+
+onsets=br,cl
+
+# vowels
+nuclei=a,e
+
+codas=,n

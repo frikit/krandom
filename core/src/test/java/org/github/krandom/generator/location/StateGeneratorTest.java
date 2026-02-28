@@ -9,10 +9,12 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,6 +39,66 @@ class StateGeneratorTest {
 
         assertNotNull(state);
         assertFalse(state.isEmpty());
+    }
+
+    @Test
+    @DisplayName("abbreviation mode falls back to full state when abbreviation missing")
+    void abbreviationFallbackWhenMissing() {
+        Locale locale = Locale.of("zz", "ZZ");
+        StateDataRegistry.register(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[]{"Alpha", "Beta"};
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[]{"AA"};
+            }
+        });
+
+        StateGenerator gen = new StateGenerator(GeneratorConfig.builder().locale(locale).seed(1L).build());
+        assertDoesNotThrow(() -> {
+            Field randomField = StateGenerator.class.getDeclaredField("random");
+            randomField.setAccessible(true);
+            randomField.set(gen, new Random(0L) {
+                @Override
+                public int nextInt(int bound) {
+                    return 1;
+                }
+            });
+        });
+        assertEquals("Beta", gen.generate(true));
+    }
+
+    @Test
+    @DisplayName("abbreviation mode falls back when locale has no abbreviation list")
+    void abbreviationFallbackWhenNoAbbreviationList() {
+        Locale locale = Locale.of("zy", "ZY");
+        StateDataRegistry.register(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[]{"OnlyState"};
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[0];
+            }
+        });
+
+        StateGenerator gen = new StateGenerator(GeneratorConfig.builder().locale(locale).seed(2L).build());
+        assertEquals("OnlyState", gen.generate(true));
     }
 
     @Test

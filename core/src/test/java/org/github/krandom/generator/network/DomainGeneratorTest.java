@@ -8,6 +8,7 @@ package org.github.krandom.generator.network;
 import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -164,6 +165,14 @@ class DomainGeneratorTest {
         DomainGenerator generator = new DomainGenerator(config);
         // Default locale is US
         assertEquals("us", generator.getLocaleTLD());
+    }
+
+    @Test
+    void testPrivateLocaleTldMapperHandlesNull() throws Exception {
+        DomainGenerator generator = new DomainGenerator();
+        Method m = DomainGenerator.class.getDeclaredMethod("getLocaleTLD", Locale.class);
+        m.setAccessible(true);
+        assertNull(m.invoke(generator, new Object[]{null}));
     }
 
     @Test

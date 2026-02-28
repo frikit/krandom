@@ -9,9 +9,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.random.RandomGenerator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -166,6 +168,27 @@ class NaturalNumberGeneratorTest {
             
             assertThrows(IllegalStateException.class, generator::generate,
                     "Should throw when all possible values are excluded");
+        }
+
+        @Test
+        @DisplayName("should throw after max retry attempts when RNG always selects excluded value")
+        void shouldThrowAfterMaxRetries() throws Exception {
+            NaturalNumberGenerator generator = new NaturalNumberGenerator(0, 2).excluding(0);
+            Field randomField = generator.getClass().getSuperclass().getDeclaredField("random");
+            randomField.setAccessible(true);
+            randomField.set(generator, new RandomGenerator() {
+                @Override
+                public long nextLong() {
+                    return 0L;
+                }
+
+                @Override
+                public int nextInt(int origin, int bound) {
+                    return origin; // always excluded in this test
+                }
+            });
+
+            assertThrows(IllegalStateException.class, generator::generate);
         }
 
         @Test

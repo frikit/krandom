@@ -175,30 +175,26 @@ public final class UUIDGenerator implements Generator<UUID> {
         Objects.requireNonNull(namespace, "namespace must not be null");
         Objects.requireNonNull(name, "name must not be null");
 
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            
-            // Hash namespace + name
-            md.update(uuidToBytes(namespace));
-            md.update(name.getBytes(StandardCharsets.UTF_8));
-            byte[] hash = md.digest();
+        MessageDigest md = messageDigest("SHA-1");
 
-            // Use first 16 bytes of hash
-            byte[] uuidBytes = new byte[16];
-            System.arraycopy(hash, 0, uuidBytes, 0, 16);
+        // Hash namespace + name
+        md.update(uuidToBytes(namespace));
+        md.update(name.getBytes(StandardCharsets.UTF_8));
+        byte[] hash = md.digest();
 
-            // Set version to 5 (bits 12-15 of time_hi_and_version field)
-            uuidBytes[6] &= 0x0f;  // Clear version bits
-            uuidBytes[6] |= 0x50;  // Set to version 5
+        // Use first 16 bytes of hash
+        byte[] uuidBytes = new byte[16];
+        System.arraycopy(hash, 0, uuidBytes, 0, 16);
 
-            // Set variant to RFC 4122 (bits 6-7 of clock_seq_hi_and_reserved field)
-            uuidBytes[8] &= 0x3f;  // Clear variant bits
-            uuidBytes[8] |= 0x80;  // Set to variant 1 (10x)
+        // Set version to 5 (bits 12-15 of time_hi_and_version field)
+        uuidBytes[6] &= 0x0f;  // Clear version bits
+        uuidBytes[6] |= 0x50;  // Set to version 5
 
-            return bytesToUuid(uuidBytes);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-1 algorithm not available", e);
-        }
+        // Set variant to RFC 4122 (bits 6-7 of clock_seq_hi_and_reserved field)
+        uuidBytes[8] &= 0x3f;  // Clear variant bits
+        uuidBytes[8] |= 0x80;  // Set to variant 1 (10x)
+
+        return bytesToUuid(uuidBytes);
     }
 
     /**
@@ -266,5 +262,13 @@ public final class UUIDGenerator implements Generator<UUID> {
         }
         
         return new UUID(msb, lsb);
+    }
+
+    static MessageDigest messageDigest(String algorithm) {
+        try {
+            return MessageDigest.getInstance(algorithm);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(algorithm + " algorithm not available", e);
+        }
     }
 }

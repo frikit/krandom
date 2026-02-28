@@ -380,6 +380,16 @@ class URLGeneratorTest {
     }
 
     @Test
+    void testGenerateWithTrailingSlashPathAndExtension() {
+        URLGenerator generator = new URLGenerator(GeneratorConfig.builder().seed(3L).build());
+        URLGenerator.URLOptions options =
+                new URLGenerator.URLOptions("https", "example.com", null, "/", new String[]{"txt"}, false);
+        String url = generator.generateWithOptions(options);
+        assertTrue(url.startsWith("https://example.com/"));
+        assertTrue(url.endsWith(".txt"));
+    }
+
+    @Test
     void testGenerateWithDomainPrefixNullThrows() {
         URLGenerator generator = new URLGenerator();
         assertThrows(IllegalArgumentException.class, () -> generator.generateWithDomainPrefix(null));

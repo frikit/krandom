@@ -9,6 +9,7 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,6 +48,30 @@ class SyllableGeneratorTest {
         String value = gen.generate(6);
         assertEquals(6, value.length());
         assertTrue(value.matches("[a-z]+"));
+    }
+
+    @Test
+    @DisplayName("generate(length) supports exact first syllable length path")
+    void generateLengthEqualsFirstSyllable() {
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(123L).build();
+        SyllableGenerator probe = new SyllableGenerator(cfg);
+        int firstLength = probe.generate().length();
+
+        SyllableGenerator gen = new SyllableGenerator(cfg);
+        String value = gen.generate(firstLength);
+        assertEquals(firstLength, value.length());
+    }
+
+    @Test
+    @DisplayName("generate(length) covers exact-fit branch without truncation")
+    void generateLengthExactFitNoTruncation() throws Exception {
+        SyllableGenerator gen = new SyllableGenerator(GeneratorConfig.builder().seed(1L).build());
+        Field phoneticsField = SyllableGenerator.class.getDeclaredField("phonetics");
+        phoneticsField.setAccessible(true);
+        phoneticsField.set(gen, new WordPhonetics(new String[]{""}, new String[]{"a"}, new String[]{""}));
+
+        String value = gen.generate(3);
+        assertEquals("aaa", value);
     }
 
     @Test

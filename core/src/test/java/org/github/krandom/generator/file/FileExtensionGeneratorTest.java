@@ -34,10 +34,18 @@ class FileExtensionGeneratorTest {
     }
 
     @Test
+    void generateFromWithoutLeadingDot() {
+        FileExtensionGenerator generator = new FileExtensionGenerator(GeneratorConfig.builder().seed(2L).build());
+        String ext = generator.generateFrom("json", "xml");
+        assertTrue(ext.equals("json") || ext.equals("xml"));
+    }
+
+    @Test
     void generateFromValidation() {
         FileExtensionGenerator generator = new FileExtensionGenerator();
         assertThrows(NullPointerException.class, () -> generator.generateFrom((String[]) null));
         assertThrows(IllegalArgumentException.class, () -> generator.generateFrom());
+        assertThrows(IllegalArgumentException.class, () -> generator.generateFrom((String) null));
         assertThrows(IllegalArgumentException.class, () -> generator.generateFrom(" "));
     }
 

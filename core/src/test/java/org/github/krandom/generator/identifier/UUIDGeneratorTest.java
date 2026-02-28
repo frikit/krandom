@@ -176,6 +176,11 @@ class UUIDGeneratorTest {
     }
 
     @Test
+    void testMessageDigestInvalidAlgorithmThrows() {
+        assertThrows(RuntimeException.class, () -> UUIDGenerator.messageDigest("NOT_A_REAL_ALGO"));
+    }
+
+    @Test
     void testGenerateMultipleV4UUIDs() {
         UUIDGenerator gen = new UUIDGenerator();
         Set<UUID> uuids = new HashSet<>();
