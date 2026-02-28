@@ -106,7 +106,7 @@ class FullNameGeneratorTest {
         @DisplayName("null gender throws NullPointerException")
         void nullGenderThrows() {
             assertThrows(NullPointerException.class,
-                    () -> new FullNameGenerator().generate(null));
+                    () -> new FullNameGenerator().generate((Gender) null));
         }
 
         @Test
@@ -178,6 +178,152 @@ class FullNameGeneratorTest {
             FullNameGenerator gen = new FullNameGenerator();
             for (int i = 0; i < 100; i++) names.add(gen.generate());
             assertTrue(names.size() >= 5, "Expected variety in generated names");
+        }
+    }
+
+    @Nested
+    @DisplayName("NameOptions")
+    class NameOptionsTests {
+
+        @Test
+        @DisplayName("generate(NameOptions) validates null options")
+        void nullOptionsThrows() {
+            FullNameGenerator gen = new FullNameGenerator();
+            assertThrows(NullPointerException.class, () -> gen.generate((FullNameGenerator.NameOptions) null));
+        }
+
+        @Test
+        @DisplayName("middle option adds third name component")
+        void middleOptionAddsMiddleName() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            String name = gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, null, null));
+            assertEquals(3, name.split(" ").length);
+        }
+
+        @Test
+        @DisplayName("middleInitial option formats initial with dot")
+        void middleInitialOption() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            String name = gen.generate(new FullNameGenerator.NameOptions(false, true, false, false, null, null));
+            String[] parts = name.split(" ");
+            assertEquals(3, parts.length);
+            assertTrue(parts[1].matches(".\\."));
+        }
+
+        @Test
+        @DisplayName("middleInitial option supports gender-specific generation")
+        void middleInitialWithGender() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            String name = gen.generate(new FullNameGenerator.NameOptions(false, true, false, false, Gender.MALE, null));
+            String[] parts = name.split(" ");
+            assertEquals(3, parts.length);
+            assertTrue(parts[1].matches(".\\."));
+        }
+
+        @Test
+        @DisplayName("middleInitial takes precedence when middle and middleInitial are both true")
+        void middleInitialTakesPrecedence() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            String name = gen.generate(new FullNameGenerator.NameOptions(true, true, false, false, null, null));
+            String[] parts = name.split(" ");
+            assertEquals(3, parts.length);
+            assertTrue(parts[1].matches(".\\."), "Expected middle initial precedence");
+        }
+
+        @Test
+        @DisplayName("prefix and suffix options add extra components")
+        void prefixAndSuffixOptions() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            String name = gen.generate(new FullNameGenerator.NameOptions(false, false, true, true, null, null));
+            assertEquals(4, name.split(" ").length);
+        }
+
+        @Test
+        @DisplayName("repeated option generation reuses cached locale helpers")
+        void repeatedGenerationReusesCachedLocaleHelpers() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            FullNameGenerator.NameOptions opts =
+                    new FullNameGenerator.NameOptions(true, false, true, true, Gender.FEMALE, "en");
+
+            String first = gen.generate(opts);
+            String second = gen.generate(opts);
+
+            assertEquals(5, first.split(" ").length);
+            assertEquals(5, second.split(" ").length);
+        }
+
+        @Test
+        @DisplayName("gender option produces valid two-part name")
+        void genderOption() {
+            FullNameGenerator gen = new FullNameGenerator(Locale.US);
+            String male = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, Gender.MALE, null));
+            String female = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, Gender.FEMALE, null));
+            assertEquals(2, male.split(" ").length);
+            assertEquals(2, female.split(" ").length);
+        }
+
+        @Test
+        @DisplayName("nationality option supports language token mapping")
+        void nationalityLanguageToken() {
+            FullNameGenerator gen = new FullNameGenerator();
+            String us = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "en"));
+            String it = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "it"));
+            assertEquals(2, us.split(" ").length);
+            assertEquals(2, it.split(" ").length);
+        }
+
+        @Test
+        @DisplayName("nationality option supports country token mapping")
+        void nationalityCountryToken() {
+            FullNameGenerator gen = new FullNameGenerator();
+            String uk = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "uk"));
+            String jp = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "jp"));
+            assertEquals(2, uk.split(" ").length);
+            assertEquals(2, jp.split(" ").length);
+        }
+
+        @Test
+        @DisplayName("seeded config supports nationality mapping through locale-specific config")
+        void seededNationalityMapping() {
+            GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+            FullNameGenerator gen = new FullNameGenerator(cfg);
+
+            String de = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "de"));
+            String fr = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "fr"));
+
+            assertEquals(2, de.split(" ").length);
+            assertEquals(2, fr.split(" ").length);
+        }
+
+        @Test
+        @DisplayName("blank nationality throws IllegalArgumentException")
+        void blankNationalityThrows() {
+            FullNameGenerator gen = new FullNameGenerator();
+            IllegalArgumentException ex = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, " "))
+            );
+            assertTrue(ex.getMessage().contains("nationality"));
+        }
+
+        @Test
+        @DisplayName("unsupported nationality throws UnsupportedOperationException")
+        void unsupportedNationalityThrows() {
+            FullNameGenerator gen = new FullNameGenerator();
+            assertThrows(
+                    UnsupportedOperationException.class,
+                    () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "hu"))
+            );
+        }
+
+        @Test
+        @DisplayName("middle option with locale that does not support middle names throws")
+        void middleWithUnsupportedLocaleThrows() {
+            FullNameGenerator gen = new FullNameGenerator();
+            assertThrows(
+                    UnsupportedOperationException.class,
+                    () -> gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, null, "es"))
+            );
         }
     }
 

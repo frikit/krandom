@@ -677,7 +677,7 @@ _None - awaiting next feature selection_
 | Feature                                                        | Chance.js Support                                                       | krandom Status | Implementation Priority | Notes                                                                               |
 |----------------------------------------------------------------|-------------------------------------------------------------------------|----------------|-------------------------|-------------------------------------------------------------------------------------|
 | **Names**                                                      |                                                                         |                |                         |                                                                                     |
-| Full name                                                      | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Partial      | MEDIUM                  | Middle + middle-initial supported; nationality remains locale-based                 |
+| Full name                                                      | ✅ `name({middle, middle_initial, prefix, suffix, gender, nationality})` | ✅ Yes          | ✓ DONE                  | `FullNameGenerator.generate(NameOptions)` supports middle/initial/prefix/suffix/gender/nationality |
 | First name                                                     | ✅ `first({gender, nationality})`                                        | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator` (10 locales, gender-aware)                                     |
 | Last name                                                      | ✅ `last()`                                                              | ✅ Yes          | ✓ DONE                  | `LastNameGenerator` (10 locales)                                                    |
 | Middle name                                                    | ✅ `name({middle: true})`                                                | ✅ Yes          | ✓ DONE                  | `MiddleNameGenerator` + `FullNameGenerator.generateWithMiddleName(...)`             |
@@ -685,7 +685,7 @@ _None - awaiting next feature selection_
 | Name prefix                                                    | ✅ `prefix({gender})`                                                    | ✅ Yes          | ✓ DONE                  | `TitleGenerator` (10 locales, no gender filter)                                     |
 | Name suffix                                                    | ✅ `suffix()`                                                            | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` (10 locales)                                                      |
 | Gender-specific names                                          | ✅ `first({gender: 'male'/'female'})`                                    | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)`                                                  |
-| Nationality support                                            | ✅ `name({nationality: 'en'/'it'})`                                      | ✅ Partial      | MEDIUM                  | Via locale (10 built-in), not a string param                                        |
+| Nationality support                                            | ✅ `name({nationality: 'en'/'it'})`                                      | ✅ Yes          | ✓ DONE                  | `NameOptions.nationality` supports language/country tokens mapped to locales        |
 | US nationality                                                 | ✅ `first({nationality: 'us'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.US)`                                                 |
 | Italian nationality                                            | ✅ `first({nationality: 'it'})`                                          | ✅ Yes          | ✓ DONE                  | `new FirstNameGenerator(Locale.of("it","IT"))`                                      |
 | **Demographics**                                               |                                                                         |                |                         |                                                                                     |
@@ -807,7 +807,7 @@ _None - awaiting next feature selection_
 | Twitter handle    | ✅ `twitter()`                                                | ❌ No           | LOW                     | '@dafivatemin'                  |
 | Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | LOW                     | Gravatar URLs                   |
 | **Business**      |
-| Company name      | ✅ `company()`                                                | ❌ No           | MEDIUM                  | 'Jombo LLC'                     |
+| Company name      | ✅ `company()`                                                | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate()` |
 | Profession        | ✅ `profession({ranked})`                                     | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()` |
 | Ranked profession | ✅ `profession({ranked: true})`                               | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate(true)` / `generateRanked()` |
 
@@ -920,7 +920,7 @@ _None - awaiting next feature selection_
 | Feature                | Chance.js                        | krandom | Priority | Implementation Notes                                   |
 |------------------------|----------------------------------|---------|----------|--------------------------------------------------------|
 | **Rich Options**       |
-| Extensive parameters   | ✅ Every method has options       | ❌ No    | HIGH     | name({middle, prefix, suffix, gender, nationality})    |
+| Extensive parameters   | ✅ Every method has options       | ✅ Partial | MEDIUM   | `FullNameGenerator` now supports Chance-style composite options; broader API-wide option parity still incomplete |
 | Default values         | ✅ Sensible defaults              | ✅ Yes   | ✓ DONE   | Works without options                                  |
 | Option combinations    | ✅ Multiple options work together | ❌ No    | MEDIUM   | Composable parameters                                  |
 | **Likelihood Control** |
@@ -955,7 +955,7 @@ _None - awaiting next feature selection_
 | IQ-like data           | ✅ `normal({mean: 100, dev: 15})` | ✅ Yes   | ✓ DONE   | `Generators.ofNormal(100.0, 15.0)`             |
 | **Weighted Selection** |
 | Weighted arrays        | ✅ `weighted(['a','b'], [7,3])`   | ✅ Yes   | ✓ DONE   | `Generators.weighted(values, weights)`         |
-| Integer weights        | ✅ Any positive integers          | ❌ No    | HIGH     | Flexible weighting — not yet                   |
+| Integer weights        | ✅ Any positive integers          | ✅ Yes   | ✓ DONE   | `WeightedGenerator` accepts positive integer weights |
 
 ### Natural Language Features
 
