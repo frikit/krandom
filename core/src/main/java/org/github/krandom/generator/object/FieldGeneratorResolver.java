@@ -43,13 +43,24 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -280,28 +291,41 @@ final class FieldGeneratorResolver {
         }
 
         // ── 5b. List / Set ────────────────────────────────────────────────────
-        if (List.class.isAssignableFrom(rawType) || Set.class.isAssignableFrom(rawType)) {
+        if (List.class.isAssignableFrom(rawType)
+                || Set.class.isAssignableFrom(rawType)
+                || Queue.class.isAssignableFrom(rawType)
+                || Deque.class.isAssignableFrom(rawType)) {
             Class<?> elem = typeArg(genericType, 0);
             List<Object> els = new ArrayList<>(DEFAULT_ELEMENT_COUNT);
             for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
                 els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
             }
-            return List.class.isAssignableFrom(rawType)
-                    ? Collections.unmodifiableList(els)
-                    : new LinkedHashSet<>(els);
+            if (Queue.class.isAssignableFrom(rawType) || Deque.class.isAssignableFrom(rawType)) {
+                return toQueueType(rawType, els);
+            }
+            if (Set.class.isAssignableFrom(rawType)) {
+                return toSetType(rawType, els);
+            }
+            if (LinkedList.class == rawType) {
+                return new LinkedList<>(els);
+            }
+            return Collections.unmodifiableList(els);
         }
 
         // ── 5c. Map ───────────────────────────────────────────────────────────
         if (Map.class.isAssignableFrom(rawType)) {
             Class<?> k = typeArg(genericType, 0);
             Class<?> v = typeArg(genericType, 1);
-            Map<Object, Object> map = new LinkedHashMap<>();
+            Map<Object, Object> map = toMapType(rawType);
             for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
                 Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth, null);
                 Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth, null);
                 if (key != null) map.put(key, val);
             }
-            return Collections.unmodifiableMap(map);
+            if (rawType == Map.class) {
+                return Collections.unmodifiableMap(map);
+            }
+            return map;
         }
 
         // ── 5d. Optional ──────────────────────────────────────────────────────
@@ -381,6 +405,39 @@ final class FieldGeneratorResolver {
             if (arg[idx] instanceof Class<?> c) return c;
         }
         return Object.class; // raw or erased — resolveAndGenerate handles Object gracefully
+    }
+
+    private static Set<Object> toSetType(Class<?> rawType, List<Object> values) {
+        if (rawType == TreeSet.class
+                || rawType == SortedSet.class
+                || rawType == NavigableSet.class) {
+            Set<Object> set = new TreeSet<>(Comparator.comparing(String::valueOf));
+            set.addAll(values);
+            return set;
+        }
+        return new LinkedHashSet<>(values);
+    }
+
+    private static Queue<Object> toQueueType(Class<?> rawType, List<Object> values) {
+        Queue<Object> queue;
+        if (rawType == PriorityQueue.class) {
+            queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
+        } else if (rawType == LinkedList.class) {
+            queue = new LinkedList<>();
+        } else {
+            queue = new java.util.ArrayDeque<>();
+        }
+        queue.addAll(values);
+        return queue;
+    }
+
+    private static Map<Object, Object> toMapType(Class<?> rawType) {
+        if (rawType == TreeMap.class
+                || rawType == SortedMap.class
+                || rawType == NavigableMap.class) {
+            return new TreeMap<>(Comparator.comparing(String::valueOf));
+        }
+        return new LinkedHashMap<>();
     }
 
     private static Generator<?> annotationRandomizerFor(AnnotatedElement element) {

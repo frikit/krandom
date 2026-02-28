@@ -14,7 +14,7 @@
 
 ## Java Execution Plan
 
-- Active plan: `docs/feature-parity/easy-random-java-plan.md`
+- Active plan: `docs/plans/easy-random-java-plan.md`
 - Current scope: Java parity only (Kotlin/Scala deferred)
 - Delivery model: one parity slice at a time with tests + `./scripts/pre_commit_check.sh`
 
@@ -161,7 +161,7 @@ Easy Random is a specialized library focused on **object graph randomization** r
 **Implementation Metrics:**
 
 - **Total Features Implemented**: 70+ features across all categories
-- **Test Coverage**: 99.9% line, 99.8% branch
+- **Test Coverage**: 99.8% line, 99.6% branch
 - **Algorithms**: Sieve of Eratosthenes (primes), Box-Muller (normal dist.), Luhn (cards), ISO 7064 (national IDs), ISBN-10/13 check digits
 - **Pre-commit Checks**: ALL PASSING ✅
 
@@ -370,18 +370,18 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | Array population                  | ✅ Within collectionSizeRange                     | ✅ Yes          | ✓ DONE                  | krandom: DEFAULT_ELEMENT_COUNT  |
 | **Collections (JCF)**             |
 | List / ArrayList                  | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Unmodifiable list               |
-| LinkedList                        | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| LinkedList                        | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
 | Set / HashSet                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LinkedHashSet                   |
 | LinkedHashSet                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| TreeSet                           | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| Queue / ArrayDeque                | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
-| PriorityQueue                     | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| TreeSet                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| Queue / ArrayDeque                | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
+| PriorityQueue                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
 | Collection randomizers            | ✅ ListRandomizer, SetRandomizer, QueueRandomizer | ❌ No           | LOW                     | Dedicated randomizers           |
 | EnumSet                           | ✅ EnumSetRandomizer                              | ❌ No           | LOW                     |                                 |
 | **Maps**                          |
 | Map / HashMap                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | LinkedHashMap, unmodifiable     |
 | LinkedHashMap                     | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
-| TreeMap                           | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
+| TreeMap                           | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  |                                 |
 | Hashtable                         | ✅ Yes                                            | ❌ No           | LOW                     | Legacy                          |
 | WeakHashMap                       | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
 | IdentityHashMap                   | ✅ Yes                                            | ❌ No           | LOW                     |                                 |
