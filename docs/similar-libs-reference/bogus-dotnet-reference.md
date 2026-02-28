@@ -617,9 +617,9 @@ public class OrderTests
 
 | Bogus feature                | Category | Suggested krandom location                 |
 |------------------------------|----------|--------------------------------------------|
-| `f.Internet.UserAgent()`     | Internet | `UserAgentGenerator` in `network` package  |
+| `f.Internet.UserAgent()`     | Internet | `UserAgentGenerator` in `generator.network` package  |
 | `f.Internet.Password()`      | Internet | `PasswordGenerator` in `user` package      |
-| `f.Internet.Mac()`           | Network  | `MacAddressGenerator` in `network` package |
+| `f.Internet.Mac()`           | Network  | `MacAddressGenerator` in `generator.network` package |
 | `f.Internet.Color()`         | Color    | `ColorGenerator`                           |
 | `f.Finance.Iban()`           | Finance  | `IbanGenerator`                            |
 | `f.Finance.BitcoinAddress()` | Finance  | `CryptoAddressGenerator`                   |

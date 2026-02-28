@@ -495,8 +495,8 @@ print(fake.paint_colour())   # "Cerulean"
 | `ein()`                                                                | None                                                      | Gap                           |
 | **internet**                                                           |                                                           |                               |
 | `email()`                                                              | `user/Email.kt`                                           | Implemented                   |
-| `ipv4()`                                                               | `network/IPv4Generator.java`                              | Implemented                   |
-| `ipv6()`                                                               | `network/IPv6Generator.java`                              | Implemented                   |
+| `ipv4()`                                                               | `generator/network/IPv4Generator.java`                    | Implemented                   |
+| `ipv6()`                                                               | `generator/network/IPv6Generator.java`                    | Implemented                   |
 | `user_name()`                                                          | `user/Username.kt`                                        | Implemented                   |
 | `url()`                                                                | None                                                      | Gap                           |
 | `mac_address()`                                                        | None                                                      | Gap                           |

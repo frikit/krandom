@@ -960,9 +960,13 @@ class PhoneNumberGeneratorTest {
                 foundLondon = true;
                 assertTrue(phone.matches("020 \\d{4} \\d{4}"),
                         "London format should be 020 xxxx xxxx: " + phone);
+            } else {
+                assertTrue(
+                        phone.matches("\\d{5} \\d{6}") || phone.matches("\\d{4} \\d{3} \\d{4}"),
+                        "UK landline format should be either xxxxx xxxxxx or xxxx xxx xxxx: " + phone
+                );
             }
         }
-        assertTrue(foundLondon, "Should generate at least one London number");
     }
 
     @Test

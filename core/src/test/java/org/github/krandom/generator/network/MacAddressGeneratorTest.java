@@ -3,7 +3,7 @@
  *
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
-package org.github.krandom.network;
+package org.github.krandom.generator.network;
 
 import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;

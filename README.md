@@ -83,12 +83,14 @@ All primitive generators implement `Generator<T>` with `generate()`, `generateLi
 |   Prime numbers   |      ✅      |   ✅    |
 | Composite numbers |      ✅      |   ✅    |
 
-### Network generators (Java layer — `org.github.krandom.network`)
+### Network generators (Java layer — `org.github.krandom.generator.network`)
 
 |         Generator          | Layer | Implemented | Tested |
 |:--------------------------:|:-----:|:-----------:|:------:|
 |  IPv4 (RFC 791, unicast)   | Java  |      ✅      |   ✅    |
 | IPv6 (RFC 4291 / RFC 5952) | Java  |      ✅      |   ✅    |
+
+Legacy imports under `org.github.krandom.network` remain available as deprecated compatibility wrappers.
 
 ### String generators (Kotlin layer — `org.github.krandom.common.string`)
 
