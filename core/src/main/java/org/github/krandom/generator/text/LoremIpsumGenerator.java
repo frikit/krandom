@@ -56,10 +56,17 @@ public final class LoremIpsumGenerator implements Generator<String> {
         "cupidatat", "proident", "sunt", "culpa", "qui", "officia", "deserunt", "mollit",
         "anim", "id", "est", "laborum"
     };
+    private static final String[] CORPUS_SEQUENCE = (
+            "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore " +
+            "magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat " +
+            "duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat " +
+            "cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum"
+    ).split("\\s+");
 
     private final Mode mode;
     private final GeneratorConfig config;
     private final Random random;
+    private final NextWordGenerator nextWordGenerator;
 
     /** Creates a generator in {@link Mode#SENTENCE} mode with default configuration. */
     public LoremIpsumGenerator() {
@@ -99,6 +106,7 @@ public final class LoremIpsumGenerator implements Generator<String> {
         this.random = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();
+        this.nextWordGenerator = new NextWordGenerator(config, CORPUS_SEQUENCE);
     }
 
     /**
@@ -145,17 +153,7 @@ public final class LoremIpsumGenerator implements Generator<String> {
      * @throws IllegalArgumentException if {@code wordCount} is not positive
      */
     public String generateSentence(int wordCount) {
-        if (wordCount <= 0) {
-            throw new IllegalArgumentException("wordCount must be positive, got: " + wordCount);
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < wordCount; i++) {
-            if (i > 0) sb.append(' ');
-            sb.append(generateWord());
-        }
-        sb.setCharAt(0, Character.toUpperCase(sb.charAt(0)));
-        sb.append('.');
-        return sb.toString();
+        return nextWordGenerator.generateSentence(wordCount);
     }
 
     /**
