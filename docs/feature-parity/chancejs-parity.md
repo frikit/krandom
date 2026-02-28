@@ -10,6 +10,12 @@
 - **License**: MIT
 - **Key Strengths**: Mobile-first support, weighted random, natural language generation, extensive options parameters, minimalist fluent API
 
+## Java Execution Plan
+
+- Active plan: `docs/plans/chancejs-java-plan.md`
+- Current scope: Java parity only (Kotlin/Scala deferred)
+- Delivery model: one parity slice at a time with tests + `./scripts/pre_commit_check.sh`
+
 ## Executive Summary
 
 Chance.js is a minimalist yet powerful random data generator for JavaScript with unique strengths in **weighted random selection**, **normally-distributed values**, **mobile device support**, and *
@@ -28,7 +34,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 ## Implementation Status
 
-**Last Updated**: 2026-02-28 (session 6)
+**Last Updated**: 2026-02-28 (session 6; Java phased plan moved to `docs/plans/chancejs-java-plan.md`)
 
 ### Completed Features ✅
 
