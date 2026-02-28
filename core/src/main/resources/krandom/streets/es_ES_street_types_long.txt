@@ -1,0 +1,10 @@
+Calle
+Avenida
+Paseo
+Plaza
+Carretera
+Camino
+Travesia
+Glorieta
+Plaza Mayor
+Rambla

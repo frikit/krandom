@@ -1,0 +1,10 @@
+Via
+Corso
+Piazza
+Viale
+Strada
+Largo
+Borgo
+Via Centrale
+Piazzale
+Rotonda

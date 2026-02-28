@@ -1,0 +1,10 @@
+Street
+Avenue
+Boulevard
+Drive
+Road
+Lane
+Court
+Place
+Way
+Circle

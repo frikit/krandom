@@ -1,0 +1,10 @@
+Rua
+Avenida
+Alameda
+Praca
+Travessa
+Rodovia
+Largo
+Estrada
+Via
+Parque

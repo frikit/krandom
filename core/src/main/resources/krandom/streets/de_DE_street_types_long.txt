@@ -1,0 +1,10 @@
+Strasse
+Weg
+Platz
+Gasse
+Allee
+Ring
+Steig
+Pfad
+Ufer
+Tor

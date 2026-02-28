@@ -1,0 +1,10 @@
+Street
+Road
+Avenue
+Lane
+Court
+Place
+Gardens
+Square
+Way
+Terrace

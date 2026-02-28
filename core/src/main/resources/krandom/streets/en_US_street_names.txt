@@ -1,0 +1,22 @@
+# US street names
+
+Main
+Oak
+Maple
+Cedar
+Pine
+Elm
+Washington
+Park
+Lake
+Hill
+Ridge
+Forest
+Meadow
+River
+Sunset
+Spring
+Valley
+Highland
+Willow
+Lincoln

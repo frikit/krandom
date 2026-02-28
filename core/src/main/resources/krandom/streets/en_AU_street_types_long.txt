@@ -1,0 +1,10 @@
+Street
+Road
+Avenue
+Drive
+Lane
+Court
+Place
+Crescent
+Parade
+Way

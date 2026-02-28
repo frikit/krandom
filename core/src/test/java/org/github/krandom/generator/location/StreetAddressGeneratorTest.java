@@ -8,10 +8,11 @@ package org.github.krandom.generator.location;
 import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,124 +20,292 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("StreetAddressGenerator")
 class StreetAddressGeneratorTest {
 
-    private static final int SAMPLES = 50;
+    private static final int SAMPLES = 80;
 
-    @Nested
-    @DisplayName("Constructors")
-    class ConstructorTests {
+    @Test
+    @DisplayName("default constructor uses Locale.US")
+    void defaultConstructorUsesUs() {
+        StreetAddressGenerator gen = new StreetAddressGenerator();
+        assertEquals(Locale.US, gen.getLocale());
+        assertTrue(gen.getStreetNameCount() > 0);
+    }
 
-        @Test
-        @DisplayName("default constructor creates a working generator")
-        void defaultConstructor() {
-            assertNotNull(new StreetAddressGenerator().generate());
-        }
+    @Test
+    @DisplayName("locale constructor stores locale")
+    void localeConstructor() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.GERMANY);
+        assertEquals(Locale.GERMANY, gen.getLocale());
+    }
 
-        @Test
-        @DisplayName("config constructor creates a working generator")
-        void configConstructor() {
-            GeneratorConfig cfg = GeneratorConfig.defaults();
-            assertNotNull(new StreetAddressGenerator(cfg).generate());
-        }
+    @Test
+    @DisplayName("config constructor stores locale")
+    void configConstructor() {
+        GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.JAPAN).build();
+        StreetAddressGenerator gen = new StreetAddressGenerator(cfg);
+        assertEquals(Locale.JAPAN, gen.getLocale());
+    }
 
-        @Test
-        @DisplayName("null config throws NullPointerException")
-        void nullConfigThrows() {
-            assertThrows(NullPointerException.class,
-                    () -> new StreetAddressGenerator(null));
+    @Test
+    @DisplayName("generate() returns three-part address")
+    void generateThreePart() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        for (int i = 0; i < SAMPLES; i++) {
+            String[] parts = gen.generate().split(" ");
+            assertEquals(3, parts.length);
         }
     }
 
-    @Nested
-    @DisplayName("generate()")
-    class GenerateTests {
-
-        @Test
-        @DisplayName("generate() returns non-null")
-        void notNull() {
-            assertNotNull(new StreetAddressGenerator().generate());
-        }
-
-        @Test
-        @DisplayName("generate() has three space-separated parts")
-        void threePartAddress() {
-            for (int i = 0; i < SAMPLES; i++) {
-                String address = new StreetAddressGenerator().generate();
-                String[] parts = address.split(" ");
-                assertEquals(3, parts.length,
-                        "Expected 3 parts in address: " + address);
-            }
-        }
-
-        @Test
-        @DisplayName("house number is a positive integer in [1, 9999]")
-        void houseNumberInRange() {
-            for (int i = 0; i < SAMPLES; i++) {
-                String address = new StreetAddressGenerator().generate();
-                int number = Integer.parseInt(address.split(" ")[0]);
-                assertTrue(number >= 1 && number <= 9999,
-                        "House number out of range: " + number);
-            }
-        }
-
-        @Test
-        @DisplayName("generate() produces variety")
-        void producesVariety() {
-            Set<String> addresses = new HashSet<>();
-            StreetAddressGenerator gen = new StreetAddressGenerator();
-            for (int i = 0; i < 100; i++) addresses.add(gen.generate());
-            assertTrue(addresses.size() >= 10, "Expected variety in generated addresses");
+    @Test
+    @DisplayName("number is in [1,9999]")
+    void numberRange() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        for (int i = 0; i < SAMPLES; i++) {
+            int number = Integer.parseInt(gen.generate().split(" ")[0]);
+            assertTrue(number >= 1 && number <= 9999);
         }
     }
 
-    @Nested
-    @DisplayName("Seeded generation")
-    class SeededTests {
-
-        @Test
-        @DisplayName("seeded generators produce identical output")
-        void seededReproducibility() {
-            GeneratorConfig cfg1 = GeneratorConfig.builder().seed(42L).build();
-            GeneratorConfig cfg2 = GeneratorConfig.builder().seed(42L).build();
-            StreetAddressGenerator a = new StreetAddressGenerator(cfg1);
-            StreetAddressGenerator b = new StreetAddressGenerator(cfg2);
-            for (int i = 0; i < SAMPLES; i++) {
-                assertEquals(a.generate(), b.generate());
-            }
-        }
-
-        @Test
-        @DisplayName("different seeds produce different output over many calls")
-        void differentSeedsDiffer() {
-            GeneratorConfig cfg1 = GeneratorConfig.builder().seed(1L).build();
-            GeneratorConfig cfg2 = GeneratorConfig.builder().seed(999L).build();
-            StreetAddressGenerator a = new StreetAddressGenerator(cfg1);
-            StreetAddressGenerator b = new StreetAddressGenerator(cfg2);
-            boolean anyDiff = false;
-            for (int i = 0; i < 20; i++) {
-                if (!a.generate().equals(b.generate())) {
-                    anyDiff = true;
-                    break;
-                }
-            }
-            assertTrue(anyDiff, "Different seeds should produce different addresses");
+    @Test
+    @DisplayName("generate(true) uses short suffixes")
+    void shortSuffixMode() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        Set<String> shortSuffixes = Set.of("St", "Ave", "Blvd", "Dr", "Rd", "Ln", "Ct", "Pl", "Way", "Cir");
+        for (int i = 0; i < SAMPLES; i++) {
+            String suffix = gen.generate(true).split(" ")[2];
+            assertTrue(shortSuffixes.contains(suffix));
         }
     }
 
-    @Nested
-    @DisplayName("Generators factory")
-    class GeneratorsFactoryTest {
-
-        @Test
-        @DisplayName("Generators.ofStreetAddress() returns non-null value")
-        void ofStreetAddressDefault() {
-            assertNotNull(Generators.ofStreetAddress().generate());
+    @Test
+    @DisplayName("generate(false) uses long suffixes")
+    void longSuffixMode() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        Set<String> longSuffixes = Set.of("Street", "Avenue", "Boulevard", "Drive", "Road", "Lane", "Court", "Place", "Way", "Circle");
+        for (int i = 0; i < SAMPLES; i++) {
+            String suffix = gen.generate(false).split(" ")[2];
+            assertTrue(longSuffixes.contains(suffix));
         }
+    }
 
-        @Test
-        @DisplayName("Generators.ofStreetAddress() produces a three-part address")
-        void ofStreetAddressFormat() {
-            String address = Generators.ofStreetAddress().generate();
-            assertEquals(3, address.split(" ").length);
+    @Test
+    @DisplayName("locale-specific German street names appear")
+    void germanLocaleNames() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.GERMANY);
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < 300; i++) {
+            seen.add(gen.generate(false));
         }
+        assertTrue(seen.stream().anyMatch(s -> s.contains("Haupt") || s.contains("Schloss") || s.contains("Bahnhof")));
+    }
+
+    @Test
+    @DisplayName("locale-specific Japanese street names appear")
+    void japaneseLocaleNames() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.JAPAN);
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < 300; i++) {
+            seen.add(gen.generate(false));
+        }
+        assertTrue(seen.stream().anyMatch(s -> s.codePoints().anyMatch(cp -> cp > 127)));
+    }
+
+    @Test
+    @DisplayName("seeded generation reproducible for short and long modes")
+    void seededReproducibility() {
+        GeneratorConfig cfg1 = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        GeneratorConfig cfg2 = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        StreetAddressGenerator a = new StreetAddressGenerator(cfg1);
+        StreetAddressGenerator b = new StreetAddressGenerator(cfg2);
+
+        for (int i = 0; i < SAMPLES; i++) {
+            assertEquals(a.generate(), b.generate());
+            assertEquals(a.generate(false), b.generate(false));
+        }
+    }
+
+    @Test
+    @DisplayName("different seeds produce different sequences")
+    void differentSeedsDifferent() {
+        GeneratorConfig cfg1 = GeneratorConfig.builder().locale(Locale.US).seed(1L).build();
+        GeneratorConfig cfg2 = GeneratorConfig.builder().locale(Locale.US).seed(2L).build();
+        StreetAddressGenerator a = new StreetAddressGenerator(cfg1);
+        StreetAddressGenerator b = new StreetAddressGenerator(cfg2);
+
+        boolean anyDiff = false;
+        for (int i = 0; i < 20; i++) {
+            if (!a.generate().equals(b.generate())) {
+                anyDiff = true;
+                break;
+            }
+        }
+        assertTrue(anyDiff);
+    }
+
+    @Test
+    @DisplayName("unsupported locale throws UnsupportedOperationException")
+    void unsupportedLocaleThrows() {
+        UnsupportedOperationException ex = assertThrows(
+                UnsupportedOperationException.class,
+                () -> new StreetAddressGenerator(Locale.of("xx", "YY"))
+        );
+        assertTrue(ex.getMessage().contains("not supported"));
+    }
+
+    @Test
+    @DisplayName("null config throws NullPointerException")
+    void nullConfigThrows() {
+        assertThrows(NullPointerException.class, () -> new StreetAddressGenerator((GeneratorConfig) null));
+    }
+
+    @Test
+    @DisplayName("null locale throws NullPointerException")
+    void nullLocaleThrows() {
+        assertThrows(NullPointerException.class, () -> new StreetAddressGenerator((Locale) null));
+    }
+
+    @Test
+    @DisplayName("isLocaleExplicitlySupported returns true for built-in locale")
+    void isLocaleSupported() {
+        assertTrue(new StreetAddressGenerator(Locale.US).isLocaleExplicitlySupported());
+    }
+
+    @Test
+    @DisplayName("generateList and stream produce expected counts")
+    void generateListAndStream() {
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        List<String> list = gen.generateList(10);
+        assertEquals(10, list.size());
+        assertEquals(15, gen.stream().limit(15).count());
+    }
+
+    @Test
+    @DisplayName("registry custom locale registration works")
+    void customLocaleRegistration() {
+        Locale koKr = Locale.of("ko", "KR");
+        StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
+            @Override
+            public Locale getLocale() { return koKr; }
+
+            @Override
+            public String[] getStreetNames() { return new String[]{"한강", "남산"}; }
+
+            @Override
+            public String[] getStreetTypesShort() { return new String[]{"로", "길"}; }
+
+            @Override
+            public String[] getStreetTypesLong() { return new String[]{"대로", "거리"}; }
+        });
+
+        StreetAddressGenerator gen = new StreetAddressGenerator(koKr);
+        assertNotNull(gen.generate());
+        assertTrue(StreetAddressDataRegistry.registeredKeys().contains("ko_KR"));
+    }
+
+    @Test
+    @DisplayName("registry override built-in locale works")
+    void registryOverrideBuiltIn() {
+        StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
+            @Override
+            public Locale getLocale() { return Locale.US; }
+
+            @Override
+            public String[] getStreetNames() { return new String[]{"TestStreet"}; }
+
+            @Override
+            public String[] getStreetTypesShort() { return new String[]{"TS"}; }
+
+            @Override
+            public String[] getStreetTypesLong() { return new String[]{"TestSuffix"}; }
+        });
+
+        StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
+        assertTrue(gen.generate(true).contains("TestStreet TS"));
+        assertTrue(gen.generate(false).contains("TestStreet TestSuffix"));
+
+        StreetAddressDataRegistry.register(LocaleStreetAddressData.EN_US);
+    }
+
+    @Test
+    @DisplayName("registry null and validation errors")
+    void registryValidation() {
+        assertThrows(NullPointerException.class, () -> StreetAddressDataRegistry.register(null));
+        assertFalse(StreetAddressDataRegistry.isRegistered(null));
+        assertNull(StreetAddressDataRegistry.forLocale(null));
+
+        assertThrows(NullPointerException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
+            @Override
+            public Locale getLocale() { return null; }
+
+            @Override
+            public String[] getStreetNames() { return new String[]{"A"}; }
+
+            @Override
+            public String[] getStreetTypesShort() { return new String[]{"B"}; }
+
+            @Override
+            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
+            @Override
+            public Locale getLocale() { return Locale.of("tt", "TT"); }
+
+            @Override
+            public String[] getStreetNames() { return new String[0]; }
+
+            @Override
+            public String[] getStreetTypesShort() { return new String[]{"B"}; }
+
+            @Override
+            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
+            @Override
+            public Locale getLocale() { return Locale.of("uu", "UU"); }
+
+            @Override
+            public String[] getStreetNames() { return new String[]{"A"}; }
+
+            @Override
+            public String[] getStreetTypesShort() { return new String[]{" "}; }
+
+            @Override
+            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+        }));
+
+        assertThrows(NullPointerException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
+            @Override
+            public Locale getLocale() { return Locale.of("vv", "VV"); }
+
+            @Override
+            public String[] getStreetNames() { return null; }
+
+            @Override
+            public String[] getStreetTypesShort() { return new String[]{"B"}; }
+
+            @Override
+            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
+            @Override
+            public Locale getLocale() { return Locale.of("ww", "WW"); }
+
+            @Override
+            public String[] getStreetNames() { return new String[]{"A", null}; }
+
+            @Override
+            public String[] getStreetTypesShort() { return new String[]{"B"}; }
+
+            @Override
+            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+        }));
+    }
+
+    @Test
+    @DisplayName("Generators.ofStreetAddress returns working generator")
+    void generatorsFactory() {
+        assertNotNull(Generators.ofStreetAddress().generate());
     }
 }

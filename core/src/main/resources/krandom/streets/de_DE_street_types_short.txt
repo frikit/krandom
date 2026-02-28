@@ -1,0 +1,10 @@
+Str.
+Weg
+Pl.
+G.
+Al.
+Ring
+Steig
+Pfad
+Ufer
+Tor

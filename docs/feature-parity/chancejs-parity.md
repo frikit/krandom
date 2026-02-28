@@ -717,8 +717,8 @@ _None - awaiting next feature selection_
 | Feature            | Chance.js Support                       | krandom Status | Implementation Priority | Notes                    |
 |--------------------|-----------------------------------------|----------------|-------------------------|--------------------------|
 | **Street Address** |
-| Full address       | ✅ `address({short_suffix})`             | ❌ No           | HIGH                    | '5447 Bazpe Lane'        |
-| Short suffix       | ✅ `address({short_suffix: true})`       | ❌ No           | MEDIUM                  | 'Rd' vs 'Road'           |
+| Full address       | ✅ `address({short_suffix})`             | ✅ Yes          | ✓ DONE                  | Locale-aware `StreetAddressGenerator` (10 locales) |
+| Short suffix       | ✅ `address({short_suffix: true})`       | ✅ Yes          | ✓ DONE                  | `generate(true)` short suffix, `generate(false)` long suffix |
 | **City**           |
 | City name          | ✅ `city()`                              | ✅ Yes          | HIGH                    | Random city names        |
 | **State/Province** |

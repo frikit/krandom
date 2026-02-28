@@ -1,0 +1,10 @@
+St
+Ave
+Blvd
+Dr
+Rd
+Ln
+Ct
+Pl
+Way
+Cir
