@@ -44,6 +44,36 @@ public final class BicGenerator implements Generator<String> {
         return generate(config.getLocale(), random.nextBoolean());
     }
 
+    /**
+     * Generates a SWIFT/BIC code with either 8 or 11 characters.
+     * Faker-style alias: {@code swift()}.
+     *
+     * @return SWIFT/BIC code
+     */
+    public String generateSwift() {
+        return generate();
+    }
+
+    /**
+     * Generates an 8-character SWIFT/BIC code.
+     * Faker-style alias: {@code swift8()}.
+     *
+     * @return 8-character SWIFT/BIC
+     */
+    public String generateSwift8() {
+        return generate(false);
+    }
+
+    /**
+     * Generates an 11-character SWIFT/BIC code.
+     * Faker-style alias: {@code swift11()}.
+     *
+     * @return 11-character SWIFT/BIC
+     */
+    public String generateSwift11() {
+        return generate(true);
+    }
+
     public String generate(boolean withBranch) {
         return generate(config.getLocale(), withBranch);
     }

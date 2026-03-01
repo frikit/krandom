@@ -62,6 +62,27 @@ class TextGeneratorTest {
     }
 
     @Test
+    @DisplayName("default locale vocabulary affects output")
+    void localeVocabulary() {
+        GeneratorConfig usCfg = GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
+        GeneratorConfig deCfg = GeneratorConfig.builder().seed(123L).locale(Locale.GERMANY).build();
+        String us = new TextGenerator(usCfg).generate(80);
+        String de = new TextGenerator(deCfg).generate(80);
+        assertNotEquals(us, de);
+    }
+
+    @Test
+    @DisplayName("unknown locale language falls back to default vocabulary")
+    void unknownLocaleFallback() {
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(321L).locale(Locale.of("ru", "RU")).build();
+        String text = new TextGenerator(cfg).generate(80);
+        assertTrue(text.contains("alpha")
+                || text.contains("beta")
+                || text.contains("gamma")
+                || text.contains("delta"));
+    }
+
+    @Test
     @DisplayName("invalid options throw")
     void invalid() {
         assertThrows(IllegalArgumentException.class, () -> new TextGenerator.TextOptions(0, null, false, true));

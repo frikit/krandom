@@ -69,20 +69,20 @@ Acceptance:
 
 Goal: close medium-priority parity for business and content fixtures.
 
-- [ ] Finance:
-    - [ ] credit-card suite (`number`, `expiry`, `security_code`, `provider`, `full`)
-    - [ ] banking (`iban`, `swift/bic`, `aba`)
-    - [ ] currency suite (`currency`, `currency_code`, `currency_name`, `currency_symbol`, `pricetag`)
-- [ ] Company/job:
-    - [ ] `company`, `company_suffix`, `bs`, `catch_phrase`
-    - [ ] `job`
-- [ ] Text/lorem:
-    - [ ] `word/words`, `sentence/sentences`, `paragraph/paragraphs`
-    - [ ] `text/texts`, uniqueness and variable-length options
-- [ ] Phone and numeric/code providers:
-    - [ ] `phone_number`, `country_calling_code`, `msisdn`
-    - [ ] `pydecimal`, weighted/nullable booleans
-    - [ ] EAN family, hash suite (`sha1`, `sha256`, etc.)
+- [x] Finance:
+    - [x] credit-card suite (`number`, `expiry`, `security_code`, `provider`, `full`)
+    - [x] banking (`iban`, `swift/bic`, `aba`)
+    - [x] currency suite (`currency`, `currency_code`, `currency_name`, `currency_symbol`, `pricetag`)
+- [x] Company/job:
+    - [x] `company`, `company_suffix`, `bs`, `catch_phrase`
+    - [x] `job`
+- [x] Text/lorem:
+    - [x] `word/words`, `sentence/sentences`, `paragraph/paragraphs`
+    - [x] `text/texts`, uniqueness and variable-length options
+- [x] Phone and numeric/code providers:
+    - [x] `phone_number`, `country_calling_code`, `msisdn`
+    - [x] `pydecimal`, weighted/nullable booleans
+    - [x] EAN family, hash suite (`sha1`, `sha256`, etc.)
 
 Acceptance:
 
@@ -123,8 +123,8 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 1 complete**
-- Status: **In progress (Phase 2+ remaining)**
+- Current step: **Phase 2 complete**
+- Status: **In progress (Phase 3+ remaining)**
 - Next deliverable:
-    - Start Phase 2 with test-first implementation (finance/company/text/phone/codes P1 set).
+    - Execute Phase 3 locale-depth improvements (option bags + broader locale determinism tests).
     - Run `./scripts/pre_commit_check.sh` after each feature slice.

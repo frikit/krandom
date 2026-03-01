@@ -21,8 +21,14 @@ class BicIsinGeneratorTest {
         BicGenerator gen = new BicGenerator(Locale.GERMANY);
         String bic8 = gen.generate(false);
         String bic11 = gen.generate(true);
+        String swift = gen.generateSwift();
+        String swift8 = gen.generateSwift8();
+        String swift11 = gen.generateSwift11();
         assertTrue(bic8.matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}"));
         assertTrue(bic11.matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{5}"));
+        assertTrue(swift.matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?"));
+        assertTrue(swift8.matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}"));
+        assertTrue(swift11.matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{5}"));
         assertEquals("DE", bic8.substring(4, 6));
         assertThrows(NullPointerException.class, () -> new BicGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new BicGenerator((GeneratorConfig) null));
@@ -54,6 +60,7 @@ class BicIsinGeneratorTest {
         assertThrows(NullPointerException.class, () -> new IsinGenerator((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> gen.generate(null));
         assertThrows(IllegalArgumentException.class, () -> IsinGenerator.computeCheckDigit("US12345-789"));
+        assertThrows(IllegalArgumentException.class, () -> IsinGenerator.computeCheckDigit("US12345{789"));
     }
 
     @Test

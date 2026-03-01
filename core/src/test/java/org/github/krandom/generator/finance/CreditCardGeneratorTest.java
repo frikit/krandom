@@ -55,6 +55,25 @@ class CreditCardGeneratorTest {
         CreditCardGenerator gen = new CreditCardGenerator(config, CardType.MASTERCARD);
         assertEquals(CardType.MASTERCARD, gen.getCardType());
     }
+
+    @Test
+    @DisplayName("faker-style credit-card API aliases are available")
+    void fakerStyleAliases() {
+        CreditCardGenerator gen = new CreditCardGenerator(
+                GeneratorConfig.builder().seed(123L).build(),
+                CardType.VISA
+        );
+        assertTrue(gen.generateNumber().matches("\\d+"));
+        assertTrue(gen.generateExpiry().matches("\\d{2}/\\d{2}"));
+        assertTrue(gen.generateSecurityCode().matches("\\d{3}"));
+        assertEquals("Visa", gen.generateProvider());
+
+        String full = gen.generateFull();
+        String[] lines = full.split("\\n");
+        assertEquals(3, lines.length);
+        assertEquals("Visa", lines[0]);
+        assertTrue(lines[2].matches("\\d{2}/\\d{2} \\d{3}"));
+    }
     
     @Test
     @DisplayName("null config throws NullPointerException")

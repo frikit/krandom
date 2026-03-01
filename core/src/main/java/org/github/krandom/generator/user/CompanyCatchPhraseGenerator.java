@@ -9,7 +9,10 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -18,15 +21,13 @@ import java.util.Random;
  */
 public final class CompanyCatchPhraseGenerator implements Generator<String> {
 
-    private static final String[] ADJECTIVES = {
-            "Adaptive", "Unified", "Trusted", "Intelligent", "Future-ready", "Effortless", "Secure"
-    };
-    private static final String[] NOUNS = {
-            "Platform", "Network", "Experience", "Engine", "Ecosystem", "Suite", "Framework"
-    };
-    private static final String[] TAGLINES = {
-            "for modern teams", "for digital growth", "for global scale", "for measurable impact"
-    };
+    private static final LocaleCatchPhraseData EN = new LocaleCatchPhraseData(
+            List.of("Adaptive", "Unified", "Trusted", "Intelligent", "Future-ready", "Effortless", "Secure"),
+            List.of("Platform", "Network", "Experience", "Engine", "Ecosystem", "Suite", "Framework"),
+            List.of("for modern teams", "for digital growth", "for global scale", "for measurable impact")
+    );
+
+    private static final Map<String, LocaleCatchPhraseData> DATA_BY_LANGUAGE = dataByLanguage();
 
     private final Locale locale;
     private final Random random;
@@ -49,11 +50,33 @@ public final class CompanyCatchPhraseGenerator implements Generator<String> {
 
     @Override
     public String generate() {
-        if ("es".equals(locale.getLanguage())) {
-            return "Innovacion confiable para equipos";
-        }
-        return ADJECTIVES[random.nextInt(ADJECTIVES.length)] + " "
-                + NOUNS[random.nextInt(NOUNS.length)] + " "
-                + TAGLINES[random.nextInt(TAGLINES.length)];
+        LocaleCatchPhraseData data = DATA_BY_LANGUAGE.getOrDefault(locale.getLanguage(), EN);
+        return data.adjectives().get(random.nextInt(data.adjectives().size())) + " "
+                + data.nouns().get(random.nextInt(data.nouns().size())) + " "
+                + data.taglines().get(random.nextInt(data.taglines().size()));
+    }
+
+    private static Map<String, LocaleCatchPhraseData> dataByLanguage() {
+        Map<String, LocaleCatchPhraseData> map = new HashMap<>();
+        map.put("en", EN);
+        map.put("es", new LocaleCatchPhraseData(
+                List.of("Innovacion", "Confianza", "Escala", "Impacto", "Agilidad", "Claridad"),
+                List.of("Plataforma", "Red", "Experiencia", "Motor", "Ecosistema", "Suite"),
+                List.of("para equipos modernos", "para crecimiento digital", "para escala global", "para impacto medible")
+        ));
+        map.put("de", new LocaleCatchPhraseData(
+                List.of("Sicher", "Vernetzt", "Skalierbar", "Effizient", "Intelligent", "Modern"),
+                List.of("Plattform", "Netzwerk", "Erlebnis", "Engine", "Oekosystem", "Suite"),
+                List.of("fuer moderne teams", "fuer digitales wachstum", "fuer globale skalierung", "fuer messbaren nutzen")
+        ));
+        map.put("fr", new LocaleCatchPhraseData(
+                List.of("Fiable", "Unifie", "Intelligent", "Moderne", "Agile", "Securise"),
+                List.of("Plateforme", "Reseau", "Experience", "Moteur", "Ecosysteme", "Suite"),
+                List.of("pour equipes modernes", "pour croissance numerique", "pour echelle globale", "pour impact mesurable")
+        ));
+        return Map.copyOf(map);
+    }
+
+    private record LocaleCatchPhraseData(List<String> adjectives, List<String> nouns, List<String> taglines) {
     }
 }

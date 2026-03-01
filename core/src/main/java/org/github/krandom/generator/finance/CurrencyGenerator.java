@@ -270,6 +270,102 @@ public final class CurrencyGenerator implements Generator<String> {
     }
 
     /**
+     * Faker-style alias for {@link #generateAsMap()}.
+     *
+     * @return map with keys: {@code code}, {@code name}, {@code symbol}, {@code numeric_code}
+     */
+    public Map<String, String> generateCurrency() {
+        return generateAsMap();
+    }
+
+    /**
+     * Faker-style alias for {@link #generateAsMap(Locale)}.
+     *
+     * @param locale locale used to select primary currency
+     * @return map with keys: {@code code}, {@code name}, {@code symbol}, {@code numeric_code}
+     */
+    public Map<String, String> generateCurrency(Locale locale) {
+        return generateAsMap(locale);
+    }
+
+    /**
+     * Faker-style alias for {@link #generate()}.
+     *
+     * @return ISO 4217 currency code
+     */
+    public String generateCurrencyCode() {
+        return generate();
+    }
+
+    /**
+     * Faker-style locale-aware alias for {@link #generate(Locale)}.
+     *
+     * @param locale locale used to select primary currency
+     * @return ISO 4217 currency code
+     */
+    public String generateCurrencyCode(Locale locale) {
+        return generate(locale);
+    }
+
+    /**
+     * Faker-style alias for {@link #getName()}.
+     *
+     * @return currency name
+     */
+    public String generateCurrencyName() {
+        return getName();
+    }
+
+    /**
+     * Faker-style locale-aware alias for {@link #getName(Locale)}.
+     *
+     * @param locale locale used to select primary currency
+     * @return currency name
+     */
+    public String generateCurrencyName(Locale locale) {
+        return getName(locale);
+    }
+
+    /**
+     * Faker-style alias for {@link #getSymbol()}.
+     *
+     * @return currency symbol
+     */
+    public String generateCurrencySymbol() {
+        return getSymbol();
+    }
+
+    /**
+     * Faker-style locale-aware alias for {@link #getSymbol(Locale)}.
+     *
+     * @param locale locale used to select primary currency
+     * @return currency symbol
+     */
+    public String generateCurrencySymbol(Locale locale) {
+        return getSymbol(locale);
+    }
+
+    /**
+     * Generates a locale-aware price tag string.
+     * Faker-style alias: {@code pricetag()}.
+     *
+     * @return formatted amount with locale currency
+     */
+    public String generatePriceTag() {
+        return new MoneyGenerator(config).generate();
+    }
+
+    /**
+     * Generates a locale-aware price tag string for the provided locale.
+     *
+     * @param locale locale override used for formatting and currency selection
+     * @return formatted amount with locale currency
+     */
+    public String generatePriceTag(Locale locale) {
+        return new MoneyGenerator(config).generate(locale);
+    }
+
+    /**
      * Generates a map-shaped currency payload similar to Faker's {@code currency()} dict contract.
      *
      * @return map with keys: {@code code}, {@code name}, {@code symbol}, {@code numeric_code}

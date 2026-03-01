@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -153,11 +154,29 @@ class DateGeneratorTest {
 
     @Test
     void testGenerateMonthName() {
-        DateGenerator generator = new DateGenerator();
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().locale(Locale.US).build());
         String monthName = generator.generateMonthName();
         assertNotNull(monthName);
         assertTrue(monthName.matches("January|February|March|April|May|June|July|August|September|October|November|December"),
             "Invalid month name: " + monthName);
+    }
+
+    @Test
+    void testGenerateMonthNameWithLocale() {
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(123L).locale(Locale.US).build());
+        DateGenerator sameSeed = new DateGenerator(GeneratorConfig.builder().seed(123L).locale(Locale.US).build());
+        String usName = generator.generateMonthName(Locale.US);
+        String frName = sameSeed.generateMonthName(Locale.FRANCE);
+
+        assertNotNull(usName);
+        assertNotNull(frName);
+        assertNotEquals(usName, frName, "Same month should render differently across locales");
+    }
+
+    @Test
+    void testGenerateMonthNameWithNullLocaleThrows() {
+        DateGenerator generator = new DateGenerator();
+        assertThrows(NullPointerException.class, () -> generator.generateMonthName(null));
     }
 
     @Test
@@ -245,7 +264,7 @@ class DateGeneratorTest {
 
     @Test
     void testGenerateAllMonthNames() {
-        DateGenerator generator = new DateGenerator();
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().locale(Locale.US).build());
         Set<String> monthNames = new HashSet<>();
         for (int i = 0; i < 200; i++) {
             monthNames.add(generator.generateMonthName());

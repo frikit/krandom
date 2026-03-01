@@ -232,6 +232,15 @@ public final class EmailGenerator implements Generator<String> {
     }
 
     /**
+     * Returns a free-email provider domain (Faker-style {@code free_email_domain()} equivalent).
+     *
+     * @return provider domain (for example, {@code gmail.com})
+     */
+    public String generateFreeEmailDomain() {
+        return getFreeEmailProvider();
+    }
+
+    /**
      * Generates a company email address.
      *
      * @return a company-style email

@@ -9,7 +9,9 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.Locale;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,5 +57,28 @@ class CompanyEmailGeneratorTest {
         CompanyEmailGenerator gen = new CompanyEmailGenerator();
         assertThrows(NullPointerException.class, () -> new CompanyEmailGenerator((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> gen.generate(null));
+    }
+
+    @Test
+    @DisplayName("local-part generator supports concatenated first+last branch")
+    void localPartDefaultBranch() throws Exception {
+        CompanyEmailGenerator gen = new CompanyEmailGenerator(
+                GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
+        Field randomField = CompanyEmailGenerator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+        randomField.set(gen, new Random() {
+            @Override
+            public int nextInt(int bound) {
+                if (bound == 3) {
+                    return 2;
+                }
+                return super.nextInt(bound);
+            }
+        });
+
+        String email = gen.generate("Acme");
+        String localPart = email.substring(0, email.indexOf('@'));
+        assertFalse(localPart.contains("."));
+        assertTrue(localPart.matches("[a-z0-9]+"));
     }
 }

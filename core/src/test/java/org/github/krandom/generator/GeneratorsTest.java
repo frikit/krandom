@@ -11,6 +11,10 @@ import org.github.krandom.generator.games.dice.DiceType;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
+import org.github.krandom.generator.color.ColorGenerator;
+import org.github.krandom.generator.finance.AbaRoutingGenerator;
+import org.github.krandom.generator.finance.BankCountryGenerator;
+import org.github.krandom.generator.finance.BbanGenerator;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
 import org.github.krandom.generator.file.FilePathGenerator;
@@ -23,9 +27,17 @@ import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
 import org.github.krandom.generator.datetime.TimezoneGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
+import org.github.krandom.generator.finance.CardExpirationGenerator;
+import org.github.krandom.generator.finance.CreditCardGenerator;
+import org.github.krandom.generator.finance.CurrencyGenerator;
+import org.github.krandom.generator.finance.IbanGenerator;
+import org.github.krandom.generator.finance.MoneyGenerator;
+import org.github.krandom.generator.identifier.EanGenerator;
+import org.github.krandom.generator.identifier.HashGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
+import org.github.krandom.generator.location.PhoneNumberGenerator;
 import org.github.krandom.generator.location.PostalCodeGenerator;
 import org.github.krandom.generator.location.StateGenerator;
 import org.github.krandom.generator.network.DomainGenerator;
@@ -37,6 +49,7 @@ import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
 import org.github.krandom.generator.network.UriGenerator;
 import org.github.krandom.generator.network.URLGenerator;
+import org.github.krandom.generator.network.UserAgentGenerator;
 import org.github.krandom.generator.selection.PickGenerator;
 import org.github.krandom.generator.selection.PickSetGenerator;
 import org.github.krandom.generator.selection.RepeatGenerator;
@@ -46,9 +59,12 @@ import org.github.krandom.generator.selection.WeightedGenerator;
 import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.SyllableGenerator;
+import org.github.krandom.generator.text.TextGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.finance.BicGenerator;
 import org.github.krandom.generator.finance.IsinGenerator;
+import org.github.krandom.generator.user.CompanyBuzzwordGenerator;
+import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
@@ -204,6 +220,12 @@ class GeneratorsTest {
         assertInstanceOf(NumberWithFormatGenerator.class, Generators.ofNumberWithFormat());
     }
 
+    @Test @DisplayName("ofNullableBoolean() returns NullableBooleanGenerator")
+    void ofNullableBoolean() { assertInstanceOf(NullableBooleanGenerator.class, Generators.ofNullableBoolean()); }
+
+    @Test @DisplayName("ofPyDecimal() returns PyDecimalGenerator")
+    void ofPyDecimal() { assertInstanceOf(PyDecimalGenerator.class, Generators.ofPyDecimal()); }
+
     // ── Algorithms ────────────────────────────────────────────────────────────
 
     @Test @DisplayName("ofFibonacci() returns FibonacciGenerator")
@@ -319,6 +341,11 @@ class GeneratorsTest {
         assertInstanceOf(SemverGenerator.class, Generators.ofSemver());
     }
 
+    @Test @DisplayName("ofColor() returns ColorGenerator")
+    void ofColor() {
+        assertInstanceOf(ColorGenerator.class, Generators.ofColor());
+    }
+
     @Test @DisplayName("date/time factories return corresponding generators")
     void dateTimeFactories() {
         assertInstanceOf(DateGenerator.class, Generators.ofLocalDate());
@@ -371,6 +398,9 @@ class GeneratorsTest {
     @Test @DisplayName("ofUri() returns UriGenerator")
     void ofUri() { assertInstanceOf(UriGenerator.class, Generators.ofUri()); }
 
+    @Test @DisplayName("ofUserAgent() returns UserAgentGenerator")
+    void ofUserAgent() { assertInstanceOf(UserAgentGenerator.class, Generators.ofUserAgent()); }
+
     @Test @DisplayName("ofEmail() returns EmailGenerator")
     void ofEmail() { assertInstanceOf(EmailGenerator.class, Generators.ofEmail()); }
 
@@ -395,8 +425,32 @@ class GeneratorsTest {
     @Test @DisplayName("ofCountry() returns CountryGenerator")
     void ofCountry() { assertInstanceOf(CountryGenerator.class, Generators.ofCountry()); }
 
+    @Test @DisplayName("ofPhoneNumber() returns PhoneNumberGenerator")
+    void ofPhoneNumber() { assertInstanceOf(PhoneNumberGenerator.class, Generators.ofPhoneNumber()); }
+
     @Test @DisplayName("ofUuid() returns UUIDGenerator")
     void ofUuid() { assertInstanceOf(UUIDGenerator.class, Generators.ofUuid()); }
+
+    @Test @DisplayName("finance factories return corresponding generators")
+    void financeFactories() {
+        assertInstanceOf(CurrencyGenerator.class, Generators.ofCurrency());
+        assertInstanceOf(MoneyGenerator.class, Generators.ofMoney());
+        assertInstanceOf(CardExpirationGenerator.class, Generators.ofCardExpiration());
+        assertInstanceOf(CreditCardGenerator.class, Generators.ofCreditCard());
+        assertInstanceOf(BbanGenerator.class, Generators.ofBban());
+        assertInstanceOf(IbanGenerator.class, Generators.ofIban());
+        assertInstanceOf(AbaRoutingGenerator.class, Generators.ofAbaRouting());
+        assertInstanceOf(BankCountryGenerator.class, Generators.ofBankCountry());
+    }
+
+    @Test @DisplayName("extra text and identifier factories return corresponding generators")
+    void extraFactories() {
+        assertInstanceOf(CompanyBuzzwordGenerator.class, Generators.ofCompanyBuzzword());
+        assertInstanceOf(CompanyCatchPhraseGenerator.class, Generators.ofCompanyCatchPhrase());
+        assertInstanceOf(TextGenerator.class, Generators.ofText());
+        assertInstanceOf(HashGenerator.class, Generators.ofHash());
+        assertInstanceOf(EanGenerator.class, Generators.ofEan());
+    }
 
     // ── forType ───────────────────────────────────────────────────────────────
 

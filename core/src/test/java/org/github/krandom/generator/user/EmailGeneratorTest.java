@@ -146,6 +146,15 @@ class EmailGeneratorTest {
     }
 
     @Test
+    void testGenerateFreeEmailDomainAlias() {
+        String provider = generator.generateFreeEmailDomain();
+        assertNotNull(provider);
+        assertFalse(provider.isBlank());
+        assertFalse(provider.contains("@"));
+        assertTrue(provider.contains("."));
+    }
+
+    @Test
     void testGenerateCompanyEmail() {
         String email = generator.generateCompanyEmail();
         assertNotNull(email);

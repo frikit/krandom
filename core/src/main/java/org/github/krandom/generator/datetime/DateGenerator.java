@@ -12,8 +12,11 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
+import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -83,11 +86,6 @@ public final class DateGenerator implements Generator<LocalDate> {
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
     
-    private static final String[] MONTH_NAMES = {
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    };
-
     /**
      * Creates a date generator with default configuration.
      */
@@ -249,7 +247,18 @@ public final class DateGenerator implements Generator<LocalDate> {
      * @return a month name; never {@code null}
      */
     public String generateMonthName() {
-        return MONTH_NAMES[random.nextInt(12)];
+        return generateMonthName(config.getLocale());
+    }
+
+    /**
+     * Generates a random month name in the provided locale.
+     *
+     * @param locale locale for month display names; must not be {@code null}
+     * @return a localized month name; never {@code null}
+     */
+    public String generateMonthName(Locale locale) {
+        Objects.requireNonNull(locale, "locale must not be null");
+        return Month.of(generateMonth()).getDisplayName(TextStyle.FULL, locale);
     }
 
     /**

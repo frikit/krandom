@@ -183,6 +183,62 @@ public final class CreditCardGenerator implements Generator<String> {
         
         return new CardInfo(formattedNumber, type, cvv, expirationDate);
     }
+
+    /**
+     * Generates a credit card number without formatting separators.
+     * Faker-style alias: {@code credit_card_number()}.
+     *
+     * @return unformatted card number digits
+     */
+    public String generateNumber() {
+        return generate(false);
+    }
+
+    /**
+     * Generates an expiration date in MM/YY format.
+     * Faker-style alias: {@code credit_card_expire()}.
+     *
+     * @return expiration date in MM/YY format
+     */
+    public String generateExpiry() {
+        return getExpirationDate();
+    }
+
+    /**
+     * Generates a card security code (CVV/CVC).
+     * Faker-style alias: {@code credit_card_security_code()}.
+     *
+     * @return security code digits
+     */
+    public String generateSecurityCode() {
+        return getCvv();
+    }
+
+    /**
+     * Generates a card provider display name.
+     * Faker-style alias: {@code credit_card_provider()}.
+     *
+     * @return card provider name
+     */
+    public String generateProvider() {
+        return selectCardType().getDisplayName();
+    }
+
+    /**
+     * Generates a multi-line card payload similar to Faker's {@code credit_card_full()}.
+     *
+     * @return multi-line full card payload
+     */
+    public String generateFull() {
+        CardInfo info = generateWithType();
+        return info.cardType().getDisplayName()
+                + "\n"
+                + info.cardNumber()
+                + "\n"
+                + info.expirationDate()
+                + " "
+                + info.cvv();
+    }
     
     /**
      * Generates a CVV (Card Verification Value) code.

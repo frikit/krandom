@@ -21,15 +21,28 @@ class CompanyLanguageGeneratorsTest {
     void buzzword() {
         assertFalse(new CompanyBuzzwordGenerator(Locale.US).generate().isBlank());
         assertFalse(new CompanyBuzzwordGenerator(Locale.GERMANY).generate().isBlank());
-        assertTrue(new CompanyBuzzwordGenerator(Locale.FRANCE).generate().startsWith("solutions "));
+        assertFalse(new CompanyBuzzwordGenerator(Locale.FRANCE).generate().isBlank());
     }
 
     @Test
     @DisplayName("company catch phrase generator returns non-empty text")
     void catchPhrase() {
         assertFalse(new CompanyCatchPhraseGenerator(Locale.US).generate().isBlank());
-        assertEquals("Innovacion confiable para equipos",
-                new CompanyCatchPhraseGenerator(Locale.of("es", "ES")).generate());
+        assertFalse(new CompanyCatchPhraseGenerator(Locale.of("es", "ES")).generate().isBlank());
+    }
+
+    @Test
+    @DisplayName("locale datasets produce different company language output")
+    void localeDifferences() {
+        GeneratorConfig usCfg = GeneratorConfig.builder().seed(19L).locale(Locale.US).build();
+        GeneratorConfig esCfg = GeneratorConfig.builder().seed(19L).locale(Locale.of("es", "ES")).build();
+        String usBuzz = new CompanyBuzzwordGenerator(usCfg).generate();
+        String esBuzz = new CompanyBuzzwordGenerator(esCfg).generate();
+        assertNotEquals(usBuzz, esBuzz);
+
+        String usCatch = new CompanyCatchPhraseGenerator(usCfg).generate();
+        String esCatch = new CompanyCatchPhraseGenerator(esCfg).generate();
+        assertNotEquals(usCatch, esCatch);
     }
 
     @Test

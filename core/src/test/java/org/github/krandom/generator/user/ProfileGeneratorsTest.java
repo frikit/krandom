@@ -57,6 +57,21 @@ class ProfileGeneratorsTest {
     }
 
     @Test
+    @DisplayName("simple profile can generate both male and female profiles")
+    void simpleProfileBothSexes() {
+        SimpleProfileGenerator generator = new SimpleProfileGenerator(
+                GeneratorConfig.builder().seed(99L).locale(Locale.US).build());
+        boolean sawMale = false;
+        boolean sawFemale = false;
+        for (int i = 0; i < 200 && !(sawMale && sawFemale); i++) {
+            String sex = generator.generate().sex();
+            sawMale |= "M".equals(sex);
+            sawFemale |= "F".equals(sex);
+        }
+        assertTrue(sawMale && sawFemale);
+    }
+
+    @Test
     @DisplayName("constructors reject null config")
     void nullConfig() {
         assertThrows(NullPointerException.class, () -> new SimpleProfileGenerator((GeneratorConfig) null));
