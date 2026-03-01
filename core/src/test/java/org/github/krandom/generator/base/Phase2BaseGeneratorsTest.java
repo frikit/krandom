@@ -55,6 +55,7 @@ class Phase2BaseGeneratorsTest {
         PyDecimalGenerator a = new PyDecimalGenerator(cfg);
         PyDecimalGenerator b = new PyDecimalGenerator(cfg);
 
+        assertEquals(2, new PyDecimalGenerator(cfg).generate().scale());
         BigDecimal v1 = a.generate(5, 3);
         BigDecimal v2 = b.generate(5, 3);
         assertEquals(v1, v2);

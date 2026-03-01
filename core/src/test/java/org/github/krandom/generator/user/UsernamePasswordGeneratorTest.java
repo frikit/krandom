@@ -10,6 +10,7 @@ import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +39,15 @@ class UsernamePasswordGeneratorTest {
         UsernameGenerator de = new UsernameGenerator(Locale.GERMANY);
         assertEquals(Locale.GERMANY, de.getLocale());
         assertNotNull(de.generate());
+
+        assertDoesNotThrow(() -> {
+            Method fallback = UsernameGenerator.class.getDeclaredMethod(
+                    "fallback", String.class, String.class
+            );
+            fallback.setAccessible(true);
+            assertEquals("default", fallback.invoke(null, "", "default"));
+            assertEquals("value", fallback.invoke(null, "value", "default"));
+        });
     }
 
     @Test

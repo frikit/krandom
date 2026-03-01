@@ -11,6 +11,9 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.Random;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Network extension generators")
@@ -99,6 +102,80 @@ class NetworkExtensionsTest {
         assertTrue(saw172Public);
         assertTrue(saw192Public);
         assertTrue(sawOther);
+    }
+
+    @Test
+    @DisplayName("IPv4 public branch covers both 172 second-octet paths")
+    void ipv4Public172SecondOctetBranchCoverage() throws Exception {
+        IPv4Generator trueBranch = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        Field randomField = IPv4Generator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+        randomField.set(trueBranch, new Random() {
+            private int call;
+
+            @Override
+            public int nextInt(int bound) {
+                call++;
+                if (call == 1) {
+                    return 167; // picks first octet 172 in allowedFirstOctets.
+                }
+                return 0;
+            }
+
+            @Override
+            public boolean nextBoolean() {
+                return true;
+            }
+        });
+        int secondTrue = Integer.parseInt(trueBranch.generatePublic().split("\\.")[1]);
+        assertTrue(secondTrue < 16);
+
+        IPv4Generator falseBranch = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        randomField.set(falseBranch, new Random() {
+            private int call;
+
+            @Override
+            public int nextInt(int bound) {
+                call++;
+                if (call == 1) {
+                    return 167; // picks first octet 172 in allowedFirstOctets.
+                }
+                return 0;
+            }
+
+            @Override
+            public boolean nextBoolean() {
+                return false;
+            }
+        });
+        int secondFalse = Integer.parseInt(falseBranch.generatePublic().split("\\.")[1]);
+        assertTrue(secondFalse >= 32);
+    }
+
+    @Test
+    @DisplayName("IPv4 public covers 192.* branch with second-octet remap")
+    void ipv4Public192SecondOctetRemap() throws Exception {
+        IPv4Generator generator = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        Field randomField = IPv4Generator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+        randomField.set(generator, new Random() {
+            private int call;
+
+            @Override
+            public int nextInt(int bound) {
+                call++;
+                if (call == 1) {
+                    return 187; // picks first octet 192 in allowedFirstOctets.
+                }
+                if (call == 2) {
+                    return 200; // triggers second >= 168 remap branch.
+                }
+                return 0;
+            }
+        });
+        String ip = generator.generatePublic();
+        int second = Integer.parseInt(ip.split("\\.")[1]);
+        assertEquals(201, second);
     }
 
     @Test

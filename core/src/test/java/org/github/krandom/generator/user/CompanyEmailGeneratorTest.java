@@ -81,4 +81,13 @@ class CompanyEmailGeneratorTest {
         assertFalse(localPart.contains("."));
         assertTrue(localPart.matches("[a-z0-9]+"));
     }
+
+    @Test
+    @DisplayName("non-latin names fall back to employee/user local-part defaults")
+    void localPartBlankFallback() {
+        CompanyEmailGenerator gen = new CompanyEmailGenerator(Locale.JAPAN);
+        String email = gen.generate("Acme");
+        String localPart = email.substring(0, email.indexOf('@'));
+        assertTrue(localPart.contains("employee") || localPart.contains("user"));
+    }
 }

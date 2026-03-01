@@ -21,6 +21,7 @@ class DatabaseGeneratorTest {
     @DisplayName("generates column and SQL type")
     void basics() {
         DatabaseGenerator generator = new DatabaseGenerator(Locale.US);
+        assertFalse(generator.generate().isBlank());
         assertFalse(generator.generateColumn().isBlank());
         assertTrue(generator.generateType().matches(
                 "VARCHAR\\(255\\)|TEXT|INTEGER|BIGINT|BOOLEAN|DATE|TIMESTAMP|DECIMAL\\(10,2\\)|JSON|UUID"));

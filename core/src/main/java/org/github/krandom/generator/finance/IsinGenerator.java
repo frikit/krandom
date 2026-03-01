@@ -86,7 +86,7 @@ public final class IsinGenerator implements Generator<String> {
 
     private static String normalizeCountry(Locale locale) {
         String country = locale.getCountry();
-        if (country == null || country.length() != 2) {
+        if (country.length() != 2) {
             return "US";
         }
         return country.toUpperCase(Locale.ROOT);

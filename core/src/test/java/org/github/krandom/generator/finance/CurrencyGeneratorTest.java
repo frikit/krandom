@@ -216,9 +216,14 @@ class CurrencyGeneratorTest {
     @Test
     void testFakerStyleAliases() {
         CurrencyGenerator gen = new CurrencyGenerator(GeneratorConfig.builder().seed(77L).build());
+        assertFalse(gen.generateCurrency().isEmpty());
+        assertFalse(gen.generateCurrency(Locale.US).isEmpty());
+        assertNotNull(gen.generateCurrencyCode());
         assertNotNull(gen.generateCurrency());
         assertEquals("USD", gen.generateCurrencyCode(Locale.US));
+        assertNotNull(gen.generateCurrencyName());
         assertEquals("United States Dollar", gen.generateCurrencyName(Locale.US));
+        assertNotNull(gen.generateCurrencySymbol());
         assertEquals("$", gen.generateCurrencySymbol(Locale.US));
         assertFalse(gen.generatePriceTag().isBlank());
         assertFalse(gen.generatePriceTag(Locale.GERMANY).isBlank());

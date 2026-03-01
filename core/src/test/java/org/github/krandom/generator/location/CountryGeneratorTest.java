@@ -77,6 +77,25 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("currentCountryCodeAlpha3 throws for unsupported country code")
+    void currentCountryCodeAlpha3UnsupportedCountry() {
+        Locale locale = Locale.of("en", "ZZ");
+        CountryDataRegistry.register(new CountryDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new String[]{"Nowhere"};
+            }
+        });
+        CountryGenerator generator = new CountryGenerator(locale);
+        assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeAlpha3);
+    }
+
+    @Test
     @DisplayName("US locale returns English country names")
     void usLocaleEnglish() {
         CountryGenerator gen = new CountryGenerator(Locale.US);

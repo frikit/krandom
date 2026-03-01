@@ -85,7 +85,7 @@ public final class BicGenerator implements Generator<String> {
     public String generate(Locale locale, boolean withBranch) {
         Objects.requireNonNull(locale, "locale must not be null");
         String country = locale.getCountry();
-        if (country == null || country.isBlank()) {
+        if (country.isBlank()) {
             country = "US";
         }
         if (country.length() != 2) {

@@ -29,6 +29,10 @@ class DigitAndNumberWithFormatGeneratorTest {
         NumberWithFormatGenerator gen = new NumberWithFormatGenerator("##-##", GeneratorConfig.builder().seed(7L).build());
         assertTrue(gen.generate().matches("\\d\\d-\\d\\d"));
         assertTrue(gen.generate("###/##").matches("\\d\\d\\d/\\d\\d"));
+        assertTrue(new NumberWithFormatGenerator("##-##").generate().matches("\\d\\d-\\d\\d"));
+        assertTrue(new NumberWithFormatGenerator().generate().matches("\\d{3}-\\d{3}-\\d{4}"));
+        assertTrue(new NumberWithFormatGenerator(GeneratorConfig.builder().seed(12L).build())
+                .generate().matches("\\d{3}-\\d{3}-\\d{4}"));
 
         assertThrows(NullPointerException.class, () -> new NumberWithFormatGenerator((String) null));
         assertThrows(IllegalArgumentException.class, () -> new NumberWithFormatGenerator(""));

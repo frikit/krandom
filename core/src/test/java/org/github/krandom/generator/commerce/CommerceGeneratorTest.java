@@ -80,6 +80,7 @@ class CommerceGeneratorTest {
     void constructorAndFactory() {
         assertThrows(NullPointerException.class, () -> new CommerceGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new CommerceGenerator((GeneratorConfig) null));
+        assertEquals(Locale.US, new CommerceGenerator(Locale.US).getLocale());
         assertNotNull(Generators.ofCommerce().generateProductName());
     }
 }

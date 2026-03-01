@@ -174,9 +174,7 @@ public final class StreetAddressGenerator implements Generator<String> {
         if (stateGenerator != null) {
             sb.append(", ").append(stateGenerator.generate(true));
         }
-        if (postalCodeGenerator != null) {
-            sb.append(" ").append(postalCodeGenerator.generate());
-        }
+        sb.append(" ").append(postalCodeGenerator.generate());
         if (countryGenerator != null) {
             sb.append(", ").append(countryGenerator.generate());
         }

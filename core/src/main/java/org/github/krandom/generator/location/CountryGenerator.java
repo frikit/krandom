@@ -173,7 +173,7 @@ public final class CountryGenerator implements Generator<String> {
 
     private String requireLocaleCountry() {
         String countryCode = config.getLocale().getCountry();
-        if (countryCode == null || countryCode.isBlank()) {
+        if (countryCode.isBlank()) {
             throw new UnsupportedOperationException(
                     "Locale " + config.getLocale() + " has no country component");
         }
@@ -183,11 +183,7 @@ public final class CountryGenerator implements Generator<String> {
     private static String[] loadIsoAlpha3Codes() {
         List<String> alpha3 = new ArrayList<>();
         for (String alpha2 : ISO_ALPHA2_CODES) {
-            try {
-                alpha3.add(Locale.of("", alpha2).getISO3Country());
-            } catch (MissingResourceException ignored) {
-                // Skip deprecated/unsupported country entries where ISO3 is not available.
-            }
+            alpha3.add(Locale.of("", alpha2).getISO3Country());
         }
         return alpha3.toArray(String[]::new);
     }

@@ -42,7 +42,7 @@ public final class BankCountryGenerator implements Generator<String> {
     @Override
     public String generate() {
         String localeCountry = locale.getCountry();
-        if (localeCountry != null && !localeCountry.isBlank()) {
+        if (!localeCountry.isBlank()) {
             for (String country : SUPPORTED) {
                 if (country.equals(localeCountry)) {
                     return country;

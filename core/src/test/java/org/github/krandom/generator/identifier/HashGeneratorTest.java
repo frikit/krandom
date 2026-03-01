@@ -8,6 +8,8 @@ package org.github.krandom.generator.identifier;
 import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -334,5 +336,14 @@ class HashGeneratorTest {
         assertTrue(gen.generateMd5().matches("[0-9a-f]{32}"));
         assertTrue(gen.generateSha1().matches("[0-9a-f]{40}"));
         assertTrue(gen.generateSha256().matches("[0-9a-f]{64}"));
+    }
+
+    @Test
+    void testInvalidAlgorithmBranch() throws Exception {
+        HashGenerator gen = new HashGenerator();
+        Method m = HashGenerator.class.getDeclaredMethod("generateDigestHex", String.class);
+        m.setAccessible(true);
+        InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> m.invoke(gen, "NOPE"));
+        assertTrue(ex.getCause() instanceof IllegalStateException);
     }
 }

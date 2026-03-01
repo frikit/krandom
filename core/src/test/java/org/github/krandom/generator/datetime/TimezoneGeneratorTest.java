@@ -35,6 +35,14 @@ class TimezoneGeneratorTest {
     }
 
     @Test
+    @DisplayName("locale with no country falls back to global zones and empty locale zones")
+    void localeWithoutCountryFallback() {
+        TimezoneGenerator languageOnly = new TimezoneGenerator(Locale.ENGLISH);
+        assertTrue(languageOnly.localeZones().isEmpty());
+        assertDoesNotThrow(() -> ZoneId.of(languageOnly.generate()));
+    }
+
+    @Test
     @DisplayName("generateOffset returns offset id")
     void offset() {
         String offset = new TimezoneGenerator(Locale.UK).generateOffset();

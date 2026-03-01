@@ -23,6 +23,10 @@ class FileSupportGeneratorsTest {
         assertTrue(path.startsWith("/"));
         assertTrue(path.contains("/"));
         assertEquals(Locale.GERMANY, gen.getLocale());
+        assertEquals(
+                new DirPathGenerator(GeneratorConfig.builder().seed(42L).locale(Locale.US).build()).generate(),
+                new DirPathGenerator(GeneratorConfig.builder().seed(42L).locale(Locale.US).build()).generate()
+        );
         assertThrows(NullPointerException.class, () -> new DirPathGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new DirPathGenerator((GeneratorConfig) null));
     }
@@ -48,6 +52,7 @@ class FileSupportGeneratorsTest {
         assertEquals(Locale.JAPAN, gen.getLocale());
         assertTrue(gen.generateWithExtension("json").endsWith(".json"));
         assertTrue(gen.generateWithExtension(".xml").endsWith(".xml"));
+        assertThrows(IllegalArgumentException.class, () -> gen.generateWithExtension(null));
         assertThrows(IllegalArgumentException.class, () -> gen.generateWithExtension(" "));
         assertThrows(NullPointerException.class, () -> new FilePathGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new FilePathGenerator((GeneratorConfig) null));
@@ -58,6 +63,10 @@ class FileSupportGeneratorsTest {
         MimeTypeGenerator gen = new MimeTypeGenerator();
         String mime = gen.generate();
         assertTrue(mime.matches("[a-z]+/[a-z0-9.+-]+"));
+        assertEquals(
+                new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate(),
+                new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate()
+        );
         assertThrows(NullPointerException.class, () -> new MimeTypeGenerator(null));
     }
 

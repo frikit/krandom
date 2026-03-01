@@ -25,6 +25,7 @@ class Phase3FinanceGeneratorsTest {
         assertTrue(us.generate().matches("\\d{10}"));
         assertFalse(us.generateAccountName().isBlank());
         assertFalse(us.generateTransactionType().isBlank());
+        assertEquals(Locale.US, us.getLocale());
     }
 
     @Test

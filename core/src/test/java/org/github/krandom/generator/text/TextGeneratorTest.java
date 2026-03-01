@@ -26,6 +26,14 @@ class TextGeneratorTest {
     }
 
     @Test
+    @DisplayName("default generate uses standard maxChars")
+    void defaultGenerate() {
+        String text = new TextGenerator(Locale.US).generate();
+        assertTrue(text.length() > 0 && text.length() <= 200);
+        assertTrue(text.endsWith("."));
+    }
+
+    @Test
     @DisplayName("generateTexts returns requested count")
     void textsCount() {
         List<String> values = new TextGenerator().generateTexts(3, 60);

@@ -44,7 +44,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.LinkedHashMap;
@@ -293,21 +292,20 @@ final class FieldGeneratorResolver {
         // ── 5b. List / Set ────────────────────────────────────────────────────
         if (List.class.isAssignableFrom(rawType)
                 || Set.class.isAssignableFrom(rawType)
-                || Queue.class.isAssignableFrom(rawType)
-                || Deque.class.isAssignableFrom(rawType)) {
+                || Queue.class.isAssignableFrom(rawType)) {
             Class<?> elem = typeArg(genericType, 0);
             List<Object> els = new ArrayList<>(DEFAULT_ELEMENT_COUNT);
             for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
                 els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
             }
-            if (Queue.class.isAssignableFrom(rawType) || Deque.class.isAssignableFrom(rawType)) {
+            if (LinkedList.class == rawType) {
+                return new LinkedList<>(els);
+            }
+            if (Queue.class.isAssignableFrom(rawType)) {
                 return toQueueType(rawType, els);
             }
             if (Set.class.isAssignableFrom(rawType)) {
                 return toSetType(rawType, els);
-            }
-            if (LinkedList.class == rawType) {
-                return new LinkedList<>(els);
             }
             return Collections.unmodifiableList(els);
         }
@@ -422,8 +420,6 @@ final class FieldGeneratorResolver {
         Queue<Object> queue;
         if (rawType == PriorityQueue.class) {
             queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
-        } else if (rawType == LinkedList.class) {
-            queue = new LinkedList<>();
         } else {
             queue = new java.util.ArrayDeque<>();
         }

@@ -60,7 +60,7 @@ public final class TimezoneGenerator implements Generator<String> {
     @Override
     public String generate() {
         List<String> localeZones = COUNTRY_TO_ZONES.get(locale.getCountry());
-        if (localeZones != null && !localeZones.isEmpty()) {
+        if (localeZones != null) {
             return localeZones.get(random.nextInt(localeZones.size()));
         }
         return ALL_ZONES.get(random.nextInt(ALL_ZONES.size()));
