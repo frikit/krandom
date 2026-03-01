@@ -327,4 +327,12 @@ class HashGeneratorTest {
             assertTrue(allChars.contains(c), "Missing hex char: " + c);
         }
     }
+
+    @Test
+    void testAlgorithmDigests() {
+        HashGenerator gen = new HashGenerator();
+        assertTrue(gen.generateMd5().matches("[0-9a-f]{32}"));
+        assertTrue(gen.generateSha1().matches("[0-9a-f]{40}"));
+        assertTrue(gen.generateSha256().matches("[0-9a-f]{64}"));
+    }
 }

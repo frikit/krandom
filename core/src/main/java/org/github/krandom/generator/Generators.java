@@ -11,16 +11,28 @@ import org.github.krandom.generator.games.dice.DiceType;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
+import org.github.krandom.generator.color.ColorGenerator;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
 import org.github.krandom.generator.file.FilePathGenerator;
 import org.github.krandom.generator.file.DirPathGenerator;
 import org.github.krandom.generator.file.MimeTypeGenerator;
 import org.github.krandom.generator.file.SemverGenerator;
+import org.github.krandom.generator.finance.AbaRoutingGenerator;
+import org.github.krandom.generator.finance.BankCountryGenerator;
+import org.github.krandom.generator.finance.BbanGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
+import org.github.krandom.generator.identifier.EanGenerator;
+import org.github.krandom.generator.identifier.HashGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.finance.CardExpirationGenerator;
+import org.github.krandom.generator.finance.CreditCardGenerator;
+import org.github.krandom.generator.finance.CurrencyGenerator;
+import org.github.krandom.generator.finance.IbanGenerator;
+import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
+import org.github.krandom.generator.location.PhoneNumberGenerator;
 import org.github.krandom.generator.location.PostalCodeGenerator;
 import org.github.krandom.generator.location.StateGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
@@ -48,8 +60,11 @@ import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.SyllableGenerator;
 import org.github.krandom.generator.text.TemplateStringGenerator;
+import org.github.krandom.generator.text.TextGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
+import org.github.krandom.generator.user.CompanyBuzzwordGenerator;
+import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.CompanyUrlGenerator;
 import org.github.krandom.generator.user.EducationalAttainmentGenerator;
@@ -281,6 +296,16 @@ public final class Generators {
         return new NumberWithFormatGenerator();
     }
 
+    /** Returns a generator that produces decimal values similar to Faker pydecimal. */
+    public static PyDecimalGenerator ofPyDecimal() {
+        return new PyDecimalGenerator();
+    }
+
+    /** Returns a generator that produces nullable booleans (true/false/null). */
+    public static NullableBooleanGenerator ofNullableBoolean() {
+        return new NullableBooleanGenerator();
+    }
+
     // ── Algorithms ────────────────────────────────────────────────────────────
 
     /** Returns a generator that produces random Fibonacci numbers. */
@@ -401,6 +426,11 @@ public final class Generators {
         return new BigIntegerGenerator(min, max);
     }
 
+    /** Returns a generator that produces color values and color names. */
+    public static ColorGenerator ofColor() {
+        return new ColorGenerator();
+    }
+
     // ── Date / Time ───────────────────────────────────────────────────────────
 
     /** Returns a generator that produces random {@link java.time.LocalDate} values (1970–2100). */
@@ -487,6 +517,11 @@ public final class Generators {
         return new CountryGenerator();
     }
 
+    /** Returns a generator that produces locale-aware phone numbers. */
+    public static PhoneNumberGenerator ofPhoneNumber() {
+        return new PhoneNumberGenerator();
+    }
+
     // ── Company name ──────────────────────────────────────────────────────────
 
     /** Returns a generator that produces random company names including a legal-form suffix. */
@@ -497,6 +532,16 @@ public final class Generators {
     /** Returns a generator that produces company website URLs. */
     public static CompanyUrlGenerator ofCompanyUrl() {
         return new CompanyUrlGenerator();
+    }
+
+    /** Returns a generator that produces company buzzword phrases. */
+    public static CompanyBuzzwordGenerator ofCompanyBuzzword() {
+        return new CompanyBuzzwordGenerator();
+    }
+
+    /** Returns a generator that produces company catch phrases. */
+    public static CompanyCatchPhraseGenerator ofCompanyCatchPhrase() {
+        return new CompanyCatchPhraseGenerator();
     }
 
     /** Returns a generator that produces industry values. */
@@ -574,6 +619,46 @@ public final class Generators {
         return new BicGenerator();
     }
 
+    /** Returns a generator that produces BBAN values. */
+    public static BbanGenerator ofBban() {
+        return new BbanGenerator();
+    }
+
+    /** Returns a generator that produces IBAN values. */
+    public static IbanGenerator ofIban() {
+        return new IbanGenerator();
+    }
+
+    /** Returns a generator that produces ABA routing numbers. */
+    public static AbaRoutingGenerator ofAbaRouting() {
+        return new AbaRoutingGenerator();
+    }
+
+    /** Returns a generator that produces bank-country alpha-2 codes. */
+    public static BankCountryGenerator ofBankCountry() {
+        return new BankCountryGenerator();
+    }
+
+    /** Returns a generator that produces currency codes and metadata. */
+    public static CurrencyGenerator ofCurrency() {
+        return new CurrencyGenerator();
+    }
+
+    /** Returns a generator that produces locale-aware price-tag strings. */
+    public static MoneyGenerator ofMoney() {
+        return new MoneyGenerator();
+    }
+
+    /** Returns a generator that produces card expiration values. */
+    public static CardExpirationGenerator ofCardExpiration() {
+        return new CardExpirationGenerator();
+    }
+
+    /** Returns a generator that produces credit card values. */
+    public static CreditCardGenerator ofCreditCard() {
+        return new CreditCardGenerator();
+    }
+
     /** Returns a generator that produces valid ISIN codes. */
     public static IsinGenerator ofIsin() {
         return new IsinGenerator();
@@ -626,6 +711,11 @@ public final class Generators {
         return new ParagraphGenerator();
     }
 
+    /** Returns a generator that produces char-limited text blocks. */
+    public static TextGenerator ofText() {
+        return new TextGenerator();
+    }
+
     /** Returns a template generator supporting DataFaker-style {@code #} and {@code ?} placeholders. */
     public static TemplateStringGenerator ofTemplate(String template) {
         return new TemplateStringGenerator(template);
@@ -663,6 +753,16 @@ public final class Generators {
     /** Returns a generator that produces UUID values. */
     public static UUIDGenerator ofUuid() {
         return new UUIDGenerator();
+    }
+
+    /** Returns a generator that produces random hash strings and algorithm digests. */
+    public static HashGenerator ofHash() {
+        return new HashGenerator();
+    }
+
+    /** Returns a generator that produces EAN barcodes. */
+    public static EanGenerator ofEan() {
+        return new EanGenerator();
     }
 
     // ── Selection / helper-style generators ──────────────────────────────────

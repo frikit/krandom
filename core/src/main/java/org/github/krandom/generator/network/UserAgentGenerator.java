@@ -68,4 +68,37 @@ public final class UserAgentGenerator implements Generator<String> {
     public String generateBot() {
         return BOTS[random.nextInt(BOTS.length)];
     }
+
+    /** Generates a Chrome-like user-agent string. */
+    public String generateChrome() {
+        String os = OS[random.nextInt(OS.length)];
+        return "Mozilla/5.0 (" + os + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+    }
+
+    /** Generates a Firefox-like user-agent string. */
+    public String generateFirefox() {
+        String os = OS[random.nextInt(OS.length)];
+        return "Mozilla/5.0 (" + os + "; rv:124.0) Gecko/20100101 Firefox/124.0";
+    }
+
+    /** Generates a Safari-like user-agent string. */
+    public String generateSafari() {
+        return "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15";
+    }
+
+    /** Generates an Opera-like user-agent string. */
+    public String generateOpera() {
+        String os = OS[random.nextInt(OS.length)];
+        return "Mozilla/5.0 (" + os + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 OPR/109.0.0.0";
+    }
+
+    /** Generates an Android browser user-agent string. */
+    public String generateAndroid() {
+        return "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36";
+    }
+
+    /** Generates an iOS browser user-agent string. */
+    public String generateIos() {
+        return "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
+    }
 }

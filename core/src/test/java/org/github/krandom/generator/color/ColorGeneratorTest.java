@@ -203,6 +203,13 @@ class ColorGeneratorTest {
     }
 
     @Test
+    void testColorNameGenerators() {
+        ColorGenerator generator = new ColorGenerator();
+        assertFalse(generator.generateColorName().isBlank());
+        assertFalse(generator.generateSafeColorName().isBlank());
+    }
+
+    @Test
     void testGenerateMultipleColors() {
         ColorGenerator generator = new ColorGenerator();
         Set<String> colors = new HashSet<>();

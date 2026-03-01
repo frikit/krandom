@@ -68,6 +68,24 @@ public final class LastNameGenerator implements Generator<String> {
         return lastNames[random.nextInt(lastNames.length)];
     }
 
+    /**
+     * Generates a last name for male context (locale morphology not differentiated yet).
+     *
+     * @return last name
+     */
+    public String generateMale() {
+        return generate();
+    }
+
+    /**
+     * Generates a last name for female context (locale morphology not differentiated yet).
+     *
+     * @return last name
+     */
+    public String generateFemale() {
+        return generate();
+    }
+
     /** Returns the locale this generator was configured with. */
     public Locale getLocale() {
         return config.getLocale();

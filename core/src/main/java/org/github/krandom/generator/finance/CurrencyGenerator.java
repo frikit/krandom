@@ -9,7 +9,9 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -266,6 +268,27 @@ public final class CurrencyGenerator implements Generator<String> {
         }
         return currency.getNumericCode();
     }
+
+    /**
+     * Generates a map-shaped currency payload similar to Faker's {@code currency()} dict contract.
+     *
+     * @return map with keys: {@code code}, {@code name}, {@code symbol}, {@code numeric_code}
+     */
+    public Map<String, String> generateAsMap() {
+        CurrencyInfo info = generateWithInfo();
+        return toMap(info);
+    }
+
+    /**
+     * Generates a locale-aware map-shaped currency payload.
+     *
+     * @param locale locale used to select primary currency
+     * @return map with keys: {@code code}, {@code name}, {@code symbol}, {@code numeric_code}
+     */
+    public Map<String, String> generateAsMap(Locale locale) {
+        CurrencyInfo info = generateWithInfo(locale);
+        return toMap(info);
+    }
     
     /**
      * Generates a stream of complete currency information.
@@ -303,5 +326,14 @@ public final class CurrencyGenerator implements Generator<String> {
      */
     private Currency getRandomCurrency() {
         return ALL_CURRENCIES[random.nextInt(ALL_CURRENCIES.length)];
+    }
+
+    private static Map<String, String> toMap(CurrencyInfo info) {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("code", info.code());
+        map.put("name", info.name());
+        map.put("symbol", info.symbol());
+        map.put("numeric_code", info.numericCode());
+        return map;
     }
 }

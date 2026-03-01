@@ -79,6 +79,21 @@ class PhoneNumberGeneratorTest {
         assertFalse(phone.isBlank());
     }
 
+    @Test
+    @DisplayName("country calling code follows locale country")
+    void countryCallingCode() {
+        assertEquals("+1", new PhoneNumberGenerator(Locale.US).generateCountryCallingCode());
+        assertEquals("+44", new PhoneNumberGenerator(Locale.UK).generateCountryCallingCode());
+        assertEquals("+49", new PhoneNumberGenerator(Locale.GERMANY).generateCountryCallingCode());
+    }
+
+    @Test
+    @DisplayName("msisdn returns 14 or 15 digits")
+    void msisdn() {
+        String value = new PhoneNumberGenerator(Locale.US).generateMsisdn();
+        assertTrue(value.matches("\\d{14,15}"), "Expected 14-15 digits, got: " + value);
+    }
+
     // ── US phone numbers (en_US) ──────────────────────────────────────────────
 
     @Test

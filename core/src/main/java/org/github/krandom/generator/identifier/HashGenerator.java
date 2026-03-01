@@ -8,6 +8,8 @@ package org.github.krandom.generator.identifier;
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
@@ -126,6 +128,21 @@ public final class HashGenerator implements Generator<String> {
         return generateHash(length, HEX_CHARS_UPPER);
     }
 
+    /** Generates a random MD5 digest (32 hex chars). */
+    public String generateMd5() {
+        return generateDigestHex("MD5");
+    }
+
+    /** Generates a random SHA-1 digest (40 hex chars). */
+    public String generateSha1() {
+        return generateDigestHex("SHA-1");
+    }
+
+    /** Generates a random SHA-256 digest (64 hex chars). */
+    public String generateSha256() {
+        return generateDigestHex("SHA-256");
+    }
+
     /**
      * Generates a hash string using the specified character set.
      *
@@ -139,5 +156,21 @@ public final class HashGenerator implements Generator<String> {
             hash.append(chars[random.nextInt(16)]);
         }
         return hash.toString();
+    }
+
+    private String generateDigestHex(String algorithm) {
+        byte[] bytes = new byte[32];
+        random.nextBytes(bytes);
+        try {
+            MessageDigest digest = MessageDigest.getInstance(algorithm);
+            byte[] hashed = digest.digest(bytes);
+            StringBuilder out = new StringBuilder(hashed.length * 2);
+            for (byte b : hashed) {
+                out.append(String.format("%02x", b));
+            }
+            return out.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Missing digest algorithm: " + algorithm, e);
+        }
     }
 }

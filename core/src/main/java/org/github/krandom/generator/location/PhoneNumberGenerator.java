@@ -10,6 +10,7 @@ import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -106,6 +107,18 @@ import java.util.Random;
  * }</pre>
  */
 public final class PhoneNumberGenerator implements Generator<String> {
+    private static final Map<String, String> COUNTRY_CALLING_CODES = Map.ofEntries(
+            Map.entry("US", "+1"),
+            Map.entry("GB", "+44"),
+            Map.entry("AU", "+61"),
+            Map.entry("DE", "+49"),
+            Map.entry("FR", "+33"),
+            Map.entry("ES", "+34"),
+            Map.entry("IT", "+39"),
+            Map.entry("BR", "+55"),
+            Map.entry("JP", "+81"),
+            Map.entry("CN", "+86")
+    );
 
     // US area codes (realistic, avoiding 555)
     private static final int[] US_AREA_CODES = {
@@ -355,6 +368,32 @@ public final class PhoneNumberGenerator implements Generator<String> {
      */
     public Locale getLocale() {
         return locale;
+    }
+
+    /**
+     * Returns the locale country calling code (for example, {@code +1}, {@code +44}).
+     *
+     * @return country calling code
+     */
+    public String generateCountryCallingCode() {
+        return COUNTRY_CALLING_CODES.getOrDefault(locale.getCountry(), "+1");
+    }
+
+    /**
+     * Generates an MSISDN-like numeric string (14-15 digits, country code + subscriber digits).
+     *
+     * @return MSISDN digits only
+     */
+    public String generateMsisdn() {
+        String callingCode = generateCountryCallingCode().replace("+", "");
+        int targetLength = 14 + random.nextInt(2); // 14 or 15
+        int subscriberDigits = Math.max(1, targetLength - callingCode.length());
+        StringBuilder msisdn = new StringBuilder(targetLength);
+        msisdn.append(callingCode);
+        for (int i = 0; i < subscriberDigits; i++) {
+            msisdn.append(random.nextInt(10));
+        }
+        return msisdn.toString();
     }
 
     // ── Format generators ─────────────────────────────────────────────────────

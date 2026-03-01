@@ -57,6 +57,14 @@ import java.util.Random;
  * This generator is thread-safe and can be shared across threads.
  */
 public final class ColorGenerator implements Generator<String> {
+    private static final String[] COLOR_NAMES = {
+            "Red", "Blue", "Green", "Yellow", "Orange", "Pink", "Brown", "Gray",
+            "Black", "White", "Cyan", "Magenta", "Teal", "Lime", "Indigo", "Violet"
+    };
+
+    private static final String[] SAFE_COLOR_NAMES = {
+            "Black", "White", "Red", "Blue", "Lime", "Aqua", "Fuchsia", "Navy", "Olive", "Silver"
+    };
 
     private final GeneratorConfig config;
     private final Random random;
@@ -158,6 +166,24 @@ public final class ColorGenerator implements Generator<String> {
         int b = random.nextInt(256);
         
         return formatColor(r, g, b, format, true);
+    }
+
+    /**
+     * Generates a CSS-style color name.
+     *
+     * @return color name
+     */
+    public String generateColorName() {
+        return COLOR_NAMES[random.nextInt(COLOR_NAMES.length)];
+    }
+
+    /**
+     * Generates a safe/basic color name.
+     *
+     * @return safe color name
+     */
+    public String generateSafeColorName() {
+        return SAFE_COLOR_NAMES[random.nextInt(SAFE_COLOR_NAMES.length)];
     }
 
     /**
