@@ -8,6 +8,7 @@ package org.github.krandom.generator;
 import org.github.krandom.generator.games.coin.CoinGenerator;
 import org.github.krandom.generator.games.dice.DiceGenerator;
 import org.github.krandom.generator.games.dice.DiceType;
+import org.github.krandom.generator.gofakeit.GoFakeitGenerator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
@@ -103,6 +104,7 @@ import org.github.krandom.generator.datetime.DurationGenerator;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiPredicate;
@@ -715,6 +717,16 @@ public final class Generators {
     /** Returns a generator that produces exception-style payload maps. */
     public static ExceptionPayloadGenerator ofExceptionPayload() {
         return new ExceptionPayloadGenerator();
+    }
+
+    /** Returns a GoFakeit-style alias facade using default locale/configuration. */
+    public static GoFakeitGenerator ofGoFakeit() {
+        return new GoFakeitGenerator();
+    }
+
+    /** Returns a GoFakeit-style alias facade for the provided locale. */
+    public static GoFakeitGenerator ofGoFakeit(Locale locale) {
+        return new GoFakeitGenerator(locale);
     }
 
     /** Returns a generator that produces database column/type values. */

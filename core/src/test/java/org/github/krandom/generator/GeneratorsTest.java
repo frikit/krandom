@@ -8,6 +8,7 @@ package org.github.krandom.generator;
 import org.github.krandom.generator.games.coin.CoinGenerator;
 import org.github.krandom.generator.games.dice.DiceGenerator;
 import org.github.krandom.generator.games.dice.DiceType;
+import org.github.krandom.generator.gofakeit.GoFakeitGenerator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
@@ -75,6 +76,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -400,6 +402,15 @@ class GeneratorsTest {
 
     @Test @DisplayName("ofUserAgent() returns UserAgentGenerator")
     void ofUserAgent() { assertInstanceOf(UserAgentGenerator.class, Generators.ofUserAgent()); }
+
+    @Test @DisplayName("ofGoFakeit() returns GoFakeitGenerator")
+    void ofGoFakeit() { assertInstanceOf(GoFakeitGenerator.class, Generators.ofGoFakeit()); }
+
+    @Test @DisplayName("ofGoFakeit(locale) returns locale-aware GoFakeitGenerator")
+    void ofGoFakeitLocale() {
+        GoFakeitGenerator generator = Generators.ofGoFakeit(Locale.GERMANY);
+        assertEquals(Locale.GERMANY, generator.getLocale());
+    }
 
     @Test @DisplayName("ofEmail() returns EmailGenerator")
     void ofEmail() { assertInstanceOf(EmailGenerator.class, Generators.ofEmail()); }

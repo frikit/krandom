@@ -46,21 +46,21 @@ Acceptance:
 
 Goal: close high-frequency APIs used in most test data workflows.
 
-- [ ] Identity/contact:
-    - [ ] name-prefix/suffix alignment, gender/age aliases, password-policy parity.
-    - [ ] phone aliases (`phone`, `phoneFormatted`) and contact-info composite.
-- [ ] Address/location:
-    - [ ] street component helpers (number/prefix/suffix/unit).
-    - [ ] city/state/state-abbr/zip/country/country-abbr aliases.
-    - [ ] address composite struct/value object parity.
-- [ ] Internet/network:
-    - [ ] URL/domain/domain-suffix/url-slug aliases and API normalization.
-    - [ ] MAC/port/http method/http status/http status simple/user-agent aliases.
-- [ ] Date/time/text:
-    - [ ] date/date-range/future/past helpers and component aliases.
-    - [ ] word/sentence/paragraph/lorem helpers with option parity.
-- [ ] Pattern generation:
-    - [ ] numerify/lexify/bothify/asciify API surface using existing template primitives.
+- [x] Identity/contact:
+    - [x] name-prefix/suffix alignment, gender/age aliases, password-policy parity.
+    - [x] phone aliases (`phone`, `phoneFormatted`) and contact-info composite.
+- [x] Address/location:
+    - [x] street component helpers (number/prefix/suffix/unit).
+    - [x] city/state/state-abbr/zip/country/country-abbr aliases.
+    - [x] address composite struct/value object parity.
+- [x] Internet/network:
+    - [x] URL/domain/domain-suffix/url-slug aliases and API normalization.
+    - [x] MAC/port/http method/http status/http status simple/user-agent aliases.
+- [x] Date/time/text:
+    - [x] date/date-range/future/past helpers and component aliases.
+    - [x] word/sentence/paragraph/lorem helpers with option parity.
+- [x] Pattern generation:
+    - [x] numerify/lexify/bothify/asciify API surface using existing template primitives.
 
 Acceptance:
 
@@ -144,8 +144,8 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 1 pending**
+- Current step: **Phase 2 pending**
 - Status: **In progress**
 - Next deliverable:
-    - Implement Phase 1 core API alias/composite parity slice (identity/address/network/date/text).
+    - Implement Phase 2 finance/company/commerce parity slice.
     - Run `./scripts/pre_commit_check.sh` after each vertical slice.
