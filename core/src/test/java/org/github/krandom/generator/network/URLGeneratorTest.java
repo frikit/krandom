@@ -107,6 +107,14 @@ class URLGeneratorTest {
     }
 
     @Test
+    void testBogusStyleUrlAliases() {
+        URLGenerator generator = new URLGenerator(Locale.UK);
+        assertTrue(generator.generateUrl().contains("://"));
+        assertTrue(generator.generateUrlWithPath().contains("/"));
+        assertTrue(Set.of("http", "https", "ftp", "ws", "wss").contains(generator.generateProtocol()));
+    }
+
+    @Test
     void testGetProtocol() {
         URLGenerator generator = new URLGenerator();
         String protocol = generator.getProtocol();

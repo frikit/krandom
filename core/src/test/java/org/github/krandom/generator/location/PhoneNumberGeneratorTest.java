@@ -94,6 +94,22 @@ class PhoneNumberGeneratorTest {
         assertTrue(value.matches("\\d{14,15}"), "Expected 14-15 digits, got: " + value);
     }
 
+    @Test
+    @DisplayName("custom phone-number format template is supported")
+    void customFormatTemplate() {
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.US);
+        String value = gen.generateWithFormat("###-###-####");
+        assertTrue(value.matches("\\d{3}-\\d{3}-\\d{4}"));
+    }
+
+    @Test
+    @DisplayName("custom phone-number format rejects null/blank")
+    void customFormatValidation() {
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.US);
+        assertThrows(NullPointerException.class, () -> gen.generateWithFormat(null));
+        assertThrows(IllegalArgumentException.class, () -> gen.generateWithFormat("   "));
+    }
+
     // ── US phone numbers (en_US) ──────────────────────────────────────────────
 
     @Test

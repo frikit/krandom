@@ -69,6 +69,7 @@ import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.CompanyUrlGenerator;
 import org.github.krandom.generator.user.EducationalAttainmentGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
+import org.github.krandom.generator.user.AvatarUrlGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.IndustryGenerator;
 import org.github.krandom.generator.user.JobFieldGenerator;
@@ -672,6 +673,11 @@ public final class Generators {
     /** Returns a generator that produces random passwords with configurable length ranges. */
     public static PasswordGenerator ofPassword() {
         return new PasswordGenerator();
+    }
+
+    /** Returns a generator that produces avatar image URLs. */
+    public static AvatarUrlGenerator ofAvatarUrl() {
+        return new AvatarUrlGenerator();
     }
 
     // ── Lorem Ipsum ───────────────────────────────────────────────────────────

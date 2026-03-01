@@ -66,6 +66,14 @@ class DomainGeneratorTest {
     }
 
     @Test
+    void testBogusStyleDomainAliases() {
+        DomainGenerator generator = new DomainGenerator(Locale.GERMANY);
+        assertTrue(generator.generateDomainName().contains("."));
+        assertFalse(generator.generateDomainWord().contains("."));
+        assertFalse(generator.generateDomainSuffix().contains("."));
+    }
+
+    @Test
     void testGenerateHasValidFormat() {
         DomainGenerator generator = new DomainGenerator();
         String domain = generator.generate();

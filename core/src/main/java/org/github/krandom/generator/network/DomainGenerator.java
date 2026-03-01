@@ -121,7 +121,7 @@ public final class DomainGenerator implements Generator<String> {
      */
     @Override
     public String generate() {
-        String name = generateDomainName();
+        String name = generateDomainLabel();
         String tld = random.nextBoolean() && localeTLD != null ? localeTLD : getRandomPopularTLD();
         return name + "." + tld;
     }
@@ -135,8 +135,18 @@ public final class DomainGenerator implements Generator<String> {
      */
     public String generate(String tld) {
         Objects.requireNonNull(tld, "tld must not be null");
-        String name = generateDomainName();
+        String name = generateDomainLabel();
         return name + "." + tld;
+    }
+
+    /**
+     * Generates a full domain name.
+     * Bogus-style alias: {@code domainName()}.
+     *
+     * @return full domain name with suffix
+     */
+    public String generateDomainName() {
+        return generate();
     }
 
     /**
@@ -145,7 +155,17 @@ public final class DomainGenerator implements Generator<String> {
      * @return a domain label such as {@code "techcloud"} or {@code "data"}
      */
     public String generateName() {
-        return generateDomainName();
+        return generateDomainLabel();
+    }
+
+    /**
+     * Generates a single domain word/label.
+     * Bogus-style alias: {@code domainWord()}.
+     *
+     * @return domain label without suffix
+     */
+    public String generateDomainWord() {
+        return generateName();
     }
     
     /**
@@ -157,6 +177,16 @@ public final class DomainGenerator implements Generator<String> {
      */
     public String getTLD() {
         return random.nextBoolean() && localeTLD != null ? localeTLD : getRandomPopularTLD();
+    }
+
+    /**
+     * Generates a domain suffix (top-level domain).
+     * Bogus-style alias: {@code domainSuffix()}.
+     *
+     * @return suffix without dot
+     */
+    public String generateDomainSuffix() {
+        return getTLD();
     }
     
     /**
@@ -182,7 +212,7 @@ public final class DomainGenerator implements Generator<String> {
      *
      * @return a domain name
      */
-    private String generateDomainName() {
+    private String generateDomainLabel() {
         // Simple approach: 1-2 words
         if (random.nextBoolean()) {
             // Single word

@@ -396,6 +396,33 @@ public final class PhoneNumberGenerator implements Generator<String> {
         return msisdn.toString();
     }
 
+    /**
+     * Generates a phone number from a custom format template.
+     *
+     * <p>Template placeholders:
+     * <ul>
+     *   <li>{@code #} -> random digit {@code 0-9}</li>
+     * </ul>
+     *
+     * <p>Example: {@code "###-###-####"}.
+     * Bogus-style alias: {@code phoneNumberFormat()} equivalent.
+     *
+     * @param format template string; must not be {@code null} or blank
+     * @return formatted phone value
+     */
+    public String generateWithFormat(String format) {
+        Objects.requireNonNull(format, "format must not be null");
+        if (format.isBlank()) {
+            throw new IllegalArgumentException("format must not be blank");
+        }
+        StringBuilder out = new StringBuilder(format.length());
+        for (int i = 0; i < format.length(); i++) {
+            char ch = format.charAt(i);
+            out.append(ch == '#' ? (char) ('0' + random.nextInt(10)) : ch);
+        }
+        return out.toString();
+    }
+
     // ── Format generators ─────────────────────────────────────────────────────
 
     private String generateUSPhone(boolean formatted) {

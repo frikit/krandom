@@ -159,6 +159,26 @@ public final class URLGenerator implements Generator<String> {
     }
 
     /**
+     * Generates a URL.
+     * Bogus-style alias: {@code url()}.
+     *
+     * @return URL string
+     */
+    public String generateUrl() {
+        return generate();
+    }
+
+    /**
+     * Generates a URL with path.
+     * Bogus-style alias: {@code urlWithPath()}.
+     *
+     * @return URL with path
+     */
+    public String generateUrlWithPath() {
+        return generateWithPath();
+    }
+
+    /**
      * Generates a URL using a fixed domain.
      *
      * @param domain domain (e.g. {@code "example.com"}); must not be null/blank
@@ -243,6 +263,16 @@ public final class URLGenerator implements Generator<String> {
      */
     public String getProtocol() {
         return getRandomProtocol();
+    }
+
+    /**
+     * Generates a protocol token.
+     * Bogus-style alias: {@code protocol()}.
+     *
+     * @return protocol string
+     */
+    public String generateProtocol() {
+        return getProtocol();
     }
     
     /**
