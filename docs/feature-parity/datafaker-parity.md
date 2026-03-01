@@ -60,43 +60,43 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 ### 2. ADDRESS & LOCATION
 
-| Feature                  | DataFaker Support                                     | krandom Status | Implementation Priority | Notes                                                       |
-|--------------------------|-------------------------------------------------------|----------------|-------------------------|-------------------------------------------------------------|
+| Feature                  | DataFaker Support                                     | krandom Status | Implementation Priority | Notes                                                          |
+|--------------------------|-------------------------------------------------------|----------------|-------------------------|----------------------------------------------------------------|
 | **Street Address**       |
-| Street name              | ✅ `streetName()`                                      | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateStreetName()`               |
-| Street address           | ✅ `streetAddress()`                                   | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generate()`                         |
+| Street name              | ✅ `streetName()`                                      | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateStreetName()`                  |
+| Street address           | ✅ `streetAddress()`                                   | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generate()`                            |
 | Street number            | ✅ `streetAddressNumber()`, `buildingNumber()`         | ✅ Yes          | ✓ DONE                  | `generateStreetAddressNumber()` and `generateBuildingNumber()` |
-| Secondary address        | ✅ `secondaryAddress()` (Apt, Suite)                   | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateSecondaryAddress()`         |
-| Street suffix/prefix     | ✅ `streetSuffix()`, `streetPrefix()`                  | ❌ No           | MEDIUM                  | St, Ave, Blvd                                               |
+| Secondary address        | ✅ `secondaryAddress()` (Apt, Suite)                   | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateSecondaryAddress()`            |
+| Street suffix/prefix     | ✅ `streetSuffix()`, `streetPrefix()`                  | ❌ No           | MEDIUM                  | St, Ave, Blvd                                                  |
 | **City & State**         |
-| City name                | ✅ `city()`, `cityName()`                              | ✅ Yes          | ✓ DONE                  | `CityGenerator` — 10 locales, locale-specific cities        |
-| City prefix/suffix       | ✅ `cityPrefix()`, `citySuffix()`                      | ❌ No           | LOW                     | Building blocks                                             |
-| State                    | ✅ `state()`                                           | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate()` — 10 locales                    |
-| State abbreviation       | ✅ `stateAbbr()`                                       | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate(true)` — CA, TX, NSW, etc.         |
+| City name                | ✅ `city()`, `cityName()`                              | ✅ Yes          | ✓ DONE                  | `CityGenerator` — 10 locales, locale-specific cities           |
+| City prefix/suffix       | ✅ `cityPrefix()`, `citySuffix()`                      | ❌ No           | LOW                     | Building blocks                                                |
+| State                    | ✅ `state()`                                           | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate()` — 10 locales                       |
+| State abbreviation       | ✅ `stateAbbr()`                                       | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate(true)` — CA, TX, NSW, etc.            |
 | **Postal Codes**         |
-| ZIP code                 | ✅ `zipCode()`                                         | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator` — 10 locales                          |
-| ZIP+4                    | ✅ `zipCodePlus4()`                                    | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator.generate(true)` → "90210-1234"         |
-| ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No           | MEDIUM                  | State-specific mapping not implemented                      |
-| County by ZIP            | ✅ `countyByZipCode()`                                 | ❌ No           | LOW                     | Geographic mapping                                          |
-| Postcode (generic)       | ✅ `postcode()`                                        | ✅ Yes          | ✓ DONE                  | 10 locale-specific formats (JP: "100-0001", DE: "10115")    |
-| Eircode (Ireland)        | ✅ `eircode()`                                         | ❌ No           | LOW                     | Locale-specific                                             |
-| Mailbox                  | ✅ `mailBox()` (PO Box)                                | ❌ No           | LOW                     |                                                             |
+| ZIP code                 | ✅ `zipCode()`                                         | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator` — 10 locales                             |
+| ZIP+4                    | ✅ `zipCodePlus4()`                                    | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator.generate(true)` → "90210-1234"            |
+| ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No           | MEDIUM                  | State-specific mapping not implemented                         |
+| County by ZIP            | ✅ `countyByZipCode()`                                 | ❌ No           | LOW                     | Geographic mapping                                             |
+| Postcode (generic)       | ✅ `postcode()`                                        | ✅ Yes          | ✓ DONE                  | 10 locale-specific formats (JP: "100-0001", DE: "10115")       |
+| Eircode (Ireland)        | ✅ `eircode()`                                         | ❌ No           | LOW                     | Locale-specific                                                |
+| Mailbox                  | ✅ `mailBox()` (PO Box)                                | ❌ No           | LOW                     |                                                                |
 | **Country & Nation**     |
-| Country name             | ✅ `country()`                                         | ✅ Yes          | ✓ DONE                  | `CountryGenerator` — 195 countries, 10 locales              |
-| Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ❌ No           | MEDIUM                  | CountryGenerator returns names, not ISO codes               |
-| Capital city             | ✅ `capital()`                                         | ❌ No           | MEDIUM                  | Geographic data                                             |
-| Currency                 | ✅ `currency()`, `currencyCode()`                      | ✅ Yes          | ✓ DONE                  | Already in Money generator                                  |
-| Flag emoji               | ✅ `flag()`                                            | ❌ No           | LOW                     | Unicode flags                                               |
-| Nationality              | ✅ `nationality()`                                     | ❌ No           | MEDIUM                  | Citizen of...                                               |
-| Language                 | ✅ `language()`, `isoLanguage()`                       | ❌ No           | MEDIUM                  | Spoken languages                                            |
+| Country name             | ✅ `country()`                                         | ✅ Yes          | ✓ DONE                  | `CountryGenerator` — 195 countries, 10 locales                 |
+| Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ❌ No           | MEDIUM                  | CountryGenerator returns names, not ISO codes                  |
+| Capital city             | ✅ `capital()`                                         | ❌ No           | MEDIUM                  | Geographic data                                                |
+| Currency                 | ✅ `currency()`, `currencyCode()`                      | ✅ Yes          | ✓ DONE                  | Already in Money generator                                     |
+| Flag emoji               | ✅ `flag()`                                            | ❌ No           | LOW                     | Unicode flags                                                  |
+| Nationality              | ✅ `nationality()`                                     | ❌ No           | MEDIUM                  | Citizen of...                                                  |
+| Language                 | ✅ `language()`, `isoLanguage()`                       | ❌ No           | MEDIUM                  | Spoken languages                                               |
 | **Coordinates**          |
-| Latitude                 | ✅ `latitude()`                                        | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` — locale-bounded  |
-| Longitude                | ✅ `longitude()`                                       | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLongitude()` — locale-bounded |
-| Lat/Lon pair             | ✅ `latLon()`, `lonLat()`                              | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generate()` → "35.12,-80.12"          |
+| Latitude                 | ✅ `latitude()`                                        | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` — locale-bounded     |
+| Longitude                | ✅ `longitude()`                                       | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLongitude()` — locale-bounded    |
+| Lat/Lon pair             | ✅ `latLon()`, `lonLat()`                              | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generate()` → "35.12,-80.12"             |
 | **Direction & Location** |
-| Compass direction        | ✅ `word()`, `abbreviation()`, `azimuth()`             | ❌ No           | LOW                     | N, NE, NNE                                                  |
-| Time zone                | ✅ `timeZone()`                                        | ❌ No           | MEDIUM                  | America/New_York                                            |
-| Full address             | ✅ `fullAddress()`                                     | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateFullAddress()`              |
+| Compass direction        | ✅ `word()`, `abbreviation()`, `azimuth()`             | ❌ No           | LOW                     | N, NE, NNE                                                     |
+| Time zone                | ✅ `timeZone()`                                        | ❌ No           | MEDIUM                  | America/New_York                                               |
+| Full address             | ✅ `fullAddress()`                                     | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateFullAddress()`                 |
 
 ### 3. INTERNET & NETWORKING
 
@@ -112,7 +112,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Domain suffix     | ✅ `domainSuffix()` (.com, .org)      | ✅ Yes          | ✓ DONE                  | `DomainGenerator.getTLD()` → "com", "io", "de"        |
 | URL               | ✅ `url()`                            | ✅ Yes          | ✓ DONE                  | `URLGenerator` — 5 protocols, path, query params      |
 | Web domain        | ✅ `webdomain()`                      | ✅ Partial      | ✓ DONE                  | Covered by `DomainGenerator`                          |
-| Slug              | ✅ `slug()`                           | ✅ Yes          | ✓ DONE                  | `SlugGenerator.generate()` / `slugify(...)`          |
+| Slug              | ✅ `slug()`                           | ✅ Yes          | ✓ DONE                  | `SlugGenerator.generate()` / `slugify(...)`           |
 | **IP Addresses**  |
 | IPv4              | ✅ `ipV4Address()`                    | ✅ Yes          | ✓ DONE                  | Already implemented                                   |
 | IPv4 private      | ✅ `privateIpV4Address()`             | ✅ Yes          | ✓ DONE                  | `IPv4Generator.generatePrivate()`                     |
@@ -174,27 +174,27 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 ### 5. COMPANY & BUSINESS
 
-| Feature        | DataFaker Support            | krandom Status | Implementation Priority | Notes                   |
-|----------------|------------------------------|----------------|-------------------------|-------------------------|
-| Company name   | ✅ `name()`                   | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate()` |
+| Feature        | DataFaker Support            | krandom Status | Implementation Priority | Notes                                 |
+|----------------|------------------------------|----------------|-------------------------|---------------------------------------|
+| Company name   | ✅ `name()`                   | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate()`     |
 | Company suffix | ✅ `suffix()` (Inc, LLC, Ltd) | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate(true)` |
-| Industry       | ✅ `industry()`               | ✅ Yes          | ✓ DONE                  | `IndustryGenerator.generate()` |
-| Profession     | ✅ `profession()`             | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()` |
-| Buzzword       | ✅ `buzzword()`               | ❌ No           | LOW                     | Marketing speak         |
-| Catch phrase   | ✅ `catchPhrase()`            | ❌ No           | LOW                     | Company slogans         |
-| BS phrase      | ✅ `bs()`                     | ❌ No           | LOW                     | Corporate BS            |
-| Logo URL       | ✅ `logo()`                   | ❌ No           | LOW                     | Company logos           |
+| Industry       | ✅ `industry()`               | ✅ Yes          | ✓ DONE                  | `IndustryGenerator.generate()`        |
+| Profession     | ✅ `profession()`             | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()`      |
+| Buzzword       | ✅ `buzzword()`               | ❌ No           | LOW                     | Marketing speak                       |
+| Catch phrase   | ✅ `catchPhrase()`            | ❌ No           | LOW                     | Company slogans                       |
+| BS phrase      | ✅ `bs()`                     | ❌ No           | LOW                     | Corporate BS                          |
+| Logo URL       | ✅ `logo()`                   | ❌ No           | LOW                     | Company logos                         |
 | Company URL    | ✅ `url()`                    | ✅ Yes          | ✓ DONE                  | `CompanyUrlGenerator.generate()`      |
 
 ### 6. JOB & CAREER
 
-| Feature    | DataFaker Support | krandom Status | Implementation Priority | Notes                  |
-|------------|-------------------|----------------|-------------------------|------------------------|
-| Job field  | ✅ `field()`       | ✅ Yes          | ✓ DONE                  | `JobFieldGenerator.generate()` |
-| Seniority  | ✅ `seniority()`   | ✅ Yes          | ✓ DONE                  | `SeniorityGenerator.generate()`   |
-| Position   | ✅ `position()`    | ✅ Yes          | ✓ DONE                  | `PositionGenerator.generate()`     |
-| Job title  | ✅ `title()`       | ✅ Yes          | ✓ DONE                  | Combined title         |
-| Key skills | ✅ `keySkills()`   | ❌ No           | LOW                     | Job requirements       |
+| Feature    | DataFaker Support | krandom Status | Implementation Priority | Notes                           |
+|------------|-------------------|----------------|-------------------------|---------------------------------|
+| Job field  | ✅ `field()`       | ✅ Yes          | ✓ DONE                  | `JobFieldGenerator.generate()`  |
+| Seniority  | ✅ `seniority()`   | ✅ Yes          | ✓ DONE                  | `SeniorityGenerator.generate()` |
+| Position   | ✅ `position()`    | ✅ Yes          | ✓ DONE                  | `PositionGenerator.generate()`  |
+| Job title  | ✅ `title()`       | ✅ Yes          | ✓ DONE                  | Combined title                  |
+| Key skills | ✅ `keySkills()`   | ❌ No           | LOW                     | Job requirements                |
 
 ### 7. TEXT & LOREM
 
@@ -222,9 +222,9 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 | Feature      | DataFaker Support                     | krandom Status | Implementation Priority | Notes                                                        |
 |--------------|---------------------------------------|----------------|-------------------------|--------------------------------------------------------------|
-| Future date  | ✅ `future()`                          | ✅ Yes          | ✓ DONE                  | `DateGenerator.future()` / `future(int)`                    |
-| Past date    | ✅ `past()`                            | ✅ Yes          | ✓ DONE                  | `DateGenerator.past()` / `past(int)`                        |
-| Date between | ✅ `between()`                         | ✅ Yes          | ✓ DONE                  | `DateGenerator.between(LocalDate, LocalDate)`               |
+| Future date  | ✅ `future()`                          | ✅ Yes          | ✓ DONE                  | `DateGenerator.future()` / `future(int)`                     |
+| Past date    | ✅ `past()`                            | ✅ Yes          | ✓ DONE                  | `DateGenerator.past()` / `past(int)`                         |
+| Date between | ✅ `between()`                         | ✅ Yes          | ✓ DONE                  | `DateGenerator.between(LocalDate, LocalDate)`                |
 | Birthday     | ✅ `birthday()`, `birthdayLocalDate()` | ✅ Yes          | ✓ DONE                  | `BirthdayGenerator` — type-based, locale-aware string format |
 | Duration     | ✅ `duration()`                        | ❌ No           | MEDIUM                  | Time spans                                                   |
 | Period       | ✅ `period()`                          | ❌ No           | MEDIUM                  | Date periods                                                 |

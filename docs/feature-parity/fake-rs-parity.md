@@ -46,55 +46,55 @@ While fake-rs has fewer domain-specific providers compared to Java/JavaScript li
 
 This section is the current source of truth for Java-core parity status. Some legacy table rows below are stale.
 
-| fake-rs Feature | Java Status | Notes / Differences |
-|---|---|---|
-| FirstName / LastName | ✅ Exists | Locale-aware generators exist. |
-| Name (full) | ✅ Exists | `FullNameGenerator` implemented. |
-| NameWithTitle | ✅ Exists | Via `FullNameGenerator.generate(NameOptions)` with `prefix=true`; API shape differs. |
-| Title / Suffix | ✅ Exists | `TitleGenerator`, `SuffixGenerator` implemented. |
-| CityName / StateName / StateAbbr | ✅ Exists | `CityGenerator`, `StateGenerator.generate(boolean)` implemented. |
-| StreetName / StreetSuffix / BuildingNumber | ✅ Exists | In `StreetAddressGenerator` as dedicated methods. |
-| Full street address | ✅ Exists | `StreetAddressGenerator.generateFullAddress()`. |
-| Secondary address | ✅ Exists | `StreetAddressGenerator.generateSecondaryAddress()`. |
-| PostCode | ✅ Exists | `PostalCodeGenerator` supports locale formats (including US ZIP+4 option). |
-| CountryName | ✅ Exists | `CountryGenerator`. |
-| CountryCode | ✅ Exists | `CountryGenerator.generateCode()` returns ISO alpha-2 codes. |
-| Latitude / Longitude | ✅ Exists | `CoordinatesGenerator` provides both. |
-| Geohash | ❌ Missing | Not implemented. |
-| FreeEmail / SafeEmail / FreeEmailProvider | ✅ Exists | `EmailGenerator.generateFreeEmail()`, `generateSafeEmail()`, `getFreeEmailProvider()`. |
-| DomainSuffix | ✅ Exists | `DomainGenerator.getTLD()`. |
-| Slug | ✅ Exists | `SlugGenerator`. |
-| DomainName | ✅ Exists | `DomainGenerator.generateName()` plus full-domain composition methods. |
-| URL | ✅ Exists | `URLGenerator` with options/path/query and encoded file-name segment support. |
-| Username | ✅ Exists | `UsernameGenerator`. |
-| Password(range) | ✅ Exists | `PasswordGenerator.generate(min,max)` and fixed-length overload. |
-| IPv4 / IPv6 | ✅ Exists | Both implemented. |
-| IP (v4 or v6) | ✅ Exists | `IPGenerator` returns either v4 or v6 per call. |
-| IPv4 private/public/CIDR | ✅ Exists | `IPv4Generator.generatePrivate/public/cidr`. |
-| IPv6 CIDR | ✅ Exists | `IPv6Generator.generateCidr`. |
-| MACAddress / Port / UserAgent | ✅ Exists | Implemented in `network` package. |
-| HTTP status code | ✅ Exists | `HttpStatusCodeGenerator`. |
-| UUID | ✅ Exists | `UUIDGenerator` supports v4/v5/v7 (fake-rs commonly v4 via feature flag). |
-| CurrencyCode / Name / Symbol | ✅ Exists | `CurrencyGenerator` supports all three. |
-| Credit card number / expiry / CVV | ✅ Exists | `CreditCardGenerator` + `CardExpirationGenerator`. |
-| BIC / ISIN | ✅ Exists | `BicGenerator` and `IsinGenerator`. |
-| CompanyName / Industry / Profession | ✅ Exists | Implemented; `ProfessionGenerator` is locale-extensible. |
-| JobField / JobSeniority / JobTitle(Position) | ✅ Exists | `JobFieldGenerator`, `SeniorityGenerator`, `PositionGenerator`. |
-| JobType | ✅ Exists | `JobTypeGenerator`. |
-| Word / Sentence / Paragraph | ✅ Exists | Locale-aware text generators implemented. |
-| Words/Sentences/Paragraphs with fake-rs `Range` API | ✅ Exists | Range-style min/max APIs added on word/sentence/paragraph generators. |
-| DateTime / Date / Time | ✅ Exists | `LocalDateTimeGenerator`, `DateGenerator`, `TimeGenerator`. |
-| DateTimeBefore / After / Between | ✅ Exists | `LocalDateTimeGenerator.before()`, `.after()`, `.between()`. |
-| Duration | ✅ Exists | `DurationGenerator`. |
-| PhoneNumber / CellNumber | ✅ Exists | `PhoneNumberGenerator` supports formatted + mobile/landline selection. |
-| NumberWithFormat | ✅ Exists | `NumberWithFormatGenerator` (`#` placeholder format). |
-| Digit | ✅ Exists | `DigitGenerator`. |
-| ISBN / ISBN10 / ISBN13 | ✅ Exists | `IsbnGenerator` supports both formats. |
-| Hex/RGB color | ✅ Exists | `ColorGenerator` supports multiple color formats. |
-| RGBA/HSL/HSLA strings | ✅ Exists | Added in `ColorFormat` + `ColorGenerator`. |
-| License plate | ❌ Missing | Not implemented. |
-| FileName / FileExtension | ✅ Exists | Implemented in `file` package. |
-| FilePath / DirPath / MimeType / Semver | ✅ Exists | `FilePathGenerator`, `DirPathGenerator`, `MimeTypeGenerator`, `SemverGenerator`. |
+| fake-rs Feature                                     | Java Status | Notes / Differences                                                                    |
+|-----------------------------------------------------|-------------|----------------------------------------------------------------------------------------|
+| FirstName / LastName                                | ✅ Exists    | Locale-aware generators exist.                                                         |
+| Name (full)                                         | ✅ Exists    | `FullNameGenerator` implemented.                                                       |
+| NameWithTitle                                       | ✅ Exists    | Via `FullNameGenerator.generate(NameOptions)` with `prefix=true`; API shape differs.   |
+| Title / Suffix                                      | ✅ Exists    | `TitleGenerator`, `SuffixGenerator` implemented.                                       |
+| CityName / StateName / StateAbbr                    | ✅ Exists    | `CityGenerator`, `StateGenerator.generate(boolean)` implemented.                       |
+| StreetName / StreetSuffix / BuildingNumber          | ✅ Exists    | In `StreetAddressGenerator` as dedicated methods.                                      |
+| Full street address                                 | ✅ Exists    | `StreetAddressGenerator.generateFullAddress()`.                                        |
+| Secondary address                                   | ✅ Exists    | `StreetAddressGenerator.generateSecondaryAddress()`.                                   |
+| PostCode                                            | ✅ Exists    | `PostalCodeGenerator` supports locale formats (including US ZIP+4 option).             |
+| CountryName                                         | ✅ Exists    | `CountryGenerator`.                                                                    |
+| CountryCode                                         | ✅ Exists    | `CountryGenerator.generateCode()` returns ISO alpha-2 codes.                           |
+| Latitude / Longitude                                | ✅ Exists    | `CoordinatesGenerator` provides both.                                                  |
+| Geohash                                             | ❌ Missing   | Not implemented.                                                                       |
+| FreeEmail / SafeEmail / FreeEmailProvider           | ✅ Exists    | `EmailGenerator.generateFreeEmail()`, `generateSafeEmail()`, `getFreeEmailProvider()`. |
+| DomainSuffix                                        | ✅ Exists    | `DomainGenerator.getTLD()`.                                                            |
+| Slug                                                | ✅ Exists    | `SlugGenerator`.                                                                       |
+| DomainName                                          | ✅ Exists    | `DomainGenerator.generateName()` plus full-domain composition methods.                 |
+| URL                                                 | ✅ Exists    | `URLGenerator` with options/path/query and encoded file-name segment support.          |
+| Username                                            | ✅ Exists    | `UsernameGenerator`.                                                                   |
+| Password(range)                                     | ✅ Exists    | `PasswordGenerator.generate(min,max)` and fixed-length overload.                       |
+| IPv4 / IPv6                                         | ✅ Exists    | Both implemented.                                                                      |
+| IP (v4 or v6)                                       | ✅ Exists    | `IPGenerator` returns either v4 or v6 per call.                                        |
+| IPv4 private/public/CIDR                            | ✅ Exists    | `IPv4Generator.generatePrivate/public/cidr`.                                           |
+| IPv6 CIDR                                           | ✅ Exists    | `IPv6Generator.generateCidr`.                                                          |
+| MACAddress / Port / UserAgent                       | ✅ Exists    | Implemented in `network` package.                                                      |
+| HTTP status code                                    | ✅ Exists    | `HttpStatusCodeGenerator`.                                                             |
+| UUID                                                | ✅ Exists    | `UUIDGenerator` supports v4/v5/v7 (fake-rs commonly v4 via feature flag).              |
+| CurrencyCode / Name / Symbol                        | ✅ Exists    | `CurrencyGenerator` supports all three.                                                |
+| Credit card number / expiry / CVV                   | ✅ Exists    | `CreditCardGenerator` + `CardExpirationGenerator`.                                     |
+| BIC / ISIN                                          | ✅ Exists    | `BicGenerator` and `IsinGenerator`.                                                    |
+| CompanyName / Industry / Profession                 | ✅ Exists    | Implemented; `ProfessionGenerator` is locale-extensible.                               |
+| JobField / JobSeniority / JobTitle(Position)        | ✅ Exists    | `JobFieldGenerator`, `SeniorityGenerator`, `PositionGenerator`.                        |
+| JobType                                             | ✅ Exists    | `JobTypeGenerator`.                                                                    |
+| Word / Sentence / Paragraph                         | ✅ Exists    | Locale-aware text generators implemented.                                              |
+| Words/Sentences/Paragraphs with fake-rs `Range` API | ✅ Exists    | Range-style min/max APIs added on word/sentence/paragraph generators.                  |
+| DateTime / Date / Time                              | ✅ Exists    | `LocalDateTimeGenerator`, `DateGenerator`, `TimeGenerator`.                            |
+| DateTimeBefore / After / Between                    | ✅ Exists    | `LocalDateTimeGenerator.before()`, `.after()`, `.between()`.                           |
+| Duration                                            | ✅ Exists    | `DurationGenerator`.                                                                   |
+| PhoneNumber / CellNumber                            | ✅ Exists    | `PhoneNumberGenerator` supports formatted + mobile/landline selection.                 |
+| NumberWithFormat                                    | ✅ Exists    | `NumberWithFormatGenerator` (`#` placeholder format).                                  |
+| Digit                                               | ✅ Exists    | `DigitGenerator`.                                                                      |
+| ISBN / ISBN10 / ISBN13                              | ✅ Exists    | `IsbnGenerator` supports both formats.                                                 |
+| Hex/RGB color                                       | ✅ Exists    | `ColorGenerator` supports multiple color formats.                                      |
+| RGBA/HSL/HSLA strings                               | ✅ Exists    | Added in `ColorFormat` + `ColorGenerator`.                                             |
+| License plate                                       | ❌ Missing   | Not implemented.                                                                       |
+| FileName / FileExtension                            | ✅ Exists    | Implemented in `file` package.                                                         |
+| FilePath / DirPath / MimeType / Semver              | ✅ Exists    | `FilePathGenerator`, `DirPathGenerator`, `MimeTypeGenerator`, `SemverGenerator`.       |
 
 ### Architecture-level Differences (Intentional / Significant)
 
