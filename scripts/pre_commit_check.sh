@@ -74,10 +74,19 @@ else
 fi
 
 step "Run tests with coverage report"
-if "${GRADLEW}" :core:test --quiet; then
-    ok "Tests passed"
+TEST_START=$(date +%s)
+if "${GRADLEW}" :core:test --rerun --quiet; then
+    TEST_END=$(date +%s)
+    TEST_SECS=$(( TEST_END - TEST_START ))
+    TEST_MINS=$(( TEST_SECS / 60 ))
+    TEST_SECS=$(( TEST_SECS % 60 ))
+    ok "Tests passed (${TEST_MINS}m ${TEST_SECS}s)"
 else
-    fail "Tests failed — see core/build/reports/tests/test/index.html"
+    TEST_END=$(date +%s)
+    TEST_SECS=$(( TEST_END - TEST_START ))
+    TEST_MINS=$(( TEST_SECS / 60 ))
+    TEST_SECS=$(( TEST_SECS % 60 ))
+    fail "Tests failed after ${TEST_MINS}m ${TEST_SECS}s — see core/build/reports/tests/test/index.html"
     exit 1
 fi
 
