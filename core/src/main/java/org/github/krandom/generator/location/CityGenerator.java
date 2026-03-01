@@ -31,6 +31,13 @@ public final class CityGenerator implements Generator<String> {
     private final String[] cities;
 
     /**
+     * Creates a generator using default configuration ({@link Locale#US}).
+     */
+    public CityGenerator() {
+        this(GeneratorConfig.defaults());
+    }
+
+    /**
      * Creates a generator using the given config.
      *
      * @param config the generator configuration; must not be {@code null}; the locale in the

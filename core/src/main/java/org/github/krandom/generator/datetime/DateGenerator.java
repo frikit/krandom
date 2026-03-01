@@ -266,6 +266,15 @@ public final class DateGenerator implements Generator<LocalDate> {
     }
 
     /**
+     * Alias for {@link #generateTimestamp()} to match Faker-style unix-time naming.
+     *
+     * @return Unix timestamp in seconds
+     */
+    public long generateUnixTime() {
+        return generateTimestamp();
+    }
+
+    /**
      * Generates a future date in the range [tomorrow, tomorrow + 10 years].
      *
      * @return a future date; never {@code null}

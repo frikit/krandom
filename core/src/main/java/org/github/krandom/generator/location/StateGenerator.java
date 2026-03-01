@@ -35,6 +35,13 @@ public final class StateGenerator implements Generator<String> {
     private final String[] abbreviations;
 
     /**
+     * Creates a generator using default configuration ({@link Locale#US}).
+     */
+    public StateGenerator() {
+        this(GeneratorConfig.defaults());
+    }
+
+    /**
      * Creates a generator using the given config.
      *
      * @param config the generator configuration; must not be {@code null}; the locale in the

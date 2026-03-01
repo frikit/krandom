@@ -50,6 +50,33 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("generateCodeAlpha3() returns ISO alpha-3 code")
+    void generateCodeAlpha3() {
+        CountryGenerator gen = new CountryGenerator(Locale.US);
+        String code = gen.generateCodeAlpha3();
+        assertNotNull(code);
+        assertTrue(code.matches("[A-Z]{3}"));
+    }
+
+    @Test
+    @DisplayName("current-country helpers return locale-specific values")
+    void currentCountryHelpers() {
+        CountryGenerator us = new CountryGenerator(Locale.US);
+        assertEquals("US", us.currentCountryCode());
+        assertEquals("USA", us.currentCountryCodeAlpha3());
+        assertFalse(us.currentCountry().isBlank());
+    }
+
+    @Test
+    @DisplayName("current-country helpers throw when locale has no country")
+    void currentCountryHelpersNoCountry() {
+        CountryGenerator languageOnly = new CountryGenerator(GeneratorConfig.builder().locale(Locale.ENGLISH).build());
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentCountry);
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCode);
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodeAlpha3);
+    }
+
+    @Test
     @DisplayName("US locale returns English country names")
     void usLocaleEnglish() {
         CountryGenerator gen = new CountryGenerator(Locale.US);

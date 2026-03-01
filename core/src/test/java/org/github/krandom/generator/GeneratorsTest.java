@@ -21,11 +21,22 @@ import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.DurationGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
+import org.github.krandom.generator.datetime.TimezoneGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
+import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.location.CityGenerator;
+import org.github.krandom.generator.location.CountryGenerator;
+import org.github.krandom.generator.location.PostalCodeGenerator;
+import org.github.krandom.generator.location.StateGenerator;
+import org.github.krandom.generator.network.DomainGenerator;
+import org.github.krandom.generator.network.HostnameGenerator;
+import org.github.krandom.generator.network.HttpMethodGenerator;
 import org.github.krandom.generator.network.HttpStatusCodeGenerator;
 import org.github.krandom.generator.network.IPGenerator;
 import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
+import org.github.krandom.generator.network.UriGenerator;
+import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.selection.PickGenerator;
 import org.github.krandom.generator.selection.PickSetGenerator;
 import org.github.krandom.generator.selection.RepeatGenerator;
@@ -38,8 +49,12 @@ import org.github.krandom.generator.text.SyllableGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.finance.BicGenerator;
 import org.github.krandom.generator.finance.IsinGenerator;
+import org.github.krandom.generator.user.CompanyEmailGenerator;
+import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
+import org.github.krandom.generator.user.ProfileGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
+import org.github.krandom.generator.user.SimpleProfileGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -311,6 +326,7 @@ class GeneratorsTest {
         assertInstanceOf(InstantGenerator.class, Generators.ofInstant());
         assertInstanceOf(ZonedDateTimeGenerator.class, Generators.ofZonedDateTime());
         assertInstanceOf(DurationGenerator.class, Generators.ofDuration());
+        assertInstanceOf(TimezoneGenerator.class, Generators.ofTimezone());
     }
 
     @Test @DisplayName("ofJobType() returns JobTypeGenerator")
@@ -339,6 +355,48 @@ class GeneratorsTest {
 
     @Test @DisplayName("ofHttpStatusCode() returns HttpStatusCodeGenerator")
     void ofHttpStatusCode() { assertInstanceOf(HttpStatusCodeGenerator.class, Generators.ofHttpStatusCode()); }
+
+    @Test @DisplayName("ofHttpMethod() returns HttpMethodGenerator")
+    void ofHttpMethod() { assertInstanceOf(HttpMethodGenerator.class, Generators.ofHttpMethod()); }
+
+    @Test @DisplayName("ofDomain() returns DomainGenerator")
+    void ofDomain() { assertInstanceOf(DomainGenerator.class, Generators.ofDomain()); }
+
+    @Test @DisplayName("ofHostname() returns HostnameGenerator")
+    void ofHostname() { assertInstanceOf(HostnameGenerator.class, Generators.ofHostname()); }
+
+    @Test @DisplayName("ofUrl() returns URLGenerator")
+    void ofUrl() { assertInstanceOf(URLGenerator.class, Generators.ofUrl()); }
+
+    @Test @DisplayName("ofUri() returns UriGenerator")
+    void ofUri() { assertInstanceOf(UriGenerator.class, Generators.ofUri()); }
+
+    @Test @DisplayName("ofEmail() returns EmailGenerator")
+    void ofEmail() { assertInstanceOf(EmailGenerator.class, Generators.ofEmail()); }
+
+    @Test @DisplayName("ofCompanyEmail() returns CompanyEmailGenerator")
+    void ofCompanyEmail() { assertInstanceOf(CompanyEmailGenerator.class, Generators.ofCompanyEmail()); }
+
+    @Test @DisplayName("ofSimpleProfile() returns SimpleProfileGenerator")
+    void ofSimpleProfile() { assertInstanceOf(SimpleProfileGenerator.class, Generators.ofSimpleProfile()); }
+
+    @Test @DisplayName("ofProfile() returns ProfileGenerator")
+    void ofProfile() { assertInstanceOf(ProfileGenerator.class, Generators.ofProfile()); }
+
+    @Test @DisplayName("ofCity() returns CityGenerator")
+    void ofCity() { assertInstanceOf(CityGenerator.class, Generators.ofCity()); }
+
+    @Test @DisplayName("ofState() returns StateGenerator")
+    void ofState() { assertInstanceOf(StateGenerator.class, Generators.ofState()); }
+
+    @Test @DisplayName("ofPostalCode() returns PostalCodeGenerator")
+    void ofPostalCode() { assertInstanceOf(PostalCodeGenerator.class, Generators.ofPostalCode()); }
+
+    @Test @DisplayName("ofCountry() returns CountryGenerator")
+    void ofCountry() { assertInstanceOf(CountryGenerator.class, Generators.ofCountry()); }
+
+    @Test @DisplayName("ofUuid() returns UUIDGenerator")
+    void ofUuid() { assertInstanceOf(UUIDGenerator.class, Generators.ofUuid()); }
 
     // ── forType ───────────────────────────────────────────────────────────────
 

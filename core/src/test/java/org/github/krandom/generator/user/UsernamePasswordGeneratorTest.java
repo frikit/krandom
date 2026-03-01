@@ -61,6 +61,11 @@ class UsernamePasswordGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> gen.generate(0, 10));
         assertThrows(IllegalArgumentException.class, () -> gen.generate(10, 9));
         assertThrows(NullPointerException.class, () -> new PasswordGenerator(null));
+
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(999L).build();
+        PasswordGenerator seededA = new PasswordGenerator(cfg);
+        PasswordGenerator seededB = new PasswordGenerator(cfg);
+        assertEquals(seededA.generate(), seededB.generate());
     }
 
     @Test

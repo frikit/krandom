@@ -84,6 +84,24 @@ public final class FullNameGenerator implements Generator<String> {
     }
 
     /**
+     * Generates a full name using female first-name data.
+     *
+     * @return female full name
+     */
+    public String generateFemale() {
+        return generate(Gender.FEMALE);
+    }
+
+    /**
+     * Generates a full name using male first-name data.
+     *
+     * @return male full name
+     */
+    public String generateMale() {
+        return generate(Gender.MALE);
+    }
+
+    /**
      * Generates a full name that includes a middle name.
      *
      * <p>For locales where middle names are not part of the naming model (for example

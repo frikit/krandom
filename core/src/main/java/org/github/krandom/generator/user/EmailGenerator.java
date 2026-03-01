@@ -230,6 +230,15 @@ public final class EmailGenerator implements Generator<String> {
     public String getFreeEmailProvider() {
         return getRandomFreeDomain();
     }
+
+    /**
+     * Generates a company email address.
+     *
+     * @return a company-style email
+     */
+    public String generateCompanyEmail() {
+        return new CompanyEmailGenerator(config).generate();
+    }
     
     /**
      * Formats the local part of the email address based on the specified format.

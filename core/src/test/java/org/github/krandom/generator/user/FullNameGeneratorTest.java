@@ -103,6 +103,16 @@ class FullNameGeneratorTest {
         }
 
         @Test
+        @DisplayName("generateFemale/generateMale convenience methods return two-part names")
+        void genderConvenienceMethods() {
+            FullNameGenerator gen = new FullNameGenerator();
+            String female = gen.generateFemale();
+            String male = gen.generateMale();
+            assertEquals(2, female.split(" ").length);
+            assertEquals(2, male.split(" ").length);
+        }
+
+        @Test
         @DisplayName("null gender throws NullPointerException")
         void nullGenderThrows() {
             assertThrows(NullPointerException.class,

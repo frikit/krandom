@@ -9,11 +9,63 @@
 - **License**: MIT
 - **Key Strength**: 80+ locales, provider architecture, extensive real-world datasets, highest maturity
 
+## Java Execution Plan
+
+- Active plan: `docs/plans/faker-python-java-plan.md`
+- Current scope: Java parity only (Kotlin/Scala deferred)
+- Delivery model: one parity slice at a time with tests + `./scripts/pre_commit_check.sh`
+
 ## Executive Summary
 
 Python Faker is the most mature and widely-adopted fake data library in the Python ecosystem (27k+ GitHub stars, 10+ years), offering 80+ locale support, 20+ core providers, and a flexible plugin
 architecture. It originated as a port of PHP Faker and has become the de facto standard for test data generation in Python. Key strengths include comprehensive locale-aware data (names, addresses,
 phone numbers), extensive date/time utilities, realistic financial data (IBAN, credit cards), and battle-tested stability from massive real-world usage.
+
+## Phase 0 Audit Baseline (2026-03-01)
+
+This section is the current Java parity baseline for execution planning. Some legacy rows below are stale.
+
+### Already Covered (Java)
+
+- Identity: `full name`, `first/last name`, `title/prefix`, `suffix`, `username`, locale-aware name generation.
+- Address/location: `city`, `state`, `state_abbr`, `street_name`, `street_address`, `building_number`, `secondary_address`, `postcode/zipcode`, `country`, `country_code(alpha-2)`, `latitude`,
+  `longitude`.
+- Internet/network: `email`, `safe_email`, `free_email`, `company_email`, `free_email_domain`, `domain_name`, `hostname`, `tld`, `url`, `uri`, `slug`, `ipv4`, `ipv4_private/public/cidr`, `ipv6`,
+  `ipv6 cidr`, `ip(v4|v6)`, `mac_address`, `port_number` (+ system/user/dynamic ranges), `http_method`, `http_status_code`, `uuid4`, `user_agent`.
+- Finance/commercial: `credit card number/expiry/cvv/type/full`, `swift/bic`, `currency code/name/symbol/info`, `pricetag` equivalent via `MoneyGenerator`.
+- Company/job/text/date: `company`, `company_suffix`, `job title`, `profile/simple_profile`, `word/words`, `sentence/sentences`, `paragraph/paragraphs`, `date/past/future/between`,
+  `datetime/past/future/before/after/between`, `iso8601`, `unix_time`, `timezone`, `time`, `duration`.
+- Numbers/codes/file/color: `digit`, `number_with_format`, `isbn10/isbn13`, `file_path`, `dir_path`, `file_name`, `file_extension`, `mime_type`, `semver`, `hex/rgb/rgba/hsl/hsla`.
+
+### Open Gaps Tagged for Implementation
+
+| Gap                                                                      | Status              | Priority Tag | Notes                                                              |
+|--------------------------------------------------------------------------|---------------------|--------------|--------------------------------------------------------------------|
+| `name_female()/name_male()` explicit convenience APIs                    | Implemented         | P0 ✅         | Added full-name convenience wrappers.                              |
+| Gender-specific last-name variants                                       | Missing             | P1           | Locale-specific surname morphology not implemented.                |
+| `profile()/simple_profile()`                                             | Implemented         | P0 ✅         | Added dedicated profile generators and models.                     |
+| `country_code(alpha-3)` and current-country helpers                      | Implemented         | P0 ✅         | Added alpha-3 generation and current-country helper APIs.          |
+| `hostname()`, `uri()`                                                    | Implemented         | P0 ✅         | Added dedicated hostname and URI generators.                       |
+| `company_email()`                                                        | Implemented         | P0 ✅         | Added dedicated company-email generator and email convenience API. |
+| `http_method()`                                                          | Implemented         | P0 ✅         | Added dedicated HTTP method generator.                             |
+| Browser-specific user agents (`chrome/firefox/safari/opera/android/ios`) | Missing             | P1           | Generic UA exists.                                                 |
+| `iban()`, `aba()`, `bban()`, `bank_country()`                            | Missing             | P1           | Banking set incomplete.                                            |
+| `currency()` dict shape                                                  | Partial             | P1           | `CurrencyInfo` exists, but Faker-Python method contract differs.   |
+| `bs()`, `catch_phrase()`                                                 | Missing             | P1           | Company language providers missing.                                |
+| `text()/texts()` char-limited blocks                                     | Missing             | P1           | Word/sentence/paragraph exist.                                     |
+| Custom word lists + uniqueness flags in text providers                   | Missing             | P1           | Could map to options APIs.                                         |
+| `iso8601()`, `timezone()`, date component helpers (`month_name`, etc.)   | Implemented/Partial | P0 ✅         | Added iso8601/timezone; month-name helper already existed.         |
+| `country_calling_code()`, `msisdn()`                                     | Missing             | P1           | Phone generator exists.                                            |
+| `pydecimal()`, `null_boolean()`                                          | Missing/Partial     | P1           | Weighted boolean exists (`withLikelihood`).                        |
+| EAN family (`ean8/ean13/ean/localized`)                                  | Missing             | P1           | ISBN exists; barcode family missing.                               |
+| Real hash algorithms (`md5/sha1/sha256`)                                 | Partial             | P1           | Random hex hash exists, not algorithmic digest providers.          |
+| Color names (`color_name`, `safe_color_name`)                            | Missing             | P1           | Color formats exist.                                               |
+
+### Intentional Skip Candidates (Phase 4 Review)
+
+- Passport composite providers (`passport_full`, `passport_owner`, MRZ) unless demanded by product scope.
+- Low-ROI locale-niche identity variants with weak reuse in current framework goals.
+- Faker-Python Python-specific return-shape compat where Java-native models already exist and are preferable.
 
 ---
 

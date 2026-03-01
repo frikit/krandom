@@ -18,7 +18,15 @@ import org.github.krandom.generator.file.DirPathGenerator;
 import org.github.krandom.generator.file.MimeTypeGenerator;
 import org.github.krandom.generator.file.SemverGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
+import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.location.CityGenerator;
+import org.github.krandom.generator.location.CountryGenerator;
+import org.github.krandom.generator.location.PostalCodeGenerator;
+import org.github.krandom.generator.location.StateGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
+import org.github.krandom.generator.network.DomainGenerator;
+import org.github.krandom.generator.network.HostnameGenerator;
+import org.github.krandom.generator.network.HttpMethodGenerator;
 import org.github.krandom.generator.network.HttpStatusCodeGenerator;
 import org.github.krandom.generator.network.IPv4Generator;
 import org.github.krandom.generator.network.IPv6Generator;
@@ -26,6 +34,8 @@ import org.github.krandom.generator.network.IPGenerator;
 import org.github.krandom.generator.network.MacAddressGenerator;
 import org.github.krandom.generator.network.PortGenerator;
 import org.github.krandom.generator.network.SlugGenerator;
+import org.github.krandom.generator.network.UriGenerator;
+import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.network.UserAgentGenerator;
 import org.github.krandom.generator.selection.PickGenerator;
 import org.github.krandom.generator.selection.PickSetGenerator;
@@ -39,18 +49,22 @@ import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.SyllableGenerator;
 import org.github.krandom.generator.text.TemplateStringGenerator;
 import org.github.krandom.generator.text.WordGenerator;
+import org.github.krandom.generator.user.CompanyEmailGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.CompanyUrlGenerator;
 import org.github.krandom.generator.user.EducationalAttainmentGenerator;
+import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.IndustryGenerator;
 import org.github.krandom.generator.user.JobFieldGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.MaritalStatusGenerator;
+import org.github.krandom.generator.user.ProfileGenerator;
 import org.github.krandom.generator.user.PositionGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
 import org.github.krandom.generator.user.PasswordGenerator;
 import org.github.krandom.generator.user.SeniorityGenerator;
+import org.github.krandom.generator.user.SimpleProfileGenerator;
 import org.github.krandom.generator.user.UsernameGenerator;
 import org.github.krandom.generator.finance.BicGenerator;
 import org.github.krandom.generator.finance.IsinGenerator;
@@ -58,6 +72,7 @@ import org.github.krandom.generator.finance.IsinGenerator;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.github.krandom.generator.datetime.DateGenerator;
+import org.github.krandom.generator.datetime.TimezoneGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
@@ -327,6 +342,31 @@ public final class Generators {
         return new HttpStatusCodeGenerator();
     }
 
+    /** Returns a generator that produces HTTP methods. */
+    public static HttpMethodGenerator ofHttpMethod() {
+        return new HttpMethodGenerator();
+    }
+
+    /** Returns a generator that produces domain names. */
+    public static DomainGenerator ofDomain() {
+        return new DomainGenerator();
+    }
+
+    /** Returns a generator that produces hostnames. */
+    public static HostnameGenerator ofHostname() {
+        return new HostnameGenerator();
+    }
+
+    /** Returns a generator that produces URL strings. */
+    public static URLGenerator ofUrl() {
+        return new URLGenerator();
+    }
+
+    /** Returns a generator that produces URI strings. */
+    public static UriGenerator ofUri() {
+        return new UriGenerator();
+    }
+
     // ── BigDecimal ────────────────────────────────────────────────────────────
 
     /** Returns a generator producing random {@link BigDecimal} values ([0, 1&nbsp;000&nbsp;000], scale 2). */
@@ -388,6 +428,11 @@ public final class Generators {
         return new DurationGenerator();
     }
 
+    /** Returns a generator that produces timezone identifiers. */
+    public static TimezoneGenerator ofTimezone() {
+        return new TimezoneGenerator();
+    }
+
     // ── Full name ─────────────────────────────────────────────────────────────
 
     /** Returns a generator that produces random full names (first + last) in {@link java.util.Locale#US}. */
@@ -395,11 +440,51 @@ public final class Generators {
         return new FullNameGenerator();
     }
 
+    /** Returns a generator that produces email addresses. */
+    public static EmailGenerator ofEmail() {
+        return new EmailGenerator();
+    }
+
+    /** Returns a generator that produces company email addresses. */
+    public static CompanyEmailGenerator ofCompanyEmail() {
+        return new CompanyEmailGenerator();
+    }
+
+    /** Returns a generator that produces simple user profiles. */
+    public static SimpleProfileGenerator ofSimpleProfile() {
+        return new SimpleProfileGenerator();
+    }
+
+    /** Returns a generator that produces extended user profiles. */
+    public static ProfileGenerator ofProfile() {
+        return new ProfileGenerator();
+    }
+
     // ── Street address ────────────────────────────────────────────────────────
 
     /** Returns a generator that produces random US-style street addresses (e.g. {@code "123 Oak Ave"}). */
     public static StreetAddressGenerator ofStreetAddress() {
         return new StreetAddressGenerator();
+    }
+
+    /** Returns a generator that produces city names. */
+    public static CityGenerator ofCity() {
+        return new CityGenerator();
+    }
+
+    /** Returns a generator that produces state/province names. */
+    public static StateGenerator ofState() {
+        return new StateGenerator();
+    }
+
+    /** Returns a generator that produces postal codes. */
+    public static PostalCodeGenerator ofPostalCode() {
+        return new PostalCodeGenerator();
+    }
+
+    /** Returns a generator that produces country names and country codes. */
+    public static CountryGenerator ofCountry() {
+        return new CountryGenerator();
     }
 
     // ── Company name ──────────────────────────────────────────────────────────
@@ -573,6 +658,11 @@ public final class Generators {
      */
     public static IsbnGenerator ofIsbn(IsbnGenerator.IsbnType type) {
         return new IsbnGenerator(type);
+    }
+
+    /** Returns a generator that produces UUID values. */
+    public static UUIDGenerator ofUuid() {
+        return new UUIDGenerator();
     }
 
     // ── Selection / helper-style generators ──────────────────────────────────

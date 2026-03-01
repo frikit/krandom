@@ -114,4 +114,23 @@ class LocalDateTimeGeneratorTest {
         assertThrows(IllegalArgumentException.class,
                 () -> gen.after(LocalDateTime.of(2100, 12, 31, 23, 59, 59)));
     }
+
+    @Test
+    @DisplayName("generateIso8601 returns UTC offset date-time")
+    void iso8601Format() {
+        String value = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(93L).build()).generateIso8601();
+        assertTrue(value.endsWith("Z") || value.matches(".*[+-]\\d{2}:\\d{2}$"));
+        assertTrue(value.contains("T"));
+    }
+
+    @Test
+    @DisplayName("future/past helpers obey relative ranges")
+    void futurePast() {
+        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(94L).build());
+        LocalDateTime now = LocalDateTime.now();
+        assertTrue(gen.future().isAfter(now));
+        assertTrue(gen.past().isBefore(now));
+        assertThrows(IllegalArgumentException.class, () -> gen.future(0));
+        assertThrows(IllegalArgumentException.class, () -> gen.past(0));
+    }
 }

@@ -146,6 +146,13 @@ class EmailGeneratorTest {
     }
 
     @Test
+    void testGenerateCompanyEmail() {
+        String email = generator.generateCompanyEmail();
+        assertNotNull(email);
+        assertTrue(email.matches("[a-z0-9.]+@[a-z0-9]+\\.[a-z]{2,}"));
+    }
+
+    @Test
     void testGetFreeEmailProviderLocaleAware() {
         EmailGenerator de = new EmailGenerator(Locale.GERMANY);
         String provider = de.getFreeEmailProvider();

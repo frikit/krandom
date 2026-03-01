@@ -171,6 +171,13 @@ class DateGeneratorTest {
     }
 
     @Test
+    void testGenerateUnixTimeAlias() {
+        DateGenerator timestampGenerator = new DateGenerator(GeneratorConfig.builder().seed(800L).build());
+        DateGenerator unixGenerator = new DateGenerator(GeneratorConfig.builder().seed(800L).build());
+        assertEquals(timestampGenerator.generateTimestamp(), unixGenerator.generateUnixTime());
+    }
+
+    @Test
     void testSeededGeneratorProducesSameResults() {
         DateGenerator gen1 = new DateGenerator(GeneratorConfig.builder().seed(42L).build());
         DateGenerator gen2 = new DateGenerator(GeneratorConfig.builder().seed(42L).build());

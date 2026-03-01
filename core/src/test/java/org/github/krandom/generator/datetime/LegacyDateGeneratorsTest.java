@@ -40,6 +40,24 @@ class LegacyDateGeneratorsTest {
     }
 
     @Test
+    @DisplayName("seeded config constructors produce reproducible values")
+    void configConstructorsSeeded() {
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(123L).build();
+
+        UtilDateGenerator utilA = new UtilDateGenerator(cfg);
+        UtilDateGenerator utilB = new UtilDateGenerator(cfg);
+        assertEquals(utilA.generate(), utilB.generate());
+
+        SqlDateGenerator sqlDateA = new SqlDateGenerator(cfg);
+        SqlDateGenerator sqlDateB = new SqlDateGenerator(cfg);
+        assertEquals(sqlDateA.generate(), sqlDateB.generate());
+
+        SqlTimestampGenerator tsA = new SqlTimestampGenerator(cfg);
+        SqlTimestampGenerator tsB = new SqlTimestampGenerator(cfg);
+        assertEquals(tsA.generate(), tsB.generate());
+    }
+
+    @Test
     @DisplayName("range constructors validate min <= max")
     void rangeConstructorsValidateOrder() {
         assertThrows(IllegalArgumentException.class, () -> new UtilDateGenerator(MAX, MIN));

@@ -12,6 +12,8 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Random;
@@ -164,5 +166,62 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
         }
         long offset = random.nextLong(seconds + 1);
         return startInclusive.plusSeconds(offset);
+    }
+
+    /**
+     * Generates an ISO-8601 date-time string in UTC with offset (for example, {@code 2026-03-01T08:12:33Z}).
+     *
+     * @return ISO-8601 date-time string
+     */
+    public String generateIso8601() {
+        return generate().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    /**
+     * Generates a future date-time within the next 10 years.
+     *
+     * @return future date-time
+     */
+    public LocalDateTime future() {
+        return future(3650);
+    }
+
+    /**
+     * Generates a future date-time in the range [now + 1 second, now + maxDaysAhead days].
+     *
+     * @param maxDaysAhead upper range in days, must be {@code > 0}
+     * @return future date-time
+     */
+    public LocalDateTime future(int maxDaysAhead) {
+        if (maxDaysAhead <= 0) {
+            throw new IllegalArgumentException("maxDaysAhead must be > 0, got: " + maxDaysAhead);
+        }
+        LocalDateTime start = LocalDateTime.now().plusSeconds(1);
+        LocalDateTime end = start.plusDays(maxDaysAhead);
+        return between(start, end);
+    }
+
+    /**
+     * Generates a past date-time within the previous 10 years.
+     *
+     * @return past date-time
+     */
+    public LocalDateTime past() {
+        return past(3650);
+    }
+
+    /**
+     * Generates a past date-time in the range [now - maxDaysBack days, now - 1 second].
+     *
+     * @param maxDaysBack upper range in days, must be {@code > 0}
+     * @return past date-time
+     */
+    public LocalDateTime past(int maxDaysBack) {
+        if (maxDaysBack <= 0) {
+            throw new IllegalArgumentException("maxDaysBack must be > 0, got: " + maxDaysBack);
+        }
+        LocalDateTime end = LocalDateTime.now().minusSeconds(1);
+        LocalDateTime start = end.minusDays(maxDaysBack);
+        return between(start, end);
     }
 }

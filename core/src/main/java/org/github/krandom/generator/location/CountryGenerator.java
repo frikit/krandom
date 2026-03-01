@@ -9,7 +9,10 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.Random;
 
@@ -27,10 +30,18 @@ import java.util.Random;
 public final class CountryGenerator implements Generator<String> {
 
     private static final String[] ISO_ALPHA2_CODES = Locale.getISOCountries();
+    private static final String[] ISO_ALPHA3_CODES = loadIsoAlpha3Codes();
 
     private final GeneratorConfig config;
     private final Random random;
     private final String[] countries;
+
+    /**
+     * Creates a generator using default configuration ({@link Locale#US}).
+     */
+    public CountryGenerator() {
+        this(GeneratorConfig.defaults());
+    }
 
     /**
      * Creates a generator using the given config.
@@ -88,6 +99,52 @@ public final class CountryGenerator implements Generator<String> {
     }
 
     /**
+     * Returns a random ISO 3166-1 alpha-3 country code (for example, {@code "USA"}, {@code "DEU"}).
+     *
+     * @return an upper-case alpha-3 code; never {@code null}
+     */
+    public String generateCodeAlpha3() {
+        return ISO_ALPHA3_CODES[random.nextInt(ISO_ALPHA3_CODES.length)];
+    }
+
+    /**
+     * Returns the display name of the currently configured locale country in the configured locale language.
+     *
+     * @return current locale country display name; never {@code null}
+     * @throws UnsupportedOperationException if configured locale has no country component
+     */
+    public String currentCountry() {
+        String countryCode = requireLocaleCountry();
+        Locale countryLocale = Locale.of("", countryCode);
+        return countryLocale.getDisplayCountry(config.getLocale());
+    }
+
+    /**
+     * Returns the ISO 3166-1 alpha-2 code for the configured locale country.
+     *
+     * @return alpha-2 country code
+     * @throws UnsupportedOperationException if configured locale has no country component
+     */
+    public String currentCountryCode() {
+        return requireLocaleCountry();
+    }
+
+    /**
+     * Returns the ISO 3166-1 alpha-3 code for the configured locale country.
+     *
+     * @return alpha-3 country code
+     * @throws UnsupportedOperationException if configured locale has no country component
+     */
+    public String currentCountryCodeAlpha3() {
+        String countryCode = requireLocaleCountry();
+        try {
+            return Locale.of("", countryCode).getISO3Country();
+        } catch (MissingResourceException ex) {
+            throw new UnsupportedOperationException("Alpha-3 country code not available for locale country: " + countryCode, ex);
+        }
+    }
+
+    /**
      * Returns the locale this generator is configured with.
      *
      * @return the locale; never {@code null}
@@ -112,5 +169,26 @@ public final class CountryGenerator implements Generator<String> {
      */
     public boolean isLocaleExplicitlySupported() {
         return CountryDataRegistry.isRegistered(config.getLocale());
+    }
+
+    private String requireLocaleCountry() {
+        String countryCode = config.getLocale().getCountry();
+        if (countryCode == null || countryCode.isBlank()) {
+            throw new UnsupportedOperationException(
+                    "Locale " + config.getLocale() + " has no country component");
+        }
+        return countryCode;
+    }
+
+    private static String[] loadIsoAlpha3Codes() {
+        List<String> alpha3 = new ArrayList<>();
+        for (String alpha2 : ISO_ALPHA2_CODES) {
+            try {
+                alpha3.add(Locale.of("", alpha2).getISO3Country());
+            } catch (MissingResourceException ignored) {
+                // Skip deprecated/unsupported country entries where ISO3 is not available.
+            }
+        }
+        return alpha3.toArray(String[]::new);
     }
 }
