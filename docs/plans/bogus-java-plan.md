@@ -73,18 +73,18 @@ Acceptance:
 
 - High-frequency Bogus identity/network/location fixtures move to `Yes` or justified `Partial`.
 
-### Phase 3: Finance + Commerce + System/Data Providers (P1)
+### Phase 3: Finance + Commerce + System/Data Providers (P1) ✅
 
 Goal: close business-heavy provider parity for realistic data domains.
 
-- [ ] Finance:
-    - [ ] account/account name/transaction type, routing number, crypto address set parity decisions.
-- [ ] Commerce:
-    - [ ] product name/description, department/material/adjective/color, price helpers.
-- [ ] System:
-    - [ ] version, exception payload, platform-id style providers where in-scope.
-- [ ] Database provider subset:
-    - [ ] `column`, `type` equivalents.
+- [x] Finance:
+    - [x] account/account name/transaction type, routing number, crypto address set parity decisions.
+- [x] Commerce:
+    - [x] product name/description, department/material/adjective/color, price helpers.
+- [x] System:
+    - [x] version, exception payload, platform-id style providers where in-scope.
+- [x] Database provider subset:
+    - [x] `column`, `type` equivalents.
 
 Acceptance:
 

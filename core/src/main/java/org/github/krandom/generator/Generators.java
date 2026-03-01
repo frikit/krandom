@@ -12,6 +12,8 @@ import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.color.ColorGenerator;
+import org.github.krandom.generator.commerce.CommerceGenerator;
+import org.github.krandom.generator.database.DatabaseGenerator;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
 import org.github.krandom.generator.file.FilePathGenerator;
@@ -20,7 +22,9 @@ import org.github.krandom.generator.file.MimeTypeGenerator;
 import org.github.krandom.generator.file.SemverGenerator;
 import org.github.krandom.generator.finance.AbaRoutingGenerator;
 import org.github.krandom.generator.finance.BankCountryGenerator;
+import org.github.krandom.generator.finance.BankAccountGenerator;
 import org.github.krandom.generator.finance.BbanGenerator;
+import org.github.krandom.generator.finance.CryptoAddressGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
 import org.github.krandom.generator.identifier.EanGenerator;
 import org.github.krandom.generator.identifier.HashGenerator;
@@ -84,6 +88,9 @@ import org.github.krandom.generator.user.SimpleProfileGenerator;
 import org.github.krandom.generator.user.UsernameGenerator;
 import org.github.krandom.generator.finance.BicGenerator;
 import org.github.krandom.generator.finance.IsinGenerator;
+import org.github.krandom.generator.system.ExceptionPayloadGenerator;
+import org.github.krandom.generator.system.PlatformIdGenerator;
+import org.github.krandom.generator.system.VersionGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -610,6 +617,11 @@ public final class Generators {
         return new SemverGenerator();
     }
 
+    /** Returns a generator that produces commerce products/departments/prices. */
+    public static CommerceGenerator ofCommerce() {
+        return new CommerceGenerator();
+    }
+
     /** Returns a generator that produces locale-aware profession/job-title values. */
     public static ProfessionGenerator ofProfession() {
         return new ProfessionGenerator();
@@ -640,6 +652,11 @@ public final class Generators {
         return new BankCountryGenerator();
     }
 
+    /** Returns a generator that produces account numbers/names/transaction types. */
+    public static BankAccountGenerator ofBankAccount() {
+        return new BankAccountGenerator();
+    }
+
     /** Returns a generator that produces currency codes and metadata. */
     public static CurrencyGenerator ofCurrency() {
         return new CurrencyGenerator();
@@ -665,6 +682,11 @@ public final class Generators {
         return new IsinGenerator();
     }
 
+    /** Returns a generator that produces crypto wallet addresses. */
+    public static CryptoAddressGenerator ofCryptoAddress() {
+        return new CryptoAddressGenerator();
+    }
+
     /** Returns a generator that produces locale-aware usernames. */
     public static UsernameGenerator ofUsername() {
         return new UsernameGenerator();
@@ -678,6 +700,26 @@ public final class Generators {
     /** Returns a generator that produces avatar image URLs. */
     public static AvatarUrlGenerator ofAvatarUrl() {
         return new AvatarUrlGenerator();
+    }
+
+    /** Returns a generator that produces semantic version strings (system provider). */
+    public static VersionGenerator ofVersion() {
+        return new VersionGenerator();
+    }
+
+    /** Returns a generator that produces platform identifiers. */
+    public static PlatformIdGenerator ofPlatformId() {
+        return new PlatformIdGenerator();
+    }
+
+    /** Returns a generator that produces exception-style payload maps. */
+    public static ExceptionPayloadGenerator ofExceptionPayload() {
+        return new ExceptionPayloadGenerator();
+    }
+
+    /** Returns a generator that produces database column/type values. */
+    public static DatabaseGenerator ofDatabase() {
+        return new DatabaseGenerator();
     }
 
     // ── Lorem Ipsum ───────────────────────────────────────────────────────────

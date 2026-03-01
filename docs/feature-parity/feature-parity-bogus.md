@@ -19,14 +19,14 @@ This baseline replaces older stale status claims and normalizes parity into `Yes
 | Object generation core | Partial | Locale not central                             | Reflection/object generation is strong, but no Bogus-style fluent `Faker<T>` rule engine yet.                                                      |
 | Person/identity        | Partial | Locale-aware in multiple providers             | Names/titles/gender/profiles are covered; some Bogus composites and convenience APIs remain different.                                             |
 | Network/internet       | Partial | Locale usually not central                     | IPv4/IPv6/MAC/port/domain/url/uri/user-agent are present; Bogus-specific .NET object forms are not relevant in Java.                               |
-| Finance                | Partial | Locale used where meaningful                   | Credit-card suite, IBAN/BIC/ABA, currency, money, EAN exist; account/transaction/crypto provider set is incomplete.                                |
+| Finance                | Yes     | Locale used where meaningful                   | Credit-card suite, IBAN/BIC/ABA, currency, money, EAN plus account-number/name/transaction type and crypto address generators are implemented.     |
 | Address/location       | Partial | Locale-aware datasets implemented              | Street/city/state/postcode/country/coordinates/phone exist; some Bogus-only fields (for example county/direction variants) are missing or not 1:1. |
 | Date/time              | Partial | Locale-aware formatting in relevant generators | Broad date/time coverage exists; Bogus-specific helpers (`recent`, `soon`, some offset-specific ergonomics) are not complete 1:1.                  |
 | Lorem/text             | Partial | Locale-aware word datasets present             | Word/sentence/paragraph/text family exists; a few Bogus-specific variants (for example dedicated lines helper) are not yet explicit.               |
 | Company/business       | Yes     | Locale-aware phrase datasets present           | Company name/suffix/bs/catchphrase present.                                                                                                        |
-| Files/system           | Partial | Locale not required                            | file/path/ext/mime/semver present; Bogus platform-specific providers are not all implemented.                                                      |
+| Files/system           | Yes     | Locale not required                            | file/path/ext/mime/semver plus explicit version/platform-id/exception-payload generators are implemented.                                          |
 | Phone                  | Partial | Locale-aware formats implemented               | Phone generation is locale-aware; Bogus-specific format-template API shape is not fully mirrored.                                                  |
-| Database               | No      | Locale not required                            | Bogus database provider family not implemented.                                                                                                    |
+| Database               | Partial | Locale not required                            | Database provider subset is implemented (`column`, `type` equivalents); broader DB family remains out-of-scope.                                    |
 | Vehicle                | No      | Locale not required                            | Vehicle provider family not implemented.                                                                                                           |
 | Hacker                 | No      | Locale not required                            | Hacker phrase family not implemented.                                                                                                              |
 | Images                 | No      | Locale not required                            | Image URL/data-uri families not implemented.                                                                                                       |
@@ -36,17 +36,17 @@ This baseline replaces older stale status claims and normalizes parity into `Yes
 
 ## Open Gaps Tagged for Execution
 
-| Gap                                                 | Current Status | Priority Tag | Notes                                                               |
-|-----------------------------------------------------|----------------|--------------|---------------------------------------------------------------------|
-| Fluent `Faker<T>` + `ruleFor` model                 | No             | P0           | Main architectural parity gap versus Bogus UX.                      |
-| Strict-mode/config validation for rule-based fakers | No             | P0           | Needed once fluent faker is introduced.                             |
-| Populate existing instance / finish hook parity     | No             | P1           | Useful for migration ergonomics.                                    |
-| Address/phone Bogus-style format helpers            | Partial        | P1           | Core data exists; API shape differs.                                |
-| Finance account/transaction/crypto provider set     | Partial        | P1           | Core banking/card/currency covered; advanced finance still missing. |
-| Database provider family                            | No             | P2           | Low direct usage in current framework scope.                        |
-| Vehicle provider family                             | No             | P2           | Optional domain scope.                                              |
-| Hacker/images/music families                        | No             | P2           | Optional domain scope.                                              |
-| Locale breadth expansion beyond core locales        | Partial        | P1           | Quality/depth objective, not only API count.                        |
+| Gap                                                 | Current Status | Priority Tag | Notes                                                             |
+|-----------------------------------------------------|----------------|--------------|-------------------------------------------------------------------|
+| Fluent `Faker<T>` + `ruleFor` model                 | No             | P0           | Main architectural parity gap versus Bogus UX.                    |
+| Strict-mode/config validation for rule-based fakers | No             | P0           | Needed once fluent faker is introduced.                           |
+| Populate existing instance / finish hook parity     | No             | P1           | Useful for migration ergonomics.                                  |
+| Address/phone Bogus-style format helpers            | Partial        | P1           | Core data exists; API shape differs.                              |
+| Finance account/transaction/crypto provider set     | Yes            | Done         | Implemented via bank-account and crypto-address generators.       |
+| Database provider family                            | Partial        | P2           | `column`/`type` subset implemented; wider catalog still optional. |
+| Vehicle provider family                             | No             | P2           | Optional domain scope.                                            |
+| Hacker/images/music families                        | No             | P2           | Optional domain scope.                                            |
+| Locale breadth expansion beyond core locales        | Partial        | P1           | Quality/depth objective, not only API count.                      |
 
 ## Locale Support Baseline (Java)
 
