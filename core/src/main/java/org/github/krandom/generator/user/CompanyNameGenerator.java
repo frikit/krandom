@@ -93,6 +93,15 @@ public final class CompanyNameGenerator implements Generator<String> {
     public String generate(boolean withSuffix) {
         String name = PREFIXES[random.nextInt(PREFIXES.length)]
                 + " " + NOUNS[random.nextInt(NOUNS.length)];
-        return withSuffix ? name + " " + SUFFIXES[random.nextInt(SUFFIXES.length)] : name;
+        return withSuffix ? name + " " + generateSuffix() : name;
+    }
+
+    /**
+     * Generates a legal-form suffix.
+     *
+     * @return company suffix (for example, {@code "Inc."}, {@code "LLC"})
+     */
+    public String generateSuffix() {
+        return SUFFIXES[random.nextInt(SUFFIXES.length)];
     }
 }

@@ -3,7 +3,9 @@
  *
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
-package org.github.krandom.generator.gofakeit;
+package org.github.krandom.generator.user;
+
+import org.github.krandom.generator.location.AddressInfo;
 
 /**
  * GoFakeit-style composed person payload.

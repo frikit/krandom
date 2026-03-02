@@ -70,16 +70,16 @@ Acceptance:
 
 Goal: close business-heavy parity used in integration and seeding.
 
-- [ ] Finance:
-    - [ ] credit-card object and convenience aliases (number/type/exp/cvv).
-    - [ ] ACH account/routing and bank-name/type helpers.
-    - [ ] currency object + short/long/symbol + price(min,max).
-    - [ ] bitcoin/ein/cusip/isin parity decisions and implementations.
-- [ ] Company/job:
-    - [ ] company/companySuffix aliases and job object parity.
-    - [ ] job descriptor/level helpers and mappings to current generators.
-- [ ] Product/commerce:
-    - [ ] product name/description/category/material/UPC/ISBN helpers.
+- [x] Finance:
+    - [x] credit-card object and convenience aliases (number/type/exp/cvv).
+    - [x] ACH account/routing and bank-name/type helpers.
+    - [x] currency object + short/long/symbol + price(min,max).
+    - [x] bitcoin/ein/cusip/isin parity decisions and implementations.
+- [x] Company/job:
+    - [x] company/companySuffix aliases and job object parity.
+    - [x] job descriptor/level helpers and mappings to current generators.
+- [x] Product/commerce:
+    - [x] product name/description/category/material/UPC/ISBN helpers.
 
 Acceptance:
 
@@ -144,8 +144,8 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 2 pending**
+- Current step: **Phase 3 pending**
 - Status: **In progress**
 - Next deliverable:
-    - Implement Phase 2 finance/company/commerce parity slice.
+    - Implement Phase 3 object-tag/template structured output parity slice.
     - Run `./scripts/pre_commit_check.sh` after each vertical slice.

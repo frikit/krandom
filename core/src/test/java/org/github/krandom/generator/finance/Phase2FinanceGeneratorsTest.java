@@ -88,11 +88,83 @@ class Phase2FinanceGeneratorsTest {
     }
 
     @Test
+    @DisplayName("ein generator supports formatted and unformatted output")
+    void ein() {
+        EinGenerator generator = new EinGenerator();
+        String formatted = generator.generate();
+        assertTrue(formatted.matches("\\d{2}-\\d{7}"));
+
+        String plain = generator.generateUnformatted();
+        assertTrue(plain.matches("\\d{9}"));
+    }
+
+    @Test
+    @DisplayName("ein generator seeded output is deterministic")
+    void einSeeded() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(777L).build();
+        EinGenerator a = new EinGenerator(config);
+        EinGenerator b = new EinGenerator(config);
+        assertEquals(a.generate(), b.generate());
+        assertEquals(a.generateUnformatted(), b.generateUnformatted());
+    }
+
+    @Test
+    @DisplayName("cusip generator outputs 9 chars with valid check digit")
+    void cusip() {
+        CusipGenerator generator = new CusipGenerator(GeneratorConfig.builder().seed(4L).build());
+        String cusip = generator.generate();
+        assertEquals(9, cusip.length());
+        assertTrue(cusip.matches("[0-9A-Z]{9}"));
+
+        int expected = CusipGenerator.computeCheckDigit(cusip.substring(0, 8));
+        assertEquals(expected, cusip.charAt(8) - '0');
+    }
+
+    @Test
+    @DisplayName("bank name generator uses locale map with default fallback")
+    void bankName() {
+        String german = new BankNameGenerator(Locale.GERMANY).generate();
+        assertFalse(german.isBlank());
+
+        String japaneseFallback = new BankNameGenerator(Locale.JAPAN).generate();
+        assertFalse(japaneseFallback.isBlank());
+    }
+
+    @Test
+    @DisplayName("bank type generator uses locale map with default fallback")
+    void bankType() {
+        String french = new BankTypeGenerator(Locale.FRANCE).generate();
+        assertFalse(french.isBlank());
+
+        String japaneseFallback = new BankTypeGenerator(Locale.JAPAN).generate();
+        assertFalse(japaneseFallback.isBlank());
+    }
+
+    @Test
+    @DisplayName("bank generator seeded output is deterministic")
+    void bankSeeded() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(101L).locale(Locale.ITALY).build();
+        BankNameGenerator aName = new BankNameGenerator(config);
+        BankNameGenerator bName = new BankNameGenerator(config);
+        assertEquals(aName.generate(), bName.generate());
+
+        BankTypeGenerator aType = new BankTypeGenerator(config);
+        BankTypeGenerator bType = new BankTypeGenerator(config);
+        assertEquals(aType.generate(), bType.generate());
+    }
+
+    @Test
     @DisplayName("null config validations")
     void nullConfig() {
         assertThrows(NullPointerException.class, () -> new IbanGenerator((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> new BbanGenerator((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> new AbaRoutingGenerator(null));
         assertThrows(NullPointerException.class, () -> new BankCountryGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new EinGenerator(null));
+        assertThrows(NullPointerException.class, () -> new CusipGenerator(null));
+        assertThrows(NullPointerException.class, () -> new BankNameGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new BankTypeGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new BankNameGenerator((Locale) null));
+        assertThrows(NullPointerException.class, () -> new BankTypeGenerator((Locale) null));
     }
 }

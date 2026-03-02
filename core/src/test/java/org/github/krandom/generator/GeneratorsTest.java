@@ -8,13 +8,14 @@ package org.github.krandom.generator;
 import org.github.krandom.generator.games.coin.CoinGenerator;
 import org.github.krandom.generator.games.dice.DiceGenerator;
 import org.github.krandom.generator.games.dice.DiceType;
-import org.github.krandom.generator.gofakeit.GoFakeitGenerator;
 import org.github.krandom.generator.algorithms.FibonacciGenerator;
 import org.github.krandom.generator.algorithms.LuhnGenerator;
 import org.github.krandom.generator.base.*;
 import org.github.krandom.generator.color.ColorGenerator;
 import org.github.krandom.generator.finance.AbaRoutingGenerator;
 import org.github.krandom.generator.finance.BankCountryGenerator;
+import org.github.krandom.generator.finance.BankNameGenerator;
+import org.github.krandom.generator.finance.BankTypeGenerator;
 import org.github.krandom.generator.finance.BbanGenerator;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
@@ -30,11 +31,14 @@ import org.github.krandom.generator.datetime.TimezoneGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
 import org.github.krandom.generator.finance.CardExpirationGenerator;
 import org.github.krandom.generator.finance.CreditCardGenerator;
+import org.github.krandom.generator.finance.CusipGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
+import org.github.krandom.generator.finance.EinGenerator;
 import org.github.krandom.generator.finance.IbanGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.identifier.EanGenerator;
 import org.github.krandom.generator.identifier.HashGenerator;
+import org.github.krandom.generator.identifier.UpcGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
@@ -76,7 +80,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -403,15 +406,6 @@ class GeneratorsTest {
     @Test @DisplayName("ofUserAgent() returns UserAgentGenerator")
     void ofUserAgent() { assertInstanceOf(UserAgentGenerator.class, Generators.ofUserAgent()); }
 
-    @Test @DisplayName("ofGoFakeit() returns GoFakeitGenerator")
-    void ofGoFakeit() { assertInstanceOf(GoFakeitGenerator.class, Generators.ofGoFakeit()); }
-
-    @Test @DisplayName("ofGoFakeit(locale) returns locale-aware GoFakeitGenerator")
-    void ofGoFakeitLocale() {
-        GoFakeitGenerator generator = Generators.ofGoFakeit(Locale.GERMANY);
-        assertEquals(Locale.GERMANY, generator.getLocale());
-    }
-
     @Test @DisplayName("ofEmail() returns EmailGenerator")
     void ofEmail() { assertInstanceOf(EmailGenerator.class, Generators.ofEmail()); }
 
@@ -452,6 +446,10 @@ class GeneratorsTest {
         assertInstanceOf(IbanGenerator.class, Generators.ofIban());
         assertInstanceOf(AbaRoutingGenerator.class, Generators.ofAbaRouting());
         assertInstanceOf(BankCountryGenerator.class, Generators.ofBankCountry());
+        assertInstanceOf(BankNameGenerator.class, Generators.ofBankName());
+        assertInstanceOf(BankTypeGenerator.class, Generators.ofBankType());
+        assertInstanceOf(CusipGenerator.class, Generators.ofCusip());
+        assertInstanceOf(EinGenerator.class, Generators.ofEin());
     }
 
     @Test @DisplayName("extra text and identifier factories return corresponding generators")
@@ -461,6 +459,7 @@ class GeneratorsTest {
         assertInstanceOf(TextGenerator.class, Generators.ofText());
         assertInstanceOf(HashGenerator.class, Generators.ofHash());
         assertInstanceOf(EanGenerator.class, Generators.ofEan());
+        assertInstanceOf(UpcGenerator.class, Generators.ofUpc());
     }
 
     // ── forType ───────────────────────────────────────────────────────────────

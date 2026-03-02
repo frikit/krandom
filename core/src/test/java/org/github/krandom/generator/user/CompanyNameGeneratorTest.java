@@ -93,6 +93,14 @@ class CompanyNameGeneratorTest {
             for (int i = 0; i < 100; i++) names.add(gen.generate());
             assertTrue(names.size() >= 5, "Expected variety in generated company names");
         }
+
+        @Test
+        @DisplayName("generateSuffix() returns non-empty suffix")
+        void suffixOnly() {
+            String suffix = new CompanyNameGenerator().generateSuffix();
+            assertNotNull(suffix);
+            assertFalse(suffix.isBlank());
+        }
     }
 
     @Nested
