@@ -65,6 +65,9 @@ import org.github.krandom.generator.selection.RepeatGenerator;
 import org.github.krandom.generator.selection.ShuffleGenerator;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.selection.WeightedGenerator;
+import org.github.krandom.generator.schema.Field;
+import org.github.krandom.generator.schema.Schema;
+import org.github.krandom.generator.schema.SchemaValueProvider;
 import org.github.krandom.generator.text.LoremIpsumGenerator;
 import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
@@ -859,6 +862,33 @@ public final class Generators {
     /** Returns a generator that produces UPC-A values. */
     public static UpcGenerator ofUpc() {
         return new UpcGenerator();
+    }
+
+    // ── Schema / Field (Mimesis-style bulk generation) ──────────────────────
+
+    /** Returns a field resolver with default configuration. */
+    public static Field ofField() {
+        return new Field();
+    }
+
+    /** Returns a field resolver for the provided locale. */
+    public static Field ofField(Locale locale) {
+        return new Field(locale);
+    }
+
+    /** Returns a schema generator with default configuration. */
+    public static Schema ofSchema(Map<String, SchemaValueProvider> fields) {
+        return new Schema(fields);
+    }
+
+    /** Returns a locale-aware schema generator. */
+    public static Schema ofSchema(Locale locale, Map<String, SchemaValueProvider> fields) {
+        return new Schema(locale, fields);
+    }
+
+    /** Returns a schema generator with explicit configuration. */
+    public static Schema ofSchema(GeneratorConfig config, Map<String, SchemaValueProvider> fields) {
+        return new Schema(config, fields);
     }
 
     // ── Selection / helper-style generators ──────────────────────────────────

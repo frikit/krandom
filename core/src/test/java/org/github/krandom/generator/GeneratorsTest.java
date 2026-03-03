@@ -62,6 +62,9 @@ import org.github.krandom.generator.selection.RepeatGenerator;
 import org.github.krandom.generator.selection.ShuffleGenerator;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.selection.WeightedGenerator;
+import org.github.krandom.generator.schema.Field;
+import org.github.krandom.generator.schema.Schema;
+import org.github.krandom.generator.schema.SchemaValueProvider;
 import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.SyllableGenerator;
@@ -83,6 +86,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -449,6 +453,20 @@ class GeneratorsTest {
         NationalIdGenerator a = Generators.ofNationalId(Locale.US, 42L);
         NationalIdGenerator b = Generators.ofNationalId(Locale.US, 42L);
         assertEquals(a.generate(), b.generate());
+    }
+
+    @Test @DisplayName("schema/field factories return corresponding types")
+    void schemaFieldFactories() {
+        assertInstanceOf(Field.class, Generators.ofField());
+        Field field = Generators.ofField(Locale.US);
+        assertInstanceOf(Field.class, field);
+        Map<String, SchemaValueProvider> fields = Map.of(
+                "name", field.bind("person.full_name")
+        );
+        assertInstanceOf(Schema.class, Generators.ofSchema(fields));
+        assertInstanceOf(Schema.class, Generators.ofSchema(Locale.US, fields));
+        assertInstanceOf(Schema.class,
+                Generators.ofSchema(GeneratorConfig.builder().locale(Locale.US).seed(1L).build(), fields));
     }
 
     @Test @DisplayName("finance factories return corresponding generators")

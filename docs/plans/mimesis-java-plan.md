@@ -88,11 +88,11 @@ Acceptance:
 
 Goal: implement Mimesis’ main differentiator in Java form.
 
-- [ ] Bulk record generation API analogous to Mimesis `Schema`/`Field` flow.
-- [ ] Function binding/lookup for provider method references.
-- [ ] Deterministic seeded batch generation.
-- [ ] Structured list/collection size controls and nested field generation.
-- [ ] Validation and error reporting for invalid field mappings.
+- [x] Bulk record generation API analogous to Mimesis `Schema`/`Field` flow.
+- [x] Function binding/lookup for provider method references.
+- [x] Deterministic seeded batch generation.
+- [x] Structured list/collection size controls and nested field generation.
+- [x] Validation and error reporting for invalid field mappings.
 
 Acceptance:
 
@@ -150,8 +150,8 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 3 pending**
+- Current step: **Phase 4 pending**
 - Status: **In progress**
 - Next deliverable:
-    - Implement Phase 3 schema/field bulk generation API slice.
+    - Implement Phase 4 generic provider hub + extensibility slice.
     - Run `./scripts/pre_commit_check.sh` after each vertical slice.
