@@ -9,7 +9,7 @@ kotest = "6.1.4"
 junit-jupiter = "6.0.3"
 junit-platform = "6.0.3"
 objenesis = "3.5"
-jakarta-validation = "3.0.2"
+jakarta-validation = "3.1.1"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
