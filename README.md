@@ -145,6 +145,26 @@ JaCoCo line and branch coverage enforced at ≥ 90%.
 
 ---
 
+## Release (GitHub Packages + GitHub Release)
+
+- Default development version is `0.1.0-SNAPSHOT`.
+- Manual release is done from GitHub Actions via workflow: `release-github-packages`.
+- Click `Run workflow` and provide a SemVer version (for example `0.1.0`).
+- The workflow validates SemVer, publishes modules to GitHub Packages, tags `v<version>`, and creates a GitHub Release with JAR assets.
+
+Published Maven coordinates:
+
+- `org.github.krandom:core:<version>`
+- `org.github.krandom:java-api:<version>`
+- `org.github.krandom:kotlin-api:<version>`
+- `org.github.krandom:scala-api:<version>`
+
+GitHub Packages registry:
+
+- `https://maven.pkg.github.com/frikit/krandom`
+
+---
+
 ## Reference docs
 
 Comparative references for 10 popular random/fake-data libraries across Java, Python, Go, Rust, C#, JavaScript, and PHP — see [`docs/`](docs/README.md).
