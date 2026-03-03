@@ -148,3 +148,7 @@ JaCoCo line and branch coverage enforced at ≥ 90%.
 ## Reference docs
 
 Comparative references for 10 popular random/fake-data libraries across Java, Python, Go, Rust, C#, JavaScript, and PHP — see [`docs/`](docs/README.md).
+
+Public Java-focused GitHub Pages docs live under `docs-site/` and deploy via `.github/workflows/github-pages.yml`.
+
+Open docs: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)

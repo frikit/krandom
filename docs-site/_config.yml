@@ -1,0 +1,18 @@
+title: kRandom Java Docs
+description: Java-first documentation for kRandom generators, examples, and API usage.
+theme: minima
+markdown: kramdown
+plugins:
+  - jekyll-seo-tag
+
+minima:
+  skin: auto
+
+header_pages:
+  - index.md
+  - getting-started.md
+  - java-api.md
+  - generator-catalog.md
+  - examples.md
+  - guides.md
+  - faq.md
