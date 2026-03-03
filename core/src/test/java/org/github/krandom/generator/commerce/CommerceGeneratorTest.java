@@ -11,7 +11,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.lang.reflect.Field;
 import java.util.Locale;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,11 +27,25 @@ class CommerceGeneratorTest {
         assertFalse(generator.generate().isBlank());
         assertFalse(generator.generateProductDescription().isBlank());
         assertFalse(generator.generateDepartment().isBlank());
+        assertFalse(generator.generateCategory().isBlank());
         assertFalse(generator.generateMaterial().isBlank());
         assertFalse(generator.generateAdjective().isBlank());
         assertFalse(generator.generateColor().isBlank());
         assertFalse(generator.generateProduct().isBlank());
         assertTrue(generator.generatePrice().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(generator.generateUpc().matches("\\d{12}"));
+        assertTrue(generator.generateEan8().matches("\\d{8}"));
+        assertTrue(generator.generateEan13().matches("\\d{13}"));
+        assertTrue(generator.generateIsbn13().matches("\\d{13}"));
+        assertEquals(10, generator.generateIsbn10().length());
+        assertFalse(generator.generateProductCode().isBlank());
+        ProductInfo info = generator.generateProductInfo();
+        assertFalse(info.name().isBlank());
+        assertFalse(info.description().isBlank());
+        assertFalse(info.category().isBlank());
+        assertFalse(info.material().isBlank());
+        assertTrue(info.upc().matches("\\d{12}"));
+        assertTrue(info.isbn().matches("\\d{13}"));
     }
 
     @Test
@@ -82,5 +98,31 @@ class CommerceGeneratorTest {
         assertThrows(NullPointerException.class, () -> new CommerceGenerator((GeneratorConfig) null));
         assertEquals(Locale.US, new CommerceGenerator(Locale.US).getLocale());
         assertNotNull(Generators.ofCommerce().generateProductName());
+    }
+
+    @Test
+    @DisplayName("generateProductCode covers all switch branches")
+    void productCodeBranches() throws Exception {
+        CommerceGenerator generator = new CommerceGenerator(Locale.US);
+        Field randomField = CommerceGenerator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+
+        randomField.set(generator, fixedRandom(0));
+        assertTrue(generator.generateProductCode().matches("\\d{12}"));
+
+        randomField.set(generator, fixedRandom(1));
+        assertTrue(generator.generateProductCode().matches("\\d{13}"));
+
+        randomField.set(generator, fixedRandom(2));
+        assertTrue(generator.generateProductCode().matches("\\d{13}"));
+    }
+
+    private static Random fixedRandom(int value) {
+        return new Random() {
+            @Override
+            public int nextInt(int bound) {
+                return Math.min(value, bound - 1);
+            }
+        };
     }
 }

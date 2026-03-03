@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -67,12 +68,23 @@ class CreditCardGeneratorTest {
         assertTrue(gen.generateExpiry().matches("\\d{2}/\\d{2}"));
         assertTrue(gen.generateSecurityCode().matches("\\d{3}"));
         assertEquals("Visa", gen.generateProvider());
+        assertEquals("Visa", gen.generateNetwork());
+        assertTrue(gen.generateCvv().matches("\\d{3}"));
+        assertTrue(gen.generateExpiration().matches("\\d{2}/\\d{2}"));
 
         String full = gen.generateFull();
         String[] lines = full.split("\\n");
         assertEquals(3, lines.length);
         assertEquals("Visa", lines[0]);
         assertTrue(lines[2].matches("\\d{2}/\\d{2} \\d{3}"));
+
+        CreditCardInfo payload = gen.generateCreditCardInfo();
+        assertNotNull(payload.number());
+        assertNotNull(payload.type());
+        assertNotNull(payload.exp());
+        assertNotNull(payload.cvv());
+        Map<String, String> map = gen.generateCreditCardAsMap();
+        assertEquals(Set.of("number", "type", "exp", "cvv"), map.keySet());
     }
     
     @Test

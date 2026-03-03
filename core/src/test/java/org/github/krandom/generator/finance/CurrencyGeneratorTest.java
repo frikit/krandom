@@ -225,6 +225,10 @@ class CurrencyGeneratorTest {
         assertEquals("United States Dollar", gen.generateCurrencyName(Locale.US));
         assertNotNull(gen.generateCurrencySymbol());
         assertEquals("$", gen.generateCurrencySymbol(Locale.US));
+        assertEquals("USD", gen.generateCurrencyIsoCode(Locale.US));
+        assertNotNull(gen.generateCurrencyIsoCode());
+        assertEquals("840", gen.generateCurrencyNumericCode(Locale.US));
+        assertNotNull(gen.generateCurrencyNumericCode());
         assertFalse(gen.generatePriceTag().isBlank());
         assertFalse(gen.generatePriceTag(Locale.GERMANY).isBlank());
     }

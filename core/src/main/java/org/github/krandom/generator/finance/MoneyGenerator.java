@@ -146,6 +146,50 @@ public final class MoneyGenerator implements Generator<String> {
         return format(overrideLocale, nextAmount(max));
     }
 
+    /**
+     * Generates a locale-formatted price string.
+     * Alias for {@link #generate()}.
+     *
+     * @return formatted price
+     */
+    public String generatePrice() {
+        return generate();
+    }
+
+    /**
+     * Generates a locale-formatted price string with the provided maximum.
+     * Alias for {@link #generate(double)}.
+     *
+     * @param max maximum exclusive amount
+     * @return formatted price
+     */
+    public String generatePrice(double max) {
+        return generate(max);
+    }
+
+    /**
+     * Generates a locale-formatted price string using the provided locale override.
+     * Alias for {@link #generate(Locale)}.
+     *
+     * @param locale locale override
+     * @return formatted price
+     */
+    public String generatePrice(Locale locale) {
+        return generate(locale);
+    }
+
+    /**
+     * Generates a locale-formatted price string using locale override and amount max.
+     * Alias for {@link #generate(Locale, double)}.
+     *
+     * @param locale locale override
+     * @param max maximum exclusive amount
+     * @return formatted price
+     */
+    public String generatePrice(Locale locale, double max) {
+        return generate(locale, max);
+    }
+
     // ── Dollar ────────────────────────────────────────────────────────────────
 
     /**

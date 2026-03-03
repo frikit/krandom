@@ -97,6 +97,7 @@ import org.github.krandom.generator.finance.IsinGenerator;
 import org.github.krandom.generator.system.ExceptionPayloadGenerator;
 import org.github.krandom.generator.system.PlatformIdGenerator;
 import org.github.krandom.generator.system.VersionGenerator;
+import org.github.krandom.generator.user.nationalid.NationalIdGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -109,6 +110,7 @@ import org.github.krandom.generator.datetime.DurationGenerator;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiPredicate;
@@ -711,6 +713,16 @@ public final class Generators {
     /** Returns a generator that produces crypto wallet addresses. */
     public static CryptoAddressGenerator ofCryptoAddress() {
         return new CryptoAddressGenerator();
+    }
+
+    /** Returns a locale-aware national-id generator. */
+    public static NationalIdGenerator ofNationalId(Locale locale) {
+        return new NationalIdGenerator(locale);
+    }
+
+    /** Returns a locale-aware seeded national-id generator. */
+    public static NationalIdGenerator ofNationalId(Locale locale, long seed) {
+        return new NationalIdGenerator(locale, seed);
     }
 
     /** Returns a generator that produces locale-aware usernames. */

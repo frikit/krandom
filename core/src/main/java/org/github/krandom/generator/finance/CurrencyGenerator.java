@@ -308,6 +308,25 @@ public final class CurrencyGenerator implements Generator<String> {
     }
 
     /**
+     * Mimesis-style alias for currency ISO code.
+     *
+     * @return ISO 4217 code
+     */
+    public String generateCurrencyIsoCode() {
+        return generate();
+    }
+
+    /**
+     * Locale-aware Mimesis-style alias for currency ISO code.
+     *
+     * @param locale locale used to select primary currency
+     * @return ISO 4217 code
+     */
+    public String generateCurrencyIsoCode(Locale locale) {
+        return generate(locale);
+    }
+
+    /**
      * Faker-style alias for {@link #getName()}.
      *
      * @return currency name
@@ -343,6 +362,25 @@ public final class CurrencyGenerator implements Generator<String> {
      */
     public String generateCurrencySymbol(Locale locale) {
         return getSymbol(locale);
+    }
+
+    /**
+     * Generates ISO numeric currency code.
+     *
+     * @return 3-digit numeric code
+     */
+    public String generateCurrencyNumericCode() {
+        return getNumericCode();
+    }
+
+    /**
+     * Locale-aware ISO numeric currency code.
+     *
+     * @param locale locale used to select primary currency
+     * @return 3-digit numeric code
+     */
+    public String generateCurrencyNumericCode(Locale locale) {
+        return getNumericCode(locale);
     }
 
     /**

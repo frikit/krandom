@@ -222,6 +222,19 @@ class MoneyGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> gen.generate(Locale.US, -5.0));
     }
 
+    @Test
+    @DisplayName("generatePrice aliases delegate to generate variants")
+    void generatePriceAliases() {
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(121L).locale(Locale.US).build();
+        MoneyGenerator a = new MoneyGenerator(cfg);
+        MoneyGenerator b = new MoneyGenerator(cfg);
+
+        assertEquals(a.generate(), b.generatePrice());
+        assertEquals(a.generate(77.0), b.generatePrice(77.0));
+        assertEquals(a.generate(Locale.GERMANY), b.generatePrice(Locale.GERMANY));
+        assertEquals(a.generate(Locale.FRANCE, 20.0), b.generatePrice(Locale.FRANCE, 20.0));
+    }
+
     // ── generateDollar() ─────────────────────────────────────────────────────
 
     @Test

@@ -7,6 +7,9 @@ package org.github.krandom.generator.commerce;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.identifier.EanGenerator;
+import org.github.krandom.generator.identifier.IsbnGenerator;
+import org.github.krandom.generator.identifier.UpcGenerator;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -52,6 +55,10 @@ public final class CommerceGenerator implements Generator<String> {
 
     private final Locale locale;
     private final Random random;
+    private final UpcGenerator upcGenerator;
+    private final IsbnGenerator isbn10Generator;
+    private final IsbnGenerator isbn13Generator;
+    private final EanGenerator eanGenerator;
 
     public CommerceGenerator() {
         this(GeneratorConfig.defaults());
@@ -67,6 +74,10 @@ public final class CommerceGenerator implements Generator<String> {
         this.random = config.getSeed().isPresent()
                 ? new Random(config.getSeed().getAsLong())
                 : new SecureRandom();
+        this.upcGenerator = new UpcGenerator(config);
+        this.isbn10Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, config);
+        this.isbn13Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_13, config);
+        this.eanGenerator = new EanGenerator(config);
     }
 
     @Override
@@ -86,6 +97,15 @@ public final class CommerceGenerator implements Generator<String> {
         return pick(departments());
     }
 
+    /**
+     * Generates a product category aliasing the department provider.
+     *
+     * @return category/department label
+     */
+    public String generateCategory() {
+        return generateDepartment();
+    }
+
     public String generateMaterial() {
         return pick(materials());
     }
@@ -100,6 +120,80 @@ public final class CommerceGenerator implements Generator<String> {
 
     public String generateProduct() {
         return pick(products());
+    }
+
+    /**
+     * Generates a UPC-A product code.
+     *
+     * @return 12-digit UPC-A code
+     */
+    public String generateUpc() {
+        return upcGenerator.generate();
+    }
+
+    /**
+     * Generates an EAN-8 product code.
+     *
+     * @return 8-digit EAN code
+     */
+    public String generateEan8() {
+        return eanGenerator.generateEan8();
+    }
+
+    /**
+     * Generates an EAN-13 product code.
+     *
+     * @return 13-digit EAN code
+     */
+    public String generateEan13() {
+        return eanGenerator.generateEan13();
+    }
+
+    /**
+     * Generates an ISBN-10 product code.
+     *
+     * @return ISBN-10 code
+     */
+    public String generateIsbn10() {
+        return isbn10Generator.generate();
+    }
+
+    /**
+     * Generates an ISBN-13 product code.
+     *
+     * @return ISBN-13 code
+     */
+    public String generateIsbn13() {
+        return isbn13Generator.generate();
+    }
+
+    /**
+     * Generates a product code, randomly choosing between UPC, EAN-13, and ISBN-13.
+     *
+     * @return product code
+     */
+    public String generateProductCode() {
+        return switch (random.nextInt(3)) {
+            case 0 -> generateUpc();
+            case 1 -> generateEan13();
+            default -> generateIsbn13();
+        };
+    }
+
+    /**
+     * Generates a structured product payload.
+     *
+     * @return product payload
+     */
+    public ProductInfo generateProductInfo() {
+        return new ProductInfo(
+                generateProductName(),
+                generateProductDescription(),
+                generateCategory(),
+                generateMaterial(),
+                generateUpc(),
+                generateIsbn13()
+        );
     }
 
     public BigDecimal generatePrice() {

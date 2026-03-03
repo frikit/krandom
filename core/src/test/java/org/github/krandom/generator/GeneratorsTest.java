@@ -77,10 +77,12 @@ import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.ProfileGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
 import org.github.krandom.generator.user.SimpleProfileGenerator;
+import org.github.krandom.generator.user.nationalid.NationalIdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -436,6 +438,18 @@ class GeneratorsTest {
 
     @Test @DisplayName("ofUuid() returns UUIDGenerator")
     void ofUuid() { assertInstanceOf(UUIDGenerator.class, Generators.ofUuid()); }
+
+    @Test @DisplayName("ofNationalId(locale) returns NationalIdGenerator")
+    void ofNationalId() {
+        assertInstanceOf(NationalIdGenerator.class, Generators.ofNationalId(Locale.US));
+    }
+
+    @Test @DisplayName("ofNationalId(locale,seed) is reproducible")
+    void ofNationalIdSeeded() {
+        NationalIdGenerator a = Generators.ofNationalId(Locale.US, 42L);
+        NationalIdGenerator b = Generators.ofNationalId(Locale.US, 42L);
+        assertEquals(a.generate(), b.generate());
+    }
 
     @Test @DisplayName("finance factories return corresponding generators")
     void financeFactories() {

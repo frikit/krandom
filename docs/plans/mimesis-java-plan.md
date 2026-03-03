@@ -70,15 +70,15 @@ Acceptance:
 
 Goal: close business-heavy parity for test fixture realism.
 
-- [ ] Finance:
-    - [ ] Credit-card convenience APIs and payload object parity.
-    - [ ] CVV/expiration/network aliases.
-    - [ ] Currency/price API-shape parity and locale-aware formatting.
-- [ ] Commerce/product:
-    - [ ] Product name/description/category/material coverage.
-    - [ ] Product code helpers (ISBN/EAN/UPC and remaining high-value identifiers).
-- [ ] Regulatory/enterprise IDs:
-    - [ ] Add/align masked identifiers and country-specific IDs where practical.
+- [x] Finance:
+    - [x] Credit-card convenience APIs and payload object parity.
+    - [x] CVV/expiration/network aliases.
+    - [x] Currency/price API-shape parity and locale-aware formatting.
+- [x] Commerce/product:
+    - [x] Product name/description/category/material coverage.
+    - [x] Product code helpers (ISBN/EAN/UPC and remaining high-value identifiers).
+- [x] Regulatory/enterprise IDs:
+    - [x] Add/align masked identifiers and country-specific IDs where practical.
 
 Acceptance:
 
@@ -150,8 +150,8 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 2 pending**
+- Current step: **Phase 3 pending**
 - Status: **In progress**
 - Next deliverable:
-    - Implement Phase 2 finance/commerce/codes API-shape parity slice.
+    - Implement Phase 3 schema/field bulk generation API slice.
     - Run `./scripts/pre_commit_check.sh` after each vertical slice.

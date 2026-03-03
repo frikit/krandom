@@ -11,6 +11,8 @@ import org.github.krandom.generator.GeneratorConfig;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -225,6 +227,16 @@ public final class CreditCardGenerator implements Generator<String> {
     }
 
     /**
+     * Generates a card network/provider display name.
+     * Alias for {@link #generateProvider()}.
+     *
+     * @return provider/network name
+     */
+    public String generateNetwork() {
+        return generateProvider();
+    }
+
+    /**
      * Generates a multi-line card payload similar to Faker's {@code credit_card_full()}.
      *
      * @return multi-line full card payload
@@ -239,6 +251,36 @@ public final class CreditCardGenerator implements Generator<String> {
                 + " "
                 + info.cvv();
     }
+
+    /**
+     * Generates card details in a lightweight payload record.
+     *
+     * @return structured card payload
+     */
+    public CreditCardInfo generateCreditCardInfo() {
+        CardInfo info = generateWithType();
+        return new CreditCardInfo(
+                info.cardNumber(),
+                info.cardType().getDisplayName(),
+                info.expirationDate(),
+                info.cvv()
+        );
+    }
+
+    /**
+     * Generates card details in map form.
+     *
+     * @return map with keys: {@code number}, {@code type}, {@code exp}, {@code cvv}
+     */
+    public Map<String, String> generateCreditCardAsMap() {
+        CreditCardInfo info = generateCreditCardInfo();
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("number", info.number());
+        map.put("type", info.type());
+        map.put("exp", info.exp());
+        map.put("cvv", info.cvv());
+        return map;
+    }
     
     /**
      * Generates a CVV (Card Verification Value) code.
@@ -249,6 +291,16 @@ public final class CreditCardGenerator implements Generator<String> {
      */
     public String getCvv() {
         return getCvv(selectCardType());
+    }
+
+    /**
+     * Generates a card security code.
+     * Alias for {@link #getCvv()}.
+     *
+     * @return CVV/CVC digits
+     */
+    public String generateCvv() {
+        return getCvv();
     }
     
     /**
@@ -263,6 +315,16 @@ public final class CreditCardGenerator implements Generator<String> {
         int monthsToAdd = 1 + random.nextInt(60); // 1-60 months (up to 5 years)
         LocalDate expiryDate = now.plusMonths(monthsToAdd);
         return expiryDate.format(EXPIRY_FORMATTER);
+    }
+
+    /**
+     * Generates a card expiration date string.
+     * Alias for {@link #getExpirationDate()}.
+     *
+     * @return expiration in MM/YY format
+     */
+    public String generateExpiration() {
+        return getExpirationDate();
     }
     
     /**

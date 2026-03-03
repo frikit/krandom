@@ -20,8 +20,8 @@ This baseline replaces stale row-level statuses and normalizes parity into `Yes`
 | Address/location                               | Yes     | Locale-aware city/state/country/postal/phone  | Added country-code format options (A2/A3/numeric) plus calling-code/continent/timezone helper aliases. |
 | Internet/network                               | Yes     | Mostly locale-neutral                         | Added URL/URI/TLD/query alias coverage and unique/configurable email-domain generation; HTTP status message/header helpers included. |
 | Date/time                                      | Yes     | Locale-aware formatting where relevant         | Added datetime/timezone alias conveniences on top of existing date/time generators. |
-| Finance/payments                               | Partial | Locale-aware where meaningful                  | Credit-card suite, ACH/account/routing, currency, money, IBAN/BBAN/BIC/ISIN, EIN/CUSIP, crypto-address exist; some Mimesis object/option contracts remain. |
-| Commerce/company/job                           | Partial | Locale-aware in commerce and profession data   | Company/industry/job/profession and commerce product primitives are present; Mimesis provider-specific naming and object contracts are not fully aligned. |
+| Finance/payments                               | Yes     | Locale-aware where meaningful                  | Added credit-card payload/map contracts, CVV/expiration/network aliases, and currency/price API-shape aliases with locale-aware formatting. |
+| Commerce/company/job                           | Yes     | Locale-aware in commerce and profession data   | Added category/material/product payload parity plus product code helpers (UPC/EAN/ISBN) and structured product payload generation. |
 | Text/lorem                                     | Yes     | Locale-aware text providers                    | Added word/sentence/text alias normalization while preserving locale-aware vocabulary behavior. |
 | Identifiers/codes                              | Yes     | Locale not central                            | UUID, hash, EAN, ISBN, UPC, national-id families and Luhn-style support are robust. |
 | Structured/bulk generation (Schema/Field DSL) | No      | Locale propagation not yet applicable          | Mimesis’ core Schema+Field bulk-generation model is not implemented in Java form yet. |
@@ -35,8 +35,8 @@ This baseline replaces stale row-level statuses and normalizes parity into `Yes`
 | Reconcile core Mimesis API shape (identity/address/internet/date)  | Implemented    | P0 ✅        | Core API-shape aliases/options completed in Java generators. |
 | Telephone mask + identifier mask contracts                          | Implemented    | P0 ✅        | Added phone mask aliases and a dedicated identifier-mask generator. |
 | Unique email and richer domain/url option contracts                 | Implemented    | P0 ✅        | Added unique-email generation and configurable domain-set APIs. |
-| Mimesis credit-card/network/object contract alignment               | Partial        | P1           | Core card generators exist; object/alias contract alignment remains. |
-| Company/job/commerce provider naming and object-shape parity        | Partial        | P1           | Domain generators exist; provider-level compatibility layer is incomplete. |
+| Mimesis credit-card/network/object contract alignment               | Implemented    | P1 ✅        | Added card payload record/map helpers and network/cvv/expiration aliases. |
+| Company/job/commerce provider naming and object-shape parity        | Implemented    | P1 ✅        | Added commerce category/material/code helpers and product payload object contract. |
 | Schema/Field bulk generation DSL                                    | No             | P1           | Major missing differentiator and high-value target. |
 | Generic provider hub and runtime provider registration              | Partial        | P1           | Extensibility exists in places; unified hub contract missing. |
 | Locale breadth expansion (~Mimesis scale)                           | Partial        | P2           | Existing locale support is strong but narrower in breadth/depth. |

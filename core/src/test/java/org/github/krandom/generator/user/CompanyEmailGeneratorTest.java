@@ -83,6 +83,29 @@ class CompanyEmailGeneratorTest {
     }
 
     @Test
+    @DisplayName("local-part generator supports dotted first.last branch")
+    void localPartDottedBranch() throws Exception {
+        CompanyEmailGenerator gen = new CompanyEmailGenerator(
+                GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
+        Field randomField = CompanyEmailGenerator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+        randomField.set(gen, new Random() {
+            @Override
+            public int nextInt(int bound) {
+                if (bound == 3) {
+                    return 0;
+                }
+                return super.nextInt(bound);
+            }
+        });
+
+        String email = gen.generate("Acme");
+        String localPart = email.substring(0, email.indexOf('@'));
+        assertTrue(localPart.contains("."));
+        assertTrue(localPart.matches("[a-z0-9]+\\.[a-z0-9]+"));
+    }
+
+    @Test
     @DisplayName("non-latin names fall back to employee/user local-part defaults")
     void localPartBlankFallback() {
         CompanyEmailGenerator gen = new CompanyEmailGenerator(Locale.JAPAN);
