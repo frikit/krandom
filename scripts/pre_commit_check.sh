@@ -75,7 +75,7 @@ fi
 
 step "Run tests with coverage report"
 TEST_START=$(date +%s)
-if "${GRADLEW}" :core:test --rerun --quiet; then
+if "${GRADLEW}" test --rerun --quiet; then
     TEST_END=$(date +%s)
     TEST_SECS=$(( TEST_END - TEST_START ))
     TEST_MINS=$(( TEST_SECS / 60 ))
