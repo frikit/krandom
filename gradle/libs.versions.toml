@@ -7,7 +7,7 @@ slf4j = "2.0.17"
 logback = "1.5.32"
 kotest = "6.1.4"
 junit-jupiter = "6.0.3"
-junit-platform = "1.12.2"
+junit-platform = "6.0.3"
 objenesis = "3.5"
 jakarta-validation = "3.0.2"
 
