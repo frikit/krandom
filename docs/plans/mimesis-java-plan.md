@@ -102,10 +102,10 @@ Acceptance:
 
 Goal: improve developer ergonomics and custom provider support.
 
-- [ ] Generic provider aggregator API with locale propagation.
-- [ ] Runtime custom-provider registration hooks.
-- [ ] Alias table for provider lookup compatibility.
-- [ ] Coverage for provider discovery and conflict-resolution behavior.
+- [x] Generic provider aggregator API with locale propagation.
+- [x] Runtime custom-provider registration hooks.
+- [x] Alias table for provider lookup compatibility.
+- [x] Coverage for provider discovery and conflict-resolution behavior.
 
 Acceptance:
 
@@ -150,8 +150,8 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 4 pending**
+- Current step: **Phase 4 completed**
 - Status: **In progress**
 - Next deliverable:
-    - Implement Phase 4 generic provider hub + extensibility slice.
+    - Validate final parity status and identify next high-value pending slice.
     - Run `./scripts/pre_commit_check.sh` after each vertical slice.

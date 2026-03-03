@@ -62,6 +62,7 @@ import org.github.krandom.generator.selection.RepeatGenerator;
 import org.github.krandom.generator.selection.ShuffleGenerator;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.selection.WeightedGenerator;
+import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.schema.Field;
 import org.github.krandom.generator.schema.Schema;
 import org.github.krandom.generator.schema.SchemaValueProvider;
@@ -467,6 +468,14 @@ class GeneratorsTest {
         assertInstanceOf(Schema.class, Generators.ofSchema(Locale.US, fields));
         assertInstanceOf(Schema.class,
                 Generators.ofSchema(GeneratorConfig.builder().locale(Locale.US).seed(1L).build(), fields));
+    }
+
+    @Test @DisplayName("provider hub factories return corresponding type")
+    void providerHubFactories() {
+        assertInstanceOf(ProviderHub.class, Generators.ofProviderHub());
+        assertInstanceOf(ProviderHub.class, Generators.ofProviderHub(Locale.US));
+        assertInstanceOf(ProviderHub.class,
+                Generators.ofProviderHub(GeneratorConfig.builder().locale(Locale.US).seed(1L).build()));
     }
 
     @Test @DisplayName("finance factories return corresponding generators")

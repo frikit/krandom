@@ -65,6 +65,7 @@ import org.github.krandom.generator.selection.RepeatGenerator;
 import org.github.krandom.generator.selection.ShuffleGenerator;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.selection.WeightedGenerator;
+import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.schema.Field;
 import org.github.krandom.generator.schema.Schema;
 import org.github.krandom.generator.schema.SchemaValueProvider;
@@ -889,6 +890,23 @@ public final class Generators {
     /** Returns a schema generator with explicit configuration. */
     public static Schema ofSchema(GeneratorConfig config, Map<String, SchemaValueProvider> fields) {
         return new Schema(config, fields);
+    }
+
+    // ── Provider hub (Mimesis-style generic providers) ──────────────────────
+
+    /** Returns a generic provider hub with default configuration. */
+    public static ProviderHub ofProviderHub() {
+        return new ProviderHub();
+    }
+
+    /** Returns a locale-aware generic provider hub. */
+    public static ProviderHub ofProviderHub(Locale locale) {
+        return new ProviderHub(locale);
+    }
+
+    /** Returns a generic provider hub with explicit configuration. */
+    public static ProviderHub ofProviderHub(GeneratorConfig config) {
+        return new ProviderHub(config);
     }
 
     // ── Selection / helper-style generators ──────────────────────────────────

@@ -25,7 +25,7 @@ This baseline replaces stale row-level statuses and normalizes parity into `Yes`
 | Text/lorem                                     | Yes     | Locale-aware text providers                    | Added word/sentence/text alias normalization while preserving locale-aware vocabulary behavior. |
 | Identifiers/codes                              | Yes     | Locale not central                            | UUID, hash, EAN, ISBN, UPC, national-id families and Luhn-style support are robust. |
 | Structured/bulk generation (Schema/Field DSL) | Yes     | Locale propagated through schema field config  | Added Java `Field` + `Schema` DSL with binding lookup, seeded deterministic batches, nested/list field composition, and contextual validation errors. |
-| Generic provider hub/extensibility             | Partial | Locale propagation to providers exists today   | Domain generators are extensible in several areas, but no unified Mimesis-style generic provider hub/registry contract yet. |
+| Generic provider hub/extensibility             | Yes     | Locale propagated through provider hub config  | Added a unified `ProviderHub` with canonical providers, alias lookup, runtime provider registration hooks, and conflict-policy controls. |
 | Binary/hardware/science niche providers        | No      | Locale not central                            | Out of current core scope; candidate intentional skip unless explicitly requested. |
 
 ## Open Gaps Tagged for Execution
@@ -38,7 +38,7 @@ This baseline replaces stale row-level statuses and normalizes parity into `Yes`
 | Mimesis credit-card/network/object contract alignment               | Implemented    | P1 ✅        | Added card payload record/map helpers and network/cvv/expiration aliases. |
 | Company/job/commerce provider naming and object-shape parity        | Implemented    | P1 ✅        | Added commerce category/material/code helpers and product payload object contract. |
 | Schema/Field bulk generation DSL                                    | Implemented    | P1 ✅        | Added `schema` package (`FieldLookup`, `Field`, `Schema`, context + exception) with list/nested composition and seeded batch generation. |
-| Generic provider hub and runtime provider registration              | Partial        | P1           | Extensibility exists in places; unified hub contract missing. |
+| Generic provider hub and runtime provider registration              | Implemented    | P1 ✅        | Added `provider` package hub (`ProviderHub`, `ProviderFactory`, `ConflictPolicy`) with alias compatibility and runtime registration/override semantics. |
 | Locale breadth expansion (~Mimesis scale)                           | Partial        | P2           | Existing locale support is strong but narrower in breadth/depth. |
 | Binary/hardware/science provider families                           | No             | P2 (skip candidate) | Low ROI for core fixture workflows unless requested. |
 
