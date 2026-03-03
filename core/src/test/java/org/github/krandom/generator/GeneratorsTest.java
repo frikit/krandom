@@ -38,6 +38,7 @@ import org.github.krandom.generator.finance.IbanGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.identifier.EanGenerator;
 import org.github.krandom.generator.identifier.HashGenerator;
+import org.github.krandom.generator.identifier.IdentifierMaskGenerator;
 import org.github.krandom.generator.identifier.UpcGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.location.CityGenerator;
@@ -458,6 +459,7 @@ class GeneratorsTest {
         assertInstanceOf(CompanyCatchPhraseGenerator.class, Generators.ofCompanyCatchPhrase());
         assertInstanceOf(TextGenerator.class, Generators.ofText());
         assertInstanceOf(HashGenerator.class, Generators.ofHash());
+        assertInstanceOf(IdentifierMaskGenerator.class, Generators.ofIdentifierMask());
         assertInstanceOf(EanGenerator.class, Generators.ofEan());
         assertInstanceOf(UpcGenerator.class, Generators.ofUpc());
     }

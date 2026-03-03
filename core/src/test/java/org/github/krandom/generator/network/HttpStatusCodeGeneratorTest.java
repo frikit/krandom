@@ -35,4 +35,24 @@ class HttpStatusCodeGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> gen.generateByCategory(6));
         assertThrows(NullPointerException.class, () -> new HttpStatusCodeGenerator(null));
     }
+
+    @Test
+    void reasonPhrasesAndHeaderHelpers() {
+        HttpStatusCodeGenerator generator = new HttpStatusCodeGenerator(GeneratorConfig.builder().seed(42L).build());
+
+        assertEquals("OK", generator.reasonPhrase(200));
+        assertEquals("Unknown Status", generator.reasonPhrase(777));
+
+        String phrase = generator.generateReasonPhrase();
+        assertNotNull(phrase);
+        assertFalse(phrase.isBlank());
+
+        String statusLine = generator.generateStatusLine();
+        assertTrue(statusLine.startsWith("HTTP/1.1 "));
+        assertTrue(statusLine.matches("HTTP/1\\.1 \\d{3} .+"));
+
+        String headerName = generator.generateHeaderName();
+        assertNotNull(headerName);
+        assertFalse(headerName.isBlank());
+    }
 }

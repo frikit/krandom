@@ -188,6 +188,16 @@ public final class DomainGenerator implements Generator<String> {
     public String generateDomainSuffix() {
         return getTLD();
     }
+
+    /**
+     * Generates a top-level domain token.
+     * Mimesis-style alias.
+     *
+     * @return suffix without dot
+     */
+    public String generateTld() {
+        return getTLD();
+    }
     
     /**
      * Generates just a TLD from popular options.

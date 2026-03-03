@@ -9,9 +9,12 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generates realistic email addresses with locale-aware names.
@@ -112,6 +115,7 @@ public final class EmailGenerator implements Generator<String> {
     private final Random random;
     private final FirstNameGenerator firstNameGenerator;
     private final LastNameGenerator lastNameGenerator;
+    private final Set<String> issuedEmails;
     
     /**
      * Creates an email generator with default configuration (US locale).
@@ -143,6 +147,7 @@ public final class EmailGenerator implements Generator<String> {
                 : new SecureRandom();
         this.firstNameGenerator = new FirstNameGenerator(config);
         this.lastNameGenerator = new LastNameGenerator(config);
+        this.issuedEmails = ConcurrentHashMap.newKeySet();
     }
     
     /**
@@ -248,6 +253,48 @@ public final class EmailGenerator implements Generator<String> {
     public String generateCompanyEmail() {
         return new CompanyEmailGenerator(config).generate();
     }
+
+    /**
+     * Generates an email using one of the provided domains.
+     *
+     * @param domains non-null, non-empty domain candidates
+     * @return generated email
+     */
+    public String generateFromDomains(String... domains) {
+        String[] candidates = requireDomains(domains);
+        return generate(candidates[random.nextInt(candidates.length)]);
+    }
+
+    /**
+     * Generates a unique email for this generator instance.
+     *
+     * @return unique email value
+     */
+    public String generateUnique() {
+        return generateUniqueInternal(() -> generate());
+    }
+
+    /**
+     * Generates a unique email at the provided domain for this generator instance.
+     *
+     * @param domain fixed domain
+     * @return unique email value
+     */
+    public String generateUnique(String domain) {
+        Objects.requireNonNull(domain, "domain must not be null");
+        return generateUniqueInternal(() -> generate(domain));
+    }
+
+    /**
+     * Generates a unique email using one of the provided domains.
+     *
+     * @param domains non-null, non-empty domain candidates
+     * @return unique email value
+     */
+    public String generateUniqueFromDomains(String... domains) {
+        String[] candidates = requireDomains(domains);
+        return generateUniqueInternal(() -> generate(candidates[random.nextInt(candidates.length)]));
+    }
     
     /**
      * Formats the local part of the email address based on the specified format.
@@ -302,5 +349,32 @@ public final class EmailGenerator implements Generator<String> {
             default -> POPULAR_DOMAINS;
         };
         return providers[random.nextInt(providers.length)];
+    }
+
+    private String generateUniqueInternal(java.util.function.Supplier<String> supplier) {
+        final int maxAttempts = 1_000;
+        for (int i = 0; i < maxAttempts; i++) {
+            String email = supplier.get();
+            if (issuedEmails.add(email)) {
+                return email;
+            }
+        }
+        throw new IllegalStateException("Unable to generate a unique email after " + maxAttempts + " attempts");
+    }
+
+    private static String[] requireDomains(String... domains) {
+        Objects.requireNonNull(domains, "domains must not be null");
+        if (domains.length == 0) {
+            throw new IllegalArgumentException("domains must not be empty");
+        }
+        String[] normalized = Arrays.copyOf(domains, domains.length);
+        for (int i = 0; i < normalized.length; i++) {
+            String domain = normalized[i];
+            if (domain == null || domain.isBlank()) {
+                throw new IllegalArgumentException("domains must not contain null/blank values");
+            }
+            normalized[i] = domain;
+        }
+        return normalized;
     }
 }

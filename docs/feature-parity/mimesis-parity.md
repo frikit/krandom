@@ -16,13 +16,13 @@ This baseline replaces stale row-level statuses and normalizes parity into `Yes`
 | Category                                       | Status  | Locale Notes                                  | Comments |
 |------------------------------------------------|---------|-----------------------------------------------|----------|
 | Primitive/base generators                      | Yes     | Locale not required                           | Numeric, boolean, string, enum, format, regex, distribution generators are mature and complete. |
-| Identity/person                                | Partial | Locale-aware name/profile/gender providers    | First/last/full/middle names, username, password, title/suffix, age, birthday, profile records exist; Mimesis-specific API shape/options still differ. |
-| Address/location                               | Partial | Locale-aware city/state/country/postal/phone  | Core generators exist and are locale-aware; Mimesis-style helper naming/options (country-code format enums, continent/calling-code aliases) are incomplete. |
-| Internet/network                               | Partial | Mostly locale-neutral                         | URL/domain/hostname/uri/slug/ip/mac/port/http/user-agent coverage exists; unique-email and some option-rich API forms are still gaps. |
-| Date/time                                      | Partial | Locale-aware formatting where relevant         | Date/time/instant/localdatetime/zoneddatetime/timezone/duration generators exist; Mimesis-specific formatting and alias contracts are incomplete. |
+| Identity/person                                | Yes     | Locale-aware name/profile/gender providers    | Added `full_name(reverse)` options parity, telephone/identifier mask helpers, and maintained Java-native demographics/profile mapping. |
+| Address/location                               | Yes     | Locale-aware city/state/country/postal/phone  | Added country-code format options (A2/A3/numeric) plus calling-code/continent/timezone helper aliases. |
+| Internet/network                               | Yes     | Mostly locale-neutral                         | Added URL/URI/TLD/query alias coverage and unique/configurable email-domain generation; HTTP status message/header helpers included. |
+| Date/time                                      | Yes     | Locale-aware formatting where relevant         | Added datetime/timezone alias conveniences on top of existing date/time generators. |
 | Finance/payments                               | Partial | Locale-aware where meaningful                  | Credit-card suite, ACH/account/routing, currency, money, IBAN/BBAN/BIC/ISIN, EIN/CUSIP, crypto-address exist; some Mimesis object/option contracts remain. |
 | Commerce/company/job                           | Partial | Locale-aware in commerce and profession data   | Company/industry/job/profession and commerce product primitives are present; Mimesis provider-specific naming and object contracts are not fully aligned. |
-| Text/lorem                                     | Partial | Locale-aware text providers                    | Word/sentence/paragraph/lorem/text generators exist; Mimesis vocabulary/answer/quote options are only partially mapped. |
+| Text/lorem                                     | Yes     | Locale-aware text providers                    | Added word/sentence/text alias normalization while preserving locale-aware vocabulary behavior. |
 | Identifiers/codes                              | Yes     | Locale not central                            | UUID, hash, EAN, ISBN, UPC, national-id families and Luhn-style support are robust. |
 | Structured/bulk generation (Schema/Field DSL) | No      | Locale propagation not yet applicable          | Mimesis’ core Schema+Field bulk-generation model is not implemented in Java form yet. |
 | Generic provider hub/extensibility             | Partial | Locale propagation to providers exists today   | Domain generators are extensible in several areas, but no unified Mimesis-style generic provider hub/registry contract yet. |
@@ -32,9 +32,9 @@ This baseline replaces stale row-level statuses and normalizes parity into `Yes`
 
 | Gap                                                                 | Current Status | Priority Tag | Notes |
 |---------------------------------------------------------------------|----------------|--------------|-------|
-| Reconcile core Mimesis API shape (identity/address/internet/date)  | Partial        | P0           | Behavior largely exists; naming/options differ. |
-| Telephone mask + identifier mask contracts                          | Partial        | P0           | Existing phone/format primitives can be wrapped for parity-style APIs. |
-| Unique email and richer domain/url option contracts                 | Partial        | P0           | Existing email/domain/url generators cover most primitives. |
+| Reconcile core Mimesis API shape (identity/address/internet/date)  | Implemented    | P0 ✅        | Core API-shape aliases/options completed in Java generators. |
+| Telephone mask + identifier mask contracts                          | Implemented    | P0 ✅        | Added phone mask aliases and a dedicated identifier-mask generator. |
+| Unique email and richer domain/url option contracts                 | Implemented    | P0 ✅        | Added unique-email generation and configurable domain-set APIs. |
 | Mimesis credit-card/network/object contract alignment               | Partial        | P1           | Core card generators exist; object/alias contract alignment remains. |
 | Company/job/commerce provider naming and object-shape parity        | Partial        | P1           | Domain generators exist; provider-level compatibility layer is incomplete. |
 | Schema/Field bulk generation DSL                                    | No             | P1           | Major missing differentiator and high-value target. |

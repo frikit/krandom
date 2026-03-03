@@ -44,4 +44,22 @@ public final class UriGenerator implements Generator<String> {
         }
         return urlGenerator.generateWithPath();
     }
+
+    /**
+     * Generates a URI with path but without query parameters.
+     *
+     * @return URI string
+     */
+    public String generateWithPath() {
+        return urlGenerator.generateWithPath();
+    }
+
+    /**
+     * Generates a URI with path and query parameters.
+     *
+     * @return URI string
+     */
+    public String generateWithQuery() {
+        return urlGenerator.generateWithPathAndQuery();
+    }
 }

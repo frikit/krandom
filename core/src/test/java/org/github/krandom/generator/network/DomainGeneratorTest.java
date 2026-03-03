@@ -485,4 +485,12 @@ class DomainGeneratorTest {
         // Should hit both branches (true and false)
         assertTrue(branches.size() >= 1, "Should generate at least one type");
     }
+
+    @Test
+    void testGenerateTldAlias() {
+        DomainGenerator generator = new DomainGenerator(Locale.US);
+        String tld = generator.generateTld();
+        assertNotNull(tld);
+        assertFalse(tld.isBlank());
+    }
 }

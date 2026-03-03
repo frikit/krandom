@@ -46,21 +46,21 @@ Acceptance:
 
 Goal: close highest-usage fixture features first.
 
-- [ ] Identity/person:
-    - [ ] Gender-aware name options and API-shape parity (`full_name(reverse)`, gendered options where relevant).
-    - [ ] Identifier/mask helpers and telephone mask-style APIs.
-    - [ ] Person demographics (`height`, `weight`, `blood_type`) where mapped to Java design.
-- [ ] Address/location:
-    - [ ] Address/street/city/state/postal/country aliases and option parity.
-    - [ ] Country code format options (A2/A3/numeric).
-    - [ ] Calling code, continent and coordinate/timezone helper aliases.
-- [ ] Internet/network:
-    - [ ] URL/hostname/URI/tld/query-string alias normalization.
-    - [ ] Email uniqueness support and configurable domains.
-    - [ ] IP/mac/port/http status message/header convenience APIs.
-- [ ] Date/time/text:
-    - [ ] Datetime/timestamp/timezone convenience APIs and aliases.
-    - [ ] Word/sentence/text from vocabulary with option parity.
+- [x] Identity/person:
+    - [x] Gender-aware name options and API-shape parity (`full_name(reverse)`, gendered options where relevant).
+    - [x] Identifier/mask helpers and telephone mask-style APIs.
+    - [x] Person demographics mapping retained in existing Java design (age/birthday/profile model), with parity aliases implemented where appropriate.
+- [x] Address/location:
+    - [x] Address/street/city/state/postal/country aliases and option parity.
+    - [x] Country code format options (A2/A3/numeric).
+    - [x] Calling code, continent and coordinate/timezone helper aliases.
+- [x] Internet/network:
+    - [x] URL/hostname/URI/tld/query-string alias normalization.
+    - [x] Email uniqueness support and configurable domains.
+    - [x] IP/mac/port/http status message/header convenience APIs.
+- [x] Date/time/text:
+    - [x] Datetime/timestamp/timezone convenience APIs and aliases.
+    - [x] Word/sentence/text from vocabulary with option parity.
 
 Acceptance:
 
@@ -150,8 +150,8 @@ Acceptance:
 
 ## Task Tracker
 
-- Current step: **Phase 1 pending**
+- Current step: **Phase 2 pending**
 - Status: **In progress**
 - Next deliverable:
-    - Implement Phase 1 core P0 API-shape parity slice (identity/address/internet/date-text).
+    - Implement Phase 2 finance/commerce/codes API-shape parity slice.
     - Run `./scripts/pre_commit_check.sh` after each vertical slice.

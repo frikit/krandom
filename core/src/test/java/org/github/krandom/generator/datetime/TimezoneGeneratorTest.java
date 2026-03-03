@@ -50,6 +50,16 @@ class TimezoneGeneratorTest {
     }
 
     @Test
+    @DisplayName("timezone aliases delegate to core methods")
+    void aliases() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(11L).locale(Locale.US).build();
+        TimezoneGenerator alias = new TimezoneGenerator(config);
+        TimezoneGenerator core = new TimezoneGenerator(config);
+        assertEquals(core.generate(), alias.generateTimezone());
+        assertEquals(core.generateOffset(), alias.generateUtcOffset());
+    }
+
+    @Test
     @DisplayName("seeded generation is reproducible")
     void seeded() {
         GeneratorConfig config = GeneratorConfig.builder().seed(77L).locale(Locale.US).build();

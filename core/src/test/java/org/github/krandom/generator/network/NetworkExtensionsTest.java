@@ -179,6 +179,32 @@ class NetworkExtensionsTest {
     }
 
     @Test
+    @DisplayName("IPv4 public covers 192.* branch without second-octet remap")
+    void ipv4Public192SecondOctetNoRemap() throws Exception {
+        IPv4Generator generator = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        Field randomField = IPv4Generator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+        randomField.set(generator, new Random() {
+            private int call;
+
+            @Override
+            public int nextInt(int bound) {
+                call++;
+                if (call == 1) {
+                    return 187; // picks first octet 192 in allowedFirstOctets.
+                }
+                if (call == 2) {
+                    return 100; // second < 168, no remap branch.
+                }
+                return 0;
+            }
+        });
+        String ip = generator.generatePublic();
+        int second = Integer.parseInt(ip.split("\\.")[1]);
+        assertEquals(100, second);
+    }
+
+    @Test
     @DisplayName("IPv6 CIDR generation works")
     void ipv6Cidr() {
         IPv6Generator gen = new IPv6Generator(GeneratorConfig.builder().seed(7L).build());

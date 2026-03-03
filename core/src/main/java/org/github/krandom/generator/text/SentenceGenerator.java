@@ -127,6 +127,16 @@ public final class SentenceGenerator implements Generator<String> {
     }
 
     /**
+     * Generates a sentence.
+     * Alias for {@link #generate()}.
+     *
+     * @return generated sentence
+     */
+    public String generateSentence() {
+        return generate();
+    }
+
+    /**
      * Returns the configured locale.
      */
     public Locale getLocale() {

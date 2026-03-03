@@ -134,4 +134,13 @@ class TextGeneratorTest {
         ));
         assertTrue(enoughUniqueWords.endsWith("."));
     }
+
+    @Test
+    @DisplayName("generateText alias delegates to generate")
+    void generateTextAlias() {
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(202L).locale(Locale.US).build();
+        TextGenerator alias = new TextGenerator(cfg);
+        TextGenerator core = new TextGenerator(cfg);
+        assertEquals(core.generate(), alias.generateText());
+    }
 }

@@ -12,6 +12,7 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.Random;
@@ -31,6 +32,57 @@ public final class CountryGenerator implements Generator<String> {
 
     private static final String[] ISO_ALPHA2_CODES = Locale.getISOCountries();
     private static final String[] ISO_ALPHA3_CODES = loadIsoAlpha3Codes();
+    private static final String[] ISO_NUMERIC_CODES = {
+            "036", "076", "156", "250", "276", "380", "392", "724", "826", "840"
+    };
+    private static final Map<String, String> NUMERIC_BY_COUNTRY = Map.ofEntries(
+            Map.entry("US", "840"),
+            Map.entry("GB", "826"),
+            Map.entry("AU", "036"),
+            Map.entry("DE", "276"),
+            Map.entry("FR", "250"),
+            Map.entry("ES", "724"),
+            Map.entry("IT", "380"),
+            Map.entry("BR", "076"),
+            Map.entry("JP", "392"),
+            Map.entry("CN", "156")
+    );
+    private static final Map<String, String> CALLING_BY_COUNTRY = Map.ofEntries(
+            Map.entry("US", "+1"),
+            Map.entry("GB", "+44"),
+            Map.entry("AU", "+61"),
+            Map.entry("DE", "+49"),
+            Map.entry("FR", "+33"),
+            Map.entry("ES", "+34"),
+            Map.entry("IT", "+39"),
+            Map.entry("BR", "+55"),
+            Map.entry("JP", "+81"),
+            Map.entry("CN", "+86")
+    );
+    private static final Map<String, String> CONTINENT_BY_COUNTRY = Map.ofEntries(
+            Map.entry("US", "North America"),
+            Map.entry("GB", "Europe"),
+            Map.entry("AU", "Oceania"),
+            Map.entry("DE", "Europe"),
+            Map.entry("FR", "Europe"),
+            Map.entry("ES", "Europe"),
+            Map.entry("IT", "Europe"),
+            Map.entry("BR", "South America"),
+            Map.entry("JP", "Asia"),
+            Map.entry("CN", "Asia")
+    );
+    private static final Map<String, String> TIMEZONE_BY_COUNTRY = Map.ofEntries(
+            Map.entry("US", "America/New_York"),
+            Map.entry("GB", "Europe/London"),
+            Map.entry("AU", "Australia/Sydney"),
+            Map.entry("DE", "Europe/Berlin"),
+            Map.entry("FR", "Europe/Paris"),
+            Map.entry("ES", "Europe/Madrid"),
+            Map.entry("IT", "Europe/Rome"),
+            Map.entry("BR", "America/Sao_Paulo"),
+            Map.entry("JP", "Asia/Tokyo"),
+            Map.entry("CN", "Asia/Shanghai")
+    );
 
     private final GeneratorConfig config;
     private final Random random;
@@ -99,12 +151,36 @@ public final class CountryGenerator implements Generator<String> {
     }
 
     /**
+     * Returns a random country code using the requested format.
+     *
+     * @param format code format; must not be {@code null}
+     * @return formatted code
+     */
+    public String generateCode(CountryCodeFormat format) {
+        Objects.requireNonNull(format, "format must not be null");
+        return switch (format) {
+            case ALPHA2 -> generateCode();
+            case ALPHA3 -> generateCodeAlpha3();
+            case NUMERIC -> generateCodeNumeric();
+        };
+    }
+
+    /**
      * Returns a random ISO 3166-1 alpha-3 country code (for example, {@code "USA"}, {@code "DEU"}).
      *
      * @return an upper-case alpha-3 code; never {@code null}
      */
     public String generateCodeAlpha3() {
         return ISO_ALPHA3_CODES[random.nextInt(ISO_ALPHA3_CODES.length)];
+    }
+
+    /**
+     * Returns a random ISO 3166-1 numeric code (for example, {@code "840"}, {@code "276"}).
+     *
+     * @return numeric country code
+     */
+    public String generateCodeNumeric() {
+        return ISO_NUMERIC_CODES[random.nextInt(ISO_NUMERIC_CODES.length)];
     }
 
     /**
@@ -130,6 +206,21 @@ public final class CountryGenerator implements Generator<String> {
     }
 
     /**
+     * Returns the configured locale-country code in the requested format.
+     *
+     * @param format code format; must not be {@code null}
+     * @return formatted code
+     */
+    public String currentCountryCode(CountryCodeFormat format) {
+        Objects.requireNonNull(format, "format must not be null");
+        return switch (format) {
+            case ALPHA2 -> currentCountryCode();
+            case ALPHA3 -> currentCountryCodeAlpha3();
+            case NUMERIC -> currentCountryCodeNumeric();
+        };
+    }
+
+    /**
      * Returns the ISO 3166-1 alpha-3 code for the configured locale country.
      *
      * @return alpha-3 country code
@@ -142,6 +233,92 @@ public final class CountryGenerator implements Generator<String> {
         } catch (MissingResourceException ex) {
             throw new UnsupportedOperationException("Alpha-3 country code not available for locale country: " + countryCode, ex);
         }
+    }
+
+    /**
+     * Returns the configured locale-country ISO numeric code.
+     *
+     * @return numeric code
+     */
+    public String currentCountryCodeNumeric() {
+        String countryCode = requireLocaleCountry();
+        String numeric = NUMERIC_BY_COUNTRY.get(countryCode);
+        if (numeric == null) {
+            throw new UnsupportedOperationException("Numeric country code not available for locale country: " + countryCode);
+        }
+        return numeric;
+    }
+
+    /**
+     * Returns a random calling code from the supported locale-country set.
+     *
+     * @return calling code such as {@code +44}
+     */
+    public String generateCallingCode() {
+        List<String> values = List.copyOf(CALLING_BY_COUNTRY.values());
+        return values.get(random.nextInt(values.size()));
+    }
+
+    /**
+     * Returns the configured locale-country calling code.
+     *
+     * @return calling code
+     */
+    public String currentCallingCode() {
+        String countryCode = requireLocaleCountry();
+        String calling = CALLING_BY_COUNTRY.get(countryCode);
+        if (calling == null) {
+            throw new UnsupportedOperationException("Calling code not available for locale country: " + countryCode);
+        }
+        return calling;
+    }
+
+    /**
+     * Returns a random continent from the supported locale-country set.
+     *
+     * @return continent label
+     */
+    public String generateContinent() {
+        List<String> values = List.copyOf(CONTINENT_BY_COUNTRY.values());
+        return values.get(random.nextInt(values.size()));
+    }
+
+    /**
+     * Returns the configured locale-country continent label.
+     *
+     * @return continent label
+     */
+    public String currentContinent() {
+        String countryCode = requireLocaleCountry();
+        String continent = CONTINENT_BY_COUNTRY.get(countryCode);
+        if (continent == null) {
+            throw new UnsupportedOperationException("Continent not available for locale country: " + countryCode);
+        }
+        return continent;
+    }
+
+    /**
+     * Returns a random primary timezone from the supported locale-country set.
+     *
+     * @return timezone id
+     */
+    public String generateTimezone() {
+        List<String> values = List.copyOf(TIMEZONE_BY_COUNTRY.values());
+        return values.get(random.nextInt(values.size()));
+    }
+
+    /**
+     * Returns the configured locale-country primary timezone id.
+     *
+     * @return timezone id
+     */
+    public String currentTimezone() {
+        String countryCode = requireLocaleCountry();
+        String timezone = TIMEZONE_BY_COUNTRY.get(countryCode);
+        if (timezone == null) {
+            throw new UnsupportedOperationException("Timezone not available for locale country: " + countryCode);
+        }
+        return timezone;
     }
 
     /**
@@ -186,5 +363,14 @@ public final class CountryGenerator implements Generator<String> {
             alpha3.add(Locale.of("", alpha2).getISO3Country());
         }
         return alpha3.toArray(String[]::new);
+    }
+
+    /**
+     * Country-code output format.
+     */
+    public enum CountryCodeFormat {
+        ALPHA2,
+        ALPHA3,
+        NUMERIC
     }
 }

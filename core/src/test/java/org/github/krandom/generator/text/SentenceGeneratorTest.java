@@ -104,4 +104,13 @@ class SentenceGeneratorTest {
             assertEquals(a.generate(6), b.generate(6));
         }
     }
+
+    @Test
+    @DisplayName("generateSentence alias delegates to generate")
+    void generateSentenceAlias() {
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(27L).build();
+        SentenceGenerator alias = new SentenceGenerator(cfg);
+        SentenceGenerator core = new SentenceGenerator(cfg);
+        assertEquals(core.generate(), alias.generateSentence());
+    }
 }

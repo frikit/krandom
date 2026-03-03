@@ -293,6 +293,25 @@ public final class URLGenerator implements Generator<String> {
         return generateQueryString().substring(1); // Remove leading "?"
     }
 
+    /**
+     * Generates a query-string fragment.
+     * Mimesis-style alias for {@link #getQueryString()}.
+     *
+     * @return query string without leading {@code ?}
+     */
+    public String generateQuery() {
+        return getQueryString();
+    }
+
+    /**
+     * Generates a TLD token using the underlying domain generator.
+     *
+     * @return top-level domain token (for example {@code "com"})
+     */
+    public String generateTld() {
+        return domainGenerator.getTLD();
+    }
+
     private static String requireNonBlank(String value, String field) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(field + " must not be blank");

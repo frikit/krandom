@@ -50,6 +50,17 @@ class NetworkPhase1GeneratorsTest {
     }
 
     @Test
+    @DisplayName("URI generator explicit path/query aliases are valid")
+    void uriAliases() {
+        UriGenerator generator = new UriGenerator(Locale.US);
+        String withPath = generator.generateWithPath();
+        String withQuery = generator.generateWithQuery();
+        assertTrue(withPath.contains("://"));
+        assertTrue(withPath.contains("/"));
+        assertTrue(withQuery.contains("?"));
+    }
+
+    @Test
     @DisplayName("http method generator uses known methods")
     void httpMethod() {
         HttpMethodGenerator gen = new HttpMethodGenerator(GeneratorConfig.builder().seed(7L).build());

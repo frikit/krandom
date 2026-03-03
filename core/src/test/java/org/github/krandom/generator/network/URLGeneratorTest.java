@@ -648,4 +648,14 @@ class URLGeneratorTest {
                     "Path should have 1-3 segments");
         }
     }
+
+    @Test
+    void testQueryAndTldAliases() {
+        URLGenerator generator = new URLGenerator(Locale.US);
+        String query = generator.generateQuery();
+        String tld = generator.generateTld();
+        assertFalse(query.startsWith("?"));
+        assertFalse(query.isBlank());
+        assertFalse(tld.isBlank());
+    }
 }

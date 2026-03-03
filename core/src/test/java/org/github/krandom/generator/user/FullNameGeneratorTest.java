@@ -335,6 +335,36 @@ class FullNameGeneratorTest {
                     () -> gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, null, "es"))
             );
         }
+
+        @Test
+        @DisplayName("reverse option places last name before first name")
+        void reverseOption() {
+            GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(77L).build();
+            FullNameGenerator base = new FullNameGenerator(config);
+            FullNameGenerator reversed = new FullNameGenerator(config);
+
+            String normal = base.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, null));
+            String reverse = reversed.generate(new FullNameGenerator.NameOptions(false, false, false, false, true, null, null));
+
+            String[] normalParts = normal.split(" ");
+            String[] reverseParts = reverse.split(" ");
+            assertEquals(normalParts[0], reverseParts[1]);
+            assertEquals(normalParts[1], reverseParts[0]);
+        }
+
+        @Test
+        @DisplayName("reverse works with middle names")
+        void reverseWithMiddleName() {
+            GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(91L).build();
+            FullNameGenerator generator = new FullNameGenerator(config);
+            String reverse = generator.generate(new FullNameGenerator.NameOptions(true, false, false, false, true, null, null));
+            String[] parts = reverse.split(" ");
+            assertEquals(3, parts.length);
+            assertFalse(parts[0].isBlank());
+            assertFalse(parts[1].isBlank());
+            assertFalse(parts[2].isBlank());
+            assertFalse(parts[2].endsWith("."), "Expected full middle name, not middle initial");
+        }
     }
 
     @Nested

@@ -189,4 +189,13 @@ class WordGeneratorTest {
             assertEquals(a.generate(), b.generate());
         }
     }
+
+    @Test
+    @DisplayName("generateWord alias delegates to generate")
+    void generateWordAlias() {
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(55L).build();
+        WordGenerator alias = new WordGenerator(cfg);
+        WordGenerator core = new WordGenerator(cfg);
+        assertEquals(core.generate(), alias.generateWord());
+    }
 }

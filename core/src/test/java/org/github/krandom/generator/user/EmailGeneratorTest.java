@@ -9,10 +9,14 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -496,6 +500,61 @@ class EmailGeneratorTest {
             String email = generator.generate();
             assertFalse(email.contains(" "), "Email should not contain spaces");
         }
+    }
+
+    @Test
+    void testGenerateFromDomains() {
+        String email = generator.generateFromDomains("acme.dev", "krandom.org");
+        assertTrue(email.endsWith("@acme.dev") || email.endsWith("@krandom.org"));
+        assertThrows(NullPointerException.class, () -> generator.generateFromDomains((String[]) null));
+        assertThrows(IllegalArgumentException.class, () -> generator.generateFromDomains());
+        assertThrows(IllegalArgumentException.class, () -> generator.generateFromDomains(" "));
+    }
+
+    @Test
+    void testUniqueGeneration() {
+        Set<String> unique = new HashSet<>();
+        for (int i = 0; i < 120; i++) {
+            unique.add(generator.generateUnique());
+        }
+        assertEquals(120, unique.size());
+    }
+
+    @Test
+    void testUniqueGenerationWithDomainAndDomainList() {
+        Set<String> uniqueFixed = new HashSet<>();
+        Set<String> uniqueFromSet = new HashSet<>();
+        for (int i = 0; i < 100; i++) {
+            uniqueFixed.add(generator.generateUnique("example.com"));
+            uniqueFromSet.add(generator.generateUniqueFromDomains("x.dev", "y.dev"));
+        }
+        assertEquals(100, uniqueFixed.size());
+        assertEquals(100, uniqueFromSet.size());
+        assertThrows(NullPointerException.class, () -> generator.generateUnique((String) null));
+        assertThrows(NullPointerException.class, () -> generator.generateUniqueFromDomains((String[]) null));
+        assertThrows(IllegalArgumentException.class, () -> generator.generateUniqueFromDomains());
+        assertThrows(IllegalArgumentException.class, () -> generator.generateUniqueFromDomains((String) null));
+        assertThrows(IllegalArgumentException.class, () -> generator.generateUniqueFromDomains("x.dev", " "));
+    }
+
+    @Test
+    void testUniqueGenerationFailurePathViaReflection() throws Exception {
+        EmailGenerator generator = new EmailGenerator(GeneratorConfig.builder().seed(1L).build());
+
+        Field issuedEmailsField = EmailGenerator.class.getDeclaredField("issuedEmails");
+        issuedEmailsField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Set<String> issued = (Set<String>) issuedEmailsField.get(generator);
+        issued.add("fixed@example.com");
+
+        Method uniqueInternal = EmailGenerator.class.getDeclaredMethod("generateUniqueInternal", Supplier.class);
+        uniqueInternal.setAccessible(true);
+
+        Supplier<String> supplier = () -> "fixed@example.com";
+        InvocationTargetException ex =
+                assertThrows(InvocationTargetException.class, () -> uniqueInternal.invoke(generator, supplier));
+        assertNotNull(ex.getCause());
+        assertTrue(ex.getCause() instanceof IllegalStateException);
     }
     
     // Helper Methods

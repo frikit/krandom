@@ -178,6 +178,7 @@ public final class FullNameGenerator implements Generator<String> {
      *   <li>{@code middleInitial} — include middle initial (takes precedence over {@code middle})</li>
      *   <li>{@code prefix} — prepend title/honorific</li>
      *   <li>{@code suffix} — append suffix</li>
+     *   <li>{@code reverse} — emit name in reversed order (last name first)</li>
      *   <li>{@code gender} — male/female first/middle name selection</li>
      *   <li>{@code nationality} — locale selector token (for example: {@code "en"}, {@code "it"})</li>
      * </ul>
@@ -201,19 +202,32 @@ public final class FullNameGenerator implements Generator<String> {
             sb.append(generators.titleGenerator().generate()).append(' ');
         }
 
-        sb.append(gender == null
+        String firstName = gender == null
                 ? generators.firstNameGenerator().generate()
-                : generators.firstNameGenerator().generate(gender));
+                : generators.firstNameGenerator().generate(gender);
+        String middlePart = null;
+        String lastName = generators.lastNameGenerator().generate();
 
         if (options.middleInitial()) {
             MiddleNameGenerator middle = generators.middleNameGenerator();
-            sb.append(' ').append(gender == null ? middle.generateInitial() : middle.generateInitial(gender));
+            middlePart = gender == null ? middle.generateInitial() : middle.generateInitial(gender);
         } else if (options.middle()) {
             MiddleNameGenerator middle = generators.middleNameGenerator();
-            sb.append(' ').append(gender == null ? middle.generate() : middle.generate(gender));
+            middlePart = gender == null ? middle.generate() : middle.generate(gender);
         }
 
-        sb.append(' ').append(generators.lastNameGenerator().generate());
+        if (options.reverse()) {
+            sb.append(lastName).append(' ').append(firstName);
+            if (middlePart != null) {
+                sb.append(' ').append(middlePart);
+            }
+        } else {
+            sb.append(firstName);
+            if (middlePart != null) {
+                sb.append(' ').append(middlePart);
+            }
+            sb.append(' ').append(lastName);
+        }
 
         if (options.suffix()) {
             sb.append(' ').append(generators.suffixGenerator().generate());
@@ -323,6 +337,7 @@ public final class FullNameGenerator implements Generator<String> {
      * @param middleInitial include middle initial (takes precedence over middle)
      * @param prefix include title/prefix
      * @param suffix include suffix
+     * @param reverse whether to reverse core name order (last name first)
      * @param gender optional gender selector
      * @param nationality optional nationality/locale token (for example {@code "en"}, {@code "it"})
      */
@@ -331,9 +346,24 @@ public final class FullNameGenerator implements Generator<String> {
             boolean middleInitial,
             boolean prefix,
             boolean suffix,
+            boolean reverse,
             Gender gender,
             String nationality
-    ) {}
+    ) {
+        /**
+         * Backward-compatible constructor with {@code reverse=false}.
+         */
+        public NameOptions(
+                boolean middle,
+                boolean middleInitial,
+                boolean prefix,
+                boolean suffix,
+                Gender gender,
+                String nationality
+        ) {
+            this(middle, middleInitial, prefix, suffix, false, gender, nationality);
+        }
+    }
 
     private static final class NameGenerators {
         private final Locale locale;

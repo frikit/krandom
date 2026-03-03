@@ -319,6 +319,16 @@ public final class PhoneNumberGenerator implements Generator<String> {
     }
 
     /**
+     * Generates a telephone number using locale-default formatting.
+     * Mimesis-style alias for {@link #generate()}.
+     *
+     * @return generated telephone number
+     */
+    public String generateTelephone() {
+        return generate();
+    }
+
+    /**
      * Generates a phone number with optional formatting.
      *
      * @param formatted {@code true} for formatted output with separators,
@@ -328,6 +338,18 @@ public final class PhoneNumberGenerator implements Generator<String> {
     public String generate(boolean formatted) {
         // For locales with mobile/landline distinction, randomly choose
         boolean mobile = random.nextBoolean();
+        return generate(formatted, mobile);
+    }
+
+    /**
+     * Generates a telephone number with explicit formatting and number-type controls.
+     * Mimesis-style alias for {@link #generate(boolean, boolean)}.
+     *
+     * @param formatted true for formatted output
+     * @param mobile true for mobile, false for landline
+     * @return generated telephone number
+     */
+    public String generateTelephone(boolean formatted, boolean mobile) {
         return generate(formatted, mobile);
     }
 
@@ -421,6 +443,17 @@ public final class PhoneNumberGenerator implements Generator<String> {
             out.append(ch == '#' ? (char) ('0' + random.nextInt(10)) : ch);
         }
         return out.toString();
+    }
+
+    /**
+     * Generates a telephone number from a mask template.
+     * Mimesis-style alias for {@link #generateWithFormat(String)}.
+     *
+     * @param mask template string using {@code #} placeholders
+     * @return formatted value
+     */
+    public String generateTelephone(String mask) {
+        return generateWithFormat(mask);
     }
 
     // ── Format generators ─────────────────────────────────────────────────────

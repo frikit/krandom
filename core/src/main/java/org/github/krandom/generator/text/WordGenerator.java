@@ -147,6 +147,16 @@ public final class WordGenerator implements Generator<String> {
     }
 
     /**
+     * Generates a word.
+     * Alias for {@link #generate()}.
+     *
+     * @return generated word
+     */
+    public String generateWord() {
+        return generate();
+    }
+
+    /**
      * Returns the locale this generator is configured with.
      */
     public Locale getLocale() {

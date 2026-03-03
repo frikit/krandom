@@ -9,6 +9,7 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -23,6 +24,74 @@ public final class HttpStatusCodeGenerator implements Generator<Integer> {
     private static final int[] CODES_4XX = {400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413,
             414, 415, 416, 417, 418, 421, 422, 423, 424, 425, 426, 428, 429, 431, 451};
     private static final int[] CODES_5XX = {500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511};
+    private static final String[] COMMON_HEADER_NAMES = {
+            "Accept", "Accept-Language", "Authorization", "Cache-Control", "Connection",
+            "Content-Length", "Content-Type", "Host", "Origin", "Referer", "User-Agent", "X-Request-ID"
+    };
+    private static final Map<Integer, String> REASON_BY_CODE = Map.ofEntries(
+            Map.entry(100, "Continue"),
+            Map.entry(101, "Switching Protocols"),
+            Map.entry(102, "Processing"),
+            Map.entry(103, "Early Hints"),
+            Map.entry(200, "OK"),
+            Map.entry(201, "Created"),
+            Map.entry(202, "Accepted"),
+            Map.entry(203, "Non-Authoritative Information"),
+            Map.entry(204, "No Content"),
+            Map.entry(205, "Reset Content"),
+            Map.entry(206, "Partial Content"),
+            Map.entry(207, "Multi-Status"),
+            Map.entry(208, "Already Reported"),
+            Map.entry(226, "IM Used"),
+            Map.entry(300, "Multiple Choices"),
+            Map.entry(301, "Moved Permanently"),
+            Map.entry(302, "Found"),
+            Map.entry(303, "See Other"),
+            Map.entry(304, "Not Modified"),
+            Map.entry(305, "Use Proxy"),
+            Map.entry(307, "Temporary Redirect"),
+            Map.entry(308, "Permanent Redirect"),
+            Map.entry(400, "Bad Request"),
+            Map.entry(401, "Unauthorized"),
+            Map.entry(402, "Payment Required"),
+            Map.entry(403, "Forbidden"),
+            Map.entry(404, "Not Found"),
+            Map.entry(405, "Method Not Allowed"),
+            Map.entry(406, "Not Acceptable"),
+            Map.entry(407, "Proxy Authentication Required"),
+            Map.entry(408, "Request Timeout"),
+            Map.entry(409, "Conflict"),
+            Map.entry(410, "Gone"),
+            Map.entry(411, "Length Required"),
+            Map.entry(412, "Precondition Failed"),
+            Map.entry(413, "Payload Too Large"),
+            Map.entry(414, "URI Too Long"),
+            Map.entry(415, "Unsupported Media Type"),
+            Map.entry(416, "Range Not Satisfiable"),
+            Map.entry(417, "Expectation Failed"),
+            Map.entry(418, "I'm a teapot"),
+            Map.entry(421, "Misdirected Request"),
+            Map.entry(422, "Unprocessable Content"),
+            Map.entry(423, "Locked"),
+            Map.entry(424, "Failed Dependency"),
+            Map.entry(425, "Too Early"),
+            Map.entry(426, "Upgrade Required"),
+            Map.entry(428, "Precondition Required"),
+            Map.entry(429, "Too Many Requests"),
+            Map.entry(431, "Request Header Fields Too Large"),
+            Map.entry(451, "Unavailable For Legal Reasons"),
+            Map.entry(500, "Internal Server Error"),
+            Map.entry(501, "Not Implemented"),
+            Map.entry(502, "Bad Gateway"),
+            Map.entry(503, "Service Unavailable"),
+            Map.entry(504, "Gateway Timeout"),
+            Map.entry(505, "HTTP Version Not Supported"),
+            Map.entry(506, "Variant Also Negotiates"),
+            Map.entry(507, "Insufficient Storage"),
+            Map.entry(508, "Loop Detected"),
+            Map.entry(510, "Not Extended"),
+            Map.entry(511, "Network Authentication Required")
+    );
     private static final int[] ALL = concatAll();
 
     private final Random random;
@@ -56,6 +125,44 @@ public final class HttpStatusCodeGenerator implements Generator<Integer> {
             default -> throw new IllegalArgumentException("category must be in [1,5], got: " + category);
         };
         return source[random.nextInt(source.length)];
+    }
+
+    /**
+     * Returns the reason phrase for a status code.
+     *
+     * @param code HTTP status code
+     * @return reason phrase, or {@code "Unknown Status"} when code is unmapped
+     */
+    public String reasonPhrase(int code) {
+        return REASON_BY_CODE.getOrDefault(code, "Unknown Status");
+    }
+
+    /**
+     * Generates a reason phrase for a random status code.
+     *
+     * @return reason phrase
+     */
+    public String generateReasonPhrase() {
+        return reasonPhrase(generate());
+    }
+
+    /**
+     * Generates an HTTP status line (for example, {@code HTTP/1.1 404 Not Found}).
+     *
+     * @return status line
+     */
+    public String generateStatusLine() {
+        int code = generate();
+        return "HTTP/1.1 " + code + " " + reasonPhrase(code);
+    }
+
+    /**
+     * Generates a commonly used HTTP header name.
+     *
+     * @return header name
+     */
+    public String generateHeaderName() {
+        return COMMON_HEADER_NAMES[random.nextInt(COMMON_HEADER_NAMES.length)];
     }
 
     private static int[] concatAll() {

@@ -197,6 +197,14 @@ class DateGeneratorTest {
     }
 
     @Test
+    void testGenerateDateTimeAliases() {
+        DateGenerator a = new DateGenerator(GeneratorConfig.builder().seed(700L).build());
+        DateGenerator b = new DateGenerator(GeneratorConfig.builder().seed(700L).build());
+        assertEquals(a.generateDateTime(), b.generate().atStartOfDay());
+        assertEquals(a.generateDateTime().toString(), b.generateDateTimeString());
+    }
+
+    @Test
     void testSeededGeneratorProducesSameResults() {
         DateGenerator gen1 = new DateGenerator(GeneratorConfig.builder().seed(42L).build());
         DateGenerator gen2 = new DateGenerator(GeneratorConfig.builder().seed(42L).build());

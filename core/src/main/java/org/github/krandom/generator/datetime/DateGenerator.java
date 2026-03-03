@@ -284,6 +284,24 @@ public final class DateGenerator implements Generator<LocalDate> {
     }
 
     /**
+     * Generates a date-time value at start-of-day for a generated date.
+     *
+     * @return local date-time
+     */
+    public LocalDateTime generateDateTime() {
+        return generate().atStartOfDay();
+    }
+
+    /**
+     * Generates a date-time string in ISO local-date-time format.
+     *
+     * @return date-time string
+     */
+    public String generateDateTimeString() {
+        return generateDateTime().toString();
+    }
+
+    /**
      * Generates a future date in the range [tomorrow, tomorrow + 10 years].
      *
      * @return a future date; never {@code null}

@@ -67,6 +67,16 @@ public final class TimezoneGenerator implements Generator<String> {
     }
 
     /**
+     * Generates a timezone identifier.
+     * Alias for {@link #generate()}.
+     *
+     * @return timezone id
+     */
+    public String generateTimezone() {
+        return generate();
+    }
+
+    /**
      * Generates the current UTC offset for a generated timezone.
      *
      * @return offset id such as {@code +01:00}
@@ -74,6 +84,16 @@ public final class TimezoneGenerator implements Generator<String> {
     public String generateOffset() {
         ZoneId zoneId = ZoneId.of(generate());
         return zoneId.getRules().getOffset(Instant.now()).getId();
+    }
+
+    /**
+     * Generates a UTC offset string.
+     * Alias for {@link #generateOffset()}.
+     *
+     * @return offset id
+     */
+    public String generateUtcOffset() {
+        return generateOffset();
     }
 
     /**

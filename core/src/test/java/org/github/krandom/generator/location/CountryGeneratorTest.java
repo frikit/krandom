@@ -59,11 +59,25 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("generateCode(format) supports alpha2, alpha3, numeric")
+    void generateCodeByFormat() {
+        CountryGenerator gen = new CountryGenerator(Locale.US);
+        assertTrue(gen.generateCode(CountryGenerator.CountryCodeFormat.ALPHA2).matches("[A-Z]{2}"));
+        assertTrue(gen.generateCode(CountryGenerator.CountryCodeFormat.ALPHA3).matches("[A-Z]{3}"));
+        assertTrue(gen.generateCode(CountryGenerator.CountryCodeFormat.NUMERIC).matches("\\d{3}"));
+        assertThrows(NullPointerException.class, () -> gen.generateCode(null));
+    }
+
+    @Test
     @DisplayName("current-country helpers return locale-specific values")
     void currentCountryHelpers() {
         CountryGenerator us = new CountryGenerator(Locale.US);
         assertEquals("US", us.currentCountryCode());
         assertEquals("USA", us.currentCountryCodeAlpha3());
+        assertEquals("840", us.currentCountryCodeNumeric());
+        assertEquals("US", us.currentCountryCode(CountryGenerator.CountryCodeFormat.ALPHA2));
+        assertEquals("USA", us.currentCountryCode(CountryGenerator.CountryCodeFormat.ALPHA3));
+        assertEquals("840", us.currentCountryCode(CountryGenerator.CountryCodeFormat.NUMERIC));
         assertFalse(us.currentCountry().isBlank());
     }
 
@@ -74,6 +88,10 @@ class CountryGeneratorTest {
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountry);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCode);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodeAlpha3);
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodeNumeric);
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentContinent);
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentCallingCode);
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentTimezone);
     }
 
     @Test
@@ -93,6 +111,23 @@ class CountryGeneratorTest {
         });
         CountryGenerator generator = new CountryGenerator(locale);
         assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeAlpha3);
+        assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeNumeric);
+        assertThrows(UnsupportedOperationException.class, generator::currentContinent);
+        assertThrows(UnsupportedOperationException.class, generator::currentCallingCode);
+        assertThrows(UnsupportedOperationException.class, generator::currentTimezone);
+    }
+
+    @Test
+    @DisplayName("continent, calling code and timezone helpers are available")
+    void continentCallingTimezone() {
+        CountryGenerator us = new CountryGenerator(Locale.US);
+        assertEquals("North America", us.currentContinent());
+        assertEquals("+1", us.currentCallingCode());
+        assertEquals("America/New_York", us.currentTimezone());
+
+        assertFalse(us.generateContinent().isBlank());
+        assertTrue(us.generateCallingCode().startsWith("+"));
+        assertTrue(us.generateTimezone().contains("/"));
     }
 
     @Test

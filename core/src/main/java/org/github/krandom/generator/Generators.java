@@ -32,6 +32,7 @@ import org.github.krandom.generator.finance.EinGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
 import org.github.krandom.generator.identifier.EanGenerator;
 import org.github.krandom.generator.identifier.HashGenerator;
+import org.github.krandom.generator.identifier.IdentifierMaskGenerator;
 import org.github.krandom.generator.identifier.UpcGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.finance.CardExpirationGenerator;
@@ -831,6 +832,11 @@ public final class Generators {
     /** Returns a generator that produces random hash strings and algorithm digests. */
     public static HashGenerator ofHash() {
         return new HashGenerator();
+    }
+
+    /** Returns a generator that produces masked identifier strings. */
+    public static IdentifierMaskGenerator ofIdentifierMask() {
+        return new IdentifierMaskGenerator();
     }
 
     /** Returns a generator that produces EAN barcodes. */

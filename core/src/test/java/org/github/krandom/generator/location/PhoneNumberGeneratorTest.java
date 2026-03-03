@@ -110,6 +110,18 @@ class PhoneNumberGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> gen.generateWithFormat("   "));
     }
 
+    @Test
+    @DisplayName("telephone aliases delegate to core methods")
+    void telephoneAliases() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(1234L).build();
+        PhoneNumberGenerator alias = new PhoneNumberGenerator(config);
+        PhoneNumberGenerator core = new PhoneNumberGenerator(config);
+
+        assertEquals(core.generate(), alias.generateTelephone());
+        assertEquals(core.generate(true, false), alias.generateTelephone(true, false));
+        assertEquals(core.generateWithFormat("###-###"), alias.generateTelephone("###-###"));
+    }
+
     // ── US phone numbers (en_US) ──────────────────────────────────────────────
 
     @Test

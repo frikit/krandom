@@ -106,6 +106,16 @@ public final class TextGenerator implements Generator<String> {
         return out.toString();
     }
 
+    /**
+     * Generates text with default options.
+     * Alias for {@link #generate()}.
+     *
+     * @return generated text
+     */
+    public String generateText() {
+        return generate();
+    }
+
     private List<String> pickWords(List<String> vocabulary, int count, boolean unique) {
         if (!unique) {
             List<String> words = new ArrayList<>(count);
