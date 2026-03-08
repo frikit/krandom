@@ -1,0 +1,18 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+
+# Maven
+**/target/
+
+# sbt / Scala
+**/project/target/
+**/project/project/
+**/.bsp/
+**/.metals/
+
+# Mill
+**/out/
+**/.mill-version
