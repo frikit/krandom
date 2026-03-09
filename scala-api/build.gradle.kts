@@ -11,7 +11,7 @@ java {
 
 dependencies {
     implementation(project(":core"))
-    implementation("org.scala-lang:scala3-library_3:3.3.7")
+    implementation("org.scala-lang:scala3-library_3:3.8.2")
 
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
