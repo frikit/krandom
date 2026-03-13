@@ -27,8 +27,8 @@
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.github.krandom</groupId>
-            <artifactId>kotlin-api</artifactId>
+            <groupId>io.github.frikit</groupId>
+            <artifactId>krandom-kotlin-api</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>

@@ -145,6 +145,106 @@ JaCoCo line and branch coverage enforced at ≥ 90%.
 
 ---
 
+## Install (Current Version: `0.1.0`)
+
+GitHub Packages Maven registry:
+
+- `https://maven.pkg.github.com/frikit/krandom`
+
+Available artifacts:
+
+- `io.github.frikit:krandom-core:0.1.0`
+- `io.github.frikit:krandom-java-api:0.1.0`
+- `io.github.frikit:krandom-kotlin-api:0.1.0`
+- `io.github.frikit:krandom-scala-api:0.1.0`
+
+### Gradle (Kotlin DSL)
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/frikit/krandom")
+        credentials {
+            username = providers.gradleProperty("gpr.user")
+                .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+                .orNull
+            password = providers.gradleProperty("gpr.key")
+                .orElse(providers.environmentVariable("GITHUB_TOKEN"))
+                .orNull
+        }
+    }
+}
+
+dependencies {
+    implementation("io.github.frikit:krandom-java-api:0.1.0")
+}
+```
+
+### Gradle (Groovy DSL)
+
+```groovy
+repositories {
+    mavenCentral()
+    maven {
+        url = uri('https://maven.pkg.github.com/frikit/krandom')
+        credentials {
+            username = findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
+            password = findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
+        }
+    }
+}
+
+dependencies {
+    implementation 'io.github.frikit:krandom-java-api:0.1.0'
+}
+```
+
+### Maven
+
+```xml
+<repositories>
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/frikit/krandom</url>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>io.github.frikit</groupId>
+    <artifactId>krandom-java-api</artifactId>
+    <version>0.1.0</version>
+  </dependency>
+</dependencies>
+```
+
+Add GitHub credentials in `~/.m2/settings.xml` under server id `github`.
+
+### sbt (Scala)
+
+```scala
+resolvers += "GitHub Packages" at "https://maven.pkg.github.com/frikit/krandom"
+
+libraryDependencies += "io.github.frikit" % "krandom-scala-api" % "0.1.0"
+```
+
+### Mill (Scala)
+
+```scala
+def ivyDeps = Agg(
+  ivy"io.github.frikit:krandom-scala-api:0.1.0"
+)
+
+override def repositoriesTask = T {
+  super.repositoriesTask() ++ Seq(
+    coursier.MavenRepository("https://maven.pkg.github.com/frikit/krandom")
+  )
+}
+```
+
+---
+
 ## Release (GitHub Packages + GitHub Release)
 
 - Default development version is `0.1.0-SNAPSHOT`.
@@ -154,10 +254,10 @@ JaCoCo line and branch coverage enforced at ≥ 90%.
 
 Published Maven coordinates:
 
-- `org.github.krandom:core:<version>`
-- `org.github.krandom:java-api:<version>`
-- `org.github.krandom:kotlin-api:<version>`
-- `org.github.krandom:scala-api:<version>`
+- `io.github.frikit:krandom-core:<version>`
+- `io.github.frikit:krandom-java-api:<version>`
+- `io.github.frikit:krandom-kotlin-api:<version>`
+- `io.github.frikit:krandom-scala-api:<version>`
 
 GitHub Packages registry:
 

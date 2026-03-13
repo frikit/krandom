@@ -8,7 +8,7 @@ plugins {
 }
 
 allprojects {
-    group = "org.github.krandom"
+    group = "io.github.frikit"
     version = (findProperty("releaseVersion") as String?) ?: "0.1.0-SNAPSHOT"
 
     repositories {
@@ -64,7 +64,7 @@ subprojects {
                 publications {
                     if (findByName("mavenJava") == null) {
                         create<MavenPublication>("mavenJava") {
-                            artifactId = project.name
+                            artifactId = "krandom-${project.name}"
                             from(components[componentName])
                             pom {
                                 name.set("krandom-${project.name}")

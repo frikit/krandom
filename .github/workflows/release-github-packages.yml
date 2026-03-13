@@ -77,10 +77,10 @@ jobs:
             scala-api/build/libs/*.jar
           body: |
             Published modules to GitHub Packages from this release:
-            - org.github.krandom:core:${{ env.VERSION }}
-            - org.github.krandom:java-api:${{ env.VERSION }}
-            - org.github.krandom:kotlin-api:${{ env.VERSION }}
-            - org.github.krandom:scala-api:${{ env.VERSION }}
+            - io.github.frikit:krandom-core:${{ env.VERSION }}
+            - io.github.frikit:krandom-java-api:${{ env.VERSION }}
+            - io.github.frikit:krandom-kotlin-api:${{ env.VERSION }}
+            - io.github.frikit:krandom-scala-api:${{ env.VERSION }}
 
             Maven repository:
             https://maven.pkg.github.com/${{ github.repository }}

@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.github.krandom:java-api:0.1.0")
+    implementation("io.github.frikit:krandom-java-api:0.1.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:6.0.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.0.3")
 }
