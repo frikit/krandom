@@ -3,160 +3,106 @@
 ![kt test + coverage](https://github.com/frikit/krandom/workflows/kt%20test%20+%20coverage/badge.svg)
 [![codecov](https://codecov.io/github/frikit/krandom/graph/badge.svg?token=CpcHkmbzo7)](https://codecov.io/github/frikit/krandom)
 
-kRandom is a random data generator written in Kotlin and Java. It covers a broad range of categories — primitives, user data, network addresses, game utilities, mathematical sequences, and
-object-graph population — primarily for use in tests and data-generation pipelines.
+kRandom is a random and fake-data generation library built around a Java core, with Kotlin and Scala wrapper modules on top. It is aimed at tests, fixture generation, schema-driven record generation, and object graph population.
 
----
+The project is currently Java-first:
 
-## Project structure
+- `core` contains the real implementation.
+- `java-api` is a thin Java-facing artifact over `core`.
+- `kotlin-api` provides Kotlin wrappers over the Java core.
+- `scala-api` provides Scala 3 wrappers over the Java core.
 
-Multi-module Gradle project (Java 21 / Kotlin 2.1):
+## Modules
 
-| Module       | Purpose                                   |
-|:-------------|:------------------------------------------|
-| `core`       | All generators, validators, and utilities |
-| `java-api`   | Standalone Java API layer (in progress)   |
-| `kotlin-api` | Standalone Kotlin API layer (in progress) |
+| Module | Purpose |
+|:---|:---|
+| `core` | Main implementation: generators, object generation, schema DSL, provider hub |
+| `java-api` | Java artifact that depends on `core` |
+| `kotlin-api` | Kotlin-native wrapper layer over `core` |
+| `scala-api` | Scala 3 wrapper layer over `core` |
+| `examples/` | Consumer examples for Java, Kotlin, and Scala across multiple build tools |
+| `docs-site/` | GitHub Pages documentation site |
 
----
+## Current capabilities
 
-## Feature overview
+The Java core currently covers:
 
-### Primitive generators (Java API — `org.github.krandom.generator`)
+- Primitive and numeric generators
+- Text and lorem-style generation
+- Date/time generators
+- Network and internet generators
+- Location and address generators
+- User/profile/name generators
+- Finance, identifiers, and banking generators
+- File/path/version/system generators
+- Selection helpers such as pick, shuffle, weighted, repeat, and unique
+- Object graph generation
+- Schema-style record generation with `Field` and `Schema`
+- Generic provider lookup and runtime extension through `ProviderHub`
 
-|   Type    | Bounded | Seeded | Tested |
-|:---------:|:-------:|:------:|:------:|
-|  `byte`   |    ✅    |   ✅    |   ✅    |
-|  `short`  |    ✅    |   ✅    |   ✅    |
-|   `int`   |    ✅    |   ✅    |   ✅    |
-|  `long`   |    ✅    |   ✅    |   ✅    |
-|  `float`  |    ✅    |   ✅    |   ✅    |
-| `double`  |    ✅    |   ✅    |   ✅    |
-|  `char`   |    ✅    |   ✅    |   ✅    |
-| `boolean` |    ✅    |   ✅    |   ✅    |
-| `String`  |    ✅    |   ✅    |   ✅    |
-| `Enum<T>` |    —    |   —    |   ✅    |
-
-All primitive generators implement `Generator<T>` with `generate()`, `generateList(n)`, `stream()`, `map()`, and `filter()` default methods.
-
-### Algorithm generators (Java API)
-
-| Algorithm |                           Description                           | Tested |
-|:---------:|:---------------------------------------------------------------:|:------:|
-| Fibonacci | Random or indexed Fibonacci numbers (indices 0–92, fits `long`) |   ✅    |
-|   Luhn    | 10-digit Luhn-valid strings (credit-card check-digit algorithm) |   ✅    |
-
-### Object generator (Java API)
-
-`ObjectGenerator<T>` populates arbitrary POJO instances by reflecting over fields and resolving a `Generator` for each type. Configurable via `ObjectGeneratorConfig`:
-
-- `maxDepth` — controls recursive population depth
-- `ignoreErrors` — silently null out unresolvable fields instead of throwing
-- Type-level and field-level generator overrides
-
-### User-data generators (Kotlin layer — `org.github.krandom.user`)
-
-|         Field          | Implemented | Tested |
-|:----------------------:|:-----------:|:------:|
-|       First name       |      ✅      |   ✅    |
-|       Last name        |      ✅      |   ✅    |
-|        Username        |      ✅      |   ✅    |
-|          Age           |      ✅      |   ✅    |
-|         Gender         |      ✅      |   ✅    |
-|         Email          |      ✅      |   ✅    |
-|         Title          |      ✅      |   ✅    |
-|        Birthday        |      ✅      |   ✅    |
-| Social Security Number |      ✅      |   ✅    |
-
-### Game utilities (Java API — `org.github.krandom.games`)
-
-|           Generator            |             Class              | Implemented | Tested |
-|:------------------------------:|:------------------------------:|:-----------:|:------:|
-| D4 / D6 / D8 / D10 / D12 / D20 |  `DiceGenerator` + `DiceType`  |      ✅      |   ✅    |
-|           Coin flip            | `CoinGenerator` + `CoinResult` |      ✅      |   ✅    |
-
-### Number generators (Kotlin layer — `org.github.krandom.common.numbers`)
-
-|     Generator     | Implemented | Tested |
-|:-----------------:|:-----------:|:------:|
-|  Natural numbers  |      ✅      |   ✅    |
-|   Prime numbers   |      ✅      |   ✅    |
-| Composite numbers |      ✅      |   ✅    |
-
-### Network generators (Java layer — `org.github.krandom.generator.network`)
-
-|         Generator          | Layer | Implemented | Tested |
-|:--------------------------:|:-----:|:-----------:|:------:|
-|  IPv4 (RFC 791, unicast)   | Java  |      ✅      |   ✅    |
-| IPv6 (RFC 4291 / RFC 5952) | Java  |      ✅      |   ✅    |
-
-Legacy imports under `org.github.krandom.network` remain available as deprecated compatibility wrappers.
-
-### String generators (Kotlin layer — `org.github.krandom.common.string`)
-
-|        Generator        | Implemented | Tested |
-|:-----------------------:|:-----------:|:------:|
-| Hex hash (length 1–999) |      ✅      |   ✅    |
-
----
+Wrapper modules currently expose the Java core in more idiomatic Kotlin and Scala forms, but the source of truth for behavior remains Java.
 
 ## Quick start
 
+### Java
+
 ```java
-// Primitive values
-int roll = Generators.ofInt(1, 7).generate();        // die [1..6]
-String name = Generators.ofString().generate();
-double d = Generators.ofDouble(0.0, 1.0).generate();
+import org.github.krandom.generator.Generators;
 
-// Lists
-List<Long> ids = Generators.ofLong(1L, 1_000_000L).generateList(100);
-
-// Algorithm generators
-long fib = Generators.ofFibonacci().generate();
-String card = Generators.ofLuhn().generate();           // "4382916057"
-
-// Game generators
-CoinResult side = Generators.ofCoin().generate();              // HEAD or TAIL
-int roll = Generators.ofDice(DiceType.D20).generate();  // 1–20
-List<Integer> d6s = DiceGenerator.d6().roll(5);                  // 5 rolls, fairness guaranteed
-
-// Generic lookup by type
-Generator<Integer> g = Generators.forType(Integer.class);
-
-// Object population
-ObjectGenerator<Person> gen = new ObjectGenerator<>(Person.class);
-Person person = gen.generate();
-
-// Seeded, reproducible
-IntGenerator seeded = Generators.ofInt(1, 100, 42L);
+int roll = Generators.ofInt(1, 7).generate();
+String name = Generators.ofFullName().generate();
+String email = Generators.ofEmail().generate();
 ```
 
----
+### Kotlin
 
-## Build
+```kotlin
+import org.github.krandom.kotlinapi.KRandom
+
+val roll = KRandom.int(1, 7, 42L).next()
+val name = KRandom.fullName().next()
+val email = KRandom.email().next()
+```
+
+### Scala
+
+```scala
+import org.github.krandom.scalaapi.ScalaGenerators
+
+val roll = ScalaGenerators.int(1, 7, 42L).one
+val name = ScalaGenerators.fullName().one
+val email = ScalaGenerators.email().one
+```
+
+## Build and verification
+
+Main local commands:
 
 ```bash
-./gradlew build               # full build + test + coverage check
-./gradlew :core:test          # tests only
-./gradlew spotlessApply       # apply license headers and formatting
+./gradlew build
+./gradlew test
+./scripts/pre_commit_check.sh
 ```
 
-JaCoCo line and branch coverage enforced at ≥ 90%.
+`./scripts/pre_commit_check.sh` runs formatting, compilation, tests, Javadoc validation, and coverage verification. The current project standard is 100% line and branch coverage in the checked core reports, with the script enforcing a 99% minimum threshold.
 
----
+## Install
 
-## Install (Current Version: `0.1.0`)
+Current release line:
 
-GitHub Packages Maven registry:
+- Version: `0.1.0`
+- Group: `io.github.frikit`
 
-- `https://maven.pkg.github.com/frikit/krandom`
-
-Available artifacts:
+Published artifacts:
 
 - `io.github.frikit:krandom-core:0.1.0`
 - `io.github.frikit:krandom-java-api:0.1.0`
 - `io.github.frikit:krandom-kotlin-api:0.1.0`
 - `io.github.frikit:krandom-scala-api:0.1.0`
+
+Current package registry:
+
+- GitHub Packages Maven registry: `https://maven.pkg.github.com/frikit/krandom`
 
 ### Gradle (Kotlin DSL)
 
@@ -219,9 +165,9 @@ dependencies {
 </dependencies>
 ```
 
-Add GitHub credentials in `~/.m2/settings.xml` under server id `github`.
+Maven needs GitHub Packages credentials in `~/.m2/settings.xml` under server id `github`.
 
-### sbt (Scala)
+### sbt
 
 ```scala
 resolvers += "GitHub Packages" at "https://maven.pkg.github.com/frikit/krandom"
@@ -229,7 +175,7 @@ resolvers += "GitHub Packages" at "https://maven.pkg.github.com/frikit/krandom"
 libraryDependencies += "io.github.frikit" % "krandom-scala-api" % "0.1.0"
 ```
 
-### Mill (Scala)
+### Mill
 
 ```scala
 def ivyDeps = Agg(
@@ -243,32 +189,50 @@ override def repositoriesTask = T {
 }
 ```
 
----
+## Examples
 
-## Release (GitHub Packages + GitHub Release)
+Consumer examples live in [`examples/`](examples/). They are test-based examples rather than runnable demo apps, so usage stays in test code and `main` contains only small fixture models.
 
-- Default development version is `0.1.0-SNAPSHOT`.
-- Manual release is done from GitHub Actions via workflow: `release-github-packages`.
-- Click `Run workflow` and provide a SemVer version (for example `0.1.0`).
-- The workflow validates SemVer, publishes modules to GitHub Packages, tags `v<version>`, and creates a GitHub Release with JAR assets.
+Included combinations:
 
-Published Maven coordinates:
+- Java + Gradle
+- Java + Maven
+- Kotlin + Gradle
+- Kotlin + Maven
+- Scala + sbt
+- Scala + Mill
 
-- `io.github.frikit:krandom-core:<version>`
-- `io.github.frikit:krandom-java-api:<version>`
-- `io.github.frikit:krandom-kotlin-api:<version>`
-- `io.github.frikit:krandom-scala-api:<version>`
+## Documentation site
 
-GitHub Packages registry:
+Public documentation site source lives in [`docs-site/`](docs-site/) and deploys through [`github-pages.yml`](.github/workflows/github-pages.yml).
 
-- `https://maven.pkg.github.com/frikit/krandom`
+Docs URL:
 
----
+- [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
 
-## Reference docs
+One-time repository setup for GitHub Pages:
 
-Comparative references for 10 popular random/fake-data libraries across Java, Python, Go, Rust, C#, JavaScript, and PHP — see [`docs/`](docs/README.md).
+- Open `Settings -> Pages`
+- Set `Build and deployment` to `GitHub Actions`
 
-Public Java-focused GitHub Pages docs live under `docs-site/` and deploy via `.github/workflows/github-pages.yml`.
+## Releases
 
-Open docs: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
+The repository currently includes a manual GitHub Actions release workflow for GitHub Packages and GitHub Releases:
+
+- Workflow: [`release-github-packages.yml`](.github/workflows/release-github-packages.yml)
+- Trigger: `workflow_dispatch`
+- Input: semver version such as `0.1.0`
+
+That workflow:
+
+- validates the version
+- builds and tests all modules
+- publishes artifacts to GitHub Packages
+- creates a Git tag `v<version>`
+- creates a GitHub Release with built JARs attached
+
+## Maven Central
+
+Maven Central migration is planned but not finished yet. The current plan is tracked in [`maven-central-release-plan.md`](docs/plans/maven-central-release-plan.md).
+
+The target public no-auth coordinates are the same artifact names under `io.github.frikit`, but Central-specific requirements such as namespace verification, signing, and Central release automation still need to be completed.
