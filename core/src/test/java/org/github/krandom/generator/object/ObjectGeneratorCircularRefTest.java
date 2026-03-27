@@ -9,6 +9,10 @@ import org.github.krandom.generator.core.model.CircularNode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("ObjectGenerator — circular reference handling")
@@ -67,5 +71,31 @@ class ObjectGeneratorCircularRefTest {
                 .objectPoolSize(0)
                 .build();
         assertDoesNotThrow(() -> new ObjectGenerator<>(CircularNode.class, config).generate());
+    }
+
+    @Test
+    @DisplayName("reusing the same generator does not share node instances across calls")
+    void repeatedGenerateDoesNotShareNodesAcrossCalls() {
+        ObjectGenerator<CircularNode> generator = new ObjectGenerator<>(CircularNode.class);
+
+        CircularNode first = generator.generate();
+        CircularNode second = generator.generate();
+
+        Set<CircularNode> firstNodes = collectChainNodes(first, 16);
+        Set<CircularNode> secondNodes = collectChainNodes(second, 16);
+
+        assertTrue(Collections.disjoint(firstNodes, secondNodes),
+                "separate generate() calls must not share node identities");
+    }
+
+    private static Set<CircularNode> collectChainNodes(CircularNode root, int maxSteps) {
+        Set<CircularNode> nodes = Collections.newSetFromMap(new IdentityHashMap<>());
+        CircularNode current = root;
+        int steps = 0;
+        while (current != null && steps < maxSteps && nodes.add(current)) {
+            current = current.getNext();
+            steps++;
+        }
+        return nodes;
     }
 }

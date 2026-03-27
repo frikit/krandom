@@ -55,6 +55,18 @@ public final class CharGenerator implements Generator<Character> {
         return pool[random.nextInt(pool.length)];
     }
 
+    /**
+     * Returns a new generator with the same character pool and a deterministic seed.
+     *
+     * <p>This keeps the current pool intact while making output reproducible.
+     *
+     * @param seed the random seed
+     * @return a new generator with identical pool configuration and seeded randomness
+     */
+    public CharGenerator withSeed(long seed) {
+        return new CharGenerator(pool.clone(), new Random(seed));
+    }
+
     // ── Factory ───────────────────────────────────────────────────────────────
 
     /** Uppercase + lowercase letters; no digits or special characters. */

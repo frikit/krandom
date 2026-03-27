@@ -430,6 +430,36 @@ class StringGeneratorTest {
 
             assertNotEquals(list1, list2, "Different seeds should differ");
         }
+
+        @Test
+        @DisplayName("seeded generator preserves digits-only char source")
+        void seededGeneratorPreservesDigits() {
+            StringGenerator gen = StringGenerator.builder()
+                    .charGenerator(CharGenerator.digits())
+                    .length(24)
+                    .seed(42L)
+                    .build();
+
+            for (String s : gen.generateList(40)) {
+                assertTrue(s.chars().allMatch(Character::isDigit),
+                        "Expected digits-only output, got: " + s);
+            }
+        }
+
+        @Test
+        @DisplayName("seeded generator preserves custom pool char source")
+        void seededGeneratorPreservesCustomPool() {
+            StringGenerator gen = StringGenerator.builder()
+                    .charGenerator(CharGenerator.pool("XYZ"))
+                    .length(30)
+                    .seed(7L)
+                    .build();
+
+            for (String s : gen.generateList(40)) {
+                assertTrue(s.chars().allMatch(c -> "XYZ".indexOf((char) c) >= 0),
+                        "Expected custom-pool output, got: " + s);
+            }
+        }
     }
 
     @Nested

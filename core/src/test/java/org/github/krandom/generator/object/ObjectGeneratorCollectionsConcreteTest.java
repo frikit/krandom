@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -17,8 +18,11 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,6 +30,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class ObjectGeneratorCollectionsConcreteTest {
 
     static class ConcreteCollectionsHolder {
+        ArrayList<String> arrayList;
+        Vector<String> vector;
+        Stack<String> stack;
+        CopyOnWriteArrayList<String> copyOnWriteArrayList;
         ArrayDeque<String> arrayDeque;
         PriorityQueue<String> priorityQueue;
         TreeSet<String> treeSet;
@@ -46,11 +54,19 @@ class ObjectGeneratorCollectionsConcreteTest {
     @DisplayName("concrete queue/sorted collections are populated with matching implementations")
     void concreteCollectionsPopulated() {
         ConcreteCollectionsHolder value = new ObjectGenerator<>(ConcreteCollectionsHolder.class).generate();
+        assertNotNull(value.arrayList);
+        assertNotNull(value.vector);
+        assertNotNull(value.stack);
+        assertNotNull(value.copyOnWriteArrayList);
         assertNotNull(value.arrayDeque);
         assertNotNull(value.priorityQueue);
         assertNotNull(value.treeSet);
         assertNotNull(value.treeMap);
         assertNotNull(value.linkedList);
+        assertEquals(ArrayList.class, value.arrayList.getClass());
+        assertEquals(Vector.class, value.vector.getClass());
+        assertEquals(Stack.class, value.stack.getClass());
+        assertEquals(CopyOnWriteArrayList.class, value.copyOnWriteArrayList.getClass());
         assertEquals(ArrayDeque.class, value.arrayDeque.getClass());
         assertEquals(PriorityQueue.class, value.priorityQueue.getClass());
         assertEquals(TreeSet.class, value.treeSet.getClass());

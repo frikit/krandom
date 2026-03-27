@@ -67,7 +67,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private final Class<T> type;
     private final ObjectGeneratorConfig config;
-    private final FieldGeneratorResolver resolver;
+    private final ObjectPool pool;
     private final int depth;
 
     // ── Public constructors ───────────────────────────────────────────────────
@@ -79,7 +79,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     /** Creates a generator with custom configuration. */
     public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
-        this(type, config, 0, new ObjectPool(config.getObjectPoolSize()));
+        this(type, config, 0, null);
     }
 
     /** Internal constructor — depth and pool are managed by {@link FieldGeneratorResolver}. */
@@ -87,15 +87,27 @@ public final class ObjectGenerator<T> implements Generator<T> {
         this.type     = Objects.requireNonNull(type,   "type must not be null");
         this.config   = Objects.requireNonNull(config, "config must not be null");
         this.depth    = depth;
-        this.resolver = new FieldGeneratorResolver(config, pool);
+        this.pool     = pool;
     }
 
     // ── Generator<T> ─────────────────────────────────────────────────────────
 
     @Override
     public T generate() {
+        if (depth == 0 && pool == null) {
+            // Fresh pool for each top-level generation call to prevent cross-call leakage.
+            ObjectGenerator<T> scoped = new ObjectGenerator<>(
+                    type, config, 0, new ObjectPool(config.getObjectPoolSize()));
+            return scoped.generateWithPool();
+        }
+        return generateWithPool();
+    }
+
+    private T generateWithPool() {
+        FieldGeneratorResolver resolver =
+                new FieldGeneratorResolver(config, Objects.requireNonNull(pool, "pool must not be null"));
         try {
-            return type.isRecord() ? generateRecord() : generateClass();
+            return type.isRecord() ? generateRecord(resolver) : generateClass(resolver);
         } catch (ReflectiveOperationException e) {
             throw new ObjectGenerationException(
                     "Failed to generate instance of " + type.getName() + ": " + e.getMessage(), e);
@@ -104,7 +116,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     // ── Record population ─────────────────────────────────────────────────────
 
-    private T generateRecord() throws ReflectiveOperationException {
+    private T generateRecord(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
         RecordComponent[] components = type.getRecordComponents();
 
         // Build parallel arrays: types[] for the constructor lookup, args[] for invocation
@@ -138,7 +150,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     // ── Class population ──────────────────────────────────────────────────────
 
-    private T generateClass() throws ReflectiveOperationException {
+    private T generateClass(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
         T instance = instantiate(); // may throw ReflectiveOperationException for throwing constructors
 
         for (Field field : collectSettableFields(type)) {

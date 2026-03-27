@@ -60,7 +60,7 @@ public final class ObjectGeneratorConfig {
     private final Map<Class<?>, Generator<?>> typeOverrides;
 
     /**
-     * Field-level overrides: keyed by {@code "SimpleClassName.fieldName"}.
+     * Field-level overrides: keyed by {@code "fully.qualified.ClassName.fieldName"}.
      * Takes precedence over type overrides.
      */
     private final Map<String, Generator<?>> fieldOverrides;
@@ -71,7 +71,7 @@ public final class ObjectGeneratorConfig {
     private final Map<Class<?>, ContextualGenerator<?>> contextualTypeOverrides;
 
     /**
-     * Context-aware field-level overrides keyed by {@code "SimpleClassName.fieldName"}.
+     * Context-aware field-level overrides keyed by {@code "fully.qualified.ClassName.fieldName"}.
      * Checked before plain field overrides.
      */
     private final Map<String, ContextualGenerator<?>> contextualFieldOverrides;
@@ -157,11 +157,17 @@ public final class ObjectGeneratorConfig {
 
     /**
      * Return the field-level override for {@code fieldName} declared in {@code ownerType}, if any.
-     * The lookup key is {@code "SimpleClassName.fieldName"}.
+     *
+     * <p>Primary lookup key is {@code "fully.qualified.ClassName.fieldName"}.
+     * Legacy simple-name keys are still supported for backward compatibility.
      */
     public Optional<Generator<?>> getFieldOverride(Class<?> ownerType, String fieldName) {
-        String key = ownerType.getSimpleName() + "." + fieldName;
-        return Optional.ofNullable(fieldOverrides.get(key));
+        String key = fieldKey(ownerType, fieldName);
+        Generator<?> direct = fieldOverrides.get(key);
+        if (direct != null) {
+            return Optional.of(direct);
+        }
+        return Optional.ofNullable(fieldOverrides.get(legacyFieldKey(ownerType, fieldName)));
     }
 
     /** Return the contextual type-level override for {@code type}, if any. */
@@ -172,10 +178,25 @@ public final class ObjectGeneratorConfig {
     /**
      * Return the contextual field-level override for {@code fieldName} declared in
      * {@code ownerType}, if any.
+     *
+     * <p>Primary lookup key is {@code "fully.qualified.ClassName.fieldName"}.
+     * Legacy simple-name keys are still supported for backward compatibility.
      */
     public Optional<ContextualGenerator<?>> getContextualFieldOverride(Class<?> ownerType, String fieldName) {
-        String key = ownerType.getSimpleName() + "." + fieldName;
-        return Optional.ofNullable(contextualFieldOverrides.get(key));
+        String key = fieldKey(ownerType, fieldName);
+        ContextualGenerator<?> direct = contextualFieldOverrides.get(key);
+        if (direct != null) {
+            return Optional.of(direct);
+        }
+        return Optional.ofNullable(contextualFieldOverrides.get(legacyFieldKey(ownerType, fieldName)));
+    }
+
+    private static String fieldKey(Class<?> ownerType, String fieldName) {
+        return ownerType.getName() + "." + fieldName;
+    }
+
+    private static String legacyFieldKey(Class<?> ownerType, String fieldName) {
+        return ownerType.getSimpleName() + "." + fieldName;
     }
 
     /**
@@ -290,7 +311,7 @@ public final class ObjectGeneratorConfig {
             Objects.requireNonNull(ownerType,  "ownerType must not be null");
             Objects.requireNonNull(fieldName,  "fieldName must not be null");
             Objects.requireNonNull(generator,  "generator must not be null");
-            fieldOverrides.put(ownerType.getSimpleName() + "." + fieldName, generator);
+            fieldOverrides.put(fieldKey(ownerType, fieldName), generator);
             return this;
         }
 
@@ -316,7 +337,7 @@ public final class ObjectGeneratorConfig {
             Objects.requireNonNull(ownerType,  "ownerType must not be null");
             Objects.requireNonNull(fieldName,  "fieldName must not be null");
             Objects.requireNonNull(generator,  "generator must not be null");
-            contextualFieldOverrides.put(ownerType.getSimpleName() + "." + fieldName, generator);
+            contextualFieldOverrides.put(fieldKey(ownerType, fieldName), generator);
             return this;
         }
 

@@ -53,10 +53,9 @@ public final class StringGenerator implements Generator<String> {
     private final RandomGenerator random;
 
     private StringGenerator(Builder b) {
-        // If seed is provided, we need to seed the CharGenerator too
         if (b.seed != null) {
-            // Use the seed to create a seeded CharGenerator
-            this.charGenerator = createSeededCharGenerator(b.charGenerator, b.seed);
+            // Preserve configured character pool while making output deterministic.
+            this.charGenerator = b.charGenerator.withSeed(b.seed);
             this.random = new Random(b.seed);
         } else {
             this.charGenerator = b.charGenerator;
@@ -64,21 +63,6 @@ public final class StringGenerator implements Generator<String> {
         }
         this.minLength = b.minLength;
         this.maxLength = b.maxLength;
-    }
-
-    /**
-     * Creates a seeded version of the given CharGenerator by rebuilding it with a seed.
-     * This is necessary for deterministic string generation.
-     */
-    private static CharGenerator createSeededCharGenerator(CharGenerator original, long seed) {
-        // For now, we'll use a simple approach: create a seeded builder with default settings
-        // This is a limitation - we can't perfectly preserve custom CharGenerator configurations
-        // when seeding. Users should build CharGenerator with seed directly if they need full control.
-        return CharGenerator.builder()
-                .uppercase()
-                .lowercase()
-                .seed(seed)
-                .build();
     }
 
     @Override

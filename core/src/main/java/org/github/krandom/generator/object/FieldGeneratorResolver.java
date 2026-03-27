@@ -61,6 +61,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.Vector;
+import java.util.Stack;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -298,8 +301,8 @@ final class FieldGeneratorResolver {
             for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
                 els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
             }
-            if (LinkedList.class == rawType) {
-                return new LinkedList<>(els);
+            if (List.class.isAssignableFrom(rawType)) {
+                return toListType(rawType, els);
             }
             if (Queue.class.isAssignableFrom(rawType)) {
                 return toQueueType(rawType, els);
@@ -307,7 +310,7 @@ final class FieldGeneratorResolver {
             if (Set.class.isAssignableFrom(rawType)) {
                 return toSetType(rawType, els);
             }
-            return Collections.unmodifiableList(els);
+            return new ArrayList<>(els);
         }
 
         // ── 5c. Map ───────────────────────────────────────────────────────────
@@ -414,6 +417,35 @@ final class FieldGeneratorResolver {
             return set;
         }
         return new LinkedHashSet<>(values);
+    }
+
+    private static List<Object> toListType(Class<?> rawType, List<Object> values) {
+        if (rawType == List.class) {
+            return Collections.unmodifiableList(values);
+        }
+        if (rawType == LinkedList.class) {
+            return new LinkedList<>(values);
+        }
+        if (rawType == ArrayList.class) {
+            return new ArrayList<>(values);
+        }
+        if (rawType == Vector.class) {
+            return new Vector<>(values);
+        }
+        if (rawType == Stack.class) {
+            Stack<Object> stack = new Stack<>();
+            stack.addAll(values);
+            return stack;
+        }
+        if (rawType == CopyOnWriteArrayList.class) {
+            return new CopyOnWriteArrayList<>(values);
+        }
+        if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
+            return new ArrayList<>(values);
+        }
+        // Unknown concrete List subtype; fallback to mutable list that remains assignable
+        // for abstract/interface declarations and avoids assignment failures for common concrete types.
+        return new ArrayList<>(values);
     }
 
     private static Queue<Object> toQueueType(Class<?> rawType, List<Object> values) {

@@ -8,6 +8,9 @@ package org.github.krandom.generator.object;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("ObjectGeneratorConfig")
@@ -108,5 +111,44 @@ class ObjectGeneratorConfigTest {
     void excludeTypeNullPredicateThrows() {
         assertThrows(NullPointerException.class,
                 () -> ObjectGeneratorConfig.builder().excludeType((java.util.function.Predicate<Class<?>>) null));
+    }
+
+    @Test
+    @DisplayName("field overrides for classes with same simple name do not collide")
+    void fieldOverridesDoNotCollideAcrossPackages() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .override(org.github.krandom.generator.object.collision.left.SameNameHolder.class, "value", () -> "LEFT")
+                .override(org.github.krandom.generator.object.collision.right.SameNameHolder.class, "value", () -> "RIGHT")
+                .build();
+
+        org.github.krandom.generator.object.collision.left.SameNameHolder left =
+                new ObjectGenerator<>(org.github.krandom.generator.object.collision.left.SameNameHolder.class, config)
+                        .generate();
+        org.github.krandom.generator.object.collision.right.SameNameHolder right =
+                new ObjectGenerator<>(org.github.krandom.generator.object.collision.right.SameNameHolder.class, config)
+                        .generate();
+
+        assertEquals("LEFT", left.getValue());
+        assertEquals("RIGHT", right.getValue());
+    }
+
+    @Test
+    @DisplayName("legacy simple-name field override key remains supported")
+    void legacySimpleNameFieldOverrideKeyStillWorks() throws Exception {
+        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
+
+        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("fieldOverrides");
+        overridesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, org.github.krandom.generator.Generator<?>> fieldOverrides =
+                (Map<String, org.github.krandom.generator.Generator<?>>) overridesField.get(builder);
+        fieldOverrides.put("SameNameHolder.value", () -> "LEGACY");
+
+        ObjectGeneratorConfig config = builder.build();
+        org.github.krandom.generator.object.collision.left.SameNameHolder value =
+                new ObjectGenerator<>(org.github.krandom.generator.object.collision.left.SameNameHolder.class, config)
+                        .generate();
+
+        assertEquals("LEGACY", value.getValue());
     }
 }
