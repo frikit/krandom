@@ -82,6 +82,32 @@ class RegexGeneratorTest {
         }
     }
 
+    @Test
+    @DisplayName("parsed pattern cache reuses parse tree across instances")
+    void parsedPatternCacheReused() {
+        RegexGenerator.clearParsedPatternCacheForTests();
+        assertEquals(0, RegexGenerator.parsedPatternCacheSize());
+
+        new RegexGenerator("\\d{4}[A-Z]{3}");
+        assertEquals(1, RegexGenerator.parsedPatternCacheSize());
+
+        new RegexGenerator("\\d{4}[A-Z]{3}");
+        assertEquals(1, RegexGenerator.parsedPatternCacheSize());
+
+        new RegexGenerator("[a-z]{2,5}");
+        assertEquals(2, RegexGenerator.parsedPatternCacheSize());
+    }
+
+    @Test
+    @DisplayName("cache clear removes previously parsed patterns")
+    void cacheClear() {
+        RegexGenerator.clearParsedPatternCacheForTests();
+        new RegexGenerator("\\d{2}");
+        assertEquals(1, RegexGenerator.parsedPatternCacheSize());
+        RegexGenerator.clearParsedPatternCacheForTests();
+        assertEquals(0, RegexGenerator.parsedPatternCacheSize());
+    }
+
     // ── Literal concatenation ─────────────────────────────────────────────────
 
     @Test

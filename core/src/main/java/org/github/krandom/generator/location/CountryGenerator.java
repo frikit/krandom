@@ -32,7 +32,6 @@ import java.util.Random;
 public final class CountryGenerator implements Generator<String> {
 
     private static final String[]            ISO_ALPHA2_CODES     = Locale.getISOCountries();
-    private static final String[]            ISO_ALPHA3_CODES     = loadIsoAlpha3Codes();
     private static final String[]            ISO_NUMERIC_CODES    = {
         "036", "076", "156", "250", "276", "380", "392", "724", "826", "840"
     };
@@ -141,6 +140,10 @@ public final class CountryGenerator implements Generator<String> {
         return alpha3.toArray(String[]::new);
     }
 
+    private static String[] isoAlpha3Codes() {
+        return IsoAlpha3Holder.CODES;
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -181,7 +184,8 @@ public final class CountryGenerator implements Generator<String> {
      * @return an upper-case alpha-3 code; never {@code null}
      */
     public String generateCodeAlpha3() {
-        return ISO_ALPHA3_CODES[random.nextInt(ISO_ALPHA3_CODES.length)];
+        String[] codes = isoAlpha3Codes();
+        return codes[random.nextInt(codes.length)];
     }
 
     /**
@@ -374,5 +378,9 @@ public final class CountryGenerator implements Generator<String> {
         ALPHA2,
         ALPHA3,
         NUMERIC
+    }
+
+    private static final class IsoAlpha3Holder {
+        private static final String[] CODES = loadIsoAlpha3Codes();
     }
 }

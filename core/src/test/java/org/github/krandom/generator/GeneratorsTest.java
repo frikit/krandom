@@ -73,6 +73,8 @@ import org.github.krandom.generator.network.IPv6Generator;
 import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.network.UriGenerator;
 import org.github.krandom.generator.network.UserAgentGenerator;
+import org.github.krandom.generator.object.ObjectGenerator;
+import org.github.krandom.generator.object.ObjectGeneratorConfig;
 import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.schema.Field;
 import org.github.krandom.generator.schema.Schema;
@@ -710,7 +712,15 @@ class GeneratorsTest {
         assertInstanceOf(ProviderHub.class, Generators.ofProviderHub(Locale.US, GeneratorProfile.STRICT));
         assertInstanceOf(ProviderHub.class,
                          Generators.ofProviderHub(GeneratorConfig.builder().locale(Locale.US).build(),
-                                                  GeneratorProfile.REALISTIC));
+                                                 GeneratorProfile.REALISTIC));
+    }
+
+    @Test
+    @DisplayName("object factories return corresponding object generator")
+    void objectFactories() {
+        assertInstanceOf(ObjectGenerator.class, Generators.ofObject(SimplePojo.class));
+        assertInstanceOf(ObjectGenerator.class,
+                         Generators.ofObject(SimplePojo.class, ObjectGeneratorConfig.defaults()));
     }
 
     @Test
@@ -748,6 +758,10 @@ class GeneratorsTest {
     @DisplayName("forType(Byte.class) returns a generator")
     void forTypeByte() {
         assertNotNull(Generators.forType(Byte.class).generate());
+    }
+
+    private static final class SimplePojo {
+        private String value;
     }
 
     @Test

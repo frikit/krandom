@@ -11,9 +11,11 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generates random strings that conform to a simplified regular-expression pattern.
@@ -69,6 +71,7 @@ public final class RegexGenerator implements Generator<String> {
     private static final char[] NON_WORD_CHARS;
     private static final char[] WHITESPACE = { ' ', '\t', '\n', '\r' };
     private static final char[] NON_WHITESPACE;
+    private static final Map<String, SequenceNode> PARSED_PATTERNS = new ConcurrentHashMap<>();
 
     static {
         DIGITS = "0123456789".toCharArray();
@@ -120,7 +123,7 @@ public final class RegexGenerator implements Generator<String> {
     public RegexGenerator(String pattern) {
         Objects.requireNonNull(pattern, "pattern must not be null");
         this.random = new SecureRandom();
-        this.root = new Parser(pattern).parse();
+        this.root = parsePattern(pattern);
     }
 
 
@@ -134,7 +137,23 @@ public final class RegexGenerator implements Generator<String> {
     public RegexGenerator(String pattern, long seed) {
         Objects.requireNonNull(pattern, "pattern must not be null");
         this.random = new Random(seed);
-        this.root = new Parser(pattern).parse();
+        this.root = parsePattern(pattern);
+    }
+
+    static int parsedPatternCacheSize() {
+        return PARSED_PATTERNS.size();
+    }
+
+    static void clearParsedPatternCacheForTests() {
+        PARSED_PATTERNS.clear();
+    }
+
+    private static SequenceNode parsePattern(String pattern) {
+        return PARSED_PATTERNS.computeIfAbsent(pattern, RegexGenerator::parsePatternUncached);
+    }
+
+    private static SequenceNode parsePatternUncached(String pattern) {
+        return new Parser(pattern).parse();
     }
 
     private static char[] toArray(List<Character> list) {
@@ -225,7 +244,7 @@ public final class RegexGenerator implements Generator<String> {
      * Recursive-descent parser that converts a pattern string into a node tree.
      * Mutable only during the parse phase (construction time).
      */
-    private final class Parser {
+    private static final class Parser {
 
         private final String src;
         private       int    pos = 0;
@@ -238,7 +257,7 @@ public final class RegexGenerator implements Generator<String> {
          * Entry point — returns the root {@link SequenceNode} for the whole pattern.
          */
         SequenceNode parse() {
-            SequenceNode result = new SequenceNode(parseSequence());
+            SequenceNode result = new SequenceNode(List.copyOf(parseSequence()));
             if (pos < src.length()) {
                 throw new IllegalArgumentException(
                     "Unexpected character '" + src.charAt(pos) + "' at position " + pos
@@ -273,17 +292,17 @@ public final class RegexGenerator implements Generator<String> {
             if (c == '(') {
                 pos++;
                 List<SequenceNode> alts = new ArrayList<>();
-                alts.add(new SequenceNode(parseSequence()));
+                alts.add(new SequenceNode(List.copyOf(parseSequence())));
                 while (pos < src.length() && src.charAt(pos) == '|') {
                     pos++;
-                    alts.add(new SequenceNode(parseSequence()));
+                    alts.add(new SequenceNode(List.copyOf(parseSequence())));
                 }
                 if (pos >= src.length()) {
                     throw new IllegalArgumentException("Unclosed group '(' in pattern: " + src);
                 }
                 pos++; // consume ')'
                 if (alts.size() == 1) return alts.get(0);
-                return new AlternationNode(alts);
+                return new AlternationNode(List.copyOf(alts));
             }
 
             if (c == '[') {

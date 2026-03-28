@@ -84,6 +84,8 @@ import org.github.krandom.generator.network.SlugGenerator;
 import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.network.UriGenerator;
 import org.github.krandom.generator.network.UserAgentGenerator;
+import org.github.krandom.generator.object.ObjectGenerator;
+import org.github.krandom.generator.object.ObjectGeneratorConfig;
 import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.schema.Field;
 import org.github.krandom.generator.schema.Schema;
@@ -1131,6 +1133,20 @@ public final class Generators {
      */
     public static Field ofField(Locale locale) {
         return new Field(locale);
+    }
+
+    /**
+     * Returns an object generator for the given type with default configuration.
+     */
+    public static <T> ObjectGenerator<T> ofObject(Class<T> type) {
+        return new ObjectGenerator<>(type);
+    }
+
+    /**
+     * Returns an object generator for the given type with explicit object-generation configuration.
+     */
+    public static <T> ObjectGenerator<T> ofObject(Class<T> type, ObjectGeneratorConfig config) {
+        return new ObjectGenerator<>(type, config);
     }
 
     /**
