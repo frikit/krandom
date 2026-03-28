@@ -677,6 +677,14 @@ class GeneratorsTest {
     }
 
     @Test
+    @DisplayName("ofNationalId(config) respects config locale")
+    void ofNationalIdConfig() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.GERMANY).seed(11L).build();
+        NationalIdGenerator generator = Generators.ofNationalId(config);
+        assertEquals(Locale.GERMANY, generator.getLocale());
+    }
+
+    @Test
     @DisplayName("schema/field factories return corresponding types")
     void schemaFieldFactories() {
         assertInstanceOf(Field.class, Generators.ofField());
@@ -698,6 +706,11 @@ class GeneratorsTest {
         assertInstanceOf(ProviderHub.class, Generators.ofProviderHub(Locale.US));
         assertInstanceOf(ProviderHub.class,
                          Generators.ofProviderHub(GeneratorConfig.builder().locale(Locale.US).seed(1L).build()));
+        assertInstanceOf(ProviderHub.class, Generators.ofProviderHub(GeneratorProfile.FAST));
+        assertInstanceOf(ProviderHub.class, Generators.ofProviderHub(Locale.US, GeneratorProfile.STRICT));
+        assertInstanceOf(ProviderHub.class,
+                         Generators.ofProviderHub(GeneratorConfig.builder().locale(Locale.US).build(),
+                                                  GeneratorProfile.REALISTIC));
     }
 
     @Test

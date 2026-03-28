@@ -5,6 +5,8 @@
  */
 package org.github.krandom.generator.user.nationalid;
 
+import org.github.krandom.generator.DataRegistryContext;
+import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -792,6 +794,12 @@ class NationalIdGeneratorTest {
         }
 
         @Test
+        @DisplayName("isRegistered returns true for exact built-in locale key")
+        void isRegisteredExactLocale() {
+            assertTrue(NationalIdRegistry.isRegistered(Locale.US));
+        }
+
+        @Test
         @DisplayName("forLocale with language-only locale returns language-level entry")
         void forLocaleLanguageOnlyLocale() {
             // "en" is registered as language fallback from UsNationalIdProvider
@@ -826,7 +834,56 @@ class NationalIdGeneratorTest {
         @DisplayName("null locale constructor throws NullPointerException")
         void nullLocaleThrows() {
             assertThrows(NullPointerException.class,
-                         () -> new NationalIdGenerator(null));
+                         () -> new NationalIdGenerator((Locale) null));
+        }
+
+        @Test
+        @DisplayName("null config constructor throws NullPointerException")
+        void nullConfigThrows() {
+            assertThrows(NullPointerException.class,
+                         () -> new NationalIdGenerator((GeneratorConfig) null));
+        }
+
+        @Test
+        @DisplayName("config constructor uses scoped registry context")
+        void configConstructorUsesScopedContext() {
+            Locale locale = Locale.CANADA;
+            DataRegistryContext context = DataRegistryContext.builder()
+                                                             .isolated()
+                                                             .registerNationalIdProvider(new NationalIdProvider() {
+                                                                 @Override
+                                                                 public Locale getLocale() {
+                                                                     return locale;
+                                                                 }
+
+                                                                 @Override
+                                                                 public String generate(Random random) {
+                                                                     return "CA-ID";
+                                                                 }
+                                                             })
+                                                             .build();
+
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .locale(locale)
+                                                    .registryContext(context)
+                                                    .seed(7L)
+                                                    .build();
+            NationalIdGenerator generator = new NationalIdGenerator(config);
+            assertEquals(locale, generator.getLocale());
+            assertEquals("CA-ID", generator.generate());
+        }
+
+        @Test
+        @DisplayName("config constructor fails when locale is not registered in scoped context")
+        void configConstructorRejectsMissingLocale() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .locale(Locale.US)
+                                                    .registryContext(DataRegistryContext.builder().isolated().build())
+                                                    .build();
+
+            UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
+                                                            () -> new NationalIdGenerator(config));
+            assertTrue(ex.getMessage().contains("Locale en_US is not supported"));
         }
 
         @Test

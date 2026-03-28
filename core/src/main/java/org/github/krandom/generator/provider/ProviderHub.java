@@ -6,6 +6,7 @@
 package org.github.krandom.generator.provider;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.GeneratorProfile;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
@@ -26,6 +27,7 @@ import java.util.Set;
 public final class ProviderHub {
 
     private final GeneratorConfig              config;
+    private final GeneratorProfile             profile;
     private final Map<String, ProviderFactory> providers = new LinkedHashMap<>();
     private final Map<String, String>          aliases   = new LinkedHashMap<>();
 
@@ -33,7 +35,7 @@ public final class ProviderHub {
      * Creates provider hub with default configuration.
      */
     public ProviderHub() {
-        this(GeneratorConfig.defaults());
+        this(GeneratorConfig.defaults(), GeneratorProfile.REALISTIC);
     }
 
     /**
@@ -42,7 +44,7 @@ public final class ProviderHub {
      * @param locale locale for locale-aware providers
      */
     public ProviderHub(Locale locale) {
-        this(GeneratorConfig.builder().locale(locale).build());
+        this(GeneratorConfig.builder().locale(locale).build(), GeneratorProfile.REALISTIC);
     }
 
     /**
@@ -51,7 +53,39 @@ public final class ProviderHub {
      * @param config generator config propagated to providers
      */
     public ProviderHub(GeneratorConfig config) {
+        this(config, GeneratorProfile.REALISTIC);
+    }
+
+    /**
+     * Creates provider hub from a named configuration profile.
+     *
+     * @param profile profile template used to construct default config
+     */
+    public ProviderHub(GeneratorProfile profile) {
+        this(Objects.requireNonNull(profile, "profile must not be null").createConfig(), profile);
+    }
+
+    /**
+     * Creates provider hub for locale using a named profile.
+     *
+     * @param locale  locale for locale-aware providers
+     * @param profile profile template used to construct config
+     */
+    public ProviderHub(Locale locale, GeneratorProfile profile) {
+        this(Objects.requireNonNull(profile, "profile must not be null")
+                    .createConfig(Objects.requireNonNull(locale, "locale must not be null")),
+             profile);
+    }
+
+    /**
+     * Creates provider hub with explicit config and profile metadata.
+     *
+     * @param config  generator config propagated to providers
+     * @param profile profile metadata for profile-aware extensions
+     */
+    public ProviderHub(GeneratorConfig config, GeneratorProfile profile) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        this.profile = Objects.requireNonNull(profile, "profile must not be null");
         registerBuiltIns();
     }
 
@@ -116,6 +150,16 @@ public final class ProviderHub {
     }
 
     /**
+     * Registers profile-aware provider factory using {@link ConflictPolicy#FAIL}.
+     *
+     * @param name    canonical provider name
+     * @param factory profile-aware provider factory
+     */
+    public void register(String name, ProfiledProviderFactory factory) {
+        register(name, factory, ConflictPolicy.FAIL);
+    }
+
+    /**
      * Registers provider factory.
      *
      * @param name    canonical provider name
@@ -130,6 +174,18 @@ public final class ProviderHub {
             throw new IllegalArgumentException("Provider already registered: " + key);
         }
         providers.put(key, value);
+    }
+
+    /**
+     * Registers profile-aware provider factory.
+     *
+     * @param name    canonical provider name
+     * @param factory profile-aware provider factory
+     * @param policy  conflict policy
+     */
+    public void register(String name, ProfiledProviderFactory factory, ConflictPolicy policy) {
+        ProfiledProviderFactory profiledFactory = Objects.requireNonNull(factory, "factory must not be null");
+        register(name, cfg -> profiledFactory.create(profile, cfg), policy);
     }
 
     /**
@@ -190,6 +246,13 @@ public final class ProviderHub {
      */
     public GeneratorConfig getConfig() {
         return config;
+    }
+
+    /**
+     * Returns profile metadata associated with this hub.
+     */
+    public GeneratorProfile getProfile() {
+        return profile;
     }
 
     private String resolveName(String name) {

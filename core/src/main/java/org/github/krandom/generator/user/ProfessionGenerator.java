@@ -7,6 +7,7 @@ package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -67,11 +68,12 @@ public final class ProfessionGenerator implements Generator<String> {
      */
     public ProfessionGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
 
-        ProfessionDataProvider provider = ProfessionDataRegistry.forLocale(config.getLocale());
+        ProfessionDataProvider provider = registryContext.professionProvider(config.getLocale());
         if (provider == null) {
             throw new UnsupportedOperationException(
                 "Profession data is not supported for locale "
@@ -153,7 +155,7 @@ public final class ProfessionGenerator implements Generator<String> {
      * Returns {@code true} if locale has exact profession provider (not just language fallback).
      */
     public boolean isLocaleExplicitlySupported() {
-        ProfessionDataProvider provider = ProfessionDataRegistry.forLocale(config.getLocale());
+        ProfessionDataProvider provider = config.getRegistryContext().professionProvider(config.getLocale());
         return provider != null && localeKey(provider.getLocale()).equals(localeKey(config.getLocale()));
     }
 

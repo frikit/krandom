@@ -7,6 +7,7 @@ package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -47,19 +48,20 @@ public final class CityGenerator implements Generator<String> {
      */
     public CityGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!CityDataRegistry.isRegistered(locale)) {
+        if (!registryContext.isCityRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: " +
-                CityDataRegistry.registeredKeys());
+                registryContext.cityRegisteredKeys());
         }
 
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
 
-        this.cities = CityDataRegistry.forLocale(locale).getCities();
+        this.cities = registryContext.cityProvider(locale).getCities();
     }
 
     /**
@@ -107,6 +109,6 @@ public final class CityGenerator implements Generator<String> {
      * @return {@code true} for all locales accepted by the constructor
      */
     public boolean isLocaleExplicitlySupported() {
-        return CityDataRegistry.isRegistered(config.getLocale());
+        return config.getRegistryContext().isCityRegistered(config.getLocale());
     }
 }

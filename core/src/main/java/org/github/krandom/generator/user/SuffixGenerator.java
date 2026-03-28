@@ -7,6 +7,7 @@ package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -55,18 +56,19 @@ public final class SuffixGenerator implements Generator<String> {
      */
     public SuffixGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!SuffixDataRegistry.isRegistered(locale)) {
+        if (!registryContext.isSuffixRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: "
-                + SuffixDataRegistry.registeredKeys());
+                + registryContext.suffixRegisteredKeys());
         }
 
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
-        this.suffixes = SuffixDataRegistry.forLocale(locale).getSuffixes();
+        this.suffixes = registryContext.suffixProvider(locale).getSuffixes();
     }
 
     @Override
@@ -92,6 +94,6 @@ public final class SuffixGenerator implements Generator<String> {
      * Returns {@code true} if the configured locale has a registered suffix provider.
      */
     public boolean isLocaleExplicitlySupported() {
-        return SuffixDataRegistry.isRegistered(config.getLocale());
+        return config.getRegistryContext().isSuffixRegistered(config.getLocale());
     }
 }

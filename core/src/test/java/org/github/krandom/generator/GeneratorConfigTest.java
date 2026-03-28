@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,6 +30,7 @@ class GeneratorConfigTest {
         assertEquals(1, c.getMinCollectionSize());
         assertEquals(10, c.getMaxCollectionSize());
         assertEquals(Locale.US, c.getLocale());
+        assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
     }
 
     @Test
@@ -109,6 +111,46 @@ class GeneratorConfigTest {
     void localeNullThrows() {
         assertThrows(NullPointerException.class,
                      () -> GeneratorConfig.builder().locale(null));
+    }
+
+    @Test
+    @DisplayName("registryContext() stores the context")
+    void registryContextStored() {
+        DataRegistryContext context = DataRegistryContext.builder().isolated().build();
+        GeneratorConfig config = GeneratorConfig.builder().registryContext(context).build();
+        assertSame(context, config.getRegistryContext());
+    }
+
+    @Test
+    @DisplayName("registryContext(null) throws NullPointerException")
+    void registryContextNullThrows() {
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().registryContext(null));
+    }
+
+    @Test
+    @DisplayName("toBuilder() copies all fields and allows deriving new config")
+    void toBuilderCopiesAndDerives() {
+        DataRegistryContext context = DataRegistryContext.builder().isolated().build();
+        GeneratorConfig base = GeneratorConfig.builder()
+                                              .seed(123L)
+                                              .charset(StandardCharsets.UTF_8)
+                                              .stringLength(8, 16)
+                                              .collectionSize(2, 4)
+                                              .locale(Locale.FRANCE)
+                                              .registryContext(context)
+                                              .build();
+
+        GeneratorConfig derived = base.toBuilder().locale(Locale.JAPAN).build();
+        assertTrue(derived.getSeed().isPresent());
+        assertEquals(123L, derived.getSeed().getAsLong());
+        assertEquals(StandardCharsets.UTF_8, derived.getCharset());
+        assertEquals(8, derived.getMinStringLength());
+        assertEquals(16, derived.getMaxStringLength());
+        assertEquals(2, derived.getMinCollectionSize());
+        assertEquals(4, derived.getMaxCollectionSize());
+        assertEquals(Locale.JAPAN, derived.getLocale());
+        assertSame(context, derived.getRegistryContext());
     }
 
     @Test

@@ -7,6 +7,7 @@ package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -32,19 +33,20 @@ public final class TitleGenerator implements Generator<String> {
 
     public TitleGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!TitleDataRegistry.isRegistered(locale)) {
+        if (!registryContext.isTitleRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: " +
-                TitleDataRegistry.registeredKeys());
+                registryContext.titleRegisteredKeys());
         }
 
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
 
-        this.titles = TitleDataRegistry.forLocale(locale).getTitles();
+        this.titles = registryContext.titleProvider(locale).getTitles();
     }
 
     public TitleGenerator(Locale locale) {
@@ -65,6 +67,6 @@ public final class TitleGenerator implements Generator<String> {
     }
 
     public boolean isLocaleExplicitlySupported() {
-        return TitleDataRegistry.isRegistered(config.getLocale());
+        return config.getRegistryContext().isTitleRegistered(config.getLocale());
     }
 }

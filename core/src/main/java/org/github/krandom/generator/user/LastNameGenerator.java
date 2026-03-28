@@ -7,6 +7,7 @@ package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -55,18 +56,19 @@ public final class LastNameGenerator implements Generator<String> {
      */
     public LastNameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!LastNameDataRegistry.isRegistered(locale)) {
+        if (!registryContext.isLastNameRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: "
-                + LastNameDataRegistry.registeredKeys());
+                + registryContext.lastNameRegisteredKeys());
         }
 
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
-        this.lastNames = LastNameDataRegistry.forLocale(locale).getLastNames();
+        this.lastNames = registryContext.lastNameProvider(locale).getLastNames();
     }
 
     @Override
@@ -110,6 +112,6 @@ public final class LastNameGenerator implements Generator<String> {
      * Returns {@code true} if the configured locale has a registered last-name provider.
      */
     public boolean isLocaleExplicitlySupported() {
-        return LastNameDataRegistry.isRegistered(config.getLocale());
+        return config.getRegistryContext().isLastNameRegistered(config.getLocale());
     }
 }

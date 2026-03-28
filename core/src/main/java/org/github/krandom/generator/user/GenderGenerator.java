@@ -7,6 +7,7 @@ package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -60,19 +61,20 @@ public final class GenderGenerator implements Generator<String> {
      */
     public GenderGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!GenderDataRegistry.isRegistered(locale)) {
+        if (!registryContext.isGenderRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: "
-                + GenderDataRegistry.registeredKeys());
+                + registryContext.genderRegisteredKeys());
         }
 
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
 
-        GenderDataProvider provider = GenderDataRegistry.forLocale(locale);
+        GenderDataProvider provider = registryContext.genderProvider(locale);
         this.maleLabel = provider.getMaleLabel();
         this.femaleLabel = provider.getFemaleLabel();
     }
@@ -120,6 +122,6 @@ public final class GenderGenerator implements Generator<String> {
      * Returns {@code true} if the configured locale has a registered gender-label provider.
      */
     public boolean isLocaleExplicitlySupported() {
-        return GenderDataRegistry.isRegistered(config.getLocale());
+        return config.getRegistryContext().isGenderRegistered(config.getLocale());
     }
 }

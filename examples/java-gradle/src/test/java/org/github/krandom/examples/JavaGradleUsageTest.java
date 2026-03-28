@@ -1,6 +1,6 @@
 package org.github.krandom.examples;
 
-import org.github.krandom.generator.Generators;
+import org.github.krandom.javaapi.Generators;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

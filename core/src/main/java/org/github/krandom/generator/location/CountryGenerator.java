@@ -7,6 +7,7 @@ package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -105,19 +106,20 @@ public final class CountryGenerator implements Generator<String> {
      */
     public CountryGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!CountryDataRegistry.isRegistered(locale)) {
+        if (!registryContext.isCountryRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: " +
-                CountryDataRegistry.registeredKeys());
+                registryContext.countryRegisteredKeys());
         }
 
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
 
-        this.countries = CountryDataRegistry.forLocale(locale).getCountries();
+        this.countries = registryContext.countryProvider(locale).getCountries();
     }
 
     /**
@@ -353,7 +355,7 @@ public final class CountryGenerator implements Generator<String> {
      * @return {@code true} for all locales accepted by the constructor
      */
     public boolean isLocaleExplicitlySupported() {
-        return CountryDataRegistry.isRegistered(config.getLocale());
+        return config.getRegistryContext().isCountryRegistered(config.getLocale());
     }
 
     private String requireLocaleCountry() {

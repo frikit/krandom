@@ -5,12 +5,13 @@
  */
 package org.github.krandom.generator.user.nationalid;
 
+import org.github.krandom.generator.DataRegistryContext;
+import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.Generator;
 
 import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.OptionalLong;
 import java.util.Random;
 
 /**
@@ -29,9 +30,9 @@ import java.util.Random;
  */
 public final class NationalIdGenerator implements Generator<String> {
 
+    private final GeneratorConfig    config;
     private final Random             random;
     private final NationalIdProvider provider;
-    private final Locale             locale;
 
     /**
      * Creates a generator for the given locale using a secure random source.
@@ -40,7 +41,7 @@ public final class NationalIdGenerator implements Generator<String> {
      * @throws UnsupportedOperationException if no provider is registered for the locale
      */
     public NationalIdGenerator(Locale locale) {
-        this(locale, OptionalLong.empty());
+        this(GeneratorConfig.builder().locale(locale).build());
     }
 
     /**
@@ -51,19 +52,23 @@ public final class NationalIdGenerator implements Generator<String> {
      * @throws UnsupportedOperationException if no provider is registered for the locale
      */
     public NationalIdGenerator(Locale locale, long seed) {
-        this(locale, OptionalLong.of(seed));
+        this(GeneratorConfig.builder().locale(locale).seed(seed).build());
     }
 
-    private NationalIdGenerator(Locale locale, OptionalLong seed) {
-        Objects.requireNonNull(locale, "locale must not be null");
-        if (!NationalIdRegistry.isRegistered(locale)) {
+    /**
+     * Creates a generator with explicit configuration (locale + optional seed + registry context).
+     */
+    public NationalIdGenerator(GeneratorConfig config) {
+        this.config = Objects.requireNonNull(config, "config must not be null");
+        Locale locale = config.getLocale();
+        DataRegistryContext registryContext = config.getRegistryContext();
+        if (!registryContext.isNationalIdRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: " +
-                NationalIdRegistry.registeredKeys());
+                registryContext.nationalIdRegisteredKeys());
         }
-        this.locale = locale;
-        this.provider = NationalIdRegistry.forLocale(locale);
-        this.random = seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom();
+        this.provider = registryContext.nationalIdProvider(locale);
+        this.random = config.getSeed().isPresent() ? new Random(config.getSeed().getAsLong()) : new SecureRandom();
     }
 
     /**
@@ -82,6 +87,6 @@ public final class NationalIdGenerator implements Generator<String> {
      * @return the locale; never {@code null}
      */
     public Locale getLocale() {
-        return locale;
+        return config.getLocale();
     }
 }

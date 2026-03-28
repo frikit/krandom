@@ -35,6 +35,7 @@ public final class GeneratorConfig {
     private final int          minCollectionSize;
     private final int          maxCollectionSize;
     private final Locale       locale;
+    private final DataRegistryContext registryContext;
 
     private GeneratorConfig(Builder b) {
         this.seed = b.seed;
@@ -44,6 +45,7 @@ public final class GeneratorConfig {
         this.minCollectionSize = b.minCollectionSize;
         this.maxCollectionSize = b.maxCollectionSize;
         this.locale = b.locale;
+        this.registryContext = b.registryContext;
     }
 
     /**
@@ -55,6 +57,13 @@ public final class GeneratorConfig {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * Creates a builder pre-populated from this config.
+     */
+    public Builder toBuilder() {
+        return new Builder(this);
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────
@@ -93,18 +102,40 @@ public final class GeneratorConfig {
         return locale;
     }
 
+    /**
+     * Scoped registry context used by locale-aware generators.
+     */
+    public DataRegistryContext getRegistryContext() {
+        return registryContext;
+    }
+
     // ── Builder ───────────────────────────────────────────────────────────────
 
 
     public static final class Builder {
 
-        private OptionalLong seed              = OptionalLong.empty();
-        private Charset      charset           = StandardCharsets.US_ASCII;
-        private int          minStringLength   = 5;
-        private int          maxStringLength   = 20;
-        private int          minCollectionSize = 1;
-        private int          maxCollectionSize = 10;
-        private Locale       locale            = Locale.US;
+        private OptionalLong      seed              = OptionalLong.empty();
+        private Charset           charset           = StandardCharsets.US_ASCII;
+        private int               minStringLength   = 5;
+        private int               maxStringLength   = 20;
+        private int               minCollectionSize = 1;
+        private int               maxCollectionSize = 10;
+        private Locale            locale            = Locale.US;
+        private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
+
+        private Builder() {
+        }
+
+        private Builder(GeneratorConfig source) {
+            this.seed = source.seed;
+            this.charset = source.charset;
+            this.minStringLength = source.minStringLength;
+            this.maxStringLength = source.maxStringLength;
+            this.minCollectionSize = source.minCollectionSize;
+            this.maxCollectionSize = source.maxCollectionSize;
+            this.locale = source.locale;
+            this.registryContext = source.registryContext;
+        }
 
         /**
          * Fix the PRNG seed for reproducible output.
@@ -149,6 +180,14 @@ public final class GeneratorConfig {
          */
         public Builder locale(Locale locale) {
             this.locale = Objects.requireNonNull(locale, "locale");
+            return this;
+        }
+
+        /**
+         * Registry context used by locale-aware generators.
+         */
+        public Builder registryContext(DataRegistryContext registryContext) {
+            this.registryContext = Objects.requireNonNull(registryContext, "registryContext");
             return this;
         }
 

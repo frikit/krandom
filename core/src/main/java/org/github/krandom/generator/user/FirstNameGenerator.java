@@ -7,6 +7,7 @@ package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -60,18 +61,19 @@ public final class FirstNameGenerator implements Generator<String> {
      */
     public FirstNameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!FirstNameDataRegistry.isRegistered(locale)) {
+        if (!registryContext.isFirstNameRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: "
-                + FirstNameDataRegistry.registeredKeys());
+                + registryContext.firstNameRegisteredKeys());
         }
 
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
-        FirstNameDataProvider provider = FirstNameDataRegistry.forLocale(locale);
+        FirstNameDataProvider provider = registryContext.firstNameProvider(locale);
         this.maleNames = provider.getMaleFirstNames();
         this.femaleNames = provider.getFemaleFirstNames();
     }
@@ -124,6 +126,6 @@ public final class FirstNameGenerator implements Generator<String> {
      * Returns {@code true} if the configured locale has a registered first-name provider.
      */
     public boolean isLocaleExplicitlySupported() {
-        return FirstNameDataRegistry.isRegistered(config.getLocale());
+        return config.getRegistryContext().isFirstNameRegistered(config.getLocale());
     }
 }

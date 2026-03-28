@@ -7,6 +7,7 @@ package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.DataRegistryContext;
 
 import java.io.InputStream;
 import java.security.SecureRandom;
@@ -57,27 +58,28 @@ public final class StreetAddressGenerator implements Generator<String> {
      */
     public StreetAddressGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        DataRegistryContext registryContext = config.getRegistryContext();
         Locale locale = config.getLocale();
-        if (!StreetAddressDataRegistry.isRegistered(locale)) {
+        if (!registryContext.isStreetAddressRegistered(locale)) {
             throw new UnsupportedOperationException(
                 "Locale " + locale + " is not supported. Registered locales: "
-                + StreetAddressDataRegistry.registeredKeys());
+                + registryContext.streetAddressRegisteredKeys());
         }
 
         this.random = config.getSeed().isPresent()
                       ? new Random(config.getSeed().getAsLong())
                       : new SecureRandom();
 
-        StreetAddressDataProvider provider = StreetAddressDataRegistry.forLocale(locale);
+        StreetAddressDataProvider provider = registryContext.streetAddressProvider(locale);
         this.streetNames = provider.getStreetNames();
         this.streetTypesShort = provider.getStreetTypesShort();
         this.streetTypesLong = provider.getStreetTypesLong();
         this.secondaryUnits = loadSecondaryUnits(locale);
 
-        this.cityGenerator = CityDataRegistry.isRegistered(locale) ? new CityGenerator(config) : null;
-        this.stateGenerator = StateDataRegistry.isRegistered(locale) ? new StateGenerator(config) : null;
+        this.cityGenerator = registryContext.isCityRegistered(locale) ? new CityGenerator(config) : null;
+        this.stateGenerator = registryContext.isStateRegistered(locale) ? new StateGenerator(config) : null;
         this.postalCodeGenerator = new PostalCodeGenerator(config);
-        this.countryGenerator = CountryDataRegistry.isRegistered(locale) ? new CountryGenerator(config) : null;
+        this.countryGenerator = registryContext.isCountryRegistered(locale) ? new CountryGenerator(config) : null;
     }
 
     private static String[] loadSecondaryUnits(Locale locale) {
@@ -213,6 +215,6 @@ public final class StreetAddressGenerator implements Generator<String> {
      * Returns true when configured locale is registered.
      */
     public boolean isLocaleExplicitlySupported() {
-        return StreetAddressDataRegistry.isRegistered(config.getLocale());
+        return config.getRegistryContext().isStreetAddressRegistered(config.getLocale());
     }
 }

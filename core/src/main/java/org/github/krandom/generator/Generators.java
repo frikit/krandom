@@ -931,6 +931,13 @@ public final class Generators {
     }
 
     /**
+     * Returns a national-id generator with explicit configuration.
+     */
+    public static NationalIdGenerator ofNationalId(GeneratorConfig config) {
+        return new NationalIdGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces locale-aware usernames.
      */
     public static UsernameGenerator ofUsername() {
@@ -1170,6 +1177,27 @@ public final class Generators {
      */
     public static ProviderHub ofProviderHub(GeneratorConfig config) {
         return new ProviderHub(config);
+    }
+
+    /**
+     * Returns a generic provider hub configured from a named profile.
+     */
+    public static ProviderHub ofProviderHub(GeneratorProfile profile) {
+        return new ProviderHub(profile);
+    }
+
+    /**
+     * Returns a locale-aware provider hub configured from a named profile.
+     */
+    public static ProviderHub ofProviderHub(Locale locale, GeneratorProfile profile) {
+        return new ProviderHub(locale, profile);
+    }
+
+    /**
+     * Returns a provider hub with explicit config and profile metadata.
+     */
+    public static ProviderHub ofProviderHub(GeneratorConfig config, GeneratorProfile profile) {
+        return new ProviderHub(config, profile);
     }
 
     /**

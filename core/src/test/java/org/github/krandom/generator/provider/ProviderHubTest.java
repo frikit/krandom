@@ -6,6 +6,7 @@
 package org.github.krandom.generator.provider;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.GeneratorProfile;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
@@ -143,9 +144,13 @@ class ProviderHubTest {
     void nullArgumentValidation() {
         assertThrows(NullPointerException.class, () -> new ProviderHub((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> new ProviderHub((Locale) null));
+        assertThrows(NullPointerException.class, () -> new ProviderHub((GeneratorProfile) null));
+        assertThrows(NullPointerException.class, () -> new ProviderHub(Locale.US, null));
+        assertThrows(NullPointerException.class, () -> new ProviderHub(GeneratorConfig.defaults(), null));
 
         ProviderHub hub = new ProviderHub();
-        assertThrows(NullPointerException.class, () -> hub.register("x", null));
+        assertThrows(NullPointerException.class, () -> hub.register("x", (ProviderFactory) null));
+        assertThrows(NullPointerException.class, () -> hub.register("x", (ProfiledProviderFactory) null));
         assertThrows(NullPointerException.class, () -> hub.register("x", cfg -> "v", null));
         assertThrows(NullPointerException.class, () -> hub.registerAlias("x", "person", null));
     }
@@ -166,5 +171,22 @@ class ProviderHubTest {
 
         hub.registerAlias("person", "person", ConflictPolicy.REPLACE);
         assertEquals("person", hub.aliases().get("person"));
+    }
+
+    @Test
+    @DisplayName("profile-based constructors and registration expose profile metadata")
+    void profileConstructorsAndRegistration() {
+        ProviderHub hub = new ProviderHub(GeneratorProfile.FAST);
+        assertSame(GeneratorProfile.FAST, hub.getProfile());
+
+        ProviderHub localeHub = new ProviderHub(Locale.JAPAN, GeneratorProfile.STRICT);
+        assertEquals(Locale.JAPAN, localeHub.getConfig().getLocale());
+        assertSame(GeneratorProfile.STRICT, localeHub.getProfile());
+
+        ProviderHub configHub = new ProviderHub(GeneratorConfig.defaults(), GeneratorProfile.REALISTIC);
+        assertSame(GeneratorProfile.REALISTIC, configHub.getProfile());
+
+        hub.register("profiled", (profile, cfg) -> profile.name() + ":" + cfg.getLocale());
+        assertTrue(hub.get("profiled").toString().startsWith("FAST:"));
     }
 }
