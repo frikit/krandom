@@ -5,8 +5,8 @@
  */
 package org.github.krandom.generator.user;
 
-import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,12 +14,17 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CompanyNameGenerator")
 class CompanyNameGeneratorTest {
 
     private static final int SAMPLES = 50;
+
 
     @Nested
     @DisplayName("Constructors")
@@ -41,9 +46,10 @@ class CompanyNameGeneratorTest {
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
             assertThrows(NullPointerException.class,
-                    () -> new CompanyNameGenerator(null));
+                         () -> new CompanyNameGenerator(null));
         }
     }
+
 
     @Nested
     @DisplayName("generate()")
@@ -61,7 +67,7 @@ class CompanyNameGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String name = new CompanyNameGenerator().generate();
                 assertTrue(name.split(" ").length >= 2,
-                        "Expected at least two words: " + name);
+                           "Expected at least two words: " + name);
             }
         }
 
@@ -71,7 +77,7 @@ class CompanyNameGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String name = new CompanyNameGenerator().generate(true);
                 assertEquals(3, name.split(" ").length,
-                        "Expected prefix + noun + suffix: " + name);
+                             "Expected prefix + noun + suffix: " + name);
             }
         }
 
@@ -81,7 +87,7 @@ class CompanyNameGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String name = new CompanyNameGenerator().generate(false);
                 assertEquals(2, name.split(" ").length,
-                        "Expected prefix + noun only: " + name);
+                             "Expected prefix + noun only: " + name);
             }
         }
 
@@ -102,6 +108,7 @@ class CompanyNameGeneratorTest {
             assertFalse(suffix.isBlank());
         }
     }
+
 
     @Nested
     @DisplayName("Seeded generation")
@@ -131,6 +138,7 @@ class CompanyNameGeneratorTest {
             }
         }
     }
+
 
     @Nested
     @DisplayName("Generators factory")

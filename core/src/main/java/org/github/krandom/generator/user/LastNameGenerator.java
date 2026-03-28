@@ -33,33 +33,39 @@ import java.util.Random;
 public final class LastNameGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final String[] lastNames;
+    private final Random          random;
+    private final String[]        lastNames;
 
-    /** Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}. */
+    /**
+     * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
+     */
     public LastNameGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Constructs a generator for the given locale. */
+    /**
+     * Constructs a generator for the given locale.
+     */
     public LastNameGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
 
-    /** Full constructor using a {@link GeneratorConfig} (locale + optional seed). */
+    /**
+     * Full constructor using a {@link GeneratorConfig} (locale + optional seed).
+     */
     public LastNameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
 
         Locale locale = config.getLocale();
         if (!LastNameDataRegistry.isRegistered(locale)) {
             throw new UnsupportedOperationException(
-                    "Locale " + locale + " is not supported. Registered locales: "
-                            + LastNameDataRegistry.registeredKeys());
+                "Locale " + locale + " is not supported. Registered locales: "
+                + LastNameDataRegistry.registeredKeys());
         }
 
-        this.random    = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+        this.random = config.getSeed().isPresent()
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.lastNames = LastNameDataRegistry.forLocale(locale).getLastNames();
     }
 
@@ -86,17 +92,23 @@ public final class LastNameGenerator implements Generator<String> {
         return generate();
     }
 
-    /** Returns the locale this generator was configured with. */
+    /**
+     * Returns the locale this generator was configured with.
+     */
     public Locale getLocale() {
         return config.getLocale();
     }
 
-    /** Returns the number of distinct last names for the configured locale. */
+    /**
+     * Returns the number of distinct last names for the configured locale.
+     */
     public int getLastNameCount() {
         return lastNames.length;
     }
 
-    /** Returns {@code true} if the configured locale has a registered last-name provider. */
+    /**
+     * Returns {@code true} if the configured locale has a registered last-name provider.
+     */
     public boolean isLocaleExplicitlySupported() {
         return LastNameDataRegistry.isRegistered(config.getLocale());
     }

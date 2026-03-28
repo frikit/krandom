@@ -5,11 +5,11 @@
  */
 package org.github.krandom.generator.object;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.Set;
 
 /**
@@ -28,9 +28,9 @@ import java.util.Set;
  */
 final class ObjectPool {
 
-    private final int maxCachedPerType;
-    private final Set<Class<?>> inProgress = new HashSet<>();
-    private final Map<Class<?>, Deque<Object>> instances = new HashMap<>();
+    private final int                          maxCachedPerType;
+    private final Set<Class<?>>                inProgress = new HashSet<>();
+    private final Map<Class<?>, Deque<Object>> instances  = new HashMap<>();
 
     ObjectPool() {
         this(ObjectGeneratorConfig.DEFAULT_OBJECT_POOL_SIZE);

@@ -20,7 +20,7 @@ import java.util.Random;
 public final class PickGenerator<T> implements Generator<T> {
 
     private final List<T> source;
-    private final Random random;
+    private final Random  random;
 
     /**
      * Creates a pick generator backed by {@link SecureRandom}.
@@ -35,7 +35,7 @@ public final class PickGenerator<T> implements Generator<T> {
      * Creates a pick generator with deterministic seed support.
      *
      * @param source source list; must not be null or empty
-     * @param seed deterministic seed
+     * @param seed   deterministic seed
      */
     public PickGenerator(List<T> source, long seed) {
         this(source, new Random(seed));

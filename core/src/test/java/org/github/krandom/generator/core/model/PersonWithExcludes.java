@@ -24,9 +24,18 @@ public class PersonWithExcludes {
     private String username;
     private int    age;
 
-    public PersonWithExcludes() { }
+    public PersonWithExcludes() {
+    }
 
-    public String getPassword() { return password; }
-    public String getUsername() { return username; }
-    public int    getAge()      { return age; }
+    public String getPassword() {
+        return password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public int getAge() {
+        return age;
+    }
 }

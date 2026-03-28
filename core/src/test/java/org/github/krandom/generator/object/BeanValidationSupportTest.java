@@ -20,14 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @DisplayName("BeanValidationSupport")
 class BeanValidationSupportTest {
 
-    static final class Sample {
-        @Size(min = 2, max = 4)
-        String sizedText;
-
-        @DecimalMin("1.5")
-        BigDecimal decimalMinOnly;
-    }
-
     @Test
     @DisplayName("returns generator for sized string")
     void sizedStringConstraint() throws Exception {
@@ -42,5 +34,15 @@ class BeanValidationSupportTest {
         Field field = Sample.class.getDeclaredField("decimalMinOnly");
         Generator<?> generator = BeanValidationSupport.constraintGeneratorFor(field, BigDecimal.class);
         assertNull(generator);
+    }
+
+
+    static final class Sample {
+
+        @Size(min = 2, max = 4)
+        String sizedText;
+
+        @DecimalMin("1.5")
+        BigDecimal decimalMinOnly;
     }
 }

@@ -12,14 +12,15 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DisplayName("ObjectGenerator — legacy date/time auto-population")
 class ObjectGeneratorLegacyDateTimeTest {
 
-    private static final int SAMPLES = 50;
-    private static final LocalDate MIN = LocalDate.of(2020, 1, 1);
-    private static final LocalDate MAX = LocalDate.of(2023, 12, 31);
+    private static final int       SAMPLES = 50;
+    private static final LocalDate MIN     = LocalDate.of(2020, 1, 1);
+    private static final LocalDate MAX     = LocalDate.of(2023, 12, 31);
 
     @Test
     @DisplayName("legacy date/time fields are auto-populated")
@@ -35,8 +36,8 @@ class ObjectGeneratorLegacyDateTimeTest {
     @DisplayName("global dateRange applies to util.Date, sql.Date and sql.Timestamp")
     void globalRangeAppliesToLegacyDateTypes() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                .dateRange(MIN, MAX)
-                .build();
+                                                            .dateRange(MIN, MAX)
+                                                            .build();
         ObjectGenerator<PersonWithLegacyDateTimes> gen = new ObjectGenerator<>(PersonWithLegacyDateTimes.class, config);
 
         for (int i = 0; i < SAMPLES; i++) {

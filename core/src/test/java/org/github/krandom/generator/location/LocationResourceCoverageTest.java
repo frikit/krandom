@@ -13,16 +13,40 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Location resource and registry coverage")
 class LocationResourceCoverageTest {
+
+    private static void assertUtilityConstructorThrows(Class<?> type) throws Exception {
+        Constructor<?> ctor = type.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        InvocationTargetException ex = assertThrows(InvocationTargetException.class, ctor::newInstance);
+        assertTrue(ex.getCause() instanceof UnsupportedOperationException);
+    }
+
+    private static InputStream closeFailingStream() {
+        return new InputStream() {
+
+            @Override
+            public int read() {
+                return -1;
+            }
+
+            @Override
+            public void close() throws IOException {
+                throw new IOException("boom");
+            }
+        };
+    }
 
     @Test
     @DisplayName("city loader reads test resource and rejects missing path")
     void cityLoader() {
         String[] cities = CityResourceLoader.load("krandom/cities/test_cities.txt");
-        assertArrayEquals(new String[]{"City One", "City Two", "City Three"}, cities);
+        assertArrayEquals(new String[] { "City One", "City Two", "City Three" }, cities);
         assertThrows(IllegalStateException.class, () -> CityResourceLoader.load("krandom/cities/missing.txt"));
     }
 
@@ -36,7 +60,7 @@ class LocationResourceCoverageTest {
     @DisplayName("country loader reads test resource and rejects missing path")
     void countryLoader() {
         String[] countries = CountryResourceLoader.load("krandom/countries/test_countries.txt");
-        assertArrayEquals(new String[]{"Country One", "Country Two", "Country Three"}, countries);
+        assertArrayEquals(new String[] { "Country One", "Country Two", "Country Three" }, countries);
         assertThrows(IllegalStateException.class, () -> CountryResourceLoader.load("krandom/countries/missing.txt"));
     }
 
@@ -50,8 +74,8 @@ class LocationResourceCoverageTest {
     @DisplayName("state loader supports missing abbreviation lines")
     void stateLoaderMissingAbbreviation() {
         StateResourceLoader.StateData data = StateResourceLoader.load("krandom/states/test_states_missing_abbrev.txt");
-        assertArrayEquals(new String[]{"Alpha", "Beta", "Gamma"}, data.states);
-        assertArrayEquals(new String[]{"AL", "", ""}, data.abbreviations);
+        assertArrayEquals(new String[] { "Alpha", "Beta", "Gamma" }, data.states);
+        assertArrayEquals(new String[] { "AL", "", "" }, data.abbreviations);
     }
 
     @Test
@@ -81,26 +105,5 @@ class LocationResourceCoverageTest {
         assertUtilityConstructorThrows(StateResourceLoader.class);
         assertUtilityConstructorThrows(CityDataRegistry.class);
         assertUtilityConstructorThrows(StreetAddressDataRegistry.class);
-    }
-
-    private static void assertUtilityConstructorThrows(Class<?> type) throws Exception {
-        Constructor<?> ctor = type.getDeclaredConstructor();
-        ctor.setAccessible(true);
-        InvocationTargetException ex = assertThrows(InvocationTargetException.class, ctor::newInstance);
-        assertTrue(ex.getCause() instanceof UnsupportedOperationException);
-    }
-
-    private static InputStream closeFailingStream() {
-        return new InputStream() {
-            @Override
-            public int read() {
-                return -1;
-            }
-
-            @Override
-            public void close() throws IOException {
-                throw new IOException("boom");
-            }
-        };
     }
 }

@@ -16,7 +16,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CityGenerator")
 class CityGeneratorTest {
@@ -52,9 +58,9 @@ class CityGeneratorTest {
 
         // Check for some major US cities
         long usCities = cities.stream()
-                .filter(c -> c.equals("New York") || c.equals("Los Angeles") || 
-                             c.equals("Chicago") || c.equals("Houston") || c.equals("Phoenix"))
-                .count();
+                              .filter(c -> c.equals("New York") || c.equals("Los Angeles") ||
+                                           c.equals("Chicago") || c.equals("Houston") || c.equals("Phoenix"))
+                              .count();
         assertTrue(usCities > 0, "Expected to find at least one major US city");
         assertTrue(gen.getCityCount() > 50);
     }
@@ -71,9 +77,9 @@ class CityGeneratorTest {
 
         // Check for some major UK cities
         long ukCities = cities.stream()
-                .filter(c -> c.equals("London") || c.equals("Manchester") || 
-                             c.equals("Birmingham") || c.equals("Glasgow") || c.equals("Edinburgh"))
-                .count();
+                              .filter(c -> c.equals("London") || c.equals("Manchester") ||
+                                           c.equals("Birmingham") || c.equals("Glasgow") || c.equals("Edinburgh"))
+                              .count();
         assertTrue(ukCities > 0, "Expected to find at least one major UK city");
         assertTrue(gen.getCityCount() > 50);
     }
@@ -90,9 +96,9 @@ class CityGeneratorTest {
 
         // Check for some major Australian cities
         long auCities = cities.stream()
-                .filter(c -> c.equals("Sydney") || c.equals("Melbourne") || 
-                             c.equals("Brisbane") || c.equals("Perth") || c.equals("Adelaide"))
-                .count();
+                              .filter(c -> c.equals("Sydney") || c.equals("Melbourne") ||
+                                           c.equals("Brisbane") || c.equals("Perth") || c.equals("Adelaide"))
+                              .count();
         assertTrue(auCities > 0, "Expected to find at least one major Australian city");
         assertTrue(gen.getCityCount() > 50);
     }
@@ -109,9 +115,9 @@ class CityGeneratorTest {
 
         // Check for German cities with proper German spelling
         long germanCities = cities.stream()
-                .filter(c -> c.equals("Berlin") || c.equals("München") || 
-                             c.equals("Hamburg") || c.equals("Köln") || c.equals("Frankfurt am Main"))
-                .count();
+                                  .filter(c -> c.equals("Berlin") || c.equals("München") ||
+                                               c.equals("Hamburg") || c.equals("Köln") || c.equals("Frankfurt am Main"))
+                                  .count();
         assertTrue(germanCities > 0, "Expected to find at least one major German city");
         assertTrue(gen.getCityCount() > 50);
     }
@@ -128,9 +134,9 @@ class CityGeneratorTest {
 
         // Japanese script
         long japaneseCities = cities.stream()
-                .filter(c -> c.contains("東京") || c.contains("大阪") || 
-                             c.contains("京都") || c.contains("横浜") || c.contains("名古屋"))
-                .count();
+                                    .filter(c -> c.contains("東京") || c.contains("大阪") ||
+                                                 c.contains("京都") || c.contains("横浜") || c.contains("名古屋"))
+                                    .count();
         assertTrue(japaneseCities > 0, "Expected to find at least one major Japanese city");
     }
 
@@ -145,9 +151,9 @@ class CityGeneratorTest {
         }
 
         long frenchCities = cities.stream()
-                .filter(c -> c.equals("Paris") || c.equals("Lyon") || 
-                             c.equals("Marseille") || c.equals("Toulouse") || c.equals("Nice"))
-                .count();
+                                  .filter(c -> c.equals("Paris") || c.equals("Lyon") ||
+                                               c.equals("Marseille") || c.equals("Toulouse") || c.equals("Nice"))
+                                  .count();
         assertTrue(frenchCities > 0, "Expected to find at least one major French city");
     }
 
@@ -163,9 +169,9 @@ class CityGeneratorTest {
 
         // Chinese characters
         long chineseCities = cities.stream()
-                .filter(c -> c.contains("北京") || c.contains("上海") || 
-                             c.contains("广州") || c.contains("深圳") || c.contains("成都"))
-                .count();
+                                   .filter(c -> c.contains("北京") || c.contains("上海") ||
+                                                c.contains("广州") || c.contains("深圳") || c.contains("成都"))
+                                   .count();
         assertTrue(chineseCities > 0, "Expected to find at least one major Chinese city");
     }
 
@@ -180,9 +186,9 @@ class CityGeneratorTest {
         }
 
         long spanishCities = cities.stream()
-                .filter(c -> c.equals("Madrid") || c.equals("Barcelona") || 
-                             c.equals("Valencia") || c.equals("Sevilla") || c.equals("Zaragoza"))
-                .count();
+                                   .filter(c -> c.equals("Madrid") || c.equals("Barcelona") ||
+                                                c.equals("Valencia") || c.equals("Sevilla") || c.equals("Zaragoza"))
+                                   .count();
         assertTrue(spanishCities > 0, "Expected to find at least one major Spanish city");
     }
 
@@ -197,9 +203,9 @@ class CityGeneratorTest {
         }
 
         long italianCities = cities.stream()
-                .filter(c -> c.equals("Roma") || c.equals("Milano") || 
-                             c.equals("Napoli") || c.equals("Torino") || c.equals("Firenze"))
-                .count();
+                                   .filter(c -> c.equals("Roma") || c.equals("Milano") ||
+                                                c.equals("Napoli") || c.equals("Torino") || c.equals("Firenze"))
+                                   .count();
         assertTrue(italianCities > 0, "Expected to find at least one major Italian city");
     }
 
@@ -214,9 +220,9 @@ class CityGeneratorTest {
         }
 
         long brazilianCities = cities.stream()
-                .filter(c -> c.equals("São Paulo") || c.equals("Rio de Janeiro") || 
-                             c.equals("Brasília") || c.equals("Salvador") || c.equals("Fortaleza"))
-                .count();
+                                     .filter(c -> c.equals("São Paulo") || c.equals("Rio de Janeiro") ||
+                                                  c.equals("Brasília") || c.equals("Salvador") || c.equals("Fortaleza"))
+                                     .count();
         assertTrue(brazilianCities > 0, "Expected to find at least one major Brazilian city");
     }
 
@@ -291,7 +297,7 @@ class CityGeneratorTest {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             CityGenerator gen = new CityGenerator(supportedLocale.locale());
             assertTrue(gen.getCityCount() > 0,
-                    "Locale " + supportedLocale.locale() + " should have cities");
+                       "Locale " + supportedLocale.locale() + " should have cities");
         }
     }
 
@@ -321,14 +327,14 @@ class CityGeneratorTest {
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
         assertThrows(NullPointerException.class,
-            () -> new CityGenerator((GeneratorConfig) null));
+                     () -> new CityGenerator((GeneratorConfig) null));
     }
 
     @Test
     @DisplayName("null locale throws NullPointerException")
     void nullLocaleThrows() {
         assertThrows(NullPointerException.class,
-            () -> new CityGenerator((Locale) null));
+                     () -> new CityGenerator((Locale) null));
     }
 
     @Test
@@ -350,11 +356,19 @@ class CityGeneratorTest {
     @DisplayName("custom provider registered for new locale is used by CityGenerator")
     void customLocaleRegistration() {
         Locale korean = Locale.of("ko", "KR");
-        String[] koreanCities = {"서울", "부산", "인천", "대구"};
+        String[] koreanCities = { "서울", "부산", "인천", "대구" };
 
         CityDataRegistry.register(new CityDataProvider() {
-            @Override public Locale getLocale() { return korean; }
-            @Override public String[] getCities() { return koreanCities; }
+
+            @Override
+            public Locale getLocale() {
+                return korean;
+            }
+
+            @Override
+            public String[] getCities() {
+                return koreanCities;
+            }
         });
 
         CityGenerator gen = new CityGenerator(korean);
@@ -369,11 +383,19 @@ class CityGeneratorTest {
     @DisplayName("custom provider overrides built-in locale")
     void customProviderOverridesBuiltIn() {
         Locale us = Locale.US;
-        String[] custom = {"Foo City", "Bar Town"};
+        String[] custom = { "Foo City", "Bar Town" };
 
         CityDataRegistry.register(new CityDataProvider() {
-            @Override public Locale getLocale() { return us; }
-            @Override public String[] getCities() { return custom; }
+
+            @Override
+            public Locale getLocale() {
+                return us;
+            }
+
+            @Override
+            public String[] getCities() {
+                return custom;
+            }
         });
 
         CityGenerator gen = new CityGenerator(us);
@@ -392,8 +414,16 @@ class CityGeneratorTest {
     void customLocaleAppearsInKeys() {
         Locale swahili = Locale.of("sw", "TZ");
         CityDataRegistry.register(new CityDataProvider() {
-            @Override public Locale getLocale() { return swahili; }
-            @Override public String[] getCities() { return new String[]{"Dar es Salaam", "Dodoma"}; }
+
+            @Override
+            public Locale getLocale() {
+                return swahili;
+            }
+
+            @Override
+            public String[] getCities() {
+                return new String[] { "Dar es Salaam", "Dodoma" };
+            }
         });
 
         assertTrue(CityDataRegistry.registeredKeys().contains("sw_TZ"));

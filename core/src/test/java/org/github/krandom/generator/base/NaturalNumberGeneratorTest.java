@@ -15,7 +15,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.random.RandomGenerator;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("NaturalNumberGenerator")
 class NaturalNumberGeneratorTest {
@@ -42,6 +46,7 @@ class NaturalNumberGeneratorTest {
             assertEquals(Integer.MAX_VALUE, generator.getMax());
         }
     }
+
 
     @Nested
     @DisplayName("Custom Range")
@@ -72,9 +77,10 @@ class NaturalNumberGeneratorTest {
         @DisplayName("should throw when min == max")
         void shouldThrowWhenMinEqualsMax() {
             assertThrows(IllegalArgumentException.class,
-                    () -> new NaturalNumberGenerator(5, 5).generate());
+                         () -> new NaturalNumberGenerator(5, 5).generate());
         }
     }
+
 
     @Nested
     @DisplayName("Seeded Generation")
@@ -88,7 +94,7 @@ class NaturalNumberGeneratorTest {
 
             for (int i = 0; i < 50; i++) {
                 assertEquals(gen1.generate(), gen2.generate(),
-                        "Generators with same seed should produce identical values");
+                             "Generators with same seed should produce identical values");
             }
         }
 
@@ -104,6 +110,7 @@ class NaturalNumberGeneratorTest {
             assertNotEquals(seq1, seq2, "Different seeds should produce different sequences");
         }
     }
+
 
     @Nested
     @DisplayName("Exclusion Support")
@@ -129,7 +136,7 @@ class NaturalNumberGeneratorTest {
             for (int i = 0; i < 200; i++) {
                 int value = generator.generate();
                 assertFalse(excluded.contains(value),
-                        "Value " + value + " should be excluded");
+                            "Value " + value + " should be excluded");
                 assertTrue(value >= 0 && value < 20, "Value should be in range [0, 20)");
             }
         }
@@ -157,17 +164,17 @@ class NaturalNumberGeneratorTest {
             }
 
             assertTrue(generated.containsAll(expected),
-                    "Should eventually generate all non-excluded values");
+                       "Should eventually generate all non-excluded values");
         }
 
         @Test
         @DisplayName("should throw when all values are excluded")
         void shouldThrowWhenAllValuesExcluded() {
             NaturalNumberGenerator generator = new NaturalNumberGenerator(0, 3)
-                    .excluding(0, 1, 2);
-            
+                .excluding(0, 1, 2);
+
             assertThrows(IllegalStateException.class, generator::generate,
-                    "Should throw when all possible values are excluded");
+                         "Should throw when all possible values are excluded");
         }
 
         @Test
@@ -177,6 +184,7 @@ class NaturalNumberGeneratorTest {
             Field randomField = generator.getClass().getSuperclass().getDeclaredField("random");
             randomField.setAccessible(true);
             randomField.set(generator, new RandomGenerator() {
+
                 @Override
                 public long nextLong() {
                     return 0L;
@@ -196,7 +204,7 @@ class NaturalNumberGeneratorTest {
         void shouldHandleExclusionOutsideRange() {
             // Excluding 100 and 200 which are outside [0, 10) range
             NaturalNumberGenerator generator = new NaturalNumberGenerator(0, 10).excluding(100, 200);
-            
+
             for (int i = 0; i < 50; i++) {
                 int value = generator.generate();
                 assertTrue(value >= 0 && value < 10);
@@ -208,8 +216,8 @@ class NaturalNumberGeneratorTest {
         void shouldHandleSparseExclusionsEfficiently() {
             // Test with many exclusions but still some valid values
             NaturalNumberGenerator generator = new NaturalNumberGenerator(0, 100)
-                    .excluding(1, 3, 5, 7, 9, 11, 13, 15, 17, 19);
-            
+                .excluding(1, 3, 5, 7, 9, 11, 13, 15, 17, 19);
+
             for (int i = 0; i < 100; i++) {
                 int value = generator.generate();
                 assertFalse(Set.of(1, 3, 5, 7, 9, 11, 13, 15, 17, 19).contains(value));
@@ -226,14 +234,14 @@ class NaturalNumberGeneratorTest {
                 excluded.add(i);
             }
             NaturalNumberGenerator generator = new NaturalNumberGenerator(0, 100)
-                    .excluding(excluded.stream().mapToInt(Integer::intValue).toArray());
-            
+                .excluding(excluded.stream().mapToInt(Integer::intValue).toArray());
+
             // Should only generate 0, 1, 2, 3, 4
             Set<Integer> expected = Set.of(0, 1, 2, 3, 4);
             for (int i = 0; i < 50; i++) {
                 int value = generator.generate();
                 assertTrue(expected.contains(value),
-                        "Value should be in {0,1,2,3,4}, got: " + value);
+                           "Value should be in {0,1,2,3,4}, got: " + value);
             }
         }
 
@@ -242,13 +250,14 @@ class NaturalNumberGeneratorTest {
         void shouldWorkWithNegativeExcludedValues() {
             // Negative values outside range should be ignored
             NaturalNumberGenerator generator = new NaturalNumberGenerator(0, 10).excluding(-1, -5);
-            
+
             for (int i = 0; i < 50; i++) {
                 int value = generator.generate();
                 assertTrue(value >= 0 && value < 10);
             }
         }
     }
+
 
     @Nested
     @DisplayName("Generate with Custom Bounds")
@@ -276,6 +285,7 @@ class NaturalNumberGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("List Generation")
     class ListGeneration {
@@ -293,7 +303,7 @@ class NaturalNumberGeneratorTest {
         void shouldApplyExclusionsInListGeneration() {
             NaturalNumberGenerator generator = new NaturalNumberGenerator(0, 20).excluding(10);
             List<Integer> list = generator.generateList(100);
-            
+
             assertFalse(list.contains(10), "List should not contain excluded value 10");
         }
     }

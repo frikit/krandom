@@ -19,10 +19,10 @@ import java.util.Random;
 public final class HostnameGenerator implements Generator<String> {
 
     private static final String[] SUBDOMAINS = {
-            "www", "mail", "api", "app", "cdn", "m", "img", "files"
+        "www", "mail", "api", "app", "cdn", "m", "img", "files"
     };
 
-    private final Random random;
+    private final Random          random;
     private final DomainGenerator domainGenerator;
 
     public HostnameGenerator() {
@@ -36,8 +36,8 @@ public final class HostnameGenerator implements Generator<String> {
     public HostnameGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
         this.domainGenerator = new DomainGenerator(effective);
     }
 

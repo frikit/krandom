@@ -15,21 +15,42 @@ package org.github.krandom.generator.core.model;
  */
 public class Person extends BaseJavaClass {
 
-    private String firstName;
-    private String lastName;
-    private int    age;
-    private double salary;
+    private String  firstName;
+    private String  lastName;
+    private int     age;
+    private double  salary;
     private boolean active;
     private Status  status;
     private Address address;
 
-    public Person() { }
+    public Person() {
+    }
 
-    public String  getFirstName() { return firstName; }
-    public String  getLastName()  { return lastName; }
-    public int     getAge()       { return age; }
-    public double  getSalary()    { return salary; }
-    public boolean isActive()     { return active; }
-    public Status  getStatus()    { return status; }
-    public Address getAddress()   { return address; }
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
 }

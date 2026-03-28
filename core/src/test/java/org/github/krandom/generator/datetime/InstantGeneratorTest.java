@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("InstantGenerator")
 class InstantGeneratorTest {
@@ -30,7 +33,7 @@ class InstantGeneratorTest {
         InstantGenerator gen = new InstantGenerator();
         for (int i = 0; i < SAMPLES; i++) {
             assertTrue(gen.generate().getEpochSecond() >= 0,
-                    "epoch second must be non-negative");
+                       "epoch second must be non-negative");
         }
     }
 
@@ -42,7 +45,7 @@ class InstantGeneratorTest {
         InstantGenerator gen = new InstantGenerator();
         for (int i = 0; i < SAMPLES; i++) {
             assertTrue(gen.generate().getEpochSecond() < maxEpoch,
-                    "epoch second must be before year 2101");
+                       "epoch second must be before year 2101");
         }
     }
 
@@ -54,7 +57,7 @@ class InstantGeneratorTest {
         InstantGenerator g2 = new InstantGenerator(cfg);
         for (int i = 0; i < 20; i++) {
             assertEquals(g1.generate(), g2.generate(),
-                    "seeded generators must produce identical output");
+                         "seeded generators must produce identical output");
         }
     }
 

@@ -13,9 +13,9 @@ public final class SchemaGenerationException extends RuntimeException {
     /**
      * Creates an exception with field name and record index context.
      *
-     * @param field field name that failed
+     * @param field       field name that failed
      * @param recordIndex record index in current batch
-     * @param cause root cause
+     * @param cause       root cause
      */
     public SchemaGenerationException(String field, int recordIndex, Throwable cause) {
         super("Failed to generate field '" + field + "' for record index " + recordIndex, cause);

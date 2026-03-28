@@ -23,45 +23,45 @@ package org.github.krandom.generator.user;
  * <p><strong>Usage Example:</strong>
  * <pre>{@code
  * EmailGenerator gen = new EmailGenerator();
- * 
+ *
  * // Use specific format
  * String email1 = gen.generate(EmailFormat.FIRSTNAME_DOT_LASTNAME);
  * // "john.smith@gmail.com"
- * 
+ *
  * String email2 = gen.generate(EmailFormat.FIRSTINITIAL_LASTNAME);
  * // "jsmith@yahoo.com"
  * }</pre>
  */
 public enum EmailFormat {
-    
+
     /**
      * Format: firstname.lastname
      * <p>Example: john.smith@example.com
      * <p>Most common professional email format.
      */
     FIRSTNAME_DOT_LASTNAME,
-    
+
     /**
      * Format: firstnamelastname
      * <p>Example: johnsmith@example.com
      * <p>Common for personal email addresses.
      */
     FIRSTNAME_LASTNAME,
-    
+
     /**
      * Format: flastname (first initial + last name)
      * <p>Example: jsmith@example.com
      * <p>Common for corporate email addresses.
      */
     FIRSTINITIAL_LASTNAME,
-    
+
     /**
      * Format: firstname_lastname
      * <p>Example: john_smith@example.com
      * <p>Alternative separator format.
      */
     FIRSTNAME_UNDERSCORE_LASTNAME,
-    
+
     /**
      * Format: lastname.firstname
      * <p>Example: smith.john@example.com

@@ -15,7 +15,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Comprehensive test suite for {@link BooleanGenerator}.
@@ -72,6 +79,7 @@ class BooleanGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Seeded Generation")
     class SeededGeneration {
@@ -115,6 +123,7 @@ class BooleanGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Likelihood-Based Generation")
     class LikelihoodBasedGeneration {
@@ -153,7 +162,7 @@ class BooleanGeneratorTest {
         }
 
         @ParameterizedTest
-        @ValueSource(ints = {0, 10, 25, 50, 75, 90, 100})
+        @ValueSource(ints = { 0, 10, 25, 50, 75, 90, 100 })
         @DisplayName("should accept valid likelihood values")
         void shouldAcceptValidLikelihood(int likelihood) {
             assertDoesNotThrow(() -> {
@@ -175,13 +184,14 @@ class BooleanGeneratorTest {
         @DisplayName("chaining withLikelihood should work")
         void chainingWithLikelihood() {
             BooleanGenerator generator = new BooleanGenerator()
-                    .withLikelihood(75)
-                    .withLikelihood(25);
+                .withLikelihood(75)
+                .withLikelihood(25);
 
             // Last likelihood should win
             assertNotNull(generator.generate());
         }
     }
+
 
     @Nested
     @DisplayName("Seeded Likelihood Generation")
@@ -219,6 +229,7 @@ class BooleanGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Validation")
     class Validation {
@@ -229,7 +240,7 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator();
 
             IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                    () -> generator.withLikelihood(-1));
+                                                       () -> generator.withLikelihood(-1));
 
             assertTrue(ex.getMessage().contains("must be between 0 and 100"));
             assertTrue(ex.getMessage().contains("-1"));
@@ -241,29 +252,30 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator();
 
             IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                    () -> generator.withLikelihood(101));
+                                                       () -> generator.withLikelihood(101));
 
             assertTrue(ex.getMessage().contains("must be between 0 and 100"));
             assertTrue(ex.getMessage().contains("101"));
         }
 
         @ParameterizedTest
-        @ValueSource(ints = {-100, -50, -1, 101, 150, 200})
+        @ValueSource(ints = { -100, -50, -1, 101, 150, 200 })
         @DisplayName("should reject out-of-range likelihood values")
         void shouldRejectOutOfRangeLikelihood(int likelihood) {
             BooleanGenerator generator = new BooleanGenerator();
 
             assertThrows(IllegalArgumentException.class,
-                    () -> generator.withLikelihood(likelihood));
+                         () -> generator.withLikelihood(likelihood));
         }
     }
+
 
     @Nested
     @DisplayName("Statistical Distribution")
     class StatisticalDistribution {
 
-        private static final int SAMPLE_SIZE = 10_000;
-        private static final double TOLERANCE = 0.05; // 5% tolerance
+        private static final int    SAMPLE_SIZE = 10_000;
+        private static final double TOLERANCE   = 0.05; // 5% tolerance
 
         @Test
         @DisplayName("default likelihood should be approximately 50%")
@@ -271,13 +283,13 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator(42L);
 
             long trueCount = generator.stream()
-                    .limit(SAMPLE_SIZE)
-                    .filter(v -> v)
-                    .count();
+                                      .limit(SAMPLE_SIZE)
+                                      .filter(v -> v)
+                                      .count();
 
             double actualPercentage = (double) trueCount / SAMPLE_SIZE;
             assertEquals(0.50, actualPercentage, TOLERANCE,
-                    "Default likelihood should be ~50%");
+                         "Default likelihood should be ~50%");
         }
 
         @Test
@@ -286,13 +298,13 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator(123L).withLikelihood(25);
 
             long trueCount = generator.stream()
-                    .limit(SAMPLE_SIZE)
-                    .filter(v -> v)
-                    .count();
+                                      .limit(SAMPLE_SIZE)
+                                      .filter(v -> v)
+                                      .count();
 
             double actualPercentage = (double) trueCount / SAMPLE_SIZE;
             assertEquals(0.25, actualPercentage, TOLERANCE,
-                    "Likelihood 25 should produce ~25% true");
+                         "Likelihood 25 should produce ~25% true");
         }
 
         @Test
@@ -301,13 +313,13 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator(456L).withLikelihood(75);
 
             long trueCount = generator.stream()
-                    .limit(SAMPLE_SIZE)
-                    .filter(v -> v)
-                    .count();
+                                      .limit(SAMPLE_SIZE)
+                                      .filter(v -> v)
+                                      .count();
 
             double actualPercentage = (double) trueCount / SAMPLE_SIZE;
             assertEquals(0.75, actualPercentage, TOLERANCE,
-                    "Likelihood 75 should produce ~75% true");
+                         "Likelihood 75 should produce ~75% true");
         }
 
         @Test
@@ -316,13 +328,13 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator(789L).withLikelihood(80);
 
             long trueCount = generator.stream()
-                    .limit(SAMPLE_SIZE)
-                    .filter(v -> v)
-                    .count();
+                                      .limit(SAMPLE_SIZE)
+                                      .filter(v -> v)
+                                      .count();
 
             double actualPercentage = (double) trueCount / SAMPLE_SIZE;
             assertEquals(0.80, actualPercentage, TOLERANCE,
-                    "Likelihood 80 should produce ~80% true");
+                         "Likelihood 80 should produce ~80% true");
         }
 
         @Test
@@ -331,15 +343,16 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator(321L).withLikelihood(10);
 
             long trueCount = generator.stream()
-                    .limit(SAMPLE_SIZE)
-                    .filter(v -> v)
-                    .count();
+                                      .limit(SAMPLE_SIZE)
+                                      .filter(v -> v)
+                                      .count();
 
             double actualPercentage = (double) trueCount / SAMPLE_SIZE;
             assertEquals(0.10, actualPercentage, TOLERANCE,
-                    "Likelihood 10 should produce ~10% true");
+                         "Likelihood 10 should produce ~10% true");
         }
     }
+
 
     @Nested
     @DisplayName("Edge Cases")
@@ -351,9 +364,9 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator(111L).withLikelihood(1);
 
             long trueCount = generator.stream()
-                    .limit(1000)
-                    .filter(v -> v)
-                    .count();
+                                      .limit(1000)
+                                      .filter(v -> v)
+                                      .count();
 
             assertTrue(trueCount < 50, "Likelihood 1% should produce < 50 true in 1000");
             assertTrue(trueCount > 0, "Likelihood 1% should produce at least some true values");
@@ -365,9 +378,9 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator(222L).withLikelihood(99);
 
             long falseCount = generator.stream()
-                    .limit(1000)
-                    .filter(v -> !v)
-                    .count();
+                                       .limit(1000)
+                                       .filter(v -> !v)
+                                       .count();
 
             assertTrue(falseCount < 50, "Likelihood 99% should produce < 50 false in 1000");
             assertTrue(falseCount > 0, "Likelihood 99% should produce at least some false values");
@@ -396,6 +409,7 @@ class BooleanGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Integration")
     class Integration {
@@ -406,9 +420,9 @@ class BooleanGeneratorTest {
             BooleanGenerator generator = new BooleanGenerator(999L).withLikelihood(60);
 
             long trueCount = generator.stream()
-                    .limit(1000)
-                    .filter(v -> v)
-                    .count();
+                                      .limit(1000)
+                                      .filter(v -> v)
+                                      .count();
 
             assertTrue(trueCount > 0, "Should have some true values");
             assertTrue(trueCount < 1000, "Should have some false values");

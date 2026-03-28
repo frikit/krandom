@@ -5,18 +5,23 @@
  */
 package org.github.krandom.generator.text;
 
-import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("LoremIpsumGenerator")
 class LoremIpsumGeneratorTest {
 
     private static final int SAMPLES = 50;
+
 
     @Nested
     @DisplayName("Constructors")
@@ -26,21 +31,21 @@ class LoremIpsumGeneratorTest {
         @DisplayName("default constructor uses SENTENCE mode")
         void defaultMode() {
             assertEquals(LoremIpsumGenerator.Mode.SENTENCE,
-                    new LoremIpsumGenerator().getMode());
+                         new LoremIpsumGenerator().getMode());
         }
 
         @Test
         @DisplayName("mode constructor stores mode")
         void modeConstructor() {
             assertEquals(LoremIpsumGenerator.Mode.WORD,
-                    new LoremIpsumGenerator(LoremIpsumGenerator.Mode.WORD).getMode());
+                         new LoremIpsumGenerator(LoremIpsumGenerator.Mode.WORD).getMode());
         }
 
         @Test
         @DisplayName("config constructor uses SENTENCE mode")
         void configConstructor() {
             assertEquals(LoremIpsumGenerator.Mode.SENTENCE,
-                    new LoremIpsumGenerator(GeneratorConfig.defaults()).getMode());
+                         new LoremIpsumGenerator(GeneratorConfig.defaults()).getMode());
         }
 
         @Test
@@ -55,16 +60,17 @@ class LoremIpsumGeneratorTest {
         @DisplayName("null mode throws NullPointerException")
         void nullModeThrows() {
             assertThrows(NullPointerException.class,
-                    () -> new LoremIpsumGenerator((LoremIpsumGenerator.Mode) null));
+                         () -> new LoremIpsumGenerator((LoremIpsumGenerator.Mode) null));
         }
 
         @Test
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
             assertThrows(NullPointerException.class,
-                    () -> new LoremIpsumGenerator((GeneratorConfig) null));
+                         () -> new LoremIpsumGenerator((GeneratorConfig) null));
         }
     }
+
 
     @Nested
     @DisplayName("generate() dispatches by mode")
@@ -89,9 +95,9 @@ class LoremIpsumGeneratorTest {
                 String result = gen.generate();
                 assertNotNull(result);
                 assertTrue(Character.isUpperCase(result.charAt(0)),
-                        "Sentence should start with uppercase: " + result);
+                           "Sentence should start with uppercase: " + result);
                 assertTrue(result.endsWith("."),
-                        "Sentence should end with '.': " + result);
+                           "Sentence should end with '.': " + result);
             }
         }
 
@@ -105,10 +111,11 @@ class LoremIpsumGeneratorTest {
                 // A paragraph has at least 3 sentences (periods)
                 long dotCount = result.chars().filter(c -> c == '.').count();
                 assertTrue(dotCount >= 3,
-                        "Paragraph should have >= 3 sentences, got " + dotCount + " in: " + result);
+                           "Paragraph should have >= 3 sentences, got " + dotCount + " in: " + result);
             }
         }
     }
+
 
     @Nested
     @DisplayName("generateWord()")
@@ -122,7 +129,7 @@ class LoremIpsumGeneratorTest {
                 assertNotNull(word);
                 assertFalse(word.isEmpty());
                 assertEquals(word.toLowerCase(), word,
-                        "Word should be lowercase: " + word);
+                             "Word should be lowercase: " + word);
             }
         }
 
@@ -133,10 +140,11 @@ class LoremIpsumGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String word = gen.generateWord();
                 assertTrue(word.matches("[a-z]+"),
-                        "Word should be all lowercase letters: " + word);
+                           "Word should be all lowercase letters: " + word);
             }
         }
     }
+
 
     @Nested
     @DisplayName("generateSentence()")
@@ -154,9 +162,9 @@ class LoremIpsumGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String sentence = new LoremIpsumGenerator().generateSentence();
                 assertTrue(Character.isUpperCase(sentence.charAt(0)),
-                        "Should start uppercase: " + sentence);
+                           "Should start uppercase: " + sentence);
                 assertTrue(sentence.endsWith("."),
-                        "Should end with '.': " + sentence);
+                           "Should end with '.': " + sentence);
             }
         }
 
@@ -184,16 +192,17 @@ class LoremIpsumGeneratorTest {
         @DisplayName("generateSentence(0) throws IllegalArgumentException")
         void zeroWordCountThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> new LoremIpsumGenerator().generateSentence(0));
+                         () -> new LoremIpsumGenerator().generateSentence(0));
         }
 
         @Test
         @DisplayName("generateSentence(-1) throws IllegalArgumentException")
         void negativeWordCountThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> new LoremIpsumGenerator().generateSentence(-1));
+                         () -> new LoremIpsumGenerator().generateSentence(-1));
         }
     }
+
 
     @Nested
     @DisplayName("generateParagraph()")
@@ -212,7 +221,7 @@ class LoremIpsumGeneratorTest {
                 String para = new LoremIpsumGenerator().generateParagraph();
                 long dotCount = para.chars().filter(c -> c == '.').count();
                 assertTrue(dotCount >= 3,
-                        "Expected >= 3 sentences in paragraph, got " + dotCount);
+                           "Expected >= 3 sentences in paragraph, got " + dotCount);
             }
         }
 
@@ -223,7 +232,7 @@ class LoremIpsumGeneratorTest {
                 String para = new LoremIpsumGenerator().generateParagraph(3);
                 long dotCount = para.chars().filter(c -> c == '.').count();
                 assertEquals(3, dotCount,
-                        "Expected exactly 3 sentences in: " + para);
+                             "Expected exactly 3 sentences in: " + para);
             }
         }
 
@@ -231,16 +240,17 @@ class LoremIpsumGeneratorTest {
         @DisplayName("generateParagraph(0) throws IllegalArgumentException")
         void zeroSentenceCountThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> new LoremIpsumGenerator().generateParagraph(0));
+                         () -> new LoremIpsumGenerator().generateParagraph(0));
         }
 
         @Test
         @DisplayName("generateParagraph(-1) throws IllegalArgumentException")
         void negativeSentenceCountThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> new LoremIpsumGenerator().generateParagraph(-1));
+                         () -> new LoremIpsumGenerator().generateParagraph(-1));
         }
     }
+
 
     @Nested
     @DisplayName("Seeded generation")
@@ -270,6 +280,7 @@ class LoremIpsumGeneratorTest {
             }
         }
     }
+
 
     @Nested
     @DisplayName("Generators factory")

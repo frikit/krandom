@@ -27,12 +27,18 @@ import java.util.Locale;
  */
 public interface FirstNameDataProvider {
 
-    /** The locale this provider supplies data for. */
+    /**
+     * The locale this provider supplies data for.
+     */
     Locale getLocale();
 
-    /** Male first names for this locale. */
+    /**
+     * Male first names for this locale.
+     */
     String[] getMaleFirstNames();
 
-    /** Female first names for this locale. */
+    /**
+     * Female first names for this locale.
+     */
     String[] getFemaleFirstNames();
 }

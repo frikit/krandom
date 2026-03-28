@@ -10,15 +10,30 @@ import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.Locale;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CommerceGenerator")
 class CommerceGeneratorTest {
+
+    private static Random fixedRandom(int value) {
+        return new Random() {
+
+            @Override
+            public int nextInt(int bound) {
+                return Math.min(value, bound - 1);
+            }
+        };
+    }
 
     @Test
     @DisplayName("generates product fields and defaults")
@@ -61,15 +76,15 @@ class CommerceGeneratorTest {
     @DisplayName("covers locale switch branches for vocabulary providers")
     void localeSwitchCoverage() {
         Locale[] locales = {
-                Locale.US,
-                Locale.GERMANY,
-                Locale.FRANCE,
-                Locale.of("es", "ES"),
-                Locale.ITALY
+            Locale.US,
+            Locale.GERMANY,
+            Locale.FRANCE,
+            Locale.of("es", "ES"),
+            Locale.ITALY
         };
         for (Locale locale : locales) {
             CommerceGenerator generator = new CommerceGenerator(
-                    GeneratorConfig.builder().seed(10L).locale(locale).build()
+                GeneratorConfig.builder().seed(10L).locale(locale).build()
             );
             assertFalse(generator.generateAdjective().isBlank());
             assertFalse(generator.generateMaterial().isBlank());
@@ -86,9 +101,9 @@ class CommerceGeneratorTest {
         assertThrows(NullPointerException.class, () -> generator.generatePrice(null, BigDecimal.TEN));
         assertThrows(NullPointerException.class, () -> generator.generatePrice(BigDecimal.ONE, null));
         assertThrows(IllegalArgumentException.class,
-                () -> generator.generatePrice(BigDecimal.valueOf(-1), BigDecimal.ONE));
+                     () -> generator.generatePrice(BigDecimal.valueOf(-1), BigDecimal.ONE));
         assertThrows(IllegalArgumentException.class,
-                () -> generator.generatePrice(BigDecimal.TEN, BigDecimal.ONE));
+                     () -> generator.generatePrice(BigDecimal.TEN, BigDecimal.ONE));
     }
 
     @Test
@@ -115,14 +130,5 @@ class CommerceGeneratorTest {
 
         randomField.set(generator, fixedRandom(2));
         assertTrue(generator.generateProductCode().matches("\\d{13}"));
-    }
-
-    private static Random fixedRandom(int value) {
-        return new Random() {
-            @Override
-            public int nextInt(int bound) {
-                return Math.min(value, bound - 1);
-            }
-        };
     }
 }

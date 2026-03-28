@@ -17,9 +17,9 @@ import java.util.Random;
  */
 public final class CryptoAddressGenerator implements Generator<String> {
 
-    private static final char[] HEX_LOWER = "0123456789abcdef".toCharArray();
-    private static final char[] BASE58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
-    private static final String[] CHAINS = {"btc", "eth", "ltc"};
+    private static final char[]   HEX_LOWER = "0123456789abcdef".toCharArray();
+    private static final char[]   BASE58    = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
+    private static final String[] CHAINS    = { "btc", "eth", "ltc" };
 
     private final Random random;
 
@@ -30,8 +30,8 @@ public final class CryptoAddressGenerator implements Generator<String> {
     public CryptoAddressGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

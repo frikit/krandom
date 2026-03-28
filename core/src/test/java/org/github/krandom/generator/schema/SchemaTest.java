@@ -14,7 +14,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Schema")
 class SchemaTest {
@@ -46,7 +48,7 @@ class SchemaTest {
     @DisplayName("record index increments across generate and loop")
     void recordIndex() {
         Map<String, SchemaValueProvider> fields = Map.of(
-                "index", ctx -> ctx.recordIndex()
+            "index", ctx -> ctx.recordIndex()
         );
         Schema schema = new Schema(fields);
         assertEquals(0, schema.generate().get("index"));

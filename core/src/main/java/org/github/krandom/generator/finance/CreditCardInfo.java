@@ -9,14 +9,15 @@ package org.github.krandom.generator.finance;
  * GoFakeit-style credit card payload.
  *
  * @param number card number
- * @param type card provider/type
- * @param exp expiration date
- * @param cvv security code
+ * @param type   card provider/type
+ * @param exp    expiration date
+ * @param cvv    security code
  */
 public record CreditCardInfo(
-        String number,
-        String type,
-        String exp,
-        String cvv
+    String number,
+    String type,
+    String exp,
+    String cvv
 ) {
+
 }

@@ -29,9 +29,9 @@ import java.util.Random;
  */
 public final class NationalIdGenerator implements Generator<String> {
 
-    private final Random random;
+    private final Random             random;
     private final NationalIdProvider provider;
-    private final Locale locale;
+    private final Locale             locale;
 
     /**
      * Creates a generator for the given locale using a secure random source.
@@ -58,12 +58,12 @@ public final class NationalIdGenerator implements Generator<String> {
         Objects.requireNonNull(locale, "locale must not be null");
         if (!NationalIdRegistry.isRegistered(locale)) {
             throw new UnsupportedOperationException(
-                    "Locale " + locale + " is not supported. Registered locales: " +
-                    NationalIdRegistry.registeredKeys());
+                "Locale " + locale + " is not supported. Registered locales: " +
+                NationalIdRegistry.registeredKeys());
         }
-        this.locale   = locale;
+        this.locale = locale;
         this.provider = NationalIdRegistry.forLocale(locale);
-        this.random   = seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom();
+        this.random = seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom();
     }
 
     /**

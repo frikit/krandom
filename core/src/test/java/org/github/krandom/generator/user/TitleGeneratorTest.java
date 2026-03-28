@@ -16,7 +16,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("TitleGenerator")
 class TitleGeneratorTest {
@@ -25,7 +32,7 @@ class TitleGeneratorTest {
     @DisplayName("default constructor uses US locale")
     void defaultConstructor() {
         TitleGenerator gen = new TitleGenerator();
-        
+
         assertEquals(Locale.US, gen.getLocale());
         assertTrue(gen.getTitleCount() > 0);
     }
@@ -35,7 +42,7 @@ class TitleGeneratorTest {
     void generateNotEmpty() {
         TitleGenerator gen = new TitleGenerator();
         String title = gen.generate();
-        
+
         assertNotNull(title);
         assertFalse(title.isEmpty());
     }
@@ -44,12 +51,12 @@ class TitleGeneratorTest {
     @DisplayName("US locale generates American-style titles")
     void usLocaleTitles() {
         TitleGenerator gen = new TitleGenerator(Locale.US);
-        
+
         Set<String> titles = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             titles.add(gen.generate());
         }
-        
+
         // US titles have periods
         assertTrue(titles.contains("Mr.") || titles.contains("Mrs.") || titles.contains("Dr."));
         assertTrue(gen.getTitleCount() > 5);
@@ -59,34 +66,34 @@ class TitleGeneratorTest {
     @DisplayName("UK locale generates British-style titles")
     void ukLocaleTitles() {
         TitleGenerator gen = new TitleGenerator(Locale.UK);
-        
+
         Set<String> titles = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             titles.add(gen.generate());
         }
-        
+
         // UK titles may include nobility
         assertTrue(titles.size() > 5);
         // UK style without periods or with special titles
-        assertTrue(titles.stream().anyMatch(t -> 
-            t.equals("Mr") || t.equals("Sir") || t.equals("Lord") || t.equals("Dame")));
+        assertTrue(titles.stream().anyMatch(t ->
+                                                t.equals("Mr") || t.equals("Sir") || t.equals("Lord") || t.equals("Dame")));
     }
 
     @Test
     @DisplayName("German locale generates German titles")
     void germanLocaleTitles() {
         GeneratorConfig config = GeneratorConfig.builder()
-                .locale(Locale.GERMANY)
-                .build();
+                                                .locale(Locale.GERMANY)
+                                                .build();
         TitleGenerator gen = new TitleGenerator(config);
-        
+
         assertEquals(Locale.GERMANY, gen.getLocale());
-        
+
         Set<String> titles = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             titles.add(gen.generate());
         }
-        
+
         assertTrue(titles.contains("Herr") || titles.contains("Frau"));
         assertTrue(gen.getTitleCount() > 3);
     }
@@ -95,12 +102,12 @@ class TitleGeneratorTest {
     @DisplayName("Japanese locale generates Japanese honorifics")
     void japaneseLocaleTitles() {
         TitleGenerator gen = new TitleGenerator(Locale.JAPAN);
-        
+
         Set<String> titles = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             titles.add(gen.generate());
         }
-        
+
         // Japanese honorifics
         assertTrue(titles.contains("さん") || titles.contains("様") || titles.contains("先生"));
         assertTrue(gen.getTitleCount() >= 5);
@@ -110,12 +117,12 @@ class TitleGeneratorTest {
     @DisplayName("French locale generates French titles")
     void frenchLocaleTitles() {
         TitleGenerator gen = new TitleGenerator(Locale.FRANCE);
-        
+
         Set<String> titles = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             titles.add(gen.generate());
         }
-        
+
         assertTrue(titles.contains("M.") || titles.contains("Mme") || titles.contains("Dr"));
     }
 
@@ -123,21 +130,21 @@ class TitleGeneratorTest {
     @DisplayName("seeded generator produces reproducible results")
     void seededReproducibility() {
         GeneratorConfig config1 = GeneratorConfig.builder()
-                .locale(Locale.US)
-                .seed(12345L)
-                .build();
-        
+                                                 .locale(Locale.US)
+                                                 .seed(12345L)
+                                                 .build();
+
         GeneratorConfig config2 = GeneratorConfig.builder()
-                .locale(Locale.US)
-                .seed(12345L)
-                .build();
-        
+                                                 .locale(Locale.US)
+                                                 .seed(12345L)
+                                                 .build();
+
         TitleGenerator gen1 = new TitleGenerator(config1);
         TitleGenerator gen2 = new TitleGenerator(config2);
-        
+
         List<String> list1 = gen1.generateList(20);
         List<String> list2 = gen2.generateList(20);
-        
+
         assertEquals(list1, list2);
     }
 
@@ -145,19 +152,19 @@ class TitleGeneratorTest {
     @DisplayName("different seeds produce different sequences")
     void differentSeeds() {
         GeneratorConfig config1 = GeneratorConfig.builder()
-                .seed(111L)
-                .build();
-        
+                                                 .seed(111L)
+                                                 .build();
+
         GeneratorConfig config2 = GeneratorConfig.builder()
-                .seed(222L)
-                .build();
-        
+                                                 .seed(222L)
+                                                 .build();
+
         TitleGenerator gen1 = new TitleGenerator(config1);
         TitleGenerator gen2 = new TitleGenerator(config2);
-        
+
         List<String> list1 = gen1.generateList(50);
         List<String> list2 = gen2.generateList(50);
-        
+
         assertNotEquals(list1, list2);
     }
 
@@ -165,9 +172,9 @@ class TitleGeneratorTest {
     @DisplayName("generateList() produces correct count")
     void generateListCount() {
         TitleGenerator gen = new TitleGenerator();
-        
+
         List<String> titles = gen.generateList(15);
-        
+
         assertEquals(15, titles.size());
         titles.forEach(title -> {
             assertNotNull(title);
@@ -179,12 +186,12 @@ class TitleGeneratorTest {
     @DisplayName("unsupported locale throws exception")
     void unsupportedLocaleThrowsException() {
         Locale unsupported = Locale.of("xx", "YY");
-        
+
         UnsupportedOperationException exception = assertThrows(
             UnsupportedOperationException.class,
             () -> new TitleGenerator(unsupported)
         );
-        
+
         assertTrue(exception.getMessage().contains("not supported"));
         assertTrue(exception.getMessage().contains("xx_YY"));
     }
@@ -194,10 +201,10 @@ class TitleGeneratorTest {
     void languageOnlyLocale() {
         Locale english = Locale.of("en");
         TitleGenerator gen = new TitleGenerator(english);
-        
+
         String title = gen.generate();
         assertNotNull(title);
-        
+
         Set<String> titles = new HashSet<>();
         for (int i = 0; i < 50; i++) {
             titles.add(gen.generate());
@@ -219,11 +226,11 @@ class TitleGeneratorTest {
     @DisplayName("stream() generates continuous values")
     void streamGeneration() {
         TitleGenerator gen = new TitleGenerator();
-        
+
         List<String> titles = gen.stream()
-                .limit(25)
-                .toList();
-        
+                                 .limit(25)
+                                 .toList();
+
         assertEquals(25, titles.size());
         titles.forEach(title -> {
             assertNotNull(title);
@@ -237,15 +244,15 @@ class TitleGeneratorTest {
         TitleGenerator usGen = new TitleGenerator(Locale.US);
         TitleGenerator ukGen = new TitleGenerator(Locale.UK);
         TitleGenerator deGen = new TitleGenerator(Locale.GERMANY);
-        
+
         String usTitle = usGen.generate();
         String ukTitle = ukGen.generate();
         String deTitle = deGen.generate();
-        
+
         assertNotNull(usTitle);
         assertNotNull(ukTitle);
         assertNotNull(deTitle);
-        
+
         assertEquals(Locale.US, usGen.getLocale());
         assertEquals(Locale.UK, ukGen.getLocale());
         assertEquals(Locale.GERMANY, deGen.getLocale());
@@ -273,7 +280,7 @@ class TitleGeneratorTest {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             TitleGenerator gen = new TitleGenerator(supportedLocale.locale());
             assertTrue(gen.getTitleCount() > 0,
-                    "Locale " + supportedLocale.locale() + " should have titles");
+                       "Locale " + supportedLocale.locale() + " should have titles");
         }
     }
 
@@ -283,11 +290,19 @@ class TitleGeneratorTest {
     @DisplayName("custom provider registered for new locale is used by TitleGenerator")
     void customLocaleRegistration() {
         Locale korean = Locale.of("ko", "KR");
-        String[] koreanTitles = {"씨", "님", "박사", "교수"};
+        String[] koreanTitles = { "씨", "님", "박사", "교수" };
 
         TitleDataRegistry.register(new TitleDataProvider() {
-            @Override public Locale getLocale() { return korean; }
-            @Override public String[] getTitles() { return koreanTitles; }
+
+            @Override
+            public Locale getLocale() {
+                return korean;
+            }
+
+            @Override
+            public String[] getTitles() {
+                return koreanTitles;
+            }
         });
 
         TitleGenerator gen = new TitleGenerator(korean);
@@ -302,11 +317,19 @@ class TitleGeneratorTest {
     @DisplayName("custom provider overrides built-in locale")
     void customProviderOverridesBuiltIn() {
         Locale us = Locale.US;
-        String[] custom = {"Ser", "Dame"};
+        String[] custom = { "Ser", "Dame" };
 
         TitleDataRegistry.register(new TitleDataProvider() {
-            @Override public Locale getLocale() { return us; }
-            @Override public String[] getTitles() { return custom; }
+
+            @Override
+            public Locale getLocale() {
+                return us;
+            }
+
+            @Override
+            public String[] getTitles() {
+                return custom;
+            }
         });
 
         TitleGenerator gen = new TitleGenerator(us);
@@ -325,8 +348,16 @@ class TitleGeneratorTest {
     void customLocaleAppearsInKeys() {
         Locale swahili = Locale.of("sw");
         TitleDataRegistry.register(new TitleDataProvider() {
-            @Override public Locale getLocale() { return swahili; }
-            @Override public String[] getTitles() { return new String[]{"Bwana", "Bibi"}; }
+
+            @Override
+            public Locale getLocale() {
+                return swahili;
+            }
+
+            @Override
+            public String[] getTitles() {
+                return new String[] { "Bwana", "Bibi" };
+            }
         });
 
         assertTrue(TitleDataRegistry.registeredKeys().contains("sw"));
@@ -338,8 +369,16 @@ class TitleGeneratorTest {
     void languageOnlyFallback() {
         Locale arabic = Locale.of("ar");
         TitleDataRegistry.register(new TitleDataProvider() {
-            @Override public Locale getLocale() { return arabic; }
-            @Override public String[] getTitles() { return new String[]{"السيد", "السيدة"}; }
+
+            @Override
+            public Locale getLocale() {
+                return arabic;
+            }
+
+            @Override
+            public String[] getTitles() {
+                return new String[] { "السيد", "السيدة" };
+            }
         });
 
         // ar_EG should fall back to the "ar" language entry.
@@ -361,8 +400,16 @@ class TitleGeneratorTest {
     void generateWithEmptyTitlesArray() {
         Locale empty = Locale.of("zz", "ZZ");
         TitleDataRegistry.register(new TitleDataProvider() {
-            @Override public Locale getLocale() { return empty; }
-            @Override public String[] getTitles() { return new String[0]; }
+
+            @Override
+            public Locale getLocale() {
+                return empty;
+            }
+
+            @Override
+            public String[] getTitles() {
+                return new String[0];
+            }
         });
 
         TitleGenerator gen = new TitleGenerator(empty);
@@ -407,11 +454,19 @@ class TitleGeneratorTest {
     @DisplayName("explicit language-only registration replaces language fallback")
     void languageOnlyRegistrationReplacesExistingFallback() {
         Locale plain = Locale.of("en");
-        String[] slim = {"Doc"};
+        String[] slim = { "Doc" };
 
         TitleDataRegistry.register(new TitleDataProvider() {
-            @Override public Locale getLocale() { return plain; }
-            @Override public String[] getTitles() { return slim; }
+
+            @Override
+            public Locale getLocale() {
+                return plain;
+            }
+
+            @Override
+            public String[] getTitles() {
+                return slim;
+            }
         });
 
         TitleDataProvider found = TitleDataRegistry.forLocale(plain);
@@ -421,8 +476,16 @@ class TitleGeneratorTest {
         // Restore the language-level "en" fallback. Must use a locale with no country so
         // register() takes the explicit-put path rather than putIfAbsent.
         TitleDataRegistry.register(new TitleDataProvider() {
-            @Override public Locale getLocale() { return Locale.of("en"); }
-            @Override public String[] getTitles() { return new BuiltInTitleDataProvider(SupportedLocale.EN_US).getTitles(); }
+
+            @Override
+            public Locale getLocale() {
+                return Locale.of("en");
+            }
+
+            @Override
+            public String[] getTitles() {
+                return new BuiltInTitleDataProvider(SupportedLocale.EN_US).getTitles();
+            }
         });
     }
 }

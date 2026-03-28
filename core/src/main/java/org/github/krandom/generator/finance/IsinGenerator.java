@@ -21,7 +21,7 @@ public final class IsinGenerator implements Generator<String> {
     private static final String ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     private final GeneratorConfig config;
-    private final Random random;
+    private final Random          random;
 
     public IsinGenerator() {
         this(GeneratorConfig.defaults());
@@ -34,25 +34,8 @@ public final class IsinGenerator implements Generator<String> {
     public IsinGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
-    }
-
-    @Override
-    public String generate() {
-        return generate(config.getLocale());
-    }
-
-    public String generate(Locale locale) {
-        Objects.requireNonNull(locale, "locale must not be null");
-        String country = normalizeCountry(locale);
-        StringBuilder base = new StringBuilder(11);
-        base.append(country);
-        for (int i = 0; i < 9; i++) {
-            base.append(ALNUM.charAt(random.nextInt(ALNUM.length())));
-        }
-        int check = computeCheckDigit(base.toString());
-        return base.append(check).toString();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     static int computeCheckDigit(String isinWithoutCheck) {
@@ -90,5 +73,22 @@ public final class IsinGenerator implements Generator<String> {
             return "US";
         }
         return country.toUpperCase(Locale.ROOT);
+    }
+
+    @Override
+    public String generate() {
+        return generate(config.getLocale());
+    }
+
+    public String generate(Locale locale) {
+        Objects.requireNonNull(locale, "locale must not be null");
+        String country = normalizeCountry(locale);
+        StringBuilder base = new StringBuilder(11);
+        base.append(country);
+        for (int i = 0; i < 9; i++) {
+            base.append(ALNUM.charAt(random.nextInt(ALNUM.length())));
+        }
+        int check = computeCheckDigit(base.toString());
+        return base.append(check).toString();
     }
 }

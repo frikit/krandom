@@ -14,7 +14,7 @@ import java.util.Locale;
  */
 final class BuiltInStreetAddressDataProvider implements StreetAddressDataProvider {
 
-    private final Locale locale;
+    private final Locale   locale;
     private final String[] streetNames;
     private final String[] streetTypesShort;
     private final String[] streetTypesLong;

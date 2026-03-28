@@ -16,10 +16,10 @@ import java.util.Objects;
  */
 public final class FilePathGenerator implements Generator<String> {
 
-    private final DirPathGenerator dirPathGenerator;
-    private final FileNameGenerator fileNameGenerator;
+    private final DirPathGenerator       dirPathGenerator;
+    private final FileNameGenerator      fileNameGenerator;
     private final FileExtensionGenerator fileExtensionGenerator;
-    private final Locale locale;
+    private final Locale                 locale;
 
     public FilePathGenerator() {
         this(GeneratorConfig.defaults());

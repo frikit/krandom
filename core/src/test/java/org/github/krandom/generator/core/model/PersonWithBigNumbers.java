@@ -16,8 +16,14 @@ public class PersonWithBigNumbers {
     private BigDecimal price;
     private BigInteger count;
 
-    public PersonWithBigNumbers() { }
+    public PersonWithBigNumbers() {
+    }
 
-    public BigDecimal getPrice() { return price; }
-    public BigInteger getCount() { return count; }
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public BigInteger getCount() {
+        return count;
+    }
 }

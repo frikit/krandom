@@ -14,7 +14,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CoordinatesGenerator")
 class CoordinatesGeneratorTest {
@@ -34,10 +38,10 @@ class CoordinatesGeneratorTest {
     @DisplayName("constructor with config accepts config")
     void constructorWithConfig() {
         GeneratorConfig config = GeneratorConfig.builder()
-                .locale(Locale.GERMANY)
-                .seed(42L)
-                .build();
-        
+                                                .locale(Locale.GERMANY)
+                                                .seed(42L)
+                                                .build();
+
         CoordinatesGenerator gen = new CoordinatesGenerator(config);
         assertEquals(Locale.GERMANY, gen.getLocale());
     }
@@ -53,8 +57,8 @@ class CoordinatesGeneratorTest {
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
         NullPointerException ex = assertThrows(
-                NullPointerException.class,
-                () -> new CoordinatesGenerator((GeneratorConfig) null)
+            NullPointerException.class,
+            () -> new CoordinatesGenerator((GeneratorConfig) null)
         );
         assertTrue(ex.getMessage().contains("config must not be null"));
     }
@@ -63,8 +67,8 @@ class CoordinatesGeneratorTest {
     @DisplayName("null locale throws NullPointerException")
     void nullLocaleThrows() {
         NullPointerException ex = assertThrows(
-                NullPointerException.class,
-                () -> new CoordinatesGenerator((Locale) null)
+            NullPointerException.class,
+            () -> new CoordinatesGenerator((Locale) null)
         );
         assertTrue(ex.getMessage().contains("locale must not be null"));
     }
@@ -75,7 +79,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("US locale has correct bounds")
     void usBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
-        
+
         assertEquals(24.5, gen.getMinLatitude(), EPSILON);
         assertEquals(49.0, gen.getMaxLatitude(), EPSILON);
         assertEquals(-125.0, gen.getMinLongitude(), EPSILON);
@@ -86,11 +90,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("US locale generates latitude within bounds")
     void usLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= 24.5 && lat <= 49.0, 
-                    "Latitude " + lat + " is outside US bounds");
+            assertTrue(lat >= 24.5 && lat <= 49.0,
+                       "Latitude " + lat + " is outside US bounds");
         }
     }
 
@@ -98,11 +102,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("US locale generates longitude within bounds")
     void usLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= -125.0 && lon <= -66.0, 
-                    "Longitude " + lon + " is outside US bounds");
+            assertTrue(lon >= -125.0 && lon <= -66.0,
+                       "Longitude " + lon + " is outside US bounds");
         }
     }
 
@@ -111,15 +115,15 @@ class CoordinatesGeneratorTest {
     void usCoordinatePairs() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         String coords = gen.generate();
-        
+
         assertNotNull(coords);
         assertTrue(coords.matches("-?\\d+\\.\\d+,-?\\d+\\.\\d+"),
-                "Expected 'lat,lon' format, got: " + coords);
-        
+                   "Expected 'lat,lon' format, got: " + coords);
+
         String[] parts = coords.split(",");
         double lat = Double.parseDouble(parts[0]);
         double lon = Double.parseDouble(parts[1]);
-        
+
         assertTrue(lat >= 24.5 && lat <= 49.0);
         assertTrue(lon >= -125.0 && lon <= -66.0);
     }
@@ -130,7 +134,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("UK locale has correct bounds")
     void ukBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.UK);
-        
+
         assertEquals(49.9, gen.getMinLatitude(), EPSILON);
         assertEquals(60.8, gen.getMaxLatitude(), EPSILON);
         assertEquals(-8.2, gen.getMinLongitude(), EPSILON);
@@ -141,11 +145,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("UK locale generates latitude within bounds")
     void ukLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.UK);
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= 49.9 && lat <= 60.8, 
-                    "Latitude " + lat + " is outside UK bounds");
+            assertTrue(lat >= 49.9 && lat <= 60.8,
+                       "Latitude " + lat + " is outside UK bounds");
         }
     }
 
@@ -153,11 +157,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("UK locale generates longitude within bounds")
     void ukLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.UK);
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= -8.2 && lon <= 1.8, 
-                    "Longitude " + lon + " is outside UK bounds");
+            assertTrue(lon >= -8.2 && lon <= 1.8,
+                       "Longitude " + lon + " is outside UK bounds");
         }
     }
 
@@ -167,9 +171,9 @@ class CoordinatesGeneratorTest {
     @DisplayName("Australia locale has correct bounds")
     void australiaBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(
-                new Locale("en", "AU")
+            new Locale("en", "AU")
         );
-        
+
         assertEquals(-44.0, gen.getMinLatitude(), EPSILON);
         assertEquals(-10.0, gen.getMaxLatitude(), EPSILON);
         assertEquals(113.0, gen.getMinLongitude(), EPSILON);
@@ -180,11 +184,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Australia locale generates latitude within bounds")
     void australiaLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en", "AU"));
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= -44.0 && lat <= -10.0, 
-                    "Latitude " + lat + " is outside Australia bounds");
+            assertTrue(lat >= -44.0 && lat <= -10.0,
+                       "Latitude " + lat + " is outside Australia bounds");
         }
     }
 
@@ -192,11 +196,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Australia locale generates longitude within bounds")
     void australiaLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en", "AU"));
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= 113.0 && lon <= 154.0, 
-                    "Longitude " + lon + " is outside Australia bounds");
+            assertTrue(lon >= 113.0 && lon <= 154.0,
+                       "Longitude " + lon + " is outside Australia bounds");
         }
     }
 
@@ -206,7 +210,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("Germany locale has correct bounds")
     void germanyBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.GERMANY);
-        
+
         assertEquals(47.3, gen.getMinLatitude(), EPSILON);
         assertEquals(55.0, gen.getMaxLatitude(), EPSILON);
         assertEquals(5.9, gen.getMinLongitude(), EPSILON);
@@ -217,11 +221,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Germany locale generates latitude within bounds")
     void germanyLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.GERMANY);
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= 47.3 && lat <= 55.0, 
-                    "Latitude " + lat + " is outside Germany bounds");
+            assertTrue(lat >= 47.3 && lat <= 55.0,
+                       "Latitude " + lat + " is outside Germany bounds");
         }
     }
 
@@ -229,11 +233,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Germany locale generates longitude within bounds")
     void germanyLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.GERMANY);
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= 5.9 && lon <= 15.0, 
-                    "Longitude " + lon + " is outside Germany bounds");
+            assertTrue(lon >= 5.9 && lon <= 15.0,
+                       "Longitude " + lon + " is outside Germany bounds");
         }
     }
 
@@ -243,7 +247,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("France locale has correct bounds")
     void franceBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.FRANCE);
-        
+
         assertEquals(41.3, gen.getMinLatitude(), EPSILON);
         assertEquals(51.1, gen.getMaxLatitude(), EPSILON);
         assertEquals(-5.2, gen.getMinLongitude(), EPSILON);
@@ -254,11 +258,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("France locale generates latitude within bounds")
     void franceLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.FRANCE);
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= 41.3 && lat <= 51.1, 
-                    "Latitude " + lat + " is outside France bounds");
+            assertTrue(lat >= 41.3 && lat <= 51.1,
+                       "Latitude " + lat + " is outside France bounds");
         }
     }
 
@@ -266,11 +270,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("France locale generates longitude within bounds")
     void franceLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.FRANCE);
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= -5.2 && lon <= 9.6, 
-                    "Longitude " + lon + " is outside France bounds");
+            assertTrue(lon >= -5.2 && lon <= 9.6,
+                       "Longitude " + lon + " is outside France bounds");
         }
     }
 
@@ -280,9 +284,9 @@ class CoordinatesGeneratorTest {
     @DisplayName("Spain locale has correct bounds")
     void spainBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(
-                new Locale("es", "ES")
+            new Locale("es", "ES")
         );
-        
+
         assertEquals(36.0, gen.getMinLatitude(), EPSILON);
         assertEquals(43.8, gen.getMaxLatitude(), EPSILON);
         assertEquals(-9.3, gen.getMinLongitude(), EPSILON);
@@ -293,11 +297,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Spain locale generates latitude within bounds")
     void spainLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("es", "ES"));
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= 36.0 && lat <= 43.8, 
-                    "Latitude " + lat + " is outside Spain bounds");
+            assertTrue(lat >= 36.0 && lat <= 43.8,
+                       "Latitude " + lat + " is outside Spain bounds");
         }
     }
 
@@ -305,11 +309,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Spain locale generates longitude within bounds")
     void spainLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("es", "ES"));
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= -9.3 && lon <= 4.3, 
-                    "Longitude " + lon + " is outside Spain bounds");
+            assertTrue(lon >= -9.3 && lon <= 4.3,
+                       "Longitude " + lon + " is outside Spain bounds");
         }
     }
 
@@ -319,7 +323,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("Italy locale has correct bounds")
     void italyBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.ITALY);
-        
+
         assertEquals(36.6, gen.getMinLatitude(), EPSILON);
         assertEquals(47.1, gen.getMaxLatitude(), EPSILON);
         assertEquals(6.6, gen.getMinLongitude(), EPSILON);
@@ -330,11 +334,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Italy locale generates latitude within bounds")
     void italyLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.ITALY);
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= 36.6 && lat <= 47.1, 
-                    "Latitude " + lat + " is outside Italy bounds");
+            assertTrue(lat >= 36.6 && lat <= 47.1,
+                       "Latitude " + lat + " is outside Italy bounds");
         }
     }
 
@@ -342,11 +346,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Italy locale generates longitude within bounds")
     void italyLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.ITALY);
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= 6.6 && lon <= 18.5, 
-                    "Longitude " + lon + " is outside Italy bounds");
+            assertTrue(lon >= 6.6 && lon <= 18.5,
+                       "Longitude " + lon + " is outside Italy bounds");
         }
     }
 
@@ -356,9 +360,9 @@ class CoordinatesGeneratorTest {
     @DisplayName("Brazil locale has correct bounds")
     void brazilBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(
-                new Locale("pt", "BR")
+            new Locale("pt", "BR")
         );
-        
+
         assertEquals(-33.7, gen.getMinLatitude(), EPSILON);
         assertEquals(5.3, gen.getMaxLatitude(), EPSILON);
         assertEquals(-74.0, gen.getMinLongitude(), EPSILON);
@@ -369,11 +373,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Brazil locale generates latitude within bounds")
     void brazilLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("pt", "BR"));
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= -33.7 && lat <= 5.3, 
-                    "Latitude " + lat + " is outside Brazil bounds");
+            assertTrue(lat >= -33.7 && lat <= 5.3,
+                       "Latitude " + lat + " is outside Brazil bounds");
         }
     }
 
@@ -381,11 +385,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Brazil locale generates longitude within bounds")
     void brazilLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("pt", "BR"));
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= -74.0 && lon <= -34.8, 
-                    "Longitude " + lon + " is outside Brazil bounds");
+            assertTrue(lon >= -74.0 && lon <= -34.8,
+                       "Longitude " + lon + " is outside Brazil bounds");
         }
     }
 
@@ -395,7 +399,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("Japan locale has correct bounds")
     void japanBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.JAPAN);
-        
+
         assertEquals(24.0, gen.getMinLatitude(), EPSILON);
         assertEquals(45.5, gen.getMaxLatitude(), EPSILON);
         assertEquals(122.9, gen.getMinLongitude(), EPSILON);
@@ -406,11 +410,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Japan locale generates latitude within bounds")
     void japanLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.JAPAN);
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= 24.0 && lat <= 45.5, 
-                    "Latitude " + lat + " is outside Japan bounds");
+            assertTrue(lat >= 24.0 && lat <= 45.5,
+                       "Latitude " + lat + " is outside Japan bounds");
         }
     }
 
@@ -418,11 +422,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("Japan locale generates longitude within bounds")
     void japanLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.JAPAN);
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= 122.9 && lon <= 153.9, 
-                    "Longitude " + lon + " is outside Japan bounds");
+            assertTrue(lon >= 122.9 && lon <= 153.9,
+                       "Longitude " + lon + " is outside Japan bounds");
         }
     }
 
@@ -432,7 +436,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("China locale has correct bounds")
     void chinaBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.CHINA);
-        
+
         assertEquals(18.2, gen.getMinLatitude(), EPSILON);
         assertEquals(53.6, gen.getMaxLatitude(), EPSILON);
         assertEquals(73.5, gen.getMinLongitude(), EPSILON);
@@ -443,11 +447,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("China locale generates latitude within bounds")
     void chinaLatitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.CHINA);
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
-            assertTrue(lat >= 18.2 && lat <= 53.6, 
-                    "Latitude " + lat + " is outside China bounds");
+            assertTrue(lat >= 18.2 && lat <= 53.6,
+                       "Latitude " + lat + " is outside China bounds");
         }
     }
 
@@ -455,11 +459,11 @@ class CoordinatesGeneratorTest {
     @DisplayName("China locale generates longitude within bounds")
     void chinaLongitudeWithinBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.CHINA);
-        
+
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
-            assertTrue(lon >= 73.5 && lon <= 135.0, 
-                    "Longitude " + lon + " is outside China bounds");
+            assertTrue(lon >= 73.5 && lon <= 135.0,
+                       "Longitude " + lon + " is outside China bounds");
         }
     }
 
@@ -470,11 +474,11 @@ class CoordinatesGeneratorTest {
     void defaultPrecision() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         double lat = gen.generateLatitude();
-        
+
         String latStr = String.valueOf(lat);
         int decimalPlaces = latStr.length() - latStr.indexOf('.') - 1;
-        assertTrue(decimalPlaces <= 6, 
-                "Expected at most 6 decimal places, got: " + decimalPlaces);
+        assertTrue(decimalPlaces <= 6,
+                   "Expected at most 6 decimal places, got: " + decimalPlaces);
     }
 
     @Test
@@ -482,11 +486,11 @@ class CoordinatesGeneratorTest {
     void precision1() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         double lat = gen.generateLatitude(1);
-        
+
         String latStr = String.valueOf(lat);
         int decimalPlaces = latStr.length() - latStr.indexOf('.') - 1;
-        assertTrue(decimalPlaces <= 1, 
-                "Expected at most 1 decimal place, got: " + decimalPlaces);
+        assertTrue(decimalPlaces <= 1,
+                   "Expected at most 1 decimal place, got: " + decimalPlaces);
     }
 
     @Test
@@ -494,11 +498,11 @@ class CoordinatesGeneratorTest {
     void precision3() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         double lat = gen.generateLatitude(3);
-        
+
         String latStr = String.valueOf(lat);
         int decimalPlaces = latStr.length() - latStr.indexOf('.') - 1;
-        assertTrue(decimalPlaces <= 3, 
-                "Expected at most 3 decimal places, got: " + decimalPlaces);
+        assertTrue(decimalPlaces <= 3,
+                   "Expected at most 3 decimal places, got: " + decimalPlaces);
     }
 
     @Test
@@ -506,11 +510,11 @@ class CoordinatesGeneratorTest {
     void precision10() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         double lat = gen.generateLatitude(10);
-        
+
         String latStr = String.valueOf(lat);
         int decimalPlaces = latStr.length() - latStr.indexOf('.') - 1;
-        assertTrue(decimalPlaces <= 10, 
-                "Expected at most 10 decimal places, got: " + decimalPlaces);
+        assertTrue(decimalPlaces <= 10,
+                   "Expected at most 10 decimal places, got: " + decimalPlaces);
     }
 
     @Test
@@ -518,21 +522,21 @@ class CoordinatesGeneratorTest {
     void longitudePrecision() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         double lon = gen.generateLongitude(2);
-        
+
         String lonStr = String.valueOf(lon);
         int decimalPlaces = lonStr.length() - lonStr.indexOf('.') - 1;
-        assertTrue(decimalPlaces <= 2, 
-                "Expected at most 2 decimal places, got: " + decimalPlaces);
+        assertTrue(decimalPlaces <= 2,
+                   "Expected at most 2 decimal places, got: " + decimalPlaces);
     }
 
     @Test
     @DisplayName("precision < 1 throws IllegalArgumentException")
     void precisionTooLow() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
-        
+
         IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> gen.generateLatitude(0)
+            IllegalArgumentException.class,
+            () -> gen.generateLatitude(0)
         );
         assertTrue(ex.getMessage().contains("precision must be between 1 and 10"));
     }
@@ -541,10 +545,10 @@ class CoordinatesGeneratorTest {
     @DisplayName("precision > 10 throws IllegalArgumentException")
     void precisionTooHigh() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
-        
+
         IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> gen.generateLatitude(11)
+            IllegalArgumentException.class,
+            () -> gen.generateLatitude(11)
         );
         assertTrue(ex.getMessage().contains("precision must be between 1 and 10"));
     }
@@ -553,10 +557,10 @@ class CoordinatesGeneratorTest {
     @DisplayName("negative precision throws IllegalArgumentException")
     void negativePrecision() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
-        
+
         assertThrows(
-                IllegalArgumentException.class,
-                () -> gen.generateLongitude(-1)
+            IllegalArgumentException.class,
+            () -> gen.generateLongitude(-1)
         );
     }
 
@@ -566,17 +570,17 @@ class CoordinatesGeneratorTest {
     @DisplayName("seeded generator produces reproducible results")
     void seededReproducibility() {
         GeneratorConfig config1 = GeneratorConfig.builder()
-                .locale(Locale.US)
-                .seed(42L)
-                .build();
+                                                 .locale(Locale.US)
+                                                 .seed(42L)
+                                                 .build();
         GeneratorConfig config2 = GeneratorConfig.builder()
-                .locale(Locale.US)
-                .seed(42L)
-                .build();
-        
+                                                 .locale(Locale.US)
+                                                 .seed(42L)
+                                                 .build();
+
         CoordinatesGenerator gen1 = new CoordinatesGenerator(config1);
         CoordinatesGenerator gen2 = new CoordinatesGenerator(config2);
-        
+
         for (int i = 0; i < 10; i++) {
             assertEquals(gen1.generate(), gen2.generate());
         }
@@ -586,17 +590,17 @@ class CoordinatesGeneratorTest {
     @DisplayName("different seeds produce different results")
     void differentSeeds() {
         GeneratorConfig config1 = GeneratorConfig.builder()
-                .locale(Locale.US)
-                .seed(42L)
-                .build();
+                                                 .locale(Locale.US)
+                                                 .seed(42L)
+                                                 .build();
         GeneratorConfig config2 = GeneratorConfig.builder()
-                .locale(Locale.US)
-                .seed(123L)
-                .build();
-        
+                                                 .locale(Locale.US)
+                                                 .seed(123L)
+                                                 .build();
+
         CoordinatesGenerator gen1 = new CoordinatesGenerator(config1);
         CoordinatesGenerator gen2 = new CoordinatesGenerator(config2);
-        
+
         assertNotEquals(gen1.generate(), gen2.generate());
     }
 
@@ -604,14 +608,14 @@ class CoordinatesGeneratorTest {
     @DisplayName("unseeded generators produce variety")
     void unseededVariety() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
-        
+
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 50; i++) {
             seen.add(gen.generate());
         }
-        
-        assertTrue(seen.size() > 45, 
-                "Expected high variety, got only " + seen.size() + " unique values");
+
+        assertTrue(seen.size() > 45,
+                   "Expected high variety, got only " + seen.size() + " unique values");
     }
 
     // ── generateList() and stream() tests ─────────────────────────────────────
@@ -621,7 +625,7 @@ class CoordinatesGeneratorTest {
     void generateListCount() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         List<String> coords = gen.generateList(10);
-        
+
         assertEquals(10, coords.size());
     }
 
@@ -630,10 +634,10 @@ class CoordinatesGeneratorTest {
     void generateListValid() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         List<String> coords = gen.generateList(5);
-        
+
         for (String coord : coords) {
             assertTrue(coord.matches("-?\\d+\\.\\d+,-?\\d+\\.\\d+"),
-                    "Invalid coordinate format: " + coord);
+                       "Invalid coordinate format: " + coord);
         }
     }
 
@@ -642,7 +646,7 @@ class CoordinatesGeneratorTest {
     void streamCount() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
         long count = gen.stream().limit(20).count();
-        
+
         assertEquals(20, count);
     }
 
@@ -650,10 +654,10 @@ class CoordinatesGeneratorTest {
     @DisplayName("stream produces valid coordinates")
     void streamValid() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.UK);
-        
+
         gen.stream().limit(10).forEach(coord -> {
             assertTrue(coord.matches("-?\\d+\\.\\d+,-?\\d+\\.\\d+"),
-                    "Invalid coordinate format: " + coord);
+                       "Invalid coordinate format: " + coord);
         });
     }
 
@@ -663,15 +667,15 @@ class CoordinatesGeneratorTest {
     @DisplayName("coordinates are within valid global ranges")
     void withinGlobalRanges() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.US);
-        
+
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
             double lon = gen.generateLongitude();
-            
-            assertTrue(lat >= -90 && lat <= 90, 
-                    "Latitude " + lat + " is outside valid range [-90, 90]");
-            assertTrue(lon >= -180 && lon <= 180, 
-                    "Longitude " + lon + " is outside valid range [-180, 180]");
+
+            assertTrue(lat >= -90 && lat <= 90,
+                       "Latitude " + lat + " is outside valid range [-90, 90]");
+            assertTrue(lon >= -180 && lon <= 180,
+                       "Longitude " + lon + " is outside valid range [-180, 180]");
         }
     }
 
@@ -683,18 +687,18 @@ class CoordinatesGeneratorTest {
             Locale.GERMANY, Locale.FRANCE, new Locale("es", "ES"),
             Locale.ITALY, new Locale("pt", "BR"), Locale.JAPAN, Locale.CHINA
         };
-        
+
         for (Locale locale : locales) {
             CoordinatesGenerator gen = new CoordinatesGenerator(locale);
-            
+
             for (int i = 0; i < 10; i++) {
                 double lat = gen.generateLatitude();
                 double lon = gen.generateLongitude();
-                
-                assertTrue(lat >= -90 && lat <= 90, 
-                        locale + ": Latitude out of range: " + lat);
-                assertTrue(lon >= -180 && lon <= 180, 
-                        locale + ": Longitude out of range: " + lon);
+
+                assertTrue(lat >= -90 && lat <= 90,
+                           locale + ": Latitude out of range: " + lat);
+                assertTrue(lon >= -180 && lon <= 180,
+                           locale + ": Longitude out of range: " + lon);
             }
         }
     }
@@ -711,7 +715,7 @@ class CoordinatesGeneratorTest {
     void generateProperFormat() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.GERMANY);
         String coords = gen.generate();
-        
+
         assertNotNull(coords);
         assertTrue(coords.contains(","));
         assertEquals(2, coords.split(",").length);
@@ -721,15 +725,15 @@ class CoordinatesGeneratorTest {
     @DisplayName("coordinates vary within locale bounds")
     void coordinatesVary() {
         CoordinatesGenerator gen = new CoordinatesGenerator(Locale.FRANCE);
-        
+
         Set<Double> latitudes = new HashSet<>();
         Set<Double> longitudes = new HashSet<>();
-        
+
         for (int i = 0; i < 50; i++) {
             latitudes.add(gen.generateLatitude());
             longitudes.add(gen.generateLongitude());
         }
-        
+
         assertTrue(latitudes.size() > 45, "Expected variety in latitudes");
         assertTrue(longitudes.size() > 45, "Expected variety in longitudes");
     }
@@ -738,7 +742,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("unknown locale defaults to US bounds")
     void unknownLocaleDefaultsToUS() {
         CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("xx", "XX"));
-        
+
         // Should use US bounds
         assertEquals(24.5, gen.getMinLatitude(), EPSILON);
         assertEquals(49.0, gen.getMaxLatitude(), EPSILON);
@@ -758,7 +762,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("locale with language only defaults to US bounds")
     void localeLanguageOnlyDefaultsToUS() {
         CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en"));
-        
+
         // Should use US bounds
         assertEquals(24.5, gen.getMinLatitude(), EPSILON);
         assertEquals(49.0, gen.getMaxLatitude(), EPSILON);

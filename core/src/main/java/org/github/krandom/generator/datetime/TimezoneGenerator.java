@@ -24,16 +24,16 @@ import java.util.Set;
 public final class TimezoneGenerator implements Generator<String> {
 
     private static final Map<String, List<String>> COUNTRY_TO_ZONES = Map.of(
-            "US", List.of("America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles"),
-            "GB", List.of("Europe/London"),
-            "AU", List.of("Australia/Sydney", "Australia/Melbourne", "Australia/Perth"),
-            "DE", List.of("Europe/Berlin"),
-            "FR", List.of("Europe/Paris"),
-            "ES", List.of("Europe/Madrid"),
-            "IT", List.of("Europe/Rome"),
-            "BR", List.of("America/Sao_Paulo", "America/Manaus"),
-            "JP", List.of("Asia/Tokyo"),
-            "CN", List.of("Asia/Shanghai")
+        "US", List.of("America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles"),
+        "GB", List.of("Europe/London"),
+        "AU", List.of("Australia/Sydney", "Australia/Melbourne", "Australia/Perth"),
+        "DE", List.of("Europe/Berlin"),
+        "FR", List.of("Europe/Paris"),
+        "ES", List.of("Europe/Madrid"),
+        "IT", List.of("Europe/Rome"),
+        "BR", List.of("America/Sao_Paulo", "America/Manaus"),
+        "JP", List.of("Asia/Tokyo"),
+        "CN", List.of("Asia/Shanghai")
     );
 
     private static final List<String> ALL_ZONES = List.copyOf(ZoneId.getAvailableZoneIds().stream().sorted().toList());
@@ -53,8 +53,8 @@ public final class TimezoneGenerator implements Generator<String> {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.locale = effective.getLocale();
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

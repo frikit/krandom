@@ -11,7 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("LocalDateTimeGenerator")
 class LocalDateTimeGeneratorTest {
@@ -31,7 +35,7 @@ class LocalDateTimeGeneratorTest {
         for (int i = 0; i < SAMPLES; i++) {
             int year = gen.generate().getYear();
             assertTrue(year >= 1970 && year <= 2100,
-                    "year out of range: " + year);
+                       "year out of range: " + year);
         }
     }
 
@@ -63,7 +67,7 @@ class LocalDateTimeGeneratorTest {
         LocalDateTimeGenerator g2 = new LocalDateTimeGenerator(cfg);
         for (int i = 0; i < 20; i++) {
             assertEquals(g1.generate(), g2.generate(),
-                    "seeded generators must produce identical output");
+                         "seeded generators must produce identical output");
         }
     }
 
@@ -110,9 +114,9 @@ class LocalDateTimeGeneratorTest {
         assertThrows(NullPointerException.class, () -> gen.before(null));
         assertThrows(NullPointerException.class, () -> gen.after(null));
         assertThrows(IllegalArgumentException.class,
-                () -> gen.before(LocalDateTime.of(1970, 1, 1, 0, 0, 0)));
+                     () -> gen.before(LocalDateTime.of(1970, 1, 1, 0, 0, 0)));
         assertThrows(IllegalArgumentException.class,
-                () -> gen.after(LocalDateTime.of(2100, 12, 31, 23, 59, 59)));
+                     () -> gen.after(LocalDateTime.of(2100, 12, 31, 23, 59, 59)));
     }
 
     @Test

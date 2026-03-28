@@ -21,10 +21,10 @@ public final class UniqueGenerator<T> implements Generator<T> {
 
     private static final int DEFAULT_MAX_ATTEMPTS = 10_000;
 
-    private final Generator<T> source;
+    private final Generator<T>      source;
     private final BiPredicate<T, T> comparator;
-    private final int maxAttempts;
-    private final List<T> seen;
+    private final int               maxAttempts;
+    private final List<T>           seen;
 
     /**
      * Creates a unique generator using {@link Objects#equals(Object, Object)}.
@@ -38,7 +38,7 @@ public final class UniqueGenerator<T> implements Generator<T> {
     /**
      * Creates a unique generator with bounded retry attempts.
      *
-     * @param source source generator
+     * @param source      source generator
      * @param maxAttempts max attempts per generated value
      */
     public UniqueGenerator(Generator<T> source, int maxAttempts) {
@@ -48,7 +48,7 @@ public final class UniqueGenerator<T> implements Generator<T> {
     /**
      * Creates a unique generator with custom equality comparator.
      *
-     * @param source source generator
+     * @param source     source generator
      * @param comparator equality comparator
      */
     public UniqueGenerator(Generator<T> source, BiPredicate<T, T> comparator) {
@@ -58,8 +58,8 @@ public final class UniqueGenerator<T> implements Generator<T> {
     /**
      * Creates a unique generator with custom comparator and bounded retries.
      *
-     * @param source source generator
-     * @param comparator equality comparator
+     * @param source      source generator
+     * @param comparator  equality comparator
      * @param maxAttempts max attempts per generated value
      */
     public UniqueGenerator(Generator<T> source, BiPredicate<T, T> comparator, int maxAttempts) {

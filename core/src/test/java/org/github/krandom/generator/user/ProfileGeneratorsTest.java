@@ -11,7 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Profile generators")
 class ProfileGeneratorsTest {
@@ -60,7 +64,7 @@ class ProfileGeneratorsTest {
     @DisplayName("simple profile can generate both male and female profiles")
     void simpleProfileBothSexes() {
         SimpleProfileGenerator generator = new SimpleProfileGenerator(
-                GeneratorConfig.builder().seed(99L).locale(Locale.US).build());
+            GeneratorConfig.builder().seed(99L).locale(Locale.US).build());
         boolean sawMale = false;
         boolean sawFemale = false;
         for (int i = 0; i < 200 && !(sawMale && sawFemale); i++) {

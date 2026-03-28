@@ -9,7 +9,6 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -76,16 +75,16 @@ import java.util.Random;
  */
 public final class DateGenerator implements Generator<LocalDate> {
 
+    private static final int MIN_YEAR = 1970;
+    private static final int MAX_YEAR = 2100;
     private final GeneratorConfig config;
-    private final Random random;
-
-    /** Non-null only when constructed via the bounded constructor. */
+    private final Random          random;
+    /**
+     * Non-null only when constructed via the bounded constructor.
+     */
     private final LocalDate rangeMin;
     private final LocalDate rangeMax;
 
-    private static final int MIN_YEAR = 1970;
-    private static final int MAX_YEAR = 2100;
-    
     /**
      * Creates a date generator with default configuration.
      */
@@ -100,10 +99,10 @@ public final class DateGenerator implements Generator<LocalDate> {
      * @throws NullPointerException if {@code config} is {@code null}
      */
     public DateGenerator(GeneratorConfig config) {
-        this.config   = Objects.requireNonNull(config, "config must not be null");
-        this.random   = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+        this.config = Objects.requireNonNull(config, "config must not be null");
+        this.random = config.getSeed().isPresent()
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.rangeMin = null;
         this.rangeMax = null;
     }
@@ -116,8 +115,8 @@ public final class DateGenerator implements Generator<LocalDate> {
      * @param max latest date (inclusive)
      */
     public DateGenerator(LocalDate min, LocalDate max) {
-        this.config   = GeneratorConfig.defaults();
-        this.random   = new SecureRandom();
+        this.config = GeneratorConfig.defaults();
+        this.random = new SecureRandom();
         this.rangeMin = min;
         this.rangeMax = max;
     }
@@ -197,8 +196,8 @@ public final class DateGenerator implements Generator<LocalDate> {
      */
     public String generateAmerican() {
         LocalDate date = generate();
-        return String.format("%02d/%02d/%04d", 
-            date.getMonthValue(), date.getDayOfMonth(), date.getYear());
+        return String.format("%02d/%02d/%04d",
+                             date.getMonthValue(), date.getDayOfMonth(), date.getYear());
     }
 
     /**
@@ -208,8 +207,8 @@ public final class DateGenerator implements Generator<LocalDate> {
      */
     public String generateEuropean() {
         LocalDate date = generate();
-        return String.format("%02d/%02d/%04d", 
-            date.getDayOfMonth(), date.getMonthValue(), date.getYear());
+        return String.format("%02d/%02d/%04d",
+                             date.getDayOfMonth(), date.getMonthValue(), date.getYear());
     }
 
     /**
@@ -355,9 +354,9 @@ public final class DateGenerator implements Generator<LocalDate> {
      * Generates a date between the given bounds (inclusive).
      *
      * @param fromInclusive lower bound (inclusive)
-     * @param toInclusive upper bound (inclusive)
+     * @param toInclusive   upper bound (inclusive)
      * @return a date in the provided range; never {@code null}
-     * @throws NullPointerException if either bound is {@code null}
+     * @throws NullPointerException     if either bound is {@code null}
      * @throws IllegalArgumentException if {@code fromInclusive} is after {@code toInclusive}
      */
     public LocalDate between(LocalDate fromInclusive, LocalDate toInclusive) {
@@ -365,7 +364,7 @@ public final class DateGenerator implements Generator<LocalDate> {
         Objects.requireNonNull(toInclusive, "toInclusive must not be null");
         if (fromInclusive.isAfter(toInclusive)) {
             throw new IllegalArgumentException(
-                    "fromInclusive must be <= toInclusive, got: " + fromInclusive + " > " + toInclusive);
+                "fromInclusive must be <= toInclusive, got: " + fromInclusive + " > " + toInclusive);
         }
 
         long days = ChronoUnit.DAYS.between(fromInclusive, toInclusive);
@@ -379,7 +378,7 @@ public final class DateGenerator implements Generator<LocalDate> {
     /**
      * Generates a valid day for the given year and month.
      *
-     * @param year the year
+     * @param year  the year
      * @param month the month
      * @return a valid day
      */

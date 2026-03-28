@@ -15,7 +15,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Field")
 class FieldTest {
@@ -99,11 +102,11 @@ class FieldTest {
         Map<String, SchemaValueProvider> blankName = new LinkedHashMap<>();
         blankName.put(" ", field.constant("x"));
         assertThrows(IllegalArgumentException.class,
-                () -> field.nested(blankName).generate(new SchemaContext(Locale.US, new Random(1L), 0)));
+                     () -> field.nested(blankName).generate(new SchemaContext(Locale.US, new Random(1L), 0)));
 
         Map<String, SchemaValueProvider> nullProvider = new LinkedHashMap<>();
         nullProvider.put("x", null);
         assertThrows(NullPointerException.class,
-                () -> field.nested(nullProvider).generate(new SchemaContext(Locale.US, new Random(1L), 0)));
+                     () -> field.nested(nullProvider).generate(new SchemaContext(Locale.US, new Random(1L), 0)));
     }
 }

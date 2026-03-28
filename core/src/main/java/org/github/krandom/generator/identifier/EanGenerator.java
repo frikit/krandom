@@ -26,8 +26,19 @@ public final class EanGenerator implements Generator<String> {
     public EanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
+    }
+
+    private static int checksum(String body) {
+        int sum = 0;
+        boolean multiplyByThree = true;
+        for (int i = body.length() - 1; i >= 0; i--) {
+            int digit = body.charAt(i) - '0';
+            sum += multiplyByThree ? digit * 3 : digit;
+            multiplyByThree = !multiplyByThree;
+        }
+        return (10 - (sum % 10)) % 10;
     }
 
     @Override
@@ -67,16 +78,5 @@ public final class EanGenerator implements Generator<String> {
         }
         int checksum = checksum(body.toString());
         return body.append(checksum).toString();
-    }
-
-    private static int checksum(String body) {
-        int sum = 0;
-        boolean multiplyByThree = true;
-        for (int i = body.length() - 1; i >= 0; i--) {
-            int digit = body.charAt(i) - '0';
-            sum += multiplyByThree ? digit * 3 : digit;
-            multiplyByThree = !multiplyByThree;
-        }
-        return (10 - (sum % 10)) % 10;
     }
 }

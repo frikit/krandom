@@ -18,8 +18,8 @@ import java.util.Random;
 public final class FileNameGenerator implements Generator<String> {
 
     private static final String[] BASE_NAMES = {
-            "report", "monthly summary", "customer export", "invoice", "dataset",
-            "image asset", "profile backup", "audit log", "release notes", "project plan"
+        "report", "monthly summary", "customer export", "invoice", "dataset",
+        "image asset", "profile backup", "audit log", "release notes", "project plan"
     };
 
     private final Random random;
@@ -31,8 +31,8 @@ public final class FileNameGenerator implements Generator<String> {
     public FileNameGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

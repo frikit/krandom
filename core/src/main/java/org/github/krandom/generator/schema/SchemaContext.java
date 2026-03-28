@@ -12,15 +12,16 @@ import java.util.Random;
 /**
  * Context passed to schema field providers.
  *
- * @param locale locale used for locale-aware generators
- * @param random deterministic random source for this schema run
+ * @param locale      locale used for locale-aware generators
+ * @param random      deterministic random source for this schema run
  * @param recordIndex zero-based record index in batch generation
  */
 public record SchemaContext(
-        Locale locale,
-        Random random,
-        int recordIndex
+    Locale locale,
+    Random random,
+    int recordIndex
 ) {
+
     /**
      * Validates context invariants.
      */

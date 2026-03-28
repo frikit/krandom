@@ -11,11 +11,17 @@ package org.github.krandom.generator.core.model;
  */
 public class CircularNode {
 
-    private String name;
+    private String       name;
     private CircularNode next;
 
-    public CircularNode() { }
+    public CircularNode() {
+    }
 
-    public String      getName() { return name; }
-    public CircularNode getNext() { return next; }
+    public String getName() {
+        return name;
+    }
+
+    public CircularNode getNext() {
+        return next;
+    }
 }

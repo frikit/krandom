@@ -35,7 +35,9 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
     private final int        scale;
     private final Random     random;
 
-    /** Default range [0, 1&nbsp;000&nbsp;000] with scale 2. */
+    /**
+     * Default range [0, 1&nbsp;000&nbsp;000] with scale 2.
+     */
     public BigDecimalGenerator() {
         this(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_SCALE, null);
     }
@@ -82,9 +84,9 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
         if (scale < 0) {
             throw new IllegalArgumentException("scale must be >= 0, was: " + scale);
         }
-        this.min    = min;
-        this.max    = max;
-        this.scale  = scale;
+        this.min = min;
+        this.max = max;
+        this.scale = scale;
         this.random = seed != null ? new Random(seed) : new SecureRandom();
     }
 
@@ -100,7 +102,7 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
     public BigDecimal generate() {
         long lo = min.scaleByPowerOfTen(scale).longValue();
         long hi = max.scaleByPowerOfTen(scale).longValue();
-        long v  = random.nextLong(lo, hi + 1);
+        long v = random.nextLong(lo, hi + 1);
         return BigDecimal.valueOf(v, scale);
     }
 }

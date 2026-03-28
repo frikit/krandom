@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
  *   <li>a constructor that matches the declared {@link RandomizerArgument} list.</li>
  * </ul>
  */
-@Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
+@Target({ ElementType.FIELD, ElementType.RECORD_COMPONENT })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Randomizer {

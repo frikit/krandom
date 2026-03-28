@@ -33,33 +33,39 @@ import java.util.Random;
 public final class SuffixGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final String[] suffixes;
+    private final Random          random;
+    private final String[]        suffixes;
 
-    /** Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}. */
+    /**
+     * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
+     */
     public SuffixGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Constructs a generator for the given locale. */
+    /**
+     * Constructs a generator for the given locale.
+     */
     public SuffixGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
 
-    /** Full constructor using a {@link GeneratorConfig} (locale + optional seed). */
+    /**
+     * Full constructor using a {@link GeneratorConfig} (locale + optional seed).
+     */
     public SuffixGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
 
         Locale locale = config.getLocale();
         if (!SuffixDataRegistry.isRegistered(locale)) {
             throw new UnsupportedOperationException(
-                    "Locale " + locale + " is not supported. Registered locales: "
-                            + SuffixDataRegistry.registeredKeys());
+                "Locale " + locale + " is not supported. Registered locales: "
+                + SuffixDataRegistry.registeredKeys());
         }
 
-        this.random   = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+        this.random = config.getSeed().isPresent()
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.suffixes = SuffixDataRegistry.forLocale(locale).getSuffixes();
     }
 
@@ -71,17 +77,23 @@ public final class SuffixGenerator implements Generator<String> {
         return suffixes[random.nextInt(suffixes.length)];
     }
 
-    /** Returns the locale this generator was configured with. */
+    /**
+     * Returns the locale this generator was configured with.
+     */
     public Locale getLocale() {
         return config.getLocale();
     }
 
-    /** Returns the number of distinct suffixes available for the configured locale. */
+    /**
+     * Returns the number of distinct suffixes available for the configured locale.
+     */
     public int getSuffixCount() {
         return suffixes.length;
     }
 
-    /** Returns {@code true} if the configured locale has a registered suffix provider. */
+    /**
+     * Returns {@code true} if the configured locale has a registered suffix provider.
+     */
     public boolean isLocaleExplicitlySupported() {
         return SuffixDataRegistry.isRegistered(config.getLocale());
     }

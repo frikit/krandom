@@ -18,9 +18,9 @@ import java.util.Objects;
 public final class ProfileGenerator implements Generator<UserProfile> {
 
     private final SimpleProfileGenerator simpleProfileGenerator;
-    private final CompanyNameGenerator companyNameGenerator;
-    private final ProfessionGenerator professionGenerator;
-    private final URLGenerator urlGenerator;
+    private final CompanyNameGenerator   companyNameGenerator;
+    private final ProfessionGenerator    professionGenerator;
+    private final URLGenerator           urlGenerator;
 
     public ProfileGenerator() {
         this(GeneratorConfig.defaults());
@@ -51,15 +51,15 @@ public final class ProfileGenerator implements Generator<UserProfile> {
     public UserProfile generate() {
         SimpleProfile base = simpleProfileGenerator.generate();
         return new UserProfile(
-                base.username(),
-                base.name(),
-                base.sex(),
-                base.address(),
-                base.mail(),
-                base.birthdate(),
-                companyNameGenerator.generate(),
-                professionGenerator.generate(),
-                urlGenerator.generate()
+            base.username(),
+            base.name(),
+            base.sex(),
+            base.address(),
+            base.mail(),
+            base.birthdate(),
+            companyNameGenerator.generate(),
+            professionGenerator.generate(),
+            urlGenerator.generate()
         );
     }
 }

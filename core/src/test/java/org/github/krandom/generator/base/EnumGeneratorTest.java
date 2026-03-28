@@ -11,15 +11,13 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("EnumGenerator")
 class EnumGeneratorTest {
-
-    private enum Colour { RED, GREEN, BLUE }
-
-    /** An enum with no constants — triggers the length == 0 guard. */
-    private enum Empty {}
 
     @Test
     @DisplayName("generate() returns a value from the enum constants")
@@ -65,9 +63,16 @@ class EnumGeneratorTest {
 
     @Test
     @DisplayName("non-enum class (getEnumConstants returns null) throws IllegalArgumentException")
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     void nonEnumClassThrows() {
         Class nonEnum = String.class;
         assertThrows(IllegalArgumentException.class, () -> new EnumGenerator<>(nonEnum));
     }
+
+    private enum Colour {RED, GREEN, BLUE}
+
+    /**
+     * An enum with no constants — triggers the length == 0 guard.
+     */
+    private enum Empty {}
 }

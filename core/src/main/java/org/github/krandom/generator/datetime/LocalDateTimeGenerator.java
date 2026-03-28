@@ -45,8 +45,8 @@ import java.util.Random;
  */
 public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
 
-    private static final int MIN_YEAR = 1970;
-    private static final int MAX_YEAR = 2100;
+    private static final int           MIN_YEAR      = 1970;
+    private static final int           MAX_YEAR      = 2100;
     private static final LocalDateTime MIN_DATE_TIME = LocalDateTime.of(MIN_YEAR, 1, 1, 0, 0, 0);
     private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.of(MAX_YEAR, 12, 31, 23, 59, 59);
 
@@ -69,9 +69,9 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
      */
     public LocalDateTimeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random   = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+        this.random = config.getSeed().isPresent()
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.rangeMin = null;
         this.rangeMax = null;
     }
@@ -84,7 +84,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
      * @param max latest date (inclusive)
      */
     public LocalDateTimeGenerator(LocalDate min, LocalDate max) {
-        this.random   = new SecureRandom();
+        this.random = new SecureRandom();
         this.rangeMin = min;
         this.rangeMax = max;
     }
@@ -104,13 +104,13 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
             long hi = rangeMax.toEpochDay();
             date = LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
         } else {
-            int year   = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
-            int month  = 1 + random.nextInt(12);
+            int year = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
+            int month = 1 + random.nextInt(12);
             int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
-            int day    = 1 + random.nextInt(maxDay);
+            int day = 1 + random.nextInt(maxDay);
             date = LocalDate.of(year, month, day);
         }
-        int hour   = random.nextInt(24);
+        int hour = random.nextInt(24);
         int minute = random.nextInt(60);
         int second = random.nextInt(60);
         return LocalDateTime.of(date, LocalTime.of(hour, minute, second));
@@ -150,7 +150,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
      * Generates a date-time between the provided bounds (inclusive).
      *
      * @param startInclusive lower bound (inclusive); must not be {@code null}
-     * @param endInclusive upper bound (inclusive); must not be {@code null}
+     * @param endInclusive   upper bound (inclusive); must not be {@code null}
      * @return generated date-time in range
      */
     public LocalDateTime between(LocalDateTime startInclusive, LocalDateTime endInclusive) {
@@ -158,7 +158,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
         Objects.requireNonNull(endInclusive, "endInclusive must not be null");
         if (startInclusive.isAfter(endInclusive)) {
             throw new IllegalArgumentException("startInclusive must be <= endInclusive, got: "
-                    + startInclusive + " > " + endInclusive);
+                                               + startInclusive + " > " + endInclusive);
         }
         long seconds = ChronoUnit.SECONDS.between(startInclusive, endInclusive);
         if (seconds == 0) {

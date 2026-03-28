@@ -10,12 +10,15 @@ import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
-import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Selection generators")
 class SelectionGeneratorsTest {
@@ -77,9 +80,9 @@ class SelectionGeneratorsTest {
     @DisplayName("WeightedGenerator honors weight bias")
     void weightedHonorsBias() {
         WeightedGenerator<String> gen = new WeightedGenerator<>(
-                List.of("heads", "tails"),
-                List.of(7, 3),
-                42L
+            List.of("heads", "tails"),
+            List.of(7, 3),
+            42L
         );
 
         int heads = 0;
@@ -104,6 +107,7 @@ class SelectionGeneratorsTest {
     @DisplayName("UniqueGenerator throws when source cannot produce enough distinct values")
     void uniqueThrowsWhenExhausted() {
         Generator<Integer> bounded = new Generator<>() {
+
             private int n = 0;
 
             @Override
@@ -123,6 +127,7 @@ class SelectionGeneratorsTest {
     @DisplayName("UniqueGenerator supports custom comparator")
     void uniqueSupportsCustomComparator() {
         Generator<String> source = new Generator<>() {
+
             private int i = 0;
 
             @Override
@@ -132,9 +137,9 @@ class SelectionGeneratorsTest {
         };
 
         UniqueGenerator<String> unique = new UniqueGenerator<>(
-                source,
-                (a, b) -> a.equalsIgnoreCase(b),
-                5
+            source,
+            (a, b) -> a.equalsIgnoreCase(b),
+            5
         );
 
         assertEquals("Alice", unique.generate());
@@ -152,6 +157,7 @@ class SelectionGeneratorsTest {
     @DisplayName("Generators.uniqueValues alias wraps source generator")
     void generatorsUniqueValuesAliasWorks() {
         Generator<Integer> bounded = new Generator<>() {
+
             private int n = 0;
 
             @Override
@@ -181,9 +187,9 @@ class SelectionGeneratorsTest {
         assertThrows(IllegalArgumentException.class, () -> new WeightedGenerator<>(List.of("a"), List.of(0)));
         assertThrows(IllegalArgumentException.class, () -> new WeightedGenerator<>(List.of("a"), List.of(1, 2)));
         assertThrows(IllegalArgumentException.class,
-                () -> new WeightedGenerator<>(List.of("a"), Arrays.asList((Integer) null)));
+                     () -> new WeightedGenerator<>(List.of("a"), Arrays.asList((Integer) null)));
         assertThrows(IllegalArgumentException.class,
-                () -> new WeightedGenerator<>(List.of("a", "b"), List.of(Integer.MAX_VALUE, 1)));
+                     () -> new WeightedGenerator<>(List.of("a", "b"), List.of(Integer.MAX_VALUE, 1)));
         assertThrows(IllegalArgumentException.class, () -> new UniqueGenerator<>(() -> 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new RepeatGenerator<>(() -> 1, -1));
     }

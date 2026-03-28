@@ -13,7 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — Bean Validation constraint respect")
 class ObjectGeneratorBeanValidationTest {
@@ -27,7 +28,7 @@ class ObjectGeneratorBeanValidationTest {
             String username = new ObjectGenerator<>(PersonWithConstraints.class).generate().getUsername();
             assertNotNull(username);
             assertTrue(username.length() >= 3 && username.length() <= 10,
-                    "username length " + username.length() + " violates @Size(3, 10)");
+                       "username length " + username.length() + " violates @Size(3, 10)");
         }
     }
 
@@ -37,7 +38,7 @@ class ObjectGeneratorBeanValidationTest {
         for (int i = 0; i < SAMPLES; i++) {
             int age = new ObjectGenerator<>(PersonWithConstraints.class).generate().getAge();
             assertTrue(age >= 18 && age <= 120,
-                    "age " + age + " violates @Min(18) @Max(120)");
+                       "age " + age + " violates @Min(18) @Max(120)");
         }
     }
 
@@ -48,7 +49,7 @@ class ObjectGeneratorBeanValidationTest {
             String email = new ObjectGenerator<>(PersonWithConstraints.class).generate().getEmail();
             assertNotNull(email);
             assertTrue(email.contains("@"),
-                    "email '" + email + "' does not contain '@'");
+                       "email '" + email + "' does not contain '@'");
         }
     }
 
@@ -59,7 +60,7 @@ class ObjectGeneratorBeanValidationTest {
             String zip = new ObjectGenerator<>(PersonWithConstraints.class).generate().getZipCode();
             assertNotNull(zip);
             assertTrue(zip.matches("\\d{5}"),
-                    "zipCode '" + zip + "' does not match \\d{5}");
+                       "zipCode '" + zip + "' does not match \\d{5}");
         }
     }
 
@@ -81,11 +82,12 @@ class ObjectGeneratorBeanValidationTest {
             BigDecimal price = new ObjectGenerator<>(PersonWithConstraints.class).generate().getPrice();
             assertNotNull(price);
             assertTrue(price.compareTo(lo) >= 0 && price.compareTo(hi) <= 0,
-                    "price " + price + " violates @DecimalMin/Max");
+                       "price " + price + " violates @DecimalMin/Max");
         }
     }
 
     // ── Comprehensive sign/bound constraint coverage ──────────────────────────
+
 
     @Nested
     @DisplayName("All int/Integer sign constraints")
@@ -155,6 +157,7 @@ class ObjectGeneratorBeanValidationTest {
             }
         }
     }
+
 
     @Nested
     @DisplayName("All long/Long sign constraints")

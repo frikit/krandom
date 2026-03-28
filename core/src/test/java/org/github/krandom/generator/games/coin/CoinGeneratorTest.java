@@ -6,8 +6,6 @@
 package org.github.krandom.generator.games.coin;
 
 import org.github.krandom.generator.Generator;
-import org.github.krandom.generator.games.coin.CoinGenerator;
-import org.github.krandom.generator.games.coin.CoinResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
@@ -16,12 +14,14 @@ import org.junit.jupiter.api.Test;
 import java.util.EnumSet;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CoinGenerator")
 class CoinGeneratorTest {
 
     private static final EnumSet<CoinResult> VALID = EnumSet.of(CoinResult.HEAD, CoinResult.TAIL);
+
 
     @Nested
     @DisplayName("generate()")
@@ -42,6 +42,7 @@ class CoinGeneratorTest {
             assertEquals(VALID, seen, "Expected both HEAD and TAIL to appear");
         }
     }
+
 
     @Nested
     @DisplayName("flip(n)")
@@ -73,6 +74,7 @@ class CoinGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Generator<CoinResult> interface")
     class GeneratorInterface {
@@ -99,6 +101,7 @@ class CoinGeneratorTest {
             assertTrue(value.equals("head") || value.equals("tail"));
         }
     }
+
 
     @Nested
     @DisplayName("CoinResult enum")

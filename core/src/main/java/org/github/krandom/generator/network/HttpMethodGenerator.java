@@ -18,7 +18,7 @@ import java.util.Random;
 public final class HttpMethodGenerator implements Generator<String> {
 
     private static final String[] METHODS = {
-            "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"
+        "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"
     };
 
     private final Random random;
@@ -30,8 +30,8 @@ public final class HttpMethodGenerator implements Generator<String> {
     public HttpMethodGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

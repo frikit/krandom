@@ -22,32 +22,50 @@ import java.util.Set;
 public final class MiddleNameGenerator implements Generator<String> {
 
     private static final Set<String> MIDDLE_NAME_SUPPORTED = Set.of(
-            "en_US", "en_GB", "en_AU", "fr_FR", "de_DE", "it_IT", "pt_BR"
+        "en_US", "en_GB", "en_AU", "fr_FR", "de_DE", "it_IT", "pt_BR"
     );
 
-    private final GeneratorConfig config;
+    private final GeneratorConfig    config;
     private final FirstNameGenerator firstNameGenerator;
 
-    /** Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}. */
+    /**
+     * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
+     */
     public MiddleNameGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Constructs a generator for the given locale. */
+    /**
+     * Constructs a generator for the given locale.
+     */
     public MiddleNameGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
 
-    /** Full constructor using a {@link GeneratorConfig} (locale + optional seed). */
+    /**
+     * Full constructor using a {@link GeneratorConfig} (locale + optional seed).
+     */
     public MiddleNameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         if (!supportsMiddleName(config.getLocale())) {
             throw new UnsupportedOperationException(
-                    "Middle names are not supported for locale "
-                            + config.getLocale()
-                            + " (" + localeKey(config.getLocale()) + ")");
+                "Middle names are not supported for locale "
+                + config.getLocale()
+                + " (" + localeKey(config.getLocale()) + ")");
         }
         this.firstNameGenerator = new FirstNameGenerator(config);
+    }
+
+    /**
+     * Returns {@code true} if the given locale supports middle-name generation in this model.
+     */
+    public static boolean supportsMiddleName(Locale locale) {
+        Objects.requireNonNull(locale, "locale must not be null");
+        return MIDDLE_NAME_SUPPORTED.contains(localeKey(locale));
+    }
+
+    private static String localeKey(Locale locale) {
+        return locale.getLanguage() + "_" + locale.getCountry();
     }
 
     @Override
@@ -87,23 +105,17 @@ public final class MiddleNameGenerator implements Generator<String> {
         return middle.charAt(0) + ".";
     }
 
-    /** Returns the locale this generator was configured with. */
+    /**
+     * Returns the locale this generator was configured with.
+     */
     public Locale getLocale() {
         return config.getLocale();
     }
 
-    /** Returns {@code true} if this locale has both name data and middle-name support. */
+    /**
+     * Returns {@code true} if this locale has both name data and middle-name support.
+     */
     public boolean isLocaleExplicitlySupported() {
         return true;
-    }
-
-    /** Returns {@code true} if the given locale supports middle-name generation in this model. */
-    public static boolean supportsMiddleName(Locale locale) {
-        Objects.requireNonNull(locale, "locale must not be null");
-        return MIDDLE_NAME_SUPPORTED.contains(localeKey(locale));
-    }
-
-    private static String localeKey(Locale locale) {
-        return locale.getLanguage() + "_" + locale.getCountry();
     }
 }

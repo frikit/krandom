@@ -28,18 +28,8 @@ public final class CusipGenerator implements Generator<String> {
     public CusipGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
-    }
-
-    @Override
-    public String generate() {
-        StringBuilder base = new StringBuilder(8);
-        for (int i = 0; i < 8; i++) {
-            base.append(ALNUM.charAt(random.nextInt(ALNUM.length())));
-        }
-        int checkDigit = computeCheckDigit(base.toString());
-        return base.append(checkDigit).toString();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     static int computeCheckDigit(String valueWithoutCheck) {
@@ -50,5 +40,15 @@ public final class CusipGenerator implements Generator<String> {
             sum += adjusted / 10 + adjusted % 10;
         }
         return (10 - (sum % 10)) % 10;
+    }
+
+    @Override
+    public String generate() {
+        StringBuilder base = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) {
+            base.append(ALNUM.charAt(random.nextInt(ALNUM.length())));
+        }
+        int checkDigit = computeCheckDigit(base.toString());
+        return base.append(checkDigit).toString();
     }
 }

@@ -27,7 +27,9 @@ import java.util.List;
  */
 public final class CoinGenerator implements Generator<CoinResult> {
 
-    /** Maximum number of results returned by {@link #flip(int)}. */
+    /**
+     * Maximum number of results returned by {@link #flip(int)}.
+     */
     public static final int MAX_ALLOWED_SIZE = Short.MAX_VALUE;
 
     private final SecureRandom random = new SecureRandom();

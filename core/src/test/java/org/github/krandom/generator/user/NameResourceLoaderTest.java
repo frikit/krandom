@@ -12,10 +12,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("NameResourceLoader")
 class NameResourceLoaderTest {
+
+    private static InputStream closeFailingStream() {
+        return new InputStream() {
+
+            @Override
+            public int read() {
+                return -1;
+            }
+
+            @Override
+            public void close() throws IOException {
+                throw new IOException("boom");
+            }
+        };
+    }
 
     @Test
     @DisplayName("load reads known names file")
@@ -44,19 +61,5 @@ class NameResourceLoaderTest {
         assertDoesNotThrow(() -> {
             ctor.newInstance();
         });
-    }
-
-    private static InputStream closeFailingStream() {
-        return new InputStream() {
-            @Override
-            public int read() {
-                return -1;
-            }
-
-            @Override
-            public void close() throws IOException {
-                throw new IOException("boom");
-            }
-        };
     }
 }

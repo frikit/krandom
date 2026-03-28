@@ -59,7 +59,7 @@ public final class DoubleGenerator extends AbstractBoundedGenerator<Double> {
     public DoubleGenerator withPrecision(int decimals) {
         if (decimals < 0 || decimals > 15) {
             throw new IllegalArgumentException(
-                    "Precision must be between 0 and 15, got: " + decimals);
+                "Precision must be between 0 and 15, got: " + decimals);
         }
         Long seed = null; // Cannot extract seed from existing generator
         return new DoubleGenerator(getMin(), getMax(), seed, decimals);

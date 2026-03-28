@@ -45,7 +45,7 @@ public final class TemplateStringGenerator implements Generator<String> {
      * Creates a generator with the provided template and seed.
      *
      * @param template template with {@code #} and/or {@code ?} placeholders
-     * @param seed deterministic seed
+     * @param seed     deterministic seed
      */
     public TemplateStringGenerator(String template, long seed) {
         this(template, GeneratorConfig.builder().seed(seed).build());
@@ -55,14 +55,14 @@ public final class TemplateStringGenerator implements Generator<String> {
      * Creates a generator with the provided template and config.
      *
      * @param template template with {@code #} and/or {@code ?} placeholders
-     * @param config generator configuration
+     * @param config   generator configuration
      */
     public TemplateStringGenerator(String template, GeneratorConfig config) {
         this.template = Objects.requireNonNull(template, "template must not be null");
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -102,7 +102,7 @@ public final class TemplateStringGenerator implements Generator<String> {
     /**
      * Replaces all {@code ?} characters with random letters.
      *
-     * @param input template text
+     * @param input     template text
      * @param uppercase whether generated letters should be uppercase
      * @return transformed string
      */

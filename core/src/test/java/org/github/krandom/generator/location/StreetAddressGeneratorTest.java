@@ -5,8 +5,8 @@
  */
 package org.github.krandom.generator.location;
 
-import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("StreetAddressGenerator")
 class StreetAddressGeneratorTest {
@@ -178,8 +183,8 @@ class StreetAddressGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         UnsupportedOperationException ex = assertThrows(
-                UnsupportedOperationException.class,
-                () -> new StreetAddressGenerator(Locale.of("xx", "YY"))
+            UnsupportedOperationException.class,
+            () -> new StreetAddressGenerator(Locale.of("xx", "YY"))
         );
         assertTrue(ex.getMessage().contains("not supported"));
     }
@@ -216,17 +221,26 @@ class StreetAddressGeneratorTest {
     void customLocaleRegistration() {
         Locale koKr = Locale.of("ko", "KR");
         StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() { return koKr; }
 
             @Override
-            public String[] getStreetNames() { return new String[]{"한강", "남산"}; }
+            public Locale getLocale() {
+                return koKr;
+            }
 
             @Override
-            public String[] getStreetTypesShort() { return new String[]{"로", "길"}; }
+            public String[] getStreetNames() {
+                return new String[] { "한강", "남산" };
+            }
 
             @Override
-            public String[] getStreetTypesLong() { return new String[]{"대로", "거리"}; }
+            public String[] getStreetTypesShort() {
+                return new String[] { "로", "길" };
+            }
+
+            @Override
+            public String[] getStreetTypesLong() {
+                return new String[] { "대로", "거리" };
+            }
         });
 
         StreetAddressGenerator gen = new StreetAddressGenerator(koKr);
@@ -240,17 +254,26 @@ class StreetAddressGeneratorTest {
     void fullAddressWithoutOtherRegistries() {
         Locale zzZz = Locale.of("zz", "ZZ");
         StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() { return zzZz; }
 
             @Override
-            public String[] getStreetNames() { return new String[]{"Fallback"}; }
+            public Locale getLocale() {
+                return zzZz;
+            }
 
             @Override
-            public String[] getStreetTypesShort() { return new String[]{"St"}; }
+            public String[] getStreetNames() {
+                return new String[] { "Fallback" };
+            }
 
             @Override
-            public String[] getStreetTypesLong() { return new String[]{"Street"}; }
+            public String[] getStreetTypesShort() {
+                return new String[] { "St" };
+            }
+
+            @Override
+            public String[] getStreetTypesLong() {
+                return new String[] { "Street" };
+            }
         });
 
         StreetAddressGenerator gen = new StreetAddressGenerator(zzZz);
@@ -263,17 +286,26 @@ class StreetAddressGeneratorTest {
     @DisplayName("registry override built-in locale works")
     void registryOverrideBuiltIn() {
         StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() { return Locale.US; }
 
             @Override
-            public String[] getStreetNames() { return new String[]{"TestStreet"}; }
+            public Locale getLocale() {
+                return Locale.US;
+            }
 
             @Override
-            public String[] getStreetTypesShort() { return new String[]{"TS"}; }
+            public String[] getStreetNames() {
+                return new String[] { "TestStreet" };
+            }
 
             @Override
-            public String[] getStreetTypesLong() { return new String[]{"TestSuffix"}; }
+            public String[] getStreetTypesShort() {
+                return new String[] { "TS" };
+            }
+
+            @Override
+            public String[] getStreetTypesLong() {
+                return new String[] { "TestSuffix" };
+            }
         });
 
         StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
@@ -291,73 +323,118 @@ class StreetAddressGeneratorTest {
         assertNull(StreetAddressDataRegistry.forLocale(null));
 
         assertThrows(NullPointerException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() { return null; }
 
             @Override
-            public String[] getStreetNames() { return new String[]{"A"}; }
+            public Locale getLocale() {
+                return null;
+            }
 
             @Override
-            public String[] getStreetTypesShort() { return new String[]{"B"}; }
+            public String[] getStreetNames() {
+                return new String[] { "A" };
+            }
 
             @Override
-            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+            public String[] getStreetTypesShort() {
+                return new String[] { "B" };
+            }
+
+            @Override
+            public String[] getStreetTypesLong() {
+                return new String[] { "C" };
+            }
         }));
 
         assertThrows(IllegalArgumentException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() { return Locale.of("tt", "TT"); }
 
             @Override
-            public String[] getStreetNames() { return new String[0]; }
+            public Locale getLocale() {
+                return Locale.of("tt", "TT");
+            }
 
             @Override
-            public String[] getStreetTypesShort() { return new String[]{"B"}; }
+            public String[] getStreetNames() {
+                return new String[0];
+            }
 
             @Override
-            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+            public String[] getStreetTypesShort() {
+                return new String[] { "B" };
+            }
+
+            @Override
+            public String[] getStreetTypesLong() {
+                return new String[] { "C" };
+            }
         }));
 
         assertThrows(IllegalArgumentException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() { return Locale.of("uu", "UU"); }
 
             @Override
-            public String[] getStreetNames() { return new String[]{"A"}; }
+            public Locale getLocale() {
+                return Locale.of("uu", "UU");
+            }
 
             @Override
-            public String[] getStreetTypesShort() { return new String[]{" "}; }
+            public String[] getStreetNames() {
+                return new String[] { "A" };
+            }
 
             @Override
-            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+            public String[] getStreetTypesShort() {
+                return new String[] { " " };
+            }
+
+            @Override
+            public String[] getStreetTypesLong() {
+                return new String[] { "C" };
+            }
         }));
 
         assertThrows(NullPointerException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() { return Locale.of("vv", "VV"); }
 
             @Override
-            public String[] getStreetNames() { return null; }
+            public Locale getLocale() {
+                return Locale.of("vv", "VV");
+            }
 
             @Override
-            public String[] getStreetTypesShort() { return new String[]{"B"}; }
+            public String[] getStreetNames() {
+                return null;
+            }
 
             @Override
-            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+            public String[] getStreetTypesShort() {
+                return new String[] { "B" };
+            }
+
+            @Override
+            public String[] getStreetTypesLong() {
+                return new String[] { "C" };
+            }
         }));
 
         assertThrows(IllegalArgumentException.class, () -> StreetAddressDataRegistry.register(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() { return Locale.of("ww", "WW"); }
 
             @Override
-            public String[] getStreetNames() { return new String[]{"A", null}; }
+            public Locale getLocale() {
+                return Locale.of("ww", "WW");
+            }
 
             @Override
-            public String[] getStreetTypesShort() { return new String[]{"B"}; }
+            public String[] getStreetNames() {
+                return new String[] { "A", null };
+            }
 
             @Override
-            public String[] getStreetTypesLong() { return new String[]{"C"}; }
+            public String[] getStreetTypesShort() {
+                return new String[] { "B" };
+            }
+
+            @Override
+            public String[] getStreetTypesLong() {
+                return new String[] { "C" };
+            }
         }));
     }
 

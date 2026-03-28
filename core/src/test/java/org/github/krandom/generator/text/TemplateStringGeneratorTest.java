@@ -5,12 +5,15 @@
  */
 package org.github.krandom.generator.text;
 
-import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("TemplateStringGenerator")
 class TemplateStringGeneratorTest {

@@ -18,7 +18,7 @@ import java.util.Random;
  */
 public final class UriGenerator implements Generator<String> {
 
-    private final Random random;
+    private final Random       random;
     private final URLGenerator urlGenerator;
 
     public UriGenerator() {
@@ -32,8 +32,8 @@ public final class UriGenerator implements Generator<String> {
     public UriGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
         this.urlGenerator = new URLGenerator(effective);
     }
 

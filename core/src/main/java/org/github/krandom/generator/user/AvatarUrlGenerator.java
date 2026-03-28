@@ -20,12 +20,12 @@ import java.util.Random;
 public final class AvatarUrlGenerator implements Generator<String> {
 
     private static final String[] PROVIDERS = {
-            "https://api.dicebear.com/8.x/identicon/svg?seed=%s",
-            "https://robohash.org/%s.png?size=%dx%d",
-            "https://ui-avatars.com/api/?name=%s&size=%d"
+        "https://api.dicebear.com/8.x/identicon/svg?seed=%s",
+        "https://robohash.org/%s.png?size=%dx%d",
+        "https://ui-avatars.com/api/?name=%s&size=%d"
     };
 
-    private final Random random;
+    private final Random            random;
     private final UsernameGenerator usernameGenerator;
 
     public AvatarUrlGenerator() {
@@ -35,9 +35,13 @@ public final class AvatarUrlGenerator implements Generator<String> {
     public AvatarUrlGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
         this.usernameGenerator = new UsernameGenerator(effective);
+    }
+
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     @Override
@@ -69,9 +73,5 @@ public final class AvatarUrlGenerator implements Generator<String> {
             case 1 -> String.format(PROVIDERS[1], seed, size, size);
             default -> String.format(PROVIDERS[2], seed, size);
         };
-    }
-
-    private static String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }

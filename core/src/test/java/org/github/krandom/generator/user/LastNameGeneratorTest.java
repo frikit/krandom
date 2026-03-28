@@ -16,7 +16,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("LastNameGenerator")
 class LastNameGeneratorTest {
@@ -46,7 +51,7 @@ class LastNameGeneratorTest {
         Set<String> usExpected = Set.of(new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(usExpected.contains(gen.generate()),
-                    "Generated name not in EN_US list: " + gen.generate());
+                       "Generated name not in EN_US list: " + gen.generate());
         }
     }
 
@@ -123,7 +128,7 @@ class LastNameGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         assertThrows(UnsupportedOperationException.class,
-                () -> new LastNameGenerator(Locale.of("xx", "YY")));
+                     () -> new LastNameGenerator(Locale.of("xx", "YY")));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -145,6 +150,31 @@ class LastNameGeneratorTest {
 
     // ── Registry extensibility ────────────────────────────────────────────────
 
+    @Test
+    @DisplayName("all 10 built-in locales produce non-empty last names")
+    void allBuiltInLocalesProduceValues() {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            LastNameGenerator gen = new LastNameGenerator(supportedLocale.locale());
+            String name = gen.generate();
+            assertNotNull(name, "Null for " + supportedLocale);
+            assertFalse(name.isEmpty(), "Empty for " + supportedLocale);
+        }
+    }
+
+    // ── All built-in locales covered ──────────────────────────────────────────
+
+    @Test
+    @DisplayName("all built-in locales produce variety of values over many samples")
+    void allBuiltInLocalesProduceVariety() {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            LastNameGenerator gen = new LastNameGenerator(supportedLocale.locale());
+            Set<String> seen = new HashSet<>();
+            for (int i = 0; i < 200; i++) seen.add(gen.generate());
+            assertTrue(seen.size() > 1, "No variety for " + supportedLocale);
+        }
+    }
+
+
     @Nested
     @DisplayName("LastNameDataRegistry extensibility")
     class RegistryTest {
@@ -154,8 +184,14 @@ class LastNameGeneratorTest {
         void customLocaleRegistration() {
             Locale korean = Locale.of("ko", "KR");
             LastNameDataRegistry.register(new LastNameDataProvider() {
-                public Locale getLocale() { return korean; }
-                public String[] getLastNames() { return new String[]{"김", "이", "박"}; }
+
+                public Locale getLocale() {
+                    return korean;
+                }
+
+                public String[] getLastNames() {
+                    return new String[] { "김", "이", "박" };
+                }
             });
             LastNameGenerator gen = new LastNameGenerator(korean);
             assertTrue(Set.of("김", "이", "박").contains(gen.generate()));
@@ -166,8 +202,14 @@ class LastNameGeneratorTest {
         void customProviderOverridesBuiltIn() {
             String[] custom = { "TestSurname" };
             LastNameDataRegistry.register(new LastNameDataProvider() {
-                public Locale getLocale() { return Locale.US; }
-                public String[] getLastNames() { return custom; }
+
+                public Locale getLocale() {
+                    return Locale.US;
+                }
+
+                public String[] getLastNames() {
+                    return custom;
+                }
             });
             LastNameGenerator gen = new LastNameGenerator(Locale.US);
             assertEquals("TestSurname", gen.generate());
@@ -181,8 +223,14 @@ class LastNameGeneratorTest {
         void customLocaleAppearsInKeys() {
             Locale swahili = Locale.of("sw", "KE");
             LastNameDataRegistry.register(new LastNameDataProvider() {
-                public Locale getLocale() { return swahili; }
-                public String[] getLastNames() { return new String[]{"Omondi", "Wanjiku"}; }
+
+                public Locale getLocale() {
+                    return swahili;
+                }
+
+                public String[] getLastNames() {
+                    return new String[] { "Omondi", "Wanjiku" };
+                }
             });
             assertTrue(LastNameDataRegistry.registeredKeys().contains("sw_KE"));
         }
@@ -192,8 +240,14 @@ class LastNameGeneratorTest {
         void languageOnlyFallback() {
             Locale arabic = Locale.of("ar");
             LastNameDataRegistry.register(new LastNameDataProvider() {
-                public Locale getLocale() { return arabic; }
-                public String[] getLastNames() { return new String[]{"العلي", "المحمد"}; }
+
+                public Locale getLocale() {
+                    return arabic;
+                }
+
+                public String[] getLastNames() {
+                    return new String[] { "العلي", "المحمد" };
+                }
             });
             LastNameGenerator gen = new LastNameGenerator(Locale.of("ar", "EG"));
             assertNotNull(gen.generate());
@@ -253,41 +307,29 @@ class LastNameGeneratorTest {
         void languageOnlyRegistrationReplacesFallback() {
             Locale enOnly = Locale.of("en");
             LastNameDataRegistry.register(new LastNameDataProvider() {
-                public Locale getLocale() { return enOnly; }
-                public String[] getLastNames() { return new String[]{"FallbackSurname"}; }
+
+                public Locale getLocale() {
+                    return enOnly;
+                }
+
+                public String[] getLastNames() {
+                    return new String[] { "FallbackSurname" };
+                }
             });
             LastNameGenerator gen = new LastNameGenerator(Locale.of("en", "ZZ"));
             assertEquals("FallbackSurname", gen.generate());
 
             // Restore language fallback
             LastNameDataRegistry.register(new LastNameDataProvider() {
-                public Locale getLocale() { return enOnly; }
-                public String[] getLastNames() { return new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames(); }
+
+                public Locale getLocale() {
+                    return enOnly;
+                }
+
+                public String[] getLastNames() {
+                    return new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames();
+                }
             });
-        }
-    }
-
-    // ── All built-in locales covered ──────────────────────────────────────────
-
-    @Test
-    @DisplayName("all 10 built-in locales produce non-empty last names")
-    void allBuiltInLocalesProduceValues() {
-        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
-            LastNameGenerator gen = new LastNameGenerator(supportedLocale.locale());
-            String name = gen.generate();
-            assertNotNull(name, "Null for " + supportedLocale);
-            assertFalse(name.isEmpty(), "Empty for " + supportedLocale);
-        }
-    }
-
-    @Test
-    @DisplayName("all built-in locales produce variety of values over many samples")
-    void allBuiltInLocalesProduceVariety() {
-        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
-            LastNameGenerator gen = new LastNameGenerator(supportedLocale.locale());
-            Set<String> seen = new HashSet<>();
-            for (int i = 0; i < 200; i++) seen.add(gen.generate());
-            assertTrue(seen.size() > 1, "No variety for " + supportedLocale);
         }
     }
 }

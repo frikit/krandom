@@ -31,15 +31,19 @@ public final class AgeGenerator implements Generator<Integer> {
     private static final int DEFAULT_MAX = 100;
 
     private final Random random;
-    private final int minAge;
-    private final int maxAge;
+    private final int    minAge;
+    private final int    maxAge;
 
-    /** Generates ages in the full range [1, 100]. */
+    /**
+     * Generates ages in the full range [1, 100].
+     */
     public AgeGenerator() {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.empty());
     }
 
-    /** Generates ages in the full range [1, 100] with a fixed seed for reproducible output. */
+    /**
+     * Generates ages in the full range [1, 100] with a fixed seed for reproducible output.
+     */
     public AgeGenerator(long seed) {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.of(seed));
     }
@@ -51,8 +55,8 @@ public final class AgeGenerator implements Generator<Integer> {
      */
     public AgeGenerator(AgeType type) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-                type.getMaxAge(),
-                OptionalLong.empty());
+             type.getMaxAge(),
+             OptionalLong.empty());
     }
 
     /**
@@ -63,8 +67,8 @@ public final class AgeGenerator implements Generator<Integer> {
      */
     public AgeGenerator(AgeType type, long seed) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-                type.getMaxAge(),
-                OptionalLong.of(seed));
+             type.getMaxAge(),
+             OptionalLong.of(seed));
     }
 
     /**
@@ -83,7 +87,7 @@ public final class AgeGenerator implements Generator<Integer> {
         }
         if (maxAge < minAge) {
             throw new IllegalArgumentException(
-                    "maxAge must be >= minAge, got: minAge=" + minAge + ", maxAge=" + maxAge);
+                "maxAge must be >= minAge, got: minAge=" + minAge + ", maxAge=" + maxAge);
         }
         this.minAge = minAge;
         this.maxAge = maxAge;
@@ -95,12 +99,16 @@ public final class AgeGenerator implements Generator<Integer> {
         return minAge + random.nextInt(maxAge - minAge + 1);
     }
 
-    /** Returns the minimum age (inclusive) this generator will produce. */
+    /**
+     * Returns the minimum age (inclusive) this generator will produce.
+     */
     public int getMinAge() {
         return minAge;
     }
 
-    /** Returns the maximum age (inclusive) this generator will produce. */
+    /**
+     * Returns the maximum age (inclusive) this generator will produce.
+     */
     public int getMaxAge() {
         return maxAge;
     }

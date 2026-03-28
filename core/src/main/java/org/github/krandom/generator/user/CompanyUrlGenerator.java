@@ -9,40 +9,46 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.network.DomainGenerator;
 
+import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
-import java.security.SecureRandom;
 
 /**
  * Generates company website URLs.
  */
 public final class CompanyUrlGenerator implements Generator<String> {
 
-    private static final String[] PROTOCOLS = {"https", "http"};
+    private static final String[] PROTOCOLS = { "https", "http" };
 
-    private final DomainGenerator domainGenerator;
+    private final DomainGenerator      domainGenerator;
     private final CompanyNameGenerator companyNameGenerator;
-    private final Random random;
+    private final Random               random;
 
-    /** Creates a company URL generator with default configuration. */
+    /**
+     * Creates a company URL generator with default configuration.
+     */
     public CompanyUrlGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Creates a company URL generator for a locale. */
+    /**
+     * Creates a company URL generator for a locale.
+     */
     public CompanyUrlGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
 
-    /** Creates a company URL generator with the specified configuration. */
+    /**
+     * Creates a company URL generator with the specified configuration.
+     */
     public CompanyUrlGenerator(GeneratorConfig config) {
         GeneratorConfig safe = Objects.requireNonNull(config, "config must not be null");
         this.domainGenerator = new DomainGenerator(safe);
         this.companyNameGenerator = new CompanyNameGenerator(safe);
         this.random = safe.getSeed().isPresent()
-                ? new Random(safe.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(safe.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

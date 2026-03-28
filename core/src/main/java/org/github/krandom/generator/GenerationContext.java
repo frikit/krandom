@@ -26,19 +26,29 @@ public final class GenerationContext {
     public GenerationContext(String fieldName, Class<?> ownerType, int depth) {
         this.fieldName = fieldName;
         this.ownerType = ownerType;
-        this.depth     = depth;
+        this.depth = depth;
     }
 
-    /** Name of the field being populated. */
-    public String getFieldName() { return fieldName; }
+    /**
+     * Name of the field being populated.
+     */
+    public String getFieldName() {
+        return fieldName;
+    }
 
-    /** Class that declares the field. */
-    public Class<?> getOwnerType() { return ownerType; }
+    /**
+     * Class that declares the field.
+     */
+    public Class<?> getOwnerType() {
+        return ownerType;
+    }
 
     /**
      * Current nesting depth.
      * {@code 0} means the field belongs to the root object passed to
      * {@link org.github.krandom.generator.object.ObjectGenerator}.
      */
-    public int getDepth() { return depth; }
+    public int getDepth() {
+        return depth;
+    }
 }

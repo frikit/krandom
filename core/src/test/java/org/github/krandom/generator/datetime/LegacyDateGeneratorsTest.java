@@ -12,14 +12,18 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Legacy date/time generators")
 class LegacyDateGeneratorsTest {
 
-    private static final LocalDate MIN = LocalDate.of(2020, 1, 1);
-    private static final LocalDate MAX = LocalDate.of(2020, 1, 3);
-    private static final long MILLIS_PER_DAY = 24L * 60L * 60L * 1000L;
+    private static final LocalDate MIN            = LocalDate.of(2020, 1, 1);
+    private static final LocalDate MAX            = LocalDate.of(2020, 1, 3);
+    private static final long      MILLIS_PER_DAY = 24L * 60L * 60L * 1000L;
 
     @Test
     @DisplayName("default constructors generate non-null values")

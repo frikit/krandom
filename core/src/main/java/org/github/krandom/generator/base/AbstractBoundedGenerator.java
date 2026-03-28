@@ -21,16 +21,18 @@ import java.util.random.RandomGenerator;
  *       seed is supplied, {@link Random} when a seed is supplied).</li>
  *   <li>Stores the default {@code min} / {@code max} bounds.</li>
  *   <li>Delegates no-arg {@link #generate()} to {@link #generate(Comparable, Comparable)}.</li>
- *   <li>Provides {@link #validate(Number, Number)}, {@link #lo(Number, Number)}, and 
+ *   <li>Provides {@link #validate(Number, Number)}, {@link #lo(Number, Number)}, and
  *       {@link #hi(Number, Number)} helpers to concrete subclasses.</li>
  * </ul>
  *
  * @param <T> numeric type; must extend {@link Number} and implement {@link Comparable}
  */
 public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
-        implements BoundedGenerator<T> {
+    implements BoundedGenerator<T> {
 
-    /** The underlying PRNG — {@code RandomGenerator} is the Java-17+ interface. */
+    /**
+     * The underlying PRNG — {@code RandomGenerator} is the Java-17+ interface.
+     */
     protected final RandomGenerator random;
 
     private final T min;
@@ -42,20 +44,26 @@ public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
      * @param seed optional seed; {@code null} means {@link SecureRandom}
      */
     protected AbstractBoundedGenerator(T min, T max, Long seed) {
-        this.min    = Objects.requireNonNull(min, "min must not be null");
-        this.max    = Objects.requireNonNull(max, "max must not be null");
+        this.min = Objects.requireNonNull(min, "min must not be null");
+        this.max = Objects.requireNonNull(max, "max must not be null");
         this.random = seed != null ? new Random(seed) : new SecureRandom();
     }
 
     // ── BoundedGenerator ──────────────────────────────────────────────────────
 
     @Override
-    public final T getMin() { return min; }
+    public final T getMin() {
+        return min;
+    }
 
     @Override
-    public final T getMax() { return max; }
+    public final T getMax() {
+        return max;
+    }
 
-    /** Delegates to {@link #generate(Comparable, Comparable)} using the configured bounds. */
+    /**
+     * Delegates to {@link #generate(Comparable, Comparable)} using the configured bounds.
+     */
     @Override
     public T generate() {
         return generate(min, max);
@@ -72,13 +80,21 @@ public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
         Objects.requireNonNull(b, "max must not be null");
         if (a.compareTo(b) == 0) {
             throw new IllegalArgumentException(
-                    "min and max must differ, both were: " + a);
+                "min and max must differ, both were: " + a);
         }
     }
 
-    /** Return the lesser of two comparable values. */
-    protected T lo(T a, T b) { return a.compareTo(b) <= 0 ? a : b; }
+    /**
+     * Return the lesser of two comparable values.
+     */
+    protected T lo(T a, T b) {
+        return a.compareTo(b) <= 0 ? a : b;
+    }
 
-    /** Return the greater of two comparable values. */
-    protected T hi(T a, T b) { return a.compareTo(b) >= 0 ? a : b; }
+    /**
+     * Return the greater of two comparable values.
+     */
+    protected T hi(T a, T b) {
+        return a.compareTo(b) >= 0 ? a : b;
+    }
 }

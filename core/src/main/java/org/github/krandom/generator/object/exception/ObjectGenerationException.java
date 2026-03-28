@@ -14,7 +14,7 @@ package org.github.krandom.generator.object.exception;
  *   <li>Inaccessible constructor or field.</li>
  *   <li>Constructor/setter threw an exception during population.</li>
  * </ul>
- *
+ * <p>
  * Set {@code ObjectGeneratorConfig.ignoreErrors(true)} to silently leave fields {@code null}
  * instead of propagating this exception.
  */

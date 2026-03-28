@@ -9,7 +9,8 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Digit and NumberWithFormat generators")
 class DigitAndNumberWithFormatGeneratorTest {
@@ -32,7 +33,7 @@ class DigitAndNumberWithFormatGeneratorTest {
         assertTrue(new NumberWithFormatGenerator("##-##").generate().matches("\\d\\d-\\d\\d"));
         assertTrue(new NumberWithFormatGenerator().generate().matches("\\d{3}-\\d{3}-\\d{4}"));
         assertTrue(new NumberWithFormatGenerator(GeneratorConfig.builder().seed(12L).build())
-                .generate().matches("\\d{3}-\\d{3}-\\d{4}"));
+                       .generate().matches("\\d{3}-\\d{3}-\\d{4}"));
 
         assertThrows(NullPointerException.class, () -> new NumberWithFormatGenerator((String) null));
         assertThrows(IllegalArgumentException.class, () -> new NumberWithFormatGenerator(""));

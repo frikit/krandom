@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class TitleDataRegistry {
 
     private static final ConcurrentHashMap<String, TitleDataProvider> REGISTRY =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -46,7 +46,8 @@ public final class TitleDataRegistry {
         }
     }
 
-    private TitleDataRegistry() {}
+    private TitleDataRegistry() {
+    }
 
     /**
      * Registers a custom title data provider, making it available to {@link TitleGenerator}.

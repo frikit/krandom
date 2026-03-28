@@ -17,10 +17,10 @@ import java.util.Random;
  */
 public final class PasswordGenerator implements Generator<String> {
 
-    private static final String ALPHABET =
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{};:,.?";
-    private static final int DEFAULT_MIN_LENGTH = 8;
-    private static final int DEFAULT_MAX_LENGTH = 16;
+    private static final String ALPHABET           =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{};:,.?";
+    private static final int    DEFAULT_MIN_LENGTH = 8;
+    private static final int    DEFAULT_MAX_LENGTH = 16;
 
     private final Random random;
 
@@ -31,8 +31,18 @@ public final class PasswordGenerator implements Generator<String> {
     public PasswordGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
+    }
+
+    private static void validateRange(int minLength, int maxLength) {
+        if (minLength <= 0) {
+            throw new IllegalArgumentException("minLength must be positive, got: " + minLength);
+        }
+        if (maxLength < minLength) {
+            throw new IllegalArgumentException("maxLength must be >= minLength, got: "
+                                               + maxLength + " < " + minLength);
+        }
     }
 
     @Override
@@ -63,15 +73,5 @@ public final class PasswordGenerator implements Generator<String> {
             sb.append(ALPHABET.charAt(random.nextInt(ALPHABET.length())));
         }
         return sb.toString();
-    }
-
-    private static void validateRange(int minLength, int maxLength) {
-        if (minLength <= 0) {
-            throw new IllegalArgumentException("minLength must be positive, got: " + minLength);
-        }
-        if (maxLength < minLength) {
-            throw new IllegalArgumentException("maxLength must be >= minLength, got: "
-                    + maxLength + " < " + minLength);
-        }
     }
 }

@@ -18,20 +18,20 @@ import java.util.Random;
 public final class MimeTypeGenerator implements Generator<String> {
 
     private static final String[] TYPES = {
-            "application/json",
-            "application/xml",
-            "application/pdf",
-            "application/zip",
-            "application/octet-stream",
-            "text/plain",
-            "text/html",
-            "text/css",
-            "text/csv",
-            "image/png",
-            "image/jpeg",
-            "image/gif",
-            "audio/mpeg",
-            "video/mp4"
+        "application/json",
+        "application/xml",
+        "application/pdf",
+        "application/zip",
+        "application/octet-stream",
+        "text/plain",
+        "text/html",
+        "text/css",
+        "text/csv",
+        "image/png",
+        "image/jpeg",
+        "image/gif",
+        "audio/mpeg",
+        "video/mp4"
     };
 
     private final Random random;
@@ -43,8 +43,8 @@ public final class MimeTypeGenerator implements Generator<String> {
     public MimeTypeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

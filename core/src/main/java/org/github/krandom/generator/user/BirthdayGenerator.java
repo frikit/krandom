@@ -53,34 +53,38 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
     private static final DateTimeFormatter AMERICAN_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
     private static final Map<String, DateTimeFormatter> LOCALE_FORMATTERS = Map.ofEntries(
-            Map.entry("en_US", DateTimeFormatter.ofPattern("M/d/yyyy")),
-            Map.entry("en_GB", DateTimeFormatter.ofPattern("d/M/yyyy")),
-            Map.entry("en_AU", DateTimeFormatter.ofPattern("d/M/yyyy")),
-            Map.entry("fr_FR", DateTimeFormatter.ofPattern("d/M/yyyy")),
-            Map.entry("de_DE", DateTimeFormatter.ofPattern("d.M.yyyy")),
-            Map.entry("de",    DateTimeFormatter.ofPattern("d.M.yyyy")),
-            Map.entry("ja_JP", DateTimeFormatter.ofPattern("yyyy/M/d")),
-            Map.entry("ja",    DateTimeFormatter.ofPattern("yyyy/M/d")),
-            Map.entry("es_ES", DateTimeFormatter.ofPattern("d/M/yyyy")),
-            Map.entry("it_IT", DateTimeFormatter.ofPattern("d/M/yyyy")),
-            Map.entry("pt_BR", DateTimeFormatter.ofPattern("d/M/yyyy")),
-            Map.entry("zh_CN", DateTimeFormatter.ofPattern("yyyy年M月d日")),
-            Map.entry("zh",    DateTimeFormatter.ofPattern("yyyy年M月d日"))
+        Map.entry("en_US", DateTimeFormatter.ofPattern("M/d/yyyy")),
+        Map.entry("en_GB", DateTimeFormatter.ofPattern("d/M/yyyy")),
+        Map.entry("en_AU", DateTimeFormatter.ofPattern("d/M/yyyy")),
+        Map.entry("fr_FR", DateTimeFormatter.ofPattern("d/M/yyyy")),
+        Map.entry("de_DE", DateTimeFormatter.ofPattern("d.M.yyyy")),
+        Map.entry("de", DateTimeFormatter.ofPattern("d.M.yyyy")),
+        Map.entry("ja_JP", DateTimeFormatter.ofPattern("yyyy/M/d")),
+        Map.entry("ja", DateTimeFormatter.ofPattern("yyyy/M/d")),
+        Map.entry("es_ES", DateTimeFormatter.ofPattern("d/M/yyyy")),
+        Map.entry("it_IT", DateTimeFormatter.ofPattern("d/M/yyyy")),
+        Map.entry("pt_BR", DateTimeFormatter.ofPattern("d/M/yyyy")),
+        Map.entry("zh_CN", DateTimeFormatter.ofPattern("yyyy年M月d日")),
+        Map.entry("zh", DateTimeFormatter.ofPattern("yyyy年M月d日"))
     );
 
     private final Random random;
-    private final int minAge;
-    private final int maxAge;
+    private final int    minAge;
+    private final int    maxAge;
     private final Locale locale;
 
     // ── No-locale constructors (backward compatible) ───────────────────────────
 
-    /** Generates birthdays for ages in the full range [1, 100]. */
+    /**
+     * Generates birthdays for ages in the full range [1, 100].
+     */
     public BirthdayGenerator() {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.empty(), null);
     }
 
-    /** Generates birthdays for ages [1, 100] with a fixed seed for reproducible output. */
+    /**
+     * Generates birthdays for ages [1, 100] with a fixed seed for reproducible output.
+     */
     public BirthdayGenerator(long seed) {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.of(seed), null);
     }
@@ -92,9 +96,9 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(AgeType type) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-                type.getMaxAge(),
-                OptionalLong.empty(),
-                null);
+             type.getMaxAge(),
+             OptionalLong.empty(),
+             null);
     }
 
     /**
@@ -105,9 +109,9 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(AgeType type, long seed) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-                type.getMaxAge(),
-                OptionalLong.of(seed),
-                null);
+             type.getMaxAge(),
+             OptionalLong.of(seed),
+             null);
     }
 
     /**
@@ -130,7 +134,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(Locale locale) {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.empty(),
-                Objects.requireNonNull(locale, "locale must not be null"));
+             Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -142,9 +146,9 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(AgeType type, Locale locale) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-                type.getMaxAge(),
-                OptionalLong.empty(),
-                Objects.requireNonNull(locale, "locale must not be null"));
+             type.getMaxAge(),
+             OptionalLong.empty(),
+             Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -157,7 +161,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(int minAge, int maxAge, Locale locale) {
         this(minAge, maxAge, OptionalLong.empty(),
-                Objects.requireNonNull(locale, "locale must not be null"));
+             Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -169,7 +173,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(Locale locale, long seed) {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.of(seed),
-                Objects.requireNonNull(locale, "locale must not be null"));
+             Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -182,9 +186,9 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(AgeType type, Locale locale, long seed) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-                type.getMaxAge(),
-                OptionalLong.of(seed),
-                Objects.requireNonNull(locale, "locale must not be null"));
+             type.getMaxAge(),
+             OptionalLong.of(seed),
+             Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -198,7 +202,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(int minAge, int maxAge, Locale locale, long seed) {
         this(minAge, maxAge, OptionalLong.of(seed),
-                Objects.requireNonNull(locale, "locale must not be null"));
+             Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     // ── Canonical private constructor ─────────────────────────────────────────
@@ -209,7 +213,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
         }
         if (maxAge < minAge) {
             throw new IllegalArgumentException(
-                    "maxAge must be >= minAge, got: minAge=" + minAge + ", maxAge=" + maxAge);
+                "maxAge must be >= minAge, got: minAge=" + minAge + ", maxAge=" + maxAge);
         }
         this.minAge = minAge;
         this.maxAge = maxAge;
@@ -227,11 +231,11 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     @Override
     public LocalDate generate() {
-        LocalDate today    = LocalDate.now();
-        int age            = minAge + random.nextInt(maxAge - minAge + 1);
-        LocalDate latest   = today.minusYears(age);
+        LocalDate today = LocalDate.now();
+        int age = minAge + random.nextInt(maxAge - minAge + 1);
+        LocalDate latest = today.minusYears(age);
         LocalDate earliest = today.minusYears((long) age + 1).plusDays(1);
-        long daysInRange   = ChronoUnit.DAYS.between(earliest, latest) + 1;
+        long daysInRange = ChronoUnit.DAYS.between(earliest, latest) + 1;
         return earliest.plusDays(random.nextLong(daysInRange));
     }
 
@@ -265,12 +269,16 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
 
     // ── Accessors ─────────────────────────────────────────────────────────────
 
-    /** Returns the minimum age (inclusive) used for birthday generation. */
+    /**
+     * Returns the minimum age (inclusive) used for birthday generation.
+     */
     public int getMinAge() {
         return minAge;
     }
 
-    /** Returns the maximum age (inclusive) used for birthday generation. */
+    /**
+     * Returns the maximum age (inclusive) used for birthday generation.
+     */
     public int getMaxAge() {
         return maxAge;
     }

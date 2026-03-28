@@ -26,8 +26,11 @@ import java.util.Random;
  */
 public final class FrNationalIdProvider implements NationalIdProvider {
 
-    /** Creates a provider for French NIR numbers. */
-    public FrNationalIdProvider() {}
+    /**
+     * Creates a provider for French NIR numbers.
+     */
+    public FrNationalIdProvider() {
+    }
 
     @Override
     public Locale getLocale() {
@@ -36,18 +39,18 @@ public final class FrNationalIdProvider implements NationalIdProvider {
 
     @Override
     public String generate(Random random) {
-        int gender  = random.nextInt(2) + 1;          // 1 or 2
-        int year    = random.nextInt(100);             // 00–99
-        int month   = random.nextInt(12) + 1;          // 01–12
-        int dept    = random.nextInt(99) + 1;          // 01–99
+        int gender = random.nextInt(2) + 1;          // 1 or 2
+        int year = random.nextInt(100);             // 00–99
+        int month = random.nextInt(12) + 1;          // 01–12
+        int dept = random.nextInt(99) + 1;          // 01–99
         int commune = random.nextInt(999) + 1;         // 001–999
-        int order   = random.nextInt(999) + 1;         // 001–999
+        int order = random.nextInt(999) + 1;         // 001–999
 
         long number13 = Long.parseLong(String.format("%d%02d%02d%02d%03d%03d",
-                gender, year, month, dept, commune, order));
+                                                     gender, year, month, dept, commune, order));
         int key = (int) (97 - (number13 % 97));
 
         return String.format("%d%02d%02d%02d%03d%03d%02d",
-                gender, year, month, dept, commune, order, key);
+                             gender, year, month, dept, commune, order, key);
     }
 }

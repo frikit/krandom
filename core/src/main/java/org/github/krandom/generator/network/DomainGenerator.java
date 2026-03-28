@@ -41,10 +41,10 @@ import java.util.Random;
  * // Random domain with popular TLD
  * DomainGenerator gen = new DomainGenerator();
  * String domain = gen.generate();              // "techcloud.com"
- * 
+ *
  * // Domain with specific TLD
  * String customDomain = gen.generate("io");    // "datahub.io"
- * 
+ *
  * // Get just the TLD
  * String tld = gen.getTLD();                   // "net"
  * }</pre>
@@ -54,7 +54,7 @@ import java.util.Random;
  * // US domains
  * DomainGenerator usGen = new DomainGenerator(Locale.US);
  * String usDomain = usGen.generate();  // Might include ".us" TLD
- * 
+ *
  * // German domains
  * DomainGenerator deGen = new DomainGenerator(Locale.GERMANY);
  * String deDomain = deGen.generate();  // Might include ".de" TLD
@@ -64,12 +64,12 @@ import java.util.Random;
  * This generator is thread-safe and can be shared across threads.
  */
 public final class DomainGenerator implements Generator<String> {
-    
+
     private static final String[] POPULAR_TLDS = {
-        "com", "net", "org", "io", "co", "dev", "app", 
+        "com", "net", "org", "io", "co", "dev", "app",
         "tech", "online", "site", "xyz", "pro"
     };
-    
+
     private static final String[] DOMAIN_WORDS = {
         "tech", "data", "cloud", "digital", "web", "net", "info", "media",
         "global", "world", "smart", "quick", "easy", "fast", "modern",
@@ -77,18 +77,18 @@ public final class DomainGenerator implements Generator<String> {
         "hub", "link", "connect", "sync", "flow", "stream", "wave",
         "code", "dev", "build", "maker", "labs", "works", "solutions"
     };
-    
+
     private final GeneratorConfig config;
-    private final Random random;
-    private final String localeTLD;
-    
+    private final Random          random;
+    private final String          localeTLD;
+
     /**
      * Creates a domain generator with default configuration.
      */
     public DomainGenerator() {
         this(GeneratorConfig.defaults());
     }
-    
+
     /**
      * Creates a domain generator for the specified locale.
      *
@@ -97,7 +97,7 @@ public final class DomainGenerator implements Generator<String> {
     public DomainGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
-    
+
     /**
      * Creates a domain generator with the specified configuration.
      *
@@ -107,11 +107,11 @@ public final class DomainGenerator implements Generator<String> {
     public DomainGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.localeTLD = getLocaleTLD(config.getLocale());
     }
-    
+
     /**
      * {@inheritDoc}
      *
@@ -125,7 +125,7 @@ public final class DomainGenerator implements Generator<String> {
         String tld = random.nextBoolean() && localeTLD != null ? localeTLD : getRandomPopularTLD();
         return name + "." + tld;
     }
-    
+
     /**
      * Generates a domain name with the specified TLD.
      *
@@ -167,7 +167,7 @@ public final class DomainGenerator implements Generator<String> {
     public String generateDomainWord() {
         return generateName();
     }
-    
+
     /**
      * Generates just a TLD (top-level domain).
      *
@@ -198,7 +198,7 @@ public final class DomainGenerator implements Generator<String> {
     public String generateTld() {
         return getTLD();
     }
-    
+
     /**
      * Generates just a TLD from popular options.
      *
@@ -207,7 +207,7 @@ public final class DomainGenerator implements Generator<String> {
     public String getPopularTLD() {
         return getRandomPopularTLD();
     }
-    
+
     /**
      * Gets the locale-specific TLD for this generator.
      *
@@ -216,7 +216,7 @@ public final class DomainGenerator implements Generator<String> {
     public String getLocaleTLD() {
         return localeTLD;
     }
-    
+
     /**
      * Generates a domain name (without TLD).
      *
@@ -232,7 +232,7 @@ public final class DomainGenerator implements Generator<String> {
             return getRandomWord() + getRandomWord();
         }
     }
-    
+
     /**
      * Returns a random domain word.
      *
@@ -241,7 +241,7 @@ public final class DomainGenerator implements Generator<String> {
     private String getRandomWord() {
         return DOMAIN_WORDS[random.nextInt(DOMAIN_WORDS.length)];
     }
-    
+
     /**
      * Returns a random popular TLD.
      *
@@ -250,7 +250,7 @@ public final class DomainGenerator implements Generator<String> {
     private String getRandomPopularTLD() {
         return POPULAR_TLDS[random.nextInt(POPULAR_TLDS.length)];
     }
-    
+
     /**
      * Gets the country-code TLD for the given locale.
      *
@@ -261,9 +261,9 @@ public final class DomainGenerator implements Generator<String> {
         if (locale == null) {
             return null;
         }
-        
+
         String country = locale.getCountry();
-        
+
         return switch (country) {
             case "US" -> "us";
             case "GB" -> "uk";

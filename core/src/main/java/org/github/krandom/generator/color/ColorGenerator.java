@@ -57,17 +57,18 @@ import java.util.Random;
  * This generator is thread-safe and can be shared across threads.
  */
 public final class ColorGenerator implements Generator<String> {
+
     private static final String[] COLOR_NAMES = {
-            "Red", "Blue", "Green", "Yellow", "Orange", "Pink", "Brown", "Gray",
-            "Black", "White", "Cyan", "Magenta", "Teal", "Lime", "Indigo", "Violet"
+        "Red", "Blue", "Green", "Yellow", "Orange", "Pink", "Brown", "Gray",
+        "Black", "White", "Cyan", "Magenta", "Teal", "Lime", "Indigo", "Violet"
     };
 
     private static final String[] SAFE_COLOR_NAMES = {
-            "Black", "White", "Red", "Blue", "Lime", "Aqua", "Fuchsia", "Navy", "Olive", "Silver"
+        "Black", "White", "Red", "Blue", "Lime", "Aqua", "Fuchsia", "Navy", "Olive", "Silver"
     };
 
     private final GeneratorConfig config;
-    private final Random random;
+    private final Random          random;
 
     /**
      * Creates a color generator with default configuration.
@@ -85,8 +86,8 @@ public final class ColorGenerator implements Generator<String> {
     public ColorGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -110,11 +111,11 @@ public final class ColorGenerator implements Generator<String> {
      */
     public String generate(ColorFormat format) {
         Objects.requireNonNull(format, "format must not be null");
-        
+
         int r = random.nextInt(256);
         int g = random.nextInt(256);
         int b = random.nextInt(256);
-        
+
         return formatColor(r, g, b, format, false);
     }
 
@@ -137,7 +138,7 @@ public final class ColorGenerator implements Generator<String> {
      */
     public String generateGrayscale(ColorFormat format) {
         Objects.requireNonNull(format, "format must not be null");
-        
+
         int gray = random.nextInt(256);
         return formatColor(gray, gray, gray, format, false);
     }
@@ -160,11 +161,11 @@ public final class ColorGenerator implements Generator<String> {
      */
     public String generateUppercase(ColorFormat format) {
         Objects.requireNonNull(format, "format must not be null");
-        
+
         int r = random.nextInt(256);
         int g = random.nextInt(256);
         int b = random.nextInt(256);
-        
+
         return formatColor(r, g, b, format, true);
     }
 
@@ -189,10 +190,10 @@ public final class ColorGenerator implements Generator<String> {
     /**
      * Formats RGB components into the specified color format.
      *
-     * @param r red component [0-255]
-     * @param g green component [0-255]
-     * @param b blue component [0-255]
-     * @param format the output format
+     * @param r         red component [0-255]
+     * @param g         green component [0-255]
+     * @param b         blue component [0-255]
+     * @param format    the output format
      * @param uppercase whether to use uppercase hex letters
      * @return formatted color string
      */

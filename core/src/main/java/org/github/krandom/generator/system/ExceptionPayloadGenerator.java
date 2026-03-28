@@ -20,16 +20,16 @@ import java.util.Random;
  */
 public final class ExceptionPayloadGenerator implements Generator<Map<String, String>> {
 
-    private static final String[] TYPES = {
-            "IllegalStateException", "IllegalArgumentException", "RuntimeException",
-            "NullPointerException", "UnsupportedOperationException"
+    private static final String[] TYPES    = {
+        "IllegalStateException", "IllegalArgumentException", "RuntimeException",
+        "NullPointerException", "UnsupportedOperationException"
     };
     private static final String[] MESSAGES = {
-            "Invalid state transition",
-            "Unexpected null value",
-            "Configuration value out of range",
-            "Operation is not supported",
-            "Input validation failed"
+        "Invalid state transition",
+        "Unexpected null value",
+        "Configuration value out of range",
+        "Operation is not supported",
+        "Input validation failed"
     };
 
     private final Random random;
@@ -41,8 +41,8 @@ public final class ExceptionPayloadGenerator implements Generator<Map<String, St
     public ExceptionPayloadGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

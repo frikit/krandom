@@ -16,7 +16,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CountryGenerator")
 class CountryGeneratorTest {
@@ -100,6 +107,7 @@ class CountryGeneratorTest {
     void currentCountryCodeAlpha3UnsupportedCountry() {
         Locale locale = Locale.of("en", "ZZ");
         CountryDataRegistry.register(new CountryDataProvider() {
+
             @Override
             public Locale getLocale() {
                 return locale;
@@ -107,7 +115,7 @@ class CountryGeneratorTest {
 
             @Override
             public String[] getCountries() {
-                return new String[]{"Nowhere"};
+                return new String[] { "Nowhere" };
             }
         });
         CountryGenerator generator = new CountryGenerator(locale);
@@ -328,7 +336,7 @@ class CountryGeneratorTest {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             CountryGenerator gen = new CountryGenerator(supportedLocale.locale());
             assertTrue(gen.getCountryCount() > 0,
-                    "Locale " + supportedLocale.locale() + " should have countries");
+                       "Locale " + supportedLocale.locale() + " should have countries");
         }
     }
 
@@ -358,14 +366,14 @@ class CountryGeneratorTest {
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
         assertThrows(NullPointerException.class,
-            () -> new CountryGenerator((GeneratorConfig) null));
+                     () -> new CountryGenerator((GeneratorConfig) null));
     }
 
     @Test
     @DisplayName("null locale throws NullPointerException")
     void nullLocaleThrows() {
         assertThrows(NullPointerException.class,
-            () -> new CountryGenerator((Locale) null));
+                     () -> new CountryGenerator((Locale) null));
     }
 
     @Test
@@ -397,11 +405,19 @@ class CountryGeneratorTest {
     @DisplayName("custom provider registered for new locale is used by CountryGenerator")
     void customLocaleRegistration() {
         Locale korean = Locale.of("ko", "KR");
-        String[] koreanCountries = {"미국", "독일", "프랑스", "일본"};
+        String[] koreanCountries = { "미국", "독일", "프랑스", "일본" };
 
         CountryDataRegistry.register(new CountryDataProvider() {
-            @Override public Locale getLocale() { return korean; }
-            @Override public String[] getCountries() { return koreanCountries; }
+
+            @Override
+            public Locale getLocale() {
+                return korean;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return koreanCountries;
+            }
         });
 
         CountryGenerator gen = new CountryGenerator(korean);
@@ -416,11 +432,19 @@ class CountryGeneratorTest {
     @DisplayName("custom provider overrides built-in locale")
     void customProviderOverridesBuiltIn() {
         Locale us = Locale.US;
-        String[] custom = {"Foo Land", "Bar Republic"};
+        String[] custom = { "Foo Land", "Bar Republic" };
 
         CountryDataRegistry.register(new CountryDataProvider() {
-            @Override public Locale getLocale() { return us; }
-            @Override public String[] getCountries() { return custom; }
+
+            @Override
+            public Locale getLocale() {
+                return us;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return custom;
+            }
         });
 
         CountryGenerator gen = new CountryGenerator(us);
@@ -439,8 +463,16 @@ class CountryGeneratorTest {
     void customLocaleAppearsInKeys() {
         Locale swahili = Locale.of("sw", "TZ");
         CountryDataRegistry.register(new CountryDataProvider() {
-            @Override public Locale getLocale() { return swahili; }
-            @Override public String[] getCountries() { return new String[]{"Marekani", "Ujerumani"}; }
+
+            @Override
+            public Locale getLocale() {
+                return swahili;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new String[] { "Marekani", "Ujerumani" };
+            }
         });
 
         assertTrue(CountryDataRegistry.registeredKeys().contains("sw_TZ"));
@@ -452,8 +484,16 @@ class CountryGeneratorTest {
     void languageOnlyFallback() {
         Locale arabic = Locale.of("ar");
         CountryDataRegistry.register(new CountryDataProvider() {
-            @Override public Locale getLocale() { return arabic; }
-            @Override public String[] getCountries() { return new String[]{"الولايات المتحدة", "ألمانيا"}; }
+
+            @Override
+            public Locale getLocale() {
+                return arabic;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new String[] { "الولايات المتحدة", "ألمانيا" };
+            }
         });
 
         // ar_EG should fall back to the "ar" language entry.
@@ -508,11 +548,19 @@ class CountryGeneratorTest {
     @DisplayName("language-only registration (register) updates language fallback key")
     void registerLanguageOnlyLocale() {
         Locale langOnly = Locale.of("en");
-        String[] custom = {"Testland"};
+        String[] custom = { "Testland" };
 
         CountryDataRegistry.register(new CountryDataProvider() {
-            @Override public Locale getLocale() { return langOnly; }
-            @Override public String[] getCountries() { return custom; }
+
+            @Override
+            public Locale getLocale() {
+                return langOnly;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return custom;
+            }
         });
 
         CountryDataProvider found = CountryDataRegistry.forLocale(langOnly);
@@ -521,8 +569,16 @@ class CountryGeneratorTest {
 
         // Restore the language-level "en" fallback.
         CountryDataRegistry.register(new CountryDataProvider() {
-            @Override public Locale getLocale() { return Locale.of("en"); }
-            @Override public String[] getCountries() { return new BuiltInCountryDataProvider(SupportedLocale.EN_US).getCountries(); }
+
+            @Override
+            public Locale getLocale() {
+                return Locale.of("en");
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new BuiltInCountryDataProvider(SupportedLocale.EN_US).getCountries();
+            }
         });
     }
 

@@ -7,7 +7,18 @@ package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.GenerationContext;
 import org.github.krandom.generator.Generator;
-import org.github.krandom.generator.base.*;
+import org.github.krandom.generator.base.BigDecimalGenerator;
+import org.github.krandom.generator.base.BigIntegerGenerator;
+import org.github.krandom.generator.base.BooleanGenerator;
+import org.github.krandom.generator.base.ByteGenerator;
+import org.github.krandom.generator.base.CharGenerator;
+import org.github.krandom.generator.base.DoubleGenerator;
+import org.github.krandom.generator.base.EnumGenerator;
+import org.github.krandom.generator.base.FloatGenerator;
+import org.github.krandom.generator.base.IntGenerator;
+import org.github.krandom.generator.base.LongGenerator;
+import org.github.krandom.generator.base.ShortGenerator;
+import org.github.krandom.generator.base.StringGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
 import org.github.krandom.generator.datetime.LocalDateTimeGenerator;
@@ -45,9 +56,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -55,14 +66,14 @@ import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.Set;
+import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.Vector;
-import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -98,7 +109,9 @@ import java.util.function.Supplier;
  */
 final class FieldGeneratorResolver {
 
-    /** Number of elements generated for arrays, lists, sets, and map entries. */
+    /**
+     * Number of elements generated for arrays, lists, sets, and map entries.
+     */
     static final int DEFAULT_ELEMENT_COUNT = 3;
 
     /**
@@ -106,46 +119,45 @@ final class FieldGeneratorResolver {
      * plus {@link BigDecimal} and {@link BigInteger}.
      */
     private static final Map<Class<?>, Supplier<Generator<?>>> STATIC_BUILTINS = new HashMap<>();
+    /**
+     * Safe zero-values used when a primitive field cannot be assigned its resolved value
+     * (e.g. at max depth, or when {@code ignoreErrors=true}).
+     */
+    private static final Map<Class<?>, Object>                   PRIMITIVE_DEFAULTS = new HashMap<>();
+    private static final Map<Class<?>, Function<String, Object>> ARGUMENT_PARSERS   = new HashMap<>();
 
     static {
-        STATIC_BUILTINS.put(byte.class,       ByteGenerator::new);
-        STATIC_BUILTINS.put(Byte.class,       ByteGenerator::new);
-        STATIC_BUILTINS.put(short.class,      ShortGenerator::new);
-        STATIC_BUILTINS.put(Short.class,      ShortGenerator::new);
-        STATIC_BUILTINS.put(int.class,        IntGenerator::new);
-        STATIC_BUILTINS.put(Integer.class,    IntGenerator::new);
-        STATIC_BUILTINS.put(long.class,       LongGenerator::new);
-        STATIC_BUILTINS.put(Long.class,       LongGenerator::new);
-        STATIC_BUILTINS.put(float.class,      FloatGenerator::new);
-        STATIC_BUILTINS.put(Float.class,      FloatGenerator::new);
-        STATIC_BUILTINS.put(double.class,     DoubleGenerator::new);
-        STATIC_BUILTINS.put(Double.class,     DoubleGenerator::new);
-        STATIC_BUILTINS.put(char.class,       CharGenerator::letters);
-        STATIC_BUILTINS.put(Character.class,  CharGenerator::letters);
-        STATIC_BUILTINS.put(boolean.class,    BooleanGenerator::new);
-        STATIC_BUILTINS.put(Boolean.class,    BooleanGenerator::new);
-        STATIC_BUILTINS.put(String.class,     StringGenerator::letters);
+        STATIC_BUILTINS.put(byte.class, ByteGenerator::new);
+        STATIC_BUILTINS.put(Byte.class, ByteGenerator::new);
+        STATIC_BUILTINS.put(short.class, ShortGenerator::new);
+        STATIC_BUILTINS.put(Short.class, ShortGenerator::new);
+        STATIC_BUILTINS.put(int.class, IntGenerator::new);
+        STATIC_BUILTINS.put(Integer.class, IntGenerator::new);
+        STATIC_BUILTINS.put(long.class, LongGenerator::new);
+        STATIC_BUILTINS.put(Long.class, LongGenerator::new);
+        STATIC_BUILTINS.put(float.class, FloatGenerator::new);
+        STATIC_BUILTINS.put(Float.class, FloatGenerator::new);
+        STATIC_BUILTINS.put(double.class, DoubleGenerator::new);
+        STATIC_BUILTINS.put(Double.class, DoubleGenerator::new);
+        STATIC_BUILTINS.put(char.class, CharGenerator::letters);
+        STATIC_BUILTINS.put(Character.class, CharGenerator::letters);
+        STATIC_BUILTINS.put(boolean.class, BooleanGenerator::new);
+        STATIC_BUILTINS.put(Boolean.class, BooleanGenerator::new);
+        STATIC_BUILTINS.put(String.class, StringGenerator::letters);
         STATIC_BUILTINS.put(BigDecimal.class, BigDecimalGenerator::new);
         STATIC_BUILTINS.put(BigInteger.class, BigIntegerGenerator::new);
         STATIC_BUILTINS.put(AtomicInteger.class, () -> () -> new AtomicInteger(new IntGenerator().generate()));
         STATIC_BUILTINS.put(AtomicLong.class, () -> () -> new AtomicLong(new LongGenerator().generate()));
     }
 
-    /**
-     * Safe zero-values used when a primitive field cannot be assigned its resolved value
-     * (e.g. at max depth, or when {@code ignoreErrors=true}).
-     */
-    private static final Map<Class<?>, Object> PRIMITIVE_DEFAULTS = new HashMap<>();
-    private static final Map<Class<?>, Function<String, Object>> ARGUMENT_PARSERS = new HashMap<>();
-
     static {
-        PRIMITIVE_DEFAULTS.put(byte.class,    (byte)  0);
-        PRIMITIVE_DEFAULTS.put(short.class,   (short) 0);
-        PRIMITIVE_DEFAULTS.put(int.class,     0);
-        PRIMITIVE_DEFAULTS.put(long.class,    0L);
-        PRIMITIVE_DEFAULTS.put(float.class,   0.0f);
-        PRIMITIVE_DEFAULTS.put(double.class,  0.0);
-        PRIMITIVE_DEFAULTS.put(char.class,    '\0');
+        PRIMITIVE_DEFAULTS.put(byte.class, (byte) 0);
+        PRIMITIVE_DEFAULTS.put(short.class, (short) 0);
+        PRIMITIVE_DEFAULTS.put(int.class, 0);
+        PRIMITIVE_DEFAULTS.put(long.class, 0L);
+        PRIMITIVE_DEFAULTS.put(float.class, 0.0f);
+        PRIMITIVE_DEFAULTS.put(double.class, 0.0);
+        PRIMITIVE_DEFAULTS.put(char.class, '\0');
         PRIMITIVE_DEFAULTS.put(boolean.class, false);
     }
 
@@ -170,25 +182,27 @@ final class FieldGeneratorResolver {
     }
 
     private final ObjectGeneratorConfig config;
-    private final ObjectPool pool;
+    private final ObjectPool            pool;
 
-    /** Instance-level map that combines STATIC_BUILTINS with config-specific date factories. */
+    /**
+     * Instance-level map that combines STATIC_BUILTINS with config-specific date factories.
+     */
     private final Map<Class<?>, Supplier<Generator<?>>> builtins;
 
     FieldGeneratorResolver(ObjectGeneratorConfig config, ObjectPool pool) {
-        this.config  = config;
-        this.pool    = pool;
+        this.config = config;
+        this.pool = pool;
         this.builtins = buildBuiltins(config);
     }
 
     private static Map<Class<?>, Supplier<Generator<?>>> buildBuiltins(ObjectGeneratorConfig cfg) {
         Map<Class<?>, Supplier<Generator<?>>> m = new HashMap<>(STATIC_BUILTINS);
-        LocalDate lo = cfg.getDateMin() != null ? cfg.getDateMin() : LocalDate.of(1970,  1,  1);
+        LocalDate lo = cfg.getDateMin() != null ? cfg.getDateMin() : LocalDate.of(1970, 1, 1);
         LocalDate hi = cfg.getDateMax() != null ? cfg.getDateMax() : LocalDate.of(2100, 12, 31);
-        m.put(LocalDate.class,     () -> new DateGenerator(lo, hi));
-        m.put(LocalTime.class,     TimeGenerator::new);
+        m.put(LocalDate.class, () -> new DateGenerator(lo, hi));
+        m.put(LocalTime.class, TimeGenerator::new);
         m.put(LocalDateTime.class, () -> new LocalDateTimeGenerator(lo, hi));
-        m.put(Instant.class,       () -> new InstantGenerator(lo, hi));
+        m.put(Instant.class, () -> new InstantGenerator(lo, hi));
         m.put(ZonedDateTime.class, () -> new ZonedDateTimeGenerator(lo, hi));
         m.put(OffsetDateTime.class, () -> () -> new ZonedDateTimeGenerator(lo, hi).generate().toOffsetDateTime());
         m.put(OffsetTime.class, () -> () -> {
@@ -200,9 +214,9 @@ final class FieldGeneratorResolver {
         m.put(MonthDay.class, () -> () -> MonthDay.from(new DateGenerator(lo, hi).generate()));
         m.put(Duration.class, () -> () -> Duration.ofSeconds(ThreadLocalRandom.current().nextLong(0, 10L * 365 * 24 * 60 * 60 + 1)));
         m.put(Period.class, () -> () -> Period.of(
-                ThreadLocalRandom.current().nextInt(0, 11),
-                ThreadLocalRandom.current().nextInt(0, 12),
-                ThreadLocalRandom.current().nextInt(0, 31)));
+            ThreadLocalRandom.current().nextInt(0, 11),
+            ThreadLocalRandom.current().nextInt(0, 12),
+            ThreadLocalRandom.current().nextInt(0, 31)));
         m.put(ZoneId.class, () -> () -> {
             List<String> ids = new ArrayList<>(ZoneId.getAvailableZoneIds());
             return ZoneId.of(ids.get(ThreadLocalRandom.current().nextInt(ids.size())));
@@ -215,11 +229,127 @@ final class FieldGeneratorResolver {
         m.put(java.sql.Date.class, () -> new SqlDateGenerator(lo, hi));
         m.put(java.sql.Time.class, SqlTimeGenerator::new);
         m.put(java.sql.Timestamp.class, () -> new SqlTimestampGenerator(lo, hi));
-        m.put(UUID.class,          UUIDGenerator::new);
+        m.put(UUID.class, UUIDGenerator::new);
         return Collections.unmodifiableMap(m);
     }
 
     // ── Primary entry point ───────────────────────────────────────────────────
+
+    /**
+     * Extracts the {@code idx}-th type argument from a {@link ParameterizedType}.
+     * Returns {@code Object.class} when the type is raw or the argument is not a plain class.
+     */
+    private static Class<?> typeArg(Type t, int idx) {
+        if (t instanceof ParameterizedType pt) {
+            var arg = pt.getActualTypeArguments();
+            if (arg[idx] instanceof Class<?> c) return c;
+        }
+        return Object.class; // raw or erased — resolveAndGenerate handles Object gracefully
+    }
+
+    private static Set<Object> toSetType(Class<?> rawType, List<Object> values) {
+        if (rawType == TreeSet.class
+            || rawType == SortedSet.class
+            || rawType == NavigableSet.class) {
+            Set<Object> set = new TreeSet<>(Comparator.comparing(String::valueOf));
+            set.addAll(values);
+            return set;
+        }
+        return new LinkedHashSet<>(values);
+    }
+
+    // ── Array generation ──────────────────────────────────────────────────────
+
+    private static List<Object> toListType(Class<?> rawType, List<Object> values) {
+        if (rawType == List.class) {
+            return Collections.unmodifiableList(values);
+        }
+        if (rawType == LinkedList.class) {
+            return new LinkedList<>(values);
+        }
+        if (rawType == ArrayList.class) {
+            return new ArrayList<>(values);
+        }
+        if (rawType == Vector.class) {
+            return new Vector<>(values);
+        }
+        if (rawType == Stack.class) {
+            Stack<Object> stack = new Stack<>();
+            stack.addAll(values);
+            return stack;
+        }
+        if (rawType == CopyOnWriteArrayList.class) {
+            return new CopyOnWriteArrayList<>(values);
+        }
+        if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
+            return new ArrayList<>(values);
+        }
+        // Unknown concrete List subtype; fallback to mutable list that remains assignable
+        // for abstract/interface declarations and avoids assignment failures for common concrete types.
+        return new ArrayList<>(values);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static Queue<Object> toQueueType(Class<?> rawType, List<Object> values) {
+        Queue<Object> queue;
+        if (rawType == PriorityQueue.class) {
+            queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
+        } else {
+            queue = new java.util.ArrayDeque<>();
+        }
+        queue.addAll(values);
+        return queue;
+    }
+
+    private static Map<Object, Object> toMapType(Class<?> rawType) {
+        if (rawType == TreeMap.class
+            || rawType == SortedMap.class
+            || rawType == NavigableMap.class) {
+            return new TreeMap<>(Comparator.comparing(String::valueOf));
+        }
+        return new LinkedHashMap<>();
+    }
+
+    private static Generator<?> annotationRandomizerFor(AnnotatedElement element) {
+        Randomizer annotation = element.getAnnotation(Randomizer.class);
+        if (annotation == null) return null;
+        Class<? extends Generator<?>> generatorType = annotation.value();
+        try {
+            RandomizerArgument[] args = element.getAnnotationsByType(RandomizerArgument.class);
+            Class<?>[] parameterTypes = new Class<?>[args.length];
+            Object[] parameterValues = new Object[args.length];
+            for (int i = 0; i < args.length; i++) {
+                parameterTypes[i] = args[i].type();
+                parameterValues[i] = convertArgumentValue(args[i].value(), parameterTypes[i]);
+            }
+            Constructor<? extends Generator<?>> ctor = generatorType.getDeclaredConstructor(parameterTypes);
+            ctor.setAccessible(true);
+            return ctor.newInstance(parameterValues);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            throw new ObjectGenerationException(
+                "Failed to instantiate @" + Randomizer.class.getSimpleName()
+                + " generator: " + generatorType.getName(), e);
+        }
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static Object convertArgumentValue(String rawValue, Class<?> type) {
+        Function<String, Object> parser = ARGUMENT_PARSERS.get(type);
+        if (parser != null) return parser.apply(rawValue);
+        if (type.isEnum()) {
+            return Enum.valueOf((Class<? extends Enum>) type.asSubclass(Enum.class), rawValue);
+        }
+        throw new IllegalArgumentException("Unsupported @" + RandomizerArgument.class.getSimpleName()
+                                           + " type: " + type.getName());
+    }
+
+    private static Character parseChar(String rawValue) {
+        if (rawValue.length() != 1) {
+            throw new IllegalArgumentException("Expected single character value but got: " + rawValue);
+        }
+        return rawValue.charAt(0);
+    }
 
     /**
      * Resolve and generate a value for a field whose generic type is known.
@@ -233,7 +363,7 @@ final class FieldGeneratorResolver {
      *                     {@code null} for synthetic recursive calls (collection elements etc.)
      * @return generated value, or a safe default / {@code null} when the type is unsupported
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     Object resolveAndGenerate(Type genericType, Class<?> rawType,
                               String fieldName, Class<?> ownerType,
                               int currentDepth, AnnotatedElement element) {
@@ -294,8 +424,8 @@ final class FieldGeneratorResolver {
 
         // ── 5b. List / Set ────────────────────────────────────────────────────
         if (List.class.isAssignableFrom(rawType)
-                || Set.class.isAssignableFrom(rawType)
-                || Queue.class.isAssignableFrom(rawType)) {
+            || Set.class.isAssignableFrom(rawType)
+            || Queue.class.isAssignableFrom(rawType)) {
             Class<?> elem = typeArg(genericType, 0);
             List<Object> els = new ArrayList<>(DEFAULT_ELEMENT_COUNT);
             for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
@@ -356,8 +486,8 @@ final class FieldGeneratorResolver {
                 pool.end(rawType, null);
                 if (config.isIgnoreErrors()) return null;
                 throw new ObjectGenerationException(
-                        "Failed to generate nested type " + rawType.getName() + " for field '"
-                                + ownerType.getSimpleName() + "." + fieldName + "'", e);
+                    "Failed to generate nested type " + rawType.getName() + " for field '"
+                    + ownerType.getSimpleName() + "." + fieldName + "'", e);
             }
         }
 
@@ -374,8 +504,6 @@ final class FieldGeneratorResolver {
         return resolveAndGenerate(rawType, rawType, fieldName, ownerType, currentDepth, null);
     }
 
-    // ── Array generation ──────────────────────────────────────────────────────
-
     private Object generateArray(Class<?> arrayType, Class<?> ownerType,
                                  String fieldName, int depth) {
         Class<?> comp = arrayType.getComponentType();
@@ -389,120 +517,6 @@ final class FieldGeneratorResolver {
             }
         }
         return arr;
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    /**
-     * Extracts the {@code idx}-th type argument from a {@link ParameterizedType}.
-     * Returns {@code Object.class} when the type is raw or the argument is not a plain class.
-     */
-    private static Class<?> typeArg(Type t, int idx) {
-        if (t instanceof ParameterizedType pt) {
-            var arg = pt.getActualTypeArguments();
-            if (arg[idx] instanceof Class<?> c) return c;
-        }
-        return Object.class; // raw or erased — resolveAndGenerate handles Object gracefully
-    }
-
-    private static Set<Object> toSetType(Class<?> rawType, List<Object> values) {
-        if (rawType == TreeSet.class
-                || rawType == SortedSet.class
-                || rawType == NavigableSet.class) {
-            Set<Object> set = new TreeSet<>(Comparator.comparing(String::valueOf));
-            set.addAll(values);
-            return set;
-        }
-        return new LinkedHashSet<>(values);
-    }
-
-    private static List<Object> toListType(Class<?> rawType, List<Object> values) {
-        if (rawType == List.class) {
-            return Collections.unmodifiableList(values);
-        }
-        if (rawType == LinkedList.class) {
-            return new LinkedList<>(values);
-        }
-        if (rawType == ArrayList.class) {
-            return new ArrayList<>(values);
-        }
-        if (rawType == Vector.class) {
-            return new Vector<>(values);
-        }
-        if (rawType == Stack.class) {
-            Stack<Object> stack = new Stack<>();
-            stack.addAll(values);
-            return stack;
-        }
-        if (rawType == CopyOnWriteArrayList.class) {
-            return new CopyOnWriteArrayList<>(values);
-        }
-        if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
-            return new ArrayList<>(values);
-        }
-        // Unknown concrete List subtype; fallback to mutable list that remains assignable
-        // for abstract/interface declarations and avoids assignment failures for common concrete types.
-        return new ArrayList<>(values);
-    }
-
-    private static Queue<Object> toQueueType(Class<?> rawType, List<Object> values) {
-        Queue<Object> queue;
-        if (rawType == PriorityQueue.class) {
-            queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
-        } else {
-            queue = new java.util.ArrayDeque<>();
-        }
-        queue.addAll(values);
-        return queue;
-    }
-
-    private static Map<Object, Object> toMapType(Class<?> rawType) {
-        if (rawType == TreeMap.class
-                || rawType == SortedMap.class
-                || rawType == NavigableMap.class) {
-            return new TreeMap<>(Comparator.comparing(String::valueOf));
-        }
-        return new LinkedHashMap<>();
-    }
-
-    private static Generator<?> annotationRandomizerFor(AnnotatedElement element) {
-        Randomizer annotation = element.getAnnotation(Randomizer.class);
-        if (annotation == null) return null;
-        Class<? extends Generator<?>> generatorType = annotation.value();
-        try {
-            RandomizerArgument[] args = element.getAnnotationsByType(RandomizerArgument.class);
-            Class<?>[] parameterTypes = new Class<?>[args.length];
-            Object[] parameterValues = new Object[args.length];
-            for (int i = 0; i < args.length; i++) {
-                parameterTypes[i] = args[i].type();
-                parameterValues[i] = convertArgumentValue(args[i].value(), parameterTypes[i]);
-            }
-            Constructor<? extends Generator<?>> ctor = generatorType.getDeclaredConstructor(parameterTypes);
-            ctor.setAccessible(true);
-            return ctor.newInstance(parameterValues);
-        } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new ObjectGenerationException(
-                    "Failed to instantiate @" + Randomizer.class.getSimpleName()
-                            + " generator: " + generatorType.getName(), e);
-        }
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Object convertArgumentValue(String rawValue, Class<?> type) {
-        Function<String, Object> parser = ARGUMENT_PARSERS.get(type);
-        if (parser != null) return parser.apply(rawValue);
-        if (type.isEnum()) {
-            return Enum.valueOf((Class<? extends Enum>) type.asSubclass(Enum.class), rawValue);
-        }
-        throw new IllegalArgumentException("Unsupported @" + RandomizerArgument.class.getSimpleName()
-                + " type: " + type.getName());
-    }
-
-    private static Character parseChar(String rawValue) {
-        if (rawValue.length() != 1) {
-            throw new IllegalArgumentException("Expected single character value but got: " + rawValue);
-        }
-        return rawValue.charAt(0);
     }
 
     /**

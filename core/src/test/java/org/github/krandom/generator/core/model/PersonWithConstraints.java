@@ -24,7 +24,8 @@ public class PersonWithConstraints {
     @Size(min = 3, max = 10)
     String username;
 
-    @Min(18) @Max(120)
+    @Min(18)
+    @Max(120)
     int age;
 
     @Email
@@ -36,15 +37,34 @@ public class PersonWithConstraints {
     @Positive
     long salary;
 
-    @DecimalMin("0.01") @DecimalMax("9.99")
+    @DecimalMin("0.01")
+    @DecimalMax("9.99")
     BigDecimal price;
 
-    public PersonWithConstraints() { }
+    public PersonWithConstraints() {
+    }
 
-    public String     getUsername() { return username; }
-    public int        getAge()      { return age; }
-    public String     getEmail()    { return email; }
-    public String     getZipCode()  { return zipCode; }
-    public long       getSalary()   { return salary; }
-    public BigDecimal getPrice()    { return price; }
+    public String getUsername() {
+        return username;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public long getSalary() {
+        return salary;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
 }

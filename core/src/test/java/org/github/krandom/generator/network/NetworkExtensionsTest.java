@@ -6,15 +6,21 @@
 package org.github.krandom.generator.network;
 
 import org.apache.commons.validator.routines.InetAddressValidator;
-import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @DisplayName("Network extension generators")
 class NetworkExtensionsTest {
@@ -29,8 +35,8 @@ class NetworkExtensionsTest {
         String privateIp = gen.generatePrivate();
         assertTrue(VALIDATOR.isValidInet4Address(privateIp));
         assertTrue(privateIp.startsWith("10.")
-                || privateIp.startsWith("192.168.")
-                || privateIp.matches("172\\.(1[6-9]|2\\d|3[01])\\..*"));
+                   || privateIp.startsWith("192.168.")
+                   || privateIp.matches("172\\.(1[6-9]|2\\d|3[01])\\..*"));
 
         String publicIp = gen.generatePublic();
         assertTrue(VALIDATOR.isValidInet4Address(publicIp));
@@ -111,6 +117,7 @@ class NetworkExtensionsTest {
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(trueBranch, new Random() {
+
             private int call;
 
             @Override
@@ -132,6 +139,7 @@ class NetworkExtensionsTest {
 
         IPv4Generator falseBranch = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
         randomField.set(falseBranch, new Random() {
+
             private int call;
 
             @Override
@@ -159,6 +167,7 @@ class NetworkExtensionsTest {
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(generator, new Random() {
+
             private int call;
 
             @Override
@@ -185,6 +194,7 @@ class NetworkExtensionsTest {
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(generator, new Random() {
+
             private int call;
 
             @Override

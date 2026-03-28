@@ -13,7 +13,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Phase 2 finance generators")
 class Phase2FinanceGeneratorsTest {
@@ -68,9 +73,9 @@ class Phase2FinanceGeneratorsTest {
     @DisplayName("bank country generator falls back for unsupported locale country")
     void bankCountryFallback() {
         BankCountryGenerator generator = new BankCountryGenerator(GeneratorConfig.builder()
-                .seed(7L)
-                .locale(Locale.CANADA)
-                .build());
+                                                                                 .seed(7L)
+                                                                                 .locale(Locale.CANADA)
+                                                                                 .build());
         String code = generator.generate();
         assertNotEquals("CA", code);
         assertTrue(Set.of("US", "GB", "DE", "FR", "ES", "IT", "BR", "JP", "CN", "AU").contains(code));

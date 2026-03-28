@@ -14,10 +14,44 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.random.RandomGenerator;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("NormalDistributionGenerator")
 class NormalDistributionGeneratorTest {
+
+    @Test
+    @DisplayName("generate retries when first u1 is zero")
+    void retriesWhenUniformZero() throws Exception {
+        NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0);
+        Field randomField = NormalDistributionGenerator.class.getDeclaredField("random");
+        randomField.setAccessible(true);
+        randomField.set(generator, new RandomGenerator() {
+
+            private int call;
+
+            @Override
+            public long nextLong() {
+                return 0L;
+            }
+
+            @Override
+            public double nextDouble() {
+                // u1 (0.0) -> retry branch, then u1 (0.5), then u2 (0.25)
+                return switch (call++) {
+                    case 0 -> 0.0;
+                    case 1 -> 0.5;
+                    default -> 0.25;
+                };
+            }
+        });
+
+        assertNotNull(generator.generate());
+    }
+
 
     @Nested
     @DisplayName("Standard Normal Distribution")
@@ -36,17 +70,17 @@ class NormalDistributionGeneratorTest {
         void shouldGenerateAroundZero() {
             NormalDistributionGenerator generator = new NormalDistributionGenerator();
             List<Double> values = new ArrayList<>();
-            
+
             for (int i = 0; i < 1000; i++) {
                 values.add(generator.generate());
             }
 
             // Calculate sample mean
             double sampleMean = values.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-            
+
             // With 1000 samples, sample mean should be close to 0 (within ±0.1)
             assertTrue(Math.abs(sampleMean) < 0.1,
-                    "Sample mean should be close to 0, got: " + sampleMean);
+                       "Sample mean should be close to 0, got: " + sampleMean);
         }
 
         @Test
@@ -61,7 +95,7 @@ class NormalDistributionGeneratorTest {
             for (int i = 0; i < total; i++) {
                 double value = generator.generate();
                 double absValue = Math.abs(value);
-                
+
                 if (absValue <= 1.0) within1Sigma++;
                 if (absValue <= 2.0) within2Sigma++;
                 if (absValue <= 3.0) within3Sigma++;
@@ -73,13 +107,14 @@ class NormalDistributionGeneratorTest {
 
             // Allow ±5% tolerance
             assertTrue(pct1Sigma > 0.63 && pct1Sigma < 0.73,
-                    "~68% should be within ±1σ, got: " + (pct1Sigma * 100) + "%");
+                       "~68% should be within ±1σ, got: " + (pct1Sigma * 100) + "%");
             assertTrue(pct2Sigma > 0.90 && pct2Sigma < 1.00,
-                    "~95% should be within ±2σ, got: " + (pct2Sigma * 100) + "%");
+                       "~95% should be within ±2σ, got: " + (pct2Sigma * 100) + "%");
             assertTrue(pct3Sigma > 0.992 && pct3Sigma < 1.00,
-                    "~99.7% should be within ±3σ, got: " + (pct3Sigma * 100) + "%");
+                       "~99.7% should be within ±3σ, got: " + (pct3Sigma * 100) + "%");
         }
     }
+
 
     @Nested
     @DisplayName("Custom Mean and Standard Deviation")
@@ -106,15 +141,15 @@ class NormalDistributionGeneratorTest {
             // Calculate sample mean and standard deviation
             double sampleMean = values.stream().mapToDouble(Double::doubleValue).average().orElse(0);
             double variance = values.stream()
-                    .mapToDouble(v -> Math.pow(v - sampleMean, 2))
-                    .average().orElse(0);
+                                    .mapToDouble(v -> Math.pow(v - sampleMean, 2))
+                                    .average().orElse(0);
             double sampleStdDev = Math.sqrt(variance);
 
             // Sample statistics should be close to population parameters
             assertTrue(Math.abs(sampleMean - 100.0) < 2.0,
-                    "Sample mean should be close to 100, got: " + sampleMean);
+                       "Sample mean should be close to 100, got: " + sampleMean);
             assertTrue(Math.abs(sampleStdDev - 15.0) < 2.0,
-                    "Sample std dev should be close to 15, got: " + sampleStdDev);
+                       "Sample std dev should be close to 15, got: " + sampleStdDev);
         }
 
         @Test
@@ -134,23 +169,24 @@ class NormalDistributionGeneratorTest {
 
             double pct = (double) count / total;
             assertTrue(pct > 0.92 && pct < 0.98,
-                    "~95% should be in [150, 190], got: " + (pct * 100) + "%");
+                       "~95% should be in [150, 190], got: " + (pct * 100) + "%");
         }
 
         @Test
         @DisplayName("should throw when standard deviation is zero")
         void shouldThrowWhenStdDevIsZero() {
             assertThrows(IllegalArgumentException.class,
-                    () -> new NormalDistributionGenerator(0.0, 0.0));
+                         () -> new NormalDistributionGenerator(0.0, 0.0));
         }
 
         @Test
         @DisplayName("should throw when standard deviation is negative")
         void shouldThrowWhenStdDevIsNegative() {
             assertThrows(IllegalArgumentException.class,
-                    () -> new NormalDistributionGenerator(0.0, -1.0));
+                         () -> new NormalDistributionGenerator(0.0, -1.0));
         }
     }
+
 
     @Nested
     @DisplayName("Seeded Generation")
@@ -164,7 +200,7 @@ class NormalDistributionGeneratorTest {
 
             for (int i = 0; i < 50; i++) {
                 assertEquals(gen1.generate(), gen2.generate(),
-                        "Generators with same seed should produce identical values");
+                             "Generators with same seed should produce identical values");
             }
         }
 
@@ -186,6 +222,7 @@ class NormalDistributionGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Negative Mean")
     class NegativeMean {
@@ -202,37 +239,10 @@ class NormalDistributionGeneratorTest {
 
             double sampleMean = values.stream().mapToDouble(Double::doubleValue).average().orElse(0);
             assertTrue(Math.abs(sampleMean - (-10.0)) < 0.5,
-                    "Sample mean should be close to -10, got: " + sampleMean);
+                       "Sample mean should be close to -10, got: " + sampleMean);
         }
     }
 
-    @Test
-    @DisplayName("generate retries when first u1 is zero")
-    void retriesWhenUniformZero() throws Exception {
-        NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0);
-        Field randomField = NormalDistributionGenerator.class.getDeclaredField("random");
-        randomField.setAccessible(true);
-        randomField.set(generator, new RandomGenerator() {
-            private int call;
-
-            @Override
-            public long nextLong() {
-                return 0L;
-            }
-
-            @Override
-            public double nextDouble() {
-                // u1 (0.0) -> retry branch, then u1 (0.5), then u2 (0.25)
-                return switch (call++) {
-                    case 0 -> 0.0;
-                    case 1 -> 0.5;
-                    default -> 0.25;
-                };
-            }
-        });
-
-        assertNotNull(generator.generate());
-    }
 
     @Nested
     @DisplayName("Large Standard Deviation")
@@ -259,6 +269,7 @@ class NormalDistributionGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("List Generation")
     class ListGeneration {
@@ -279,7 +290,7 @@ class NormalDistributionGeneratorTest {
 
             double mean = list.stream().mapToDouble(Double::doubleValue).average().orElse(0);
             assertTrue(Math.abs(mean - 50.0) < 1.0,
-                    "List mean should be close to 50, got: " + mean);
+                       "List mean should be close to 50, got: " + mean);
         }
     }
 }

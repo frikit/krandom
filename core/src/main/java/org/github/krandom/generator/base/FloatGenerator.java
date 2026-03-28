@@ -61,7 +61,7 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
     public FloatGenerator withPrecision(int decimals) {
         if (decimals < 0 || decimals > 7) {
             throw new IllegalArgumentException(
-                    "Precision must be between 0 and 7, got: " + decimals);
+                "Precision must be between 0 and 7, got: " + decimals);
         }
         Long seed = null; // Cannot extract seed from existing generator
         return new FloatGenerator(getMin(), getMax(), seed, decimals);

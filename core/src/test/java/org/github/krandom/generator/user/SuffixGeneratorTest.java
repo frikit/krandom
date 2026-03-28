@@ -16,7 +16,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("SuffixGenerator")
 class SuffixGeneratorTest {
@@ -46,7 +51,7 @@ class SuffixGeneratorTest {
         Set<String> usExpected = Set.of(new BuiltInSuffixDataProvider(SupportedLocale.EN_US).getSuffixes());
         for (int i = 0; i < 50; i++) {
             assertTrue(usExpected.contains(gen.generate()),
-                    "Generated suffix not in EN_US list: " + gen.generate());
+                       "Generated suffix not in EN_US list: " + gen.generate());
         }
     }
 
@@ -123,7 +128,7 @@ class SuffixGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         assertThrows(UnsupportedOperationException.class,
-                () -> new SuffixGenerator(Locale.of("xx", "YY")));
+                     () -> new SuffixGenerator(Locale.of("xx", "YY")));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -145,6 +150,31 @@ class SuffixGeneratorTest {
 
     // ── Registry extensibility ────────────────────────────────────────────────
 
+    @Test
+    @DisplayName("all 10 built-in locales produce non-empty suffixes")
+    void allBuiltInLocalesProduceValues() {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            SuffixGenerator gen = new SuffixGenerator(supportedLocale.locale());
+            String suffix = gen.generate();
+            assertNotNull(suffix, "Null for " + supportedLocale);
+            assertFalse(suffix.isEmpty(), "Empty for " + supportedLocale);
+        }
+    }
+
+    // ── All built-in locales covered ──────────────────────────────────────────
+
+    @Test
+    @DisplayName("all built-in locales produce variety of values over many samples")
+    void allBuiltInLocalesProduceVariety() {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            SuffixGenerator gen = new SuffixGenerator(supportedLocale.locale());
+            Set<String> seen = new HashSet<>();
+            for (int i = 0; i < 200; i++) seen.add(gen.generate());
+            assertFalse(seen.isEmpty(), "No variety for " + supportedLocale);
+        }
+    }
+
+
     @Nested
     @DisplayName("SuffixDataRegistry extensibility")
     class RegistryTest {
@@ -154,8 +184,14 @@ class SuffixGeneratorTest {
         void customLocaleRegistration() {
             Locale korean = Locale.of("ko", "KR");
             SuffixDataRegistry.register(new SuffixDataProvider() {
-                public Locale getLocale() { return korean; }
-                public String[] getSuffixes() { return new String[]{"박사", "학사"}; }
+
+                public Locale getLocale() {
+                    return korean;
+                }
+
+                public String[] getSuffixes() {
+                    return new String[] { "박사", "학사" };
+                }
             });
             SuffixGenerator gen = new SuffixGenerator(korean);
             assertTrue(Set.of("박사", "학사").contains(gen.generate()));
@@ -166,8 +202,14 @@ class SuffixGeneratorTest {
         void customProviderOverridesBuiltIn() {
             String[] custom = { "Esq." };
             SuffixDataRegistry.register(new SuffixDataProvider() {
-                public Locale getLocale() { return Locale.US; }
-                public String[] getSuffixes() { return custom; }
+
+                public Locale getLocale() {
+                    return Locale.US;
+                }
+
+                public String[] getSuffixes() {
+                    return custom;
+                }
             });
             SuffixGenerator gen = new SuffixGenerator(Locale.US);
             assertEquals("Esq.", gen.generate());
@@ -181,8 +223,14 @@ class SuffixGeneratorTest {
         void customLocaleAppearsInKeys() {
             Locale swahili = Locale.of("sw", "KE");
             SuffixDataRegistry.register(new SuffixDataProvider() {
-                public Locale getLocale() { return swahili; }
-                public String[] getSuffixes() { return new String[]{"Jr.", "Sr."}; }
+
+                public Locale getLocale() {
+                    return swahili;
+                }
+
+                public String[] getSuffixes() {
+                    return new String[] { "Jr.", "Sr." };
+                }
             });
             assertTrue(SuffixDataRegistry.registeredKeys().contains("sw_KE"));
         }
@@ -192,8 +240,14 @@ class SuffixGeneratorTest {
         void languageOnlyFallback() {
             Locale arabic = Locale.of("ar");
             SuffixDataRegistry.register(new SuffixDataProvider() {
-                public Locale getLocale() { return arabic; }
-                public String[] getSuffixes() { return new String[]{"الابن", "الأب"}; }
+
+                public Locale getLocale() {
+                    return arabic;
+                }
+
+                public String[] getSuffixes() {
+                    return new String[] { "الابن", "الأب" };
+                }
             });
             SuffixGenerator gen = new SuffixGenerator(Locale.of("ar", "EG"));
             assertNotNull(gen.generate());
@@ -210,8 +264,14 @@ class SuffixGeneratorTest {
         void generateWithEmptySuffixArray() {
             Locale empty = Locale.of("zz", "ZZ");
             SuffixDataRegistry.register(new SuffixDataProvider() {
-                public Locale getLocale() { return empty; }
-                public String[] getSuffixes() { return new String[0]; }
+
+                public Locale getLocale() {
+                    return empty;
+                }
+
+                public String[] getSuffixes() {
+                    return new String[0];
+                }
             });
             SuffixGenerator gen = new SuffixGenerator(empty);
             assertEquals("", gen.generate());
@@ -266,41 +326,29 @@ class SuffixGeneratorTest {
             String[] custom = { "Esq." };
             Locale enOnly = Locale.of("en");
             SuffixDataRegistry.register(new SuffixDataProvider() {
-                public Locale getLocale() { return enOnly; }
-                public String[] getSuffixes() { return custom; }
+
+                public Locale getLocale() {
+                    return enOnly;
+                }
+
+                public String[] getSuffixes() {
+                    return custom;
+                }
             });
             SuffixGenerator gen = new SuffixGenerator(Locale.of("en", "ZZ"));
             assertEquals("Esq.", gen.generate());
 
             // Restore language fallback
             SuffixDataRegistry.register(new SuffixDataProvider() {
-                public Locale getLocale() { return enOnly; }
-                public String[] getSuffixes() { return new BuiltInSuffixDataProvider(SupportedLocale.EN_US).getSuffixes(); }
+
+                public Locale getLocale() {
+                    return enOnly;
+                }
+
+                public String[] getSuffixes() {
+                    return new BuiltInSuffixDataProvider(SupportedLocale.EN_US).getSuffixes();
+                }
             });
-        }
-    }
-
-    // ── All built-in locales covered ──────────────────────────────────────────
-
-    @Test
-    @DisplayName("all 10 built-in locales produce non-empty suffixes")
-    void allBuiltInLocalesProduceValues() {
-        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
-            SuffixGenerator gen = new SuffixGenerator(supportedLocale.locale());
-            String suffix = gen.generate();
-            assertNotNull(suffix, "Null for " + supportedLocale);
-            assertFalse(suffix.isEmpty(), "Empty for " + supportedLocale);
-        }
-    }
-
-    @Test
-    @DisplayName("all built-in locales produce variety of values over many samples")
-    void allBuiltInLocalesProduceVariety() {
-        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
-            SuffixGenerator gen = new SuffixGenerator(supportedLocale.locale());
-            Set<String> seen = new HashSet<>();
-            for (int i = 0; i < 200; i++) seen.add(gen.generate());
-            assertFalse(seen.isEmpty(), "No variety for " + supportedLocale);
         }
     }
 }

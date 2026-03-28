@@ -5,20 +5,23 @@
  */
 package org.github.krandom.generator.base;
 
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import org.github.krandom.generator.Generators;
-
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("BigDecimalGenerator")
 class BigDecimalGeneratorTest {
 
     private static final int SAMPLES = 50;
+
 
     @Nested
     @DisplayName("Default construction")
@@ -46,10 +49,11 @@ class BigDecimalGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 BigDecimal v = new BigDecimalGenerator().generate();
                 assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0,
-                        "Expected [0, 1000000], got: " + v);
+                           "Expected [0, 1000000], got: " + v);
             }
         }
     }
+
 
     @Nested
     @DisplayName("Custom range")
@@ -64,7 +68,7 @@ class BigDecimalGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 BigDecimal v = gen.generate();
                 assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0,
-                        "Expected [0.01, 9.99], got: " + v);
+                           "Expected [0.01, 9.99], got: " + v);
             }
         }
 
@@ -78,7 +82,7 @@ class BigDecimalGeneratorTest {
                 BigDecimal v = gen.generate();
                 assertEquals(4, v.scale(), "Expected scale 4");
                 assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0,
-                        "Expected [0, 100], got: " + v);
+                           "Expected [0, 100], got: " + v);
             }
         }
 
@@ -94,6 +98,7 @@ class BigDecimalGeneratorTest {
             }
         }
     }
+
 
     @Nested
     @DisplayName("Generators factory")
@@ -116,6 +121,7 @@ class BigDecimalGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Validation")
     class ValidationTest {
@@ -125,14 +131,14 @@ class BigDecimalGeneratorTest {
         void minGteMaxThrows() {
             BigDecimal v = new BigDecimal("5");
             assertThrows(IllegalArgumentException.class,
-                    () -> new BigDecimalGenerator(v, v));
+                         () -> new BigDecimalGenerator(v, v));
         }
 
         @Test
         @DisplayName("negative scale throws IllegalArgumentException")
         void negativeScaleThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> new BigDecimalGenerator(BigDecimal.ZERO, BigDecimal.TEN, -1));
+                         () -> new BigDecimalGenerator(BigDecimal.ZERO, BigDecimal.TEN, -1));
         }
     }
 }

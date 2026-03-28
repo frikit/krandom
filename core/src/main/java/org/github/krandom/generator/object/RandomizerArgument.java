@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  * <p>Arguments are resolved in source order using the provided {@link #type()} and
  * parsed from {@link #value()}.
  */
-@Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
+@Target({ ElementType.FIELD, ElementType.RECORD_COMPONENT })
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(RandomizerArguments.class)
 @Documented

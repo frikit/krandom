@@ -10,13 +10,18 @@ import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("GenderGenerator")
 class GenderGeneratorTest {
@@ -62,7 +67,7 @@ class GenderGeneratorTest {
         for (int i = 0; i < 100; i++) {
             seen.add(gen.generate());
         }
-        assertTrue(seen.contains("Male"),   "Male label should appear");
+        assertTrue(seen.contains("Male"), "Male label should appear");
         assertTrue(seen.contains("Female"), "Female label should appear");
     }
 
@@ -165,7 +170,7 @@ class GenderGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
-                () -> new GenderGenerator(Locale.of("xx", "YY")));
+                                                        () -> new GenderGenerator(Locale.of("xx", "YY")));
         assertTrue(ex.getMessage().contains("not supported"));
     }
 
@@ -175,9 +180,9 @@ class GenderGeneratorTest {
     @DisplayName("GeneratorConfig constructor with locale and seed works")
     void configConstructor() {
         GeneratorConfig config = GeneratorConfig.builder()
-                .locale(Locale.US)
-                .seed(42L)
-                .build();
+                                                .locale(Locale.US)
+                                                .seed(42L)
+                                                .build();
         GenderGenerator gen = new GenderGenerator(config);
         assertEquals(Locale.US, gen.getLocale());
         assertTrue(gen.isLocaleExplicitlySupported());
@@ -187,14 +192,14 @@ class GenderGeneratorTest {
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
         assertThrows(NullPointerException.class,
-                () -> new GenderGenerator((GeneratorConfig) null));
+                     () -> new GenderGenerator((GeneratorConfig) null));
     }
 
     @Test
     @DisplayName("null locale throws NullPointerException")
     void nullLocaleThrows() {
         assertThrows(NullPointerException.class,
-                () -> new GenderGenerator((Locale) null));
+                     () -> new GenderGenerator((Locale) null));
     }
 
     // ── Seeded reproducibility ────────────────────────────────────────────────
@@ -215,8 +220,8 @@ class GenderGeneratorTest {
         GeneratorConfig config1 = GeneratorConfig.builder().seed(1L).build();
         GeneratorConfig config2 = GeneratorConfig.builder().seed(2L).build();
         assertNotEquals(
-                new GenderGenerator(config1).generateList(50),
-                new GenderGenerator(config2).generateList(50));
+            new GenderGenerator(config1).generateList(50),
+            new GenderGenerator(config2).generateList(50));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -247,9 +252,9 @@ class GenderGeneratorTest {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             GenderGenerator gen = new GenderGenerator(supportedLocale.locale());
             assertFalse(gen.getMaleLabel().isEmpty(),
-                    "Male label should not be empty for " + supportedLocale.locale());
+                        "Male label should not be empty for " + supportedLocale.locale());
             assertFalse(gen.getFemaleLabel().isEmpty(),
-                    "Female label should not be empty for " + supportedLocale.locale());
+                        "Female label should not be empty for " + supportedLocale.locale());
         }
     }
 
@@ -260,9 +265,21 @@ class GenderGeneratorTest {
     void customLocaleRegistration() {
         Locale korean = Locale.of("ko", "KR");
         GenderDataRegistry.register(new GenderDataProvider() {
-            @Override public Locale getLocale()      { return korean; }
-            @Override public String getMaleLabel()   { return "남성"; }
-            @Override public String getFemaleLabel() { return "여성"; }
+
+            @Override
+            public Locale getLocale() {
+                return korean;
+            }
+
+            @Override
+            public String getMaleLabel() {
+                return "남성";
+            }
+
+            @Override
+            public String getFemaleLabel() {
+                return "여성";
+            }
         });
 
         GenderGenerator gen = new GenderGenerator(korean);
@@ -275,9 +292,21 @@ class GenderGeneratorTest {
     void customProviderOverridesBuiltIn() {
         Locale us = Locale.US;
         GenderDataRegistry.register(new GenderDataProvider() {
-            @Override public Locale getLocale()      { return us; }
-            @Override public String getMaleLabel()   { return "M"; }
-            @Override public String getFemaleLabel() { return "F"; }
+
+            @Override
+            public Locale getLocale() {
+                return us;
+            }
+
+            @Override
+            public String getMaleLabel() {
+                return "M";
+            }
+
+            @Override
+            public String getFemaleLabel() {
+                return "F";
+            }
         });
 
         GenderGenerator gen = new GenderGenerator(us);
@@ -293,9 +322,21 @@ class GenderGeneratorTest {
     void languageOnlyFallback() {
         Locale arabic = Locale.of("ar");
         GenderDataRegistry.register(new GenderDataProvider() {
-            @Override public Locale getLocale()      { return arabic; }
-            @Override public String getMaleLabel()   { return "ذكر"; }
-            @Override public String getFemaleLabel() { return "أنثى"; }
+
+            @Override
+            public Locale getLocale() {
+                return arabic;
+            }
+
+            @Override
+            public String getMaleLabel() {
+                return "ذكر";
+            }
+
+            @Override
+            public String getFemaleLabel() {
+                return "أنثى";
+            }
         });
 
         Locale arabicEgypt = Locale.of("ar", "EG");
@@ -372,9 +413,21 @@ class GenderGeneratorTest {
     void languageOnlyRegistrationReplacesFallback() {
         Locale plain = Locale.of("en");
         GenderDataRegistry.register(new GenderDataProvider() {
-            @Override public Locale getLocale()      { return plain; }
-            @Override public String getMaleLabel()   { return "M2"; }
-            @Override public String getFemaleLabel() { return "F2"; }
+
+            @Override
+            public Locale getLocale() {
+                return plain;
+            }
+
+            @Override
+            public String getMaleLabel() {
+                return "M2";
+            }
+
+            @Override
+            public String getFemaleLabel() {
+                return "F2";
+            }
         });
 
         GenderDataProvider found = GenderDataRegistry.forLocale(plain);
@@ -383,9 +436,21 @@ class GenderGeneratorTest {
 
         // Restore
         GenderDataRegistry.register(new GenderDataProvider() {
-            @Override public Locale getLocale()      { return Locale.of("en"); }
-            @Override public String getMaleLabel()   { return new BuiltInGenderDataProvider(SupportedLocale.EN_US).getMaleLabel(); }
-            @Override public String getFemaleLabel() { return new BuiltInGenderDataProvider(SupportedLocale.EN_US).getFemaleLabel(); }
+
+            @Override
+            public Locale getLocale() {
+                return Locale.of("en");
+            }
+
+            @Override
+            public String getMaleLabel() {
+                return new BuiltInGenderDataProvider(SupportedLocale.EN_US).getMaleLabel();
+            }
+
+            @Override
+            public String getFemaleLabel() {
+                return new BuiltInGenderDataProvider(SupportedLocale.EN_US).getFemaleLabel();
+            }
         });
     }
 
@@ -394,7 +459,7 @@ class GenderGeneratorTest {
     void localeSupported() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             assertTrue(new GenderGenerator(supportedLocale.locale()).isLocaleExplicitlySupported(),
-                    "Locale " + supportedLocale.locale() + " should be supported");
+                       "Locale " + supportedLocale.locale() + " should be supported");
         }
     }
 
@@ -419,9 +484,21 @@ class GenderGeneratorTest {
     void customLocaleAppearsInKeys() {
         Locale swahili = Locale.of("sw");
         GenderDataRegistry.register(new GenderDataProvider() {
-            @Override public Locale getLocale()      { return swahili; }
-            @Override public String getMaleLabel()   { return "Mwanaume"; }
-            @Override public String getFemaleLabel() { return "Mwanamke"; }
+
+            @Override
+            public Locale getLocale() {
+                return swahili;
+            }
+
+            @Override
+            public String getMaleLabel() {
+                return "Mwanaume";
+            }
+
+            @Override
+            public String getFemaleLabel() {
+                return "Mwanamke";
+            }
         });
         assertTrue(GenderDataRegistry.registeredKeys().contains("sw"));
         assertTrue(GenderDataRegistry.isRegistered(swahili));

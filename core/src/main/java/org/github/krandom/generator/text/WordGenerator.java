@@ -20,8 +20,8 @@ import java.util.Random;
  */
 public final class WordGenerator implements Generator<String> {
 
-    private final Random random;
-    private final Locale locale;
+    private final Random            random;
+    private final Locale            locale;
     private final SyllableGenerator syllableGenerator;
 
     /**
@@ -40,8 +40,8 @@ public final class WordGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.syllableGenerator = new SyllableGenerator(config);
     }
 
@@ -101,7 +101,7 @@ public final class WordGenerator implements Generator<String> {
         }
         if (maxWords < minWords) {
             throw new IllegalArgumentException("maxWords must be >= minWords, got: "
-                    + maxWords + " < " + minWords);
+                                               + maxWords + " < " + minWords);
         }
         int count = minWords + random.nextInt(maxWords - minWords + 1);
         return generateWords(count);
@@ -167,7 +167,7 @@ public final class WordGenerator implements Generator<String> {
      * Option bag for {@link #generate(WordOptions)}.
      *
      * @param syllables optional syllable count (positive)
-     * @param length optional exact character length (positive)
+     * @param length    optional exact character length (positive)
      */
     public record WordOptions(Integer syllables, Integer length) {
 

@@ -19,15 +19,15 @@ import java.util.Random;
  */
 public final class BankNameGenerator implements Generator<String> {
 
-    private static final String[] DEFAULT_BANKS = {
-            "First National Bank", "Global Trust Bank", "Pioneer Credit Union", "Summit Financial", "Civic Savings"
+    private static final String[]              DEFAULT_BANKS     = {
+        "First National Bank", "Global Trust Bank", "Pioneer Credit Union", "Summit Financial", "Civic Savings"
     };
     private static final Map<String, String[]> BANKS_BY_LANGUAGE = Map.of(
-            "de", new String[]{"Erste Nationalbank", "Global Trust Bank", "Buerger Sparkasse", "Summit Finanz", "Pionier Kreditbank"},
-            "fr", new String[]{"Banque Nationale Premiere", "Banque Confiance Globale", "Epargne Civique", "Finance Sommet", "Credit Pionnier"},
-            "es", new String[]{"Banco Nacional Primero", "Banco Confianza Global", "Ahorro Civico", "Finanzas Cumbre", "Credito Pionero"},
-            "it", new String[]{"Banca Nazionale Prima", "Banca Fiducia Globale", "Risparmio Civico", "Finanza Vertice", "Credito Pioniere"},
-            "pt", new String[]{"Banco Nacional Primeiro", "Banco Confianca Global", "Poupanca Civica", "Financas Pico", "Credito Pioneiro"}
+        "de", new String[] { "Erste Nationalbank", "Global Trust Bank", "Buerger Sparkasse", "Summit Finanz", "Pionier Kreditbank" },
+        "fr", new String[] { "Banque Nationale Premiere", "Banque Confiance Globale", "Epargne Civique", "Finance Sommet", "Credit Pionnier" },
+        "es", new String[] { "Banco Nacional Primero", "Banco Confianza Global", "Ahorro Civico", "Finanzas Cumbre", "Credito Pionero" },
+        "it", new String[] { "Banca Nazionale Prima", "Banca Fiducia Globale", "Risparmio Civico", "Finanza Vertice", "Credito Pioniere" },
+        "pt", new String[] { "Banco Nacional Primeiro", "Banco Confianca Global", "Poupanca Civica", "Financas Pico", "Credito Pioneiro" }
     );
 
     private final Locale locale;
@@ -45,8 +45,8 @@ public final class BankNameGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

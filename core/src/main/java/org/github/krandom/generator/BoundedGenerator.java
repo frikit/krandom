@@ -29,9 +29,13 @@ public interface BoundedGenerator<T extends Comparable<T>> extends Generator<T> 
      */
     T generate(T min, T max);
 
-    /** The lower bound (inclusive) configured at construction time. */
+    /**
+     * The lower bound (inclusive) configured at construction time.
+     */
     T getMin();
 
-    /** The upper bound (exclusive) configured at construction time. */
+    /**
+     * The upper bound (exclusive) configured at construction time.
+     */
     T getMax();
 }

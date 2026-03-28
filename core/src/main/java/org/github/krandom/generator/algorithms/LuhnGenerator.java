@@ -27,7 +27,9 @@ public final class LuhnGenerator implements Generator<String> {
 
     private final RandomGenerator random;
 
-    /** Creates a generator backed by {@link SecureRandom}. */
+    /**
+     * Creates a generator backed by {@link SecureRandom}.
+     */
     public LuhnGenerator() {
         this.random = new SecureRandom();
     }

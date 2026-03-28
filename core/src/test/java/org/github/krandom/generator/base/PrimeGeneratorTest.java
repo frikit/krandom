@@ -12,10 +12,24 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("PrimeGenerator")
 class PrimeGeneratorTest {
+
+    // Helper method to check if a number is prime
+    private boolean isPrime(int n) {
+        if (n < 2) return false;
+        if (n == 2) return true;
+        if (n % 2 == 0) return false;
+        for (int i = 3; i * i <= n; i += 2) {
+            if (n % i == 0) return false;
+        }
+        return true;
+    }
+
 
     @Nested
     @DisplayName("Default Range")
@@ -45,9 +59,10 @@ class PrimeGeneratorTest {
         void shouldHaveCorrectPrimeCount() {
             PrimeGenerator generator = new PrimeGenerator();
             assertEquals(168, generator.getPrimeCount(),
-                    "There are 168 primes less than 1000");
+                         "There are 168 primes less than 1000");
         }
     }
+
 
     @Nested
     @DisplayName("Custom Range")
@@ -63,12 +78,12 @@ class PrimeGeneratorTest {
             for (int i = 0; i < 100; i++) {
                 int value = generator.generate();
                 assertTrue(expected.contains(value),
-                        "Value should be in {2,3,5,7,11,13,17,19}, got: " + value);
+                           "Value should be in {2,3,5,7,11,13,17,19}, got: " + value);
                 generated.add(value);
             }
 
             assertTrue(generated.size() >= 6,
-                    "Should generate most of the available primes");
+                       "Should generate most of the available primes");
         }
 
         @Test
@@ -80,7 +95,7 @@ class PrimeGeneratorTest {
             for (int i = 0; i < 50; i++) {
                 int value = generator.generate();
                 assertTrue(expected.contains(value),
-                        "Value should be in {11,13,17,19,23,29}, got: " + value);
+                           "Value should be in {11,13,17,19,23,29}, got: " + value);
             }
 
             assertEquals(6, generator.getPrimeCount());
@@ -97,9 +112,10 @@ class PrimeGeneratorTest {
             }
 
             assertEquals(135, generator.getPrimeCount(),
-                    "There are 135 primes in [1000, 2000)");
+                         "There are 135 primes in [1000, 2000)");
         }
     }
+
 
     @Nested
     @DisplayName("Edge Cases")
@@ -109,15 +125,15 @@ class PrimeGeneratorTest {
         @DisplayName("should throw when no primes exist in range")
         void shouldThrowWhenNoPrimesExist() {
             assertThrows(IllegalStateException.class,
-                    () -> new PrimeGenerator(0, 2),
-                    "No primes in [0, 2)");
+                         () -> new PrimeGenerator(0, 2),
+                         "No primes in [0, 2)");
         }
 
         @Test
         @DisplayName("should throw when range is [1, 2)")
         void shouldThrowForRangeOne() {
             assertThrows(IllegalStateException.class,
-                    () -> new PrimeGenerator(1, 2));
+                         () -> new PrimeGenerator(1, 2));
         }
 
         @Test
@@ -143,6 +159,7 @@ class PrimeGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Seeded Generation")
     class SeededGeneration {
@@ -155,7 +172,7 @@ class PrimeGeneratorTest {
 
             for (int i = 0; i < 50; i++) {
                 assertEquals(gen1.generate(), gen2.generate(),
-                        "Generators with same seed should produce identical values");
+                             "Generators with same seed should produce identical values");
             }
         }
 
@@ -179,6 +196,7 @@ class PrimeGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("List Generation")
     class ListGeneration {
@@ -195,16 +213,5 @@ class PrimeGeneratorTest {
                 assertTrue(prime >= 2 && prime < 50);
             }
         }
-    }
-
-    // Helper method to check if a number is prime
-    private boolean isPrime(int n) {
-        if (n < 2) return false;
-        if (n == 2) return true;
-        if (n % 2 == 0) return false;
-        for (int i = 3; i * i <= n; i += 2) {
-            if (n % i == 0) return false;
-        }
-        return true;
     }
 }

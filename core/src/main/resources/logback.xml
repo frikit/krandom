@@ -22,14 +22,14 @@
 
     <!-- Root logger set to DEBUG level (only DEBUG and TRACE allowed) -->
     <root level="DEBUG">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
     </root>
 
     <!-- Specific package loggers - all at DEBUG or TRACE -->
-    <logger name="org.github.krandom" level="DEBUG" />
-    
+    <logger name="org.github.krandom" level="DEBUG"/>
+
     <!-- Suppress verbose third-party libraries -->
-    <logger name="org.apache" level="WARN" />
-    <logger name="org.junit" level="WARN" />
+    <logger name="org.apache" level="WARN"/>
+    <logger name="org.junit" level="WARN"/>
 </configuration>

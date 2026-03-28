@@ -11,22 +11,24 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("NextWordGenerator")
 class NextWordGeneratorTest {
 
-    private static final String[] CORPUS = {"the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"};
+    private static final String[] CORPUS = { "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog" };
 
     @Test
     @DisplayName("constructors validate inputs")
     void constructorValidation() {
         assertThrows(NullPointerException.class, () -> new NextWordGenerator((String[]) null));
         assertThrows(NullPointerException.class, () -> new NextWordGenerator(null, CORPUS));
-        assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[]{"onlyone"}));
-        assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[]{"ok", " "}));
+        assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[] { "onlyone" }));
+        assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[] { "ok", " " }));
     }
 
     @Test

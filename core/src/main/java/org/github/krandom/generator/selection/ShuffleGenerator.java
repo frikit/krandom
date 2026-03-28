@@ -22,7 +22,7 @@ import java.util.Random;
 public final class ShuffleGenerator<T> implements Generator<List<T>> {
 
     private final List<T> source;
-    private final Random random;
+    private final Random  random;
 
     /**
      * Creates a shuffle generator backed by {@link SecureRandom}.
@@ -37,7 +37,7 @@ public final class ShuffleGenerator<T> implements Generator<List<T>> {
      * Creates a shuffle generator with deterministic seed support.
      *
      * @param source source list; must not be null
-     * @param seed deterministic seed
+     * @param seed   deterministic seed
      */
     public ShuffleGenerator(List<T> source, long seed) {
         this(source, new Random(seed));

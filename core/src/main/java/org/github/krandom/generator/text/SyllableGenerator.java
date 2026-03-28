@@ -23,12 +23,12 @@ import java.util.Random;
  */
 public final class SyllableGenerator implements Generator<String> {
 
-    private static final String PHONETICS_PATH_PREFIX = "krandom/text/phonetics/";
-    private static final WordPhonetics DEFAULT_EN = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "en.txt");
-    private static final Map<String, WordPhonetics> LOCALE_PROFILES = localeProfiles();
+    private static final String                     PHONETICS_PATH_PREFIX = "krandom/text/phonetics/";
+    private static final WordPhonetics              DEFAULT_EN            = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "en.txt");
+    private static final Map<String, WordPhonetics> LOCALE_PROFILES       = localeProfiles();
 
-    private final Locale locale;
-    private final Random random;
+    private final Locale        locale;
+    private final Random        random;
     private final WordPhonetics phonetics;
 
     /**
@@ -47,56 +47,9 @@ public final class SyllableGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.phonetics = forLocale(locale);
-    }
-
-    /**
-     * Generates a locale-aware syllable.
-     */
-    @Override
-    public String generate() {
-        String onset = phonetics.onsets()[random.nextInt(phonetics.onsets().length)];
-        String nucleus = phonetics.nuclei()[random.nextInt(phonetics.nuclei().length)];
-        String coda = phonetics.codas()[random.nextInt(phonetics.codas().length)];
-        return onset + nucleus + coda;
-    }
-
-    /**
-     * Generates a syllable with exact character {@code length}.
-     *
-     * @param length desired length; must be positive
-     * @return lowercase syllable with exact length
-     */
-    public String generate(int length) {
-        if (length <= 0) {
-            throw new IllegalArgumentException("length must be positive, got: " + length);
-        }
-        String syllable = generate();
-        if (syllable.length() > length) {
-            return syllable.substring(0, length);
-        }
-        if (syllable.length() == length) {
-            return syllable;
-        }
-
-        StringBuilder sb = new StringBuilder(length + 4);
-        sb.append(syllable);
-        while (sb.length() < length) {
-            sb.append(generate());
-        }
-        if (sb.length() > length) {
-            sb.setLength(length);
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Returns the locale this generator is configured with.
-     */
-    public Locale getLocale() {
-        return locale;
     }
 
     private static WordPhonetics forLocale(Locale locale) {
@@ -152,5 +105,52 @@ public final class SyllableGenerator implements Generator<String> {
         map.put("zh_CN", zh);
 
         return Map.copyOf(map);
+    }
+
+    /**
+     * Generates a locale-aware syllable.
+     */
+    @Override
+    public String generate() {
+        String onset = phonetics.onsets()[random.nextInt(phonetics.onsets().length)];
+        String nucleus = phonetics.nuclei()[random.nextInt(phonetics.nuclei().length)];
+        String coda = phonetics.codas()[random.nextInt(phonetics.codas().length)];
+        return onset + nucleus + coda;
+    }
+
+    /**
+     * Generates a syllable with exact character {@code length}.
+     *
+     * @param length desired length; must be positive
+     * @return lowercase syllable with exact length
+     */
+    public String generate(int length) {
+        if (length <= 0) {
+            throw new IllegalArgumentException("length must be positive, got: " + length);
+        }
+        String syllable = generate();
+        if (syllable.length() > length) {
+            return syllable.substring(0, length);
+        }
+        if (syllable.length() == length) {
+            return syllable;
+        }
+
+        StringBuilder sb = new StringBuilder(length + 4);
+        sb.append(syllable);
+        while (sb.length() < length) {
+            sb.append(generate());
+        }
+        if (sb.length() > length) {
+            sb.setLength(length);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Returns the locale this generator is configured with.
+     */
+    public Locale getLocale() {
+        return locale;
     }
 }

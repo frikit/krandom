@@ -7,10 +7,12 @@ package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.core.model.PersonWithArrays;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DisplayName("ObjectGenerator — array auto-population")
 class ObjectGeneratorArrayTest {
@@ -34,7 +36,7 @@ class ObjectGeneratorArrayTest {
     void stringArrayElementsPopulated() {
         PersonWithArrays p = new ObjectGenerator<>(PersonWithArrays.class).generate();
         for (String tag : p.getTags()) {
-            assertNotNull(tag,      "String[] element must not be null");
+            assertNotNull(tag, "String[] element must not be null");
             assertFalse(tag.isEmpty(), "String[] element must not be empty");
         }
     }
@@ -61,26 +63,32 @@ class ObjectGeneratorArrayTest {
 
     // ── Array.set IllegalArgumentException path ───────────────────────────────
 
-    /** Holder used to exercise the Array.set catch block. */
-    static class WithIntArray { int[] nums; }
-
     @Test
     @DisplayName("Array.set IAE (incompatible element type) is caught silently; array slots default to 0")
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     void arraySetIllegalArgumentExceptionHandled() {
         // Supply a String where int[] expects Integer — Array.set throws IAE, caught internally.
         // Raw-typed generator used here to deliberately pass the wrong value type.
         var badGen = (org.github.krandom.generator.Generator) () -> "NOT_AN_INT";
         ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
-                .override((Class) int.class, badGen)
-                .build();
+                                                         .override((Class) int.class, badGen)
+                                                         .build();
         WithIntArray obj = assertDoesNotThrow(
-                () -> new ObjectGenerator<>(WithIntArray.class, cfg).generate(),
-                "Array.set IAE must not escape generateArray()");
+            () -> new ObjectGenerator<>(WithIntArray.class, cfg).generate(),
+            "Array.set IAE must not escape generateArray()");
         assertNotNull(obj.nums, "array must still be created");
         assertEquals(3, obj.nums.length, "array must have 3 slots");
         for (int v : obj.nums) {
             assertEquals(0, v, "slots must retain JVM default 0 after IAE");
         }
+    }
+
+
+    /**
+     * Holder used to exercise the Array.set catch block.
+     */
+    static class WithIntArray {
+
+        int[] nums;
     }
 }

@@ -27,8 +27,8 @@ import java.util.Random;
 public final class CityGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final String[] cities;
+    private final Random          random;
+    private final String[]        cities;
 
     /**
      * Creates a generator using default configuration ({@link Locale#US}).
@@ -56,8 +56,8 @@ public final class CityGenerator implements Generator<String> {
         }
 
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
 
         this.cities = CityDataRegistry.forLocale(locale).getCities();
     }

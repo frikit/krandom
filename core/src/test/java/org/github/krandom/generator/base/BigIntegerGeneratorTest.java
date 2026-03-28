@@ -5,20 +5,23 @@
  */
 package org.github.krandom.generator.base;
 
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import org.github.krandom.generator.Generators;
-
 import java.math.BigInteger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("BigIntegerGenerator")
 class BigIntegerGeneratorTest {
 
     private static final int SAMPLES = 50;
+
 
     @Nested
     @DisplayName("Default construction")
@@ -38,10 +41,11 @@ class BigIntegerGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 BigInteger v = new BigIntegerGenerator().generate();
                 assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0,
-                        "Expected [0, Long.MAX_VALUE], got: " + v);
+                           "Expected [0, Long.MAX_VALUE], got: " + v);
             }
         }
     }
+
 
     @Nested
     @DisplayName("Custom range")
@@ -56,7 +60,7 @@ class BigIntegerGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 BigInteger v = gen.generate();
                 assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0,
-                        "Expected [" + lo + ", " + hi + "], got: " + v);
+                           "Expected [" + lo + ", " + hi + "], got: " + v);
             }
         }
 
@@ -72,6 +76,7 @@ class BigIntegerGeneratorTest {
             }
         }
     }
+
 
     @Nested
     @DisplayName("Generators factory")
@@ -94,6 +99,7 @@ class BigIntegerGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Validation")
     class ValidationTest {
@@ -103,7 +109,7 @@ class BigIntegerGeneratorTest {
         void minGteMaxThrows() {
             BigInteger v = BigInteger.TEN;
             assertThrows(IllegalArgumentException.class,
-                    () -> new BigIntegerGenerator(v, v));
+                         () -> new BigIntegerGenerator(v, v));
         }
     }
 }

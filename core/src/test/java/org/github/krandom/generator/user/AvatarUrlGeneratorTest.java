@@ -10,7 +10,10 @@ import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("AvatarUrlGenerator")
 class AvatarUrlGeneratorTest {
@@ -46,7 +49,7 @@ class AvatarUrlGeneratorTest {
 
         for (int seed = 0; seed < 64; seed++) {
             AvatarUrlGenerator generator = new AvatarUrlGenerator(
-                    GeneratorConfig.builder().seed(seed).build()
+                GeneratorConfig.builder().seed(seed).build()
             );
             String url = generator.generate("user", 256);
             dicebear |= url.contains("dicebear");

@@ -12,22 +12,13 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @DisplayName("ObjectGeneratorConfig — parameter combinations")
 class ObjectGeneratorConfigCombinationsTest {
-
-    static class CombinedConfigTarget {
-        String preset = "KEEP";
-        String generated;
-        java.util.Date createdAt;
-        AtomicInteger counter;
-
-        String getPreset() { return preset; }
-        String getGenerated() { return generated; }
-        java.util.Date getCreatedAt() { return createdAt; }
-        AtomicInteger getCounter() { return counter; }
-    }
 
     @Test
     @DisplayName("combined settings interact correctly in one config")
@@ -36,14 +27,14 @@ class ObjectGeneratorConfigCombinationsTest {
         LocalDate max = LocalDate.of(2022, 12, 31);
 
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                .maxDepth(2)
-                .objectPoolSize(1)
-                .overrideDefaultInitialization(false)
-                .ignoreErrors(true)
-                .dateRange(min, max)
-                .override(String.class, () -> "GEN")
-                .excludeType(TypePredicates.inPackage("java.util.concurrent.atomic"))
-                .build();
+                                                            .maxDepth(2)
+                                                            .objectPoolSize(1)
+                                                            .overrideDefaultInitialization(false)
+                                                            .ignoreErrors(true)
+                                                            .dateRange(min, max)
+                                                            .override(String.class, () -> "GEN")
+                                                            .excludeType(TypePredicates.inPackage("java.util.concurrent.atomic"))
+                                                            .build();
 
         CombinedConfigTarget value = new ObjectGenerator<>(CombinedConfigTarget.class, config).generate();
         assertEquals("KEEP", value.getPreset(), "preset value should be preserved");
@@ -60,13 +51,38 @@ class ObjectGeneratorConfigCombinationsTest {
     @DisplayName("overrideDefaultInitialization(true) with other settings overwrites preset values")
     void overrideEnabledWithOtherSettingsOverwritesPreset() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                .objectPoolSize(2)
-                .overrideDefaultInitialization(true)
-                .override(String.class, () -> "OVERRIDE")
-                .build();
+                                                            .objectPoolSize(2)
+                                                            .overrideDefaultInitialization(true)
+                                                            .override(String.class, () -> "OVERRIDE")
+                                                            .build();
 
         CombinedConfigTarget value = new ObjectGenerator<>(CombinedConfigTarget.class, config).generate();
         assertEquals("OVERRIDE", value.getPreset());
         assertEquals("OVERRIDE", value.getGenerated());
+    }
+
+
+    static class CombinedConfigTarget {
+
+        String         preset = "KEEP";
+        String         generated;
+        java.util.Date createdAt;
+        AtomicInteger  counter;
+
+        String getPreset() {
+            return preset;
+        }
+
+        String getGenerated() {
+            return generated;
+        }
+
+        java.util.Date getCreatedAt() {
+            return createdAt;
+        }
+
+        AtomicInteger getCounter() {
+            return counter;
+        }
     }
 }

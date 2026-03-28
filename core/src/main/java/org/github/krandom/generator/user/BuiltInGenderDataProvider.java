@@ -25,6 +25,19 @@ final class BuiltInGenderDataProvider implements GenderDataProvider {
         this.femaleLabel = labels[1];
     }
 
+    private static String[] labelsFor(SupportedLocale supportedLocale) {
+        return switch (supportedLocale) {
+            case EN_US, EN_GB, EN_AU -> new String[] { "Male", "Female" };
+            case FR_FR -> new String[] { "Homme", "Femme" };
+            case DE_DE -> new String[] { "Männlich", "Weiblich" };
+            case JA_JP -> new String[] { "男性", "女性" };
+            case ES_ES -> new String[] { "Hombre", "Mujer" };
+            case IT_IT -> new String[] { "Maschio", "Femmina" };
+            case PT_BR -> new String[] { "Masculino", "Feminino" };
+            case ZH_CN -> new String[] { "男", "女" };
+        };
+    }
+
     @Override
     public Locale getLocale() {
         return locale;
@@ -38,18 +51,5 @@ final class BuiltInGenderDataProvider implements GenderDataProvider {
     @Override
     public String getFemaleLabel() {
         return femaleLabel;
-    }
-
-    private static String[] labelsFor(SupportedLocale supportedLocale) {
-        return switch (supportedLocale) {
-            case EN_US, EN_GB, EN_AU -> new String[]{"Male", "Female"};
-            case FR_FR -> new String[]{"Homme", "Femme"};
-            case DE_DE -> new String[]{"Männlich", "Weiblich"};
-            case JA_JP -> new String[]{"男性", "女性"};
-            case ES_ES -> new String[]{"Hombre", "Mujer"};
-            case IT_IT -> new String[]{"Maschio", "Femmina"};
-            case PT_BR -> new String[]{"Masculino", "Feminino"};
-            case ZH_CN -> new String[]{"男", "女"};
-        };
     }
 }

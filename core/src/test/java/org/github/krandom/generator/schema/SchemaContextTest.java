@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Locale;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("SchemaContext")
 class SchemaContextTest {

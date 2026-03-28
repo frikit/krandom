@@ -43,10 +43,7 @@ import java.util.Random;
  */
 public final class LoremIpsumGenerator implements Generator<String> {
 
-    /** Controls what {@link #generate()} produces. */
-    public enum Mode { WORD, SENTENCE, PARAGRAPH }
-
-    private static final String[] WORDS = {
+    private static final String[] WORDS           = {
         "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit",
         "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "dolore",
         "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud",
@@ -57,18 +54,18 @@ public final class LoremIpsumGenerator implements Generator<String> {
         "anim", "id", "est", "laborum"
     };
     private static final String[] CORPUS_SEQUENCE = (
-            "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore " +
-            "magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat " +
-            "duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat " +
-            "cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum"
+        "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore " +
+        "magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat " +
+        "duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat " +
+        "cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum"
     ).split("\\s+");
-
-    private final Mode mode;
-    private final GeneratorConfig config;
-    private final Random random;
+    private final Mode              mode;
+    private final GeneratorConfig   config;
+    private final Random            random;
     private final NextWordGenerator nextWordGenerator;
-
-    /** Creates a generator in {@link Mode#SENTENCE} mode with default configuration. */
+    /**
+     * Creates a generator in {@link Mode#SENTENCE} mode with default configuration.
+     */
     public LoremIpsumGenerator() {
         this(Mode.SENTENCE, GeneratorConfig.defaults());
     }
@@ -101,11 +98,11 @@ public final class LoremIpsumGenerator implements Generator<String> {
      * @throws NullPointerException if either argument is {@code null}
      */
     public LoremIpsumGenerator(Mode mode, GeneratorConfig config) {
-        this.mode   = Objects.requireNonNull(mode,   "mode must not be null");
+        this.mode = Objects.requireNonNull(mode, "mode must not be null");
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.nextWordGenerator = new NextWordGenerator(config, CORPUS_SEQUENCE);
     }
 
@@ -119,8 +116,8 @@ public final class LoremIpsumGenerator implements Generator<String> {
     @Override
     public String generate() {
         return switch (mode) {
-            case WORD      -> generateWord();
-            case SENTENCE  -> generateSentence();
+            case WORD -> generateWord();
+            case SENTENCE -> generateSentence();
             case PARAGRAPH -> generateParagraph();
         };
     }
@@ -184,8 +181,15 @@ public final class LoremIpsumGenerator implements Generator<String> {
         return sb.toString();
     }
 
-    /** Returns the {@link Mode} this generator was configured with. */
+    /**
+     * Returns the {@link Mode} this generator was configured with.
+     */
     public Mode getMode() {
         return mode;
     }
+
+    /**
+     * Controls what {@link #generate()} produces.
+     */
+    public enum Mode {WORD, SENTENCE, PARAGRAPH}
 }

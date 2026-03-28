@@ -23,23 +23,27 @@ import java.util.Random;
 public final class StreetAddressGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final String[] streetNames;
-    private final String[] streetTypesShort;
-    private final String[] streetTypesLong;
-    private final String[] secondaryUnits;
+    private final Random          random;
+    private final String[]        streetNames;
+    private final String[]        streetTypesShort;
+    private final String[]        streetTypesLong;
+    private final String[]        secondaryUnits;
 
-    private final CityGenerator cityGenerator;
-    private final StateGenerator stateGenerator;
+    private final CityGenerator       cityGenerator;
+    private final StateGenerator      stateGenerator;
     private final PostalCodeGenerator postalCodeGenerator;
-    private final CountryGenerator countryGenerator;
+    private final CountryGenerator    countryGenerator;
 
-    /** Creates a street-address generator with default configuration (Locale.US). */
+    /**
+     * Creates a street-address generator with default configuration (Locale.US).
+     */
     public StreetAddressGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Creates an unseeded generator for the given locale. */
+    /**
+     * Creates an unseeded generator for the given locale.
+     */
     public StreetAddressGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
@@ -48,7 +52,7 @@ public final class StreetAddressGenerator implements Generator<String> {
      * Creates a street-address generator with the specified configuration.
      *
      * @param config the generator configuration; must not be {@code null}
-     * @throws NullPointerException if {@code config} is {@code null}
+     * @throws NullPointerException          if {@code config} is {@code null}
      * @throws UnsupportedOperationException if the configured locale has no registered data
      */
     public StreetAddressGenerator(GeneratorConfig config) {
@@ -56,13 +60,13 @@ public final class StreetAddressGenerator implements Generator<String> {
         Locale locale = config.getLocale();
         if (!StreetAddressDataRegistry.isRegistered(locale)) {
             throw new UnsupportedOperationException(
-                    "Locale " + locale + " is not supported. Registered locales: "
-                            + StreetAddressDataRegistry.registeredKeys());
+                "Locale " + locale + " is not supported. Registered locales: "
+                + StreetAddressDataRegistry.registeredKeys());
         }
 
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
 
         StreetAddressDataProvider provider = StreetAddressDataRegistry.forLocale(locale);
         this.streetNames = provider.getStreetNames();
@@ -74,6 +78,16 @@ public final class StreetAddressGenerator implements Generator<String> {
         this.stateGenerator = StateDataRegistry.isRegistered(locale) ? new StateGenerator(config) : null;
         this.postalCodeGenerator = new PostalCodeGenerator(config);
         this.countryGenerator = CountryDataRegistry.isRegistered(locale) ? new CountryGenerator(config) : null;
+    }
+
+    private static String[] loadSecondaryUnits(Locale locale) {
+        String key = locale.getLanguage() + "_" + locale.getCountry();
+        String resourcePath = "krandom/streets/" + key + "_secondary_units.txt";
+        InputStream is = StreetAddressGenerator.class.getClassLoader().getResourceAsStream(resourcePath);
+        if (is != null) {
+            return StreetAddressResourceLoader.load(is, resourcePath);
+        }
+        return new String[] { "Apt", "Suite", "Unit", "Floor", "Room" };
     }
 
     /**
@@ -95,10 +109,10 @@ public final class StreetAddressGenerator implements Generator<String> {
      */
     public String generate(boolean shortSuffix) {
         return generateStreetAddressNumber()
-                + " "
-                + generateStreetName()
-                + " "
-                + generateStreetSuffix(shortSuffix);
+               + " "
+               + generateStreetName()
+               + " "
+               + generateStreetSuffix(shortSuffix);
     }
 
     /**
@@ -181,28 +195,24 @@ public final class StreetAddressGenerator implements Generator<String> {
         return sb.toString();
     }
 
-    /** Returns configured locale. */
+    /**
+     * Returns configured locale.
+     */
     public Locale getLocale() {
         return config.getLocale();
     }
 
-    /** Returns number of locale street names available to this generator instance. */
+    /**
+     * Returns number of locale street names available to this generator instance.
+     */
     public int getStreetNameCount() {
         return streetNames.length;
     }
 
-    /** Returns true when configured locale is registered. */
+    /**
+     * Returns true when configured locale is registered.
+     */
     public boolean isLocaleExplicitlySupported() {
         return StreetAddressDataRegistry.isRegistered(config.getLocale());
-    }
-
-    private static String[] loadSecondaryUnits(Locale locale) {
-        String key = locale.getLanguage() + "_" + locale.getCountry();
-        String resourcePath = "krandom/streets/" + key + "_secondary_units.txt";
-        InputStream is = StreetAddressGenerator.class.getClassLoader().getResourceAsStream(resourcePath);
-        if (is != null) {
-            return StreetAddressResourceLoader.load(is, resourcePath);
-        }
-        return new String[]{"Apt", "Suite", "Unit", "Floor", "Room"};
     }
 }

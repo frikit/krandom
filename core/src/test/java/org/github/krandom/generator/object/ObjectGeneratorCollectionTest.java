@@ -15,7 +15,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — collection auto-population")
 class ObjectGeneratorCollectionTest {
@@ -85,12 +89,6 @@ class ObjectGeneratorCollectionTest {
 
     // ── Raw (erased) generic type — typeArg returns Object.class ─────────────
 
-    @SuppressWarnings("rawtypes")
-    static class WithRawList    { List  items; }
-
-    @SuppressWarnings("rawtypes")
-    static class WithRawMap     { Map   data; }
-
     @Test
     @DisplayName("raw List field (no type argument) is populated with null-element list")
     void rawListFieldProducesNullElements() {
@@ -105,14 +103,9 @@ class ObjectGeneratorCollectionTest {
         // Keys resolve to Object.class → null (JDK type, not nestable) → entries may be absent
         // Map creation itself must not throw.
         assertDoesNotThrow(
-                () -> new ObjectGenerator<>(WithRawMap.class).generate(),
-                "raw Map field must not cause an exception");
+            () -> new ObjectGenerator<>(WithRawMap.class).generate(),
+            "raw Map field must not cause an exception");
     }
-
-    // ── Wildcard generic type — typeArg returns Object.class ─────────────────
-
-    /** Wildcard type argument — {@code typeArg} cannot extract a plain {@link Class}. */
-    static class WithWildcardList { List<? extends Number> items; }
 
     @Test
     @DisplayName("List<? extends Number> field — wildcard type arg falls back to Object.class elements")
@@ -122,5 +115,30 @@ class ObjectGeneratorCollectionTest {
         WithWildcardList obj = new ObjectGenerator<>(WithWildcardList.class).generate();
         assertNotNull(obj.items, "list must be created even with wildcard type");
         assertEquals(3, obj.items.size(), "list must have 3 elements");
+    }
+
+
+    @SuppressWarnings("rawtypes")
+    static class WithRawList {
+
+        List items;
+    }
+
+    // ── Wildcard generic type — typeArg returns Object.class ─────────────────
+
+
+    @SuppressWarnings("rawtypes")
+    static class WithRawMap {
+
+        Map data;
+    }
+
+
+    /**
+     * Wildcard type argument — {@code typeArg} cannot extract a plain {@link Class}.
+     */
+    static class WithWildcardList {
+
+        List<? extends Number> items;
     }
 }

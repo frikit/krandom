@@ -136,57 +136,30 @@ public final class CoordinatesGenerator implements Generator<String> {
      * Maximum allowed precision (10 decimal places).
      */
     public static final int MAX_PRECISION = 10;
-
-    // Geographical bounds for each locale
-    private static class GeoBounds {
-        final double minLat;
-        final double maxLat;
-        final double minLon;
-        final double maxLon;
-
-        GeoBounds(double minLat, double maxLat, double minLon, double maxLon) {
-            this.minLat = minLat;
-            this.maxLat = maxLat;
-            this.minLon = minLon;
-            this.maxLon = maxLon;
-        }
-    }
-
     // Continental United States
     private static final GeoBounds US_BOUNDS = new GeoBounds(24.5, 49.0, -125.0, -66.0);
-    
     // United Kingdom
     private static final GeoBounds GB_BOUNDS = new GeoBounds(49.9, 60.8, -8.2, 1.8);
-    
     // Australia
     private static final GeoBounds AU_BOUNDS = new GeoBounds(-44.0, -10.0, 113.0, 154.0);
-    
     // Germany
     private static final GeoBounds DE_BOUNDS = new GeoBounds(47.3, 55.0, 5.9, 15.0);
-    
     // France
     private static final GeoBounds FR_BOUNDS = new GeoBounds(41.3, 51.1, -5.2, 9.6);
-    
     // Spain
     private static final GeoBounds ES_BOUNDS = new GeoBounds(36.0, 43.8, -9.3, 4.3);
-    
     // Italy
     private static final GeoBounds IT_BOUNDS = new GeoBounds(36.6, 47.1, 6.6, 18.5);
-    
     // Brazil
     private static final GeoBounds BR_BOUNDS = new GeoBounds(-33.7, 5.3, -74.0, -34.8);
-    
     // Japan
     private static final GeoBounds JP_BOUNDS = new GeoBounds(24.0, 45.5, 122.9, 153.9);
-    
     // China
     private static final GeoBounds CN_BOUNDS = new GeoBounds(18.2, 53.6, 73.5, 135.0);
-
     private final GeneratorConfig config;
-    private final Random random;
-    private final Locale locale;
-    private final GeoBounds bounds;
-
+    private final Random          random;
+    private final Locale          locale;
+    private final GeoBounds       bounds;
     /**
      * Creates a generator using US locale with default config.
      */
@@ -204,8 +177,8 @@ public final class CoordinatesGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.bounds = getBoundsForLocale(locale);
     }
 
@@ -217,7 +190,7 @@ public final class CoordinatesGenerator implements Generator<String> {
      */
     public CoordinatesGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(
-                Objects.requireNonNull(locale, "locale must not be null")
+            Objects.requireNonNull(locale, "locale must not be null")
         ).build());
     }
 
@@ -327,8 +300,6 @@ public final class CoordinatesGenerator implements Generator<String> {
         return bounds.maxLon;
     }
 
-    // ── Helper methods ────────────────────────────────────────────────────────
-
     private GeoBounds getBoundsForLocale(Locale loc) {
         String localeKey = getLocaleKey(loc);
 
@@ -347,10 +318,12 @@ public final class CoordinatesGenerator implements Generator<String> {
         };
     }
 
+    // ── Helper methods ────────────────────────────────────────────────────────
+
     private String getLocaleKey(Locale loc) {
         String language = loc.getLanguage();
         String country = loc.getCountry();
-        
+
         if (!country.isEmpty()) {
             return language + "_" + country;
         }
@@ -360,8 +333,8 @@ public final class CoordinatesGenerator implements Generator<String> {
     private void validatePrecision(int precision) {
         if (precision < MIN_PRECISION || precision > MAX_PRECISION) {
             throw new IllegalArgumentException(
-                    "precision must be between " + MIN_PRECISION + " and " + MAX_PRECISION + 
-                    ", got: " + precision
+                "precision must be between " + MIN_PRECISION + " and " + MAX_PRECISION +
+                ", got: " + precision
             );
         }
     }
@@ -369,5 +342,22 @@ public final class CoordinatesGenerator implements Generator<String> {
     private double roundToPrecision(double value, int precision) {
         double multiplier = Math.pow(10, precision);
         return Math.round(value * multiplier) / multiplier;
+    }
+
+
+    // Geographical bounds for each locale
+    private static class GeoBounds {
+
+        final double minLat;
+        final double maxLat;
+        final double minLon;
+        final double maxLon;
+
+        GeoBounds(double minLat, double maxLat, double minLon, double maxLon) {
+            this.minLat = minLat;
+            this.maxLat = maxLat;
+            this.minLon = minLon;
+            this.maxLon = maxLon;
+        }
     }
 }

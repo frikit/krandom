@@ -37,14 +37,42 @@ import java.util.Objects;
  */
 public final class DiceGenerator implements Generator<Integer> {
 
-    private final DiceType type;
+    private final DiceType     type;
     private final SecureRandom random = new SecureRandom();
 
     public DiceGenerator(DiceType type) {
         this.type = Objects.requireNonNull(type, "type must not be null");
     }
 
-    /** Returns the {@link DiceType} this generator was created for. */
+    public static DiceGenerator d4() {
+        return new DiceGenerator(DiceType.D4);
+    }
+
+    public static DiceGenerator d6() {
+        return new DiceGenerator(DiceType.D6);
+    }
+
+    public static DiceGenerator d8() {
+        return new DiceGenerator(DiceType.D8);
+    }
+
+    public static DiceGenerator d10() {
+        return new DiceGenerator(DiceType.D10);
+    }
+
+    public static DiceGenerator d12() {
+        return new DiceGenerator(DiceType.D12);
+    }
+
+    // ── Static factories ──────────────────────────────────────────────────────
+
+    public static DiceGenerator d20() {
+        return new DiceGenerator(DiceType.D20);
+    }
+
+    /**
+     * Returns the {@link DiceType} this generator was created for.
+     */
     public DiceType type() {
         return type;
     }
@@ -107,13 +135,4 @@ public final class DiceGenerator implements Generator<Integer> {
     private int randomFace() {
         return random.nextInt(type.sides()) + 1;
     }
-
-    // ── Static factories ──────────────────────────────────────────────────────
-
-    public static DiceGenerator d4()  { return new DiceGenerator(DiceType.D4);  }
-    public static DiceGenerator d6()  { return new DiceGenerator(DiceType.D6);  }
-    public static DiceGenerator d8()  { return new DiceGenerator(DiceType.D8);  }
-    public static DiceGenerator d10() { return new DiceGenerator(DiceType.D10); }
-    public static DiceGenerator d12() { return new DiceGenerator(DiceType.D12); }
-    public static DiceGenerator d20() { return new DiceGenerator(DiceType.D20); }
 }

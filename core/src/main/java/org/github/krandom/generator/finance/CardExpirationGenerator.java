@@ -9,7 +9,6 @@ import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -41,16 +40,16 @@ import java.util.Random;
  * // Generate future expiration date (default: MM/YY format)
  * CardExpirationGenerator gen = new CardExpirationGenerator();
  * String expiry = gen.generate();              // "08/27"
- * 
+ *
  * // Generate with specific date range
  * CardExpirationGenerator futureGen = new CardExpirationGenerator(DateRange.FUTURE);
  * CardExpirationGenerator pastGen = new CardExpirationGenerator(DateRange.PAST);
  * CardExpirationGenerator anyGen = new CardExpirationGenerator(DateRange.ANY);
- * 
+ *
  * String futureExpiry = futureGen.generate();  // "11/29" (future)
  * String pastExpiry = pastGen.generate();      // "02/23" (past)
  * String anyExpiry = anyGen.generate();        // Could be past or future
- * 
+ *
  * // Get just the month or year
  * String month = gen.getMonth();               // "07"
  * String year = gen.getYear();                 // "28"
@@ -62,7 +61,7 @@ import java.util.Random;
  * // US format (MM/YY)
  * Locale usLocale = new Locale("en", "US");
  * String usExpiry = gen.generate(usLocale);    // "03/26"
- * 
+ *
  * // Japanese format (YY/MM)
  * Locale jpLocale = new Locale("ja", "JP");
  * String jpExpiry = gen.generate(jpLocale);    // "26/03"
@@ -84,24 +83,24 @@ import java.util.Random;
  * @see DateRange
  */
 public final class CardExpirationGenerator implements Generator<String> {
-    
-    private static final DateTimeFormatter MM_YY_FORMATTER = DateTimeFormatter.ofPattern("MM/yy");
-    private static final DateTimeFormatter YY_MM_FORMATTER = DateTimeFormatter.ofPattern("yy/MM");
-    private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MM");
+
+    private static final DateTimeFormatter MM_YY_FORMATTER      = DateTimeFormatter.ofPattern("MM/yy");
+    private static final DateTimeFormatter YY_MM_FORMATTER      = DateTimeFormatter.ofPattern("yy/MM");
+    private static final DateTimeFormatter MONTH_FORMATTER      = DateTimeFormatter.ofPattern("MM");
     private static final DateTimeFormatter YEAR_SHORT_FORMATTER = DateTimeFormatter.ofPattern("yy");
-    private static final DateTimeFormatter YEAR_FULL_FORMATTER = DateTimeFormatter.ofPattern("yyyy");
-    
+    private static final DateTimeFormatter YEAR_FULL_FORMATTER  = DateTimeFormatter.ofPattern("yyyy");
+
     private final GeneratorConfig config;
-    private final Random random;
-    private final DateRange dateRange;
-    
+    private final Random          random;
+    private final DateRange       dateRange;
+
     /**
      * Creates a generator that produces future-only expiration dates with default configuration.
      */
     public CardExpirationGenerator() {
         this(GeneratorConfig.defaults(), DateRange.FUTURE);
     }
-    
+
     /**
      * Creates a generator with the specified date range using default configuration.
      *
@@ -111,7 +110,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public CardExpirationGenerator(DateRange dateRange) {
         this(GeneratorConfig.defaults(), dateRange);
     }
-    
+
     /**
      * Creates a generator with the specified future-only flag using default configuration.
      *
@@ -122,7 +121,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public CardExpirationGenerator(boolean futureOnly) {
         this(GeneratorConfig.defaults(), DateRange.fromBoolean(futureOnly));
     }
-    
+
     /**
      * Creates a generator using the given configuration with future-only dates.
      *
@@ -132,11 +131,11 @@ public final class CardExpirationGenerator implements Generator<String> {
     public CardExpirationGenerator(GeneratorConfig config) {
         this(config, DateRange.FUTURE);
     }
-    
+
     /**
      * Creates a generator using the given configuration and date range.
      *
-     * @param config the generator configuration; must not be {@code null}
+     * @param config    the generator configuration; must not be {@code null}
      * @param dateRange the date range to use (PAST, FUTURE, or ANY); must not be {@code null}
      * @throws NullPointerException if {@code config} or {@code dateRange} is {@code null}
      */
@@ -144,14 +143,14 @@ public final class CardExpirationGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.dateRange = Objects.requireNonNull(dateRange, "dateRange must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
-    
+
     /**
      * Creates a generator using the given configuration and future-only flag.
      *
-     * @param config the generator configuration; must not be {@code null}
+     * @param config     the generator configuration; must not be {@code null}
      * @param futureOnly if true, generates only future dates; if false, can generate past or future
      * @throws NullPointerException if {@code config} is {@code null}
      * @deprecated Use {@link #CardExpirationGenerator(GeneratorConfig, DateRange)} instead
@@ -160,7 +159,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public CardExpirationGenerator(GeneratorConfig config, boolean futureOnly) {
         this(config, DateRange.fromBoolean(futureOnly));
     }
-    
+
     /**
      * {@inheritDoc}
      *
@@ -173,7 +172,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String generate() {
         return generate(config.getLocale(), dateRange);
     }
-    
+
     /**
      * Generates an expiration date with the specified date range.
      *
@@ -183,7 +182,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String generate(DateRange dateRange) {
         return generate(config.getLocale(), dateRange);
     }
-    
+
     /**
      * Generates an expiration date with control over future-only constraint.
      *
@@ -195,7 +194,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String generate(boolean futureOnly) {
         return generate(config.getLocale(), DateRange.fromBoolean(futureOnly));
     }
-    
+
     /**
      * Generates an expiration date using the specified locale's format.
      *
@@ -205,28 +204,28 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String generate(Locale locale) {
         return generate(locale, dateRange);
     }
-    
+
     /**
      * Generates an expiration date using the specified locale's format and date range.
      *
-     * @param locale the locale for formatting (null uses default MM/YY)
+     * @param locale    the locale for formatting (null uses default MM/YY)
      * @param dateRange the date range to use (PAST, FUTURE, or ANY)
      * @return an expiration date string in locale-specific format; never {@code null}
      */
     public String generate(Locale locale, DateRange dateRange) {
         YearMonth expiryDate = generateYearMonth(dateRange);
-        
+
         // Determine format based on locale
         if (locale != null && isAsianLocale(locale)) {
             return expiryDate.format(YY_MM_FORMATTER); // YY/MM for Asian locales
         }
         return expiryDate.format(MM_YY_FORMATTER); // MM/YY for Western locales
     }
-    
+
     /**
      * Generates an expiration date using the specified locale's format and future-only constraint.
      *
-     * @param locale the locale for formatting (null uses default MM/YY)
+     * @param locale     the locale for formatting (null uses default MM/YY)
      * @param futureOnly if true, generates only future dates; if false, can generate past or future
      * @return an expiration date string in locale-specific format; never {@code null}
      * @deprecated Use {@link #generate(Locale, DateRange)} instead
@@ -235,7 +234,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String generate(Locale locale, boolean futureOnly) {
         return generate(locale, DateRange.fromBoolean(futureOnly));
     }
-    
+
     /**
      * Generates an expiration month (01-12) as a zero-padded string.
      *
@@ -246,7 +245,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String getMonth() {
         return getMonth(dateRange);
     }
-    
+
     /**
      * Generates an expiration month with the specified date range.
      *
@@ -257,7 +256,7 @@ public final class CardExpirationGenerator implements Generator<String> {
         YearMonth expiryDate = generateYearMonth(dateRange);
         return expiryDate.format(MONTH_FORMATTER);
     }
-    
+
     /**
      * Generates an expiration month with control over future-only constraint.
      *
@@ -269,7 +268,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String getMonth(boolean futureOnly) {
         return getMonth(DateRange.fromBoolean(futureOnly));
     }
-    
+
     /**
      * Generates an expiration year in 2-digit format (e.g., "26" for 2026).
      *
@@ -280,7 +279,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String getYear() {
         return getYear(false, dateRange);
     }
-    
+
     /**
      * Generates an expiration year with control over format.
      *
@@ -290,11 +289,11 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String getYear(boolean fullYear) {
         return getYear(fullYear, dateRange);
     }
-    
+
     /**
      * Generates an expiration year with control over format and date range.
      *
-     * @param fullYear if true, returns 4-digit year; if false, returns 2-digit
+     * @param fullYear  if true, returns 4-digit year; if false, returns 2-digit
      * @param dateRange the date range to use (PAST, FUTURE, or ANY)
      * @return a year string; never {@code null}
      */
@@ -302,11 +301,11 @@ public final class CardExpirationGenerator implements Generator<String> {
         YearMonth expiryDate = generateYearMonth(dateRange);
         return expiryDate.format(fullYear ? YEAR_FULL_FORMATTER : YEAR_SHORT_FORMATTER);
     }
-    
+
     /**
      * Generates an expiration year with control over format and future-only constraint.
      *
-     * @param fullYear if true, returns 4-digit year; if false, returns 2-digit
+     * @param fullYear   if true, returns 4-digit year; if false, returns 2-digit
      * @param futureOnly if true, year is from a future date; if false, can be from past or future
      * @return a year string; never {@code null}
      * @deprecated Use {@link #getYear(boolean, DateRange)} instead
@@ -315,7 +314,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public String getYear(boolean fullYear, boolean futureOnly) {
         return getYear(fullYear, DateRange.fromBoolean(futureOnly));
     }
-    
+
     /**
      * Returns the configured date range for this generator.
      *
@@ -324,7 +323,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public DateRange getDateRange() {
         return dateRange;
     }
-    
+
     /**
      * Checks if the future-only constraint is enabled for this generator.
      *
@@ -335,7 +334,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public boolean isFutureOnly() {
         return dateRange == DateRange.FUTURE;
     }
-    
+
     /**
      * Generates a YearMonth based on the specified date range.
      *
@@ -344,7 +343,7 @@ public final class CardExpirationGenerator implements Generator<String> {
      */
     private YearMonth generateYearMonth(DateRange dateRange) {
         YearMonth now = YearMonth.now();
-        
+
         return switch (dateRange) {
             case PAST -> {
                 // 1-60 months in the past
@@ -363,7 +362,7 @@ public final class CardExpirationGenerator implements Generator<String> {
             }
         };
     }
-    
+
     /**
      * Checks if the locale uses Asian date formatting (YY/MM instead of MM/YY).
      *

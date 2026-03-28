@@ -13,7 +13,12 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Username and Password generators")
 class UsernamePasswordGeneratorTest {
@@ -42,7 +47,7 @@ class UsernamePasswordGeneratorTest {
 
         assertDoesNotThrow(() -> {
             Method fallback = UsernameGenerator.class.getDeclaredMethod(
-                    "fallback", String.class, String.class
+                "fallback", String.class, String.class
             );
             fallback.setAccessible(true);
             assertEquals("default", fallback.invoke(null, "", "default"));

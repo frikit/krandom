@@ -18,10 +18,10 @@ import java.util.Random;
  */
 public final class UsernameGenerator implements Generator<String> {
 
-    private final GeneratorConfig config;
-    private final Random random;
+    private final GeneratorConfig    config;
+    private final Random             random;
     private final FirstNameGenerator firstNameGenerator;
-    private final LastNameGenerator lastNameGenerator;
+    private final LastNameGenerator  lastNameGenerator;
 
     public UsernameGenerator() {
         this(GeneratorConfig.defaults());
@@ -34,10 +34,18 @@ public final class UsernameGenerator implements Generator<String> {
     public UsernameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.firstNameGenerator = new FirstNameGenerator(config);
         this.lastNameGenerator = new LastNameGenerator(config);
+    }
+
+    private static String normalize(String value) {
+        return value.toLowerCase().replaceAll("[^\\p{L}\\p{N}]", "");
+    }
+
+    private static String fallback(String value, String defaultValue) {
+        return value.isBlank() ? defaultValue : value;
     }
 
     @Override
@@ -50,14 +58,6 @@ public final class UsernameGenerator implements Generator<String> {
             case 2 -> first.charAt(0) + last + random.nextInt(10, 1000);
             default -> first + last + random.nextInt(10, 1000);
         };
-    }
-
-    private static String normalize(String value) {
-        return value.toLowerCase().replaceAll("[^\\p{L}\\p{N}]", "");
-    }
-
-    private static String fallback(String value, String defaultValue) {
-        return value.isBlank() ? defaultValue : value;
     }
 
     public Locale getLocale() {

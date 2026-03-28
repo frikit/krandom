@@ -14,9 +14,10 @@ import java.lang.annotation.Target;
 /**
  * Container for repeatable {@link RandomizerArgument} annotations.
  */
-@Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
+@Target({ ElementType.FIELD, ElementType.RECORD_COMPONENT })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface RandomizerArguments {
+
     RandomizerArgument[] value();
 }

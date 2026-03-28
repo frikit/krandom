@@ -30,63 +30,63 @@ import java.util.Random;
  */
 public final class CountryGenerator implements Generator<String> {
 
-    private static final String[] ISO_ALPHA2_CODES = Locale.getISOCountries();
-    private static final String[] ISO_ALPHA3_CODES = loadIsoAlpha3Codes();
-    private static final String[] ISO_NUMERIC_CODES = {
-            "036", "076", "156", "250", "276", "380", "392", "724", "826", "840"
+    private static final String[]            ISO_ALPHA2_CODES     = Locale.getISOCountries();
+    private static final String[]            ISO_ALPHA3_CODES     = loadIsoAlpha3Codes();
+    private static final String[]            ISO_NUMERIC_CODES    = {
+        "036", "076", "156", "250", "276", "380", "392", "724", "826", "840"
     };
-    private static final Map<String, String> NUMERIC_BY_COUNTRY = Map.ofEntries(
-            Map.entry("US", "840"),
-            Map.entry("GB", "826"),
-            Map.entry("AU", "036"),
-            Map.entry("DE", "276"),
-            Map.entry("FR", "250"),
-            Map.entry("ES", "724"),
-            Map.entry("IT", "380"),
-            Map.entry("BR", "076"),
-            Map.entry("JP", "392"),
-            Map.entry("CN", "156")
+    private static final Map<String, String> NUMERIC_BY_COUNTRY   = Map.ofEntries(
+        Map.entry("US", "840"),
+        Map.entry("GB", "826"),
+        Map.entry("AU", "036"),
+        Map.entry("DE", "276"),
+        Map.entry("FR", "250"),
+        Map.entry("ES", "724"),
+        Map.entry("IT", "380"),
+        Map.entry("BR", "076"),
+        Map.entry("JP", "392"),
+        Map.entry("CN", "156")
     );
-    private static final Map<String, String> CALLING_BY_COUNTRY = Map.ofEntries(
-            Map.entry("US", "+1"),
-            Map.entry("GB", "+44"),
-            Map.entry("AU", "+61"),
-            Map.entry("DE", "+49"),
-            Map.entry("FR", "+33"),
-            Map.entry("ES", "+34"),
-            Map.entry("IT", "+39"),
-            Map.entry("BR", "+55"),
-            Map.entry("JP", "+81"),
-            Map.entry("CN", "+86")
+    private static final Map<String, String> CALLING_BY_COUNTRY   = Map.ofEntries(
+        Map.entry("US", "+1"),
+        Map.entry("GB", "+44"),
+        Map.entry("AU", "+61"),
+        Map.entry("DE", "+49"),
+        Map.entry("FR", "+33"),
+        Map.entry("ES", "+34"),
+        Map.entry("IT", "+39"),
+        Map.entry("BR", "+55"),
+        Map.entry("JP", "+81"),
+        Map.entry("CN", "+86")
     );
     private static final Map<String, String> CONTINENT_BY_COUNTRY = Map.ofEntries(
-            Map.entry("US", "North America"),
-            Map.entry("GB", "Europe"),
-            Map.entry("AU", "Oceania"),
-            Map.entry("DE", "Europe"),
-            Map.entry("FR", "Europe"),
-            Map.entry("ES", "Europe"),
-            Map.entry("IT", "Europe"),
-            Map.entry("BR", "South America"),
-            Map.entry("JP", "Asia"),
-            Map.entry("CN", "Asia")
+        Map.entry("US", "North America"),
+        Map.entry("GB", "Europe"),
+        Map.entry("AU", "Oceania"),
+        Map.entry("DE", "Europe"),
+        Map.entry("FR", "Europe"),
+        Map.entry("ES", "Europe"),
+        Map.entry("IT", "Europe"),
+        Map.entry("BR", "South America"),
+        Map.entry("JP", "Asia"),
+        Map.entry("CN", "Asia")
     );
-    private static final Map<String, String> TIMEZONE_BY_COUNTRY = Map.ofEntries(
-            Map.entry("US", "America/New_York"),
-            Map.entry("GB", "Europe/London"),
-            Map.entry("AU", "Australia/Sydney"),
-            Map.entry("DE", "Europe/Berlin"),
-            Map.entry("FR", "Europe/Paris"),
-            Map.entry("ES", "Europe/Madrid"),
-            Map.entry("IT", "Europe/Rome"),
-            Map.entry("BR", "America/Sao_Paulo"),
-            Map.entry("JP", "Asia/Tokyo"),
-            Map.entry("CN", "Asia/Shanghai")
+    private static final Map<String, String> TIMEZONE_BY_COUNTRY  = Map.ofEntries(
+        Map.entry("US", "America/New_York"),
+        Map.entry("GB", "Europe/London"),
+        Map.entry("AU", "Australia/Sydney"),
+        Map.entry("DE", "Europe/Berlin"),
+        Map.entry("FR", "Europe/Paris"),
+        Map.entry("ES", "Europe/Madrid"),
+        Map.entry("IT", "Europe/Rome"),
+        Map.entry("BR", "America/Sao_Paulo"),
+        Map.entry("JP", "Asia/Tokyo"),
+        Map.entry("CN", "Asia/Shanghai")
     );
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final String[] countries;
+    private final Random          random;
+    private final String[]        countries;
 
     /**
      * Creates a generator using default configuration ({@link Locale#US}).
@@ -114,8 +114,8 @@ public final class CountryGenerator implements Generator<String> {
         }
 
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
 
         this.countries = CountryDataRegistry.forLocale(locale).getCountries();
     }
@@ -129,6 +129,14 @@ public final class CountryGenerator implements Generator<String> {
      */
     public CountryGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
+    }
+
+    private static String[] loadIsoAlpha3Codes() {
+        List<String> alpha3 = new ArrayList<>();
+        for (String alpha2 : ISO_ALPHA2_CODES) {
+            alpha3.add(Locale.of("", alpha2).getISO3Country());
+        }
+        return alpha3.toArray(String[]::new);
     }
 
     /**
@@ -352,17 +360,9 @@ public final class CountryGenerator implements Generator<String> {
         String countryCode = config.getLocale().getCountry();
         if (countryCode.isBlank()) {
             throw new UnsupportedOperationException(
-                    "Locale " + config.getLocale() + " has no country component");
+                "Locale " + config.getLocale() + " has no country component");
         }
         return countryCode;
-    }
-
-    private static String[] loadIsoAlpha3Codes() {
-        List<String> alpha3 = new ArrayList<>();
-        for (String alpha2 : ISO_ALPHA2_CODES) {
-            alpha3.add(Locale.of("", alpha2).getISO3Country());
-        }
-        return alpha3.toArray(String[]::new);
     }
 
     /**

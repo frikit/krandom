@@ -14,15 +14,20 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("IPv6Generator")
 class IPv6GeneratorTest {
 
     private static final InetAddressValidator VALIDATOR = InetAddressValidator.getInstance();
-    private static final int SAMPLES = 500;
+    private static final int                  SAMPLES   = 500;
 
     // ── RFC 4291 format ───────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("RFC 4291 format")
@@ -40,7 +45,7 @@ class IPv6GeneratorTest {
             String ip = new IPv6Generator().generate();
             String[] groups = ip.split(":", -1);
             assertEquals(8, groups.length,
-                    "Expected 8 colon-separated groups in: " + ip);
+                         "Expected 8 colon-separated groups in: " + ip);
         }
 
         @RepeatedTest(SAMPLES)
@@ -49,9 +54,9 @@ class IPv6GeneratorTest {
             String ip = new IPv6Generator().generate();
             for (String group : ip.split(":")) {
                 assertTrue(group.length() >= 1 && group.length() <= 4,
-                        "Group '" + group + "' has invalid length in: " + ip);
+                           "Group '" + group + "' has invalid length in: " + ip);
                 assertTrue(group.matches("[0-9a-f]+"),
-                        "Group '" + group + "' contains non-lowercase-hex chars in: " + ip);
+                           "Group '" + group + "' contains non-lowercase-hex chars in: " + ip);
             }
         }
 
@@ -62,12 +67,13 @@ class IPv6GeneratorTest {
             for (String group : ip.split(":")) {
                 int value = Integer.parseInt(group, 16);
                 assertTrue(value >= 0x0000 && value <= 0xFFFF,
-                        "Group value 0x" + group + " outside [0, 0xFFFF] in: " + ip);
+                           "Group value 0x" + group + " outside [0, 0xFFFF] in: " + ip);
             }
         }
     }
 
     // ── RFC 5952 text representation ──────────────────────────────────────────
+
 
     @Nested
     @DisplayName("RFC 5952 text representation")
@@ -80,7 +86,7 @@ class IPv6GeneratorTest {
             for (String group : ip.split(":")) {
                 if (group.length() > 1) {
                     assertNotEquals('0', group.charAt(0),
-                            "Leading zero in group '" + group + "' of: " + ip);
+                                    "Leading zero in group '" + group + "' of: " + ip);
                 }
             }
         }
@@ -90,7 +96,7 @@ class IPv6GeneratorTest {
         void lowercase() {
             String ip = new IPv6Generator().generate();
             assertEquals(ip, ip.toLowerCase(),
-                    "Address contains uppercase hex digits: " + ip);
+                         "Address contains uppercase hex digits: " + ip);
         }
 
         @RepeatedTest(SAMPLES)
@@ -98,11 +104,12 @@ class IPv6GeneratorTest {
         void noCompression() {
             String ip = new IPv6Generator().generate();
             assertFalse(ip.contains("::"),
-                    "Address should not contain '::' compression: " + ip);
+                        "Address should not contain '::' compression: " + ip);
         }
     }
 
     // ── Entropy / variety ─────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("Entropy")
@@ -122,16 +129,17 @@ class IPv6GeneratorTest {
         void firstGroupVariety() {
             IPv6Generator gen = new IPv6Generator();
             long distinct = gen.stream()
-                    .limit(10_000)
-                    .map(ip -> ip.split(":")[0])
-                    .distinct()
-                    .count();
+                               .limit(10_000)
+                               .map(ip -> ip.split(":")[0])
+                               .distinct()
+                               .count();
             assertTrue(distinct > 1000,
-                    "First group has suspiciously low variety: " + distinct + " distinct values");
+                       "First group has suspiciously low variety: " + distinct + " distinct values");
         }
     }
 
     // ── Generator<String> interface ───────────────────────────────────────────
+
 
     @Nested
     @DisplayName("Generator<String> interface")
@@ -149,7 +157,7 @@ class IPv6GeneratorTest {
         @DisplayName("stream() produces valid addresses")
         void stream() {
             new IPv6Generator().stream().limit(50)
-                    .forEach(ip -> assertTrue(VALIDATOR.isValidInet6Address(ip), "Invalid: " + ip));
+                               .forEach(ip -> assertTrue(VALIDATOR.isValidInet6Address(ip), "Invalid: " + ip));
         }
 
         @Test
@@ -163,6 +171,7 @@ class IPv6GeneratorTest {
 
     // ── Seeded Generation ─────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("Seeded generation")
     class SeededGeneration {
@@ -170,9 +179,9 @@ class IPv6GeneratorTest {
         @Test
         @DisplayName("same seed produces same IPv6 address")
         void sameSeedSameIP() {
-            org.github.krandom.generator.GeneratorConfig config1 = 
+            org.github.krandom.generator.GeneratorConfig config1 =
                 org.github.krandom.generator.GeneratorConfig.builder().seed(42L).build();
-            org.github.krandom.generator.GeneratorConfig config2 = 
+            org.github.krandom.generator.GeneratorConfig config2 =
                 org.github.krandom.generator.GeneratorConfig.builder().seed(42L).build();
 
             IPv6Generator gen1 = new IPv6Generator(config1);
@@ -197,8 +206,8 @@ class IPv6GeneratorTest {
         @Test
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
-            assertThrows(NullPointerException.class, 
-                () -> new IPv6Generator((org.github.krandom.generator.GeneratorConfig) null));
+            assertThrows(NullPointerException.class,
+                         () -> new IPv6Generator((org.github.krandom.generator.GeneratorConfig) null));
         }
     }
 }

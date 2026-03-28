@@ -18,11 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DisplayName("FieldGeneratorResolver edge coverage")
 class FieldGeneratorResolverCoverageTest {
 
-    interface CustomList<E> extends List<E> {}
-
-    abstract static class AbstractCustomList<E> extends java.util.AbstractList<E> {}
-
-    static final class ConcreteCustomList<E> extends ArrayList<E> {}
+    @SuppressWarnings("unchecked")
+    private static List<Object> invokeToListType(Class<?> rawType, List<Object> values) throws Exception {
+        Method method = FieldGeneratorResolver.class.getDeclaredMethod("toListType", Class.class, List.class);
+        method.setAccessible(true);
+        return (List<Object>) method.invoke(null, rawType, values);
+    }
 
     @Test
     @DisplayName("toListType handles interface, abstract, unknown concrete, and CopyOnWriteArrayList")
@@ -46,10 +47,18 @@ class FieldGeneratorResolverCoverageTest {
         assertEquals(values, copyOnWrite);
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<Object> invokeToListType(Class<?> rawType, List<Object> values) throws Exception {
-        Method method = FieldGeneratorResolver.class.getDeclaredMethod("toListType", Class.class, List.class);
-        method.setAccessible(true);
-        return (List<Object>) method.invoke(null, rawType, values);
+
+    interface CustomList<E> extends List<E> {
+
+    }
+
+
+    abstract static class AbstractCustomList<E> extends java.util.AbstractList<E> {
+
+    }
+
+
+    static final class ConcreteCustomList<E> extends ArrayList<E> {
+
     }
 }

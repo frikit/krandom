@@ -5,8 +5,8 @@
  */
 package org.github.krandom.generator.user;
 
-import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,12 +15,17 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("FullNameGenerator")
 class FullNameGeneratorTest {
 
     private static final int SAMPLES = 50;
+
 
     @Nested
     @DisplayName("Constructors")
@@ -49,9 +54,10 @@ class FullNameGeneratorTest {
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
             assertThrows(NullPointerException.class,
-                    () -> new FullNameGenerator((GeneratorConfig) null));
+                         () -> new FullNameGenerator((GeneratorConfig) null));
         }
     }
+
 
     @Nested
     @DisplayName("generate()")
@@ -78,7 +84,7 @@ class FullNameGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String name = new FullNameGenerator().generate();
                 assertEquals(2, name.split(" ").length,
-                        "Expected two-part name: " + name);
+                             "Expected two-part name: " + name);
             }
         }
 
@@ -116,7 +122,7 @@ class FullNameGeneratorTest {
         @DisplayName("null gender throws NullPointerException")
         void nullGenderThrows() {
             assertThrows(NullPointerException.class,
-                    () -> new FullNameGenerator().generate((Gender) null));
+                         () -> new FullNameGenerator().generate((Gender) null));
         }
 
         @Test
@@ -191,6 +197,7 @@ class FullNameGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("NameOptions")
     class NameOptionsTests {
@@ -253,7 +260,7 @@ class FullNameGeneratorTest {
         void repeatedGenerationReusesCachedLocaleHelpers() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
             FullNameGenerator.NameOptions opts =
-                    new FullNameGenerator.NameOptions(true, false, true, true, Gender.FEMALE, "en");
+                new FullNameGenerator.NameOptions(true, false, true, true, Gender.FEMALE, "en");
 
             String first = gen.generate(opts);
             String second = gen.generate(opts);
@@ -310,8 +317,8 @@ class FullNameGeneratorTest {
         void blankNationalityThrows() {
             FullNameGenerator gen = new FullNameGenerator();
             IllegalArgumentException ex = assertThrows(
-                    IllegalArgumentException.class,
-                    () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, " "))
+                IllegalArgumentException.class,
+                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, " "))
             );
             assertTrue(ex.getMessage().contains("nationality"));
         }
@@ -321,8 +328,8 @@ class FullNameGeneratorTest {
         void unsupportedNationalityThrows() {
             FullNameGenerator gen = new FullNameGenerator();
             assertThrows(
-                    UnsupportedOperationException.class,
-                    () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "hu"))
+                UnsupportedOperationException.class,
+                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "hu"))
             );
         }
 
@@ -331,8 +338,8 @@ class FullNameGeneratorTest {
         void middleWithUnsupportedLocaleThrows() {
             FullNameGenerator gen = new FullNameGenerator();
             assertThrows(
-                    UnsupportedOperationException.class,
-                    () -> gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, null, "es"))
+                UnsupportedOperationException.class,
+                () -> gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, null, "es"))
             );
         }
 
@@ -366,6 +373,7 @@ class FullNameGeneratorTest {
             assertFalse(parts[2].endsWith("."), "Expected full middle name, not middle initial");
         }
     }
+
 
     @Nested
     @DisplayName("Locale support")
@@ -405,6 +413,7 @@ class FullNameGeneratorTest {
         }
     }
 
+
     @Nested
     @DisplayName("Seeded generation")
     class SeededTests {
@@ -433,6 +442,7 @@ class FullNameGeneratorTest {
             }
         }
     }
+
 
     @Nested
     @DisplayName("Generators factory")

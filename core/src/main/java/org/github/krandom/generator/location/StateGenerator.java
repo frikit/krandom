@@ -30,9 +30,9 @@ import java.util.Random;
 public final class StateGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final String[] states;
-    private final String[] abbreviations;
+    private final Random          random;
+    private final String[]        states;
+    private final String[]        abbreviations;
 
     /**
      * Creates a generator using default configuration ({@link Locale#US}).
@@ -60,8 +60,8 @@ public final class StateGenerator implements Generator<String> {
         }
 
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
 
         StateDataProvider provider = StateDataRegistry.forLocale(locale);
         this.states = provider.getStates();
@@ -98,12 +98,12 @@ public final class StateGenerator implements Generator<String> {
      */
     public String generate(boolean useAbbreviation) {
         int index = random.nextInt(states.length);
-        
-        if (useAbbreviation && abbreviations.length > 0 && 
+
+        if (useAbbreviation && abbreviations.length > 0 &&
             index < abbreviations.length && !abbreviations[index].isEmpty()) {
             return abbreviations[index];
         }
-        
+
         return states[index];
     }
 

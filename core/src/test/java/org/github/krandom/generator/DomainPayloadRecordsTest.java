@@ -25,19 +25,19 @@ class DomainPayloadRecordsTest {
     @DisplayName("record payloads preserve constructor values")
     void records() {
         AddressInfo address = new AddressInfo(
-                "1 Main St, City",
-                "1 Main St",
-                "1",
-                "Main",
-                "St",
-                "N",
-                "Apt 2",
-                "City",
-                "State",
-                "ST",
-                "12345",
-                "Country",
-                "CC"
+            "1 Main St, City",
+            "1 Main St",
+            "1",
+            "Main",
+            "St",
+            "N",
+            "Apt 2",
+            "City",
+            "State",
+            "ST",
+            "12345",
+            "Country",
+            "CC"
         );
         ContactInfo contact = new ContactInfo("John", "Doe", "John Doe", "Male", 30, "1234567890", "(123) 456-7890", "john@example.com");
         PersonInfo person = new PersonInfo(contact, address, "jdoe", "pass");

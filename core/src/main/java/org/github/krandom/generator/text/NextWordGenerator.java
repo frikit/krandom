@@ -25,8 +25,8 @@ import java.util.Random;
  */
 public final class NextWordGenerator implements Generator<String> {
 
-    private final Random random;
-    private final List<String> starters;
+    private final Random                    random;
+    private final List<String>              starters;
     private final Map<String, List<String>> transitions;
 
     /**
@@ -41,7 +41,7 @@ public final class NextWordGenerator implements Generator<String> {
     /**
      * Constructs with explicit config.
      *
-     * @param config generator config
+     * @param config      generator config
      * @param corpusWords ordered corpus words used to build transitions
      */
     public NextWordGenerator(GeneratorConfig config, String[] corpusWords) {
@@ -52,8 +52,8 @@ public final class NextWordGenerator implements Generator<String> {
         }
 
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.transitions = new HashMap<>();
         this.starters = new ArrayList<>();
 
@@ -65,6 +65,25 @@ public final class NextWordGenerator implements Generator<String> {
                 transitions.computeIfAbsent(word, ignored -> new ArrayList<>()).add(next);
             }
         }
+    }
+
+    private static String normalize(String value, String name) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(name + " must not be blank");
+        }
+        return value.trim().toLowerCase();
+    }
+
+    /**
+     * Utility for creating a generator from plain whitespace-separated text.
+     */
+    public static NextWordGenerator fromText(String text) {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("text must not be blank");
+        }
+        String normalized = text.toLowerCase().replaceAll("[^a-z\\s]", " ");
+        String[] words = Arrays.stream(normalized.trim().split("\\s+")).toArray(String[]::new);
+        return new NextWordGenerator(words);
     }
 
     /**
@@ -135,24 +154,5 @@ public final class NextWordGenerator implements Generator<String> {
      */
     public int getTransitionKeyCount() {
         return transitions.size();
-    }
-
-    private static String normalize(String value, String name) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(name + " must not be blank");
-        }
-        return value.trim().toLowerCase();
-    }
-
-    /**
-     * Utility for creating a generator from plain whitespace-separated text.
-     */
-    public static NextWordGenerator fromText(String text) {
-        if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException("text must not be blank");
-        }
-        String normalized = text.toLowerCase().replaceAll("[^a-z\\s]", " ");
-        String[] words = Arrays.stream(normalized.trim().split("\\s+")).toArray(String[]::new);
-        return new NextWordGenerator(words);
     }
 }

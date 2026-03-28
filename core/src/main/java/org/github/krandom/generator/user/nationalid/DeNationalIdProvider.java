@@ -30,8 +30,27 @@ import java.util.Random;
  */
 public final class DeNationalIdProvider implements NationalIdProvider {
 
-    /** Creates a provider for German Steuer-ID numbers. */
-    public DeNationalIdProvider() {}
+    /**
+     * Creates a provider for German Steuer-ID numbers.
+     */
+    public DeNationalIdProvider() {
+    }
+
+    /**
+     * Computes the ISO 7064 Mod 11,10 check digit for the first 10 elements of the given array.
+     *
+     * @param digits array of at least 10 integers, each in [0, 9]; first element must be in [1, 9]
+     * @return check digit in [0, 10]; callers should regenerate if the result equals 10
+     */
+    static int computeCheckDigit(int[] digits) {
+        int product = 10;
+        for (int i = 0; i < 10; i++) {
+            int sum = (digits[i] + product) % 10;
+            if (sum == 0) sum = 10;
+            product = (2 * sum) % 11;
+        }
+        return 11 - product;
+    }
 
     @Override
     public Locale getLocale() {
@@ -56,21 +75,5 @@ public final class DeNationalIdProvider implements NationalIdProvider {
             sb.append(d);
         }
         return sb.toString();
-    }
-
-    /**
-     * Computes the ISO 7064 Mod 11,10 check digit for the first 10 elements of the given array.
-     *
-     * @param digits array of at least 10 integers, each in [0, 9]; first element must be in [1, 9]
-     * @return check digit in [0, 10]; callers should regenerate if the result equals 10
-     */
-    static int computeCheckDigit(int[] digits) {
-        int product = 10;
-        for (int i = 0; i < 10; i++) {
-            int sum = (digits[i] + product) % 10;
-            if (sum == 0) sum = 10;
-            product = (2 * sum) % 11;
-        }
-        return 11 - product;
     }
 }

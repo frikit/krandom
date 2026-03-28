@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGeneratorConfig")
 class ObjectGeneratorConfigTest {
@@ -46,14 +49,14 @@ class ObjectGeneratorConfigTest {
     @DisplayName("maxDepth(0) throws IllegalArgumentException")
     void maxDepthZeroThrows() {
         assertThrows(IllegalArgumentException.class,
-                () -> ObjectGeneratorConfig.builder().maxDepth(0));
+                     () -> ObjectGeneratorConfig.builder().maxDepth(0));
     }
 
     @Test
     @DisplayName("objectPoolSize(-1) throws IllegalArgumentException")
     void objectPoolSizeNegativeThrows() {
         assertThrows(IllegalArgumentException.class,
-                () -> ObjectGeneratorConfig.builder().objectPoolSize(-1));
+                     () -> ObjectGeneratorConfig.builder().objectPoolSize(-1));
     }
 
     @Test
@@ -67,8 +70,8 @@ class ObjectGeneratorConfigTest {
     @DisplayName("overrideDefaultInitialization(false) stores the flag")
     void overrideDefaultInitializationStored() {
         ObjectGeneratorConfig c = ObjectGeneratorConfig.builder()
-                .overrideDefaultInitialization(false)
-                .build();
+                                                       .overrideDefaultInitialization(false)
+                                                       .build();
         assertFalse(c.isOverrideDefaultInitialization());
     }
 
@@ -76,8 +79,8 @@ class ObjectGeneratorConfigTest {
     @DisplayName("type-level override is stored and retrievable")
     void typeOverrideStored() {
         ObjectGeneratorConfig c = ObjectGeneratorConfig.builder()
-                .override(String.class, () -> "fixed")
-                .build();
+                                                       .override(String.class, () -> "fixed")
+                                                       .build();
         assertTrue(c.getTypeOverride(String.class).isPresent());
         assertEquals("fixed", c.getTypeOverride(String.class).get().generate());
     }
@@ -86,8 +89,8 @@ class ObjectGeneratorConfigTest {
     @DisplayName("field-level override is stored and retrievable")
     void fieldOverrideStored() {
         ObjectGeneratorConfig c = ObjectGeneratorConfig.builder()
-                .override(String.class, "value", () -> "hello")
-                .build();
+                                                       .override(String.class, "value", () -> "hello")
+                                                       .build();
         assertTrue(c.getFieldOverride(String.class, "value").isPresent());
         assertEquals("hello", c.getFieldOverride(String.class, "value").get().generate());
     }
@@ -96,37 +99,37 @@ class ObjectGeneratorConfigTest {
     @DisplayName("override(null type) throws NullPointerException")
     void typeOverrideNullTypeThrows() {
         assertThrows(NullPointerException.class,
-                () -> ObjectGeneratorConfig.builder().override(null, () -> "x"));
+                     () -> ObjectGeneratorConfig.builder().override(null, () -> "x"));
     }
 
     @Test
     @DisplayName("override(null field name) throws NullPointerException")
     void fieldOverrideNullFieldThrows() {
         assertThrows(NullPointerException.class,
-                () -> ObjectGeneratorConfig.builder().override(String.class, null, () -> "x"));
+                     () -> ObjectGeneratorConfig.builder().override(String.class, null, () -> "x"));
     }
 
     @Test
     @DisplayName("excludeType(null predicate) throws NullPointerException")
     void excludeTypeNullPredicateThrows() {
         assertThrows(NullPointerException.class,
-                () -> ObjectGeneratorConfig.builder().excludeType((java.util.function.Predicate<Class<?>>) null));
+                     () -> ObjectGeneratorConfig.builder().excludeType((java.util.function.Predicate<Class<?>>) null));
     }
 
     @Test
     @DisplayName("field overrides for classes with same simple name do not collide")
     void fieldOverridesDoNotCollideAcrossPackages() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                .override(org.github.krandom.generator.object.collision.left.SameNameHolder.class, "value", () -> "LEFT")
-                .override(org.github.krandom.generator.object.collision.right.SameNameHolder.class, "value", () -> "RIGHT")
-                .build();
+                                                            .override(org.github.krandom.generator.object.collision.left.SameNameHolder.class, "value", () -> "LEFT")
+                                                            .override(org.github.krandom.generator.object.collision.right.SameNameHolder.class, "value", () -> "RIGHT")
+                                                            .build();
 
         org.github.krandom.generator.object.collision.left.SameNameHolder left =
-                new ObjectGenerator<>(org.github.krandom.generator.object.collision.left.SameNameHolder.class, config)
-                        .generate();
+            new ObjectGenerator<>(org.github.krandom.generator.object.collision.left.SameNameHolder.class, config)
+                .generate();
         org.github.krandom.generator.object.collision.right.SameNameHolder right =
-                new ObjectGenerator<>(org.github.krandom.generator.object.collision.right.SameNameHolder.class, config)
-                        .generate();
+            new ObjectGenerator<>(org.github.krandom.generator.object.collision.right.SameNameHolder.class, config)
+                .generate();
 
         assertEquals("LEFT", left.getValue());
         assertEquals("RIGHT", right.getValue());
@@ -141,13 +144,13 @@ class ObjectGeneratorConfigTest {
         overridesField.setAccessible(true);
         @SuppressWarnings("unchecked")
         Map<String, org.github.krandom.generator.Generator<?>> fieldOverrides =
-                (Map<String, org.github.krandom.generator.Generator<?>>) overridesField.get(builder);
+            (Map<String, org.github.krandom.generator.Generator<?>>) overridesField.get(builder);
         fieldOverrides.put("SameNameHolder.value", () -> "LEGACY");
 
         ObjectGeneratorConfig config = builder.build();
         org.github.krandom.generator.object.collision.left.SameNameHolder value =
-                new ObjectGenerator<>(org.github.krandom.generator.object.collision.left.SameNameHolder.class, config)
-                        .generate();
+            new ObjectGenerator<>(org.github.krandom.generator.object.collision.left.SameNameHolder.class, config)
+                .generate();
 
         assertEquals("LEGACY", value.getValue());
     }

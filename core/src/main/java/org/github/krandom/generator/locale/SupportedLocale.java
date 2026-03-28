@@ -5,9 +5,9 @@
  */
 package org.github.krandom.generator.locale;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Arrays;
 
 /**
  * Central catalog of built-in locales supported across locale-aware data providers.
@@ -37,15 +37,15 @@ public enum SupportedLocale {
         this.resourcePrefix = language + "_" + country;
     }
 
+    public static List<Locale> locales() {
+        return Arrays.stream(values()).map(SupportedLocale::locale).toList();
+    }
+
     public Locale locale() {
         return locale;
     }
 
     public String resourcePrefix() {
         return resourcePrefix;
-    }
-
-    public static List<Locale> locales() {
-        return Arrays.stream(values()).map(SupportedLocale::locale).toList();
     }
 }

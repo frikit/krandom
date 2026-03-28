@@ -23,11 +23,14 @@ import java.util.Random;
  */
 public final class CnNationalIdProvider implements NationalIdProvider {
 
-    private static final int[] WEIGHTS = {7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2};
+    private static final int[]  WEIGHTS     = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 };
     private static final String CHECK_CHARS = "10X98765432";
 
-    /** Creates a provider for Chinese Resident Identity Card numbers. */
-    public CnNationalIdProvider() {}
+    /**
+     * Creates a provider for Chinese Resident Identity Card numbers.
+     */
+    public CnNationalIdProvider() {
+    }
 
     @Override
     public Locale getLocale() {
@@ -36,14 +39,14 @@ public final class CnNationalIdProvider implements NationalIdProvider {
 
     @Override
     public String generate(Random random) {
-        int region   = 100000 + random.nextInt(559000);
-        int year     = 1940 + random.nextInt(66);    // 1940–2005
-        int month    = random.nextInt(12) + 1;        // 01–12
-        int day      = random.nextInt(28) + 1;        // 01–28
+        int region = 100000 + random.nextInt(559000);
+        int year = 1940 + random.nextInt(66);    // 1940–2005
+        int month = random.nextInt(12) + 1;        // 01–12
+        int day = random.nextInt(28) + 1;        // 01–28
         int sequence = random.nextInt(999) + 1;       // 001–999
 
         String first17 = String.format("%06d%04d%02d%02d%03d",
-                region, year, month, day, sequence);
+                                       region, year, month, day, sequence);
 
         int sum = 0;
         for (int i = 0; i < 17; i++) {

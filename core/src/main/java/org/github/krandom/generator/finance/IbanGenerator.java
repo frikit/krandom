@@ -18,9 +18,9 @@ import java.util.Random;
  */
 public final class IbanGenerator implements Generator<String> {
 
-    private final Random random;
+    private final Random               random;
     private final BankCountryGenerator bankCountryGenerator;
-    private final BbanGenerator bbanGenerator;
+    private final BbanGenerator        bbanGenerator;
 
     public IbanGenerator() {
         this(GeneratorConfig.defaults());
@@ -33,8 +33,8 @@ public final class IbanGenerator implements Generator<String> {
     public IbanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
         this.bankCountryGenerator = new BankCountryGenerator(effective);
         this.bbanGenerator = new BbanGenerator(effective);
     }

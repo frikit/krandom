@@ -14,7 +14,7 @@ import java.util.Locale;
  */
 final class BuiltInStateDataProvider implements StateDataProvider {
 
-    private final Locale locale;
+    private final Locale   locale;
     private final String[] states;
     private final String[] abbreviations;
 

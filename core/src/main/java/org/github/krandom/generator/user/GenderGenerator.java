@@ -37,37 +37,43 @@ import java.util.Random;
 public final class GenderGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final String maleLabel;
-    private final String femaleLabel;
+    private final Random          random;
+    private final String          maleLabel;
+    private final String          femaleLabel;
 
-    /** Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}. */
+    /**
+     * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
+     */
     public GenderGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Constructs a generator for the given locale. */
+    /**
+     * Constructs a generator for the given locale.
+     */
     public GenderGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
 
-    /** Full constructor using a {@link GeneratorConfig} (locale + optional seed). */
+    /**
+     * Full constructor using a {@link GeneratorConfig} (locale + optional seed).
+     */
     public GenderGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
 
         Locale locale = config.getLocale();
         if (!GenderDataRegistry.isRegistered(locale)) {
             throw new UnsupportedOperationException(
-                    "Locale " + locale + " is not supported. Registered locales: "
-                            + GenderDataRegistry.registeredKeys());
+                "Locale " + locale + " is not supported. Registered locales: "
+                + GenderDataRegistry.registeredKeys());
         }
 
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
 
         GenderDataProvider provider = GenderDataRegistry.forLocale(locale);
-        this.maleLabel   = provider.getMaleLabel();
+        this.maleLabel = provider.getMaleLabel();
         this.femaleLabel = provider.getFemaleLabel();
     }
 
@@ -89,22 +95,30 @@ public final class GenderGenerator implements Generator<String> {
         return gender == Gender.MALE ? maleLabel : femaleLabel;
     }
 
-    /** Returns the locale this generator was configured with. */
+    /**
+     * Returns the locale this generator was configured with.
+     */
     public Locale getLocale() {
         return config.getLocale();
     }
 
-    /** Returns the localized label for the male gender. */
+    /**
+     * Returns the localized label for the male gender.
+     */
     public String getMaleLabel() {
         return maleLabel;
     }
 
-    /** Returns the localized label for the female gender. */
+    /**
+     * Returns the localized label for the female gender.
+     */
     public String getFemaleLabel() {
         return femaleLabel;
     }
 
-    /** Returns {@code true} if the configured locale has a registered gender-label provider. */
+    /**
+     * Returns {@code true} if the configured locale has a registered gender-label provider.
+     */
     public boolean isLocaleExplicitlySupported() {
         return GenderDataRegistry.isRegistered(config.getLocale());
     }

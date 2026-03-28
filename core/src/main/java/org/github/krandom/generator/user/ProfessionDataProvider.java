@@ -15,10 +15,14 @@ import java.util.Locale;
  */
 public interface ProfessionDataProvider {
 
-    /** @return non-null locale this provider serves. */
+    /**
+     * @return non-null locale this provider serves.
+     */
     Locale getLocale();
 
-    /** @return non-null, non-empty profession list. */
+    /**
+     * @return non-null, non-empty profession list.
+     */
     String[] getProfessions();
 
     /**

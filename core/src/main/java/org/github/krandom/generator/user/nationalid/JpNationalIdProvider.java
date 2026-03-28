@@ -25,10 +25,30 @@ import java.util.Random;
  */
 public final class JpNationalIdProvider implements NationalIdProvider {
 
-    private static final int[] WEIGHTS = {6, 5, 4, 3, 2, 7, 6, 5, 4, 3, 2};
+    private static final int[] WEIGHTS = { 6, 5, 4, 3, 2, 7, 6, 5, 4, 3, 2 };
 
-    /** Creates a provider for Japanese My Number identifiers. */
-    public JpNationalIdProvider() {}
+    /**
+     * Creates a provider for Japanese My Number identifiers.
+     */
+    public JpNationalIdProvider() {
+    }
+
+    /**
+     * Computes the My Number check digit from the given 11-digit array.
+     *
+     * <p>Uses the formula: {@code Q = 11 - (sum % 11); return Q >= 10 ? 0 : Q}.
+     *
+     * @param digits array of exactly 11 integers, each in [0, 9]; first element must be in [1, 9]
+     * @return check digit in [0, 9]
+     */
+    static int computeCheckDigit(int[] digits) {
+        int sum = 0;
+        for (int i = 0; i < 11; i++) {
+            sum += digits[i] * WEIGHTS[i];
+        }
+        int q = 11 - (sum % 11);
+        return (q >= 10) ? 0 : q;
+    }
 
     @Override
     public Locale getLocale() {
@@ -50,22 +70,5 @@ public final class JpNationalIdProvider implements NationalIdProvider {
         }
         sb.append(checkDigit);
         return sb.toString();
-    }
-
-    /**
-     * Computes the My Number check digit from the given 11-digit array.
-     *
-     * <p>Uses the formula: {@code Q = 11 - (sum % 11); return Q >= 10 ? 0 : Q}.
-     *
-     * @param digits array of exactly 11 integers, each in [0, 9]; first element must be in [1, 9]
-     * @return check digit in [0, 9]
-     */
-    static int computeCheckDigit(int[] digits) {
-        int sum = 0;
-        for (int i = 0; i < 11; i++) {
-            sum += digits[i] * WEIGHTS[i];
-        }
-        int q = 11 - (sum % 11);
-        return (q >= 10) ? 0 : q;
     }
 }

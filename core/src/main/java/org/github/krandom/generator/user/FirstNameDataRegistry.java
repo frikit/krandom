@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class FirstNameDataRegistry {
 
     private static final ConcurrentHashMap<String, FirstNameDataProvider> REGISTRY =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -39,7 +39,8 @@ public final class FirstNameDataRegistry {
         }
     }
 
-    private FirstNameDataRegistry() {}
+    private FirstNameDataRegistry() {
+    }
 
     /**
      * Registers a custom first-name data provider.
@@ -53,7 +54,7 @@ public final class FirstNameDataRegistry {
     public static void register(FirstNameDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        String lang    = provider.getLocale().getLanguage();
+        String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
         if (country.isEmpty()) {
             REGISTRY.put(lang, provider);
@@ -63,10 +64,12 @@ public final class FirstNameDataRegistry {
         }
     }
 
-    /** Returns {@code true} if the registry contains an entry for the given locale. */
+    /**
+     * Returns {@code true} if the registry contains an entry for the given locale.
+     */
     public static boolean isRegistered(Locale locale) {
         if (locale == null) return false;
-        String lang    = locale.getLanguage();
+        String lang = locale.getLanguage();
         String country = locale.getCountry();
         if (!country.isEmpty() && REGISTRY.containsKey(lang + "_" + country)) return true;
         return REGISTRY.containsKey(lang);
@@ -79,7 +82,7 @@ public final class FirstNameDataRegistry {
      */
     public static FirstNameDataProvider forLocale(Locale locale) {
         if (locale == null) return null;
-        String lang    = locale.getLanguage();
+        String lang = locale.getLanguage();
         String country = locale.getCountry();
         if (!country.isEmpty()) {
             FirstNameDataProvider exact = REGISTRY.get(lang + "_" + country);
@@ -88,13 +91,15 @@ public final class FirstNameDataRegistry {
         return REGISTRY.get(lang);
     }
 
-    /** Returns an unmodifiable snapshot of all currently registered locale keys. */
+    /**
+     * Returns an unmodifiable snapshot of all currently registered locale keys.
+     */
     public static Set<String> registeredKeys() {
         return Collections.unmodifiableSet(REGISTRY.keySet());
     }
 
     private static void seedInternal(FirstNameDataProvider provider) {
-        String lang    = provider.getLocale().getLanguage();
+        String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
         REGISTRY.put(lang + "_" + country, provider);
         REGISTRY.putIfAbsent(lang, provider);

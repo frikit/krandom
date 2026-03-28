@@ -25,19 +25,19 @@ package org.github.krandom.generator.finance;
  * System.out.println(usd.numericCode()); // "840"
  * }</pre>
  *
- * @param code the ISO 4217 3-letter alphabetic code
- * @param name the full official currency name
- * @param symbol the currency symbol
+ * @param code        the ISO 4217 3-letter alphabetic code
+ * @param name        the full official currency name
+ * @param symbol      the currency symbol
  * @param numericCode the ISO 4217 3-digit numeric code
  */
 public record CurrencyInfo(String code, String name, String symbol, String numericCode) {
-    
+
     /**
      * Creates a new CurrencyInfo with the specified properties.
      *
-     * @param code the ISO 4217 3-letter alphabetic code
-     * @param name the full official currency name
-     * @param symbol the currency symbol
+     * @param code        the ISO 4217 3-letter alphabetic code
+     * @param name        the full official currency name
+     * @param symbol      the currency symbol
      * @param numericCode the ISO 4217 3-digit numeric code
      * @throws NullPointerException if any parameter is null
      */

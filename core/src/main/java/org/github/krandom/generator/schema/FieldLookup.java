@@ -14,8 +14,8 @@ import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.identifier.EanGenerator;
 import org.github.krandom.generator.identifier.HashGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
-import org.github.krandom.generator.identifier.UpcGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.identifier.UpcGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.location.PostalCodeGenerator;
@@ -99,6 +99,15 @@ public final class FieldLookup {
         this.providers = Map.copyOf(map);
     }
 
+    private static String normalize(String reference) {
+        Objects.requireNonNull(reference, "reference must not be null");
+        String key = reference.trim().toLowerCase(Locale.ROOT);
+        if (key.isEmpty()) {
+            throw new IllegalArgumentException("reference must not be blank");
+        }
+        return key;
+    }
+
     /**
      * Resolves a string reference to a provider.
      *
@@ -110,7 +119,7 @@ public final class FieldLookup {
         SchemaValueProvider provider = providers.get(key);
         if (provider == null) {
             throw new IllegalArgumentException(
-                    "Unknown field reference '" + reference + "'. Supported references: " + supportedReferences());
+                "Unknown field reference '" + reference + "'. Supported references: " + supportedReferences());
         }
         return provider;
     }
@@ -122,14 +131,5 @@ public final class FieldLookup {
      */
     public Set<String> supportedReferences() {
         return providers.keySet();
-    }
-
-    private static String normalize(String reference) {
-        Objects.requireNonNull(reference, "reference must not be null");
-        String key = reference.trim().toLowerCase(Locale.ROOT);
-        if (key.isEmpty()) {
-            throw new IllegalArgumentException("reference must not be blank");
-        }
-        return key;
     }
 }

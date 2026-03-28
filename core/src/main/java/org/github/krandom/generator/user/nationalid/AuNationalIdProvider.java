@@ -19,10 +19,29 @@ import java.util.Random;
  */
 public final class AuNationalIdProvider implements NationalIdProvider {
 
-    private static final int[] WEIGHTS = {1, 4, 3, 7, 5, 8, 6, 9, 10};
+    private static final int[] WEIGHTS = { 1, 4, 3, 7, 5, 8, 6, 9, 10 };
 
-    /** Creates a provider for Australian TFNs. */
-    public AuNationalIdProvider() {}
+    /**
+     * Creates a provider for Australian TFNs.
+     */
+    public AuNationalIdProvider() {
+    }
+
+    /**
+     * Computes the mod-11 weighted remainder for the given 9-digit array.
+     *
+     * <p>A non-zero remainder indicates a valid TFN checksum.
+     *
+     * @param digits array of exactly 9 digits
+     * @return weighted sum modulo 11
+     */
+    static int computeRemainder(int[] digits) {
+        int sum = 0;
+        for (int i = 0; i < 9; i++) {
+            sum += digits[i] * WEIGHTS[i];
+        }
+        return sum % 11;
+    }
 
     @Override
     public Locale getLocale() {
@@ -41,24 +60,8 @@ public final class AuNationalIdProvider implements NationalIdProvider {
         } while (computeRemainder(digits) == 0);
 
         return String.format("%d%d%d %d%d%d %d%d%d",
-                digits[0], digits[1], digits[2],
-                digits[3], digits[4], digits[5],
-                digits[6], digits[7], digits[8]);
-    }
-
-    /**
-     * Computes the mod-11 weighted remainder for the given 9-digit array.
-     *
-     * <p>A non-zero remainder indicates a valid TFN checksum.
-     *
-     * @param digits array of exactly 9 digits
-     * @return weighted sum modulo 11
-     */
-    static int computeRemainder(int[] digits) {
-        int sum = 0;
-        for (int i = 0; i < 9; i++) {
-            sum += digits[i] * WEIGHTS[i];
-        }
-        return sum % 11;
+                             digits[0], digits[1], digits[2],
+                             digits[3], digits[4], digits[5],
+                             digits[6], digits[7], digits[8]);
     }
 }

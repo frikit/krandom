@@ -19,7 +19,13 @@ import org.junit.jupiter.api.Test;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ProviderHub")
 class ProviderHubTest {
@@ -73,7 +79,7 @@ class ProviderHubTest {
         assertNotNull(money.generate());
 
         IllegalArgumentException mismatch = assertThrows(IllegalArgumentException.class,
-                () -> hub.get("finance", FullNameGenerator.class));
+                                                         () -> hub.get("finance", FullNameGenerator.class));
         assertTrue(mismatch.getMessage().contains("not"));
     }
 
@@ -83,7 +89,7 @@ class ProviderHubTest {
         ProviderHub hub = new ProviderHub();
 
         assertThrows(IllegalArgumentException.class,
-                () -> hub.register("person", cfg -> "x"));
+                     () -> hub.register("person", cfg -> "x"));
 
         hub.register("person", cfg -> "replacement", ConflictPolicy.REPLACE);
         assertEquals("replacement", hub.get("person"));
@@ -95,20 +101,20 @@ class ProviderHubTest {
         ProviderHub hub = new ProviderHub();
 
         assertThrows(IllegalArgumentException.class,
-                () -> hub.registerAlias("mystery", "missing"));
+                     () -> hub.registerAlias("mystery", "missing"));
 
         hub.register("custom", cfg -> 10);
         hub.registerAlias("c", "custom");
         assertEquals(10, hub.get("c"));
 
         assertThrows(IllegalArgumentException.class,
-                () -> hub.registerAlias("c", "custom"));
+                     () -> hub.registerAlias("c", "custom"));
 
         hub.registerAlias("c", "custom", ConflictPolicy.REPLACE);
         assertEquals(10, hub.get("c"));
 
         assertThrows(IllegalArgumentException.class,
-                () -> hub.registerAlias("person", "custom", ConflictPolicy.REPLACE));
+                     () -> hub.registerAlias("person", "custom", ConflictPolicy.REPLACE));
     }
 
     @Test

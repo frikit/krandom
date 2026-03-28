@@ -18,27 +18,33 @@ import java.util.Random;
 public final class SlugGenerator implements Generator<String> {
 
     private static final String[] WORDS = {
-            "quick", "brown", "fox", "lazy", "dog", "modern", "cloud", "data", "api", "user",
-            "profile", "settings", "secure", "simple", "smart", "alpha", "beta", "release",
-            "guide", "tutorial", "platform", "service", "digital", "network", "system"
+        "quick", "brown", "fox", "lazy", "dog", "modern", "cloud", "data", "api", "user",
+        "profile", "settings", "secure", "simple", "smart", "alpha", "beta", "release",
+        "guide", "tutorial", "platform", "service", "digital", "network", "system"
     };
 
     private final Random random;
 
-    /** Creates a slug generator with default configuration. */
+    /**
+     * Creates a slug generator with default configuration.
+     */
     public SlugGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Creates a slug generator with the specified configuration. */
+    /**
+     * Creates a slug generator with the specified configuration.
+     */
     public SlugGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
-    /** Generates a slug with 2 to 4 words separated by '-'. */
+    /**
+     * Generates a slug with 2 to 4 words separated by '-'.
+     */
     @Override
     public String generate() {
         int parts = 2 + random.nextInt(3);
@@ -52,7 +58,9 @@ public final class SlugGenerator implements Generator<String> {
         return slug.toString();
     }
 
-    /** Converts arbitrary text into a normalized lowercase slug. */
+    /**
+     * Converts arbitrary text into a normalized lowercase slug.
+     */
     public String slugify(String input) {
         Objects.requireNonNull(input, "input must not be null");
         String normalized = input.trim().toLowerCase();

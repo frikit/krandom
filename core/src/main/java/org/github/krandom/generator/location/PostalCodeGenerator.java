@@ -61,8 +61,8 @@ public final class PostalCodeGenerator implements Generator<String> {
     };
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final Locale locale;
+    private final Random          random;
+    private final Locale          locale;
 
     /**
      * Creates a generator using US locale with default config.
@@ -81,8 +81,8 @@ public final class PostalCodeGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -93,7 +93,7 @@ public final class PostalCodeGenerator implements Generator<String> {
      */
     public PostalCodeGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(
-                Objects.requireNonNull(locale, "locale must not be null")
+            Objects.requireNonNull(locale, "locale must not be null")
         ).build());
     }
 
@@ -160,35 +160,35 @@ public final class PostalCodeGenerator implements Generator<String> {
         // UK postcode formats: A9 9AA, A99 9AA, AA9 9AA, AA99 9AA, A9A 9AA, AA9A 9AA
         // Simplified approach: use common area codes and generate valid format
         String areaCode = UK_AREA_CODES[random.nextInt(UK_AREA_CODES.length)];
-        
+
         // Outward code: area code + district
         String outward;
         int formatType = random.nextInt(6);
-        
+
         switch (formatType) {
-            case 0: // A9
-                outward = areaCode.substring(0, 1) + random.nextInt(10);
-                break;
-            case 1: // A99
-                outward = areaCode.substring(0, 1) + (10 + random.nextInt(90));
-                break;
-            case 2: // AA9
-                outward = areaCode + random.nextInt(10);
-                break;
-            case 3: // AA99
-                outward = areaCode + (10 + random.nextInt(90));
-                break;
-            case 4: // A9A
-                outward = areaCode.substring(0, 1) + random.nextInt(10) + randomLetter();
-                break;
-            default: // AA9A (most common with 2-letter area codes)
-                outward = areaCode + random.nextInt(10) + randomLetter();
-                break;
+        case 0: // A9
+            outward = areaCode.substring(0, 1) + random.nextInt(10);
+            break;
+        case 1: // A99
+            outward = areaCode.substring(0, 1) + (10 + random.nextInt(90));
+            break;
+        case 2: // AA9
+            outward = areaCode + random.nextInt(10);
+            break;
+        case 3: // AA99
+            outward = areaCode + (10 + random.nextInt(90));
+            break;
+        case 4: // A9A
+            outward = areaCode.substring(0, 1) + random.nextInt(10) + randomLetter();
+            break;
+        default: // AA9A (most common with 2-letter area codes)
+            outward = areaCode + random.nextInt(10) + randomLetter();
+            break;
         }
-        
+
         // Inward code: always format 9AA
         String inward = random.nextInt(10) + randomLetter() + randomLetter();
-        
+
         return outward + " " + inward;
     }
 
@@ -224,7 +224,7 @@ public final class PostalCodeGenerator implements Generator<String> {
         // Brazilian CEP: 00000-000 or 00000000
         int first = random.nextInt(100000);
         int second = random.nextInt(1000);
-        
+
         if (withHyphen) {
             return String.format("%05d-%03d", first, second);
         }
@@ -235,7 +235,7 @@ public final class PostalCodeGenerator implements Generator<String> {
         // Japanese postcode: 000-0000 or 0000000
         int first = random.nextInt(1000);
         int second = random.nextInt(10000);
-        
+
         if (withHyphen) {
             return String.format("%03d-%04d", first, second);
         }
@@ -258,7 +258,7 @@ public final class PostalCodeGenerator implements Generator<String> {
     private String getLocaleKey(Locale loc) {
         String language = loc.getLanguage();
         String country = loc.getCountry();
-        
+
         if (!country.isEmpty()) {
             return language + "_" + country;
         }

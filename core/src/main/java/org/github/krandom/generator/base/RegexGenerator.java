@@ -67,7 +67,7 @@ public final class RegexGenerator implements Generator<String> {
     private static final char[] NON_DIGITS;
     private static final char[] WORD_CHARS;
     private static final char[] NON_WORD_CHARS;
-    private static final char[] WHITESPACE  = {' ', '\t', '\n', '\r'};
+    private static final char[] WHITESPACE = { ' ', '\t', '\n', '\r' };
     private static final char[] NON_WHITESPACE;
 
     static {
@@ -89,48 +89,27 @@ public final class RegexGenerator implements Generator<String> {
         Set<Character> wsSet = new HashSet<>();
         for (char c : WHITESPACE) wsSet.add(c);
 
-        List<Character> nonDigits    = new ArrayList<>();
-        List<Character> nonWord      = new ArrayList<>();
-        List<Character> nonWs        = new ArrayList<>();
+        List<Character> nonDigits = new ArrayList<>();
+        List<Character> nonWord = new ArrayList<>();
+        List<Character> nonWs = new ArrayList<>();
         for (char c = 0x20; c < 0x7f; c++) {
             if (!digitSet.contains(c)) nonDigits.add(c);
-            if (!wordSet.contains(c))  nonWord.add(c);
-            if (!wsSet.contains(c))    nonWs.add(c);
+            if (!wordSet.contains(c)) nonWord.add(c);
+            if (!wsSet.contains(c)) nonWs.add(c);
         }
-        NON_DIGITS     = toArray(nonDigits);
+        NON_DIGITS = toArray(nonDigits);
         NON_WORD_CHARS = toArray(nonWord);
         NON_WHITESPACE = toArray(nonWs);
     }
 
-    private static char[] toArray(List<Character> list) {
-        char[] arr = new char[list.size()];
-        for (int i = 0; i < list.size(); i++) arr[i] = list.get(i);
-        return arr;
-    }
+    /**
+     * The compiled root node (always a {@link SequenceNode}).
+     */
+    private final SequenceNode root;
 
     // ── Node sealed hierarchy ─────────────────────────────────────────────────
+    private final Random       random;
 
-    private sealed interface Node
-            permits LiteralNode, CharClassNode, SequenceNode, AlternationNode, QuantifierNode {}
-
-    private record LiteralNode(char c) implements Node {}
-
-    private record CharClassNode(char[] pool) implements Node {}
-
-    private record SequenceNode(List<Node> nodes) implements Node {}
-
-    /** Picks one of several alternative sequences at random. */
-    private record AlternationNode(List<SequenceNode> alts) implements Node {}
-
-    private record QuantifierNode(Node child, int min, int max) implements Node {}
-
-    // ── Fields ────────────────────────────────────────────────────────────────
-
-    /** The compiled root node (always a {@link SequenceNode}). */
-    private final SequenceNode root;
-    private final Random random;
-
-    // ── Constructors ──────────────────────────────────────────────────────────
 
     /**
      * Creates a regex generator using {@link SecureRandom}.
@@ -141,8 +120,9 @@ public final class RegexGenerator implements Generator<String> {
     public RegexGenerator(String pattern) {
         Objects.requireNonNull(pattern, "pattern must not be null");
         this.random = new SecureRandom();
-        this.root   = new Parser(pattern).parse();
+        this.root = new Parser(pattern).parse();
     }
+
 
     /**
      * Creates a seeded regex generator for reproducible output.
@@ -154,10 +134,14 @@ public final class RegexGenerator implements Generator<String> {
     public RegexGenerator(String pattern, long seed) {
         Objects.requireNonNull(pattern, "pattern must not be null");
         this.random = new Random(seed);
-        this.root   = new Parser(pattern).parse();
+        this.root = new Parser(pattern).parse();
     }
 
-    // ── Generator<String> ─────────────────────────────────────────────────────
+    private static char[] toArray(List<Character> list) {
+        char[] arr = new char[list.size()];
+        for (int i = 0; i < list.size(); i++) arr[i] = list.get(i);
+        return arr;
+    }
 
     /**
      * {@inheritDoc}
@@ -169,13 +153,11 @@ public final class RegexGenerator implements Generator<String> {
         return generateNode(root);
     }
 
-    // ── Generation helpers ────────────────────────────────────────────────────
-
     private String generateNode(Node node) {
         return switch (node) {
-            case LiteralNode   l  -> String.valueOf(l.c());
+            case LiteralNode l -> String.valueOf(l.c());
             case CharClassNode cc -> String.valueOf(cc.pool()[random.nextInt(cc.pool().length)]);
-            case SequenceNode  s  -> {
+            case SequenceNode s -> {
                 StringBuilder sb = new StringBuilder();
                 for (Node n : s.nodes()) sb.append(generateNode(n));
                 yield sb.toString();
@@ -186,8 +168,8 @@ public final class RegexGenerator implements Generator<String> {
             }
             case QuantifierNode q -> {
                 int count = q.min() == q.max()
-                        ? q.min()
-                        : q.min() + random.nextInt(q.max() - q.min() + 1);
+                            ? q.min()
+                            : q.min() + random.nextInt(q.max() - q.min() + 1);
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < count; i++) sb.append(generateNode(q.child()));
                 yield sb.toString();
@@ -195,7 +177,49 @@ public final class RegexGenerator implements Generator<String> {
         };
     }
 
+    // ── Fields ────────────────────────────────────────────────────────────────
+
+    private sealed interface Node
+        permits LiteralNode, CharClassNode, SequenceNode, AlternationNode, QuantifierNode {
+
+    }
+
+
+    private record LiteralNode(char c) implements Node {
+
+    }
+
+    // ── Constructors ──────────────────────────────────────────────────────────
+
+
+    private record CharClassNode(char[] pool) implements Node {
+
+    }
+
+
+    private record SequenceNode(List<Node> nodes) implements Node {
+
+    }
+
+    // ── Generator<String> ─────────────────────────────────────────────────────
+
+
+    /**
+     * Picks one of several alternative sequences at random.
+     */
+    private record AlternationNode(List<SequenceNode> alts) implements Node {
+
+    }
+
+    // ── Generation helpers ────────────────────────────────────────────────────
+
+
+    private record QuantifierNode(Node child, int min, int max) implements Node {
+
+    }
+
     // ── Parser ────────────────────────────────────────────────────────────────
+
 
     /**
      * Recursive-descent parser that converts a pattern string into a node tree.
@@ -204,31 +228,35 @@ public final class RegexGenerator implements Generator<String> {
     private final class Parser {
 
         private final String src;
-        private int pos = 0;
+        private       int    pos = 0;
 
         Parser(String src) {
             this.src = src;
         }
 
-        /** Entry point — returns the root {@link SequenceNode} for the whole pattern. */
+        /**
+         * Entry point — returns the root {@link SequenceNode} for the whole pattern.
+         */
         SequenceNode parse() {
             SequenceNode result = new SequenceNode(parseSequence());
             if (pos < src.length()) {
                 throw new IllegalArgumentException(
-                        "Unexpected character '" + src.charAt(pos) + "' at position " + pos
-                                + " in pattern: " + src);
+                    "Unexpected character '" + src.charAt(pos) + "' at position " + pos
+                    + " in pattern: " + src);
             }
             return result;
         }
 
         // ── Sequence (concatenation) ──────────────────────────────────────────
 
-        /** Parses zero or more atoms, stopping at end-of-string, {@code |}, or {@code )}. */
+        /**
+         * Parses zero or more atoms, stopping at end-of-string, {@code |}, or {@code )}.
+         */
         private List<Node> parseSequence() {
             List<Node> nodes = new ArrayList<>();
             while (pos < src.length()
-                    && src.charAt(pos) != '|'
-                    && src.charAt(pos) != ')') {
+                   && src.charAt(pos) != '|'
+                   && src.charAt(pos) != ')') {
                 Node atom = parseAtom();
                 if (atom != null) {
                     nodes.add(parseQuantifier(atom));
@@ -287,8 +315,8 @@ public final class RegexGenerator implements Generator<String> {
             while (pos < src.length() && src.charAt(pos) != ']') {
                 char c1 = src.charAt(pos++);
                 if (pos + 1 < src.length()
-                        && src.charAt(pos) == '-'
-                        && src.charAt(pos + 1) != ']') {
+                    && src.charAt(pos) == '-'
+                    && src.charAt(pos + 1) != ']') {
                     pos++; // consume '-'
                     char c2 = src.charAt(pos++);
                     for (char c = c1; c <= c2; c++) pool.add(c);
@@ -321,19 +349,19 @@ public final class RegexGenerator implements Generator<String> {
             }
             char c = src.charAt(pos++);
             return switch (c) {
-                case 'd'  -> new CharClassNode(DIGITS);
-                case 'D'  -> new CharClassNode(NON_DIGITS);
-                case 'w'  -> new CharClassNode(WORD_CHARS);
-                case 'W'  -> new CharClassNode(NON_WORD_CHARS);
-                case 's'  -> new CharClassNode(WHITESPACE);
-                case 'S'  -> new CharClassNode(NON_WHITESPACE);
-                case '.'  -> new LiteralNode('.');
-                case '-'  -> new LiteralNode('-');
+                case 'd' -> new CharClassNode(DIGITS);
+                case 'D' -> new CharClassNode(NON_DIGITS);
+                case 'w' -> new CharClassNode(WORD_CHARS);
+                case 'W' -> new CharClassNode(NON_WORD_CHARS);
+                case 's' -> new CharClassNode(WHITESPACE);
+                case 'S' -> new CharClassNode(NON_WHITESPACE);
+                case '.' -> new LiteralNode('.');
+                case '-' -> new LiteralNode('-');
                 case '\\' -> new LiteralNode('\\');
-                case 'n'  -> new LiteralNode('\n');
-                case 'r'  -> new LiteralNode('\r');
-                case 't'  -> new LiteralNode('\t');
-                default   -> new LiteralNode(c); // unknown escape: treat as literal
+                case 'n' -> new LiteralNode('\n');
+                case 'r' -> new LiteralNode('\r');
+                case 't' -> new LiteralNode('\t');
+                default -> new LiteralNode(c); // unknown escape: treat as literal
             };
         }
 
@@ -343,17 +371,26 @@ public final class RegexGenerator implements Generator<String> {
             if (pos >= src.length()) return node;
             char c = src.charAt(pos);
             return switch (c) {
-                case '?' -> { pos++; yield new QuantifierNode(node, 0, 1); }
-                case '+' -> { pos++; yield new QuantifierNode(node, 1, 10); }
-                case '*' -> { pos++; yield new QuantifierNode(node, 0, 10); }
+                case '?' -> {
+                    pos++;
+                    yield new QuantifierNode(node, 0, 1);
+                }
+                case '+' -> {
+                    pos++;
+                    yield new QuantifierNode(node, 1, 10);
+                }
+                case '*' -> {
+                    pos++;
+                    yield new QuantifierNode(node, 0, 10);
+                }
                 case '{' -> {
                     pos++; // consume '{'
                     int min = parseNumber();
                     if (pos < src.length() && src.charAt(pos) == ',') {
                         pos++; // consume ','
                         int max = pos < src.length() && src.charAt(pos) == '}'
-                                ? 10  // {n,} — cap unbounded at 10
-                                : parseNumber();
+                                  ? 10  // {n,} — cap unbounded at 10
+                                  : parseNumber();
                         if (pos < src.length() && src.charAt(pos) == '}') pos++;
                         yield new QuantifierNode(node, min, max);
                     } else {
@@ -370,7 +407,7 @@ public final class RegexGenerator implements Generator<String> {
             while (pos < src.length() && Character.isDigit(src.charAt(pos))) pos++;
             if (pos == start) {
                 throw new IllegalArgumentException(
-                        "Expected number at position " + pos + " in pattern: " + src);
+                    "Expected number at position " + pos + " in pattern: " + src);
             }
             return Integer.parseInt(src.substring(start, pos));
         }

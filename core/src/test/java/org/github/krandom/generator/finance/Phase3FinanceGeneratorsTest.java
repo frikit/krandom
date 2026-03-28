@@ -13,7 +13,10 @@ import org.junit.jupiter.api.Test;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Phase 3 finance generators")
 class Phase3FinanceGeneratorsTest {
@@ -48,15 +51,15 @@ class Phase3FinanceGeneratorsTest {
     @DisplayName("bank account locale language branches for names and transaction types")
     void bankAccountLocaleBranches() {
         Locale[] locales = {
-                Locale.US,
-                Locale.GERMANY,
-                Locale.FRANCE,
-                Locale.of("es", "ES"),
-                Locale.ITALY
+            Locale.US,
+            Locale.GERMANY,
+            Locale.FRANCE,
+            Locale.of("es", "ES"),
+            Locale.ITALY
         };
         for (Locale locale : locales) {
             BankAccountGenerator generator = new BankAccountGenerator(
-                    GeneratorConfig.builder().seed(3L).locale(locale).build()
+                GeneratorConfig.builder().seed(3L).locale(locale).build()
             );
             assertFalse(generator.generateAccountName().isBlank());
             assertFalse(generator.generateTransactionType().isBlank());

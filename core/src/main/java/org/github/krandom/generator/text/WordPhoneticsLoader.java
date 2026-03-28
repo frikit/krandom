@@ -25,7 +25,8 @@ import java.util.List;
  */
 final class WordPhoneticsLoader {
 
-    private WordPhoneticsLoader() {}
+    private WordPhoneticsLoader() {
+    }
 
     static WordPhonetics load(String resourcePath) {
         InputStream is = WordPhoneticsLoader.class.getClassLoader().getResourceAsStream(resourcePath);
@@ -38,9 +39,9 @@ final class WordPhoneticsLoader {
     static WordPhonetics load(InputStream is, String resourcePath) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             List<String> lines = reader.lines()
-                    .map(String::trim)
-                    .filter(line -> !line.isEmpty() && !line.startsWith("#"))
-                    .toList();
+                                       .map(String::trim)
+                                       .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                                       .toList();
 
             String[] onsets = csv(valuesAfter(lines, "onsets="));
             String[] nuclei = csv(valuesAfter(lines, "nuclei="));

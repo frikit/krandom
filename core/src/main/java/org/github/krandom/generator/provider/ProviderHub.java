@@ -7,12 +7,12 @@ package org.github.krandom.generator.provider;
 
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.datetime.DateGenerator;
+import org.github.krandom.generator.finance.MoneyGenerator;
+import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
 import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
-import org.github.krandom.generator.finance.MoneyGenerator;
-import org.github.krandom.generator.identifier.UUIDGenerator;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -25,9 +25,9 @@ import java.util.Set;
  */
 public final class ProviderHub {
 
-    private final GeneratorConfig config;
+    private final GeneratorConfig              config;
     private final Map<String, ProviderFactory> providers = new LinkedHashMap<>();
-    private final Map<String, String> aliases = new LinkedHashMap<>();
+    private final Map<String, String>          aliases   = new LinkedHashMap<>();
 
     /**
      * Creates provider hub with default configuration.
@@ -55,6 +55,15 @@ public final class ProviderHub {
         registerBuiltIns();
     }
 
+    private static String normalize(String name) {
+        Objects.requireNonNull(name, "name must not be null");
+        String key = name.trim().toLowerCase(Locale.ROOT);
+        if (key.isBlank()) {
+            throw new IllegalArgumentException("name must not be blank");
+        }
+        return key;
+    }
+
     /**
      * Resolves provider by name or alias.
      *
@@ -72,7 +81,7 @@ public final class ProviderHub {
      *
      * @param name provider name or alias
      * @param type expected type
-     * @param <T> expected provider type
+     * @param <T>  expected provider type
      * @return typed provider instance
      */
     public <T> T get(String name, Class<T> type) {
@@ -80,7 +89,7 @@ public final class ProviderHub {
         Object provider = get(name);
         if (!type.isInstance(provider)) {
             throw new IllegalArgumentException("Provider '" + name + "' is "
-                    + provider.getClass().getName() + ", not " + type.getName());
+                                               + provider.getClass().getName() + ", not " + type.getName());
         }
         return type.cast(provider);
     }
@@ -99,7 +108,7 @@ public final class ProviderHub {
     /**
      * Registers provider factory using {@link ConflictPolicy#FAIL}.
      *
-     * @param name canonical provider name
+     * @param name    canonical provider name
      * @param factory provider factory
      */
     public void register(String name, ProviderFactory factory) {
@@ -109,9 +118,9 @@ public final class ProviderHub {
     /**
      * Registers provider factory.
      *
-     * @param name canonical provider name
+     * @param name    canonical provider name
      * @param factory provider factory
-     * @param policy conflict policy
+     * @param policy  conflict policy
      */
     public void register(String name, ProviderFactory factory, ConflictPolicy policy) {
         String key = normalize(name);
@@ -126,7 +135,7 @@ public final class ProviderHub {
     /**
      * Registers alias using {@link ConflictPolicy#FAIL}.
      *
-     * @param alias alias name
+     * @param alias      alias name
      * @param targetName canonical provider name
      */
     public void registerAlias(String alias, String targetName) {
@@ -136,9 +145,9 @@ public final class ProviderHub {
     /**
      * Registers alias.
      *
-     * @param alias alias name
+     * @param alias      alias name
      * @param targetName canonical provider name
-     * @param policy conflict policy
+     * @param policy     conflict policy
      */
     public void registerAlias(String alias, String targetName, ConflictPolicy policy) {
         String aliasKey = normalize(alias);
@@ -191,18 +200,9 @@ public final class ProviderHub {
         String canonical = aliases.get(key);
         if (canonical == null) {
             throw new IllegalArgumentException("Unknown provider '" + name + "'. "
-                    + "Known providers: " + providerNames() + ", aliases: " + aliases.keySet());
+                                               + "Known providers: " + providerNames() + ", aliases: " + aliases.keySet());
         }
         return canonical;
-    }
-
-    private static String normalize(String name) {
-        Objects.requireNonNull(name, "name must not be null");
-        String key = name.trim().toLowerCase(Locale.ROOT);
-        if (key.isBlank()) {
-            throw new IllegalArgumentException("name must not be blank");
-        }
-        return key;
     }
 
     private void registerBuiltIns() {

@@ -19,36 +19,48 @@ public final class PortGenerator implements Generator<String> {
 
     private final Random random;
 
-    /** Creates a port generator with default configuration. */
+    /**
+     * Creates a port generator with default configuration.
+     */
     public PortGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Creates a port generator with the specified configuration. */
+    /**
+     * Creates a port generator with the specified configuration.
+     */
     public PortGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
-    /** Generates a port in the full range [1, 65535]. */
+    /**
+     * Generates a port in the full range [1, 65535].
+     */
     @Override
     public String generate() {
         return Integer.toString(1 + random.nextInt(65535));
     }
 
-    /** Generates a system port in [1, 1023]. */
+    /**
+     * Generates a system port in [1, 1023].
+     */
     public String generateSystemPort() {
         return Integer.toString(1 + random.nextInt(1023));
     }
 
-    /** Generates a user/registered port in [1024, 49151]. */
+    /**
+     * Generates a user/registered port in [1024, 49151].
+     */
     public String generateRegisteredPort() {
         return Integer.toString(1024 + random.nextInt(49151 - 1024 + 1));
     }
 
-    /** Generates a dynamic/private port in [49152, 65535]. */
+    /**
+     * Generates a dynamic/private port in [49152, 65535].
+     */
     public String generateDynamicPort() {
         return Integer.toString(49152 + random.nextInt(65535 - 49152 + 1));
     }

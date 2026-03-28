@@ -13,12 +13,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("BirthdayGenerator")
 class BirthdayGeneratorTest {
 
-    private static final Pattern M_D_YYYY = Pattern.compile("^\\d{1,2}/\\d{1,2}/\\d{4}$");
+    private static final Pattern M_D_YYYY   = Pattern.compile("^\\d{1,2}/\\d{1,2}/\\d{4}$");
     private static final Pattern MM_DD_YYYY = Pattern.compile("^\\d{2}/\\d{2}/\\d{4}$");
 
     // ── Default constructor ────────────────────────────────────────────────────
@@ -47,7 +52,7 @@ class BirthdayGeneratorTest {
             int age = today.getYear() - bd.getYear();
             if (bd.getDayOfYear() > today.getDayOfYear()) age--;
             assertTrue(age >= 1 && age <= 101,
-                    "Age derived from birthday should be close to [1,100], got: " + age);
+                       "Age derived from birthday should be close to [1,100], got: " + age);
         }
     }
 
@@ -81,9 +86,9 @@ class BirthdayGeneratorTest {
         for (int i = 0; i < 50; i++) {
             LocalDate bd = gen.generate();
             assertTrue(bd.isBefore(today.minusYears(1).plusDays(1)),
-                    "Child birthday should be at least 1 year ago");
+                       "Child birthday should be at least 1 year ago");
             assertTrue(bd.isAfter(today.minusYears(13)),
-                    "Child birthday should be at most 12 years ago");
+                       "Child birthday should be at most 12 years ago");
         }
         assertEquals(1, gen.getMinAge());
         assertEquals(12, gen.getMaxAge());
@@ -157,9 +162,9 @@ class BirthdayGeneratorTest {
         for (int i = 0; i < 20; i++) {
             LocalDate bd = gen.generate();
             assertTrue(bd.isAfter(today.minusYears(27)),
-                    "Should be within a year of 25 years ago");
+                       "Should be within a year of 25 years ago");
             assertTrue(bd.isBefore(today.minusYears(24).plusDays(1)),
-                    "Should not be more recent than 24 years ago");
+                       "Should not be more recent than 24 years ago");
         }
     }
 
@@ -169,7 +174,7 @@ class BirthdayGeneratorTest {
     @DisplayName("negative minAge throws IllegalArgumentException")
     void negativeMinAgeThrows() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> new BirthdayGenerator(-1, 10));
+                                                   () -> new BirthdayGenerator(-1, 10));
         assertTrue(ex.getMessage().contains("minAge"));
     }
 
@@ -177,7 +182,7 @@ class BirthdayGeneratorTest {
     @DisplayName("maxAge less than minAge throws IllegalArgumentException")
     void maxLessThanMinThrows() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> new BirthdayGenerator(10, 5));
+                                                   () -> new BirthdayGenerator(10, 5));
         assertTrue(ex.getMessage().contains("maxAge"));
     }
 
@@ -198,7 +203,7 @@ class BirthdayGeneratorTest {
         String s = gen.generateAsString();
         assertNotNull(s);
         assertTrue(M_D_YYYY.matcher(s).matches(),
-                "Expected M/d/yyyy format but got: " + s);
+                   "Expected M/d/yyyy format but got: " + s);
     }
 
     @Test
@@ -208,7 +213,7 @@ class BirthdayGeneratorTest {
         String s = gen.generateAsAmericanString();
         assertNotNull(s);
         assertTrue(MM_DD_YYYY.matcher(s).matches(),
-                "Expected MM/dd/yyyy format but got: " + s);
+                   "Expected MM/dd/yyyy format but got: " + s);
     }
 
     @Test
@@ -217,7 +222,7 @@ class BirthdayGeneratorTest {
         // Use the same seed for both generators so they produce the same date
         BirthdayGenerator gen1 = new BirthdayGenerator(55L);
         BirthdayGenerator gen2 = new BirthdayGenerator(55L);
-        String s        = gen1.generateAsString();
+        String s = gen1.generateAsString();
         String american = gen2.generateAsAmericanString();
 
         // Parse and compare
@@ -239,7 +244,7 @@ class BirthdayGeneratorTest {
         int year = Integer.parseInt(parts[2]);
         int currentYear = LocalDate.now().getYear();
         assertTrue(year >= currentYear - 101 && year <= currentYear - 1,
-                "Year should be in recent past, got: " + year);
+                   "Year should be in recent past, got: " + year);
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -303,7 +308,7 @@ class BirthdayGeneratorTest {
         for (int i = 0; i < 50; i++) {
             String s = gen.generateAsString();
             assertTrue(s.contains("年") && s.contains("月") && s.contains("日"),
-                    "Expected 年月日 but got: " + s);
+                       "Expected 年月日 but got: " + s);
         }
     }
 

@@ -9,13 +9,13 @@
 
     <!-- Root logger set to TRACE for tests to see all debug output -->
     <root level="TRACE">
-        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="CONSOLE"/>
     </root>
 
     <!-- Project logger at TRACE level for detailed test debugging -->
-    <logger name="org.github.krandom" level="TRACE" />
-    
+    <logger name="org.github.krandom" level="TRACE"/>
+
     <!-- Suppress test framework noise -->
-    <logger name="org.junit" level="WARN" />
-    <logger name="io.kotest" level="WARN" />
+    <logger name="org.junit" level="WARN"/>
+    <logger name="io.kotest" level="WARN"/>
 </configuration>

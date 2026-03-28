@@ -23,8 +23,8 @@ import java.util.Random;
 public final class TitleGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final String[] titles;
+    private final Random          random;
+    private final String[]        titles;
 
     public TitleGenerator() {
         this(GeneratorConfig.defaults());
@@ -32,7 +32,7 @@ public final class TitleGenerator implements Generator<String> {
 
     public TitleGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        
+
         Locale locale = config.getLocale();
         if (!TitleDataRegistry.isRegistered(locale)) {
             throw new UnsupportedOperationException(
@@ -41,8 +41,8 @@ public final class TitleGenerator implements Generator<String> {
         }
 
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
 
         this.titles = TitleDataRegistry.forLocale(locale).getTitles();
     }

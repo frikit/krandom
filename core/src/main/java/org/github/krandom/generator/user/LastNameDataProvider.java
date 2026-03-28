@@ -26,9 +26,13 @@ import java.util.Locale;
  */
 public interface LastNameDataProvider {
 
-    /** The locale this provider supplies data for. */
+    /**
+     * The locale this provider supplies data for.
+     */
     Locale getLocale();
 
-    /** Last names (family names / surnames) for this locale. */
+    /**
+     * Last names (family names / surnames) for this locale.
+     */
     String[] getLastNames();
 }

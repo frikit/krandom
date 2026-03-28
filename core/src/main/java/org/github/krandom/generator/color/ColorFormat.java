@@ -22,20 +22,20 @@ package org.github.krandom.generator.color;
  * @see ColorGenerator
  */
 public enum ColorFormat {
-    
+
     /**
      * Standard 6-digit hexadecimal format with # prefix.
      * <p>Example: {@code "#79c157"}
      */
     HEX,
-    
+
     /**
      * Abbreviated 3-digit hexadecimal format with # prefix.
      * <p>Each RGB component is represented by a single hex digit (0-F).
      * <p>Example: {@code "#60f"} (equivalent to {@code "#6600ff"})
      */
     SHORT_HEX,
-    
+
     /**
      * CSS RGB function notation.
      * <p>Format: {@code rgb(R,G,B)} where R, G, B are integers in [0, 255].
@@ -60,7 +60,7 @@ public enum ColorFormat {
      * <p>Format: {@code hsla(H,S%,L%,A)} where H in [0,359], S/L in [0,100], A in [0.0,1.0].
      */
     HSLA,
-    
+
     /**
      * Hexadecimal number with 0x prefix.
      * <p>Example: {@code "0x79c157"}

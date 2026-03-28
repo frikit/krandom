@@ -12,7 +12,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("TextGenerator")
 class TextGeneratorTest {
@@ -51,10 +55,10 @@ class TextGeneratorTest {
     void options() {
         TextGenerator generator = new TextGenerator();
         TextGenerator.TextOptions options = new TextGenerator.TextOptions(
-                120,
-                List.of("apple", "banana", "cherry", "date"),
-                true,
-                false
+            120,
+            List.of("apple", "banana", "cherry", "date"),
+            true,
+            false
         );
         String text = generator.generate(options);
         assertTrue(text.contains("apple") || text.contains("banana") || text.contains("cherry") || text.contains("date"));
@@ -85,9 +89,9 @@ class TextGeneratorTest {
         GeneratorConfig cfg = GeneratorConfig.builder().seed(321L).locale(Locale.of("ru", "RU")).build();
         String text = new TextGenerator(cfg).generate(80);
         assertTrue(text.contains("alpha")
-                || text.contains("beta")
-                || text.contains("gamma")
-                || text.contains("delta"));
+                   || text.contains("beta")
+                   || text.contains("gamma")
+                   || text.contains("delta"));
     }
 
     @Test
@@ -127,10 +131,10 @@ class TextGeneratorTest {
         assertTrue(dotted.endsWith("."));
 
         String enoughUniqueWords = generator.generate(new TextGenerator.TextOptions(
-                120,
-                List.of("w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9", "w10"),
-                true,
-                false
+            120,
+            List.of("w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9", "w10"),
+            true,
+            false
         ));
         assertTrue(enoughUniqueWords.endsWith("."));
     }

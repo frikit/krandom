@@ -44,7 +44,7 @@ import java.util.Random;
  * String name = gen.getName();               // "Japanese Yen"
  * String symbol = gen.getSymbol();           // "¥"
  * String numeric = gen.getNumericCode();     // "392"
- * 
+ *
  * // Get complete currency information
  * CurrencyInfo info = gen.generateWithInfo();
  * System.out.println(info.code());           // "EUR"
@@ -58,7 +58,7 @@ import java.util.Random;
  * // Generate currency for specific locale
  * Locale usLocale = new Locale("en", "US");
  * String usCurrency = gen.generate(usLocale);  // "USD"
- * 
+ *
  * Locale jpLocale = new Locale("ja", "JP");
  * CurrencyInfo jpInfo = gen.generateWithInfo(jpLocale);
  * System.out.println(jpInfo.code());           // "JPY"
@@ -92,19 +92,19 @@ import java.util.Random;
  * @see CurrencyInfo
  */
 public final class CurrencyGenerator implements Generator<String> {
-    
+
     private static final Currency[] ALL_CURRENCIES = Currency.values();
-    
+
     private final GeneratorConfig config;
-    private final Random random;
-    
+    private final Random          random;
+
     /**
      * Creates a new CurrencyGenerator with default configuration.
      */
     public CurrencyGenerator() {
         this(GeneratorConfig.defaults());
     }
-    
+
     /**
      * Creates a new CurrencyGenerator with the specified configuration.
      *
@@ -114,10 +114,19 @@ public final class CurrencyGenerator implements Generator<String> {
     public CurrencyGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
-    
+
+    private static Map<String, String> toMap(CurrencyInfo info) {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("code", info.code());
+        map.put("name", info.name());
+        map.put("symbol", info.symbol());
+        map.put("numeric_code", info.numericCode());
+        return map;
+    }
+
     /**
      * Generates a random ISO 4217 currency code.
      *
@@ -129,7 +138,7 @@ public final class CurrencyGenerator implements Generator<String> {
     public String generate() {
         return getRandomCurrency().getCode();
     }
-    
+
     /**
      * Generates a currency code appropriate for the given locale.
      *
@@ -156,7 +165,7 @@ public final class CurrencyGenerator implements Generator<String> {
         }
         return currency.getCode();
     }
-    
+
     /**
      * Generates complete currency information for a random currency.
      *
@@ -167,7 +176,7 @@ public final class CurrencyGenerator implements Generator<String> {
     public CurrencyInfo generateWithInfo() {
         return getRandomCurrency().toInfo();
     }
-    
+
     /**
      * Generates complete currency information for the given locale.
      *
@@ -184,7 +193,7 @@ public final class CurrencyGenerator implements Generator<String> {
         }
         return currency.toInfo();
     }
-    
+
     /**
      * Generates a random currency name.
      *
@@ -195,7 +204,7 @@ public final class CurrencyGenerator implements Generator<String> {
     public String getName() {
         return getRandomCurrency().getName();
     }
-    
+
     /**
      * Generates a currency name for the given locale.
      *
@@ -212,7 +221,7 @@ public final class CurrencyGenerator implements Generator<String> {
         }
         return currency.getName();
     }
-    
+
     /**
      * Generates a random currency symbol.
      *
@@ -223,7 +232,7 @@ public final class CurrencyGenerator implements Generator<String> {
     public String getSymbol() {
         return getRandomCurrency().getSymbol();
     }
-    
+
     /**
      * Generates a currency symbol for the given locale.
      *
@@ -240,7 +249,7 @@ public final class CurrencyGenerator implements Generator<String> {
         }
         return currency.getSymbol();
     }
-    
+
     /**
      * Generates a random ISO 4217 numeric code.
      *
@@ -251,7 +260,7 @@ public final class CurrencyGenerator implements Generator<String> {
     public String getNumericCode() {
         return getRandomCurrency().getNumericCode();
     }
-    
+
     /**
      * Generates a currency numeric code for the given locale.
      *
@@ -423,7 +432,7 @@ public final class CurrencyGenerator implements Generator<String> {
         CurrencyInfo info = generateWithInfo(locale);
         return toMap(info);
     }
-    
+
     /**
      * Generates a stream of complete currency information.
      *
@@ -435,7 +444,7 @@ public final class CurrencyGenerator implements Generator<String> {
     public java.util.stream.Stream<CurrencyInfo> streamWithInfo() {
         return java.util.stream.Stream.generate(this::generateWithInfo);
     }
-    
+
     /**
      * Generates a list of complete currency information.
      *
@@ -452,7 +461,7 @@ public final class CurrencyGenerator implements Generator<String> {
         }
         return streamWithInfo().limit(count).toList();
     }
-    
+
     /**
      * Returns a random currency from all supported currencies.
      *
@@ -460,14 +469,5 @@ public final class CurrencyGenerator implements Generator<String> {
      */
     private Currency getRandomCurrency() {
         return ALL_CURRENCIES[random.nextInt(ALL_CURRENCIES.length)];
-    }
-
-    private static Map<String, String> toMap(CurrencyInfo info) {
-        Map<String, String> map = new LinkedHashMap<>();
-        map.put("code", info.code());
-        map.put("name", info.name());
-        map.put("symbol", info.symbol());
-        map.put("numeric_code", info.numericCode());
-        return map;
     }
 }

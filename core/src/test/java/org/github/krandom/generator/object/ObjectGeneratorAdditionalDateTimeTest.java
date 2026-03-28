@@ -13,14 +13,15 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DisplayName("ObjectGenerator — additional JSR-310 support")
 class ObjectGeneratorAdditionalDateTimeTest {
 
-    private static final int SAMPLES = 50;
-    private static final LocalDate MIN = LocalDate.of(2021, 1, 1);
-    private static final LocalDate MAX = LocalDate.of(2022, 12, 31);
+    private static final int       SAMPLES = 50;
+    private static final LocalDate MIN     = LocalDate.of(2021, 1, 1);
+    private static final LocalDate MAX     = LocalDate.of(2022, 12, 31);
 
     @Test
     @DisplayName("additional JSR-310 fields are auto-populated")

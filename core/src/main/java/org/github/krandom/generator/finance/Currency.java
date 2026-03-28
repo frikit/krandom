@@ -22,7 +22,7 @@ import java.util.Locale;
  * </ul>
  */
 public enum Currency {
-    
+
     // Primary currencies for supported locales (priority order)
     USD("USD", "United States Dollar", "$", "840"),
     EUR("EUR", "Euro", "€", "978"),
@@ -31,7 +31,7 @@ public enum Currency {
     BRL("BRL", "Brazilian Real", "R$", "986"),
     JPY("JPY", "Japanese Yen", "¥", "392"),
     CNY("CNY", "Chinese Yuan Renminbi", "¥", "156"),
-    
+
     // Other major world currencies (alphabetical)
     AED("AED", "United Arab Emirates Dirham", "د.إ", "784"),
     AFN("AFN", "Afghan Afghani", "؋", "971"),
@@ -67,7 +67,7 @@ public enum Currency {
     UAH("UAH", "Ukrainian Hryvnia", "₴", "980"),
     VND("VND", "Vietnamese Dong", "₫", "704"),
     ZAR("ZAR", "South African Rand", "R", "710"),
-    
+
     // Additional commonly used currencies
     BGN("BGN", "Bulgarian Lev", "лв", "975"),
     CRC("CRC", "Costa Rican Colón", "₡", "188"),
@@ -77,64 +77,19 @@ public enum Currency {
     PEN("PEN", "Peruvian Sol", "S/", "604"),
     QAR("QAR", "Qatari Riyal", "﷼", "634"),
     UYU("UYU", "Uruguayan Peso", "$U", "858");
-    
+
     private final String code;
     private final String name;
     private final String symbol;
     private final String numericCode;
-    
+
     Currency(String code, String name, String symbol, String numericCode) {
         this.code = code;
         this.name = name;
         this.symbol = symbol;
         this.numericCode = numericCode;
     }
-    
-    /**
-     * Returns the ISO 4217 3-letter alphabetic code.
-     *
-     * @return the currency code (e.g., "USD", "EUR")
-     */
-    public String getCode() {
-        return code;
-    }
-    
-    /**
-     * Returns the full official currency name.
-     *
-     * @return the currency name (e.g., "United States Dollar")
-     */
-    public String getName() {
-        return name;
-    }
-    
-    /**
-     * Returns the currency symbol.
-     *
-     * @return the currency symbol (e.g., "$", "€")
-     */
-    public String getSymbol() {
-        return symbol;
-    }
-    
-    /**
-     * Returns the ISO 4217 3-digit numeric code.
-     *
-     * @return the numeric code (e.g., "840", "978")
-     */
-    public String getNumericCode() {
-        return numericCode;
-    }
-    
-    /**
-     * Converts this currency to a CurrencyInfo record.
-     *
-     * @return a CurrencyInfo containing all currency data
-     */
-    public CurrencyInfo toInfo() {
-        return new CurrencyInfo(code, name, symbol, numericCode);
-    }
-    
+
     /**
      * Returns the primary currency for the given locale.
      *
@@ -159,9 +114,9 @@ public enum Currency {
         if (locale == null) {
             return null;
         }
-        
+
         String country = locale.getCountry();
-        
+
         return switch (country) {
             case "US" -> USD;
             case "GB" -> GBP;
@@ -173,7 +128,7 @@ public enum Currency {
             default -> null;
         };
     }
-    
+
     /**
      * Returns the currency with the given ISO 4217 code.
      *
@@ -184,12 +139,57 @@ public enum Currency {
         if (code == null) {
             return null;
         }
-        
+
         for (Currency currency : values()) {
             if (currency.code.equals(code)) {
                 return currency;
             }
         }
         return null;
+    }
+
+    /**
+     * Returns the ISO 4217 3-letter alphabetic code.
+     *
+     * @return the currency code (e.g., "USD", "EUR")
+     */
+    public String getCode() {
+        return code;
+    }
+
+    /**
+     * Returns the full official currency name.
+     *
+     * @return the currency name (e.g., "United States Dollar")
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Returns the currency symbol.
+     *
+     * @return the currency symbol (e.g., "$", "€")
+     */
+    public String getSymbol() {
+        return symbol;
+    }
+
+    /**
+     * Returns the ISO 4217 3-digit numeric code.
+     *
+     * @return the numeric code (e.g., "840", "978")
+     */
+    public String getNumericCode() {
+        return numericCode;
+    }
+
+    /**
+     * Converts this currency to a CurrencyInfo record.
+     *
+     * @return a CurrencyInfo containing all currency data
+     */
+    public CurrencyInfo toInfo() {
+        return new CurrencyInfo(code, name, symbol, numericCode);
     }
 }

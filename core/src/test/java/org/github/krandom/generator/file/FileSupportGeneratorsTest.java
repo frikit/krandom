@@ -11,10 +11,19 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("File support generators")
 class FileSupportGeneratorsTest {
+
+    private static void assertPathLooksValid(String path) {
+        assertNotNull(path);
+        assertTrue(path.startsWith("/"));
+        assertTrue(path.contains("/"));
+    }
 
     @Test
     void dirPathGenerator() {
@@ -24,8 +33,8 @@ class FileSupportGeneratorsTest {
         assertTrue(path.contains("/"));
         assertEquals(Locale.GERMANY, gen.getLocale());
         assertEquals(
-                new DirPathGenerator(GeneratorConfig.builder().seed(42L).locale(Locale.US).build()).generate(),
-                new DirPathGenerator(GeneratorConfig.builder().seed(42L).locale(Locale.US).build()).generate()
+            new DirPathGenerator(GeneratorConfig.builder().seed(42L).locale(Locale.US).build()).generate(),
+            new DirPathGenerator(GeneratorConfig.builder().seed(42L).locale(Locale.US).build()).generate()
         );
         assertThrows(NullPointerException.class, () -> new DirPathGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new DirPathGenerator((GeneratorConfig) null));
@@ -64,8 +73,8 @@ class FileSupportGeneratorsTest {
         String mime = gen.generate();
         assertTrue(mime.matches("[a-z]+/[a-z0-9.+-]+"));
         assertEquals(
-                new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate(),
-                new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate()
+            new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate(),
+            new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate()
         );
         assertThrows(NullPointerException.class, () -> new MimeTypeGenerator(null));
     }
@@ -77,11 +86,5 @@ class FileSupportGeneratorsTest {
         assertTrue(gen.generateStable().matches("\\d+\\.\\d+\\.\\d+"));
         assertTrue(gen.generatePrerelease().matches("\\d+\\.\\d+\\.\\d+-(alpha|beta|rc)\\.\\d+"));
         assertThrows(NullPointerException.class, () -> new SemverGenerator(null));
-    }
-
-    private static void assertPathLooksValid(String path) {
-        assertNotNull(path);
-        assertTrue(path.startsWith("/"));
-        assertTrue(path.contains("/"));
     }
 }

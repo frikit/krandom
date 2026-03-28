@@ -14,15 +14,19 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("IPv4Generator")
 class IPv4GeneratorTest {
 
     private static final InetAddressValidator VALIDATOR = InetAddressValidator.getInstance();
-    private static final int SAMPLES = 500;
+    private static final int                  SAMPLES   = 500;
 
     // ── RFC 791 format ────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("RFC 791 format")
@@ -54,13 +58,14 @@ class IPv4GeneratorTest {
             for (String part : ip.split("\\.")) {
                 if (part.length() > 1) {
                     assertNotEquals('0', part.charAt(0),
-                            "Leading zero in octet '" + part + "' of: " + ip);
+                                    "Leading zero in octet '" + part + "' of: " + ip);
                 }
             }
         }
     }
 
     // ── First-octet range (unicast only, RFC 3171 / RFC 1112) ─────────────────
+
 
     @Nested
     @DisplayName("First-octet range")
@@ -72,7 +77,7 @@ class IPv4GeneratorTest {
             String ip = new IPv4Generator().generate();
             int octet1 = Integer.parseInt(ip.split("\\.")[0]);
             assertTrue(octet1 >= 0 && octet1 <= 223,
-                    "First octet " + octet1 + " is outside [0, 223] in: " + ip);
+                       "First octet " + octet1 + " is outside [0, 223] in: " + ip);
         }
 
         @Test
@@ -84,18 +89,19 @@ class IPv4GeneratorTest {
             boolean seenMid = false;   // near 128
             for (int i = 0; i < 50_000; i++) {
                 int octet1 = Integer.parseInt(gen.generate().split("\\.")[0]);
-                if (octet1 <= 5)   seenLow = true;
+                if (octet1 <= 5) seenLow = true;
                 if (octet1 >= 218) seenHigh = true;
                 if (octet1 >= 120 && octet1 <= 135) seenMid = true;
                 if (seenLow && seenHigh && seenMid) break;
             }
-            assertTrue(seenLow,  "Never generated first octet near 0");
-            assertTrue(seenMid,  "Never generated first octet near 128");
+            assertTrue(seenLow, "Never generated first octet near 0");
+            assertTrue(seenMid, "Never generated first octet near 128");
             assertTrue(seenHigh, "Never generated first octet near 223");
         }
     }
 
     // ── Remaining octets ──────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("Octets 2-4 range [0, 255]")
@@ -136,6 +142,7 @@ class IPv4GeneratorTest {
 
     // ── Generator<String> interface ───────────────────────────────────────────
 
+
     @Nested
     @DisplayName("Generator<String> interface")
     class GeneratorInterface {
@@ -152,7 +159,7 @@ class IPv4GeneratorTest {
         @DisplayName("stream() produces valid addresses")
         void stream() {
             new IPv4Generator().stream().limit(50)
-                    .forEach(ip -> assertTrue(VALIDATOR.isValidInet4Address(ip), "Invalid: " + ip));
+                               .forEach(ip -> assertTrue(VALIDATOR.isValidInet4Address(ip), "Invalid: " + ip));
         }
 
         @Test
@@ -166,6 +173,7 @@ class IPv4GeneratorTest {
 
     // ── Seeded Generation ─────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("Seeded generation")
     class SeededGeneration {
@@ -173,9 +181,9 @@ class IPv4GeneratorTest {
         @Test
         @DisplayName("same seed produces same IP address")
         void sameSeedSameIP() {
-            org.github.krandom.generator.GeneratorConfig config1 = 
+            org.github.krandom.generator.GeneratorConfig config1 =
                 org.github.krandom.generator.GeneratorConfig.builder().seed(42L).build();
-            org.github.krandom.generator.GeneratorConfig config2 = 
+            org.github.krandom.generator.GeneratorConfig config2 =
                 org.github.krandom.generator.GeneratorConfig.builder().seed(42L).build();
 
             IPv4Generator gen1 = new IPv4Generator(config1);
@@ -200,8 +208,8 @@ class IPv4GeneratorTest {
         @Test
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
-            assertThrows(NullPointerException.class, 
-                () -> new IPv4Generator((org.github.krandom.generator.GeneratorConfig) null));
+            assertThrows(NullPointerException.class,
+                         () -> new IPv4Generator((org.github.krandom.generator.GeneratorConfig) null));
         }
     }
 }

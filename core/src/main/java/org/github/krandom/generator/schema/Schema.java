@@ -22,10 +22,10 @@ import java.util.Random;
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
-    private final GeneratorConfig config;
+    private final GeneratorConfig                  config;
     private final Map<String, SchemaValueProvider> fields;
-    private final Random random;
-    private int nextRecordIndex;
+    private final Random                           random;
+    private       int                              nextRecordIndex;
 
     /**
      * Creates schema generator with default configuration.
@@ -60,9 +60,25 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
         this.fields = validateAndCopy(fields);
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.nextRecordIndex = 0;
+    }
+
+    private static Map<String, SchemaValueProvider> validateAndCopy(Map<String, SchemaValueProvider> fields) {
+        Map<String, SchemaValueProvider> copy = new LinkedHashMap<>(fields.size());
+        for (Map.Entry<String, SchemaValueProvider> entry : fields.entrySet()) {
+            String name = entry.getKey();
+            if (name == null || name.isBlank()) {
+                throw new IllegalArgumentException("field names must be non-blank");
+            }
+            SchemaValueProvider provider = entry.getValue();
+            if (provider == null) {
+                throw new IllegalArgumentException("provider for field '" + name + "' must not be null");
+            }
+            copy.put(name, provider);
+        }
+        return Map.copyOf(copy);
     }
 
     @Override
@@ -128,21 +144,5 @@ public final class Schema implements Generator<Map<String, Object>> {
             }
         }
         return record;
-    }
-
-    private static Map<String, SchemaValueProvider> validateAndCopy(Map<String, SchemaValueProvider> fields) {
-        Map<String, SchemaValueProvider> copy = new LinkedHashMap<>(fields.size());
-        for (Map.Entry<String, SchemaValueProvider> entry : fields.entrySet()) {
-            String name = entry.getKey();
-            if (name == null || name.isBlank()) {
-                throw new IllegalArgumentException("field names must be non-blank");
-            }
-            SchemaValueProvider provider = entry.getValue();
-            if (provider == null) {
-                throw new IllegalArgumentException("provider for field '" + name + "' must not be null");
-            }
-            copy.put(name, provider);
-        }
-        return Map.copyOf(copy);
     }
 }

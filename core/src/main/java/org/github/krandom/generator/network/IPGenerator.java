@@ -16,7 +16,7 @@ import java.util.Random;
  */
 public final class IPGenerator implements Generator<String> {
 
-    private final Random random;
+    private final Random        random;
     private final IPv4Generator ipv4Generator;
     private final IPv6Generator ipv6Generator;
 
@@ -27,8 +27,8 @@ public final class IPGenerator implements Generator<String> {
     public IPGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new java.security.SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new java.security.SecureRandom();
         this.ipv4Generator = new IPv4Generator(config);
         this.ipv6Generator = new IPv6Generator(config);
     }

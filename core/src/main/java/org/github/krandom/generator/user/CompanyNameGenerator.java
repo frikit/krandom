@@ -51,9 +51,11 @@ public final class CompanyNameGenerator implements Generator<String> {
     };
 
     private final GeneratorConfig config;
-    private final Random random;
+    private final Random          random;
 
-    /** Creates a company-name generator with default configuration. */
+    /**
+     * Creates a company-name generator with default configuration.
+     */
     public CompanyNameGenerator() {
         this(GeneratorConfig.defaults());
     }
@@ -67,8 +69,8 @@ public final class CompanyNameGenerator implements Generator<String> {
     public CompanyNameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -92,7 +94,7 @@ public final class CompanyNameGenerator implements Generator<String> {
      */
     public String generate(boolean withSuffix) {
         String name = PREFIXES[random.nextInt(PREFIXES.length)]
-                + " " + NOUNS[random.nextInt(NOUNS.length)];
+                      + " " + NOUNS[random.nextInt(NOUNS.length)];
         return withSuffix ? name + " " + generateSuffix() : name;
     }
 

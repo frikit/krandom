@@ -20,14 +20,14 @@ import java.util.Random;
 public final class WeightedGenerator<T> implements Generator<T> {
 
     private final List<T> values;
-    private final int[] cumulativeWeights;
-    private final int totalWeight;
-    private final Random random;
+    private final int[]   cumulativeWeights;
+    private final int     totalWeight;
+    private final Random  random;
 
     /**
      * Creates a weighted generator backed by {@link SecureRandom}.
      *
-     * @param values values to choose from; must not be null/empty
+     * @param values  values to choose from; must not be null/empty
      * @param weights positive weights; same size as values
      */
     public WeightedGenerator(List<T> values, List<Integer> weights) {
@@ -37,9 +37,9 @@ public final class WeightedGenerator<T> implements Generator<T> {
     /**
      * Creates a weighted generator with deterministic seed support.
      *
-     * @param values values to choose from; must not be null/empty
+     * @param values  values to choose from; must not be null/empty
      * @param weights positive weights; same size as values
-     * @param seed deterministic seed
+     * @param seed    deterministic seed
      */
     public WeightedGenerator(List<T> values, List<Integer> weights, long seed) {
         this(values, weights, new Random(seed));
@@ -53,7 +53,7 @@ public final class WeightedGenerator<T> implements Generator<T> {
         }
         if (values.size() != weights.size()) {
             throw new IllegalArgumentException(
-                    "values and weights must have the same size, got: " + values.size() + " and " + weights.size());
+                "values and weights must have the same size, got: " + values.size() + " and " + weights.size());
         }
         this.values = List.copyOf(values);
         this.random = Objects.requireNonNull(random, "random must not be null");

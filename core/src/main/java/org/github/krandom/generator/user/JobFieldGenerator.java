@@ -18,9 +18,9 @@ import java.util.Random;
 public final class JobFieldGenerator implements Generator<String> {
 
     private static final String[] FIELDS = {
-            "Engineering", "Marketing", "Sales", "Finance", "Operations", "Product",
-            "Human Resources", "Legal", "Design", "Customer Support", "Research",
-            "Data Science", "Security", "Procurement", "Logistics"
+        "Engineering", "Marketing", "Sales", "Finance", "Operations", "Product",
+        "Human Resources", "Legal", "Design", "Customer Support", "Research",
+        "Data Science", "Security", "Procurement", "Logistics"
     };
 
     private final Random random;
@@ -32,8 +32,8 @@ public final class JobFieldGenerator implements Generator<String> {
     public JobFieldGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

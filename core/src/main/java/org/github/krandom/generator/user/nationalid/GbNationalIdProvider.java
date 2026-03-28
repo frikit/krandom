@@ -26,14 +26,17 @@ import java.util.Set;
  */
 public final class GbNationalIdProvider implements NationalIdProvider {
 
-    private static final String VALID_FIRST  = "ABCEGHJKLMNOPRSTWXYZ";
-    private static final String VALID_SECOND = "ABCEGHJKLMNPRSTWXYZ";
+    private static final String      VALID_FIRST      = "ABCEGHJKLMNOPRSTWXYZ";
+    private static final String      VALID_SECOND     = "ABCEGHJKLMNPRSTWXYZ";
     private static final Set<String> DISALLOWED_PAIRS =
-            Set.of("BG", "GB", "NK", "KN", "NT", "TN", "ZZ");
-    private static final char[] SUFFIX_LETTERS = {'A', 'B', 'C', 'D'};
+        Set.of("BG", "GB", "NK", "KN", "NT", "TN", "ZZ");
+    private static final char[]      SUFFIX_LETTERS   = { 'A', 'B', 'C', 'D' };
 
-    /** Creates a provider for UK NI numbers. */
-    public GbNationalIdProvider() {}
+    /**
+     * Creates a provider for UK NI numbers.
+     */
+    public GbNationalIdProvider() {
+    }
 
     @Override
     public Locale getLocale() {
@@ -44,7 +47,7 @@ public final class GbNationalIdProvider implements NationalIdProvider {
     public String generate(Random random) {
         char first, second;
         do {
-            first  = VALID_FIRST.charAt(random.nextInt(VALID_FIRST.length()));
+            first = VALID_FIRST.charAt(random.nextInt(VALID_FIRST.length()));
             second = VALID_SECOND.charAt(random.nextInt(VALID_SECOND.length()));
         } while (DISALLOWED_PAIRS.contains("" + first + second));
 

@@ -39,9 +39,11 @@ import java.util.Random;
 public final class MacAddressGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random random;
+    private final Random          random;
 
-    /** Creates a MAC-address generator with default configuration. */
+    /**
+     * Creates a MAC-address generator with default configuration.
+     */
     public MacAddressGenerator() {
         this(GeneratorConfig.defaults());
     }
@@ -55,8 +57,8 @@ public final class MacAddressGenerator implements Generator<String> {
     public MacAddressGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**

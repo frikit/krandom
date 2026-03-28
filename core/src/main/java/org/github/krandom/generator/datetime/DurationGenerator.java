@@ -30,8 +30,8 @@ public final class DurationGenerator implements Generator<Duration> {
     public DurationGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override
@@ -48,7 +48,7 @@ public final class DurationGenerator implements Generator<Duration> {
         }
         if (maxSeconds < minSeconds) {
             throw new IllegalArgumentException("maxSeconds must be >= minSeconds, got: "
-                    + maxSeconds + " < " + minSeconds);
+                                               + maxSeconds + " < " + minSeconds);
         }
         if (maxSeconds == minSeconds) {
             return Duration.ofSeconds(minSeconds);

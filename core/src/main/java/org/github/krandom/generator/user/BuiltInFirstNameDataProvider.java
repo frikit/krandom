@@ -14,7 +14,7 @@ import java.util.Locale;
  */
 final class BuiltInFirstNameDataProvider implements FirstNameDataProvider {
 
-    private final Locale locale;
+    private final Locale   locale;
     private final String[] maleNames;
     private final String[] femaleNames;
 

@@ -26,8 +26,8 @@ public final class NullableBooleanGenerator implements Generator<Boolean> {
     public NullableBooleanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

@@ -6,8 +6,6 @@
 package org.github.krandom.generator.games.dice;
 
 import org.github.krandom.generator.Generator;
-import org.github.krandom.generator.games.dice.DiceGenerator;
-import org.github.krandom.generator.games.dice.DiceType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,12 +17,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("DiceGenerator")
 class DiceGeneratorTest {
 
     // ── DiceType enum ─────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("DiceType")
@@ -41,9 +42,9 @@ class DiceGeneratorTest {
         @DisplayName("sides() matches expected face counts")
         void sideCount(DiceType type) {
             int expected = switch (type) {
-                case D4  -> 4;
-                case D6  -> 6;
-                case D8  -> 8;
+                case D4 -> 4;
+                case D6 -> 6;
+                case D8 -> 8;
                 case D10 -> 10;
                 case D12 -> 12;
                 case D20 -> 20;
@@ -53,6 +54,7 @@ class DiceGeneratorTest {
     }
 
     // ── generate() ───────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("generate()")
@@ -66,7 +68,7 @@ class DiceGeneratorTest {
             for (int i = 0; i < 200; i++) {
                 int v = gen.generate();
                 assertTrue(v >= 1 && v <= type.sides(),
-                        () -> type + ": expected [1," + type.sides() + "] but got " + v);
+                           () -> type + ": expected [1," + type.sides() + "] but got " + v);
             }
         }
 
@@ -76,16 +78,17 @@ class DiceGeneratorTest {
         void coversAllFaces(DiceType type) {
             DiceGenerator gen = new DiceGenerator(type);
             Set<Integer> seen = gen.stream()
-                    .limit(type.sides() * 500L)
-                    .collect(Collectors.toSet());
+                                   .limit(type.sides() * 500L)
+                                   .collect(Collectors.toSet());
             for (int face = 1; face <= type.sides(); face++) {
                 assertTrue(seen.contains(face),
-                        type + ": face " + face + " never appeared");
+                           type + ": face " + face + " never appeared");
             }
         }
     }
 
     // ── roll(n) ───────────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("roll(n)")
@@ -129,7 +132,7 @@ class DiceGeneratorTest {
             Set<Integer> seen = Set.copyOf(results);
             for (int face = 1; face <= type.sides(); face++) {
                 assertTrue(seen.contains(face),
-                        type + ": face " + face + " missing from roll(" + n + ")");
+                           type + ": face " + face + " missing from roll(" + n + ")");
             }
         }
 
@@ -138,7 +141,7 @@ class DiceGeneratorTest {
         @DisplayName("roll(0) throws IllegalArgumentException")
         void rollZeroThrows(DiceType type) {
             assertThrows(IllegalArgumentException.class,
-                    () -> new DiceGenerator(type).roll(0));
+                         () -> new DiceGenerator(type).roll(0));
         }
 
         @ParameterizedTest(name = "{0} roll(-1) throws")
@@ -146,11 +149,12 @@ class DiceGeneratorTest {
         @DisplayName("roll(-1) throws IllegalArgumentException")
         void rollNegativeThrows(DiceType type) {
             assertThrows(IllegalArgumentException.class,
-                    () -> new DiceGenerator(type).roll(-1));
+                         () -> new DiceGenerator(type).roll(-1));
         }
     }
 
     // ── rollSum(n) ────────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("rollSum(n)")
@@ -164,7 +168,7 @@ class DiceGeneratorTest {
             for (int i = 0; i < 200; i++) {
                 int sum = gen.rollSum(1);
                 assertTrue(sum >= 1 && sum <= type.sides(),
-                        () -> type + ": rollSum(1) expected [1," + type.sides() + "] but got " + sum);
+                           () -> type + ": rollSum(1) expected [1," + type.sides() + "] but got " + sum);
             }
         }
 
@@ -177,7 +181,7 @@ class DiceGeneratorTest {
             for (int i = 0; i < 100; i++) {
                 int sum = gen.rollSum(n);
                 assertTrue(sum >= n && sum <= n * type.sides(),
-                        () -> type + ": rollSum(" + n + ") expected [" + n + "," + (n * type.sides()) + "] but got " + sum);
+                           () -> type + ": rollSum(" + n + ") expected [" + n + "," + (n * type.sides()) + "] but got " + sum);
             }
         }
 
@@ -204,7 +208,7 @@ class DiceGeneratorTest {
         @DisplayName("rollSum(0) throws IllegalArgumentException")
         void rollSumZeroThrows(DiceType type) {
             assertThrows(IllegalArgumentException.class,
-                    () -> new DiceGenerator(type).rollSum(0));
+                         () -> new DiceGenerator(type).rollSum(0));
         }
 
         @ParameterizedTest(name = "{0} rollSum(-1) throws")
@@ -212,41 +216,62 @@ class DiceGeneratorTest {
         @DisplayName("rollSum(-1) throws IllegalArgumentException")
         void rollSumNegativeThrows(DiceType type) {
             assertThrows(IllegalArgumentException.class,
-                    () -> new DiceGenerator(type).rollSum(-1));
+                         () -> new DiceGenerator(type).rollSum(-1));
         }
     }
 
     // ── Static factories ──────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("Static factories")
     class Factories {
 
-        @Test @DisplayName("d4()  creates D4 generator")
-        void d4()  { assertEquals(DiceType.D4,  DiceGenerator.d4().type()); }
+        @Test
+        @DisplayName("d4()  creates D4 generator")
+        void d4() {
+            assertEquals(DiceType.D4, DiceGenerator.d4().type());
+        }
 
-        @Test @DisplayName("d6()  creates D6 generator")
-        void d6()  { assertEquals(DiceType.D6,  DiceGenerator.d6().type()); }
+        @Test
+        @DisplayName("d6()  creates D6 generator")
+        void d6() {
+            assertEquals(DiceType.D6, DiceGenerator.d6().type());
+        }
 
-        @Test @DisplayName("d8()  creates D8 generator")
-        void d8()  { assertEquals(DiceType.D8,  DiceGenerator.d8().type()); }
+        @Test
+        @DisplayName("d8()  creates D8 generator")
+        void d8() {
+            assertEquals(DiceType.D8, DiceGenerator.d8().type());
+        }
 
-        @Test @DisplayName("d10() creates D10 generator")
-        void d10() { assertEquals(DiceType.D10, DiceGenerator.d10().type()); }
+        @Test
+        @DisplayName("d10() creates D10 generator")
+        void d10() {
+            assertEquals(DiceType.D10, DiceGenerator.d10().type());
+        }
 
-        @Test @DisplayName("d12() creates D12 generator")
-        void d12() { assertEquals(DiceType.D12, DiceGenerator.d12().type()); }
+        @Test
+        @DisplayName("d12() creates D12 generator")
+        void d12() {
+            assertEquals(DiceType.D12, DiceGenerator.d12().type());
+        }
 
-        @Test @DisplayName("d20() creates D20 generator")
-        void d20() { assertEquals(DiceType.D20, DiceGenerator.d20().type()); }
+        @Test
+        @DisplayName("d20() creates D20 generator")
+        void d20() {
+            assertEquals(DiceType.D20, DiceGenerator.d20().type());
+        }
 
-        @Test @DisplayName("null DiceType throws NullPointerException")
+        @Test
+        @DisplayName("null DiceType throws NullPointerException")
         void nullTypeThrows() {
             assertThrows(NullPointerException.class, () -> new DiceGenerator(null));
         }
     }
 
     // ── Generator<Integer> interface ──────────────────────────────────────────
+
 
     @Nested
     @DisplayName("Generator<Integer> interface")
@@ -266,7 +291,7 @@ class DiceGeneratorTest {
         @DisplayName("stream() produces valid in-range values")
         void stream(DiceType type) {
             new DiceGenerator(type).stream().limit(50)
-                    .forEach(v -> assertTrue(v >= 1 && v <= type.sides()));
+                                   .forEach(v -> assertTrue(v >= 1 && v <= type.sides()));
         }
 
         @Test

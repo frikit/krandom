@@ -20,11 +20,11 @@ import java.util.Random;
  */
 public final class CompanyEmailGenerator implements Generator<String> {
 
-    private final Random random;
-    private final FirstNameGenerator firstNameGenerator;
-    private final LastNameGenerator lastNameGenerator;
+    private final Random               random;
+    private final FirstNameGenerator   firstNameGenerator;
+    private final LastNameGenerator    lastNameGenerator;
     private final CompanyNameGenerator companyNameGenerator;
-    private final DomainGenerator domainGenerator;
+    private final DomainGenerator      domainGenerator;
 
     public CompanyEmailGenerator() {
         this(GeneratorConfig.defaults());
@@ -37,12 +37,20 @@ public final class CompanyEmailGenerator implements Generator<String> {
     public CompanyEmailGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
         this.firstNameGenerator = new FirstNameGenerator(effective);
         this.lastNameGenerator = new LastNameGenerator(effective);
         this.companyNameGenerator = new CompanyNameGenerator(effective);
         this.domainGenerator = new DomainGenerator(effective);
+    }
+
+    private static String normalize(String value) {
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                                      .replaceAll("\\p{M}+", "")
+                                      .toLowerCase(Locale.ROOT)
+                                      .replaceAll("[^a-z0-9]", "");
+        return normalized;
     }
 
     @Override
@@ -81,13 +89,5 @@ public final class CompanyEmailGenerator implements Generator<String> {
             case 1 -> first.charAt(0) + last;
             default -> first + last;
         };
-    }
-
-    private static String normalize(String value) {
-        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}+", "")
-                .toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9]", "");
-        return normalized;
     }
 }

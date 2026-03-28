@@ -50,7 +50,7 @@ import java.util.Random;
 public final class TimeGenerator implements Generator<LocalTime> {
 
     private final GeneratorConfig config;
-    private final Random random;
+    private final Random          random;
 
     /**
      * Creates a time generator with default configuration.
@@ -68,8 +68,8 @@ public final class TimeGenerator implements Generator<LocalTime> {
     public TimeGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -96,7 +96,7 @@ public final class TimeGenerator implements Generator<LocalTime> {
     public String generateString() {
         LocalTime time = generate();
         return String.format("%02d:%02d:%02d",
-            time.getHour(), time.getMinute(), time.getSecond());
+                             time.getHour(), time.getMinute(), time.getSecond());
     }
 
     /**

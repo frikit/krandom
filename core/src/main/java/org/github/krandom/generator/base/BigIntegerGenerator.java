@@ -33,7 +33,9 @@ public final class BigIntegerGenerator implements Generator<BigInteger> {
     private final BigInteger max;
     private final Random     random;
 
-    /** Default range [0, {@link Long#MAX_VALUE}]. */
+    /**
+     * Default range [0, {@link Long#MAX_VALUE}].
+     */
     public BigIntegerGenerator() {
         this(DEFAULT_MIN, DEFAULT_MAX, null);
     }
@@ -65,8 +67,8 @@ public final class BigIntegerGenerator implements Generator<BigInteger> {
         if (min.compareTo(max) >= 0) {
             throw new IllegalArgumentException("min must be < max, got min=" + min + " max=" + max);
         }
-        this.min    = min;
-        this.max    = max;
+        this.min = min;
+        this.max = max;
         this.random = seed != null ? new Random(seed) : new SecureRandom();
     }
 

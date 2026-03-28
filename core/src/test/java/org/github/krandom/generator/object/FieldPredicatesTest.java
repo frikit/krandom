@@ -11,16 +11,12 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("FieldPredicates")
 class FieldPredicatesTest {
-
-    static class Sample {
-        @Deprecated
-        private String hidden;
-        String visible;
-    }
 
     @Test
     @DisplayName("null guards throw for required parameters")
@@ -49,5 +45,13 @@ class FieldPredicatesTest {
         assertTrue(FieldPredicates.isAnnotatedWith(Deprecated.class).test(hidden));
         assertTrue(FieldPredicates.hasModifiers(Modifier.PRIVATE).test(hidden));
         assertFalse(FieldPredicates.hasModifiers(Modifier.PRIVATE).test(visible));
+    }
+
+
+    static class Sample {
+
+        String visible;
+        @Deprecated
+        private String hidden;
     }
 }

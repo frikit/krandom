@@ -18,11 +18,11 @@ import java.util.Random;
 public final class PositionGenerator implements Generator<String> {
 
     private static final String[] POSITIONS = {
-            "Software Engineer", "Product Manager", "Data Analyst", "UX Designer",
-            "Account Executive", "Marketing Specialist", "Business Analyst",
-            "DevOps Engineer", "Site Reliability Engineer", "Engineering Manager",
-            "Solutions Architect", "Technical Writer", "QA Engineer", "Project Manager",
-            "Security Engineer", "Database Administrator"
+        "Software Engineer", "Product Manager", "Data Analyst", "UX Designer",
+        "Account Executive", "Marketing Specialist", "Business Analyst",
+        "DevOps Engineer", "Site Reliability Engineer", "Engineering Manager",
+        "Solutions Architect", "Technical Writer", "QA Engineer", "Project Manager",
+        "Security Engineer", "Database Administrator"
     };
 
     private final Random random;
@@ -34,8 +34,8 @@ public final class PositionGenerator implements Generator<String> {
     public PositionGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

@@ -10,10 +10,10 @@ import org.github.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -40,10 +40,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * // Random email with popular domain
  * EmailGenerator gen = new EmailGenerator();
  * String email = gen.generate();               // "john.smith@gmail.com"
- * 
+ *
  * // Email with custom domain
  * String corpEmail = gen.generate("example.com");  // "john.smith@example.com"
- * 
+ *
  * // Email with specific format
  * String formatEmail = gen.generate(EmailFormat.FIRSTINITIAL_LASTNAME);
  * // "jsmith@yahoo.com"
@@ -54,11 +54,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * // US names
  * EmailGenerator usGen = new EmailGenerator(Locale.US);
  * String usEmail = usGen.generate();  // "james.wilson@gmail.com"
- * 
+ *
  * // German names
  * EmailGenerator deGen = new EmailGenerator(Locale.GERMANY);
  * String deEmail = deGen.generate();  // "hans.mueller@gmail.com"
- * 
+ *
  * // Japanese names
  * EmailGenerator jpGen = new EmailGenerator(Locale.JAPAN);
  * String jpEmail = jpGen.generate();  // "yuki.tanaka@gmail.com"
@@ -87,7 +87,7 @@ public final class EmailGenerator implements Generator<String> {
         "example.org",
         "example.net"
     };
-    
+
     private static final String[] POPULAR_DOMAINS = {
         "gmail.com",
         "yahoo.com",
@@ -103,27 +103,27 @@ public final class EmailGenerator implements Generator<String> {
         "qq.com"
     };
 
-    private static final String[] POPULAR_DOMAINS_DE = {"gmx.de", "web.de", "gmail.com", "outlook.com"};
-    private static final String[] POPULAR_DOMAINS_FR = {"orange.fr", "laposte.net", "gmail.com", "outlook.com"};
-    private static final String[] POPULAR_DOMAINS_ES = {"hotmail.es", "gmail.com", "outlook.com", "yahoo.com"};
-    private static final String[] POPULAR_DOMAINS_IT = {"libero.it", "gmail.com", "outlook.com", "yahoo.com"};
-    private static final String[] POPULAR_DOMAINS_PT = {"uol.com.br", "bol.com.br", "gmail.com", "outlook.com"};
-    private static final String[] POPULAR_DOMAINS_JA = {"yahoo.co.jp", "gmail.com", "outlook.com"};
-    private static final String[] POPULAR_DOMAINS_ZH = {"qq.com", "163.com", "126.com", "gmail.com"};
-    
-    private final GeneratorConfig config;
-    private final Random random;
+    private static final String[] POPULAR_DOMAINS_DE = { "gmx.de", "web.de", "gmail.com", "outlook.com" };
+    private static final String[] POPULAR_DOMAINS_FR = { "orange.fr", "laposte.net", "gmail.com", "outlook.com" };
+    private static final String[] POPULAR_DOMAINS_ES = { "hotmail.es", "gmail.com", "outlook.com", "yahoo.com" };
+    private static final String[] POPULAR_DOMAINS_IT = { "libero.it", "gmail.com", "outlook.com", "yahoo.com" };
+    private static final String[] POPULAR_DOMAINS_PT = { "uol.com.br", "bol.com.br", "gmail.com", "outlook.com" };
+    private static final String[] POPULAR_DOMAINS_JA = { "yahoo.co.jp", "gmail.com", "outlook.com" };
+    private static final String[] POPULAR_DOMAINS_ZH = { "qq.com", "163.com", "126.com", "gmail.com" };
+
+    private final GeneratorConfig    config;
+    private final Random             random;
     private final FirstNameGenerator firstNameGenerator;
-    private final LastNameGenerator lastNameGenerator;
-    private final Set<String> issuedEmails;
-    
+    private final LastNameGenerator  lastNameGenerator;
+    private final Set<String>        issuedEmails;
+
     /**
      * Creates an email generator with default configuration (US locale).
      */
     public EmailGenerator() {
         this(GeneratorConfig.defaults());
     }
-    
+
     /**
      * Creates an email generator for the specified locale.
      *
@@ -133,7 +133,7 @@ public final class EmailGenerator implements Generator<String> {
     public EmailGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
-    
+
     /**
      * Creates an email generator with the specified configuration.
      *
@@ -143,13 +143,29 @@ public final class EmailGenerator implements Generator<String> {
     public EmailGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.firstNameGenerator = new FirstNameGenerator(config);
         this.lastNameGenerator = new LastNameGenerator(config);
         this.issuedEmails = ConcurrentHashMap.newKeySet();
     }
-    
+
+    private static String[] requireDomains(String... domains) {
+        Objects.requireNonNull(domains, "domains must not be null");
+        if (domains.length == 0) {
+            throw new IllegalArgumentException("domains must not be empty");
+        }
+        String[] normalized = Arrays.copyOf(domains, domains.length);
+        for (int i = 0; i < normalized.length; i++) {
+            String domain = normalized[i];
+            if (domain == null || domain.isBlank()) {
+                throw new IllegalArgumentException("domains must not contain null/blank values");
+            }
+            normalized[i] = domain;
+        }
+        return normalized;
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -163,7 +179,7 @@ public final class EmailGenerator implements Generator<String> {
         String domain = getRandomDomain();
         return generate(format, domain);
     }
-    
+
     /**
      * Generates an email address with the specified domain.
      *
@@ -176,7 +192,7 @@ public final class EmailGenerator implements Generator<String> {
         EmailFormat format = getRandomFormat();
         return generate(format, domain);
     }
-    
+
     /**
      * Generates an email address with the specified format.
      *
@@ -189,7 +205,7 @@ public final class EmailGenerator implements Generator<String> {
         String domain = getRandomDomain();
         return generate(format, domain);
     }
-    
+
     /**
      * Generates an email address with the specified format and domain.
      *
@@ -201,10 +217,10 @@ public final class EmailGenerator implements Generator<String> {
     public String generate(EmailFormat format, String domain) {
         Objects.requireNonNull(format, "format must not be null");
         Objects.requireNonNull(domain, "domain must not be null");
-        
+
         String firstName = firstNameGenerator.generate();
         String lastName = lastNameGenerator.generate();
-        
+
         String localPart = formatLocalPart(firstName, lastName, format);
         return localPart + "@" + domain;
     }
@@ -295,19 +311,19 @@ public final class EmailGenerator implements Generator<String> {
         String[] candidates = requireDomains(domains);
         return generateUniqueInternal(() -> generate(candidates[random.nextInt(candidates.length)]));
     }
-    
+
     /**
      * Formats the local part of the email address based on the specified format.
      *
      * @param firstName the first name
-     * @param lastName the last name
-     * @param format the email format
+     * @param lastName  the last name
+     * @param format    the email format
      * @return the formatted local part
      */
     private String formatLocalPart(String firstName, String lastName, EmailFormat format) {
         String first = firstName.toLowerCase().replace(" ", "");
         String last = lastName.toLowerCase().replace(" ", "");
-        
+
         return switch (format) {
             case FIRSTNAME_DOT_LASTNAME -> first + "." + last;
             case FIRSTNAME_LASTNAME -> first + last;
@@ -316,7 +332,7 @@ public final class EmailGenerator implements Generator<String> {
             case LASTNAME_DOT_FIRSTNAME -> last + "." + first;
         };
     }
-    
+
     /**
      * Returns a random email format.
      *
@@ -326,7 +342,7 @@ public final class EmailGenerator implements Generator<String> {
         EmailFormat[] formats = EmailFormat.values();
         return formats[random.nextInt(formats.length)];
     }
-    
+
     /**
      * Returns a random popular domain.
      *
@@ -360,21 +376,5 @@ public final class EmailGenerator implements Generator<String> {
             }
         }
         throw new IllegalStateException("Unable to generate a unique email after " + maxAttempts + " attempts");
-    }
-
-    private static String[] requireDomains(String... domains) {
-        Objects.requireNonNull(domains, "domains must not be null");
-        if (domains.length == 0) {
-            throw new IllegalArgumentException("domains must not be empty");
-        }
-        String[] normalized = Arrays.copyOf(domains, domains.length);
-        for (int i = 0; i < normalized.length; i++) {
-            String domain = normalized[i];
-            if (domain == null || domain.isBlank()) {
-                throw new IllegalArgumentException("domains must not contain null/blank values");
-            }
-            normalized[i] = domain;
-        }
-        return normalized;
     }
 }

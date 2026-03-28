@@ -5,21 +5,25 @@
  */
 package org.github.krandom.generator.network;
 
-import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("MacAddressGenerator")
 class MacAddressGeneratorTest {
 
-    private static final int SAMPLES = 50;
+    private static final int    SAMPLES         = 50;
     private static final String COLON_MAC_REGEX = "[0-9A-F]{2}(:[0-9A-F]{2}){5}";
-    private static final String DASH_MAC_REGEX   = "[0-9A-F]{2}(-[0-9A-F]{2}){5}";
-    private static final String LOWER_MAC_REGEX  = "[0-9a-f]{2}(:[0-9a-f]{2}){5}";
+    private static final String DASH_MAC_REGEX  = "[0-9A-F]{2}(-[0-9A-F]{2}){5}";
+    private static final String LOWER_MAC_REGEX = "[0-9a-f]{2}(:[0-9a-f]{2}){5}";
+
 
     @Nested
     @DisplayName("Constructors")
@@ -41,9 +45,10 @@ class MacAddressGeneratorTest {
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
             assertThrows(NullPointerException.class,
-                    () -> new MacAddressGenerator(null));
+                         () -> new MacAddressGenerator(null));
         }
     }
+
 
     @Nested
     @DisplayName("generate()")
@@ -61,7 +66,7 @@ class MacAddressGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String mac = new MacAddressGenerator().generate();
                 assertTrue(mac.matches(COLON_MAC_REGEX),
-                        "Expected colon-uppercase MAC, got: " + mac);
+                           "Expected colon-uppercase MAC, got: " + mac);
             }
         }
 
@@ -79,10 +84,11 @@ class MacAddressGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String mac = new MacAddressGenerator().generate('-');
                 assertTrue(mac.matches(DASH_MAC_REGEX),
-                        "Expected dash-uppercase MAC, got: " + mac);
+                           "Expected dash-uppercase MAC, got: " + mac);
             }
         }
     }
+
 
     @Nested
     @DisplayName("generateLowercase()")
@@ -94,7 +100,7 @@ class MacAddressGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String mac = new MacAddressGenerator().generateLowercase();
                 assertTrue(mac.matches(LOWER_MAC_REGEX),
-                        "Expected colon-lowercase MAC, got: " + mac);
+                           "Expected colon-lowercase MAC, got: " + mac);
             }
         }
 
@@ -104,10 +110,11 @@ class MacAddressGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String mac = new MacAddressGenerator().generateLowercase('-');
                 assertTrue(mac.matches("[0-9a-f]{2}(-[0-9a-f]{2}){5}"),
-                        "Expected dash-lowercase MAC, got: " + mac);
+                           "Expected dash-lowercase MAC, got: " + mac);
             }
         }
     }
+
 
     @Nested
     @DisplayName("Seeded generation")
@@ -137,6 +144,7 @@ class MacAddressGeneratorTest {
             }
         }
     }
+
 
     @Nested
     @DisplayName("Generators factory")

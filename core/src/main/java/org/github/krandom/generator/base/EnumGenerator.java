@@ -26,15 +26,19 @@ import java.util.random.RandomGenerator;
  */
 public final class EnumGenerator<E extends Enum<E>> implements Generator<E> {
 
-    private final E[] constants;
+    private final E[]             constants;
     private final RandomGenerator random;
 
-    /** Uses {@link java.security.SecureRandom}. */
+    /**
+     * Uses {@link java.security.SecureRandom}.
+     */
     public EnumGenerator(Class<E> enumClass) {
         this(enumClass, null);
     }
 
-    /** Uses a seeded {@link Random} for reproducible output. */
+    /**
+     * Uses a seeded {@link Random} for reproducible output.
+     */
     public EnumGenerator(Class<E> enumClass, Long seed) {
         Objects.requireNonNull(enumClass, "enumClass must not be null");
         this.constants = enumClass.getEnumConstants();

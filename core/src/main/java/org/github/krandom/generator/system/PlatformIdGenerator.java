@@ -17,8 +17,8 @@ import java.util.Random;
  */
 public final class PlatformIdGenerator implements Generator<String> {
 
-    private static final String[] PLATFORMS = {"windows", "linux", "macos", "android", "ios"};
-    private static final String[] ARCH = {"x86", "x64", "arm64"};
+    private static final String[] PLATFORMS = { "windows", "linux", "macos", "android", "ios" };
+    private static final String[] ARCH      = { "x86", "x64", "arm64" };
 
     private final Random random;
 
@@ -29,8 +29,8 @@ public final class PlatformIdGenerator implements Generator<String> {
     public PlatformIdGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

@@ -24,11 +24,26 @@ public class PersonWithDateTimes {
     private ZonedDateTime scheduledAt;
     private UUID          id;
 
-    public PersonWithDateTimes() { }
+    public PersonWithDateTimes() {
+    }
 
-    public LocalDate     getDob()         { return dob; }
-    public LocalDateTime getCreatedAt()   { return createdAt; }
-    public Instant       getUpdatedAt()   { return updatedAt; }
-    public ZonedDateTime getScheduledAt() { return scheduledAt; }
-    public UUID          getId()          { return id; }
+    public LocalDate getDob() {
+        return dob;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public ZonedDateTime getScheduledAt() {
+        return scheduledAt;
+    }
+
+    public UUID getId() {
+        return id;
+    }
 }

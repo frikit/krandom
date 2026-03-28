@@ -20,8 +20,8 @@ import java.util.Random;
  */
 public final class SentenceGenerator implements Generator<String> {
 
-    private final Locale locale;
-    private final Random random;
+    private final Locale        locale;
+    private final Random        random;
     private final WordGenerator wordGenerator;
 
     /**
@@ -40,8 +40,8 @@ public final class SentenceGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.wordGenerator = new WordGenerator(config);
     }
 
@@ -109,7 +109,7 @@ public final class SentenceGenerator implements Generator<String> {
         }
         if (maxSentences < minSentences) {
             throw new IllegalArgumentException("maxSentences must be >= minSentences, got: "
-                    + maxSentences + " < " + minSentences);
+                                               + maxSentences + " < " + minSentences);
         }
         int count = minSentences + random.nextInt(maxSentences - minSentences + 1);
         return generateSentences(count);
@@ -149,6 +149,7 @@ public final class SentenceGenerator implements Generator<String> {
      * @param words optional exact word count (positive)
      */
     public record SentenceOptions(Integer words) {
+
         public SentenceOptions {
             if (words != null && words <= 0) {
                 throw new IllegalArgumentException("words must be positive, got: " + words);

@@ -22,7 +22,9 @@ public enum DiceType {
         this.sides = sides;
     }
 
-    /** Number of faces on this die. */
+    /**
+     * Number of faces on this die.
+     */
     public int sides() {
         return sides;
     }

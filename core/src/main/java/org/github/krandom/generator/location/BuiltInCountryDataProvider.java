@@ -14,7 +14,7 @@ import java.util.Locale;
  */
 final class BuiltInCountryDataProvider implements CountryDataProvider {
 
-    private final Locale locale;
+    private final Locale   locale;
     private final String[] countries;
 
     BuiltInCountryDataProvider(SupportedLocale supportedLocale) {

@@ -27,12 +27,18 @@ import java.util.Locale;
  */
 public interface GenderDataProvider {
 
-    /** The locale this provider supplies labels for. */
+    /**
+     * The locale this provider supplies labels for.
+     */
     Locale getLocale();
 
-    /** Localized label for the male gender (e.g., {@code "Male"}, {@code "Homme"}, {@code "男性"}). */
+    /**
+     * Localized label for the male gender (e.g., {@code "Male"}, {@code "Homme"}, {@code "男性"}).
+     */
     String getMaleLabel();
 
-    /** Localized label for the female gender (e.g., {@code "Female"}, {@code "Femme"}, {@code "女性"}). */
+    /**
+     * Localized label for the female gender (e.g., {@code "Female"}, {@code "Femme"}, {@code "女性"}).
+     */
     String getFemaleLabel();
 }

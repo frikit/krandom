@@ -14,7 +14,7 @@ import java.util.Objects;
  * <pre>{@code
  *   CreditCardGenerator gen = new CreditCardGenerator(CardType.VISA);
  *   CardInfo info = gen.generateWithType();
- *   
+ *
  *   System.out.println("Card: " + info.cardNumber());       // "4532 1488 0343 6467"
  *   System.out.println("Type: " + info.cardType());         // VISA
  *   System.out.println("CVV: " + info.cvv());               // "123"
@@ -22,18 +22,18 @@ import java.util.Objects;
  * }</pre>
  */
 public record CardInfo(
-        String cardNumber,
-        CardType cardType,
-        String cvv,
-        String expirationDate
+    String cardNumber,
+    CardType cardType,
+    String cvv,
+    String expirationDate
 ) {
-    
+
     /**
      * Creates a new CardInfo instance.
      *
-     * @param cardNumber the card number (formatted or unformatted)
-     * @param cardType the card type
-     * @param cvv the CVV/CVC code
+     * @param cardNumber     the card number (formatted or unformatted)
+     * @param cardType       the card type
+     * @param cvv            the CVV/CVC code
      * @param expirationDate the expiration date in MM/YY format
      * @throws NullPointerException if any parameter is {@code null}
      */

@@ -62,67 +62,101 @@ import java.util.Objects;
  */
 public final class ObjectGenerator<T> implements Generator<T> {
 
-    /** Thread-safe Objenesis instance; caches instantiation strategies per class. */
+    /**
+     * Thread-safe Objenesis instance; caches instantiation strategies per class.
+     */
     private static final Objenesis OBJENESIS = new ObjenesisStd();
 
-    private final Class<T> type;
+    private final Class<T>              type;
     private final ObjectGeneratorConfig config;
-    private final ObjectPool pool;
-    private final int depth;
+    private final ObjectPool            pool;
+    private final int                   depth;
 
     // ── Public constructors ───────────────────────────────────────────────────
 
-    /** Creates a generator with default configuration. */
+    /**
+     * Creates a generator with default configuration.
+     */
     public ObjectGenerator(Class<T> type) {
         this(type, ObjectGeneratorConfig.defaults());
     }
 
-    /** Creates a generator with custom configuration. */
+    /**
+     * Creates a generator with custom configuration.
+     */
     public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
         this(type, config, 0, null);
     }
 
-    /** Internal constructor — depth and pool are managed by {@link FieldGeneratorResolver}. */
+    /**
+     * Internal constructor — depth and pool are managed by {@link FieldGeneratorResolver}.
+     */
     ObjectGenerator(Class<T> type, ObjectGeneratorConfig config, int depth, ObjectPool pool) {
-        this.type     = Objects.requireNonNull(type,   "type must not be null");
-        this.config   = Objects.requireNonNull(config, "config must not be null");
-        this.depth    = depth;
-        this.pool     = pool;
+        this.type = Objects.requireNonNull(type, "type must not be null");
+        this.config = Objects.requireNonNull(config, "config must not be null");
+        this.depth = depth;
+        this.pool = pool;
     }
 
     // ── Generator<T> ─────────────────────────────────────────────────────────
+
+    /**
+     * Returns the JVM default value for a primitive type, or {@code null} for reference types.
+     * Used when a record component is excluded from generation.
+     * Each primitive type gets its exact wrapper to satisfy {@link java.lang.reflect.Constructor#newInstance}.
+     */
+    private static Object defaultForType(Class<?> type) {
+        if (type == boolean.class) return false;
+        if (type == byte.class) return (byte) 0;
+        if (type == short.class) return (short) 0;
+        if (type == int.class) return 0;
+        if (type == long.class) return 0L;
+        if (type == float.class) return 0.0f;
+        if (type == double.class) return 0.0;
+        if (type == char.class) return '\0';
+        return null;
+    }
+
+    private static boolean isDefaultValue(Object value, Class<?> type) {
+        if (!type.isPrimitive()) return value == null;
+        return Objects.equals(value, defaultForType(type));
+    }
+
+    // ── Record population ─────────────────────────────────────────────────────
 
     @Override
     public T generate() {
         if (depth == 0 && pool == null) {
             // Fresh pool for each top-level generation call to prevent cross-call leakage.
             ObjectGenerator<T> scoped = new ObjectGenerator<>(
-                    type, config, 0, new ObjectPool(config.getObjectPoolSize()));
+                type, config, 0, new ObjectPool(config.getObjectPoolSize()));
             return scoped.generateWithPool();
         }
         return generateWithPool();
     }
 
+    // ── Class population ──────────────────────────────────────────────────────
+
     private T generateWithPool() {
         FieldGeneratorResolver resolver =
-                new FieldGeneratorResolver(config, Objects.requireNonNull(pool, "pool must not be null"));
+            new FieldGeneratorResolver(config, Objects.requireNonNull(pool, "pool must not be null"));
         try {
             return type.isRecord() ? generateRecord(resolver) : generateClass(resolver);
         } catch (ReflectiveOperationException e) {
             throw new ObjectGenerationException(
-                    "Failed to generate instance of " + type.getName() + ": " + e.getMessage(), e);
+                "Failed to generate instance of " + type.getName() + ": " + e.getMessage(), e);
         }
     }
 
-    // ── Record population ─────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private T generateRecord(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
         RecordComponent[] components = type.getRecordComponents();
 
         // Build parallel arrays: types[] for the constructor lookup, args[] for invocation
         Class<?>[] paramTypes = Arrays.stream(components)
-                .map(RecordComponent::getType)
-                .toArray(Class[]::new);
+                                      .map(RecordComponent::getType)
+                                      .toArray(Class[]::new);
 
         Object[] args = new Object[components.length];
         for (int i = 0; i < components.length; i++) {
@@ -134,12 +168,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 args[i] = defaultForType(comp.getType());
             } else {
                 args[i] = resolver.resolveAndGenerate(
-                        comp.getGenericType(),
-                        comp.getType(),
-                        comp.getName(),
-                        type,
-                        depth,
-                        backingField);
+                    comp.getGenericType(),
+                    comp.getType(),
+                    comp.getName(),
+                    type,
+                    depth,
+                    backingField);
             }
         }
 
@@ -147,8 +181,6 @@ public final class ObjectGenerator<T> implements Generator<T> {
         canonical.setAccessible(true);
         return canonical.newInstance(args);
     }
-
-    // ── Class population ──────────────────────────────────────────────────────
 
     private T generateClass(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
         T instance = instantiate(); // may throw ReflectiveOperationException for throwing constructors
@@ -160,27 +192,25 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 continue;
             }
             Object value = resolver.resolveAndGenerate(
-                    field.getGenericType(),
-                    field.getType(),
-                    field.getName(),
-                    field.getDeclaringClass(),
-                    depth,
-                    field);
+                field.getGenericType(),
+                field.getType(),
+                field.getName(),
+                field.getDeclaringClass(),
+                depth,
+                field);
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
                 if (!config.isIgnoreErrors()) {
                     throw new ObjectGenerationException(
-                            "Could not set field '" + field.getDeclaringClass().getSimpleName()
-                                    + "." + field.getName() + "' to value " + value, e);
+                        "Could not set field '" + field.getDeclaringClass().getSimpleName()
+                        + "." + field.getName() + "' to value " + value, e);
                 }
                 // ignoreErrors=true: silently leave field at its initialized value
             }
         }
         return instance;
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
      * Instantiate {@code type} without populating fields.
@@ -217,7 +247,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
             for (Field f : current.getDeclaredFields()) {
                 int mods = f.getModifiers();
                 if (Modifier.isStatic(mods)) continue;  // class-level, not instance
-                if (Modifier.isFinal(mods))  continue;  // immutable after construction
+                if (Modifier.isFinal(mods)) continue;  // immutable after construction
                 fields.add(f);
             }
             current = current.getSuperclass();
@@ -231,30 +261,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
             return !isDefaultValue(currentValue, field.getType());
         } catch (IllegalAccessException e) {
             throw new IllegalStateException("Field should be accessible: "
-                    + field.getDeclaringClass().getSimpleName() + "." + field.getName(), e);
+                                            + field.getDeclaringClass().getSimpleName() + "." + field.getName(), e);
         }
-    }
-
-    /**
-     * Returns the JVM default value for a primitive type, or {@code null} for reference types.
-     * Used when a record component is excluded from generation.
-     * Each primitive type gets its exact wrapper to satisfy {@link java.lang.reflect.Constructor#newInstance}.
-     */
-    private static Object defaultForType(Class<?> type) {
-        if (type == boolean.class) return false;
-        if (type == byte.class)    return (byte)  0;
-        if (type == short.class)   return (short) 0;
-        if (type == int.class)     return 0;
-        if (type == long.class)    return 0L;
-        if (type == float.class)   return 0.0f;
-        if (type == double.class)  return 0.0;
-        if (type == char.class)    return '\0';
-        return null;
-    }
-
-    private static boolean isDefaultValue(Object value, Class<?> type) {
-        if (!type.isPrimitive()) return value == null;
-        return Objects.equals(value, defaultForType(type));
     }
 
     // ── Diagnostic ───────────────────────────────────────────────────────────

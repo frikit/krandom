@@ -34,7 +34,7 @@ import java.util.Set;
 public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integer> {
 
     private static final int MAX_RETRY_ATTEMPTS = 10000;
-    
+
     private final Set<Integer> excludedValues;
 
     public NaturalNumberGenerator() {
@@ -71,7 +71,7 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
         for (int value : values) {
             newExclusions.add(value);
         }
-        
+
         // Create new instance with updated exclusions
         Long seed = null; // Cannot extract seed from existing generator
         return new NaturalNumberGenerator(getMin(), getMax(), seed, newExclusions);
@@ -83,7 +83,7 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
      * <p>Excluded values within the range will be skipped.
      *
      * @throws IllegalArgumentException if {@code min == max}
-     * @throws IllegalStateException if all values in range are excluded
+     * @throws IllegalStateException    if all values in range are excluded
      */
     @Override
     public Integer generate(Integer min, Integer max) {
@@ -99,12 +99,12 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
         // Count how many values in range are excluded
         long rangeSize = (long) hi - lo;
         long excludedInRange = excludedValues.stream()
-                .filter(v -> v >= lo && v < hi)
-                .count();
+                                             .filter(v -> v >= lo && v < hi)
+                                             .count();
 
         if (excludedInRange >= rangeSize) {
             throw new IllegalStateException(
-                    "All values in range [" + lo + ", " + hi + ") are excluded");
+                "All values in range [" + lo + ", " + hi + ") are excluded");
         }
 
         // Generate with retry for excluded values
@@ -118,6 +118,6 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
         }
 
         throw new IllegalStateException(
-                "Failed to generate non-excluded value after " + MAX_RETRY_ATTEMPTS + " attempts");
+            "Failed to generate non-excluded value after " + MAX_RETRY_ATTEMPTS + " attempts");
     }
 }

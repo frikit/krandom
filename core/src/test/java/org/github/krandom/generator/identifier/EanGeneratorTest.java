@@ -12,7 +12,10 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("EanGenerator")
 class EanGeneratorTest {
@@ -68,7 +71,7 @@ class EanGeneratorTest {
         method.setAccessible(true);
 
         InvocationTargetException thrown = assertThrows(InvocationTargetException.class,
-                () -> method.invoke(generator, 9, null));
+                                                        () -> method.invoke(generator, 9, null));
         assertInstanceOf(IllegalArgumentException.class, thrown.getCause());
     }
 }

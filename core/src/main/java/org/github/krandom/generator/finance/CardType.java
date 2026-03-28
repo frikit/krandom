@@ -19,57 +19,57 @@ import java.util.List;
  * </ul>
  */
 public enum CardType {
-    
+
     /**
      * Visa cards starting with 4, typically 16 digits (also supports 13-digit legacy format).
      */
     VISA("Visa", List.of("4"), List.of(16, 13), 3),
-    
+
     /**
      * Mastercard with prefixes 51-55 or 2221-2720, 16 digits.
      */
-    MASTERCARD("Mastercard", 
-               List.of("51", "52", "53", "54", "55", "2221-2720"), 
-               List.of(16), 
+    MASTERCARD("Mastercard",
+               List.of("51", "52", "53", "54", "55", "2221-2720"),
+               List.of(16),
                3),
-    
+
     /**
      * American Express (Amex) with prefixes 34 or 37, 15 digits, 4-digit CVV.
      */
     AMEX("American Express", List.of("34", "37"), List.of(15), 4),
-    
+
     /**
      * Discover cards with prefixes 6011, 644-649, or 65, 16 digits.
      */
     DISCOVER("Discover", List.of("6011", "644-649", "65"), List.of(16), 3),
-    
+
     /**
      * JCB cards with prefixes 3528-3589, 16 digits.
      */
     JCB("JCB", List.of("3528-3589"), List.of(16), 3),
-    
+
     /**
      * Diners Club with prefixes 300-305, 36, or 38, 14 digits.
      */
     DINERS_CLUB("Diners Club", List.of("300-305", "36", "38"), List.of(14), 3),
-    
+
     /**
      * Random card type - when used, a random card type will be selected from the above options.
      */
     RANDOM("Random", List.of(), List.of(), 3);
-    
-    private final String displayName;
-    private final List<String> prefixPatterns;
+
+    private final String        displayName;
+    private final List<String>  prefixPatterns;
     private final List<Integer> cardLengths;
-    private final int cvvLength;
-    
+    private final int           cvvLength;
+
     CardType(String displayName, List<String> prefixPatterns, List<Integer> cardLengths, int cvvLength) {
         this.displayName = displayName;
         this.prefixPatterns = prefixPatterns;
         this.cardLengths = cardLengths;
         this.cvvLength = cvvLength;
     }
-    
+
     /**
      * Returns the display name of this card type.
      *
@@ -78,7 +78,7 @@ public enum CardType {
     public String getDisplayName() {
         return displayName;
     }
-    
+
     /**
      * Returns the list of prefix patterns for this card type.
      * Patterns can be single values (e.g., "4") or ranges (e.g., "51-55").
@@ -88,7 +88,7 @@ public enum CardType {
     public List<String> getPrefixPatterns() {
         return prefixPatterns;
     }
-    
+
     /**
      * Returns the valid card number lengths for this card type.
      *
@@ -97,7 +97,7 @@ public enum CardType {
     public List<Integer> getCardLengths() {
         return cardLengths;
     }
-    
+
     /**
      * Returns the CVV length for this card type (3 for most cards, 4 for Amex).
      *

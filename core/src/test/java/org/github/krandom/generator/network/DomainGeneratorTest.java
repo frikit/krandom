@@ -13,7 +13,13 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DomainGeneratorTest {
 
@@ -190,14 +196,14 @@ class DomainGeneratorTest {
         DomainGenerator generator = new DomainGenerator();
         Method m = DomainGenerator.class.getDeclaredMethod("getLocaleTLD", Locale.class);
         m.setAccessible(true);
-        assertNull(m.invoke(generator, new Object[]{null}));
+        assertNull(m.invoke(generator, new Object[] { null }));
     }
 
     @Test
     void testSeededGeneratorProducesSameResults() {
         DomainGenerator gen1 = new DomainGenerator(GeneratorConfig.builder().seed(42L).build());
         DomainGenerator gen2 = new DomainGenerator(GeneratorConfig.builder().seed(42L).build());
-        
+
         assertEquals(gen1.generate(), gen2.generate());
         assertEquals(gen1.generate(), gen2.generate());
         assertEquals(gen1.generate(), gen2.generate());
@@ -207,7 +213,7 @@ class DomainGeneratorTest {
     void testSeededGeneratorWithTLDProducesSameResults() {
         DomainGenerator gen1 = new DomainGenerator(GeneratorConfig.builder().seed(999L).build());
         DomainGenerator gen2 = new DomainGenerator(GeneratorConfig.builder().seed(999L).build());
-        
+
         assertEquals(gen1.generate("com"), gen2.generate("com"));
         assertEquals(gen1.generate("org"), gen2.generate("org"));
     }
@@ -216,7 +222,7 @@ class DomainGeneratorTest {
     void testDifferentSeedsProduceDifferentResults() {
         DomainGenerator gen1 = new DomainGenerator(GeneratorConfig.builder().seed(100L).build());
         DomainGenerator gen2 = new DomainGenerator(GeneratorConfig.builder().seed(200L).build());
-        
+
         assertNotEquals(gen1.generate(), gen2.generate());
     }
 
@@ -293,7 +299,7 @@ class DomainGeneratorTest {
     void testSeededGeneratorGetTLDConsistency() {
         DomainGenerator gen1 = new DomainGenerator(GeneratorConfig.builder().seed(555L).build());
         DomainGenerator gen2 = new DomainGenerator(GeneratorConfig.builder().seed(555L).build());
-        
+
         for (int i = 0; i < 10; i++) {
             assertEquals(gen1.getTLD(), gen2.getTLD());
         }
@@ -304,7 +310,7 @@ class DomainGeneratorTest {
         DomainGenerator frGenerator = new DomainGenerator(Locale.FRANCE);
         boolean foundFrTLD = false;
         boolean foundPopularTLD = false;
-        
+
         for (int i = 0; i < 100; i++) {
             String domain = frGenerator.generate();
             if (domain.endsWith(".fr")) {
@@ -314,7 +320,7 @@ class DomainGeneratorTest {
             }
             if (foundFrTLD && foundPopularTLD) break;
         }
-        
+
         assertTrue(foundFrTLD, "Should sometimes use locale TLD");
         assertTrue(foundPopularTLD, "Should sometimes use popular TLD");
     }
@@ -324,7 +330,7 @@ class DomainGeneratorTest {
         DomainGenerator jpGenerator = new DomainGenerator(Locale.JAPAN);
         boolean foundJpTLD = false;
         boolean foundPopularTLD = false;
-        
+
         for (int i = 0; i < 100; i++) {
             String tld = jpGenerator.getTLD();
             if ("jp".equals(tld)) {
@@ -334,7 +340,7 @@ class DomainGeneratorTest {
             }
             if (foundJpTLD && foundPopularTLD) break;
         }
-        
+
         assertTrue(foundJpTLD, "Should sometimes use locale TLD");
         assertTrue(foundPopularTLD, "Should sometimes use popular TLD");
     }
@@ -343,7 +349,7 @@ class DomainGeneratorTest {
     void testSingleWordDomainNames() {
         DomainGenerator generator = new DomainGenerator(GeneratorConfig.builder().seed(111L).build());
         boolean foundSingleWord = false;
-        
+
         for (int i = 0; i < 50; i++) {
             String domain = generator.generate("test");
             String name = domain.substring(0, domain.lastIndexOf('.'));
@@ -353,7 +359,7 @@ class DomainGeneratorTest {
                 break;
             }
         }
-        
+
         assertTrue(foundSingleWord, "Should generate some single-word domains");
     }
 
@@ -361,7 +367,7 @@ class DomainGeneratorTest {
     void testTwoWordDomainNames() {
         DomainGenerator generator = new DomainGenerator(GeneratorConfig.builder().seed(222L).build());
         boolean foundTwoWords = false;
-        
+
         for (int i = 0; i < 50; i++) {
             String domain = generator.generate("test");
             String name = domain.substring(0, domain.lastIndexOf('.'));
@@ -371,7 +377,7 @@ class DomainGeneratorTest {
                 break;
             }
         }
-        
+
         assertTrue(foundTwoWords, "Should generate some two-word domains");
     }
 
@@ -380,7 +386,7 @@ class DomainGeneratorTest {
         // Test with a generator that has null localeTLD
         DomainGenerator nullLocaleGen = new DomainGenerator(new Locale("xx", "XX"));
         assertNull(nullLocaleGen.getLocaleTLD());
-        
+
         // Generate many times - with null localeTLD, should always use popular TLD
         for (int i = 0; i < 20; i++) {
             String domain = nullLocaleGen.generate();
@@ -392,36 +398,36 @@ class DomainGeneratorTest {
     void testGenerateCoversBothTLDPaths() {
         // Seed that produces mix of true/false for nextBoolean()
         DomainGenerator gen = new DomainGenerator(GeneratorConfig.builder()
-                .seed(12345L)
-                .locale(Locale.GERMANY)
-                .build());
-        
+                                                                 .seed(12345L)
+                                                                 .locale(Locale.GERMANY)
+                                                                 .build());
+
         Set<String> tlds = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             String domain = gen.generate();
             String tld = domain.substring(domain.lastIndexOf('.') + 1);
             tlds.add(tld);
         }
-        
+
         // Should have both .de and popular TLDs
         boolean hasLocaleTLD = tlds.contains("de");
         boolean hasPopularTLD = tlds.stream().anyMatch(t -> !t.equals("de"));
-        
+
         assertTrue(hasLocaleTLD || hasPopularTLD, "Should generate at least one type of TLD");
     }
 
     @Test
     void testGetTLDCoversBothPaths() {
         DomainGenerator gen = new DomainGenerator(GeneratorConfig.builder()
-                .seed(54321L)
-                .locale(Locale.JAPAN)
-                .build());
-        
+                                                                 .seed(54321L)
+                                                                 .locale(Locale.JAPAN)
+                                                                 .build());
+
         Set<String> tlds = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             tlds.add(gen.getTLD());
         }
-        
+
         // Should have variety
         assertTrue(tlds.size() > 1, "Should generate multiple TLDs");
     }
@@ -429,16 +435,16 @@ class DomainGeneratorTest {
     @Test
     void testGenerateDomainNameCoversBothPaths() {
         DomainGenerator gen = new DomainGenerator(GeneratorConfig.builder()
-                .seed(11111L)
-                .build());
-        
+                                                                 .seed(11111L)
+                                                                 .build());
+
         Set<Integer> nameLengths = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             String domain = gen.generate("test");
             String name = domain.substring(0, domain.lastIndexOf('.'));
             nameLengths.add(name.length());
         }
-        
+
         // Should have variety in name lengths (single vs double words)
         assertTrue(nameLengths.size() > 1, "Should generate names of varying lengths");
     }
@@ -448,7 +454,7 @@ class DomainGeneratorTest {
         // Ensure we hit the branch where random.nextBoolean() returns true but localeTLD is null
         DomainGenerator gen = new DomainGenerator(new Locale("zz", "ZZ")); // Unknown locale
         assertNull(gen.getLocaleTLD());
-        
+
         // Generate many - should only get popular TLDs since localeTLD is null
         for (int i = 0; i < 50; i++) {
             String domain = gen.generate();
@@ -460,7 +466,7 @@ class DomainGeneratorTest {
     void testGetTLDWhenLocaleTLDIsNullBranch() {
         DomainGenerator gen = new DomainGenerator(new Locale("aa", "AA")); // Unknown locale
         assertNull(gen.getLocaleTLD());
-        
+
         for (int i = 0; i < 50; i++) {
             String tld = gen.getTLD();
             assertNotNull(tld);
@@ -471,17 +477,17 @@ class DomainGeneratorTest {
     void testGenerateForcesBothBranchesOfBoolean() {
         // Seed that gives predictable nextBoolean() sequence
         DomainGenerator gen1 = new DomainGenerator(GeneratorConfig.builder()
-                .seed(0L)
-                .locale(Locale.FRANCE)
-                .build());
-        
+                                                                  .seed(0L)
+                                                                  .locale(Locale.FRANCE)
+                                                                  .build());
+
         // Generate many to force both true and false branches
         Set<Boolean> branches = new HashSet<>();
         for (int i = 0; i < 200; i++) {
             String domain = gen1.generate();
             branches.add(domain.endsWith(".fr"));
         }
-        
+
         // Should hit both branches (true and false)
         assertTrue(branches.size() >= 1, "Should generate at least one type");
     }

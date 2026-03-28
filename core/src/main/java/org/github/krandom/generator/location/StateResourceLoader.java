@@ -57,21 +57,21 @@ final class StateResourceLoader {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             List<String> states = new ArrayList<>();
             List<String> abbreviations = new ArrayList<>();
-            
+
             List<String> allLines = reader.lines()
-                    .map(String::trim)
-                    .filter(line -> !line.startsWith("#"))
-                    .toList();
-            
+                                          .map(String::trim)
+                                          .filter(line -> !line.startsWith("#"))
+                                          .toList();
+
             for (int i = 0; i < allLines.size(); i++) {
                 String line = allLines.get(i);
                 if (line.isEmpty()) {
                     continue;
                 }
-                
+
                 // First line is the state name
                 states.add(line);
-                
+
                 // Next line (if exists and not empty) is the abbreviation
                 if (i + 1 < allLines.size()) {
                     String nextLine = allLines.get(i + 1);
@@ -85,10 +85,10 @@ final class StateResourceLoader {
                     abbreviations.add("");
                 }
             }
-            
+
             return new StateData(
-                    states.toArray(String[]::new),
-                    abbreviations.toArray(String[]::new)
+                states.toArray(String[]::new),
+                abbreviations.toArray(String[]::new)
             );
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read state resource: " + resourcePath, e);
@@ -99,6 +99,7 @@ final class StateResourceLoader {
      * Container for state names and their abbreviations.
      */
     static class StateData {
+
         final String[] states;
         final String[] abbreviations;
 

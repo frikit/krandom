@@ -24,31 +24,13 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — concrete queue/sorted collections")
 class ObjectGeneratorCollectionsConcreteTest {
-
-    static class ConcreteCollectionsHolder {
-        ArrayList<String> arrayList;
-        Vector<String> vector;
-        Stack<String> stack;
-        CopyOnWriteArrayList<String> copyOnWriteArrayList;
-        ArrayDeque<String> arrayDeque;
-        PriorityQueue<String> priorityQueue;
-        TreeSet<String> treeSet;
-        TreeMap<String, Integer> treeMap;
-        LinkedList<String> linkedList;
-    }
-
-    static class InterfaceCollectionsHolder {
-        Queue<String> queue;
-        SortedSet<String> sortedSet;
-        NavigableSet<String> navigableSet;
-        SortedMap<String, Integer> sortedMap;
-        NavigableMap<String, Integer> navigableMap;
-        Map<String, Integer> plainMap;
-    }
 
     @Test
     @DisplayName("concrete queue/sorted collections are populated with matching implementations")
@@ -90,5 +72,30 @@ class ObjectGeneratorCollectionsConcreteTest {
         assertTrue(value.sortedMap instanceof TreeMap);
         assertTrue(value.navigableMap instanceof TreeMap);
         assertThrows(UnsupportedOperationException.class, () -> value.plainMap.put("x", 1));
+    }
+
+
+    static class ConcreteCollectionsHolder {
+
+        ArrayList<String>            arrayList;
+        Vector<String>               vector;
+        Stack<String>                stack;
+        CopyOnWriteArrayList<String> copyOnWriteArrayList;
+        ArrayDeque<String>           arrayDeque;
+        PriorityQueue<String>        priorityQueue;
+        TreeSet<String>              treeSet;
+        TreeMap<String, Integer>     treeMap;
+        LinkedList<String>           linkedList;
+    }
+
+
+    static class InterfaceCollectionsHolder {
+
+        Queue<String>                 queue;
+        SortedSet<String>             sortedSet;
+        NavigableSet<String>          navigableSet;
+        SortedMap<String, Integer>    sortedMap;
+        NavigableMap<String, Integer> navigableMap;
+        Map<String, Integer>          plainMap;
     }
 }

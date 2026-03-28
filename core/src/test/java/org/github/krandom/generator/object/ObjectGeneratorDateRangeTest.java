@@ -12,18 +12,20 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("ObjectGenerator — global date range configuration")
 class ObjectGeneratorDateRangeTest {
 
-    private static final LocalDate MIN = LocalDate.of(2020, 1, 1);
-    private static final LocalDate MAX = LocalDate.of(2023, 12, 31);
-    private static final int SAMPLES = 50;
+    private static final LocalDate MIN     = LocalDate.of(2020, 1, 1);
+    private static final LocalDate MAX     = LocalDate.of(2023, 12, 31);
+    private static final int       SAMPLES = 50;
 
     private final ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-            .dateRange(MIN, MAX)
-            .build();
+                                                                      .dateRange(MIN, MAX)
+                                                                      .build();
 
     @Test
     @DisplayName("LocalDate field is within configured range")
@@ -33,7 +35,7 @@ class ObjectGeneratorDateRangeTest {
             LocalDate v = gen.generate().getDob();
             assertNotNull(v);
             assertFalse(v.isBefore(MIN), "LocalDate " + v + " < min " + MIN);
-            assertFalse(v.isAfter(MAX),  "LocalDate " + v + " > max " + MAX);
+            assertFalse(v.isAfter(MAX), "LocalDate " + v + " > max " + MAX);
         }
     }
 
@@ -44,7 +46,7 @@ class ObjectGeneratorDateRangeTest {
         for (int i = 0; i < SAMPLES; i++) {
             LocalDate d = gen.generate().getCreatedAt().toLocalDate();
             assertFalse(d.isBefore(MIN), "LocalDateTime date " + d + " < min");
-            assertFalse(d.isAfter(MAX),  "LocalDateTime date " + d + " > max");
+            assertFalse(d.isAfter(MAX), "LocalDateTime date " + d + " > max");
         }
     }
 
@@ -55,7 +57,7 @@ class ObjectGeneratorDateRangeTest {
         for (int i = 0; i < SAMPLES; i++) {
             LocalDate d = gen.generate().getUpdatedAt().atOffset(ZoneOffset.UTC).toLocalDate();
             assertFalse(d.isBefore(MIN), "Instant date " + d + " < min");
-            assertFalse(d.isAfter(MAX),  "Instant date " + d + " > max");
+            assertFalse(d.isAfter(MAX), "Instant date " + d + " > max");
         }
     }
 
@@ -66,7 +68,7 @@ class ObjectGeneratorDateRangeTest {
         for (int i = 0; i < SAMPLES; i++) {
             LocalDate d = gen.generate().getScheduledAt().toLocalDate();
             assertFalse(d.isBefore(MIN), "ZonedDateTime date " + d + " < min");
-            assertFalse(d.isAfter(MAX),  "ZonedDateTime date " + d + " > max");
+            assertFalse(d.isAfter(MAX), "ZonedDateTime date " + d + " > max");
         }
     }
 
@@ -74,6 +76,6 @@ class ObjectGeneratorDateRangeTest {
     @DisplayName("dateRange(min > max) throws IllegalArgumentException")
     void invalidRangeThrows() {
         assertThrows(IllegalArgumentException.class,
-                () -> ObjectGeneratorConfig.builder().dateRange(MAX, MIN).build());
+                     () -> ObjectGeneratorConfig.builder().dateRange(MAX, MIN).build());
     }
 }

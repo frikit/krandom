@@ -17,7 +17,7 @@ import java.util.Random;
  */
 public final class SemverGenerator implements Generator<String> {
 
-    private static final String[] PRE_RELEASES = {"alpha", "beta", "rc"};
+    private static final String[] PRE_RELEASES = { "alpha", "beta", "rc" };
 
     private final Random random;
 
@@ -28,8 +28,8 @@ public final class SemverGenerator implements Generator<String> {
     public SemverGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

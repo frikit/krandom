@@ -15,7 +15,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Base-type generators")
 class BaseTypeGeneratorsTest {
@@ -23,6 +28,7 @@ class BaseTypeGeneratorsTest {
     private static final int SAMPLES = 200;
 
     // ── ByteGenerator ─────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("ByteGenerator")
@@ -35,7 +41,7 @@ class BaseTypeGeneratorsTest {
             for (int i = 0; i < SAMPLES; i++) {
                 byte v = gen.generate();
                 assertTrue(v >= Byte.MIN_VALUE && v < Byte.MAX_VALUE,
-                        "Expected value in [-128, 127), got: " + v);
+                           "Expected value in [-128, 127), got: " + v);
             }
         }
 
@@ -76,6 +82,7 @@ class BaseTypeGeneratorsTest {
 
     // ── ShortGenerator ────────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("ShortGenerator")
     class ShortGeneratorTest {
@@ -109,6 +116,7 @@ class BaseTypeGeneratorsTest {
     }
 
     // ── IntGenerator ──────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("IntGenerator")
@@ -217,6 +225,7 @@ class BaseTypeGeneratorsTest {
 
     // ── LongGenerator ─────────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("LongGenerator")
     class LongGeneratorTest {
@@ -250,6 +259,7 @@ class BaseTypeGeneratorsTest {
     }
 
     // ── FloatGenerator ────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("FloatGenerator")
@@ -302,7 +312,7 @@ class BaseTypeGeneratorsTest {
                 float scaled = v * 100;
                 float remainder = Math.abs(scaled - Math.round(scaled));
                 assertTrue(remainder < 0.001f,
-                        "Expected at most 2 decimal places, got: " + v + " (remainder: " + remainder + ")");
+                           "Expected at most 2 decimal places, got: " + v + " (remainder: " + remainder + ")");
             }
         }
 
@@ -333,6 +343,7 @@ class BaseTypeGeneratorsTest {
     }
 
     // ── DoubleGenerator ───────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("DoubleGenerator")
@@ -385,7 +396,7 @@ class BaseTypeGeneratorsTest {
                 double scaled = v * 100;
                 double remainder = Math.abs(scaled - Math.round(scaled));
                 assertTrue(remainder < 0.000001,
-                        "Expected at most 2 decimal places, got: " + v + " (remainder: " + remainder + ")");
+                           "Expected at most 2 decimal places, got: " + v + " (remainder: " + remainder + ")");
             }
         }
 
@@ -416,6 +427,7 @@ class BaseTypeGeneratorsTest {
     }
 
     // ── CharGenerator ─────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("CharGenerator")
@@ -458,7 +470,7 @@ class BaseTypeGeneratorsTest {
             List<Character> chars = gen.generateList(500);
             assertTrue(chars.stream().anyMatch(Character::isUpperCase), "No uppercase found");
             assertTrue(chars.stream().anyMatch(Character::isLowerCase), "No lowercase found");
-            assertTrue(chars.stream().anyMatch(Character::isDigit),     "No digit found");
+            assertTrue(chars.stream().anyMatch(Character::isDigit), "No digit found");
         }
 
         @Test
@@ -467,7 +479,7 @@ class BaseTypeGeneratorsTest {
             CharGenerator gen = CharGenerator.alphanumeric();
             List<Character> chars = gen.generateList(300);
             assertTrue(chars.stream().anyMatch(Character::isLetter), "No letter found");
-            assertTrue(chars.stream().anyMatch(Character::isDigit),  "No digit found");
+            assertTrue(chars.stream().anyMatch(Character::isDigit), "No digit found");
         }
 
         @Test
@@ -490,6 +502,7 @@ class BaseTypeGeneratorsTest {
 
     // ── BooleanGenerator ──────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("BooleanGenerator")
     class BooleanGeneratorTest {
@@ -500,7 +513,7 @@ class BaseTypeGeneratorsTest {
             BooleanGenerator gen = new BooleanGenerator();
             Set<Boolean> seen = new HashSet<>();
             for (int i = 0; i < SAMPLES; i++) seen.add(gen.generate());
-            assertTrue(seen.contains(true),  "Never saw true");
+            assertTrue(seen.contains(true), "Never saw true");
             assertTrue(seen.contains(false), "Never saw false");
         }
 
@@ -516,6 +529,7 @@ class BaseTypeGeneratorsTest {
     }
 
     // ── StringGenerator ───────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("StringGenerator")
@@ -544,13 +558,13 @@ class BaseTypeGeneratorsTest {
         @DisplayName("digits-only charGenerator produces numeric strings")
         void numericString() {
             StringGenerator gen = StringGenerator.builder()
-                    .charGenerator(CharGenerator.digits())
-                    .length(8)
-                    .build();
+                                                 .charGenerator(CharGenerator.digits())
+                                                 .length(8)
+                                                 .build();
             for (int i = 0; i < SAMPLES; i++) {
                 String v = gen.generate();
                 assertTrue(v.chars().allMatch(Character::isDigit),
-                        "Expected digits only, got: " + v);
+                           "Expected digits only, got: " + v);
             }
         }
 
@@ -577,28 +591,28 @@ class BaseTypeGeneratorsTest {
         @DisplayName("minLength < 1 throws IllegalArgumentException")
         void invalidMinLengthThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> StringGenerator.builder().minLength(0).build());
+                         () -> StringGenerator.builder().minLength(0).build());
         }
 
         @Test
         @DisplayName("maxLength < minLength throws IllegalArgumentException")
         void maxLessThanMinThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> StringGenerator.builder().minLength(10).maxLength(5).build());
+                         () -> StringGenerator.builder().minLength(10).maxLength(5).build());
         }
 
         @Test
         @DisplayName("length(0) throws IllegalArgumentException")
         void lengthZeroThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> StringGenerator.builder().length(0));
+                         () -> StringGenerator.builder().length(0));
         }
 
         @Test
         @DisplayName("maxLength(0) throws IllegalArgumentException")
         void maxLengthZeroThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> StringGenerator.builder().maxLength(0));
+                         () -> StringGenerator.builder().maxLength(0));
         }
 
         @Test
@@ -626,6 +640,7 @@ class BaseTypeGeneratorsTest {
     }
 
     // ── Generators factory ────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("Generators factory")
@@ -683,7 +698,7 @@ class BaseTypeGeneratorsTest {
         @DisplayName("forType with unknown type throws IllegalArgumentException")
         void forTypeUnknownThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> Generators.forType(Object.class));
+                         () -> Generators.forType(Object.class));
         }
 
         @Test
@@ -714,7 +729,7 @@ class BaseTypeGeneratorsTest {
         @DisplayName("generateList with negative count throws")
         void generateListNegativeThrows() {
             assertThrows(IllegalArgumentException.class,
-                    () -> Generators.ofInt().generateList(-1));
+                         () -> Generators.ofInt().generateList(-1));
         }
     }
 }

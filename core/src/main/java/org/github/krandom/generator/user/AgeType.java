@@ -31,12 +31,16 @@ public enum AgeType {
         this.maxAge = maxAge;
     }
 
-    /** Minimum age (inclusive) for this category. */
+    /**
+     * Minimum age (inclusive) for this category.
+     */
     public int getMinAge() {
         return minAge;
     }
 
-    /** Maximum age (inclusive) for this category. */
+    /**
+     * Maximum age (inclusive) for this category.
+     */
     public int getMaxAge() {
         return maxAge;
     }

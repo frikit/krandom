@@ -18,25 +18,29 @@ import java.util.Random;
 public final class IndustryGenerator implements Generator<String> {
 
     private static final String[] INDUSTRIES = {
-            "Technology", "Healthcare", "Finance", "Education", "Retail", "Manufacturing",
-            "Telecommunications", "Energy", "Transportation", "Construction", "Real Estate",
-            "Hospitality", "Media", "Entertainment", "Agriculture", "Aerospace", "Automotive",
-            "Biotechnology", "Consulting", "Cybersecurity"
+        "Technology", "Healthcare", "Finance", "Education", "Retail", "Manufacturing",
+        "Telecommunications", "Energy", "Transportation", "Construction", "Real Estate",
+        "Hospitality", "Media", "Entertainment", "Agriculture", "Aerospace", "Automotive",
+        "Biotechnology", "Consulting", "Cybersecurity"
     };
 
     private final Random random;
 
-    /** Creates an industry generator with default configuration. */
+    /**
+     * Creates an industry generator with default configuration.
+     */
     public IndustryGenerator() {
         this(GeneratorConfig.defaults());
     }
 
-    /** Creates an industry generator with the specified configuration. */
+    /**
+     * Creates an industry generator with the specified configuration.
+     */
     public IndustryGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

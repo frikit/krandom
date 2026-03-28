@@ -19,10 +19,10 @@ import java.util.Random;
 public final class BicGenerator implements Generator<String> {
 
     private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final String ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final String ALNUM   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     private final GeneratorConfig config;
-    private final Random random;
+    private final Random          random;
 
     public BicGenerator() {
         this(GeneratorConfig.defaults());
@@ -35,8 +35,8 @@ public final class BicGenerator implements Generator<String> {
     public BicGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

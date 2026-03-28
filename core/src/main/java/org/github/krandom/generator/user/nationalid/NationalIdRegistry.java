@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class NationalIdRegistry {
 
     private static final ConcurrentHashMap<String, NationalIdProvider> REGISTRY =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
 
     static {
         List.of(
@@ -53,7 +53,8 @@ public final class NationalIdRegistry {
         ).forEach(NationalIdRegistry::seedInternal);
     }
 
-    private NationalIdRegistry() {}
+    private NationalIdRegistry() {
+    }
 
     /**
      * Registers a custom national ID provider, making it available to {@link NationalIdGenerator}.

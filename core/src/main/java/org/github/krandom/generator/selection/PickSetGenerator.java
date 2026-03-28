@@ -22,14 +22,14 @@ import java.util.Random;
 public final class PickSetGenerator<T> implements Generator<List<T>> {
 
     private final List<T> source;
-    private final int count;
-    private final Random random;
+    private final int     count;
+    private final Random  random;
 
     /**
      * Creates a pick-set generator backed by {@link SecureRandom}.
      *
      * @param source source list; must not be null
-     * @param count number of unique elements to pick
+     * @param count  number of unique elements to pick
      */
     public PickSetGenerator(List<T> source, int count) {
         this(source, count, new SecureRandom());
@@ -39,8 +39,8 @@ public final class PickSetGenerator<T> implements Generator<List<T>> {
      * Creates a pick-set generator with deterministic seed support.
      *
      * @param source source list; must not be null
-     * @param count number of unique elements to pick
-     * @param seed deterministic seed
+     * @param count  number of unique elements to pick
+     * @param seed   deterministic seed
      */
     public PickSetGenerator(List<T> source, int count, long seed) {
         this(source, count, new Random(seed));

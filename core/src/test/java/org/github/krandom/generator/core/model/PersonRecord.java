@@ -8,15 +8,17 @@ package org.github.krandom.generator.core.model;
 /**
  * Java record — used to verify that {@link org.github.krandom.generator.object.ObjectGenerator}
  * discovers record components, generates values for each, and invokes the canonical constructor.
- *
+ * <p>
  * Records are intentionally immutable: the generator must use the canonical constructor
  * rather than no-arg construction + field injection.
  */
 public record PersonRecord(
-        String firstName,
-        String lastName,
-        int    age,
-        double salary,
-        Status status,
-        Address address
-) { }
+    String firstName,
+    String lastName,
+    int age,
+    double salary,
+    Status status,
+    Address address
+) {
+
+}

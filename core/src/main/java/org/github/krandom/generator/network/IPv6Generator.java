@@ -48,14 +48,16 @@ import java.util.StringJoiner;
  */
 public final class IPv6Generator implements Generator<String> {
 
-    private final GeneratorConfig config;
-    private final Random random;
-
-    /** Number of 16-bit groups in an IPv6 address (RFC 4291 §2.2). */
+    /**
+     * Number of 16-bit groups in an IPv6 address (RFC 4291 §2.2).
+     */
     private static final int GROUPS = 8;
-
-    /** Maximum value of one 16-bit group (0xFFFF = 65535). */
+    /**
+     * Maximum value of one 16-bit group (0xFFFF = 65535).
+     */
     private static final int GROUP_MAX = 0x10000; // nextInt(exclusive upper bound)
+    private final GeneratorConfig config;
+    private final Random          random;
 
     /**
      * Creates an IPv6 generator with default configuration.
@@ -73,8 +75,8 @@ public final class IPv6Generator implements Generator<String> {
     public IPv6Generator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**

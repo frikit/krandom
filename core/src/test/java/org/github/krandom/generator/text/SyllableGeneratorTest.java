@@ -12,7 +12,11 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("SyllableGenerator")
 class SyllableGeneratorTest {
@@ -68,7 +72,7 @@ class SyllableGeneratorTest {
         SyllableGenerator gen = new SyllableGenerator(GeneratorConfig.builder().seed(1L).build());
         Field phoneticsField = SyllableGenerator.class.getDeclaredField("phonetics");
         phoneticsField.setAccessible(true);
-        phoneticsField.set(gen, new WordPhonetics(new String[]{""}, new String[]{"a"}, new String[]{""}));
+        phoneticsField.set(gen, new WordPhonetics(new String[] { "" }, new String[] { "a" }, new String[] { "" }));
 
         String value = gen.generate(3);
         assertEquals("aaa", value);
@@ -91,10 +95,10 @@ class SyllableGeneratorTest {
     @DisplayName("same seed with different locales produces different sequence")
     void localeAffectsOutput() {
         SyllableGenerator us = new SyllableGenerator(
-                GeneratorConfig.builder().seed(7L).locale(Locale.US).build()
+            GeneratorConfig.builder().seed(7L).locale(Locale.US).build()
         );
         SyllableGenerator de = new SyllableGenerator(
-                GeneratorConfig.builder().seed(7L).locale(Locale.GERMANY).build()
+            GeneratorConfig.builder().seed(7L).locale(Locale.GERMANY).build()
         );
 
         StringBuilder usSeq = new StringBuilder();
@@ -110,10 +114,10 @@ class SyllableGeneratorTest {
     @DisplayName("language fallback applies for unsupported country variant")
     void languageFallback() {
         SyllableGenerator esEs = new SyllableGenerator(
-                GeneratorConfig.builder().seed(11L).locale(Locale.of("es", "ES")).build()
+            GeneratorConfig.builder().seed(11L).locale(Locale.of("es", "ES")).build()
         );
         SyllableGenerator esMx = new SyllableGenerator(
-                GeneratorConfig.builder().seed(11L).locale(Locale.of("es", "MX")).build()
+            GeneratorConfig.builder().seed(11L).locale(Locale.of("es", "MX")).build()
         );
 
         for (int i = 0; i < 20; i++) {
@@ -125,10 +129,10 @@ class SyllableGeneratorTest {
     @DisplayName("unknown language falls back to default English profile")
     void unknownLanguageFallback() {
         SyllableGenerator unknown = new SyllableGenerator(
-                GeneratorConfig.builder().seed(19L).locale(Locale.of("xx", "YY")).build()
+            GeneratorConfig.builder().seed(19L).locale(Locale.of("xx", "YY")).build()
         );
         SyllableGenerator english = new SyllableGenerator(
-                GeneratorConfig.builder().seed(19L).locale(Locale.US).build()
+            GeneratorConfig.builder().seed(19L).locale(Locale.US).build()
         );
 
         for (int i = 0; i < 20; i++) {
@@ -140,10 +144,10 @@ class SyllableGeneratorTest {
     @DisplayName("language-only locale resolves without country branch")
     void languageOnlyLocale() {
         SyllableGenerator deLangOnly = new SyllableGenerator(
-                GeneratorConfig.builder().seed(23L).locale(Locale.of("de")).build()
+            GeneratorConfig.builder().seed(23L).locale(Locale.of("de")).build()
         );
         SyllableGenerator deExact = new SyllableGenerator(
-                GeneratorConfig.builder().seed(23L).locale(Locale.GERMANY).build()
+            GeneratorConfig.builder().seed(23L).locale(Locale.GERMANY).build()
         );
 
         for (int i = 0; i < 20; i++) {

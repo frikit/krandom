@@ -6,4 +6,5 @@
 package org.github.krandom.generator.core.model;
 
 public class BaseJavaClass {
+
 }

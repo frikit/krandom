@@ -31,7 +31,9 @@ import java.util.stream.Stream;
 @FunctionalInterface
 public interface Generator<T> {
 
-    /** Produce one random value. */
+    /**
+     * Produce one random value.
+     */
     T generate();
 
     /**

@@ -31,15 +31,19 @@ import java.util.random.RandomGenerator;
 public final class BooleanGenerator implements Generator<Boolean> {
 
     private final RandomGenerator random;
-    private final int likelihood; // 0-100: probability of returning true
+    private final int             likelihood; // 0-100: probability of returning true
 
-    /** Uses {@link SecureRandom} — non-deterministic, 50% likelihood. */
+    /**
+     * Uses {@link SecureRandom} — non-deterministic, 50% likelihood.
+     */
     public BooleanGenerator() {
         this.random = new SecureRandom();
         this.likelihood = 50;
     }
 
-    /** Uses a seeded {@link Random} for deterministic, reproducible output with 50% likelihood. */
+    /**
+     * Uses a seeded {@link Random} for deterministic, reproducible output with 50% likelihood.
+     */
     public BooleanGenerator(long seed) {
         this.random = new Random(seed);
         this.likelihood = 50;
@@ -48,7 +52,7 @@ public final class BooleanGenerator implements Generator<Boolean> {
     /**
      * Private constructor for creating instances with custom likelihood.
      *
-     * @param random the random generator
+     * @param random     the random generator
      * @param likelihood probability of returning true (0-100)
      */
     private BooleanGenerator(RandomGenerator random, int likelihood) {
@@ -77,7 +81,7 @@ public final class BooleanGenerator implements Generator<Boolean> {
     public BooleanGenerator withLikelihood(int likelihood) {
         if (likelihood < 0 || likelihood > 100) {
             throw new IllegalArgumentException(
-                    "Likelihood must be between 0 and 100, got: " + likelihood);
+                "Likelihood must be between 0 and 100, got: " + likelihood);
         }
         return new BooleanGenerator(this.random, likelihood);
     }

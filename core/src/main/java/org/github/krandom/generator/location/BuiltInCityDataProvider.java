@@ -14,7 +14,7 @@ import java.util.Locale;
  */
 final class BuiltInCityDataProvider implements CityDataProvider {
 
-    private final Locale locale;
+    private final Locale   locale;
     private final String[] cities;
 
     BuiltInCityDataProvider(SupportedLocale supportedLocale) {

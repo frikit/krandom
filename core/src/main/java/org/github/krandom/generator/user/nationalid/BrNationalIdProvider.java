@@ -29,13 +29,38 @@ public final class BrNationalIdProvider implements NationalIdProvider {
 
     private final boolean formatted;
 
-    /** Creates a provider that generates CPF numbers with formatting (e.g., {@code "123.456.789-09"}). */
+    /**
+     * Creates a provider that generates CPF numbers with formatting (e.g., {@code "123.456.789-09"}).
+     */
     public BrNationalIdProvider() {
         this(true);
     }
 
     private BrNationalIdProvider(boolean formatted) {
         this.formatted = formatted;
+    }
+
+    /**
+     * Computes a CPF verifier digit from the given digit array using the provided start weight.
+     *
+     * <p>The formula is:
+     * <pre>
+     *   sum = sum(digits[i] * (startWeight - i)) for i = 0..length-1
+     *   result = 11 - (sum % 11)
+     *   return result &gt;= 10 ? 0 : result
+     * </pre>
+     *
+     * @param digits      array of digits to process
+     * @param startWeight the initial weight (decrements by 1 for each subsequent digit)
+     * @return the verifier digit, always in [0, 9]
+     */
+    static int computeVerifier(int[] digits, int startWeight) {
+        int sum = 0;
+        for (int i = 0; i < digits.length; i++) {
+            sum += digits[i] * (startWeight - i);
+        }
+        int result = 11 - (sum % 11);
+        return result >= 10 ? 0 : result;
     }
 
     /**
@@ -67,38 +92,15 @@ public final class BrNationalIdProvider implements NationalIdProvider {
 
         if (formatted) {
             return String.format("%d%d%d.%d%d%d.%d%d%d-%d%d",
-                    digits[0], digits[1], digits[2],
-                    digits[3], digits[4], digits[5],
-                    digits[6], digits[7], digits[8],
-                    v1, v2);
+                                 digits[0], digits[1], digits[2],
+                                 digits[3], digits[4], digits[5],
+                                 digits[6], digits[7], digits[8],
+                                 v1, v2);
         }
         return String.format("%d%d%d%d%d%d%d%d%d%d%d",
-                digits[0], digits[1], digits[2],
-                digits[3], digits[4], digits[5],
-                digits[6], digits[7], digits[8],
-                v1, v2);
-    }
-
-    /**
-     * Computes a CPF verifier digit from the given digit array using the provided start weight.
-     *
-     * <p>The formula is:
-     * <pre>
-     *   sum = sum(digits[i] * (startWeight - i)) for i = 0..length-1
-     *   result = 11 - (sum % 11)
-     *   return result &gt;= 10 ? 0 : result
-     * </pre>
-     *
-     * @param digits      array of digits to process
-     * @param startWeight the initial weight (decrements by 1 for each subsequent digit)
-     * @return the verifier digit, always in [0, 9]
-     */
-    static int computeVerifier(int[] digits, int startWeight) {
-        int sum = 0;
-        for (int i = 0; i < digits.length; i++) {
-            sum += digits[i] * (startWeight - i);
-        }
-        int result = 11 - (sum % 11);
-        return result >= 10 ? 0 : result;
+                             digits[0], digits[1], digits[2],
+                             digits[3], digits[4], digits[5],
+                             digits[6], digits[7], digits[8],
+                             v1, v2);
     }
 }

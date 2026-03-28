@@ -6,7 +6,6 @@
 package org.github.krandom.generator.user.nationalid;
 
 import java.util.Locale;
-import java.util.OptionalLong;
 import java.util.Random;
 
 /**
@@ -34,14 +33,16 @@ public final class UsNationalIdProvider implements NationalIdProvider {
     private final boolean includeDashes;
     private final boolean lastFourOnly;
 
-    /** Creates a provider that generates full SSNs with dashes (e.g., {@code "411-90-0070"}). */
+    /**
+     * Creates a provider that generates full SSNs with dashes (e.g., {@code "411-90-0070"}).
+     */
     public UsNationalIdProvider() {
         this(true, false);
     }
 
     private UsNationalIdProvider(boolean includeDashes, boolean lastFourOnly) {
         this.includeDashes = includeDashes;
-        this.lastFourOnly  = lastFourOnly;
+        this.lastFourOnly = lastFourOnly;
     }
 
     /**
@@ -75,7 +76,7 @@ public final class UsNationalIdProvider implements NationalIdProvider {
         }
         int area = random.nextInt(898) + 1;
         if (area >= 666) area++;
-        int group  = random.nextInt(99) + 1;
+        int group = random.nextInt(99) + 1;
         int serial = random.nextInt(9999) + 1;
         if (includeDashes) {
             return String.format("%03d-%02d-%04d", area, group, serial);

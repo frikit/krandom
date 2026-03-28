@@ -51,41 +51,6 @@ public final class PrimeGenerator extends AbstractBoundedGenerator<Integer> {
         validatePrimes();
     }
 
-    private void validatePrimes() {
-        if (primes.isEmpty()) {
-            throw new IllegalStateException(
-                    "No prime numbers exist in range [" + getMin() + ", " + getMax() + ")");
-        }
-    }
-
-    /**
-     * Generate a random prime number in the configured range.
-     *
-     * @return a prime number
-     */
-    @Override
-    public Integer generate() {
-        return generate(getMin(), getMax());
-    }
-
-    /**
-     * Generate a random prime number in the specified range [{@code min}, {@code max}).
-     *
-     * <p><strong>Note:</strong> This implementation ignores the provided bounds and uses
-     * the range configured at construction time, as the prime list is precomputed.
-     * To generate primes in a different range, create a new {@code PrimeGenerator} instance.
-     *
-     * @param min lower bound (ignored, uses constructor range)
-     * @param max upper bound (ignored, uses constructor range)
-     * @return a prime number from the precomputed list
-     */
-    @Override
-    public Integer generate(Integer min, Integer max) {
-        // Select random prime from precomputed list
-        int index = random.nextInt(primes.size());
-        return primes.get(index);
-    }
-
     /**
      * Compute all prime numbers in the range [min, max) using the Sieve of Eratosthenes.
      *
@@ -121,6 +86,41 @@ public final class PrimeGenerator extends AbstractBoundedGenerator<Integer> {
         }
 
         return primes;
+    }
+
+    private void validatePrimes() {
+        if (primes.isEmpty()) {
+            throw new IllegalStateException(
+                "No prime numbers exist in range [" + getMin() + ", " + getMax() + ")");
+        }
+    }
+
+    /**
+     * Generate a random prime number in the configured range.
+     *
+     * @return a prime number
+     */
+    @Override
+    public Integer generate() {
+        return generate(getMin(), getMax());
+    }
+
+    /**
+     * Generate a random prime number in the specified range [{@code min}, {@code max}).
+     *
+     * <p><strong>Note:</strong> This implementation ignores the provided bounds and uses
+     * the range configured at construction time, as the prime list is precomputed.
+     * To generate primes in a different range, create a new {@code PrimeGenerator} instance.
+     *
+     * @param min lower bound (ignored, uses constructor range)
+     * @param max upper bound (ignored, uses constructor range)
+     * @return a prime number from the precomputed list
+     */
+    @Override
+    public Integer generate(Integer min, Integer max) {
+        // Select random prime from precomputed list
+        int index = random.nextInt(primes.size());
+        return primes.get(index);
     }
 
     /**

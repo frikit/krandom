@@ -12,7 +12,10 @@ import org.junit.jupiter.api.Test;
 import java.time.ZoneId;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("TimezoneGenerator")
 class TimezoneGeneratorTest {

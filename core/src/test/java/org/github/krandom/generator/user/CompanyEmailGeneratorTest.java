@@ -13,7 +13,10 @@ import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CompanyEmailGenerator")
 class CompanyEmailGeneratorTest {
@@ -63,10 +66,11 @@ class CompanyEmailGeneratorTest {
     @DisplayName("local-part generator supports concatenated first+last branch")
     void localPartDefaultBranch() throws Exception {
         CompanyEmailGenerator gen = new CompanyEmailGenerator(
-                GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
+            GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
         Field randomField = CompanyEmailGenerator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(gen, new Random() {
+
             @Override
             public int nextInt(int bound) {
                 if (bound == 3) {
@@ -86,10 +90,11 @@ class CompanyEmailGeneratorTest {
     @DisplayName("local-part generator supports dotted first.last branch")
     void localPartDottedBranch() throws Exception {
         CompanyEmailGenerator gen = new CompanyEmailGenerator(
-                GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
+            GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
         Field randomField = CompanyEmailGenerator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(gen, new Random() {
+
             @Override
             public int nextInt(int bound) {
                 if (bound == 3) {

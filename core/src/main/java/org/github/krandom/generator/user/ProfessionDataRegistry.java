@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class ProfessionDataRegistry {
 
     private static final ConcurrentHashMap<String, ProfessionDataProvider> REGISTRY =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -33,9 +33,12 @@ public final class ProfessionDataRegistry {
         }
     }
 
-    private ProfessionDataRegistry() {}
+    private ProfessionDataRegistry() {
+    }
 
-    /** Registers (or overrides) a provider for its locale. */
+    /**
+     * Registers (or overrides) a provider for its locale.
+     */
     public static void register(ProfessionDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         validateProvider(provider);
@@ -69,7 +72,9 @@ public final class ProfessionDataRegistry {
         putProvider(new BasicProfessionDataProvider(locale, mergedProfessions, mergedWeights));
     }
 
-    /** Convenience overload: appended professions get uniform weight 1. */
+    /**
+     * Convenience overload: appended professions get uniform weight 1.
+     */
     public static void append(Locale locale, String[] professions) {
         Objects.requireNonNull(professions, "professions");
         int[] weights = new int[professions.length];
@@ -77,7 +82,9 @@ public final class ProfessionDataRegistry {
         append(locale, professions, weights);
     }
 
-    /** Returns {@code true} if registry has exact or language-level provider for locale. */
+    /**
+     * Returns {@code true} if registry has exact or language-level provider for locale.
+     */
     public static boolean isRegistered(Locale locale) {
         if (locale == null) return false;
         String lang = locale.getLanguage();
@@ -86,7 +93,9 @@ public final class ProfessionDataRegistry {
         return REGISTRY.containsKey(lang);
     }
 
-    /** Returns provider by exact match, then language fallback, else {@code null}. */
+    /**
+     * Returns provider by exact match, then language fallback, else {@code null}.
+     */
     public static ProfessionDataProvider forLocale(Locale locale) {
         if (locale == null) return null;
         String lang = locale.getLanguage();
@@ -98,7 +107,9 @@ public final class ProfessionDataRegistry {
         return REGISTRY.get(lang);
     }
 
-    /** Returns unmodifiable snapshot of registered locale keys. */
+    /**
+     * Returns unmodifiable snapshot of registered locale keys.
+     */
     public static Set<String> registeredKeys() {
         return Collections.unmodifiableSet(REGISTRY.keySet());
     }
@@ -145,13 +156,14 @@ public final class ProfessionDataRegistry {
 
     private static boolean localeMatches(Locale a, Locale b) {
         return a.getLanguage().equals(b.getLanguage())
-                && a.getCountry().equals(b.getCountry());
+               && a.getCountry().equals(b.getCountry());
     }
 
     private static final class BasicProfessionDataProvider implements ProfessionDataProvider {
-        private final Locale locale;
+
+        private final Locale   locale;
         private final String[] professions;
-        private final int[] weights;
+        private final int[]    weights;
 
         private BasicProfessionDataProvider(Locale locale, String[] professions, int[] weights) {
             this.locale = locale;

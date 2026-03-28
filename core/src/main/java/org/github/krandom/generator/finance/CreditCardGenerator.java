@@ -51,14 +51,14 @@ import java.util.Random;
  *   // Random card type
  *   CreditCardGenerator gen = new CreditCardGenerator();
  *   String cardNumber = gen.generate();  // "4532 1488 0343 6467" (formatted)
- *   
+ *
  *   // Specific card type
  *   CreditCardGenerator visaGen = new CreditCardGenerator(CardType.VISA);
  *   String visaCard = visaGen.generate();  // Always generates Visa cards
- *   
+ *
  *   // Unformatted number
  *   String unformatted = visaGen.generate(false);  // "4532148803436467"
- *   
+ *
  *   // Full card information
  *   CardInfo info = visaGen.generateWithType();
  *   System.out.println(info.cardNumber());      // "4532 1488 0343 6467"
@@ -73,7 +73,7 @@ import java.util.Random;
  *       .seed(42L)
  *       .build();
  *   CreditCardGenerator gen = new CreditCardGenerator(config);
- *   
+ *
  *   // Reproducible output
  *   String card1 = gen.generate();
  *   String card2 = gen.generate();
@@ -82,10 +82,10 @@ import java.util.Random;
  * <p><strong>Batch Generation:</strong>
  * <pre>{@code
  *   CreditCardGenerator gen = new CreditCardGenerator(CardType.MASTERCARD);
- *   
+ *
  *   // Generate list
  *   List<String> cards = gen.generateList(10);
- *   
+ *
  *   // Generate stream
  *   gen.stream()
  *      .limit(100)
@@ -97,20 +97,20 @@ import java.util.Random;
  * with any real accounts.
  */
 public final class CreditCardGenerator implements Generator<String> {
-    
+
     private static final DateTimeFormatter EXPIRY_FORMATTER = DateTimeFormatter.ofPattern("MM/yy");
-    
+
     private final GeneratorConfig config;
-    private final Random random;
-    private final CardType cardType;
-    
+    private final Random          random;
+    private final CardType        cardType;
+
     /**
      * Creates a generator that produces random card types using default configuration.
      */
     public CreditCardGenerator() {
         this(GeneratorConfig.defaults(), CardType.RANDOM);
     }
-    
+
     /**
      * Creates a generator for the specified card type using default configuration.
      *
@@ -120,7 +120,7 @@ public final class CreditCardGenerator implements Generator<String> {
     public CreditCardGenerator(CardType cardType) {
         this(GeneratorConfig.defaults(), cardType);
     }
-    
+
     /**
      * Creates a generator using the given configuration and random card types.
      *
@@ -130,11 +130,11 @@ public final class CreditCardGenerator implements Generator<String> {
     public CreditCardGenerator(GeneratorConfig config) {
         this(config, CardType.RANDOM);
     }
-    
+
     /**
      * Creates a generator using the given configuration and card type.
      *
-     * @param config the generator configuration; must not be {@code null}
+     * @param config   the generator configuration; must not be {@code null}
      * @param cardType the card type to generate; must not be {@code null}
      * @throws NullPointerException if {@code config} or {@code cardType} is {@code null}
      */
@@ -142,10 +142,45 @@ public final class CreditCardGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.cardType = Objects.requireNonNull(cardType, "cardType must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
-    
+
+    /**
+     * Validates a card number using the Luhn algorithm.
+     *
+     * @param cardNumber the card number to validate (digits only)
+     * @return {@code true} if valid, {@code false} otherwise
+     */
+    public static boolean isValidLuhn(String cardNumber) {
+        if (cardNumber == null || cardNumber.isEmpty()) {
+            return false;
+        }
+
+        // Remove any non-digit characters
+        cardNumber = cardNumber.replaceAll("\\D", "");
+
+        int sum = 0;
+        boolean alternate = false;
+
+        // Process from right to left
+        for (int i = cardNumber.length() - 1; i >= 0; i--) {
+            int digit = Character.getNumericValue(cardNumber.charAt(i));
+
+            if (alternate) {
+                digit *= 2;
+                if (digit > 9) {
+                    digit = digit - 9;
+                }
+            }
+
+            sum += digit;
+            alternate = !alternate;
+        }
+
+        return (sum % 10) == 0;
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -157,7 +192,7 @@ public final class CreditCardGenerator implements Generator<String> {
     public String generate() {
         return generate(true);
     }
-    
+
     /**
      * Generates a credit card number with optional formatting.
      *
@@ -170,7 +205,7 @@ public final class CreditCardGenerator implements Generator<String> {
         String cardNumber = generateCardNumber(type);
         return formatted ? formatCardNumber(cardNumber, type) : cardNumber;
     }
-    
+
     /**
      * Generates complete card information including card number, type, CVV, and expiration date.
      *
@@ -182,7 +217,7 @@ public final class CreditCardGenerator implements Generator<String> {
         String formattedNumber = formatCardNumber(cardNumber, type);
         String cvv = getCvv(type);
         String expirationDate = getExpirationDate();
-        
+
         return new CardInfo(formattedNumber, type, cvv, expirationDate);
     }
 
@@ -244,12 +279,12 @@ public final class CreditCardGenerator implements Generator<String> {
     public String generateFull() {
         CardInfo info = generateWithType();
         return info.cardType().getDisplayName()
-                + "\n"
-                + info.cardNumber()
-                + "\n"
-                + info.expirationDate()
-                + " "
-                + info.cvv();
+               + "\n"
+               + info.cardNumber()
+               + "\n"
+               + info.expirationDate()
+               + " "
+               + info.cvv();
     }
 
     /**
@@ -260,10 +295,10 @@ public final class CreditCardGenerator implements Generator<String> {
     public CreditCardInfo generateCreditCardInfo() {
         CardInfo info = generateWithType();
         return new CreditCardInfo(
-                info.cardNumber(),
-                info.cardType().getDisplayName(),
-                info.expirationDate(),
-                info.cvv()
+            info.cardNumber(),
+            info.cardType().getDisplayName(),
+            info.expirationDate(),
+            info.cvv()
         );
     }
 
@@ -281,7 +316,7 @@ public final class CreditCardGenerator implements Generator<String> {
         map.put("cvv", info.cvv());
         return map;
     }
-    
+
     /**
      * Generates a CVV (Card Verification Value) code.
      *
@@ -302,7 +337,7 @@ public final class CreditCardGenerator implements Generator<String> {
     public String generateCvv() {
         return getCvv();
     }
-    
+
     /**
      * Generates an expiration date in MM/YY format.
      *
@@ -326,7 +361,9 @@ public final class CreditCardGenerator implements Generator<String> {
     public String generateExpiration() {
         return getExpirationDate();
     }
-    
+
+    // ── Private helper methods ────────────────────────────────────────────────
+
     /**
      * Returns the card type this generator is configured to produce.
      *
@@ -335,14 +372,12 @@ public final class CreditCardGenerator implements Generator<String> {
     public CardType getCardType() {
         return cardType;
     }
-    
-    // ── Private helper methods ────────────────────────────────────────────────
-    
+
     private CardType selectCardType() {
         if (cardType != CardType.RANDOM) {
             return cardType;
         }
-        
+
         // Randomly select a card type (excluding RANDOM itself)
         CardType[] types = {
             CardType.VISA,
@@ -354,32 +389,32 @@ public final class CreditCardGenerator implements Generator<String> {
         };
         return types[random.nextInt(types.length)];
     }
-    
+
     private String generateCardNumber(CardType type) {
         // Select a prefix pattern
         String prefix = selectPrefix(type);
-        
+
         // Select card length
         int cardLength = type.getCardLengths().get(random.nextInt(type.getCardLengths().size()));
-        
+
         // Generate the rest of the digits (except the last check digit)
         StringBuilder builder = new StringBuilder(prefix);
         int remainingDigits = cardLength - prefix.length() - 1; // -1 for check digit
-        
+
         for (int i = 0; i < remainingDigits; i++) {
             builder.append(random.nextInt(10));
         }
-        
+
         // Calculate and append Luhn check digit
         int checkDigit = calculateLuhnCheckDigit(builder.toString());
         builder.append(checkDigit);
-        
+
         return builder.toString();
     }
-    
+
     private String selectPrefix(CardType type) {
         String pattern = type.getPrefixPatterns().get(random.nextInt(type.getPrefixPatterns().size()));
-        
+
         // Handle range patterns (e.g., "51-55", "2221-2720")
         if (pattern.contains("-")) {
             String[] parts = pattern.split("-");
@@ -388,10 +423,10 @@ public final class CreditCardGenerator implements Generator<String> {
             int value = start + random.nextInt(end - start + 1);
             return String.valueOf(value);
         }
-        
+
         return pattern;
     }
-    
+
     /**
      * Calculates the Luhn check digit for a given card number prefix.
      *
@@ -401,62 +436,27 @@ public final class CreditCardGenerator implements Generator<String> {
     private int calculateLuhnCheckDigit(String number) {
         int sum = 0;
         boolean alternate = true; // Start from the rightmost digit (which will be doubled)
-        
+
         // Process from right to left
         for (int i = number.length() - 1; i >= 0; i--) {
             int digit = Character.getNumericValue(number.charAt(i));
-            
+
             if (alternate) {
                 digit *= 2;
                 if (digit > 9) {
                     digit = digit - 9; // Same as (digit / 10) + (digit % 10)
                 }
             }
-            
+
             sum += digit;
             alternate = !alternate;
         }
-        
+
         // The check digit is the amount needed to make the sum a multiple of 10
         int mod = sum % 10;
         return mod == 0 ? 0 : 10 - mod;
     }
-    
-    /**
-     * Validates a card number using the Luhn algorithm.
-     *
-     * @param cardNumber the card number to validate (digits only)
-     * @return {@code true} if valid, {@code false} otherwise
-     */
-    public static boolean isValidLuhn(String cardNumber) {
-        if (cardNumber == null || cardNumber.isEmpty()) {
-            return false;
-        }
-        
-        // Remove any non-digit characters
-        cardNumber = cardNumber.replaceAll("\\D", "");
-        
-        int sum = 0;
-        boolean alternate = false;
-        
-        // Process from right to left
-        for (int i = cardNumber.length() - 1; i >= 0; i--) {
-            int digit = Character.getNumericValue(cardNumber.charAt(i));
-            
-            if (alternate) {
-                digit *= 2;
-                if (digit > 9) {
-                    digit = digit - 9;
-                }
-            }
-            
-            sum += digit;
-            alternate = !alternate;
-        }
-        
-        return (sum % 10) == 0;
-    }
-    
+
     private String formatCardNumber(String cardNumber, CardType type) {
         // Different formatting for different card types
         return switch (type) {
@@ -465,7 +465,7 @@ public final class CreditCardGenerator implements Generator<String> {
             default -> formatStandard(cardNumber);            // 4-4-4-4 (or 4-4-4-1 for 13-digit)
         };
     }
-    
+
     private String formatStandard(String cardNumber) {
         // Format as 4-4-4-4 for 16-digit or 4-4-4-1 for 13-digit
         StringBuilder formatted = new StringBuilder();
@@ -477,21 +477,21 @@ public final class CreditCardGenerator implements Generator<String> {
         }
         return formatted.toString();
     }
-    
+
     private String formatAmex(String cardNumber) {
         // Format as 4-6-5
         return cardNumber.substring(0, 4) + " " +
                cardNumber.substring(4, 10) + " " +
                cardNumber.substring(10);
     }
-    
+
     private String formatDiners(String cardNumber) {
         // Format as 4-6-4
         return cardNumber.substring(0, 4) + " " +
                cardNumber.substring(4, 10) + " " +
                cardNumber.substring(10);
     }
-    
+
     private String getCvv(CardType type) {
         int cvvLength = type.getCvvLength();
         int maxValue = (int) Math.pow(10, cvvLength);

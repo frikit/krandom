@@ -38,7 +38,9 @@ public final class CurrencyPairGenerator implements Generator<String> {
 
     private final Random random;
 
-    /** Creates a generator backed by a cryptographically strong random source. */
+    /**
+     * Creates a generator backed by a cryptographically strong random source.
+     */
     public CurrencyPairGenerator() {
         this(GeneratorConfig.defaults());
     }
@@ -52,8 +54,8 @@ public final class CurrencyPairGenerator implements Generator<String> {
     public CurrencyPairGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -90,8 +92,8 @@ public final class CurrencyPairGenerator implements Generator<String> {
             quoteIdx = random.nextInt(ALL_CURRENCIES.length);
         } while (quoteIdx == baseIdx);
         return new CurrencyPair(
-                ALL_CURRENCIES[baseIdx].toInfo(),
-                ALL_CURRENCIES[quoteIdx].toInfo());
+            ALL_CURRENCIES[baseIdx].toInfo(),
+            ALL_CURRENCIES[quoteIdx].toInfo());
     }
 
     /**

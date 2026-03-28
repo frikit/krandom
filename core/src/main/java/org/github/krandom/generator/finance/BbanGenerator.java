@@ -33,8 +33,8 @@ public final class BbanGenerator implements Generator<String> {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.locale = effective.getLocale();
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

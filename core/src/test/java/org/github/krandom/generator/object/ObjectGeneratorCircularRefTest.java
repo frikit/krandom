@@ -13,17 +13,32 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — circular reference handling")
 class ObjectGeneratorCircularRefTest {
+
+    private static Set<CircularNode> collectChainNodes(CircularNode root, int maxSteps) {
+        Set<CircularNode> nodes = Collections.newSetFromMap(new IdentityHashMap<>());
+        CircularNode current = root;
+        int steps = 0;
+        while (current != null && steps < maxSteps && nodes.add(current)) {
+            current = current.getNext();
+            steps++;
+        }
+        return nodes;
+    }
 
     @Test
     @DisplayName("generating a self-referential type does not throw StackOverflowError")
     void doesNotStackOverflow() {
         assertDoesNotThrow(
-                () -> new ObjectGenerator<>(CircularNode.class).generate(),
-                "CircularNode must be generated without stack overflow");
+            () -> new ObjectGenerator<>(CircularNode.class).generate(),
+            "CircularNode must be generated without stack overflow");
     }
 
     @Test
@@ -68,8 +83,8 @@ class ObjectGeneratorCircularRefTest {
     @DisplayName("objectPoolSize(0) still prevents stack overflow via in-progress cycle detection")
     void zeroSizedObjectPoolStillPreventsOverflow() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                .objectPoolSize(0)
-                .build();
+                                                            .objectPoolSize(0)
+                                                            .build();
         assertDoesNotThrow(() -> new ObjectGenerator<>(CircularNode.class, config).generate());
     }
 
@@ -85,17 +100,6 @@ class ObjectGeneratorCircularRefTest {
         Set<CircularNode> secondNodes = collectChainNodes(second, 16);
 
         assertTrue(Collections.disjoint(firstNodes, secondNodes),
-                "separate generate() calls must not share node identities");
-    }
-
-    private static Set<CircularNode> collectChainNodes(CircularNode root, int maxSteps) {
-        Set<CircularNode> nodes = Collections.newSetFromMap(new IdentityHashMap<>());
-        CircularNode current = root;
-        int steps = 0;
-        while (current != null && steps < maxSteps && nodes.add(current)) {
-            current = current.getNext();
-            steps++;
-        }
-        return nodes;
+                   "separate generate() calls must not share node identities");
     }
 }

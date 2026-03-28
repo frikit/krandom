@@ -31,7 +31,8 @@ import java.math.BigDecimal;
  */
 final class BeanValidationSupport {
 
-    private BeanValidationSupport() { }
+    private BeanValidationSupport() {
+    }
 
     /**
      * Returns a constrained {@link Generator} for the given element and raw type,
@@ -41,7 +42,7 @@ final class BeanValidationSupport {
      * @param rawType the field's erasure
      * @return a constraint-respecting generator, or {@code null}
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     static Generator<?> constraintGeneratorFor(AnnotatedElement element, Class<?> rawType) {
 
         // ── @Size on String ───────────────────────────────────────────────────
@@ -85,17 +86,17 @@ final class BeanValidationSupport {
     }
 
     private static Generator<Integer> intGeneratorFor(AnnotatedElement element) {
-        Min  min  = element.getAnnotation(Min.class);
-        Max  max  = element.getAnnotation(Max.class);
-        Positive         pos  = element.getAnnotation(Positive.class);
-        PositiveOrZero   poz  = element.getAnnotation(PositiveOrZero.class);
-        Negative         neg  = element.getAnnotation(Negative.class);
-        NegativeOrZero   noz  = element.getAnnotation(NegativeOrZero.class);
+        Min min = element.getAnnotation(Min.class);
+        Max max = element.getAnnotation(Max.class);
+        Positive pos = element.getAnnotation(Positive.class);
+        PositiveOrZero poz = element.getAnnotation(PositiveOrZero.class);
+        Negative neg = element.getAnnotation(Negative.class);
+        NegativeOrZero noz = element.getAnnotation(NegativeOrZero.class);
 
-        if (pos  != null) return new IntGenerator(1, Integer.MAX_VALUE);
-        if (poz  != null) return new IntGenerator(0, Integer.MAX_VALUE);
-        if (neg  != null) return new IntGenerator(Integer.MIN_VALUE, -1);
-        if (noz  != null) return new IntGenerator(Integer.MIN_VALUE, 0);
+        if (pos != null) return new IntGenerator(1, Integer.MAX_VALUE);
+        if (poz != null) return new IntGenerator(0, Integer.MAX_VALUE);
+        if (neg != null) return new IntGenerator(Integer.MIN_VALUE, -1);
+        if (noz != null) return new IntGenerator(Integer.MIN_VALUE, 0);
         if (min != null && max != null) {
             return new IntGenerator((int) min.value(), (int) max.value());
         }
@@ -105,17 +106,17 @@ final class BeanValidationSupport {
     }
 
     private static Generator<Long> longGeneratorFor(AnnotatedElement element) {
-        Min  min  = element.getAnnotation(Min.class);
-        Max  max  = element.getAnnotation(Max.class);
-        Positive         pos  = element.getAnnotation(Positive.class);
-        PositiveOrZero   poz  = element.getAnnotation(PositiveOrZero.class);
-        Negative         neg  = element.getAnnotation(Negative.class);
-        NegativeOrZero   noz  = element.getAnnotation(NegativeOrZero.class);
+        Min min = element.getAnnotation(Min.class);
+        Max max = element.getAnnotation(Max.class);
+        Positive pos = element.getAnnotation(Positive.class);
+        PositiveOrZero poz = element.getAnnotation(PositiveOrZero.class);
+        Negative neg = element.getAnnotation(Negative.class);
+        NegativeOrZero noz = element.getAnnotation(NegativeOrZero.class);
 
-        if (pos  != null) return new LongGenerator(1L, Long.MAX_VALUE);
-        if (poz  != null) return new LongGenerator(0L, Long.MAX_VALUE);
-        if (neg  != null) return new LongGenerator(Long.MIN_VALUE, -1L);
-        if (noz  != null) return new LongGenerator(Long.MIN_VALUE, 0L);
+        if (pos != null) return new LongGenerator(1L, Long.MAX_VALUE);
+        if (poz != null) return new LongGenerator(0L, Long.MAX_VALUE);
+        if (neg != null) return new LongGenerator(Long.MIN_VALUE, -1L);
+        if (noz != null) return new LongGenerator(Long.MIN_VALUE, 0L);
         if (min != null && max != null) {
             return new LongGenerator(min.value(), max.value());
         }

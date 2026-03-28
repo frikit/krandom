@@ -10,15 +10,16 @@ import org.github.krandom.generator.location.AddressInfo;
 /**
  * GoFakeit-style composed person payload.
  *
- * @param contact contact payload
- * @param address address payload
+ * @param contact  contact payload
+ * @param address  address payload
  * @param username username
  * @param password password generated with default policy
  */
 public record PersonInfo(
-        ContactInfo contact,
-        AddressInfo address,
-        String username,
-        String password
+    ContactInfo contact,
+    AddressInfo address,
+    String username,
+    String password
 ) {
+
 }

@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class CountryDataRegistry {
 
     private static final ConcurrentHashMap<String, CountryDataProvider> REGISTRY =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -46,7 +46,8 @@ public final class CountryDataRegistry {
         }
     }
 
-    private CountryDataRegistry() {}
+    private CountryDataRegistry() {
+    }
 
     /**
      * Registers a custom country data provider, making it available to {@link CountryGenerator}.

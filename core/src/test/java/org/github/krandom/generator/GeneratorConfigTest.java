@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("GeneratorConfig")
 class GeneratorConfigTest {
@@ -22,9 +24,9 @@ class GeneratorConfigTest {
         GeneratorConfig c = GeneratorConfig.defaults();
         assertTrue(c.getSeed().isEmpty());
         assertEquals(StandardCharsets.US_ASCII, c.getCharset());
-        assertEquals(5,  c.getMinStringLength());
+        assertEquals(5, c.getMinStringLength());
         assertEquals(20, c.getMaxStringLength());
-        assertEquals(1,  c.getMinCollectionSize());
+        assertEquals(1, c.getMinCollectionSize());
         assertEquals(10, c.getMaxCollectionSize());
         assertEquals(Locale.US, c.getLocale());
     }
@@ -48,14 +50,14 @@ class GeneratorConfigTest {
     @DisplayName("charset(null) throws NullPointerException")
     void charsetNullThrows() {
         assertThrows(NullPointerException.class,
-                () -> GeneratorConfig.builder().charset(null));
+                     () -> GeneratorConfig.builder().charset(null));
     }
 
     @Test
     @DisplayName("stringLength(8, 32) stores the values")
     void stringLengthValid() {
         GeneratorConfig c = GeneratorConfig.builder().stringLength(8, 32).build();
-        assertEquals(8,  c.getMinStringLength());
+        assertEquals(8, c.getMinStringLength());
         assertEquals(32, c.getMaxStringLength());
     }
 
@@ -63,21 +65,21 @@ class GeneratorConfigTest {
     @DisplayName("stringLength(0, 10) throws — min must be >= 1")
     void stringLengthMinBelowOneThrows() {
         assertThrows(IllegalArgumentException.class,
-                () -> GeneratorConfig.builder().stringLength(0, 10));
+                     () -> GeneratorConfig.builder().stringLength(0, 10));
     }
 
     @Test
     @DisplayName("stringLength(10, 5) throws — max must be >= min")
     void stringLengthMaxBelowMinThrows() {
         assertThrows(IllegalArgumentException.class,
-                () -> GeneratorConfig.builder().stringLength(10, 5));
+                     () -> GeneratorConfig.builder().stringLength(10, 5));
     }
 
     @Test
     @DisplayName("collectionSize(0, 20) stores the values")
     void collectionSizeValid() {
         GeneratorConfig c = GeneratorConfig.builder().collectionSize(0, 20).build();
-        assertEquals(0,  c.getMinCollectionSize());
+        assertEquals(0, c.getMinCollectionSize());
         assertEquals(20, c.getMaxCollectionSize());
     }
 
@@ -85,14 +87,14 @@ class GeneratorConfigTest {
     @DisplayName("collectionSize(-1, 5) throws — min must be >= 0")
     void collectionSizeMinNegativeThrows() {
         assertThrows(IllegalArgumentException.class,
-                () -> GeneratorConfig.builder().collectionSize(-1, 5));
+                     () -> GeneratorConfig.builder().collectionSize(-1, 5));
     }
 
     @Test
     @DisplayName("collectionSize(5, 3) throws — max must be >= min")
     void collectionSizeMaxBelowMinThrows() {
         assertThrows(IllegalArgumentException.class,
-                () -> GeneratorConfig.builder().collectionSize(5, 3));
+                     () -> GeneratorConfig.builder().collectionSize(5, 3));
     }
 
     @Test
@@ -106,7 +108,7 @@ class GeneratorConfigTest {
     @DisplayName("locale(null) throws NullPointerException")
     void localeNullThrows() {
         assertThrows(NullPointerException.class,
-                () -> GeneratorConfig.builder().locale(null));
+                     () -> GeneratorConfig.builder().locale(null));
     }
 
     @Test
@@ -116,8 +118,8 @@ class GeneratorConfigTest {
         assertEquals(Locale.JAPAN, japan.getLocale());
 
         GeneratorConfig custom = GeneratorConfig.builder()
-                .locale(new Locale("es", "MX"))
-                .build();
+                                                .locale(new Locale("es", "MX"))
+                                                .build();
         assertEquals("es", custom.getLocale().getLanguage());
         assertEquals("MX", custom.getLocale().getCountry());
     }

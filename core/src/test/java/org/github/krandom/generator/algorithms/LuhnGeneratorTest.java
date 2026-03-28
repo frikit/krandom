@@ -14,12 +14,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("LuhnGenerator")
 class LuhnGeneratorTest {
 
     private static final int SAMPLES = 200;
+
+    private static boolean isValidLuhn(String number) {
+        int[] digits = new int[number.length()];
+        for (int i = 0; i < number.length(); i++) {
+            digits[i] = Integer.parseInt(number.substring(i, i + 1));
+        }
+        for (int i = digits.length - 2; i >= 0; i -= 2) {
+            int d = digits[i] * 2;
+            if (d > 9) d = d % 10 + 1;
+            digits[i] = d;
+        }
+        int sum = 0;
+        for (int d : digits) sum += d;
+        return sum % 10 == 0;
+    }
 
     @RepeatedTest(50)
     @DisplayName("generate() produces exactly 10 characters")
@@ -66,7 +83,7 @@ class LuhnGeneratorTest {
     @DisplayName("stream produces on-demand Luhn-valid values")
     void streamUsage() {
         new LuhnGenerator().stream().limit(30)
-                .forEach(v -> assertTrue(isValidLuhn(v), "Luhn check failed: " + v));
+                           .forEach(v -> assertTrue(isValidLuhn(v), "Luhn check failed: " + v));
     }
 
     @Test
@@ -76,26 +93,11 @@ class LuhnGeneratorTest {
         assertTrue(value.startsWith("LUHN-"), "Expected 'LUHN-' prefix, got: " + value);
     }
 
+    // ── Luhn validation helper ─────────────────────────────────────────────────
+
     @Test
     @DisplayName("Generators.ofLuhn() factory returns a LuhnGenerator")
     void factoryMethod() {
         assertInstanceOf(LuhnGenerator.class, Generators.ofLuhn());
-    }
-
-    // ── Luhn validation helper ─────────────────────────────────────────────────
-
-    private static boolean isValidLuhn(String number) {
-        int[] digits = new int[number.length()];
-        for (int i = 0; i < number.length(); i++) {
-            digits[i] = Integer.parseInt(number.substring(i, i + 1));
-        }
-        for (int i = digits.length - 2; i >= 0; i -= 2) {
-            int d = digits[i] * 2;
-            if (d > 9) d = d % 10 + 1;
-            digits[i] = d;
-        }
-        int sum = 0;
-        for (int d : digits) sum += d;
-        return sum % 10 == 0;
     }
 }

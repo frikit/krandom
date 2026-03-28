@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class SuffixDataRegistry {
 
     private static final ConcurrentHashMap<String, SuffixDataProvider> REGISTRY =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -39,7 +39,8 @@ public final class SuffixDataRegistry {
         }
     }
 
-    private SuffixDataRegistry() {}
+    private SuffixDataRegistry() {
+    }
 
     /**
      * Registers a custom suffix data provider.
@@ -52,7 +53,7 @@ public final class SuffixDataRegistry {
     public static void register(SuffixDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        String lang    = provider.getLocale().getLanguage();
+        String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
         if (country.isEmpty()) {
             REGISTRY.put(lang, provider);
@@ -67,7 +68,7 @@ public final class SuffixDataRegistry {
      */
     public static boolean isRegistered(Locale locale) {
         if (locale == null) return false;
-        String lang    = locale.getLanguage();
+        String lang = locale.getLanguage();
         String country = locale.getCountry();
         if (!country.isEmpty() && REGISTRY.containsKey(lang + "_" + country)) return true;
         return REGISTRY.containsKey(lang);
@@ -80,7 +81,7 @@ public final class SuffixDataRegistry {
      */
     public static SuffixDataProvider forLocale(Locale locale) {
         if (locale == null) return null;
-        String lang    = locale.getLanguage();
+        String lang = locale.getLanguage();
         String country = locale.getCountry();
         if (!country.isEmpty()) {
             SuffixDataProvider exact = REGISTRY.get(lang + "_" + country);
@@ -97,7 +98,7 @@ public final class SuffixDataRegistry {
     }
 
     private static void seedInternal(SuffixDataProvider provider) {
-        String lang    = provider.getLocale().getLanguage();
+        String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
         REGISTRY.put(lang + "_" + country, provider);
         REGISTRY.putIfAbsent(lang, provider);

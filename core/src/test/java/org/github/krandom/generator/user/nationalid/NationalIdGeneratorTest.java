@@ -16,12 +16,19 @@ import java.util.Random;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("NationalIdGenerator")
 class NationalIdGeneratorTest {
 
     // ── US (SSN) ──────────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("US SSN")
@@ -102,12 +109,13 @@ class NationalIdGeneratorTest {
 
     // ── GB (NI) ───────────────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("GB National Insurance")
     class GbTests {
 
         private static final Pattern NI_FORMAT =
-                Pattern.compile("^[A-Z]{2} \\d{2} \\d{2} \\d{2} [A-D]$");
+            Pattern.compile("^[A-Z]{2} \\d{2} \\d{2} \\d{2} [A-D]$");
 
         @Test
         @DisplayName("format: XX NN NN NN X")
@@ -166,6 +174,7 @@ class NationalIdGeneratorTest {
 
     // ── AU (TFN) ──────────────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("AU Tax File Number")
     class AuTests {
@@ -197,7 +206,7 @@ class NationalIdGeneratorTest {
             // Construct digits so sum % 11 == 0
             // Use: all zeros except first = 1 (sum = 1*1 = 1, not 0); let's find a valid set
             // 11*1=11 → need sum=11: d0*1 + d1*4 = 11 → d0=7,d1=1: 7+4=11 ✓, rest 0
-            int[] digits = {7, 1, 0, 0, 0, 0, 0, 0, 0};
+            int[] digits = { 7, 1, 0, 0, 0, 0, 0, 0, 0 };
             assertEquals(0, AuNationalIdProvider.computeRemainder(digits));
         }
 
@@ -205,7 +214,7 @@ class NationalIdGeneratorTest {
         @DisplayName("computeRemainder returns non-zero for valid TFN digit array")
         void computeRemainderNonZero() {
             // d0=1, rest 0: sum = 1*1 = 1 → remainder = 1
-            int[] digits = {1, 0, 0, 0, 0, 0, 0, 0, 0};
+            int[] digits = { 1, 0, 0, 0, 0, 0, 0, 0, 0 };
             assertEquals(1, AuNationalIdProvider.computeRemainder(digits));
         }
 
@@ -218,7 +227,7 @@ class NationalIdGeneratorTest {
                 int[] digits = new int[9];
                 for (int j = 0; j < 9; j++) digits[j] = tfn.charAt(j) - '0';
                 assertNotEquals(0, AuNationalIdProvider.computeRemainder(digits),
-                        "TFN checksum remainder should not be 0: " + tfn);
+                                "TFN checksum remainder should not be 0: " + tfn);
             }
         }
 
@@ -232,6 +241,7 @@ class NationalIdGeneratorTest {
     }
 
     // ── FR (NIR) ──────────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("FR NIR")
@@ -283,6 +293,7 @@ class NationalIdGeneratorTest {
     }
 
     // ── DE (Steuer-ID) ────────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("DE Steuer-ID")
@@ -348,6 +359,7 @@ class NationalIdGeneratorTest {
 
     // ── JP (My Number) ────────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("JP My Number")
     class JpTests {
@@ -369,7 +381,7 @@ class NationalIdGeneratorTest {
         void checkDigitQBelow10() {
             // Construct 11 digits where Q = 11 - (sum%11) < 10
             // Use digits all 0 except first=1: sum=1*6=6, Q=11-6=5 (<10)
-            int[] digits = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            int[] digits = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             int cd = JpNationalIdProvider.computeCheckDigit(digits);
             assertEquals(5, cd);
         }
@@ -417,13 +429,14 @@ class NationalIdGeneratorTest {
 
     // ── ES (DNI) ──────────────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("ES DNI")
     class EsTests {
 
-        private static final Pattern DNI_FORMAT       = Pattern.compile("^\\d{8}[A-Z]$");
-        private static final Pattern DNI_DASH_FORMAT  = Pattern.compile("^\\d{8}-[A-Z]$");
-        private static final String  LETTER_MAP       = "TRWAGMYFPDXBNJZSQVHLCKE";
+        private static final Pattern DNI_FORMAT      = Pattern.compile("^\\d{8}[A-Z]$");
+        private static final Pattern DNI_DASH_FORMAT = Pattern.compile("^\\d{8}-[A-Z]$");
+        private static final String  LETTER_MAP      = "TRWAGMYFPDXBNJZSQVHLCKE";
 
         @Test
         @DisplayName("default format NNNNNNNNA")
@@ -466,6 +479,7 @@ class NationalIdGeneratorTest {
     }
 
     // ── IT (Codice Fiscale) ───────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("IT Codice Fiscale")
@@ -522,6 +536,7 @@ class NationalIdGeneratorTest {
 
     // ── BR (CPF) ──────────────────────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("BR CPF")
     class BrTests {
@@ -577,7 +592,7 @@ class NationalIdGeneratorTest {
 
             // For sum%11=1: e.g., d[0]=1, startWeight=10 → 1*10=10 → 10%11=10 → 11-10=1 (normal)
             // Need sum%11=1: startWeight=1, d[0]=1: 1*1=1 → 1%11=1 → 11-1=10 ≥ 10 → 0
-            int[] one = {1};
+            int[] one = { 1 };
             assertEquals(0, BrNationalIdProvider.computeVerifier(one, 1)); // 11-1=10≥10→0
         }
 
@@ -591,6 +606,7 @@ class NationalIdGeneratorTest {
     }
 
     // ── CN (Resident ID) ──────────────────────────────────────────────────────
+
 
     @Nested
     @DisplayName("CN Resident ID")
@@ -631,7 +647,7 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("check character is valid ISO 7064 Mod 11,2 result")
         void checkCharValid() {
-            int[] weights = {7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2};
+            int[] weights = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 };
             String checkChars = "10X98765432";
             NationalIdGenerator gen = new NationalIdGenerator(Locale.CHINA, 102L);
             for (int i = 0; i < 200; i++) {
@@ -656,6 +672,7 @@ class NationalIdGeneratorTest {
 
     // ── Registry / extensibility ──────────────────────────────────────────────
 
+
     @Nested
     @DisplayName("NationalIdRegistry")
     class RegistryTests {
@@ -665,8 +682,16 @@ class NationalIdGeneratorTest {
         void customLocaleRegistration() {
             Locale korean = Locale.of("ko", "KR");
             NationalIdRegistry.register(new NationalIdProvider() {
-                @Override public Locale getLocale() { return korean; }
-                @Override public String generate(Random r) { return "KR-TEST"; }
+
+                @Override
+                public Locale getLocale() {
+                    return korean;
+                }
+
+                @Override
+                public String generate(Random r) {
+                    return "KR-TEST";
+                }
             });
             NationalIdGenerator gen = new NationalIdGenerator(korean);
             assertEquals("KR-TEST", gen.generate());
@@ -677,8 +702,16 @@ class NationalIdGeneratorTest {
         void customProviderOverridesBuiltIn() {
             Locale us = Locale.US;
             NationalIdRegistry.register(new NationalIdProvider() {
-                @Override public Locale getLocale() { return us; }
-                @Override public String generate(Random r) { return "CUSTOM-US"; }
+
+                @Override
+                public Locale getLocale() {
+                    return us;
+                }
+
+                @Override
+                public String generate(Random r) {
+                    return "CUSTOM-US";
+                }
             });
             NationalIdGenerator gen = new NationalIdGenerator(us);
             assertEquals("CUSTOM-US", gen.generate());
@@ -700,8 +733,8 @@ class NationalIdGeneratorTest {
         @DisplayName("unsupported locale throws UnsupportedOperationException")
         void unsupportedLocaleThrows() {
             UnsupportedOperationException ex = assertThrows(
-                    UnsupportedOperationException.class,
-                    () -> new NationalIdGenerator(Locale.of("xx", "YY")));
+                UnsupportedOperationException.class,
+                () -> new NationalIdGenerator(Locale.of("xx", "YY")));
             assertTrue(ex.getMessage().contains("not supported"));
         }
 
@@ -734,8 +767,16 @@ class NationalIdGeneratorTest {
         void registerLanguageOnlyLocale() {
             Locale langOnly = Locale.of("tl");
             NationalIdRegistry.register(new NationalIdProvider() {
-                @Override public Locale getLocale() { return langOnly; }
-                @Override public String generate(Random r) { return "TL-ONLY"; }
+
+                @Override
+                public Locale getLocale() {
+                    return langOnly;
+                }
+
+                @Override
+                public String generate(Random r) {
+                    return "TL-ONLY";
+                }
             });
             assertTrue(NationalIdRegistry.isRegistered(langOnly));
             NationalIdProvider found = NationalIdRegistry.forLocale(langOnly);
@@ -785,7 +826,7 @@ class NationalIdGeneratorTest {
         @DisplayName("null locale constructor throws NullPointerException")
         void nullLocaleThrows() {
             assertThrows(NullPointerException.class,
-                    () -> new NationalIdGenerator(null));
+                         () -> new NationalIdGenerator(null));
         }
 
         @Test

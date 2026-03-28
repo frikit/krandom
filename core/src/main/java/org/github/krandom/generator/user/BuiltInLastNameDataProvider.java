@@ -14,7 +14,7 @@ import java.util.Locale;
  */
 final class BuiltInLastNameDataProvider implements LastNameDataProvider {
 
-    private final Locale locale;
+    private final Locale   locale;
     private final String[] lastNames;
 
     BuiltInLastNameDataProvider(SupportedLocale supportedLocale) {

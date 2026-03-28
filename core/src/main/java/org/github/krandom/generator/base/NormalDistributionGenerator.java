@@ -39,9 +39,9 @@ import java.util.random.RandomGenerator;
 public final class NormalDistributionGenerator implements org.github.krandom.generator.Generator<Double> {
 
     private final RandomGenerator random;
-    private final double mean;
-    private final double standardDeviation;
-    
+    private final double          mean;
+    private final double          standardDeviation;
+
     // Box-Muller generates two values at once; cache the second for efficiency
     private Double cachedValue = null;
 
@@ -55,7 +55,7 @@ public final class NormalDistributionGenerator implements org.github.krandom.gen
     /**
      * Create a normal distribution generator with specified mean and standard deviation.
      *
-     * @param mean the mean (μ) of the distribution
+     * @param mean              the mean (μ) of the distribution
      * @param standardDeviation the standard deviation (σ) of the distribution
      * @throws IllegalArgumentException if standardDeviation is negative or zero
      */
@@ -66,15 +66,15 @@ public final class NormalDistributionGenerator implements org.github.krandom.gen
     /**
      * Create a seeded normal distribution generator.
      *
-     * @param mean the mean (μ) of the distribution
+     * @param mean              the mean (μ) of the distribution
      * @param standardDeviation the standard deviation (σ) of the distribution
-     * @param seed optional seed for reproducibility; {@code null} means {@link SecureRandom}
+     * @param seed              optional seed for reproducibility; {@code null} means {@link SecureRandom}
      * @throws IllegalArgumentException if standardDeviation is negative or zero
      */
     public NormalDistributionGenerator(double mean, double standardDeviation, Long seed) {
         if (standardDeviation <= 0) {
             throw new IllegalArgumentException(
-                    "Standard deviation must be positive, got: " + standardDeviation);
+                "Standard deviation must be positive, got: " + standardDeviation);
         }
         this.mean = mean;
         this.standardDeviation = standardDeviation;

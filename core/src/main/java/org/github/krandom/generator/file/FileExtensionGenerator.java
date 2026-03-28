@@ -19,10 +19,10 @@ import java.util.Random;
 public final class FileExtensionGenerator implements Generator<String> {
 
     private static final List<String> DEFAULT_EXTENSIONS = List.of(
-            "gif", "jpg", "jpeg", "png", "svg", "pdf", "json", "xml", "txt", "csv", "zip"
+        "gif", "jpg", "jpeg", "png", "svg", "pdf", "json", "xml", "txt", "csv", "zip"
     );
 
-    private final Random random;
+    private final Random       random;
     private final List<String> extensions;
 
     public FileExtensionGenerator() {
@@ -32,9 +32,13 @@ public final class FileExtensionGenerator implements Generator<String> {
     public FileExtensionGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.extensions = DEFAULT_EXTENSIONS;
+    }
+
+    public static String[] defaultExtensions() {
+        return DEFAULT_EXTENSIONS.toArray(String[]::new);
     }
 
     @Override
@@ -59,9 +63,5 @@ public final class FileExtensionGenerator implements Generator<String> {
             normalized[i] = ext.startsWith(".") ? ext.substring(1) : ext;
         }
         return normalized[random.nextInt(normalized.length)];
-    }
-
-    public static String[] defaultExtensions() {
-        return DEFAULT_EXTENSIONS.toArray(String[]::new);
     }
 }

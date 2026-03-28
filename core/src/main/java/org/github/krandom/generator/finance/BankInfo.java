@@ -8,19 +8,20 @@ package org.github.krandom.generator.finance;
 /**
  * GoFakeit-style bank/ACH payload.
  *
- * @param accountNumber account number
- * @param routingNumber routing (ABA) number
- * @param bankName bank name
- * @param bankType bank type
- * @param accountName account label
+ * @param accountNumber   account number
+ * @param routingNumber   routing (ABA) number
+ * @param bankName        bank name
+ * @param bankType        bank type
+ * @param accountName     account label
  * @param transactionType transaction type
  */
 public record BankInfo(
-        String accountNumber,
-        String routingNumber,
-        String bankName,
-        String bankType,
-        String accountName,
-        String transactionType
+    String accountNumber,
+    String routingNumber,
+    String bankName,
+    String bankType,
+    String accountName,
+    String transactionType
 ) {
+
 }

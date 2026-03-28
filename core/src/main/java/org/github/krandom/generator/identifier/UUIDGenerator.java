@@ -57,14 +57,12 @@ import java.util.UUID;
  */
 public final class UUIDGenerator implements Generator<UUID> {
 
-    private final GeneratorConfig config;
-    private final Random random;
-
     // Standard UUID v5 namespace for DNS (as per RFC 4122)
     private static final UUID NAMESPACE_DNS = UUID.fromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8");
-    
     // Standard UUID v5 namespace for URLs (as per RFC 4122)
     private static final UUID NAMESPACE_URL = UUID.fromString("6ba7b811-9dad-11d1-80b4-00c04fd430c8");
+    private final GeneratorConfig config;
+    private final Random          random;
 
     /**
      * Creates a UUID generator with default configuration.
@@ -83,8 +81,34 @@ public final class UUIDGenerator implements Generator<UUID> {
     public UUIDGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
+    }
+
+    /**
+     * Gets the standard DNS namespace UUID.
+     *
+     * @return the DNS namespace UUID
+     */
+    public static UUID getDnsNamespace() {
+        return NAMESPACE_DNS;
+    }
+
+    /**
+     * Gets the standard URL namespace UUID.
+     *
+     * @return the URL namespace UUID
+     */
+    public static UUID getUrlNamespace() {
+        return NAMESPACE_URL;
+    }
+
+    static MessageDigest messageDigest(String algorithm) {
+        try {
+            return MessageDigest.getInstance(algorithm);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(algorithm + " algorithm not available", e);
+        }
     }
 
     /**
@@ -205,7 +229,7 @@ public final class UUIDGenerator implements Generator<UUID> {
      * <p>UUIDv5 uses SHA-1 hashing as per RFC 4122 §4.3.
      *
      * @param namespace the namespace UUID; must not be {@code null}
-     * @param name the name to hash; must not be {@code null}
+     * @param name      the name to hash; must not be {@code null}
      * @return a UUIDv5; never {@code null}
      * @throws NullPointerException if {@code namespace} or {@code name} is {@code null}
      */
@@ -239,30 +263,12 @@ public final class UUIDGenerator implements Generator<UUID> {
      * Generates a UUID version 5 as a string using the specified namespace.
      *
      * @param namespace the namespace UUID; must not be {@code null}
-     * @param name the name to hash; must not be {@code null}
+     * @param name      the name to hash; must not be {@code null}
      * @return a UUIDv5 string; never {@code null}
      * @throws NullPointerException if {@code namespace} or {@code name} is {@code null}
      */
     public String generateV5String(UUID namespace, String name) {
         return generateV5(namespace, name).toString();
-    }
-
-    /**
-     * Gets the standard DNS namespace UUID.
-     *
-     * @return the DNS namespace UUID
-     */
-    public static UUID getDnsNamespace() {
-        return NAMESPACE_DNS;
-    }
-
-    /**
-     * Gets the standard URL namespace UUID.
-     *
-     * @return the URL namespace UUID
-     */
-    public static UUID getUrlNamespace() {
-        return NAMESPACE_URL;
     }
 
     /**
@@ -275,12 +281,12 @@ public final class UUIDGenerator implements Generator<UUID> {
         byte[] bytes = new byte[16];
         long msb = uuid.getMostSignificantBits();
         long lsb = uuid.getLeastSignificantBits();
-        
+
         for (int i = 0; i < 8; i++) {
             bytes[i] = (byte) (msb >>> (8 * (7 - i)));
             bytes[8 + i] = (byte) (lsb >>> (8 * (7 - i)));
         }
-        
+
         return bytes;
     }
 
@@ -293,20 +299,12 @@ public final class UUIDGenerator implements Generator<UUID> {
     private UUID bytesToUuid(byte[] bytes) {
         long msb = 0;
         long lsb = 0;
-        
+
         for (int i = 0; i < 8; i++) {
             msb = (msb << 8) | (bytes[i] & 0xff);
             lsb = (lsb << 8) | (bytes[8 + i] & 0xff);
         }
-        
-        return new UUID(msb, lsb);
-    }
 
-    static MessageDigest messageDigest(String algorithm) {
-        try {
-            return MessageDigest.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(algorithm + " algorithm not available", e);
-        }
+        return new UUID(msb, lsb);
     }
 }

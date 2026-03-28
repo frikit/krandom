@@ -11,35 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — Optional support")
 class ObjectGeneratorOptionalTest {
-
-    static class OptionalHolder {
-        private Optional<String> name;
-        private Optional<Integer> age;
-        private Optional<Address> address;
-        @SuppressWarnings("rawtypes")
-        private Optional raw;
-
-        Optional<String> getName() {
-            return name;
-        }
-
-        Optional<Integer> getAge() {
-            return age;
-        }
-
-        Optional<Address> getAddress() {
-            return address;
-        }
-
-        @SuppressWarnings("rawtypes")
-        Optional getRaw() {
-            return raw;
-        }
-    }
 
     @Test
     @DisplayName("typed Optional fields are populated as Optional values")
@@ -58,8 +34,8 @@ class ObjectGeneratorOptionalTest {
     @DisplayName("Optional becomes empty when nested generated value is null")
     void optionalEmptyWhenNestedValueNull() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                .override(String.class, () -> null)
-                .build();
+                                                            .override(String.class, () -> null)
+                                                            .build();
         OptionalHolder value = new ObjectGenerator<>(OptionalHolder.class, config).generate();
         assertNotNull(value.getName());
         assertTrue(value.getName().isEmpty());
@@ -71,5 +47,32 @@ class ObjectGeneratorOptionalTest {
         OptionalHolder value = new ObjectGenerator<>(OptionalHolder.class).generate();
         assertNotNull(value.getRaw());
         assertTrue(value.getRaw().isEmpty());
+    }
+
+
+    static class OptionalHolder {
+
+        private Optional<String>  name;
+        private Optional<Integer> age;
+        private Optional<Address> address;
+        @SuppressWarnings("rawtypes")
+        private Optional          raw;
+
+        Optional<String> getName() {
+            return name;
+        }
+
+        Optional<Integer> getAge() {
+            return age;
+        }
+
+        Optional<Address> getAddress() {
+            return address;
+        }
+
+        @SuppressWarnings("rawtypes")
+        Optional getRaw() {
+            return raw;
+        }
     }
 }

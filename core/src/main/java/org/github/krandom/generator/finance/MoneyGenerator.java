@@ -54,7 +54,9 @@ import java.util.Random;
  */
 public final class MoneyGenerator implements Generator<String> {
 
-    /** Default maximum amount (exclusive). Matches Chance.js {@code dollar()} default. */
+    /**
+     * Default maximum amount (exclusive). Matches Chance.js {@code dollar()} default.
+     */
     public static final double DEFAULT_MAX = 10_000.00;
 
     private final Locale locale;
@@ -62,7 +64,9 @@ public final class MoneyGenerator implements Generator<String> {
 
     // ── Constructors ──────────────────────────────────────────────────────────
 
-    /** Creates a generator for {@link Locale#US} (USD) using a secure random source. */
+    /**
+     * Creates a generator for {@link Locale#US} (USD) using a secure random source.
+     */
     public MoneyGenerator() {
         this(GeneratorConfig.defaults());
     }
@@ -77,8 +81,8 @@ public final class MoneyGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -89,11 +93,43 @@ public final class MoneyGenerator implements Generator<String> {
      */
     public MoneyGenerator(Locale locale) {
         this(GeneratorConfig.builder()
-                .locale(Objects.requireNonNull(locale, "locale must not be null"))
-                .build());
+                            .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                            .build());
     }
 
     // ── Locale-aware generate() ───────────────────────────────────────────────
+
+    private static void validateMax(double max) {
+        if (max < 0) {
+            throw new IllegalArgumentException("max must be >= 0, got: " + max);
+        }
+    }
+
+    /**
+     * Formats {@code amount} using the currency of {@code loc}.
+     * Falls back to USD / US formatting for unrecognised locales.
+     */
+    private static String format(Locale loc, double amount) {
+        Currency currency = Currency.forLocale(loc);
+        if (currency == null) {
+            return formatDollar(amount);
+        }
+        NumberFormat fmt = NumberFormat.getCurrencyInstance(loc);
+        fmt.setCurrency(java.util.Currency.getInstance(currency.getCode()));
+        return fmt.format(amount);
+    }
+
+    private static String formatDollar(double amount) {
+        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.US);
+        fmt.setCurrency(java.util.Currency.getInstance("USD"));
+        return fmt.format(amount);
+    }
+
+    private static String formatEuro(double amount) {
+        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+        fmt.setCurrency(java.util.Currency.getInstance("EUR"));
+        return fmt.format(amount);
+    }
 
     /**
      * Generates a formatted monetary amount in {@code [0, 10 000)} using the configured locale.
@@ -146,6 +182,8 @@ public final class MoneyGenerator implements Generator<String> {
         return format(overrideLocale, nextAmount(max));
     }
 
+    // ── Dollar ────────────────────────────────────────────────────────────────
+
     /**
      * Generates a locale-formatted price string.
      * Alias for {@link #generate()}.
@@ -167,6 +205,8 @@ public final class MoneyGenerator implements Generator<String> {
         return generate(max);
     }
 
+    // ── Euro ──────────────────────────────────────────────────────────────────
+
     /**
      * Generates a locale-formatted price string using the provided locale override.
      * Alias for {@link #generate(Locale)}.
@@ -183,14 +223,14 @@ public final class MoneyGenerator implements Generator<String> {
      * Alias for {@link #generate(Locale, double)}.
      *
      * @param locale locale override
-     * @param max maximum exclusive amount
+     * @param max    maximum exclusive amount
      * @return formatted price
      */
     public String generatePrice(Locale locale, double max) {
         return generate(locale, max);
     }
 
-    // ── Dollar ────────────────────────────────────────────────────────────────
+    // ── Accessor ──────────────────────────────────────────────────────────────
 
     /**
      * Generates a US-dollar amount in {@code [0, 10 000)}, formatted as {@code "$1,234.56"}.
@@ -203,6 +243,8 @@ public final class MoneyGenerator implements Generator<String> {
         return formatDollar(nextAmount(DEFAULT_MAX));
     }
 
+    // ── Private helpers ───────────────────────────────────────────────────────
+
     /**
      * Generates a US-dollar amount in {@code [0, max)}, formatted as {@code "$1,234.56"}.
      *
@@ -214,8 +256,6 @@ public final class MoneyGenerator implements Generator<String> {
         validateMax(max);
         return formatDollar(nextAmount(max));
     }
-
-    // ── Euro ──────────────────────────────────────────────────────────────────
 
     /**
      * Generates a Euro amount in {@code [0, 10 000)}, formatted per French locale conventions
@@ -241,8 +281,6 @@ public final class MoneyGenerator implements Generator<String> {
         return formatEuro(nextAmount(max));
     }
 
-    // ── Accessor ──────────────────────────────────────────────────────────────
-
     /**
      * Returns the locale this generator was configured with.
      *
@@ -252,41 +290,7 @@ public final class MoneyGenerator implements Generator<String> {
         return locale;
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
     private double nextAmount(double max) {
         return random.nextDouble() * max;
-    }
-
-    private static void validateMax(double max) {
-        if (max < 0) {
-            throw new IllegalArgumentException("max must be >= 0, got: " + max);
-        }
-    }
-
-    /**
-     * Formats {@code amount} using the currency of {@code loc}.
-     * Falls back to USD / US formatting for unrecognised locales.
-     */
-    private static String format(Locale loc, double amount) {
-        Currency currency = Currency.forLocale(loc);
-        if (currency == null) {
-            return formatDollar(amount);
-        }
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(loc);
-        fmt.setCurrency(java.util.Currency.getInstance(currency.getCode()));
-        return fmt.format(amount);
-    }
-
-    private static String formatDollar(double amount) {
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.US);
-        fmt.setCurrency(java.util.Currency.getInstance("USD"));
-        return fmt.format(amount);
-    }
-
-    private static String formatEuro(double amount) {
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.FRANCE);
-        fmt.setCurrency(java.util.Currency.getInstance("EUR"));
-        return fmt.format(amount);
     }
 }

@@ -19,35 +19,35 @@ import java.util.Random;
 public final class BankAccountGenerator implements Generator<String> {
 
     private static final String[] EN_ACCOUNT_NAMES = {
-            "Checking Account", "Savings Account", "Business Account", "Joint Account", "Payroll Account"
+        "Checking Account", "Savings Account", "Business Account", "Joint Account", "Payroll Account"
     };
     private static final String[] DE_ACCOUNT_NAMES = {
-            "Girokonto", "Sparkonto", "Geschaeftskonto", "Gemeinschaftskonto", "Gehaltskonto"
+        "Girokonto", "Sparkonto", "Geschaeftskonto", "Gemeinschaftskonto", "Gehaltskonto"
     };
     private static final String[] FR_ACCOUNT_NAMES = {
-            "Compte courant", "Compte epargne", "Compte entreprise", "Compte joint", "Compte salaire"
+        "Compte courant", "Compte epargne", "Compte entreprise", "Compte joint", "Compte salaire"
     };
     private static final String[] ES_ACCOUNT_NAMES = {
-            "Cuenta corriente", "Cuenta de ahorro", "Cuenta empresarial", "Cuenta conjunta", "Cuenta nomina"
+        "Cuenta corriente", "Cuenta de ahorro", "Cuenta empresarial", "Cuenta conjunta", "Cuenta nomina"
     };
     private static final String[] IT_ACCOUNT_NAMES = {
-            "Conto corrente", "Conto risparmio", "Conto aziendale", "Conto cointestato", "Conto stipendio"
+        "Conto corrente", "Conto risparmio", "Conto aziendale", "Conto cointestato", "Conto stipendio"
     };
 
     private static final String[] EN_TRANSACTION_TYPES = {
-            "deposit", "withdrawal", "payment", "transfer", "refund", "fee", "interest", "chargeback"
+        "deposit", "withdrawal", "payment", "transfer", "refund", "fee", "interest", "chargeback"
     };
     private static final String[] DE_TRANSACTION_TYPES = {
-            "einzahlung", "abhebung", "zahlung", "ueberweisung", "rueckerstattung", "gebuehr", "zins", "rueckbuchung"
+        "einzahlung", "abhebung", "zahlung", "ueberweisung", "rueckerstattung", "gebuehr", "zins", "rueckbuchung"
     };
     private static final String[] FR_TRANSACTION_TYPES = {
-            "depot", "retrait", "paiement", "virement", "remboursement", "frais", "interet", "retrofacturation"
+        "depot", "retrait", "paiement", "virement", "remboursement", "frais", "interet", "retrofacturation"
     };
     private static final String[] ES_TRANSACTION_TYPES = {
-            "deposito", "retiro", "pago", "transferencia", "reembolso", "comision", "interes", "contracargo"
+        "deposito", "retiro", "pago", "transferencia", "reembolso", "comision", "interes", "contracargo"
     };
     private static final String[] IT_TRANSACTION_TYPES = {
-            "deposito", "prelievo", "pagamento", "bonifico", "rimborso", "commissione", "interesse", "storno"
+        "deposito", "prelievo", "pagamento", "bonifico", "rimborso", "commissione", "interesse", "storno"
     };
 
     private final Locale locale;
@@ -65,8 +65,21 @@ public final class BankAccountGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
+    }
+
+    private static int lengthByCountry(String country) {
+        return switch (country) {
+            case "GB" -> 8;
+            case "DE", "US", "ES" -> 10;
+            case "FR" -> 11;
+            case "IT", "CN" -> 12;
+            case "BR" -> 9;
+            case "JP" -> 7;
+            case "AU" -> 9;
+            default -> 10;
+        };
     }
 
     /**
@@ -105,19 +118,6 @@ public final class BankAccountGenerator implements Generator<String> {
 
     public Locale getLocale() {
         return locale;
-    }
-
-    private static int lengthByCountry(String country) {
-        return switch (country) {
-            case "GB" -> 8;
-            case "DE", "US", "ES" -> 10;
-            case "FR" -> 11;
-            case "IT", "CN" -> 12;
-            case "BR" -> 9;
-            case "JP" -> 7;
-            case "AU" -> 9;
-            default -> 10;
-        };
     }
 
     private String randomDigits(int length) {

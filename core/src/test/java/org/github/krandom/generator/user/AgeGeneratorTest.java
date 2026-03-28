@@ -10,7 +10,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("AgeGenerator")
 class AgeGeneratorTest {
@@ -24,7 +27,7 @@ class AgeGeneratorTest {
         for (int i = 0; i < 200; i++) {
             int age = gen.generate();
             assertTrue(age >= 1 && age <= 100,
-                    "Expected age in [1,100] but got: " + age);
+                       "Expected age in [1,100] but got: " + age);
         }
         assertEquals(1, gen.getMinAge());
         assertEquals(100, gen.getMaxAge());
@@ -143,7 +146,7 @@ class AgeGeneratorTest {
     @DisplayName("negative minAge throws IllegalArgumentException")
     void negativeMinAgeThrows() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> new AgeGenerator(-1, 10));
+                                                   () -> new AgeGenerator(-1, 10));
         assertTrue(ex.getMessage().contains("minAge"));
     }
 
@@ -151,7 +154,7 @@ class AgeGeneratorTest {
     @DisplayName("maxAge less than minAge throws IllegalArgumentException")
     void maxLessThanMinThrows() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> new AgeGenerator(10, 5));
+                                                   () -> new AgeGenerator(10, 5));
         assertTrue(ex.getMessage().contains("maxAge"));
     }
 
@@ -187,13 +190,13 @@ class AgeGeneratorTest {
     @Test
     @DisplayName("AgeType enum has correct bounds")
     void ageTypeBounds() {
-        assertEquals(1,   AgeType.CHILD.getMinAge());
-        assertEquals(12,  AgeType.CHILD.getMaxAge());
-        assertEquals(13,  AgeType.TEEN.getMinAge());
-        assertEquals(19,  AgeType.TEEN.getMaxAge());
-        assertEquals(18,  AgeType.ADULT.getMinAge());
-        assertEquals(65,  AgeType.ADULT.getMaxAge());
-        assertEquals(65,  AgeType.SENIOR.getMinAge());
+        assertEquals(1, AgeType.CHILD.getMinAge());
+        assertEquals(12, AgeType.CHILD.getMaxAge());
+        assertEquals(13, AgeType.TEEN.getMinAge());
+        assertEquals(19, AgeType.TEEN.getMaxAge());
+        assertEquals(18, AgeType.ADULT.getMinAge());
+        assertEquals(65, AgeType.ADULT.getMaxAge());
+        assertEquals(65, AgeType.SENIOR.getMinAge());
         assertEquals(100, AgeType.SENIOR.getMaxAge());
     }
 }

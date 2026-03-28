@@ -64,9 +64,9 @@ public final class InstantGenerator implements Generator<Instant> {
      */
     public InstantGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random   = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+        this.random = config.getSeed().isPresent()
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.rangeMin = null;
         this.rangeMax = null;
     }
@@ -79,7 +79,7 @@ public final class InstantGenerator implements Generator<Instant> {
      * @param max latest date (inclusive)
      */
     public InstantGenerator(LocalDate min, LocalDate max) {
-        this.random   = new SecureRandom();
+        this.random = new SecureRandom();
         this.rangeMin = min;
         this.rangeMax = max;
     }
@@ -99,10 +99,10 @@ public final class InstantGenerator implements Generator<Instant> {
             long hi = rangeMax.toEpochDay();
             date = LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
         } else {
-            int year   = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
-            int month  = 1 + random.nextInt(12);
+            int year = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);
+            int month = 1 + random.nextInt(12);
             int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
-            int day    = 1 + random.nextInt(maxDay);
+            int day = 1 + random.nextInt(maxDay);
             date = LocalDate.of(year, month, day);
         }
         return date.atStartOfDay().toInstant(ZoneOffset.UTC);

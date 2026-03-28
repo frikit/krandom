@@ -25,7 +25,9 @@ public final class EsNationalIdProvider implements NationalIdProvider {
 
     private final boolean dash;
 
-    /** Creates a provider that generates DNI numbers without a separator. */
+    /**
+     * Creates a provider that generates DNI numbers without a separator.
+     */
     public EsNationalIdProvider() {
         this(false);
     }

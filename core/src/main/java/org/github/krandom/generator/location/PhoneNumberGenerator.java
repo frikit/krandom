@@ -107,17 +107,18 @@ import java.util.Random;
  * }</pre>
  */
 public final class PhoneNumberGenerator implements Generator<String> {
+
     private static final Map<String, String> COUNTRY_CALLING_CODES = Map.ofEntries(
-            Map.entry("US", "+1"),
-            Map.entry("GB", "+44"),
-            Map.entry("AU", "+61"),
-            Map.entry("DE", "+49"),
-            Map.entry("FR", "+33"),
-            Map.entry("ES", "+34"),
-            Map.entry("IT", "+39"),
-            Map.entry("BR", "+55"),
-            Map.entry("JP", "+81"),
-            Map.entry("CN", "+86")
+        Map.entry("US", "+1"),
+        Map.entry("GB", "+44"),
+        Map.entry("AU", "+61"),
+        Map.entry("DE", "+49"),
+        Map.entry("FR", "+33"),
+        Map.entry("ES", "+34"),
+        Map.entry("IT", "+39"),
+        Map.entry("BR", "+55"),
+        Map.entry("JP", "+81"),
+        Map.entry("CN", "+86")
     );
 
     // US area codes (realistic, avoiding 555)
@@ -271,8 +272,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
     };
 
     private final GeneratorConfig config;
-    private final Random random;
-    private final Locale locale;
+    private final Random          random;
+    private final Locale          locale;
 
     /**
      * Creates a generator using US locale with default config.
@@ -291,8 +292,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -303,7 +304,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
      */
     public PhoneNumberGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(
-                Objects.requireNonNull(locale, "locale must not be null")
+            Objects.requireNonNull(locale, "locale must not be null")
         ).build());
     }
 
@@ -346,7 +347,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
      * Mimesis-style alias for {@link #generate(boolean, boolean)}.
      *
      * @param formatted true for formatted output
-     * @param mobile true for mobile, false for landline
+     * @param mobile    true for mobile, false for landline
      * @return generated telephone number
      */
     public String generateTelephone(boolean formatted, boolean mobile) {
@@ -478,18 +479,18 @@ public final class PhoneNumberGenerator implements Generator<String> {
         if (mobile) {
             String prefix = UK_MOBILE_PREFIXES[random.nextInt(UK_MOBILE_PREFIXES.length)];
             int number = random.nextInt(1000000);
-            
+
             if (formatted) {
                 return String.format("%s %06d", prefix, number);
             }
             return prefix + String.format("%06d", number);
         } else {
             String areaCode = UK_LANDLINE_CODES[random.nextInt(UK_LANDLINE_CODES.length)];
-            int numberLength = areaCode.equals("020") ? 8 : 
-                              (areaCode.length() == 5 ? 6 : 7);
+            int numberLength = areaCode.equals("020") ? 8 :
+                               (areaCode.length() == 5 ? 6 : 7);
             int maxNumber = (int) Math.pow(10, numberLength);
             int number = random.nextInt(maxNumber);
-            
+
             if (formatted) {
                 if (areaCode.equals("020")) {
                     // London format: 020 7946 0958
@@ -514,7 +515,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
         if (mobile) {
             String prefix = AU_MOBILE_PREFIXES[random.nextInt(AU_MOBILE_PREFIXES.length)];
             int number = random.nextInt(1000000);
-            
+
             if (formatted) {
                 int part1 = number / 1000;
                 int part2 = number % 1000;
@@ -524,7 +525,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
         } else {
             String areaCode = AU_LANDLINE_CODES[random.nextInt(AU_LANDLINE_CODES.length)];
             int number = random.nextInt(100000000);
-            
+
             if (formatted) {
                 int part1 = number / 10000;
                 int part2 = number % 10000;
@@ -538,7 +539,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
         if (mobile) {
             String prefix = DE_MOBILE_PREFIXES[random.nextInt(DE_MOBILE_PREFIXES.length)];
             int number = random.nextInt(100000000);
-            
+
             if (formatted) {
                 return String.format("%s %08d", prefix, number);
             }
@@ -546,7 +547,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
         } else {
             String areaCode = DE_LANDLINE_CODES[random.nextInt(DE_LANDLINE_CODES.length)];
             int number = random.nextInt(100000000);
-            
+
             if (formatted) {
                 return String.format("%s %08d", areaCode, number);
             }
@@ -561,12 +562,12 @@ public final class PhoneNumberGenerator implements Generator<String> {
         } else {
             prefix = FR_LANDLINE_PREFIXES[random.nextInt(FR_LANDLINE_PREFIXES.length)];
         }
-        
+
         int part2 = 10 + random.nextInt(90);
         int part3 = 10 + random.nextInt(90);
         int part4 = 10 + random.nextInt(90);
         int part5 = 10 + random.nextInt(90);
-        
+
         if (formatted) {
             return String.format("%s %02d %02d %02d %02d", prefix, part2, part3, part4, part5);
         }
@@ -579,7 +580,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int part2 = 10 + random.nextInt(90);
             int part3 = 10 + random.nextInt(90);
             int part4 = 10 + random.nextInt(90);
-            
+
             if (formatted) {
                 return String.format("%s %02d %02d %02d", prefix, part2, part3, part4);
             }
@@ -589,7 +590,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int part2 = 100 + random.nextInt(900);
             int part3 = 10 + random.nextInt(90);
             int part4 = 10 + random.nextInt(90);
-            
+
             if (formatted) {
                 return String.format("%s %03d %02d %02d", areaCode, part2, part3, part4);
             }
@@ -601,7 +602,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
         if (mobile) {
             String prefix = IT_MOBILE_PREFIXES[random.nextInt(IT_MOBILE_PREFIXES.length)];
             int number = random.nextInt(10000000);
-            
+
             if (formatted) {
                 int part1 = number / 10000;
                 int part2 = number % 10000;
@@ -613,7 +614,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int numberDigits = 10 - areaCode.length();
             int maxNumber = (int) Math.pow(10, numberDigits);
             int number = random.nextInt(maxNumber);
-            
+
             if (formatted) {
                 int part1 = number / 10000;
                 int part2 = number % 10000;
@@ -625,12 +626,12 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateBrazilianPhone(boolean formatted, boolean mobile) {
         String areaCode = BR_AREA_CODES[random.nextInt(BR_AREA_CODES.length)];
-        
+
         if (mobile) {
             // Mobile: 9 digits (9xxxx-xxxx)
             int part1 = 90000 + random.nextInt(10000);
             int part2 = random.nextInt(10000);
-            
+
             if (formatted) {
                 return String.format("(%s) %d-%04d", areaCode, part1, part2);
             }
@@ -640,7 +641,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int firstDigit = random.nextBoolean() ? 2 : 3;
             int part1 = firstDigit * 1000 + random.nextInt(1000);
             int part2 = random.nextInt(10000);
-            
+
             if (formatted) {
                 return String.format("(%s) %04d-%04d", areaCode, part1, part2);
             }
@@ -653,7 +654,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
             String prefix = JP_MOBILE_PREFIXES[random.nextInt(JP_MOBILE_PREFIXES.length)];
             int part2 = 1000 + random.nextInt(9000);
             int part3 = random.nextInt(10000);
-            
+
             if (formatted) {
                 return String.format("%s-%04d-%04d", prefix, part2, part3);
             }
@@ -662,7 +663,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
             String areaCode = JP_LANDLINE_CODES[random.nextInt(JP_LANDLINE_CODES.length)];
             int part2 = 1000 + random.nextInt(9000);
             int part3 = random.nextInt(10000);
-            
+
             if (formatted) {
                 return String.format("%s-%04d-%04d", areaCode, part2, part3);
             }
@@ -675,7 +676,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
             String prefix = CN_MOBILE_PREFIXES[random.nextInt(CN_MOBILE_PREFIXES.length)];
             int part2 = 1000 + random.nextInt(9000);
             int part3 = random.nextInt(10000);
-            
+
             if (formatted) {
                 return String.format("%s %04d %04d", prefix, part2, part3);
             }
@@ -683,7 +684,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
         } else {
             String areaCode = CN_LANDLINE_CODES[random.nextInt(CN_LANDLINE_CODES.length)];
             int number = random.nextInt(100000000);
-            
+
             if (formatted) {
                 return String.format("%s-%08d", areaCode, number);
             }
@@ -696,7 +697,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
     private String getLocaleKey(Locale loc) {
         String language = loc.getLanguage();
         String country = loc.getCountry();
-        
+
         if (!country.isEmpty()) {
             return language + "_" + country;
         }

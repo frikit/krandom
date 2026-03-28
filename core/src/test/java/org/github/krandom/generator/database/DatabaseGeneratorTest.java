@@ -12,7 +12,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("DatabaseGenerator")
 class DatabaseGeneratorTest {
@@ -24,7 +28,7 @@ class DatabaseGeneratorTest {
         assertFalse(generator.generate().isBlank());
         assertFalse(generator.generateColumn().isBlank());
         assertTrue(generator.generateType().matches(
-                "VARCHAR\\(255\\)|TEXT|INTEGER|BIGINT|BOOLEAN|DATE|TIMESTAMP|DECIMAL\\(10,2\\)|JSON|UUID"));
+            "VARCHAR\\(255\\)|TEXT|INTEGER|BIGINT|BOOLEAN|DATE|TIMESTAMP|DECIMAL\\(10,2\\)|JSON|UUID"));
     }
 
     @Test
@@ -39,15 +43,15 @@ class DatabaseGeneratorTest {
     @DisplayName("covers all locale branches for columns")
     void localeBranchCoverage() {
         Locale[] locales = {
-                Locale.US,
-                Locale.GERMANY,
-                Locale.FRANCE,
-                Locale.of("es", "ES"),
-                Locale.ITALY
+            Locale.US,
+            Locale.GERMANY,
+            Locale.FRANCE,
+            Locale.of("es", "ES"),
+            Locale.ITALY
         };
         for (Locale locale : locales) {
             DatabaseGenerator generator = new DatabaseGenerator(
-                    GeneratorConfig.builder().seed(2L).locale(locale).build()
+                GeneratorConfig.builder().seed(2L).locale(locale).build()
             );
             assertFalse(generator.generateColumn().isBlank());
             assertFalse(generator.generateType().isBlank());

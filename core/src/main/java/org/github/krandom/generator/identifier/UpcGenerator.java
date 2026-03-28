@@ -26,18 +26,8 @@ public final class UpcGenerator implements Generator<String> {
     public UpcGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
-    }
-
-    @Override
-    public String generate() {
-        StringBuilder body = new StringBuilder(11);
-        for (int i = 0; i < 11; i++) {
-            body.append(random.nextInt(10));
-        }
-        int checkDigit = computeCheckDigit(body.toString());
-        return body.append(checkDigit).toString();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     static int computeCheckDigit(String body) {
@@ -53,5 +43,15 @@ public final class UpcGenerator implements Generator<String> {
         }
         int total = sumOdd * 3 + sumEven;
         return (10 - (total % 10)) % 10;
+    }
+
+    @Override
+    public String generate() {
+        StringBuilder body = new StringBuilder(11);
+        for (int i = 0; i < 11; i++) {
+            body.append(random.nextInt(10));
+        }
+        int checkDigit = computeCheckDigit(body.toString());
+        return body.append(checkDigit).toString();
     }
 }

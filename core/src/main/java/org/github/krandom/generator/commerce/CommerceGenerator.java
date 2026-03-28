@@ -23,42 +23,42 @@ import java.util.Random;
  */
 public final class CommerceGenerator implements Generator<String> {
 
-    private static final String[] EN_ADJECTIVES = {"Small", "Sleek", "Rustic", "Practical", "Premium", "Ergonomic"};
-    private static final String[] DE_ADJECTIVES = {"Klein", "Elegant", "Robust", "Praktisch", "Premium", "Ergonomisch"};
-    private static final String[] FR_ADJECTIVES = {"Petit", "Elegant", "Rustique", "Pratique", "Premium", "Ergonomique"};
-    private static final String[] ES_ADJECTIVES = {"Pequeno", "Elegante", "Rustico", "Practico", "Premium", "Ergonomico"};
-    private static final String[] IT_ADJECTIVES = {"Piccolo", "Elegante", "Rustico", "Pratico", "Premium", "Ergonomico"};
+    private static final String[] EN_ADJECTIVES = { "Small", "Sleek", "Rustic", "Practical", "Premium", "Ergonomic" };
+    private static final String[] DE_ADJECTIVES = { "Klein", "Elegant", "Robust", "Praktisch", "Premium", "Ergonomisch" };
+    private static final String[] FR_ADJECTIVES = { "Petit", "Elegant", "Rustique", "Pratique", "Premium", "Ergonomique" };
+    private static final String[] ES_ADJECTIVES = { "Pequeno", "Elegante", "Rustico", "Practico", "Premium", "Ergonomico" };
+    private static final String[] IT_ADJECTIVES = { "Piccolo", "Elegante", "Rustico", "Pratico", "Premium", "Ergonomico" };
 
-    private static final String[] EN_MATERIALS = {"Steel", "Wooden", "Concrete", "Plastic", "Granite", "Cotton"};
-    private static final String[] DE_MATERIALS = {"Stahl", "Holz", "Beton", "Kunststoff", "Granit", "Baumwolle"};
-    private static final String[] FR_MATERIALS = {"Acier", "Bois", "Beton", "Plastique", "Granit", "Coton"};
-    private static final String[] ES_MATERIALS = {"Acero", "Madera", "Hormigon", "Plastico", "Granito", "Algodon"};
-    private static final String[] IT_MATERIALS = {"Acciaio", "Legno", "Cemento", "Plastica", "Granito", "Cotone"};
+    private static final String[] EN_MATERIALS = { "Steel", "Wooden", "Concrete", "Plastic", "Granite", "Cotton" };
+    private static final String[] DE_MATERIALS = { "Stahl", "Holz", "Beton", "Kunststoff", "Granit", "Baumwolle" };
+    private static final String[] FR_MATERIALS = { "Acier", "Bois", "Beton", "Plastique", "Granit", "Coton" };
+    private static final String[] ES_MATERIALS = { "Acero", "Madera", "Hormigon", "Plastico", "Granito", "Algodon" };
+    private static final String[] IT_MATERIALS = { "Acciaio", "Legno", "Cemento", "Plastica", "Granito", "Cotone" };
 
-    private static final String[] EN_PRODUCTS = {"Chair", "Table", "Computer", "Keyboard", "Shoes", "Watch"};
-    private static final String[] DE_PRODUCTS = {"Stuhl", "Tisch", "Computer", "Tastatur", "Schuhe", "Uhr"};
-    private static final String[] FR_PRODUCTS = {"Chaise", "Table", "Ordinateur", "Clavier", "Chaussures", "Montre"};
-    private static final String[] ES_PRODUCTS = {"Silla", "Mesa", "Computadora", "Teclado", "Zapatos", "Reloj"};
-    private static final String[] IT_PRODUCTS = {"Sedia", "Tavolo", "Computer", "Tastiera", "Scarpe", "Orologio"};
+    private static final String[] EN_PRODUCTS = { "Chair", "Table", "Computer", "Keyboard", "Shoes", "Watch" };
+    private static final String[] DE_PRODUCTS = { "Stuhl", "Tisch", "Computer", "Tastatur", "Schuhe", "Uhr" };
+    private static final String[] FR_PRODUCTS = { "Chaise", "Table", "Ordinateur", "Clavier", "Chaussures", "Montre" };
+    private static final String[] ES_PRODUCTS = { "Silla", "Mesa", "Computadora", "Teclado", "Zapatos", "Reloj" };
+    private static final String[] IT_PRODUCTS = { "Sedia", "Tavolo", "Computer", "Tastiera", "Scarpe", "Orologio" };
 
-    private static final String[] EN_DEPARTMENTS = {"Books", "Electronics", "Outdoors", "Home", "Toys", "Garden"};
-    private static final String[] DE_DEPARTMENTS = {"Buecher", "Elektronik", "Outdoor", "Haushalt", "Spielzeug", "Garten"};
-    private static final String[] FR_DEPARTMENTS = {"Livres", "Electronique", "Plein air", "Maison", "Jouets", "Jardin"};
-    private static final String[] ES_DEPARTMENTS = {"Libros", "Electronica", "Exterior", "Hogar", "Juguetes", "Jardin"};
-    private static final String[] IT_DEPARTMENTS = {"Libri", "Elettronica", "Esterno", "Casa", "Giocattoli", "Giardino"};
+    private static final String[] EN_DEPARTMENTS = { "Books", "Electronics", "Outdoors", "Home", "Toys", "Garden" };
+    private static final String[] DE_DEPARTMENTS = { "Buecher", "Elektronik", "Outdoor", "Haushalt", "Spielzeug", "Garten" };
+    private static final String[] FR_DEPARTMENTS = { "Livres", "Electronique", "Plein air", "Maison", "Jouets", "Jardin" };
+    private static final String[] ES_DEPARTMENTS = { "Libros", "Electronica", "Exterior", "Hogar", "Juguetes", "Jardin" };
+    private static final String[] IT_DEPARTMENTS = { "Libri", "Elettronica", "Esterno", "Casa", "Giocattoli", "Giardino" };
 
-    private static final String[] EN_COLORS = {"red", "blue", "green", "black", "white", "silver"};
-    private static final String[] DE_COLORS = {"rot", "blau", "gruen", "schwarz", "weiss", "silber"};
-    private static final String[] FR_COLORS = {"rouge", "bleu", "vert", "noir", "blanc", "argent"};
-    private static final String[] ES_COLORS = {"rojo", "azul", "verde", "negro", "blanco", "plata"};
-    private static final String[] IT_COLORS = {"rosso", "blu", "verde", "nero", "bianco", "argento"};
+    private static final String[] EN_COLORS = { "red", "blue", "green", "black", "white", "silver" };
+    private static final String[] DE_COLORS = { "rot", "blau", "gruen", "schwarz", "weiss", "silber" };
+    private static final String[] FR_COLORS = { "rouge", "bleu", "vert", "noir", "blanc", "argent" };
+    private static final String[] ES_COLORS = { "rojo", "azul", "verde", "negro", "blanco", "plata" };
+    private static final String[] IT_COLORS = { "rosso", "blu", "verde", "nero", "bianco", "argento" };
 
-    private final Locale locale;
-    private final Random random;
-    private final UpcGenerator upcGenerator;
+    private final Locale        locale;
+    private final Random        random;
+    private final UpcGenerator  upcGenerator;
     private final IsbnGenerator isbn10Generator;
     private final IsbnGenerator isbn13Generator;
-    private final EanGenerator eanGenerator;
+    private final EanGenerator  eanGenerator;
 
     public CommerceGenerator() {
         this(GeneratorConfig.defaults());
@@ -72,8 +72,8 @@ public final class CommerceGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.upcGenerator = new UpcGenerator(config);
         this.isbn10Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, config);
         this.isbn13Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_13, config);
@@ -187,12 +187,12 @@ public final class CommerceGenerator implements Generator<String> {
      */
     public ProductInfo generateProductInfo() {
         return new ProductInfo(
-                generateProductName(),
-                generateProductDescription(),
-                generateCategory(),
-                generateMaterial(),
-                generateUpc(),
-                generateIsbn13()
+            generateProductName(),
+            generateProductDescription(),
+            generateCategory(),
+            generateMaterial(),
+            generateUpc(),
+            generateIsbn13()
         );
     }
 

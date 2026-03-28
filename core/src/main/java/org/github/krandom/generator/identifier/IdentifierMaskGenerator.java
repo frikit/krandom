@@ -34,8 +34,16 @@ public final class IdentifierMaskGenerator implements Generator<String> {
     public IdentifierMaskGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
+    }
+
+    private static String requireMask(String mask) {
+        Objects.requireNonNull(mask, "mask must not be null");
+        if (mask.isBlank()) {
+            throw new IllegalArgumentException("mask must not be blank");
+        }
+        return mask;
     }
 
     @Override
@@ -89,14 +97,6 @@ public final class IdentifierMaskGenerator implements Generator<String> {
             }
         }
         return out.toString();
-    }
-
-    private static String requireMask(String mask) {
-        Objects.requireNonNull(mask, "mask must not be null");
-        if (mask.isBlank()) {
-            throw new IllegalArgumentException("mask must not be blank");
-        }
-        return mask;
     }
 
     private char randomDigit() {

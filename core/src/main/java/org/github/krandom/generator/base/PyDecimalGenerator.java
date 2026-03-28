@@ -28,8 +28,8 @@ public final class PyDecimalGenerator implements Generator<BigDecimal> {
     public PyDecimalGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override
@@ -48,7 +48,7 @@ public final class PyDecimalGenerator implements Generator<BigDecimal> {
         BigDecimal value = BigDecimal.valueOf(integerPart);
         if (rightDigits > 0) {
             BigDecimal fraction = BigDecimal.valueOf(random.nextLong((long) Math.pow(10, Math.min(rightDigits, 9))))
-                    .movePointLeft(rightDigits);
+                                            .movePointLeft(rightDigits);
             value = value.add(fraction);
         }
         return value.setScale(rightDigits, RoundingMode.DOWN);

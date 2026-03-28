@@ -18,7 +18,7 @@ import java.util.Random;
  */
 public final class BankCountryGenerator implements Generator<String> {
 
-    private static final String[] SUPPORTED = {"US", "GB", "DE", "FR", "ES", "IT", "BR", "JP", "CN", "AU"};
+    private static final String[] SUPPORTED = { "US", "GB", "DE", "FR", "ES", "IT", "BR", "JP", "CN", "AU" };
 
     private final Locale locale;
     private final Random random;
@@ -35,8 +35,8 @@ public final class BankCountryGenerator implements Generator<String> {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.locale = effective.getLocale();
         this.random = effective.getSeed().isPresent()
-                ? new Random(effective.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(effective.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     @Override

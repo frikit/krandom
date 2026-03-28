@@ -11,10 +11,19 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Bic and Isin generators")
 class BicIsinGeneratorTest {
+
+    private static boolean isValidIsin(String isin) {
+        String base = isin.substring(0, 11);
+        int expected = IsinGenerator.computeCheckDigit(base);
+        int actual = isin.charAt(11) - '0';
+        return expected == actual;
+    }
 
     @Test
     void bicGenerator() {
@@ -71,12 +80,5 @@ class BicIsinGeneratorTest {
         assertTrue(gen.generate(Locale.ENGLISH).startsWith("US"));
         Locale numericRegion = new Locale.Builder().setLanguage("en").setRegion("001").build();
         assertTrue(gen.generate(numericRegion).startsWith("US"));
-    }
-
-    private static boolean isValidIsin(String isin) {
-        String base = isin.substring(0, 11);
-        int expected = IsinGenerator.computeCheckDigit(base);
-        int actual = isin.charAt(11) - '0';
-        return expected == actual;
     }
 }

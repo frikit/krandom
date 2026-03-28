@@ -38,8 +38,19 @@ public final class NumberWithFormatGenerator implements Generator<String> {
         this.defaultFormat = validateFormat(format);
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
+    }
+
+    private static String validateFormat(String format) {
+        Objects.requireNonNull(format, "format must not be null");
+        if (format.isBlank()) {
+            throw new IllegalArgumentException("format must not be blank");
+        }
+        if (format.indexOf('#') < 0) {
+            throw new IllegalArgumentException("format must contain at least one '#' placeholder");
+        }
+        return format;
     }
 
     @Override
@@ -65,16 +76,5 @@ public final class NumberWithFormatGenerator implements Generator<String> {
             }
         }
         return out.toString();
-    }
-
-    private static String validateFormat(String format) {
-        Objects.requireNonNull(format, "format must not be null");
-        if (format.isBlank()) {
-            throw new IllegalArgumentException("format must not be blank");
-        }
-        if (format.indexOf('#') < 0) {
-            throw new IllegalArgumentException("format must contain at least one '#' placeholder");
-        }
-        return format;
     }
 }

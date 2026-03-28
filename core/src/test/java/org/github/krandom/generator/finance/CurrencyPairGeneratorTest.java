@@ -14,7 +14,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CurrencyPairGenerator")
 class CurrencyPairGeneratorTest {
@@ -50,7 +55,7 @@ class CurrencyPairGeneratorTest {
         for (int i = 0; i < 50; i++) {
             String pair = gen.generate();
             assertTrue(pair.matches("[A-Z]{3}/[A-Z]{3}"),
-                    "Expected BASE/QUOTE format, got: " + pair);
+                       "Expected BASE/QUOTE format, got: " + pair);
         }
     }
 
@@ -170,7 +175,7 @@ class CurrencyPairGeneratorTest {
         GeneratorConfig cfg = GeneratorConfig.builder().seed(1L).build();
         CurrencyPairGenerator gen1 = new CurrencyPairGenerator(cfg);
         CurrencyPairGenerator gen2 = new CurrencyPairGenerator(
-                GeneratorConfig.builder().seed(1L).build());
+            GeneratorConfig.builder().seed(1L).build());
 
         for (int i = 0; i < 10; i++) {
             assertEquals(gen1.generate(), gen2.generateWithInfo().toPairString());
@@ -237,14 +242,14 @@ class CurrencyPairGeneratorTest {
     @DisplayName("CurrencyPair rejects null base")
     void currencyPairNullBaseThrows() {
         assertThrows(NullPointerException.class,
-                () -> new CurrencyPair(null, Currency.USD.toInfo()));
+                     () -> new CurrencyPair(null, Currency.USD.toInfo()));
     }
 
     @Test
     @DisplayName("CurrencyPair rejects null quote")
     void currencyPairNullQuoteThrows() {
         assertThrows(NullPointerException.class,
-                () -> new CurrencyPair(Currency.USD.toInfo(), null));
+                     () -> new CurrencyPair(Currency.USD.toInfo(), null));
     }
 
     @Test
@@ -252,7 +257,7 @@ class CurrencyPairGeneratorTest {
     void currencyPairSameBaseAndQuoteThrows() {
         CurrencyInfo usd = Currency.USD.toInfo();
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> new CurrencyPair(usd, usd));
+                                                   () -> new CurrencyPair(usd, usd));
         assertTrue(ex.getMessage().contains("USD"));
     }
 
@@ -288,9 +293,9 @@ class CurrencyPairGeneratorTest {
     @DisplayName("different seeds produce different pair sequences")
     void differentSeeds() {
         CurrencyPairGenerator gen1 = new CurrencyPairGenerator(
-                GeneratorConfig.builder().seed(1L).build());
+            GeneratorConfig.builder().seed(1L).build());
         CurrencyPairGenerator gen2 = new CurrencyPairGenerator(
-                GeneratorConfig.builder().seed(2L).build());
+            GeneratorConfig.builder().seed(2L).build());
         assertNotEquals(gen1.generateList(50), gen2.generateList(50));
     }
 
@@ -319,27 +324,29 @@ class CurrencyPairGeneratorTest {
     @Test
     @DisplayName("all 10 supported locales produce pairs with locale's currency as base")
     void allLocalesProduceCorrectBase() {
-        record LocalePair(Locale locale, String expectedBase) {}
+        record LocalePair(Locale locale, String expectedBase) {
+
+        }
         List<LocalePair> cases = List.of(
-                new LocalePair(Locale.US,                    "USD"),
-                new LocalePair(Locale.UK,                    "GBP"),
-                new LocalePair(Locale.of("en", "AU"),        "AUD"),
-                new LocalePair(Locale.GERMANY,               "EUR"),
-                new LocalePair(Locale.FRANCE,                "EUR"),
-                new LocalePair(Locale.of("es", "ES"),        "EUR"),
-                new LocalePair(Locale.ITALY,                 "EUR"),
-                new LocalePair(Locale.of("pt", "BR"),        "BRL"),
-                new LocalePair(Locale.JAPAN,                 "JPY"),
-                new LocalePair(Locale.of("zh", "CN"),        "CNY")
+            new LocalePair(Locale.US, "USD"),
+            new LocalePair(Locale.UK, "GBP"),
+            new LocalePair(Locale.of("en", "AU"), "AUD"),
+            new LocalePair(Locale.GERMANY, "EUR"),
+            new LocalePair(Locale.FRANCE, "EUR"),
+            new LocalePair(Locale.of("es", "ES"), "EUR"),
+            new LocalePair(Locale.ITALY, "EUR"),
+            new LocalePair(Locale.of("pt", "BR"), "BRL"),
+            new LocalePair(Locale.JAPAN, "JPY"),
+            new LocalePair(Locale.of("zh", "CN"), "CNY")
         );
 
         CurrencyPairGenerator gen = new CurrencyPairGenerator();
         for (LocalePair lp : cases) {
             CurrencyPair pair = gen.generateWithInfo(lp.locale());
             assertEquals(lp.expectedBase(), pair.base().code(),
-                    "Wrong base for locale " + lp.locale());
+                         "Wrong base for locale " + lp.locale());
             assertNotEquals(lp.expectedBase(), pair.quote().code(),
-                    "Quote must differ from base for locale " + lp.locale());
+                            "Quote must differ from base for locale " + lp.locale());
         }
     }
 }

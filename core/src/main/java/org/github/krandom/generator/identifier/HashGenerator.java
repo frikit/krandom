@@ -52,12 +52,11 @@ import java.util.Random;
  */
 public final class HashGenerator implements Generator<String> {
 
-    private final GeneratorConfig config;
-    private final Random random;
-
-    private static final int DEFAULT_LENGTH = 40;  // SHA-1 compatible
+    private static final int    DEFAULT_LENGTH  = 40;  // SHA-1 compatible
     private static final char[] HEX_CHARS_LOWER = "0123456789abcdef".toCharArray();
     private static final char[] HEX_CHARS_UPPER = "0123456789ABCDEF".toCharArray();
+    private final GeneratorConfig config;
+    private final Random          random;
 
     /**
      * Creates a hash generator with default configuration.
@@ -75,8 +74,8 @@ public final class HashGenerator implements Generator<String> {
     public HashGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
     }
 
     /**
@@ -128,17 +127,23 @@ public final class HashGenerator implements Generator<String> {
         return generateHash(length, HEX_CHARS_UPPER);
     }
 
-    /** Generates a random MD5 digest (32 hex chars). */
+    /**
+     * Generates a random MD5 digest (32 hex chars).
+     */
     public String generateMd5() {
         return generateDigestHex("MD5");
     }
 
-    /** Generates a random SHA-1 digest (40 hex chars). */
+    /**
+     * Generates a random SHA-1 digest (40 hex chars).
+     */
     public String generateSha1() {
         return generateDigestHex("SHA-1");
     }
 
-    /** Generates a random SHA-256 digest (64 hex chars). */
+    /**
+     * Generates a random SHA-256 digest (64 hex chars).
+     */
     public String generateSha256() {
         return generateDigestHex("SHA-256");
     }
@@ -147,7 +152,7 @@ public final class HashGenerator implements Generator<String> {
      * Generates a hash string using the specified character set.
      *
      * @param length the length of the hash
-     * @param chars the character set to use
+     * @param chars  the character set to use
      * @return a hash string
      */
     private String generateHash(int length, char[] chars) {

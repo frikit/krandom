@@ -23,7 +23,7 @@ public final class SqlTimestampGenerator implements Generator<Timestamp> {
     private static final LocalDate DEFAULT_MIN = LocalDate.of(1970, 1, 1);
     private static final LocalDate DEFAULT_MAX = LocalDate.of(2100, 12, 31);
 
-    private final Random random;
+    private final Random    random;
     private final LocalDate min;
     private final LocalDate max;
 
@@ -34,8 +34,8 @@ public final class SqlTimestampGenerator implements Generator<Timestamp> {
     public SqlTimestampGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.min = DEFAULT_MIN;
         this.max = DEFAULT_MAX;
     }

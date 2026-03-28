@@ -10,9 +10,9 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.file.FileExtensionGenerator;
 import org.github.krandom.generator.file.FileNameGenerator;
 
-import java.security.SecureRandom;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -31,7 +31,7 @@ import java.util.Random;
  * // Random URL
  * URLGenerator gen = new URLGenerator();
  * String url = gen.generate();  // "https://techcloud.com"
- * 
+ *
  * // URL with specific protocol
  * String httpUrl = gen.generate("http");  // "http://datahub.io"
  * }</pre>
@@ -40,7 +40,7 @@ import java.util.Random;
  * <pre>{@code
  * // URL with path
  * String withPath = gen.generateWithPath();  // "https://example.com/api/users"
- * 
+ *
  * // URL with path and query
  * String full = gen.generateWithPathAndQuery();  // "https://example.com/api/users?id=123&amp;page=1"
  * }</pre>
@@ -55,35 +55,35 @@ import java.util.Random;
  * This generator is thread-safe and can be shared across threads.
  */
 public final class URLGenerator implements Generator<String> {
-    
+
     private static final String[] PROTOCOLS = {
         "http", "https", "ftp", "ws", "wss"
     };
-    
+
     private static final String[] PATH_SEGMENTS = {
         "api", "v1", "v2", "admin", "user", "users", "posts", "data",
         "files", "images", "docs", "about", "contact", "services",
         "products", "items", "list", "details", "profile", "settings"
     };
-    
+
     private static final String[] QUERY_PARAMS = {
         "id", "page", "limit", "offset", "sort", "order", "filter",
         "search", "q", "type", "category", "status", "format"
     };
 
-    private final GeneratorConfig config;
-    private final Random random;
-    private final DomainGenerator domainGenerator;
+    private final GeneratorConfig        config;
+    private final Random                 random;
+    private final DomainGenerator        domainGenerator;
     private final FileExtensionGenerator fileExtensionGenerator;
-    private final FileNameGenerator fileNameGenerator;
-    
+    private final FileNameGenerator      fileNameGenerator;
+
     /**
      * Creates a URL generator with default configuration.
      */
     public URLGenerator() {
         this(GeneratorConfig.defaults());
     }
-    
+
     /**
      * Creates a URL generator for the specified locale.
      *
@@ -92,7 +92,7 @@ public final class URLGenerator implements Generator<String> {
     public URLGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
-    
+
     /**
      * Creates a URL generator with the specified configuration.
      *
@@ -102,13 +102,43 @@ public final class URLGenerator implements Generator<String> {
     public URLGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.getSeed().isPresent()
-                ? new Random(config.getSeed().getAsLong())
-                : new SecureRandom();
+                      ? new Random(config.getSeed().getAsLong())
+                      : new SecureRandom();
         this.domainGenerator = new DomainGenerator(config);
         this.fileExtensionGenerator = new FileExtensionGenerator(config);
         this.fileNameGenerator = new FileNameGenerator(config);
     }
-    
+
+    private static String requireNonBlank(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(field + " must not be blank");
+        }
+        return value;
+    }
+
+    private static String normalizeOptional(String value, String field) {
+        if (value == null) {
+            return null;
+        }
+        return requireNonBlank(value, field);
+    }
+
+    private static String normalizePath(String path) {
+        String normalized = path.trim();
+        return normalized.startsWith("/") ? normalized : "/" + normalized;
+    }
+
+    private static String appendPathSegment(String url, String segment) {
+        if (url.endsWith("/")) {
+            return url + segment;
+        }
+        return url + "/" + segment;
+    }
+
+    private static String encodeUrlComponent(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -122,7 +152,7 @@ public final class URLGenerator implements Generator<String> {
         String domain = domainGenerator.generate();
         return protocol + "://" + domain;
     }
-    
+
     /**
      * Generates a URL with the specified protocol.
      *
@@ -135,7 +165,7 @@ public final class URLGenerator implements Generator<String> {
         String domain = domainGenerator.generate();
         return protocol + "://" + domain;
     }
-    
+
     /**
      * Generates a URL with a random path (1-3 segments).
      *
@@ -146,7 +176,7 @@ public final class URLGenerator implements Generator<String> {
         String path = generatePath();
         return base + path;
     }
-    
+
     /**
      * Generates a URL with a path and query parameters.
      *
@@ -255,7 +285,7 @@ public final class URLGenerator implements Generator<String> {
         }
         return url;
     }
-    
+
     /**
      * Generates just a protocol.
      *
@@ -274,7 +304,7 @@ public final class URLGenerator implements Generator<String> {
     public String generateProtocol() {
         return getProtocol();
     }
-    
+
     /**
      * Generates just a path (without leading domain).
      *
@@ -283,7 +313,7 @@ public final class URLGenerator implements Generator<String> {
     public String getPath() {
         return generatePath();
     }
-    
+
     /**
      * Generates just a query string (without leading "?").
      *
@@ -312,36 +342,6 @@ public final class URLGenerator implements Generator<String> {
         return domainGenerator.getTLD();
     }
 
-    private static String requireNonBlank(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " must not be blank");
-        }
-        return value;
-    }
-
-    private static String normalizeOptional(String value, String field) {
-        if (value == null) {
-            return null;
-        }
-        return requireNonBlank(value, field);
-    }
-
-    private static String normalizePath(String path) {
-        String normalized = path.trim();
-        return normalized.startsWith("/") ? normalized : "/" + normalized;
-    }
-
-    private static String appendPathSegment(String url, String segment) {
-        if (url.endsWith("/")) {
-            return url + segment;
-        }
-        return url + "/" + segment;
-    }
-
-    private static String encodeUrlComponent(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
-    }
-    
     /**
      * Returns a random protocol.
      *
@@ -350,7 +350,7 @@ public final class URLGenerator implements Generator<String> {
     private String getRandomProtocol() {
         return PROTOCOLS[random.nextInt(PROTOCOLS.length)];
     }
-    
+
     /**
      * Generates a path with 1-3 segments.
      *
@@ -364,7 +364,7 @@ public final class URLGenerator implements Generator<String> {
         }
         return path.toString();
     }
-    
+
     /**
      * Generates a query string with 1-3 parameters.
      *
@@ -383,7 +383,7 @@ public final class URLGenerator implements Generator<String> {
         }
         return query.toString();
     }
-    
+
     /**
      * Returns a random path segment.
      *
@@ -392,7 +392,7 @@ public final class URLGenerator implements Generator<String> {
     private String getRandomPathSegment() {
         return PATH_SEGMENTS[random.nextInt(PATH_SEGMENTS.length)];
     }
-    
+
     /**
      * Returns a random query parameter name.
      *
@@ -405,22 +405,25 @@ public final class URLGenerator implements Generator<String> {
     /**
      * Option bag for {@link #generateWithOptions(URLOptions)}.
      *
-     * @param protocol optional protocol
-     * @param domain optional fixed domain
+     * @param protocol     optional protocol
+     * @param domain       optional fixed domain
      * @param domainPrefix optional subdomain prefix
-     * @param path optional fixed path
-     * @param extensions optional extension list for random file extension selection
-     * @param withQuery whether query parameters should be appended
+     * @param path         optional fixed path
+     * @param extensions   optional extension list for random file extension selection
+     * @param withQuery    whether query parameters should be appended
      */
     public record URLOptions(
-            String protocol,
-            String domain,
-            String domainPrefix,
-            String path,
-            String[] extensions,
-            boolean withQuery
+        String protocol,
+        String domain,
+        String domainPrefix,
+        String path,
+        String[] extensions,
+        boolean withQuery
     ) {
-        /** Convenience options with all optional fields unset and query disabled. */
+
+        /**
+         * Convenience options with all optional fields unset and query disabled.
+         */
         public URLOptions() {
             this(null, null, null, null, null, false);
         }

@@ -20,7 +20,7 @@ import java.util.Objects;
 public final class Field {
 
     private final GeneratorConfig config;
-    private final FieldLookup lookup;
+    private final FieldLookup     lookup;
 
     /**
      * Creates field resolver with default configuration.
@@ -46,6 +46,14 @@ public final class Field {
     public Field(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.lookup = new FieldLookup(config);
+    }
+
+    private static String validateFieldName(String name) {
+        Objects.requireNonNull(name, "field name must not be null");
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("field name must not be blank");
+        }
+        return name;
     }
 
     /**
@@ -82,8 +90,8 @@ public final class Field {
      * Creates list provider from a string reference with size range.
      *
      * @param reference field reference
-     * @param min minimum size
-     * @param max maximum size
+     * @param min       minimum size
+     * @param max       maximum size
      * @return list provider
      */
     public SchemaValueProvider list(String reference, int min, int max) {
@@ -94,8 +102,8 @@ public final class Field {
      * Creates list provider from arbitrary provider with size range.
      *
      * @param provider value provider for each item
-     * @param min minimum size
-     * @param max maximum size
+     * @param min      minimum size
+     * @param max      maximum size
      * @return list provider
      */
     public SchemaValueProvider list(SchemaValueProvider provider, int min, int max) {
@@ -133,7 +141,7 @@ public final class Field {
             for (Map.Entry<String, SchemaValueProvider> entry : copy.entrySet()) {
                 String name = validateFieldName(entry.getKey());
                 SchemaValueProvider provider = Objects.requireNonNull(entry.getValue(),
-                        "provider for nested field '" + name + "' must not be null");
+                                                                      "provider for nested field '" + name + "' must not be null");
                 nested.put(name, provider.generate(context));
             }
             return nested;
@@ -156,13 +164,5 @@ public final class Field {
      */
     public GeneratorConfig getConfig() {
         return config;
-    }
-
-    private static String validateFieldName(String name) {
-        Objects.requireNonNull(name, "field name must not be null");
-        if (name.isBlank()) {
-            throw new IllegalArgumentException("field name must not be blank");
-        }
-        return name;
     }
 }

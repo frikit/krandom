@@ -5,7 +5,9 @@
  */
 package org.github.krandom.generator.core.model;
 
-/** Enum used to verify random enum-constant selection in object generation. */
+/**
+ * Enum used to verify random enum-constant selection in object generation.
+ */
 public enum Status {
     ACTIVE,
     INACTIVE,

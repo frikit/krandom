@@ -37,11 +37,11 @@ import java.util.function.Predicate;
  */
 public final class ObjectGeneratorConfig {
 
-    static final int DEFAULT_MAX_DEPTH = 5;
+    static final int DEFAULT_MAX_DEPTH        = 5;
     static final int DEFAULT_OBJECT_POOL_SIZE = 10;
 
-    private final int maxDepth;
-    private final int objectPoolSize;
+    private final int     maxDepth;
+    private final int     objectPoolSize;
     private final boolean overrideDefaultInitialization;
     private final boolean ignoreErrors;
 
@@ -80,77 +80,103 @@ public final class ObjectGeneratorConfig {
      * Predicates that identify fields to skip during population.
      * Also honours the {@link Exclude} annotation directly.
      */
-    private final List<Predicate<Field>> exclusionPredicates;
+    private final List<Predicate<Field>>    exclusionPredicates;
     /**
      * Predicates that identify field types to skip during population.
      */
     private final List<Predicate<Class<?>>> typeExclusionPredicates;
 
     private ObjectGeneratorConfig(Builder b) {
-        this.maxDepth                  = b.maxDepth;
-        this.objectPoolSize            = b.objectPoolSize;
+        this.maxDepth = b.maxDepth;
+        this.objectPoolSize = b.objectPoolSize;
         this.overrideDefaultInitialization = b.overrideDefaultInitialization;
-        this.ignoreErrors              = b.ignoreErrors;
-        this.dateMin                   = b.dateMin;
-        this.dateMax                   = b.dateMax;
-        this.typeOverrides              = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
-        this.fieldOverrides             = Collections.unmodifiableMap(new HashMap<>(b.fieldOverrides));
-        this.contextualTypeOverrides    = Collections.unmodifiableMap(new HashMap<>(b.contextualTypeOverrides));
-        this.contextualFieldOverrides   = Collections.unmodifiableMap(new HashMap<>(b.contextualFieldOverrides));
-        this.exclusionPredicates        = Collections.unmodifiableList(new ArrayList<>(b.exclusionPredicates));
-        this.typeExclusionPredicates    = Collections.unmodifiableList(new ArrayList<>(b.typeExclusionPredicates));
+        this.ignoreErrors = b.ignoreErrors;
+        this.dateMin = b.dateMin;
+        this.dateMax = b.dateMax;
+        this.typeOverrides = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
+        this.fieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.fieldOverrides));
+        this.contextualTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.contextualTypeOverrides));
+        this.contextualFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.contextualFieldOverrides));
+        this.exclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.exclusionPredicates));
+        this.typeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.typeExclusionPredicates));
     }
 
-    /** Default configuration. */
+    /**
+     * Default configuration.
+     */
     public static ObjectGeneratorConfig defaults() {
         return builder().build();
     }
 
-    /** Returns a new {@link Builder}. */
+    /**
+     * Returns a new {@link Builder}.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────
 
+    private static String fieldKey(Class<?> ownerType, String fieldName) {
+        return ownerType.getName() + "." + fieldName;
+    }
+
+    private static String legacyFieldKey(Class<?> ownerType, String fieldName) {
+        return ownerType.getSimpleName() + "." + fieldName;
+    }
+
     /**
      * Maximum object-graph depth. Nested objects beyond this depth are set to {@code null}.
      * Default: {@value DEFAULT_MAX_DEPTH}.
      */
-    public int getMaxDepth() { return maxDepth; }
+    public int getMaxDepth() {
+        return maxDepth;
+    }
 
     /**
      * Maximum number of completed instances cached per type for cycle handling.
      * Default: {@value DEFAULT_OBJECT_POOL_SIZE}.
      */
-    public int getObjectPoolSize() { return objectPoolSize; }
+    public int getObjectPoolSize() {
+        return objectPoolSize;
+    }
 
     /**
      * When {@code true}, existing field values are overwritten during population.
      * When {@code false}, only fields currently at JVM defaults are populated.
      * Default: {@code false}.
      */
-    public boolean isOverrideDefaultInitialization() { return overrideDefaultInitialization; }
+    public boolean isOverrideDefaultInitialization() {
+        return overrideDefaultInitialization;
+    }
 
     /**
      * When {@code true}, exceptions during field population are swallowed and the field
      * is left as {@code null} / its primitive default. Default: {@code false}.
      */
-    public boolean isIgnoreErrors() { return ignoreErrors; }
+    public boolean isIgnoreErrors() {
+        return ignoreErrors;
+    }
 
     /**
      * Earliest date (inclusive) used for all JSR-310 date/time fields.
      * {@code null} means use the generator's built-in default (1970-01-01).
      */
-    public LocalDate getDateMin() { return dateMin; }
+    public LocalDate getDateMin() {
+        return dateMin;
+    }
 
     /**
      * Latest date (inclusive) used for all JSR-310 date/time fields.
      * {@code null} means use the generator's built-in default (2100-12-31).
      */
-    public LocalDate getDateMax() { return dateMax; }
+    public LocalDate getDateMax() {
+        return dateMax;
+    }
 
-    /** Return the type-level override for {@code type}, if any. */
+    /**
+     * Return the type-level override for {@code type}, if any.
+     */
     public Optional<Generator<?>> getTypeOverride(Class<?> type) {
         return Optional.ofNullable(typeOverrides.get(type));
     }
@@ -170,7 +196,9 @@ public final class ObjectGeneratorConfig {
         return Optional.ofNullable(fieldOverrides.get(legacyFieldKey(ownerType, fieldName)));
     }
 
-    /** Return the contextual type-level override for {@code type}, if any. */
+    /**
+     * Return the contextual type-level override for {@code type}, if any.
+     */
     public Optional<ContextualGenerator<?>> getContextualTypeOverride(Class<?> type) {
         return Optional.ofNullable(contextualTypeOverrides.get(type));
     }
@@ -189,14 +217,6 @@ public final class ObjectGeneratorConfig {
             return Optional.of(direct);
         }
         return Optional.ofNullable(contextualFieldOverrides.get(legacyFieldKey(ownerType, fieldName)));
-    }
-
-    private static String fieldKey(Class<?> ownerType, String fieldName) {
-        return ownerType.getName() + "." + fieldName;
-    }
-
-    private static String legacyFieldKey(Class<?> ownerType, String fieldName) {
-        return ownerType.getSimpleName() + "." + fieldName;
     }
 
     /**
@@ -225,21 +245,24 @@ public final class ObjectGeneratorConfig {
 
     // ── Builder ───────────────────────────────────────────────────────────────
 
-    /** Fluent builder for {@link ObjectGeneratorConfig}. */
+
+    /**
+     * Fluent builder for {@link ObjectGeneratorConfig}.
+     */
     public static final class Builder {
 
-        private int  maxDepth     = DEFAULT_MAX_DEPTH;
-        private int  objectPoolSize = DEFAULT_OBJECT_POOL_SIZE;
-        private boolean overrideDefaultInitialization = false;
-        private boolean ignoreErrors = false;
-        private LocalDate dateMin = null;
-        private LocalDate dateMax = null;
-        private final Map<Class<?>, Generator<?>>             typeOverrides            = new HashMap<>();
-        private final Map<String, Generator<?>>               fieldOverrides           = new HashMap<>();
-        private final Map<Class<?>, ContextualGenerator<?>>   contextualTypeOverrides  = new HashMap<>();
-        private final Map<String, ContextualGenerator<?>>     contextualFieldOverrides = new HashMap<>();
-        private final List<Predicate<Field>>                  exclusionPredicates      = new ArrayList<>();
-        private final List<Predicate<Class<?>>>               typeExclusionPredicates  = new ArrayList<>();
+        private final Map<Class<?>, Generator<?>>           typeOverrides                 = new HashMap<>();
+        private final Map<String, Generator<?>>             fieldOverrides                = new HashMap<>();
+        private final Map<Class<?>, ContextualGenerator<?>> contextualTypeOverrides       = new HashMap<>();
+        private final Map<String, ContextualGenerator<?>>   contextualFieldOverrides      = new HashMap<>();
+        private final List<Predicate<Field>>                exclusionPredicates           = new ArrayList<>();
+        private final List<Predicate<Class<?>>>             typeExclusionPredicates       = new ArrayList<>();
+        private       int                                   maxDepth                      = DEFAULT_MAX_DEPTH;
+        private       int                                   objectPoolSize                = DEFAULT_OBJECT_POOL_SIZE;
+        private       boolean                               overrideDefaultInitialization = false;
+        private       boolean                               ignoreErrors                  = false;
+        private       LocalDate                             dateMin                       = null;
+        private       LocalDate                             dateMax                       = null;
 
         /**
          * Maximum nesting depth for object-graph generation.
@@ -297,7 +320,7 @@ public final class ObjectGeneratorConfig {
          * <pre>{@code .override(String.class, () -> "hello") }</pre>
          */
         public <T> Builder override(Class<T> type, Generator<? extends T> generator) {
-            Objects.requireNonNull(type,      "type must not be null");
+            Objects.requireNonNull(type, "type must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
             typeOverrides.put(type, generator);
             return this;
@@ -308,9 +331,9 @@ public final class ObjectGeneratorConfig {
          * <pre>{@code .override(Person.class, "firstName", () -> "Alice") }</pre>
          */
         public <T> Builder override(Class<?> ownerType, String fieldName, Generator<T> generator) {
-            Objects.requireNonNull(ownerType,  "ownerType must not be null");
-            Objects.requireNonNull(fieldName,  "fieldName must not be null");
-            Objects.requireNonNull(generator,  "generator must not be null");
+            Objects.requireNonNull(ownerType, "ownerType must not be null");
+            Objects.requireNonNull(fieldName, "fieldName must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
             fieldOverrides.put(fieldKey(ownerType, fieldName), generator);
             return this;
         }
@@ -322,7 +345,7 @@ public final class ObjectGeneratorConfig {
          * <pre>{@code .override(String.class, ctx -> ctx.getFieldName() + "_value") }</pre>
          */
         public <T> Builder override(Class<T> type, ContextualGenerator<? extends T> generator) {
-            Objects.requireNonNull(type,      "type must not be null");
+            Objects.requireNonNull(type, "type must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
             contextualTypeOverrides.put(type, generator);
             return this;
@@ -334,9 +357,9 @@ public final class ObjectGeneratorConfig {
          * <pre>{@code .override(Person.class, "name", ctx -> "Alice_" + ctx.getDepth()) }</pre>
          */
         public <T> Builder override(Class<?> ownerType, String fieldName, ContextualGenerator<T> generator) {
-            Objects.requireNonNull(ownerType,  "ownerType must not be null");
-            Objects.requireNonNull(fieldName,  "fieldName must not be null");
-            Objects.requireNonNull(generator,  "generator must not be null");
+            Objects.requireNonNull(ownerType, "ownerType must not be null");
+            Objects.requireNonNull(fieldName, "fieldName must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
             contextualFieldOverrides.put(fieldKey(ownerType, fieldName), generator);
             return this;
         }
@@ -392,7 +415,9 @@ public final class ObjectGeneratorConfig {
             return this;
         }
 
-        /** Build the immutable config. */
+        /**
+         * Build the immutable config.
+         */
         public ObjectGeneratorConfig build() {
             return new ObjectGeneratorConfig(this);
         }

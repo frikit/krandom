@@ -15,9 +15,18 @@ public class PersonWithArrays {
     private int[]     scores;
     private Address[] addresses;
 
-    public PersonWithArrays() { }
+    public PersonWithArrays() {
+    }
 
-    public String[]  getTags()      { return tags; }
-    public int[]     getScores()    { return scores; }
-    public Address[] getAddresses() { return addresses; }
+    public String[] getTags() {
+        return tags;
+    }
+
+    public int[] getScores() {
+        return scores;
+    }
+
+    public Address[] getAddresses() {
+        return addresses;
+    }
 }

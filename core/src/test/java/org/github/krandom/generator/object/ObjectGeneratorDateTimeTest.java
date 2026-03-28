@@ -9,7 +9,9 @@ import org.github.krandom.generator.core.model.PersonWithDateTimes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — JSR-310 and UUID auto-population")
 class ObjectGeneratorDateTimeTest {
@@ -34,7 +36,7 @@ class ObjectGeneratorDateTimeTest {
         PersonWithDateTimes p = new ObjectGenerator<>(PersonWithDateTimes.class).generate();
         assertNotNull(p.getUpdatedAt(), "Instant field must not be null");
         assertTrue(p.getUpdatedAt().getEpochSecond() >= 0,
-                "Instant must have a non-negative epoch second");
+                   "Instant must have a non-negative epoch second");
     }
 
     @Test
@@ -56,11 +58,11 @@ class ObjectGeneratorDateTimeTest {
     @DisplayName("all date/time and UUID fields are populated in a single generate() call")
     void allFieldsPopulatedTogether() {
         PersonWithDateTimes p = new ObjectGenerator<>(PersonWithDateTimes.class).generate();
-        assertNotNull(p.getDob(),         "LocalDate");
-        assertNotNull(p.getCreatedAt(),   "LocalDateTime");
-        assertNotNull(p.getUpdatedAt(),   "Instant");
+        assertNotNull(p.getDob(), "LocalDate");
+        assertNotNull(p.getCreatedAt(), "LocalDateTime");
+        assertNotNull(p.getUpdatedAt(), "Instant");
         assertNotNull(p.getScheduledAt(), "ZonedDateTime");
-        assertNotNull(p.getId(),          "UUID");
+        assertNotNull(p.getId(), "UUID");
     }
 
     @Test
