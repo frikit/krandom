@@ -51,6 +51,7 @@ import org.github.krandom.generator.finance.CardExpirationGenerator;
 import org.github.krandom.generator.finance.CreditCardGenerator;
 import org.github.krandom.generator.finance.CryptoAddressGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
+import org.github.krandom.generator.finance.CurrencyPairGenerator;
 import org.github.krandom.generator.finance.CusipGenerator;
 import org.github.krandom.generator.finance.EinGenerator;
 import org.github.krandom.generator.finance.IbanGenerator;
@@ -119,12 +120,15 @@ import org.github.krandom.generator.user.IndustryGenerator;
 import org.github.krandom.generator.user.JobFieldGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.MaritalStatusGenerator;
+import org.github.krandom.generator.user.MiddleNameGenerator;
 import org.github.krandom.generator.user.PasswordGenerator;
 import org.github.krandom.generator.user.PositionGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
 import org.github.krandom.generator.user.ProfileGenerator;
 import org.github.krandom.generator.user.SeniorityGenerator;
 import org.github.krandom.generator.user.SimpleProfileGenerator;
+import org.github.krandom.generator.user.SocialHandleGenerator;
+import org.github.krandom.generator.user.SocialProfileGenerator;
 import org.github.krandom.generator.user.UsernameGenerator;
 import org.github.krandom.generator.user.nationalid.NationalIdGenerator;
 
@@ -600,6 +604,27 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces locale-aware middle names.
+     */
+    public static MiddleNameGenerator ofMiddleName() {
+        return new MiddleNameGenerator();
+    }
+
+    /**
+     * Returns a generator that produces locale-aware middle names for a specific locale.
+     */
+    public static MiddleNameGenerator ofMiddleName(Locale locale) {
+        return new MiddleNameGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware middle names with explicit configuration.
+     */
+    public static MiddleNameGenerator ofMiddleName(GeneratorConfig config) {
+        return new MiddleNameGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces email addresses.
      */
     public static EmailGenerator ofEmail() {
@@ -627,6 +652,20 @@ public final class Generators {
      */
     public static ProfileGenerator ofProfile() {
         return new ProfileGenerator();
+    }
+
+    /**
+     * Returns a generator that produces social-media style handles.
+     */
+    public static SocialHandleGenerator ofSocialHandle() {
+        return new SocialHandleGenerator();
+    }
+
+    /**
+     * Returns a generator that produces social-media style profiles.
+     */
+    public static SocialProfileGenerator ofSocialProfile() {
+        return new SocialProfileGenerator();
     }
 
     /**
@@ -867,6 +906,20 @@ public final class Generators {
      */
     public static CurrencyGenerator ofCurrency() {
         return new CurrencyGenerator();
+    }
+
+    /**
+     * Returns a generator that produces currency pairs.
+     */
+    public static CurrencyPairGenerator ofCurrencyPair() {
+        return new CurrencyPairGenerator();
+    }
+
+    /**
+     * Returns a generator that produces currency pairs with explicit configuration.
+     */
+    public static CurrencyPairGenerator ofCurrencyPair(GeneratorConfig config) {
+        return new CurrencyPairGenerator(config);
     }
 
     /**
@@ -1224,6 +1277,13 @@ public final class Generators {
     }
 
     /**
+     * Chance-style alias for {@link #pickFrom(List)}.
+     */
+    public static <T> PickGenerator<T> pick(List<T> source) {
+        return pickFrom(source);
+    }
+
+    /**
      * Returns a generator that picks {@code count} distinct elements without replacement.
      */
     public static <T> PickSetGenerator<T> pickSetFrom(List<T> source, int count) {
@@ -1231,10 +1291,24 @@ public final class Generators {
     }
 
     /**
+     * Chance-style alias for {@link #pickSetFrom(List, int)}.
+     */
+    public static <T> PickSetGenerator<T> pickset(List<T> source, int count) {
+        return pickSetFrom(source, count);
+    }
+
+    /**
      * Returns a generator that returns a shuffled copy of the given list.
      */
     public static <T> ShuffleGenerator<T> shuffleOf(List<T> source) {
         return new ShuffleGenerator<>(source);
+    }
+
+    /**
+     * Chance-style alias for {@link #shuffleOf(List)}.
+     */
+    public static <T> ShuffleGenerator<T> shuffle(List<T> source) {
+        return shuffleOf(source);
     }
 
     /**

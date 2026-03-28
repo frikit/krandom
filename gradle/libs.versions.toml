@@ -10,6 +10,7 @@ junit-jupiter = "6.0.3"
 junit-platform = "6.0.3"
 objenesis = "3.5"
 jakarta-validation = "3.1.1"
+jackson = "2.20.1"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -24,6 +25,7 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
 objenesis = { module = "org.objenesis:objenesis", version.ref = "objenesis" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

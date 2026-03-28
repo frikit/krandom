@@ -430,10 +430,10 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("append with new locale creates provider")
         void appendCreatesNewLocale() {
-            Locale hindi = Locale.of("hi", "IN");
-            ProfessionDataRegistry.append(hindi, new String[] { "डेटा इंजीनियर", "डॉक्टर" }, new int[] { 3, 2 });
+            Locale swahili = Locale.of("sw", "KE");
+            ProfessionDataRegistry.append(swahili, new String[] { "Mhandisi wa Data", "Daktari" }, new int[] { 3, 2 });
 
-            ProfessionGenerator generator = new ProfessionGenerator(hindi);
+            ProfessionGenerator generator = new ProfessionGenerator(swahili);
             assertNotNull(generator.generate());
             assertEquals(2, generator.getProfessionCount());
         }
@@ -441,8 +441,8 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("append uniform overload works")
         void appendUniformWorks() {
-            Locale testLocale = Locale.of("sv", "SE");
-            ProfessionDataRegistry.append(testLocale, new String[] { "Utvecklare", "Lärare" });
+            Locale testLocale = Locale.of("fi", "FI");
+            ProfessionDataRegistry.append(testLocale, new String[] { "Kehittäjä", "Opettaja" });
             ProfessionGenerator generator = new ProfessionGenerator(testLocale);
             assertEquals(2, generator.getProfessionCount());
         }

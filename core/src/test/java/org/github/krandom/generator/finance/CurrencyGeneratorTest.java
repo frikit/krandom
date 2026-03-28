@@ -604,4 +604,18 @@ class CurrencyGeneratorTest {
             assertNotNull(currency, "Locale " + locale + " should have a currency");
         }
     }
+
+    @Test
+    void testExpandedLocaleCurrencyMappings() {
+        assertEquals(Currency.EUR, Currency.forLocale(new Locale("nl", "NL")));
+        assertEquals(Currency.PLN, Currency.forLocale(new Locale("pl", "PL")));
+        assertEquals(Currency.RUB, Currency.forLocale(new Locale("ru", "RU")));
+        assertEquals(Currency.KRW, Currency.forLocale(new Locale("ko", "KR")));
+        assertEquals(Currency.TRY, Currency.forLocale(new Locale("tr", "TR")));
+        assertEquals(Currency.SEK, Currency.forLocale(new Locale("sv", "SE")));
+        assertEquals(Currency.NOK, Currency.forLocale(new Locale("nb", "NO")));
+        assertEquals(Currency.CZK, Currency.forLocale(new Locale("cs", "CZ")));
+        assertEquals(Currency.SAR, Currency.forLocale(new Locale("ar", "SA")));
+        assertEquals(Currency.INR, Currency.forLocale(new Locale("hi", "IN")));
+    }
 }

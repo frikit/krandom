@@ -121,10 +121,19 @@ public enum Currency {
             case "US" -> USD;
             case "GB" -> GBP;
             case "AU" -> AUD;
-            case "DE", "FR", "ES", "IT" -> EUR;
+            case "DE", "FR", "ES", "IT", "NL" -> EUR;
             case "BR" -> BRL;
             case "JP" -> JPY;
             case "CN" -> CNY;
+            case "PL" -> PLN;
+            case "RU" -> RUB;
+            case "KR" -> KRW;
+            case "TR" -> TRY;
+            case "SE" -> SEK;
+            case "NO" -> NOK;
+            case "CZ" -> CZK;
+            case "SA" -> SAR;
+            case "IN" -> INR;
             default -> null;
         };
     }

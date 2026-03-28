@@ -45,6 +45,7 @@ import org.github.krandom.generator.finance.BicGenerator;
 import org.github.krandom.generator.finance.CardExpirationGenerator;
 import org.github.krandom.generator.finance.CreditCardGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
+import org.github.krandom.generator.finance.CurrencyPairGenerator;
 import org.github.krandom.generator.finance.CusipGenerator;
 import org.github.krandom.generator.finance.EinGenerator;
 import org.github.krandom.generator.finance.IbanGenerator;
@@ -95,9 +96,12 @@ import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
+import org.github.krandom.generator.user.MiddleNameGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
 import org.github.krandom.generator.user.ProfileGenerator;
 import org.github.krandom.generator.user.SimpleProfileGenerator;
+import org.github.krandom.generator.user.SocialHandleGenerator;
+import org.github.krandom.generator.user.SocialProfileGenerator;
 import org.github.krandom.generator.user.nationalid.NationalIdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -386,15 +390,33 @@ class GeneratorsTest {
     }
 
     @Test
+    @DisplayName("pick(source) returns PickGenerator alias")
+    void pickAlias() {
+        assertInstanceOf(PickGenerator.class, Generators.pick(List.of("a", "b")));
+    }
+
+    @Test
     @DisplayName("pickSetFrom(source, count) returns PickSetGenerator")
     void pickSetFrom() {
         assertInstanceOf(PickSetGenerator.class, Generators.pickSetFrom(List.of(1, 2, 3), 2));
     }
 
     @Test
+    @DisplayName("pickset(source, count) returns PickSetGenerator alias")
+    void pickSetAlias() {
+        assertInstanceOf(PickSetGenerator.class, Generators.pickset(List.of(1, 2, 3), 2));
+    }
+
+    @Test
     @DisplayName("shuffleOf(source) returns ShuffleGenerator")
     void shuffleOf() {
         assertInstanceOf(ShuffleGenerator.class, Generators.shuffleOf(List.of(1, 2, 3)));
+    }
+
+    @Test
+    @DisplayName("shuffle(source) returns ShuffleGenerator alias")
+    void shuffleAlias() {
+        assertInstanceOf(ShuffleGenerator.class, Generators.shuffle(List.of(1, 2, 3)));
     }
 
     @Test
@@ -617,6 +639,15 @@ class GeneratorsTest {
     }
 
     @Test
+    @DisplayName("ofMiddleName() returns MiddleNameGenerator")
+    void ofMiddleName() {
+        assertInstanceOf(MiddleNameGenerator.class, Generators.ofMiddleName());
+        assertInstanceOf(MiddleNameGenerator.class, Generators.ofMiddleName(Locale.US));
+        assertInstanceOf(MiddleNameGenerator.class,
+                         Generators.ofMiddleName(GeneratorConfig.builder().locale(Locale.US).seed(11L).build()));
+    }
+
+    @Test
     @DisplayName("ofSimpleProfile() returns SimpleProfileGenerator")
     void ofSimpleProfile() {
         assertInstanceOf(SimpleProfileGenerator.class, Generators.ofSimpleProfile());
@@ -626,6 +657,13 @@ class GeneratorsTest {
     @DisplayName("ofProfile() returns ProfileGenerator")
     void ofProfile() {
         assertInstanceOf(ProfileGenerator.class, Generators.ofProfile());
+    }
+
+    @Test
+    @DisplayName("social factories return social generators")
+    void socialFactories() {
+        assertInstanceOf(SocialHandleGenerator.class, Generators.ofSocialHandle());
+        assertInstanceOf(SocialProfileGenerator.class, Generators.ofSocialProfile());
     }
 
     @Test
@@ -727,6 +765,9 @@ class GeneratorsTest {
     @DisplayName("finance factories return corresponding generators")
     void financeFactories() {
         assertInstanceOf(CurrencyGenerator.class, Generators.ofCurrency());
+        assertInstanceOf(CurrencyPairGenerator.class, Generators.ofCurrencyPair());
+        assertInstanceOf(CurrencyPairGenerator.class,
+                         Generators.ofCurrencyPair(GeneratorConfig.builder().seed(11L).build()));
         assertInstanceOf(MoneyGenerator.class, Generators.ofMoney());
         assertInstanceOf(CardExpirationGenerator.class, Generators.ofCardExpiration());
         assertInstanceOf(CreditCardGenerator.class, Generators.ofCreditCard());

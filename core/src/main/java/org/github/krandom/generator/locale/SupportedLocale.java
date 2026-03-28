@@ -27,14 +27,28 @@ public enum SupportedLocale {
     ES_ES("es", "ES"),
     IT_IT("it", "IT"),
     PT_BR("pt", "BR"),
-    ZH_CN("zh", "CN");
+    ZH_CN("zh", "CN"),
+    NL_NL("nl", "NL", "en_GB"),
+    PL_PL("pl", "PL", "de_DE"),
+    RU_RU("ru", "RU", "de_DE"),
+    KO_KR("ko", "KR", "ja_JP"),
+    TR_TR("tr", "TR", "de_DE"),
+    SV_SE("sv", "SE", "en_GB"),
+    NB_NO("nb", "NO", "en_GB"),
+    CS_CZ("cs", "CZ", "de_DE"),
+    AR_SA("ar", "SA", "en_US"),
+    HI_IN("hi", "IN", "en_GB");
 
     private final Locale locale;
     private final String resourcePrefix;
 
     SupportedLocale(String language, String country) {
+        this(language, country, language + "_" + country);
+    }
+
+    SupportedLocale(String language, String country, String resourcePrefix) {
         this.locale = Locale.of(language, country);
-        this.resourcePrefix = language + "_" + country;
+        this.resourcePrefix = resourcePrefix;
     }
 
     public static List<Locale> locales() {

@@ -5,6 +5,7 @@
  */
 package org.github.krandom.generator.location;
 
+import org.github.krandom.generator.DataRegistryContext;
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.locale.SupportedLocale;
@@ -280,6 +281,46 @@ class StreetAddressGeneratorTest {
         String full = gen.generateFullAddress();
         assertTrue(full.contains("Fallback"));
         assertNotNull(full);
+    }
+
+    @Test
+    @DisplayName("full address omits state segment when scoped context has no state provider")
+    void fullAddressWithoutStateProviderInScopedContext() {
+        Locale locale = Locale.of("qq", "QQ");
+        DataRegistryContext context = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerStreetAddressProvider(new StreetAddressDataProvider() {
+                                                             @Override
+                                                             public Locale getLocale() {
+                                                                 return locale;
+                                                             }
+
+                                                             @Override
+                                                             public String[] getStreetNames() {
+                                                                 return new String[] { "Scoped" };
+                                                             }
+
+                                                             @Override
+                                                             public String[] getStreetTypesShort() {
+                                                                 return new String[] { "St" };
+                                                             }
+
+                                                             @Override
+                                                             public String[] getStreetTypesLong() {
+                                                                 return new String[] { "Street" };
+                                                             }
+                                                         })
+                                                         .build();
+
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .locale(locale)
+                                                .seed(9L)
+                                                .registryContext(context)
+                                                .build();
+        StreetAddressGenerator generator = new StreetAddressGenerator(config);
+        String full = generator.generateFullAddress();
+        assertTrue(full.contains("Scoped"));
+        assertFalse(full.contains(", "));
     }
 
     @Test

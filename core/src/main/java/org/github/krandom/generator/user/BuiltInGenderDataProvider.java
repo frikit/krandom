@@ -26,15 +26,25 @@ final class BuiltInGenderDataProvider implements GenderDataProvider {
     }
 
     private static String[] labelsFor(SupportedLocale supportedLocale) {
-        return switch (supportedLocale) {
-            case EN_US, EN_GB, EN_AU -> new String[] { "Male", "Female" };
-            case FR_FR -> new String[] { "Homme", "Femme" };
-            case DE_DE -> new String[] { "Männlich", "Weiblich" };
-            case JA_JP -> new String[] { "男性", "女性" };
-            case ES_ES -> new String[] { "Hombre", "Mujer" };
-            case IT_IT -> new String[] { "Maschio", "Femmina" };
-            case PT_BR -> new String[] { "Masculino", "Feminino" };
-            case ZH_CN -> new String[] { "男", "女" };
+        return switch (supportedLocale.locale().getLanguage()) {
+            case "fr" -> new String[] { "Homme", "Femme" };
+            case "de" -> new String[] { "Männlich", "Weiblich" };
+            case "ja" -> new String[] { "男性", "女性" };
+            case "es" -> new String[] { "Hombre", "Mujer" };
+            case "it" -> new String[] { "Maschio", "Femmina" };
+            case "pt" -> new String[] { "Masculino", "Feminino" };
+            case "zh" -> new String[] { "男", "女" };
+            case "nl" -> new String[] { "Man", "Vrouw" };
+            case "pl" -> new String[] { "Mężczyzna", "Kobieta" };
+            case "ru" -> new String[] { "Мужчина", "Женщина" };
+            case "ko" -> new String[] { "남성", "여성" };
+            case "tr" -> new String[] { "Erkek", "Kadın" };
+            case "sv" -> new String[] { "Man", "Kvinna" };
+            case "nb" -> new String[] { "Mann", "Kvinne" };
+            case "cs" -> new String[] { "Muž", "Žena" };
+            case "ar" -> new String[] { "ذكر", "أنثى" };
+            case "hi" -> new String[] { "पुरुष", "महिला" };
+            default -> new String[] { "Male", "Female" };
         };
     }
 

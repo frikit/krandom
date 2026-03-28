@@ -37,6 +37,9 @@ public final class DatabaseGenerator implements Generator<String> {
     private static final String[] TYPES = {
         "VARCHAR(255)", "TEXT", "INTEGER", "BIGINT", "BOOLEAN", "DATE", "TIMESTAMP", "DECIMAL(10,2)", "JSON", "UUID"
     };
+    private static final String[] TABLES = {
+        "users", "orders", "products", "invoices", "payments", "events", "accounts", "sessions"
+    };
 
     private final Locale locale;
     private final Random random;
@@ -62,18 +65,63 @@ public final class DatabaseGenerator implements Generator<String> {
         return generateColumn();
     }
 
+    public String generateQueryShape() {
+        return switch (random.nextInt(4)) {
+            case 0 -> generateSelect();
+            case 1 -> generateInsert();
+            case 2 -> generateUpdate();
+            default -> generateDelete();
+        };
+    }
+
+    public String generateTable() {
+        return TABLES[random.nextInt(TABLES.length)];
+    }
+
     public String generateColumn() {
-        String[] columns = switch (locale.getLanguage()) {
+        String[] columns = columnsForLocale();
+        return columns[random.nextInt(columns.length)];
+    }
+
+    public String generateType() {
+        return TYPES[random.nextInt(TYPES.length)];
+    }
+
+    public String generateSelect() {
+        String[] columns = columnsForLocale();
+        String c1 = columns[random.nextInt(columns.length)];
+        String c2 = columns[random.nextInt(columns.length)];
+        String where = columns[random.nextInt(columns.length)];
+        return "SELECT " + c1 + ", " + c2 + " FROM " + generateTable() + " WHERE " + where + " = ?";
+    }
+
+    public String generateInsert() {
+        String[] columns = columnsForLocale();
+        String c1 = columns[random.nextInt(columns.length)];
+        String c2 = columns[random.nextInt(columns.length)];
+        return "INSERT INTO " + generateTable() + " (" + c1 + ", " + c2 + ") VALUES (?, ?)";
+    }
+
+    public String generateUpdate() {
+        String[] columns = columnsForLocale();
+        String set = columns[random.nextInt(columns.length)];
+        String where = columns[random.nextInt(columns.length)];
+        return "UPDATE " + generateTable() + " SET " + set + " = ? WHERE " + where + " = ?";
+    }
+
+    public String generateDelete() {
+        String[] columns = columnsForLocale();
+        String where = columns[random.nextInt(columns.length)];
+        return "DELETE FROM " + generateTable() + " WHERE " + where + " = ?";
+    }
+
+    private String[] columnsForLocale() {
+        return switch (locale.getLanguage()) {
             case "de" -> DE_COLUMNS;
             case "fr" -> FR_COLUMNS;
             case "es" -> ES_COLUMNS;
             case "it" -> IT_COLUMNS;
             default -> EN_COLUMNS;
         };
-        return columns[random.nextInt(columns.length)];
-    }
-
-    public String generateType() {
-        return TYPES[random.nextInt(TYPES.length)];
     }
 }

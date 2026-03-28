@@ -9,11 +9,14 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -111,5 +114,108 @@ class SchemaTest {
         assertThrows(UnsupportedOperationException.class, () -> schema.getFields().put("y", ctx -> 2));
         assertThrows(IllegalArgumentException.class, () -> schema.generateBatch(-1));
         assertEquals(List.of(), schema.generateBatch(0));
+    }
+
+    @Test
+    @DisplayName("toJsonSchema infers primitive, nested and array field types")
+    void toJsonSchema() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("name", ctx -> "alice");
+        fields.put("age", ctx -> 42);
+        fields.put("active", ctx -> true);
+        fields.put("tags", ctx -> List.of("a", "b"));
+        fields.put("meta", ctx -> Map.of("score", 9.5, "vip", false));
+        fields.put("missing", ctx -> null);
+        fields.put("byteValue", ctx -> (byte) 7);
+        fields.put("shortValue", ctx -> (short) 8);
+        fields.put("longValue", ctx -> 9L);
+        fields.put("bigIntValue", ctx -> BigInteger.valueOf(10));
+        fields.put("nullItems", ctx -> Arrays.asList(null, null));
+        fields.put("mapWithNonStringKey", ctx -> Map.of(1, "value"));
+        fields.put("customObject", ctx -> new Object());
+
+        Schema schema = new Schema(fields);
+        Map<String, Object> jsonSchema = schema.toJsonSchema();
+        assertEquals("https://json-schema.org/draft/2020-12/schema", jsonSchema.get("$schema"));
+        assertEquals("object", jsonSchema.get("type"));
+        assertEquals(false, jsonSchema.get("additionalProperties"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) jsonSchema.get("properties");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nameType = (Map<String, Object>) properties.get("name");
+        assertEquals("string", nameType.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> ageType = (Map<String, Object>) properties.get("age");
+        assertEquals("integer", ageType.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> activeType = (Map<String, Object>) properties.get("active");
+        assertEquals("boolean", activeType.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> tagsType = (Map<String, Object>) properties.get("tags");
+        assertEquals("array", tagsType.get("type"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> tagItems = (Map<String, Object>) tagsType.get("items");
+        assertEquals("string", tagItems.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> metaType = (Map<String, Object>) properties.get("meta");
+        assertEquals("object", metaType.get("type"));
+        assertEquals(false, metaType.get("additionalProperties"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> missingType = (Map<String, Object>) properties.get("missing");
+        assertEquals("null", missingType.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> byteType = (Map<String, Object>) properties.get("byteValue");
+        assertEquals("integer", byteType.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> shortType = (Map<String, Object>) properties.get("shortValue");
+        assertEquals("integer", shortType.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> longType = (Map<String, Object>) properties.get("longValue");
+        assertEquals("integer", longType.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> bigIntType = (Map<String, Object>) properties.get("bigIntValue");
+        assertEquals("integer", bigIntType.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nullItemsType = (Map<String, Object>) properties.get("nullItems");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nullItemsSchema = (Map<String, Object>) nullItemsType.get("items");
+        assertEquals("null", nullItemsSchema.get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> mapWithNonStringKeyType = (Map<String, Object>) properties.get("mapWithNonStringKey");
+        assertEquals("object", mapWithNonStringKeyType.get("type"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> nonStringProperties = (Map<String, Object>) mapWithNonStringKeyType.get("properties");
+        assertTrue(nonStringProperties.isEmpty());
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> customObjectType = (Map<String, Object>) properties.get("customObject");
+        assertEquals("string", customObjectType.get("type"));
+    }
+
+    @Test
+    @DisplayName("toJsonSchema wraps provider failure with field context")
+    void toJsonSchemaWrapsFailures() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("ok", ctx -> "v");
+        fields.put("boom", ctx -> {
+            throw new IllegalStateException("explode");
+        });
+        Schema schema = new Schema(fields);
+        SchemaGenerationException exception = assertThrows(SchemaGenerationException.class, schema::toJsonSchema);
+        assertTrue(exception.getMessage().contains("boom"));
+        assertFalse(exception.getMessage().isBlank());
     }
 }

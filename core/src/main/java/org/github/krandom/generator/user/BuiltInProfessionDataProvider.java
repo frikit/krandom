@@ -102,6 +102,10 @@ final class BuiltInProfessionDataProvider implements ProfessionDataProvider {
                 "土木工程师", "市场专员", "人力资源经理", "运营经理", "产品经理",
                 "用户体验设计师", "牙医", "急救员", "财务分析师", "客户支持专员"
             };
+            case NL_NL, SV_SE, NB_NO, TR_TR -> professionsFor(SupportedLocale.EN_GB);
+            case PL_PL, RU_RU, CS_CZ -> professionsFor(SupportedLocale.DE_DE);
+            case KO_KR -> professionsFor(SupportedLocale.JA_JP);
+            case AR_SA, HI_IN -> professionsFor(SupportedLocale.EN_US);
         };
     }
 
