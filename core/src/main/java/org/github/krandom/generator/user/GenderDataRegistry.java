@@ -53,15 +53,8 @@ public final class GenderDataRegistry {
      */
     public static void register(GenderDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        String lang = provider.getLocale().getLanguage();
-        String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
-            REGISTRY.putIfAbsent(lang, provider);
-        }
+        validateProvider(provider);
+        putProvider(provider);
     }
 
     /**
@@ -99,9 +92,29 @@ public final class GenderDataRegistry {
     }
 
     private static void seedInternal(GenderDataProvider provider) {
+        putProvider(provider);
+    }
+
+    private static void putProvider(GenderDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        REGISTRY.put(lang + "_" + country, provider);
-        REGISTRY.putIfAbsent(lang, provider);
+        if (country.isEmpty()) {
+            REGISTRY.put(lang, provider);
+        } else {
+            REGISTRY.put(lang + "_" + country, provider);
+            REGISTRY.putIfAbsent(lang, provider);
+        }
+    }
+
+    private static void validateProvider(GenderDataProvider provider) {
+        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+        validateLabel("maleLabel", provider.getMaleLabel());
+        validateLabel("femaleLabel", provider.getFemaleLabel());
+    }
+
+    private static void validateLabel(String name, String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(name + " must not be blank");
+        }
     }
 }

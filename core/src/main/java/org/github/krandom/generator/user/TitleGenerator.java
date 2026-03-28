@@ -53,9 +53,6 @@ public final class TitleGenerator implements Generator<String> {
 
     @Override
     public String generate() {
-        if (titles.length == 0) {
-            return "";
-        }
         return titles[random.nextInt(titles.length)];
     }
 

@@ -9,6 +9,7 @@ import org.github.krandom.generator.locale.SupportedLocale;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,36 +36,26 @@ public final class StreetAddressDataRegistry {
      * @param provider provider to register
      */
     public static void register(StreetAddressDataProvider provider) {
-        if (provider == null) {
-            throw new NullPointerException("provider must not be null");
-        }
-        if (provider.getLocale() == null) {
-            throw new NullPointerException("provider.getLocale() must not be null");
-        }
+        Objects.requireNonNull(provider, "provider must not be null");
+        Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
         validateArray("streetNames", provider.getStreetNames());
         validateArray("streetTypesShort", provider.getStreetTypesShort());
         validateArray("streetTypesLong", provider.getStreetTypesLong());
-        providers.put(keyFor(provider.getLocale()), provider);
+        RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
     }
 
     /**
      * Returns provider for locale.
      */
     public static StreetAddressDataProvider forLocale(Locale locale) {
-        if (locale == null) {
-            return null;
-        }
-        return providers.get(keyFor(locale));
+        return RegistryLookup.findWithFallback(providers, locale);
     }
 
     /**
      * Returns whether locale is registered.
      */
     public static boolean isRegistered(Locale locale) {
-        if (locale == null) {
-            return false;
-        }
-        return forLocale(locale) != null;
+        return RegistryLookup.containsWithFallback(providers, locale);
     }
 
     /**
@@ -72,10 +63,6 @@ public final class StreetAddressDataRegistry {
      */
     public static Set<String> registeredKeys() {
         return Set.copyOf(providers.keySet());
-    }
-
-    private static String keyFor(Locale locale) {
-        return locale.getLanguage() + "_" + locale.getCountry();
     }
 
     private static void validateArray(String name, String[] values) {

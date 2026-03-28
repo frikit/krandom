@@ -71,9 +71,6 @@ public final class SuffixGenerator implements Generator<String> {
 
     @Override
     public String generate() {
-        if (suffixes.length == 0) {
-            return "";
-        }
         return suffixes[random.nextInt(suffixes.length)];
     }
 

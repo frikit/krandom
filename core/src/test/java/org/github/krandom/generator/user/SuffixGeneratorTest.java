@@ -260,10 +260,10 @@ class SuffixGeneratorTest {
         }
 
         @Test
-        @DisplayName("generate() returns empty string when suffix array is empty")
+        @DisplayName("register rejects provider with empty suffix array")
         void generateWithEmptySuffixArray() {
             Locale empty = Locale.of("zz", "ZZ");
-            SuffixDataRegistry.register(new SuffixDataProvider() {
+            assertThrows(IllegalArgumentException.class, () -> SuffixDataRegistry.register(new SuffixDataProvider() {
 
                 public Locale getLocale() {
                     return empty;
@@ -272,9 +272,7 @@ class SuffixGeneratorTest {
                 public String[] getSuffixes() {
                     return new String[0];
                 }
-            });
-            SuffixGenerator gen = new SuffixGenerator(empty);
-            assertEquals("", gen.generate());
+            }));
         }
 
         @Test

@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -24,8 +26,10 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -74,6 +78,34 @@ class ObjectGeneratorCollectionsConcreteTest {
         assertThrows(UnsupportedOperationException.class, () -> value.plainMap.put("x", 1));
     }
 
+    @Test
+    @DisplayName("custom concrete collection subtypes are instantiated and assigned")
+    void customConcreteCollectionSubtypesAreAssigned() {
+        CustomCollectionsHolder value = assertDoesNotThrow(
+            () -> new ObjectGenerator<>(CustomCollectionsHolder.class).generate());
+        assertNotNull(value.customList);
+        assertNotNull(value.customSet);
+        assertNotNull(value.customQueue);
+        assertNotNull(value.customMap);
+        assertEquals(CustomStringList.class, value.customList.getClass());
+        assertEquals(CustomStringSet.class, value.customSet.getClass());
+        assertEquals(CustomStringQueue.class, value.customQueue.getClass());
+        assertEquals(CustomStringIntMap.class, value.customMap.getClass());
+        assertEquals(FieldGeneratorResolver.DEFAULT_ELEMENT_COUNT, value.customList.size());
+        assertTrue(value.customQueue.size() <= FieldGeneratorResolver.DEFAULT_ELEMENT_COUNT);
+        assertTrue(value.customMap.size() <= FieldGeneratorResolver.DEFAULT_ELEMENT_COUNT);
+        assertTrue(value.customSet.size() > 0
+                   && value.customSet.size() <= FieldGeneratorResolver.DEFAULT_ELEMENT_COUNT);
+    }
+
+    @Test
+    @DisplayName("non-constructible concrete map subtype resolves to null without throwing")
+    void nonConstructibleConcreteMapSubtypeResolvesToNull() {
+        NonConstructibleMapHolder value = assertDoesNotThrow(
+            () -> new ObjectGenerator<>(NonConstructibleMapHolder.class).generate());
+        assertNull(value.customMap);
+    }
+
 
     static class ConcreteCollectionsHolder {
 
@@ -97,5 +129,36 @@ class ObjectGeneratorCollectionsConcreteTest {
         SortedMap<String, Integer>    sortedMap;
         NavigableMap<String, Integer> navigableMap;
         Map<String, Integer>          plainMap;
+    }
+
+    static class CustomCollectionsHolder {
+
+        CustomStringList   customList;
+        CustomStringSet    customSet;
+        CustomStringQueue  customQueue;
+        CustomStringIntMap customMap;
+    }
+
+    static final class CustomStringList extends ArrayList<String> {
+    }
+
+    static final class CustomStringSet extends LinkedHashSet<String> {
+    }
+
+    static final class CustomStringQueue extends ArrayDeque<String> {
+    }
+
+    static final class CustomStringIntMap extends LinkedHashMap<String, Integer> {
+    }
+
+    static class NonConstructibleMapHolder {
+
+        NoDefaultCtorLinkedHashMap customMap;
+    }
+
+    static final class NoDefaultCtorLinkedHashMap extends LinkedHashMap<String, Integer> {
+
+        private NoDefaultCtorLinkedHashMap(String ignored) {
+        }
     }
 }

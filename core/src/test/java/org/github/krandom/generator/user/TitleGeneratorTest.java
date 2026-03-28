@@ -396,10 +396,10 @@ class TitleGeneratorTest {
     }
 
     @Test
-    @DisplayName("generate() returns empty string when provider supplies empty titles array")
+    @DisplayName("register rejects provider with empty titles array")
     void generateWithEmptyTitlesArray() {
         Locale empty = Locale.of("zz", "ZZ");
-        TitleDataRegistry.register(new TitleDataProvider() {
+        assertThrows(IllegalArgumentException.class, () -> TitleDataRegistry.register(new TitleDataProvider() {
 
             @Override
             public Locale getLocale() {
@@ -410,10 +410,7 @@ class TitleGeneratorTest {
             public String[] getTitles() {
                 return new String[0];
             }
-        });
-
-        TitleGenerator gen = new TitleGenerator(empty);
-        assertEquals("", gen.generate());
+        }));
     }
 
     @Test

@@ -26,7 +26,7 @@ class FieldGeneratorResolverCoverageTest {
     }
 
     @Test
-    @DisplayName("toListType handles interface, abstract, unknown concrete, and CopyOnWriteArrayList")
+    @DisplayName("toListType handles interface, abstract, concrete subtype, and CopyOnWriteArrayList")
     void toListTypeFallbackBranches() throws Exception {
         List<Object> values = new ArrayList<>(List.of("a", "b", "c"));
 
@@ -38,9 +38,9 @@ class FieldGeneratorResolverCoverageTest {
         assertEquals(ArrayList.class, abstractFallback.getClass());
         assertEquals(values, abstractFallback);
 
-        List<Object> concreteFallback = invokeToListType(ConcreteCustomList.class, values);
-        assertEquals(ArrayList.class, concreteFallback.getClass());
-        assertEquals(values, concreteFallback);
+        List<Object> concreteSubtype = invokeToListType(ConcreteCustomList.class, values);
+        assertEquals(ConcreteCustomList.class, concreteSubtype.getClass());
+        assertEquals(values, concreteSubtype);
 
         List<Object> copyOnWrite = invokeToListType(CopyOnWriteArrayList.class, values);
         assertEquals(CopyOnWriteArrayList.class, copyOnWrite.getClass());

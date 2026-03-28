@@ -64,17 +64,8 @@ public final class TitleDataRegistry {
      */
     public static void register(TitleDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        String lang = provider.getLocale().getLanguage();
-        String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            // Explicit language-only registration — replaces the language fallback.
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
-            // First registration for this language becomes the language-level fallback.
-            REGISTRY.putIfAbsent(lang, provider);
-        }
+        validateProvider(provider);
+        putProvider(provider);
     }
 
     /**
@@ -120,9 +111,37 @@ public final class TitleDataRegistry {
      * All built-in entries are expected to have non-empty country codes.
      */
     private static void seedInternal(TitleDataProvider provider) {
+        putProvider(provider);
+    }
+
+    private static void putProvider(TitleDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        REGISTRY.put(lang + "_" + country, provider);
-        REGISTRY.putIfAbsent(lang, provider);
+        if (country.isEmpty()) {
+            // Explicit language-only registration — replaces the language fallback.
+            REGISTRY.put(lang, provider);
+        } else {
+            REGISTRY.put(lang + "_" + country, provider);
+            // First registration for this language becomes the language-level fallback.
+            REGISTRY.putIfAbsent(lang, provider);
+        }
+    }
+
+    private static void validateProvider(TitleDataProvider provider) {
+        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+        validateArray("titles", provider.getTitles());
+    }
+
+    private static void validateArray(String name, String[] values) {
+        Objects.requireNonNull(values, name);
+        if (values.length == 0) {
+            throw new IllegalArgumentException(name + " must not be empty");
+        }
+        for (int i = 0; i < values.length; i++) {
+            String value = values[i];
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ import org.github.krandom.generator.locale.SupportedLocale;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,10 +46,9 @@ public final class StateDataRegistry {
      * @throws NullPointerException if {@code provider} is {@code null}
      */
     public static void register(StateDataProvider provider) {
-        if (provider == null) {
-            throw new NullPointerException("provider must not be null");
-        }
-        providers.put(keyFor(provider.getLocale()), provider);
+        Objects.requireNonNull(provider, "provider must not be null");
+        Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
+        RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
     }
 
     /**
@@ -58,10 +58,7 @@ public final class StateDataRegistry {
      * @return the provider, or {@code null} if none is registered or locale is null
      */
     public static StateDataProvider forLocale(Locale locale) {
-        if (locale == null) {
-            return null;
-        }
-        return providers.get(keyFor(locale));
+        return RegistryLookup.findWithFallback(providers, locale);
     }
 
     /**
@@ -71,10 +68,7 @@ public final class StateDataRegistry {
      * @return {@code true} if supported, {@code false} if not or if locale is null
      */
     public static boolean isRegistered(Locale locale) {
-        if (locale == null) {
-            return false;
-        }
-        return forLocale(locale) != null;
+        return RegistryLookup.containsWithFallback(providers, locale);
     }
 
     /**
@@ -86,7 +80,4 @@ public final class StateDataRegistry {
         return Set.copyOf(providers.keySet());
     }
 
-    private static String keyFor(Locale locale) {
-        return locale.getLanguage() + "_" + locale.getCountry();
-    }
 }

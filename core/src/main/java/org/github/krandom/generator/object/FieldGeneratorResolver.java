@@ -53,6 +53,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -255,7 +256,17 @@ final class FieldGeneratorResolver {
             set.addAll(values);
             return set;
         }
-        return new LinkedHashSet<>(values);
+        if (rawType == Set.class) {
+            return new LinkedHashSet<>(values);
+        }
+        Set<Object> concrete = instantiateCollectionType(rawType, Set.class);
+        if (concrete != null && addAllSafely(concrete, values)) {
+            return concrete;
+        }
+        if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
+            return new LinkedHashSet<>(values);
+        }
+        return null;
     }
 
     // ── Array generation ──────────────────────────────────────────────────────
@@ -281,25 +292,36 @@ final class FieldGeneratorResolver {
         if (rawType == CopyOnWriteArrayList.class) {
             return new CopyOnWriteArrayList<>(values);
         }
+        List<Object> concrete = instantiateCollectionType(rawType, List.class);
+        if (concrete != null && addAllSafely(concrete, values)) {
+            return concrete;
+        }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
             return new ArrayList<>(values);
         }
-        // Unknown concrete List subtype; fallback to mutable list that remains assignable
-        // for abstract/interface declarations and avoids assignment failures for common concrete types.
-        return new ArrayList<>(values);
+        // Unknown concrete List subtype with no usable constructor — returning null preserves
+        // assignability and avoids reflective assignment failures in ObjectGenerator.
+        return null;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static Queue<Object> toQueueType(Class<?> rawType, List<Object> values) {
-        Queue<Object> queue;
-        if (rawType == PriorityQueue.class) {
-            queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
-        } else {
-            queue = new java.util.ArrayDeque<>();
+        Queue<Object> concrete = instantiateCollectionType(rawType, Queue.class);
+        if (concrete != null && addAllSafely(concrete, values)) {
+            return concrete;
         }
-        queue.addAll(values);
-        return queue;
+        if (rawType == PriorityQueue.class) {
+            Queue<Object> queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
+            queue.addAll(values);
+            return queue;
+        }
+        if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
+            Queue<Object> queue = new java.util.ArrayDeque<>();
+            queue.addAll(values);
+            return queue;
+        }
+        return null;
     }
 
     private static Map<Object, Object> toMapType(Class<?> rawType) {
@@ -308,7 +330,62 @@ final class FieldGeneratorResolver {
             || rawType == NavigableMap.class) {
             return new TreeMap<>(Comparator.comparing(String::valueOf));
         }
-        return new LinkedHashMap<>();
+        Map<Object, Object> concrete = instantiateCollectionType(rawType, Map.class);
+        if (concrete != null) {
+            return concrete;
+        }
+        if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
+            return new LinkedHashMap<>();
+        }
+        // Unknown concrete map subtype with no usable constructor.
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T instantiateCollectionType(Class<?> rawType, Class<T> expectedType) {
+        if (!expectedType.isAssignableFrom(rawType)) {
+            return null;
+        }
+        if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
+            return null;
+        }
+        try {
+            Constructor<?> ctor = rawType.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            return (T) ctor.newInstance();
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    private static boolean addAllSafely(Collection<Object> target, List<Object> values) {
+        try {
+            target.addAll(values);
+            return true;
+        } catch (RuntimeException ignored) {
+            if (target instanceof Queue<?>) {
+                try {
+                    target.clear();
+                    for (Object value : values) {
+                        if (value != null) {
+                            target.add(value);
+                        }
+                    }
+                    return true;
+                } catch (RuntimeException ignoredAgain) {
+                    return false;
+                }
+            }
+            return false;
+        }
+    }
+
+    private static void putSafely(Map<Object, Object> target, Object key, Object value) {
+        try {
+            target.put(key, value);
+        } catch (RuntimeException ignored) {
+            // Keep generation resilient for custom maps with stricter insertion rules.
+        }
     }
 
     private static Generator<?> annotationRandomizerFor(AnnotatedElement element) {
@@ -445,10 +522,15 @@ final class FieldGeneratorResolver {
             Class<?> k = typeArg(genericType, 0);
             Class<?> v = typeArg(genericType, 1);
             Map<Object, Object> map = toMapType(rawType);
+            if (map == null) {
+                return null;
+            }
             for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
                 Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth, null);
                 Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth, null);
-                if (key != null) map.put(key, val);
+                if (key != null) {
+                    putSafely(map, key, val);
+                }
             }
             if (rawType == Map.class) {
                 return Collections.unmodifiableMap(map);

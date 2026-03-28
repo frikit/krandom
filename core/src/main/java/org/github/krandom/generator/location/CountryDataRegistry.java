@@ -65,16 +65,7 @@ public final class CountryDataRegistry {
     public static void register(CountryDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        String lang = provider.getLocale().getLanguage();
-        String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            // Explicit language-only registration — replaces the language fallback.
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
-            // First registration for this language becomes the language-level fallback.
-            REGISTRY.putIfAbsent(lang, provider);
-        }
+        RegistryLookup.putWithLanguageFallback(REGISTRY, provider.getLocale(), provider);
     }
 
     /**
@@ -82,11 +73,7 @@ public final class CountryDataRegistry {
      * {@code language_COUNTRY} match or language-only match).
      */
     public static boolean isRegistered(Locale locale) {
-        if (locale == null) return false;
-        String lang = locale.getLanguage();
-        String country = locale.getCountry();
-        if (!country.isEmpty() && REGISTRY.containsKey(lang + "_" + country)) return true;
-        return REGISTRY.containsKey(lang);
+        return RegistryLookup.containsWithFallback(REGISTRY, locale);
     }
 
     /**
@@ -95,14 +82,7 @@ public final class CountryDataRegistry {
      * @return the provider, or {@code null} if none is registered for the locale or its language
      */
     public static CountryDataProvider forLocale(Locale locale) {
-        if (locale == null) return null;
-        String lang = locale.getLanguage();
-        String country = locale.getCountry();
-        if (!country.isEmpty()) {
-            CountryDataProvider exact = REGISTRY.get(lang + "_" + country);
-            if (exact != null) return exact;
-        }
-        return REGISTRY.get(lang);
+        return RegistryLookup.findWithFallback(REGISTRY, locale);
     }
 
     /**
@@ -120,9 +100,6 @@ public final class CountryDataRegistry {
      * All built-in entries are expected to have non-empty country codes.
      */
     private static void seedInternal(CountryDataProvider provider) {
-        String lang = provider.getLocale().getLanguage();
-        String country = provider.getLocale().getCountry();
-        REGISTRY.put(lang + "_" + country, provider);
-        REGISTRY.putIfAbsent(lang, provider);
+        RegistryLookup.putWithLanguageFallback(REGISTRY, provider.getLocale(), provider);
     }
 }

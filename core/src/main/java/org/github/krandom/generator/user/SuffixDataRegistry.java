@@ -52,15 +52,8 @@ public final class SuffixDataRegistry {
      */
     public static void register(SuffixDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        String lang = provider.getLocale().getLanguage();
-        String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
-            REGISTRY.putIfAbsent(lang, provider);
-        }
+        validateProvider(provider);
+        putProvider(provider);
     }
 
     /**
@@ -98,9 +91,35 @@ public final class SuffixDataRegistry {
     }
 
     private static void seedInternal(SuffixDataProvider provider) {
+        putProvider(provider);
+    }
+
+    private static void putProvider(SuffixDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        REGISTRY.put(lang + "_" + country, provider);
-        REGISTRY.putIfAbsent(lang, provider);
+        if (country.isEmpty()) {
+            REGISTRY.put(lang, provider);
+        } else {
+            REGISTRY.put(lang + "_" + country, provider);
+            REGISTRY.putIfAbsent(lang, provider);
+        }
+    }
+
+    private static void validateProvider(SuffixDataProvider provider) {
+        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+        validateArray("suffixes", provider.getSuffixes());
+    }
+
+    private static void validateArray(String name, String[] values) {
+        Objects.requireNonNull(values, name);
+        if (values.length == 0) {
+            throw new IllegalArgumentException(name + " must not be empty");
+        }
+        for (int i = 0; i < values.length; i++) {
+            String value = values[i];
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
+            }
+        }
     }
 }
