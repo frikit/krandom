@@ -21,9 +21,9 @@ import java.util.Locale;
  * CountryGenerator gen = new CountryGenerator(Locale.of("ko", "KR"));
  * }</pre>
  *
- * <p>The built-in baseline is provided by {@link LocaleCountryData}, which implements this
- * interface for every locale it covers. Custom registrations take precedence over the built-in
- * data for the same locale key.
+ * <p>The built-in baseline is seeded by {@link CountryDataRegistry} from
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Custom registrations take
+ * precedence over the built-in data for the same locale key.
  */
 public interface CountryDataProvider {
 

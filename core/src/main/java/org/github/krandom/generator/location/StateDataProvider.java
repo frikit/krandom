@@ -22,9 +22,9 @@ import java.util.Locale;
  * StateGenerator gen = new StateGenerator(Locale.of("en", "IN"));
  * }</pre>
  *
- * <p>The built-in baseline is provided by {@link LocaleStateData}, which implements this
- * interface for every locale it covers. Custom registrations take precedence over the built-in
- * data for the same locale key.
+ * <p>The built-in baseline is seeded by {@link StateDataRegistry} from
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Custom registrations take
+ * precedence over the built-in data for the same locale key.
  */
 public interface StateDataProvider {
 

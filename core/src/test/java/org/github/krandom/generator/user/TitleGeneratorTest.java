@@ -6,6 +6,7 @@
 package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -269,10 +270,10 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("getTitleCount() returns positive value for all built-in locales")
     void titleCountPositive() {
-        for (LocaleTitleData data : LocaleTitleData.values()) {
-            TitleGenerator gen = new TitleGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            TitleGenerator gen = new TitleGenerator(supportedLocale.locale());
             assertTrue(gen.getTitleCount() > 0,
-                    "Locale " + data.getLocale() + " should have titles");
+                    "Locale " + supportedLocale.locale() + " should have titles");
         }
     }
 
@@ -316,7 +317,7 @@ class TitleGeneratorTest {
         assertTrue(seen.containsAll(Arrays.asList(custom)));
 
         // Restore built-in US data so other tests are unaffected.
-        TitleDataRegistry.register(LocaleTitleData.EN_US);
+        TitleDataRegistry.register(new BuiltInTitleDataProvider(SupportedLocale.EN_US));
     }
 
     @Test
@@ -421,7 +422,7 @@ class TitleGeneratorTest {
         // register() takes the explicit-put path rather than putIfAbsent.
         TitleDataRegistry.register(new TitleDataProvider() {
             @Override public Locale getLocale() { return Locale.of("en"); }
-            @Override public String[] getTitles() { return LocaleTitleData.EN_US.getTitles(); }
+            @Override public String[] getTitles() { return new BuiltInTitleDataProvider(SupportedLocale.EN_US).getTitles(); }
         });
     }
 }

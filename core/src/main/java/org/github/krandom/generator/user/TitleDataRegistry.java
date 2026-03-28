@@ -5,6 +5,8 @@
  */
 package org.github.krandom.generator.user;
 
+import org.github.krandom.generator.locale.SupportedLocale;
+
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
@@ -14,9 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Global registry mapping locales to {@link TitleDataProvider} instances.
  *
- * <p>Pre-seeded at class-load time with every built-in locale from {@link LocaleTitleData}. Custom
- * providers can be added at any time via {@link #register(TitleDataProvider)}, replacing any
- * existing provider for the same locale key.
+ * <p>Pre-seeded at class-load time with every built-in locale from
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Custom providers can be added at
+ * any time via {@link #register(TitleDataProvider)}, replacing any existing provider for the same
+ * locale key.
  *
  * <p><b>Lookup order</b>
  * <ol>
@@ -38,8 +41,8 @@ public final class TitleDataRegistry {
             new ConcurrentHashMap<>();
 
     static {
-        for (LocaleTitleData data : LocaleTitleData.values()) {
-            seedInternal(data);
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            seedInternal(new BuiltInTitleDataProvider(supportedLocale));
         }
     }
 
@@ -112,7 +115,7 @@ public final class TitleDataRegistry {
     }
 
     /**
-     * Internal seed — bypasses null-checks since {@link LocaleTitleData} is trusted.
+     * Internal seed — bypasses null-checks for trusted built-in providers.
      * All built-in entries are expected to have non-empty country codes.
      */
     private static void seedInternal(TitleDataProvider provider) {

@@ -307,10 +307,7 @@ final class FieldGeneratorResolver {
             if (Queue.class.isAssignableFrom(rawType)) {
                 return toQueueType(rawType, els);
             }
-            if (Set.class.isAssignableFrom(rawType)) {
-                return toSetType(rawType, els);
-            }
-            return new ArrayList<>(els);
+            return toSetType(rawType, els);
         }
 
         // ── 5c. Map ───────────────────────────────────────────────────────────

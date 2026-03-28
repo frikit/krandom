@@ -6,6 +6,7 @@
 package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -324,10 +325,10 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("getCountryCount() returns positive value for all built-in locales")
     void countryCountPositive() {
-        for (LocaleCountryData data : LocaleCountryData.values()) {
-            CountryGenerator gen = new CountryGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            CountryGenerator gen = new CountryGenerator(supportedLocale.locale());
             assertTrue(gen.getCountryCount() > 0,
-                    "Locale " + data.getLocale() + " should have countries");
+                    "Locale " + supportedLocale.locale() + " should have countries");
         }
     }
 
@@ -430,7 +431,7 @@ class CountryGeneratorTest {
         assertTrue(seen.containsAll(Arrays.asList(custom)));
 
         // Restore built-in US data so other tests are unaffected.
-        CountryDataRegistry.register(LocaleCountryData.EN_US);
+        CountryDataRegistry.register(new BuiltInCountryDataProvider(SupportedLocale.EN_US));
     }
 
     @Test
@@ -521,7 +522,7 @@ class CountryGeneratorTest {
         // Restore the language-level "en" fallback.
         CountryDataRegistry.register(new CountryDataProvider() {
             @Override public Locale getLocale() { return Locale.of("en"); }
-            @Override public String[] getCountries() { return LocaleCountryData.EN_US.getCountries(); }
+            @Override public String[] getCountries() { return new BuiltInCountryDataProvider(SupportedLocale.EN_US).getCountries(); }
         });
     }
 

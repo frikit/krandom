@@ -5,6 +5,8 @@
  */
 package org.github.krandom.generator.user;
 
+import org.github.krandom.generator.locale.SupportedLocale;
+
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
@@ -14,7 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Global registry mapping locales to {@link GenderDataProvider} instances.
  *
- * <p>Pre-seeded at class-load time with every built-in locale from {@link LocaleGenderData}.
+ * <p>Pre-seeded at class-load time with every built-in locale from
+ * {@link org.github.krandom.generator.locale.SupportedLocale}.
  * Custom providers can be added at any time via {@link #register(GenderDataProvider)},
  * replacing any existing provider for the same locale key.
  *
@@ -31,8 +34,8 @@ public final class GenderDataRegistry {
             new ConcurrentHashMap<>();
 
     static {
-        for (LocaleGenderData data : LocaleGenderData.values()) {
-            seedInternal(data);
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            seedInternal(new BuiltInGenderDataProvider(supportedLocale));
         }
     }
 

@@ -7,6 +7,7 @@ package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -35,7 +36,8 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("all built-in locale providers have at least 25 professions")
         void builtInLocaleCounts() {
-            for (LocaleProfessionData data : LocaleProfessionData.values()) {
+            for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+                ProfessionDataProvider data = new BuiltInProfessionDataProvider(supportedLocale);
                 assertTrue(data.getProfessions().length >= 25);
                 assertEquals(data.getProfessions().length, data.getWeights().length);
             }
@@ -303,7 +305,7 @@ class ProfessionGeneratorTest {
                 assertEquals("TestProfession", gen.generateRanked());
             }
 
-            ProfessionDataRegistry.register(LocaleProfessionData.EN_US);
+            ProfessionDataRegistry.register(new BuiltInProfessionDataProvider(SupportedLocale.EN_US));
         }
 
         @Test
@@ -318,7 +320,7 @@ class ProfessionGeneratorTest {
             assertEquals(beforeCount + 1, after.getProfessions().length);
             assertTrue(Set.of(after.getProfessions()).contains("Cloud Reliability Engineer"));
 
-            ProfessionDataRegistry.register(LocaleProfessionData.EN_US);
+            ProfessionDataRegistry.register(new BuiltInProfessionDataProvider(SupportedLocale.EN_US));
         }
 
         @Test
@@ -372,7 +374,7 @@ class ProfessionGeneratorTest {
             assertEquals(languageOnly, provider.getLocale());
             assertEquals("LanguageFallbackOnly", provider.getProfessions()[0]);
 
-            ProfessionDataRegistry.register(LocaleProfessionData.EN_US);
+            ProfessionDataRegistry.register(new BuiltInProfessionDataProvider(SupportedLocale.EN_US));
         }
 
         @Test
@@ -466,41 +468,42 @@ class ProfessionGeneratorTest {
     }
 
     private static void restoreProfessionRegistryBaseline() {
-        for (LocaleProfessionData data : LocaleProfessionData.values()) {
-            ProfessionDataRegistry.register(data);
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            ProfessionDataRegistry.register(new BuiltInProfessionDataProvider(supportedLocale));
         }
 
-        registerLanguageFallback(Locale.of("en"), LocaleProfessionData.EN_US);
-        registerLanguageFallback(Locale.of("fr"), LocaleProfessionData.FR_FR);
-        registerLanguageFallback(Locale.of("de"), LocaleProfessionData.DE_DE);
-        registerLanguageFallback(Locale.of("ja"), LocaleProfessionData.JA_JP);
-        registerLanguageFallback(Locale.of("es"), LocaleProfessionData.ES_ES);
-        registerLanguageFallback(Locale.of("it"), LocaleProfessionData.IT_IT);
-        registerLanguageFallback(Locale.of("pt"), LocaleProfessionData.PT_BR);
-        registerLanguageFallback(Locale.of("zh"), LocaleProfessionData.ZH_CN);
+        registerLanguageFallback(Locale.of("en"), SupportedLocale.EN_US);
+        registerLanguageFallback(Locale.of("fr"), SupportedLocale.FR_FR);
+        registerLanguageFallback(Locale.of("de"), SupportedLocale.DE_DE);
+        registerLanguageFallback(Locale.of("ja"), SupportedLocale.JA_JP);
+        registerLanguageFallback(Locale.of("es"), SupportedLocale.ES_ES);
+        registerLanguageFallback(Locale.of("it"), SupportedLocale.IT_IT);
+        registerLanguageFallback(Locale.of("pt"), SupportedLocale.PT_BR);
+        registerLanguageFallback(Locale.of("zh"), SupportedLocale.ZH_CN);
 
         ProfessionDataRegistry.register(new ProfessionDataProvider() {
             @Override
             public Locale getLocale() { return Locale.of("en", "CA"); }
 
             @Override
-            public String[] getProfessions() { return LocaleProfessionData.EN_US.getProfessions(); }
+            public String[] getProfessions() { return new BuiltInProfessionDataProvider(SupportedLocale.EN_US).getProfessions(); }
 
             @Override
-            public int[] getWeights() { return LocaleProfessionData.EN_US.getWeights(); }
+            public int[] getWeights() { return new BuiltInProfessionDataProvider(SupportedLocale.EN_US).getWeights(); }
         });
     }
 
-    private static void registerLanguageFallback(Locale locale, LocaleProfessionData source) {
+    private static void registerLanguageFallback(Locale locale, SupportedLocale source) {
+        ProfessionDataProvider provider = new BuiltInProfessionDataProvider(source);
         ProfessionDataRegistry.register(new ProfessionDataProvider() {
             @Override
             public Locale getLocale() { return locale; }
 
             @Override
-            public String[] getProfessions() { return source.getProfessions(); }
+            public String[] getProfessions() { return provider.getProfessions(); }
 
             @Override
-            public int[] getWeights() { return source.getWeights(); }
+            public int[] getWeights() { return provider.getWeights(); }
         });
     }
 }

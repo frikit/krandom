@@ -6,6 +6,7 @@
 package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -287,10 +288,10 @@ class CityGeneratorTest {
     @Test
     @DisplayName("getCityCount() returns positive value for all built-in locales")
     void cityCountPositive() {
-        for (LocaleCityData data : LocaleCityData.values()) {
-            CityGenerator gen = new CityGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            CityGenerator gen = new CityGenerator(supportedLocale.locale());
             assertTrue(gen.getCityCount() > 0,
-                    "Locale " + data.getLocale() + " should have cities");
+                    "Locale " + supportedLocale.locale() + " should have cities");
         }
     }
 
@@ -383,7 +384,7 @@ class CityGeneratorTest {
         assertTrue(seen.containsAll(Arrays.asList(custom)));
 
         // Restore built-in US data so other tests are unaffected.
-        CityDataRegistry.register(LocaleCityData.EN_US);
+        CityDataRegistry.register(new BuiltInCityDataProvider(SupportedLocale.EN_US));
     }
 
     @Test

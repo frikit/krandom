@@ -5,6 +5,8 @@
  */
 package org.github.krandom.generator.user;
 
+import org.github.krandom.generator.locale.SupportedLocale;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
@@ -15,9 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Global registry mapping locales to {@link ProfessionDataProvider} instances.
  *
- * <p>Pre-seeded with {@link LocaleProfessionData}. Custom providers can override any locale via
- * {@link #register(ProfessionDataProvider)}. Additional profession entries can be appended via
- * {@link #append(Locale, String[], int[])}.
+ * <p>Pre-seeded with built-in locales from
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Custom providers can override any
+ * locale via {@link #register(ProfessionDataProvider)}. Additional profession entries can be
+ * appended via {@link #append(Locale, String[], int[])}.
  */
 public final class ProfessionDataRegistry {
 
@@ -25,8 +28,8 @@ public final class ProfessionDataRegistry {
             new ConcurrentHashMap<>();
 
     static {
-        for (LocaleProfessionData data : LocaleProfessionData.values()) {
-            seedInternal(data);
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            seedInternal(new BuiltInProfessionDataProvider(supportedLocale));
         }
     }
 

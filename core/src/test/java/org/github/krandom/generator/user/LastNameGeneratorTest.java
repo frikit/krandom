@@ -6,6 +6,7 @@
 package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,7 @@ class LastNameGeneratorTest {
     @DisplayName("generate() returns a value from the configured locale's name list")
     void generateReturnsKnownName() {
         LastNameGenerator gen = new LastNameGenerator(Locale.US);
-        Set<String> usExpected = Set.of(LocaleLastNameData.EN_US.getLastNames());
+        Set<String> usExpected = Set.of(new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(usExpected.contains(gen.generate()),
                     "Generated name not in EN_US list: " + gen.generate());
@@ -55,7 +56,7 @@ class LastNameGeneratorTest {
     @DisplayName("German locale produces German last names")
     void germanLastNames() {
         LastNameGenerator gen = new LastNameGenerator(Locale.GERMANY);
-        Set<String> deExpected = Set.of(LocaleLastNameData.DE_DE.getLastNames());
+        Set<String> deExpected = Set.of(new BuiltInLastNameDataProvider(SupportedLocale.DE_DE).getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(deExpected.contains(gen.generate()));
         }
@@ -65,7 +66,7 @@ class LastNameGeneratorTest {
     @DisplayName("Japanese locale produces Japanese last names")
     void japaneseLastNames() {
         LastNameGenerator gen = new LastNameGenerator(Locale.JAPAN);
-        Set<String> jaExpected = Set.of(LocaleLastNameData.JA_JP.getLastNames());
+        Set<String> jaExpected = Set.of(new BuiltInLastNameDataProvider(SupportedLocale.JA_JP).getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(jaExpected.contains(gen.generate()));
         }
@@ -75,7 +76,7 @@ class LastNameGeneratorTest {
     @DisplayName("French locale produces French last names")
     void frenchLastNames() {
         LastNameGenerator gen = new LastNameGenerator(Locale.FRANCE);
-        Set<String> frExpected = Set.of(LocaleLastNameData.FR_FR.getLastNames());
+        Set<String> frExpected = Set.of(new BuiltInLastNameDataProvider(SupportedLocale.FR_FR).getLastNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(frExpected.contains(gen.generate()));
         }
@@ -107,7 +108,7 @@ class LastNameGeneratorTest {
     @DisplayName("getLastNameCount() matches the locale's array length")
     void getLastNameCount() {
         LastNameGenerator gen = new LastNameGenerator(Locale.US);
-        assertEquals(LocaleLastNameData.EN_US.getLastNames().length, gen.getLastNameCount());
+        assertEquals(new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames().length, gen.getLastNameCount());
     }
 
     @Test
@@ -172,7 +173,7 @@ class LastNameGeneratorTest {
             assertEquals("TestSurname", gen.generate());
 
             // Restore built-in
-            LastNameDataRegistry.register(LocaleLastNameData.EN_US);
+            LastNameDataRegistry.register(new BuiltInLastNameDataProvider(SupportedLocale.EN_US));
         }
 
         @Test
@@ -261,7 +262,7 @@ class LastNameGeneratorTest {
             // Restore language fallback
             LastNameDataRegistry.register(new LastNameDataProvider() {
                 public Locale getLocale() { return enOnly; }
-                public String[] getLastNames() { return LocaleLastNameData.EN_US.getLastNames(); }
+                public String[] getLastNames() { return new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames(); }
             });
         }
     }
@@ -271,22 +272,22 @@ class LastNameGeneratorTest {
     @Test
     @DisplayName("all 10 built-in locales produce non-empty last names")
     void allBuiltInLocalesProduceValues() {
-        for (LocaleLastNameData data : LocaleLastNameData.values()) {
-            LastNameGenerator gen = new LastNameGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            LastNameGenerator gen = new LastNameGenerator(supportedLocale.locale());
             String name = gen.generate();
-            assertNotNull(name, "Null for " + data);
-            assertFalse(name.isEmpty(), "Empty for " + data);
+            assertNotNull(name, "Null for " + supportedLocale);
+            assertFalse(name.isEmpty(), "Empty for " + supportedLocale);
         }
     }
 
     @Test
     @DisplayName("all built-in locales produce variety of values over many samples")
     void allBuiltInLocalesProduceVariety() {
-        for (LocaleLastNameData data : LocaleLastNameData.values()) {
-            LastNameGenerator gen = new LastNameGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            LastNameGenerator gen = new LastNameGenerator(supportedLocale.locale());
             Set<String> seen = new HashSet<>();
             for (int i = 0; i < 200; i++) seen.add(gen.generate());
-            assertTrue(seen.size() > 1, "No variety for " + data);
+            assertTrue(seen.size() > 1, "No variety for " + supportedLocale);
         }
     }
 }

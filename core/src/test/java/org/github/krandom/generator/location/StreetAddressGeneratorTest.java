@@ -7,6 +7,7 @@ package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -279,7 +280,7 @@ class StreetAddressGeneratorTest {
         assertTrue(gen.generate(true).contains("TestStreet TS"));
         assertTrue(gen.generate(false).contains("TestStreet TestSuffix"));
 
-        StreetAddressDataRegistry.register(LocaleStreetAddressData.EN_US);
+        StreetAddressDataRegistry.register(new BuiltInStreetAddressDataProvider(SupportedLocale.EN_US));
     }
 
     @Test

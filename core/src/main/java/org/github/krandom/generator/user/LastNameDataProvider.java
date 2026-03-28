@@ -21,7 +21,8 @@ import java.util.Locale;
  * LastNameGenerator gen = new LastNameGenerator(Locale.of("ko", "KR"));
  * }</pre>
  *
- * <p>The built-in baseline is provided by {@link LocaleLastNameData}.
+ * <p>The built-in baseline is seeded by {@link LastNameDataRegistry} from
+ * {@link org.github.krandom.generator.locale.SupportedLocale}.
  */
 public interface LastNameDataProvider {
 

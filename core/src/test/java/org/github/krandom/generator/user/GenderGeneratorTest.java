@@ -6,6 +6,7 @@
 package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -243,12 +244,12 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("all built-in locales produce non-empty labels")
     void allBuiltInLocales() {
-        for (LocaleGenderData data : LocaleGenderData.values()) {
-            GenderGenerator gen = new GenderGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            GenderGenerator gen = new GenderGenerator(supportedLocale.locale());
             assertFalse(gen.getMaleLabel().isEmpty(),
-                    "Male label should not be empty for " + data.getLocale());
+                    "Male label should not be empty for " + supportedLocale.locale());
             assertFalse(gen.getFemaleLabel().isEmpty(),
-                    "Female label should not be empty for " + data.getLocale());
+                    "Female label should not be empty for " + supportedLocale.locale());
         }
     }
 
@@ -284,7 +285,7 @@ class GenderGeneratorTest {
         assertEquals("F", gen.generate(Gender.FEMALE));
 
         // Restore built-in data so other tests are unaffected
-        GenderDataRegistry.register(LocaleGenderData.EN_US);
+        GenderDataRegistry.register(new BuiltInGenderDataProvider(SupportedLocale.EN_US));
     }
 
     @Test
@@ -383,17 +384,17 @@ class GenderGeneratorTest {
         // Restore
         GenderDataRegistry.register(new GenderDataProvider() {
             @Override public Locale getLocale()      { return Locale.of("en"); }
-            @Override public String getMaleLabel()   { return LocaleGenderData.EN_US.getMaleLabel(); }
-            @Override public String getFemaleLabel() { return LocaleGenderData.EN_US.getFemaleLabel(); }
+            @Override public String getMaleLabel()   { return new BuiltInGenderDataProvider(SupportedLocale.EN_US).getMaleLabel(); }
+            @Override public String getFemaleLabel() { return new BuiltInGenderDataProvider(SupportedLocale.EN_US).getFemaleLabel(); }
         });
     }
 
     @Test
     @DisplayName("isLocaleExplicitlySupported returns true for all built-in locales")
     void localeSupported() {
-        for (LocaleGenderData data : LocaleGenderData.values()) {
-            assertTrue(new GenderGenerator(data.getLocale()).isLocaleExplicitlySupported(),
-                    "Locale " + data.getLocale() + " should be supported");
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            assertTrue(new GenderGenerator(supportedLocale.locale()).isLocaleExplicitlySupported(),
+                    "Locale " + supportedLocale.locale() + " should be supported");
         }
     }
 

@@ -5,6 +5,8 @@
  */
 package org.github.krandom.generator.location;
 
+import org.github.krandom.generator.locale.SupportedLocale;
+
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +20,9 @@ public final class StreetAddressDataRegistry {
     private static final Map<String, StreetAddressDataProvider> providers = new ConcurrentHashMap<>();
 
     static {
-        LocaleStreetAddressData.allProviders().forEach(StreetAddressDataRegistry::register);
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            register(new BuiltInStreetAddressDataProvider(supportedLocale));
+        }
     }
 
     private StreetAddressDataRegistry() {
@@ -88,4 +92,3 @@ public final class StreetAddressDataRegistry {
         }
     }
 }
-

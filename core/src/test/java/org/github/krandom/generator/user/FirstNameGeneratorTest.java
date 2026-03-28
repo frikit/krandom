@@ -6,6 +6,7 @@
 package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ class FirstNameGeneratorTest {
     @DisplayName("generate() returns a value from the configured locale's name lists")
     void generateReturnsKnownName() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
-        FirstNameDataProvider provider = LocaleFirstNameData.EN_US;
+        FirstNameDataProvider provider = new BuiltInFirstNameDataProvider(SupportedLocale.EN_US);
         Set<String> allUS = new HashSet<>();
         Collections.addAll(allUS, provider.getMaleFirstNames());
         Collections.addAll(allUS, provider.getFemaleFirstNames());
@@ -59,7 +60,7 @@ class FirstNameGeneratorTest {
     @DisplayName("generate(MALE) returns only male names")
     void generateMaleReturnsOnlyMaleNames() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
-        Set<String> maleNames = Set.of(LocaleFirstNameData.EN_US.getMaleFirstNames());
+        Set<String> maleNames = Set.of(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getMaleFirstNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(maleNames.contains(gen.generate(Gender.MALE)),
                     "Generated name not in male list");
@@ -70,7 +71,7 @@ class FirstNameGeneratorTest {
     @DisplayName("generate(FEMALE) returns only female names")
     void generateFemaleReturnsOnlyFemaleNames() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
-        Set<String> femaleNames = Set.of(LocaleFirstNameData.EN_US.getFemaleFirstNames());
+        Set<String> femaleNames = Set.of(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getFemaleFirstNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(femaleNames.contains(gen.generate(Gender.FEMALE)),
                     "Generated name not in female list");
@@ -91,8 +92,9 @@ class FirstNameGeneratorTest {
     void germanNames() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.GERMANY);
         Set<String> allDE = new HashSet<>();
-        Collections.addAll(allDE, LocaleFirstNameData.DE_DE.getMaleFirstNames());
-        Collections.addAll(allDE, LocaleFirstNameData.DE_DE.getFemaleFirstNames());
+        FirstNameDataProvider deProvider = new BuiltInFirstNameDataProvider(SupportedLocale.DE_DE);
+        Collections.addAll(allDE, deProvider.getMaleFirstNames());
+        Collections.addAll(allDE, deProvider.getFemaleFirstNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(allDE.contains(gen.generate()));
         }
@@ -103,8 +105,9 @@ class FirstNameGeneratorTest {
     void japaneseNames() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.JAPAN);
         Set<String> allJA = new HashSet<>();
-        Collections.addAll(allJA, LocaleFirstNameData.JA_JP.getMaleFirstNames());
-        Collections.addAll(allJA, LocaleFirstNameData.JA_JP.getFemaleFirstNames());
+        FirstNameDataProvider jaProvider = new BuiltInFirstNameDataProvider(SupportedLocale.JA_JP);
+        Collections.addAll(allJA, jaProvider.getMaleFirstNames());
+        Collections.addAll(allJA, jaProvider.getFemaleFirstNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(allJA.contains(gen.generate()));
         }
@@ -115,8 +118,9 @@ class FirstNameGeneratorTest {
     void frenchNames() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.FRANCE);
         Set<String> allFR = new HashSet<>();
-        Collections.addAll(allFR, LocaleFirstNameData.FR_FR.getMaleFirstNames());
-        Collections.addAll(allFR, LocaleFirstNameData.FR_FR.getFemaleFirstNames());
+        FirstNameDataProvider frProvider = new BuiltInFirstNameDataProvider(SupportedLocale.FR_FR);
+        Collections.addAll(allFR, frProvider.getMaleFirstNames());
+        Collections.addAll(allFR, frProvider.getFemaleFirstNames());
         for (int i = 0; i < 50; i++) {
             assertTrue(allFR.contains(gen.generate()));
         }
@@ -160,14 +164,14 @@ class FirstNameGeneratorTest {
     @DisplayName("getMaleNameCount() matches the locale's male array length")
     void getMaleNameCount() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
-        assertEquals(LocaleFirstNameData.EN_US.getMaleFirstNames().length, gen.getMaleNameCount());
+        assertEquals(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getMaleFirstNames().length, gen.getMaleNameCount());
     }
 
     @Test
     @DisplayName("getFemaleNameCount() matches the locale's female array length")
     void getFemaleNameCount() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
-        assertEquals(LocaleFirstNameData.EN_US.getFemaleFirstNames().length, gen.getFemaleNameCount());
+        assertEquals(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getFemaleFirstNames().length, gen.getFemaleNameCount());
     }
 
     @Test
@@ -234,7 +238,7 @@ class FirstNameGeneratorTest {
             assertTrue(Set.of("TestMale", "TestFemale").contains(gen.generate()));
 
             // Restore built-in
-            FirstNameDataRegistry.register(LocaleFirstNameData.EN_US);
+            FirstNameDataRegistry.register(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US));
         }
 
         @Test
@@ -326,8 +330,8 @@ class FirstNameGeneratorTest {
             // Restore language fallback
             FirstNameDataRegistry.register(new FirstNameDataProvider() {
                 public Locale getLocale() { return enOnly; }
-                public String[] getMaleFirstNames()   { return LocaleFirstNameData.EN_US.getMaleFirstNames(); }
-                public String[] getFemaleFirstNames() { return LocaleFirstNameData.EN_US.getFemaleFirstNames(); }
+                public String[] getMaleFirstNames()   { return new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getMaleFirstNames(); }
+                public String[] getFemaleFirstNames() { return new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getFemaleFirstNames(); }
             });
         }
     }
@@ -346,36 +350,36 @@ class FirstNameGeneratorTest {
     @Test
     @DisplayName("all 10 built-in locales produce non-empty names")
     void allBuiltInLocalesProduceValues() {
-        for (LocaleFirstNameData data : LocaleFirstNameData.values()) {
-            FirstNameGenerator gen = new FirstNameGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            FirstNameGenerator gen = new FirstNameGenerator(supportedLocale.locale());
             String name = gen.generate();
-            assertNotNull(name, "Null for " + data);
-            assertFalse(name.isEmpty(), "Empty for " + data);
+            assertNotNull(name, "Null for " + supportedLocale);
+            assertFalse(name.isEmpty(), "Empty for " + supportedLocale);
         }
     }
 
     @Test
     @DisplayName("all built-in locales produce variety of values over many samples")
     void allBuiltInLocalesProduceVariety() {
-        for (LocaleFirstNameData data : LocaleFirstNameData.values()) {
-            FirstNameGenerator gen = new FirstNameGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            FirstNameGenerator gen = new FirstNameGenerator(supportedLocale.locale());
             Set<String> seen = new HashSet<>();
             for (int i = 0; i < 200; i++) seen.add(gen.generate());
-            assertTrue(seen.size() > 1, "No variety for " + data);
+            assertTrue(seen.size() > 1, "No variety for " + supportedLocale);
         }
     }
 
     @Test
     @DisplayName("all built-in locales produce both male and female names")
     void allBuiltInLocalesProduceBothGenders() {
-        for (LocaleFirstNameData data : LocaleFirstNameData.values()) {
-            FirstNameGenerator gen = new FirstNameGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            FirstNameGenerator gen = new FirstNameGenerator(supportedLocale.locale());
             String male   = gen.generate(Gender.MALE);
             String female = gen.generate(Gender.FEMALE);
-            assertNotNull(male,   "Null male for " + data);
-            assertNotNull(female, "Null female for " + data);
-            assertFalse(male.isEmpty(),   "Empty male for " + data);
-            assertFalse(female.isEmpty(), "Empty female for " + data);
+            assertNotNull(male,   "Null male for " + supportedLocale);
+            assertNotNull(female, "Null female for " + supportedLocale);
+            assertFalse(male.isEmpty(),   "Empty male for " + supportedLocale);
+            assertFalse(female.isEmpty(), "Empty female for " + supportedLocale);
         }
     }
 }

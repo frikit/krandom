@@ -6,6 +6,7 @@
 package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -564,10 +565,10 @@ class StateGeneratorTest {
     @Test
     @DisplayName("getStateCount() returns positive value for all built-in locales")
     void stateCountPositive() {
-        for (LocaleStateData data : LocaleStateData.values()) {
-            StateGenerator gen = new StateGenerator(data.getLocale());
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            StateGenerator gen = new StateGenerator(supportedLocale.locale());
             assertTrue(gen.getStateCount() > 0,
-                    "Locale " + data.getLocale() + " should have states");
+                    "Locale " + supportedLocale.locale() + " should have states");
         }
     }
 
@@ -697,7 +698,7 @@ class StateGeneratorTest {
         assertTrue(seenAbbrevs.containsAll(Arrays.asList(customAbbrevs)));
 
         // Restore built-in US data so other tests are unaffected.
-        StateDataRegistry.register(LocaleStateData.EN_US);
+        StateDataRegistry.register(new BuiltInStateDataProvider(SupportedLocale.EN_US));
     }
 
     @Test
@@ -783,7 +784,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("StateDataProvider returns cloned arrays")
     void providerReturnsClonedArrays() {
-        LocaleStateData usData = LocaleStateData.EN_US;
+        StateDataProvider usData = new BuiltInStateDataProvider(SupportedLocale.EN_US);
         
         String[] states1 = usData.getStates();
         String[] states2 = usData.getStates();

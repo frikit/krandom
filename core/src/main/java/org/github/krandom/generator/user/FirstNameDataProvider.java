@@ -22,7 +22,8 @@ import java.util.Locale;
  * FirstNameGenerator gen = new FirstNameGenerator(Locale.of("ko", "KR"));
  * }</pre>
  *
- * <p>The built-in baseline is provided by {@link LocaleFirstNameData}.
+ * <p>The built-in baseline is seeded by {@link FirstNameDataRegistry} from
+ * {@link org.github.krandom.generator.locale.SupportedLocale}.
  */
 public interface FirstNameDataProvider {
 

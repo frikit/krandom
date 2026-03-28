@@ -134,7 +134,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 - Test coverage: 100% branch for `generator.user` and `generator.user.nationalid` packages
 - `AgeType` enum covers all 4 Chance.js categories with correct ranges
-- `GenderGenerator` locale-aware via `GenderDataRegistry` / `LocaleGenderData` / `GenderDataProvider` stack
+- `GenderGenerator` locale-aware via `SupportedLocale` + `GenderDataRegistry` / `GenderDataProvider` stack
 - `BirthdayGenerator` generates statistically correct birth dates (exact year-window per age)
 - `BirthdayGenerator` locale constructors: `new BirthdayGenerator(Locale)`, `(AgeType, Locale)`, `(int, int, Locale)` plus seeded variants; `getLocale()` accessor
 - `NationalIdGenerator` replaces `SsnGenerator`; fluent options on `UsNationalIdProvider` preserved

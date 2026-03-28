@@ -5,6 +5,8 @@
  */
 package org.github.krandom.generator.location;
 
+import org.github.krandom.generator.locale.SupportedLocale;
+
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -16,8 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>This registry provides state data for {@link StateGenerator} and supports runtime
  * registration of custom providers to add or override state lists for any locale.
  *
- * <p>Built-in support for 6 locales is auto-loaded at class init: {@code en_US}, {@code en_CA},
- * {@code en_AU}, {@code de_DE}, {@code es_MX}, {@code it_IT}.
+ * <p>Built-in support is auto-loaded at class init from
+ * {@link org.github.krandom.generator.locale.SupportedLocale}.
  *
  * <p>Custom providers registered via {@link #register(StateDataProvider)} override built-in data
  * for the same locale and enable support for additional locales.
@@ -27,7 +29,9 @@ public final class StateDataRegistry {
     private static final Map<String, StateDataProvider> providers = new ConcurrentHashMap<>();
 
     static {
-        LocaleStateData.allProviders().forEach(StateDataRegistry::register);
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            register(new BuiltInStateDataProvider(supportedLocale));
+        }
     }
 
     private StateDataRegistry() {
