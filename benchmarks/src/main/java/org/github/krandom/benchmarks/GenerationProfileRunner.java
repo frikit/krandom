@@ -11,6 +11,7 @@ import org.github.krandom.generator.Generators;
 import org.github.krandom.generator.base.RegexGenerator;
 import org.github.krandom.generator.user.FirstNameGenerator;
 
+import java.text.NumberFormat;
 import java.util.Locale;
 
 /**
@@ -20,7 +21,8 @@ import java.util.Locale;
  */
 public final class GenerationProfileRunner {
 
-    private static final int[] RUN_SIZES = { 100_000, 1_000_000 };
+    private static final int[] RUN_SIZES = { 1_000, 10_000, 100_000, 1_000_000, 10_000_000 };
+    private static final NumberFormat US_INT_FORMAT = NumberFormat.getIntegerInstance(Locale.US);
 
     private GenerationProfileRunner() {
     }
@@ -60,7 +62,8 @@ public final class GenerationProfileRunner {
 
             double opsPerSecond = runSize / (elapsedNanos / 1_000_000_000.0);
             double heapDeltaMb = (afterMemory - beforeMemory) / (1024.0 * 1024.0);
-            System.out.printf("%-10d %-14.2f %-14.2f%n", runSize, opsPerSecond, heapDeltaMb);
+            String formattedCount = US_INT_FORMAT.format(runSize);
+            System.out.printf(Locale.US, "%-10s %-14.2f %-14.2f%n", formattedCount, opsPerSecond, heapDeltaMb);
         }
     }
 
