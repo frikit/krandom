@@ -80,7 +80,7 @@ jobs:
             - io.github.frikit:krandom-core:${{ env.VERSION }}
             - io.github.frikit:krandom-java-api:${{ env.VERSION }}
             - io.github.frikit:krandom-kotlin-api:${{ env.VERSION }}
-            - io.github.frikit:krandom-scala-api:${{ env.VERSION }}
+            - io.github.frikit:krandom-scala-api_3:${{ env.VERSION }}
 
             Maven repository:
             https://maven.pkg.github.com/${{ github.repository }}

@@ -112,7 +112,7 @@ Main artifacts:
 - `io.github.frikit:krandom-core:<version>`
 - `io.github.frikit:krandom-java-api:<version>`
 - `io.github.frikit:krandom-kotlin-api:<version>`
-- `io.github.frikit:krandom-scala-api:<version>`
+- `io.github.frikit:krandom-scala-api_3:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
 
 Gradle (Kotlin DSL):

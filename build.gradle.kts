@@ -65,11 +65,16 @@ subprojects {
             configure<PublishingExtension> {
                 publications {
                     if (findByName("mavenJava") == null) {
+                        val publishedArtifactId = if (project.name == "scala-api") {
+                            "krandom-scala-api_3"
+                        } else {
+                            "krandom-${project.name}"
+                        }
                         create<MavenPublication>("mavenJava") {
-                            artifactId = "krandom-${project.name}"
+                            artifactId = publishedArtifactId
                             from(components[componentName])
                             pom {
-                                name.set("krandom-${project.name}")
+                                name.set(publishedArtifactId)
                                 description.set("kRandom ${project.name} module")
                                 url.set("https://github.com/frikit/krandom")
                                 licenses {
