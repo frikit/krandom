@@ -75,19 +75,19 @@ public interface Generator<T> {
      */
     default void reseed(long seed) {
         boolean reseeded = false;
-        for (Class<?> type = getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+        for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
             for (Field field : type.getDeclaredFields()) {
                 if (Modifier.isStatic(field.getModifiers())) {
                     continue;
                 }
-                field.setAccessible(true);
                 try {
+                    field.setAccessible(true);
                     Object value = field.get(this);
                     if (value instanceof Random random) {
                         random.setSeed(seed);
                         reseeded = true;
                     }
-                } catch (IllegalAccessException e) {
+                } catch (RuntimeException | IllegalAccessException e) {
                     throw new IllegalStateException("Unable to access field '" + field.getName() + "'", e);
                 }
             }

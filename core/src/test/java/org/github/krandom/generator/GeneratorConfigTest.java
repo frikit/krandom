@@ -70,6 +70,12 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("deriveSeed rejects blank value")
+    void deriveSeedBlankThrows() {
+        assertThrows(IllegalArgumentException.class, () -> GeneratorConfig.deriveSeed("   "));
+    }
+
+    @Test
     @DisplayName("createRandom with long seed preserves java.util.Random sequence compatibility")
     void longSeedCompatibility() {
         GeneratorConfig c = GeneratorConfig.builder().seed(42L).build();
