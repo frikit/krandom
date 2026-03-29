@@ -1,57 +1,67 @@
 # kRandom
 
-![kt test + coverage](https://github.com/frikit/krandom/workflows/kt%20test%20+%20coverage/badge.svg)
+[![tests + coverage](https://github.com/frikit/krandom/actions/workflows/continuous-integration-workflow.yml/badge.svg)](https://github.com/frikit/krandom/actions/workflows/continuous-integration-workflow.yml)
 [![codecov](https://codecov.io/github/frikit/krandom/graph/badge.svg?token=CpcHkmbzo7)](https://codecov.io/github/frikit/krandom)
 
-kRandom is a random and fake-data generation library built around a Java core, with Kotlin and Scala wrapper modules on top. It is aimed at tests, fixture generation, schema-driven record generation, and object graph population.
+kRandom is a Java 21 random and fake-data generation toolkit.
+The project is built around a Java core and includes thin wrappers for Kotlin and Scala, plus optional integrations and benchmarking modules.
 
-The project is currently Java-first:
+## Current Status
 
-- `core` contains the real implementation.
-- `java-api` is a thin Java-facing artifact over `core`.
-- `kotlin-api` provides Kotlin wrappers over the Java core.
-- `scala-api` provides Scala 3 wrappers over the Java core.
+- Active development, Java-first architecture.
+- `core` is the behavior source of truth.
+- CI runs tests + coverage on Java 21.
+- Local quality checks are standardized via `./scripts/pre_commit_check.sh`.
+- Team target is 100% line and branch coverage in core reports; enforced gate is 99%.
+- Publishing currently targets GitHub Packages (`io.github.frikit:*` coordinates). Maven Central is not the active distribution channel yet.
 
-## Modules
+## Repository Layout
 
-| Module | Purpose |
+| Module/Path | Purpose |
 |:---|:---|
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
-| `java-api` | Java artifact that depends on `core` |
-| `kotlin-api` | Kotlin-native wrapper layer over `core` |
-| `scala-api` | Scala 3 wrapper layer over `core` |
-| `examples/` | Consumer examples for Java, Kotlin, and Scala across multiple build tools |
-| `docs-site/` | GitHub Pages documentation site |
+| `java-api` | Java facade module over `core` |
+| `kotlin-api` | Kotlin wrapper API over `core` |
+| `scala-api` | Scala 3 wrapper API over `core` |
+| `jackson` | Jackson module (`Schema` serialization support) |
+| `benchmarks` | JMH and macro generation profiling workloads |
+| `examples/` | Consumer examples for Java/Kotlin/Scala across build tools |
+| `docs-site/` | GitHub Pages documentation source |
+| `docs/` | Internal plans, parity analysis, and implementation notes |
 
-## Current capabilities
+## What You Can Generate
 
-The Java core currently covers:
+Current core coverage includes:
 
-- Primitive and numeric generators
-- Text and lorem-style generation
-- Date/time generators
-- Network and internet generators
-- Location and address generators
-- User/profile/name generators
-- Finance, identifiers, and banking generators
-- File/path/version/system generators
-- Selection helpers such as pick, shuffle, weighted, repeat, and unique
-- Object graph generation
-- Schema-style record generation with `Field` and `Schema`
-- Generic provider lookup and runtime extension through `ProviderHub`
+- Primitive and numeric data
+- Text and lorem-style content
+- Date/time and timezone values
+- Network/internet values (URLs, domains, IPs, HTTP helpers)
+- Locale-aware user and address data
+- Finance and identifier formats
+- File/system/version values
+- Selection combinators (`pick`, `shuffle`, `weighted`, `repeat`, `unique`)
+- Object graphs via reflection-based object generation
+- Schema-like record generation with `Field` and `Schema`
+- Extensible provider lookup via `ProviderHub`
 
-Wrapper modules currently expose the Java core in more idiomatic Kotlin and Scala forms, but the source of truth for behavior remains Java.
-
-## Quick start
+## Quick Usage
 
 ### Java
 
 ```java
+import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.Generators;
+import org.github.krandom.generator.user.EmailGenerator;
+import org.github.krandom.generator.user.FullNameGenerator;
+
+GeneratorConfig config = GeneratorConfig.builder()
+    .seed("demo-seed")
+    .build();
 
 int roll = Generators.ofInt(1, 7).generate();
-String name = Generators.ofFullName().generate();
-String email = Generators.ofEmail().generate();
+String name = new FullNameGenerator(config).generate();
+String email = new EmailGenerator(config).generate();
 ```
 
 ### Kotlin
@@ -74,37 +84,38 @@ val name = ScalaGenerators.fullName().one
 val email = ScalaGenerators.email().one
 ```
 
-## Build and verification
-
-Main local commands:
+## Build and Verify Locally
 
 ```bash
-./gradlew build
-./gradlew test
+./gradlew clean build
 ./scripts/pre_commit_check.sh
 ```
 
-`./scripts/pre_commit_check.sh` runs formatting, compilation, tests, Javadoc validation, and coverage verification. The current project standard is 100% line and branch coverage in the checked core reports, with the script enforcing a 99% minimum threshold.
+`pre_commit_check.sh` runs formatting, markdown checks, compilation, tests, Javadoc validation, and coverage verification.
 
-## Install
+Performance workloads:
 
-Current release line:
+```bash
+./gradlew :benchmarks:jmh
+./gradlew :benchmarks:profileGeneration
+```
 
-- Version: `0.1.0`
+## Dependencies and Publishing
+
+Current published artifact namespace:
+
 - Group: `io.github.frikit`
+- Repository: `https://maven.pkg.github.com/frikit/krandom`
 
-Published artifacts:
+Main artifacts:
 
-- `io.github.frikit:krandom-core:0.1.0`
-- `io.github.frikit:krandom-java-api:0.1.0`
-- `io.github.frikit:krandom-kotlin-api:0.1.0`
-- `io.github.frikit:krandom-scala-api:0.1.0`
+- `io.github.frikit:krandom-core:<version>`
+- `io.github.frikit:krandom-java-api:<version>`
+- `io.github.frikit:krandom-kotlin-api:<version>`
+- `io.github.frikit:krandom-scala-api:<version>`
+- `io.github.frikit:krandom-jackson:<version>`
 
-Current package registry:
-
-- GitHub Packages Maven registry: `https://maven.pkg.github.com/frikit/krandom`
-
-### Gradle (Kotlin DSL)
+Gradle (Kotlin DSL):
 
 ```kotlin
 repositories {
@@ -123,30 +134,11 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-java-api:0.1.0")
+    implementation("io.github.frikit:krandom-java-api:<version>")
 }
 ```
 
-### Gradle (Groovy DSL)
-
-```groovy
-repositories {
-    mavenCentral()
-    maven {
-        url = uri('https://maven.pkg.github.com/frikit/krandom')
-        credentials {
-            username = findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
-            password = findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
-        }
-    }
-}
-
-dependencies {
-    implementation 'io.github.frikit:krandom-java-api:0.1.0'
-}
-```
-
-### Maven
+Maven:
 
 ```xml
 <repositories>
@@ -160,79 +152,23 @@ dependencies {
   <dependency>
     <groupId>io.github.frikit</groupId>
     <artifactId>krandom-java-api</artifactId>
-    <version>0.1.0</version>
+    <version><!-- your version --></version>
   </dependency>
 </dependencies>
 ```
 
-Maven needs GitHub Packages credentials in `~/.m2/settings.xml` under server id `github`.
+For GitHub Packages, configure credentials (`GITHUB_ACTOR`/`GITHUB_TOKEN` or `gpr.user`/`gpr.key`).
 
-### sbt
+## Examples and Docs
 
-```scala
-resolvers += "GitHub Packages" at "https://maven.pkg.github.com/frikit/krandom"
+- Consumer examples: [`examples/`](examples/)
+- Public docs site source: [`docs-site/`](docs-site/)
+- Docs site URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
+- Internal technical docs: [`docs/`](docs/)
 
-libraryDependencies += "io.github.frikit" % "krandom-scala-api" % "0.1.0"
-```
+## Automation
 
-### Mill
-
-```scala
-def ivyDeps = Agg(
-  ivy"io.github.frikit:krandom-scala-api:0.1.0"
-)
-
-override def repositoriesTask = T {
-  super.repositoriesTask() ++ Seq(
-    coursier.MavenRepository("https://maven.pkg.github.com/frikit/krandom")
-  )
-}
-```
-
-## Examples
-
-Consumer examples live in [`examples/`](examples/). They are test-based examples rather than runnable demo apps, so usage stays in test code and `main` contains only small fixture models.
-
-Included combinations:
-
-- Java + Gradle
-- Java + Maven
-- Kotlin + Gradle
-- Kotlin + Maven
-- Scala + sbt
-- Scala + Mill
-
-## Documentation site
-
-Public documentation site source lives in [`docs-site/`](docs-site/) and deploys through [`github-pages.yml`](.github/workflows/github-pages.yml).
-
-Docs URL:
-
-- [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
-
-One-time repository setup for GitHub Pages:
-
-- Open `Settings -> Pages`
-- Set `Build and deployment` to `GitHub Actions`
-
-## Releases
-
-The repository currently includes a manual GitHub Actions release workflow for GitHub Packages and GitHub Releases:
-
-- Workflow: [`release-github-packages.yml`](.github/workflows/release-github-packages.yml)
-- Trigger: `workflow_dispatch`
-- Input: semver version such as `0.1.0`
-
-That workflow:
-
-- validates the version
-- builds and tests all modules
-- publishes artifacts to GitHub Packages
-- creates a Git tag `v<version>`
-- creates a GitHub Release with built JARs attached
-
-## Maven Central
-
-Maven Central migration is planned but not finished yet. The current plan is tracked in [`maven-central-release-plan.md`](docs/plans/maven-central-release-plan.md).
-
-The target public no-auth coordinates are the same artifact names under `io.github.frikit`, but Central-specific requirements such as namespace verification, signing, and Central release automation still need to be completed.
+- CI tests + coverage: [`.github/workflows/continuous-integration-workflow.yml`](.github/workflows/continuous-integration-workflow.yml)
+- Docs publishing: [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml)
+- Manual release to GitHub Packages + GitHub Release: [`.github/workflows/release-github-packages.yml`](.github/workflows/release-github-packages.yml)
+- Performance profiling workflow: [`.github/workflows/performance-profile.yml`](.github/workflows/performance-profile.yml)
