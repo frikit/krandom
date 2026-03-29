@@ -44,9 +44,7 @@ public final class BankTypeGenerator implements Generator<String> {
     public BankTypeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     @Override

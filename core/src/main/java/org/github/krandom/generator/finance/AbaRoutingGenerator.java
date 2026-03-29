@@ -25,9 +25,7 @@ public final class AbaRoutingGenerator implements Generator<String> {
 
     public AbaRoutingGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.random = effective.getSeed().isPresent()
-                      ? new Random(effective.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = effective.createRandom();
     }
 
     @Override

@@ -32,9 +32,7 @@ public final class IbanGenerator implements Generator<String> {
 
     public IbanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.random = effective.getSeed().isPresent()
-                      ? new Random(effective.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = effective.createRandom();
         this.bankCountryGenerator = new BankCountryGenerator(effective);
         this.bbanGenerator = new BbanGenerator(effective);
     }

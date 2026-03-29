@@ -114,9 +114,7 @@ public final class CountryGenerator implements Generator<String> {
                 registryContext.countryRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
 
         this.countries = registryContext.countryProvider(locale).getCountries();
     }

@@ -42,9 +42,7 @@ public final class TitleGenerator implements Generator<String> {
                 registryContext.titleRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
 
         this.titles = registryContext.titleProvider(locale).getTitles();
     }

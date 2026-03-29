@@ -26,9 +26,7 @@ public final class IPGenerator implements Generator<String> {
 
     public IPGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new java.security.SecureRandom();
+        this.random = config.createRandom();
         this.ipv4Generator = new IPv4Generator(config);
         this.ipv6Generator = new IPv6Generator(config);
     }

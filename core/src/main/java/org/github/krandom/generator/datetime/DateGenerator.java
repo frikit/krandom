@@ -100,9 +100,7 @@ public final class DateGenerator implements Generator<LocalDate> {
      */
     public DateGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.rangeMin = null;
         this.rangeMax = null;
     }

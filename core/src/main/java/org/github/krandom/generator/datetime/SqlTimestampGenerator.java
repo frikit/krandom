@@ -33,9 +33,7 @@ public final class SqlTimestampGenerator implements Generator<Timestamp> {
 
     public SqlTimestampGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.min = DEFAULT_MIN;
         this.max = DEFAULT_MAX;
     }

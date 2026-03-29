@@ -82,9 +82,7 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime> {
      */
     public ZonedDateTimeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.rangeMin = null;
         this.rangeMax = null;
     }

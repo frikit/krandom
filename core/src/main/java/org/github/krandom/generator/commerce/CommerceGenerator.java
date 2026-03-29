@@ -71,9 +71,7 @@ public final class CommerceGenerator implements Generator<String> {
     public CommerceGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.upcGenerator = new UpcGenerator(config);
         this.isbn10Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, config);
         this.isbn13Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_13, config);

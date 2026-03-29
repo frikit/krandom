@@ -80,9 +80,7 @@ public final class UUIDGenerator implements Generator<UUID> {
      */
     public UUIDGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     /**

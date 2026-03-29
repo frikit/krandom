@@ -68,9 +68,7 @@ public final class CompanyNameGenerator implements Generator<String> {
      */
     public CompanyNameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     /**

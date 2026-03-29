@@ -102,9 +102,7 @@ public final class HttpStatusCodeGenerator implements Generator<Integer> {
 
     public HttpStatusCodeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     private static int[] concatAll() {

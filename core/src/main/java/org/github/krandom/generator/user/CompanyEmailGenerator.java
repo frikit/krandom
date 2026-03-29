@@ -36,9 +36,7 @@ public final class CompanyEmailGenerator implements Generator<String> {
 
     public CompanyEmailGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.random = effective.getSeed().isPresent()
-                      ? new Random(effective.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = effective.createRandom();
         this.firstNameGenerator = new FirstNameGenerator(effective);
         this.lastNameGenerator = new LastNameGenerator(effective);
         this.companyNameGenerator = new CompanyNameGenerator(effective);

@@ -41,9 +41,7 @@ public final class DirPathGenerator implements Generator<String> {
     public DirPathGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     private static String[] wordsFor(Locale locale) {

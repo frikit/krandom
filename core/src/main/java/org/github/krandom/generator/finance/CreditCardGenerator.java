@@ -141,9 +141,7 @@ public final class CreditCardGenerator implements Generator<String> {
     public CreditCardGenerator(GeneratorConfig config, CardType cardType) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.cardType = Objects.requireNonNull(cardType, "cardType must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     /**

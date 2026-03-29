@@ -57,9 +57,7 @@ public final class CityGenerator implements Generator<String> {
                 registryContext.cityRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
 
         this.cities = registryContext.cityProvider(locale).getCities();
     }

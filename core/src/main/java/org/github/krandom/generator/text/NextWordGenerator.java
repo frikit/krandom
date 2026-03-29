@@ -51,9 +51,7 @@ public final class NextWordGenerator implements Generator<String> {
             throw new IllegalArgumentException("corpusWords must contain at least 2 words");
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.transitions = new HashMap<>();
         this.starters = new ArrayList<>();
 

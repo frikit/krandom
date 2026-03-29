@@ -25,9 +25,7 @@ public final class EanGenerator implements Generator<String> {
 
     public EanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.random = effective.getSeed().isPresent()
-                      ? new Random(effective.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = effective.createRandom();
     }
 
     private static int checksum(String body) {

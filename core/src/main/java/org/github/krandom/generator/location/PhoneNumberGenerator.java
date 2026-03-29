@@ -291,9 +291,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
     public PhoneNumberGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     /**

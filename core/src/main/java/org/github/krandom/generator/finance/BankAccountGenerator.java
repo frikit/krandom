@@ -64,9 +64,7 @@ public final class BankAccountGenerator implements Generator<String> {
     public BankAccountGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     private static int lengthByCountry(String country) {

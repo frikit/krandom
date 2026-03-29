@@ -65,9 +65,7 @@ public final class SuffixGenerator implements Generator<String> {
                 + registryContext.suffixRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.suffixes = registryContext.suffixProvider(locale).getSuffixes();
     }
 

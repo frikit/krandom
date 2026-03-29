@@ -113,9 +113,7 @@ public final class CurrencyGenerator implements Generator<String> {
      */
     public CurrencyGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     private static Map<String, String> toMap(CurrencyInfo info) {

@@ -100,9 +100,7 @@ public final class LoremIpsumGenerator implements Generator<String> {
     public LoremIpsumGenerator(Mode mode, GeneratorConfig config) {
         this.mode = Objects.requireNonNull(mode, "mode must not be null");
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.nextWordGenerator = new NextWordGenerator(config, CORPUS_SEQUENCE);
     }
 

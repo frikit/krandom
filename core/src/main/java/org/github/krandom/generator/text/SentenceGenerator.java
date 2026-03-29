@@ -39,9 +39,7 @@ public final class SentenceGenerator implements Generator<String> {
     public SentenceGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.wordGenerator = new WordGenerator(config);
     }
 

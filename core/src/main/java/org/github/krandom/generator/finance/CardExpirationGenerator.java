@@ -142,9 +142,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     public CardExpirationGenerator(GeneratorConfig config, DateRange dateRange) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.dateRange = Objects.requireNonNull(dateRange, "dateRange must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     /**

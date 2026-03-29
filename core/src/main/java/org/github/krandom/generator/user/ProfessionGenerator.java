@@ -69,9 +69,7 @@ public final class ProfessionGenerator implements Generator<String> {
     public ProfessionGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
 
         ProfessionDataProvider provider = registryContext.professionProvider(config.getLocale());
         if (provider == null) {
@@ -88,9 +86,7 @@ public final class ProfessionGenerator implements Generator<String> {
      */
     public ProfessionGenerator(GeneratorConfig config, String[] professions, int[] weights) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.data = ProfessionData.of(professions, weights);
     }
 

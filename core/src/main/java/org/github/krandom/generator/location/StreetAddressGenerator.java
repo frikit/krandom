@@ -66,9 +66,7 @@ public final class StreetAddressGenerator implements Generator<String> {
                 + registryContext.streetAddressRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
 
         StreetAddressDataProvider provider = registryContext.streetAddressProvider(locale);
         this.streetNames = provider.getStreetNames();

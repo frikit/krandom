@@ -5,11 +5,15 @@
  */
 package org.github.krandom.generator;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  * Immutable configuration shared across generators.
@@ -28,23 +32,35 @@ import java.util.OptionalLong;
  */
 public final class GeneratorConfig {
 
+    /**
+     * Stable algorithm ID used to derive {@code long} seeds from string seeds.
+     */
+    public static final String STRING_SEED_DERIVATION = "fnv1a64-v1";
+
+    private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
+    private static final long FNV1A_64_PRIME        = 0x100000001b3L;
+
     private final OptionalLong seed;
+    private final Optional<String> stringSeed;
     private final Charset      charset;
     private final int          minStringLength;
     private final int          maxStringLength;
     private final int          minCollectionSize;
     private final int          maxCollectionSize;
     private final Locale       locale;
+    private final Supplier<Random> randomFactory;
     private final DataRegistryContext registryContext;
 
     private GeneratorConfig(Builder b) {
-        this.seed = b.seed;
+        this.seed = effectiveSeed(b.numericSeed, b.stringSeed);
+        this.stringSeed = b.stringSeed;
         this.charset = b.charset;
         this.minStringLength = b.minStringLength;
         this.maxStringLength = b.maxStringLength;
         this.minCollectionSize = b.minCollectionSize;
         this.maxCollectionSize = b.maxCollectionSize;
         this.locale = b.locale;
+        this.randomFactory = b.randomFactory;
         this.registryContext = b.registryContext;
     }
 
@@ -75,6 +91,20 @@ public final class GeneratorConfig {
         return seed;
     }
 
+    /**
+     * Original string seed used to derive {@link #getSeed()}, when configured.
+     */
+    public Optional<String> getStringSeed() {
+        return stringSeed;
+    }
+
+    /**
+     * Identifier of the string-seed derivation algorithm.
+     */
+    public String getSeedDerivationVersion() {
+        return STRING_SEED_DERIVATION;
+    }
+
     public Charset getCharset() {
         return charset;
     }
@@ -103,10 +133,69 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Optional random-factory override configured by callers.
+     */
+    public Optional<Supplier<Random>> getRandomFactory() {
+        return Optional.ofNullable(randomFactory);
+    }
+
+    /**
+     * Creates a random instance honoring custom factory and configured seed.
+     *
+     * <p>Precedence:
+     * <ol>
+     *   <li>If a random factory is configured, it is used.</li>
+     *   <li>Otherwise, if a seed is configured, {@link Random} is used.</li>
+     *   <li>Otherwise, {@link SecureRandom} is used.</li>
+     * </ol>
+     */
+    public Random createRandom() {
+        if (randomFactory != null) {
+            Random random = Objects.requireNonNull(randomFactory.get(), "randomFactory returned null");
+            seed.ifPresent(random::setSeed);
+            return random;
+        }
+        return seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom();
+    }
+
+    /**
      * Scoped registry context used by locale-aware generators.
      */
     public DataRegistryContext getRegistryContext() {
         return registryContext;
+    }
+
+    /**
+     * Derives a stable 64-bit seed from a non-blank string using FNV-1a.
+     *
+     * <p>The algorithm contract is versioned by {@link #STRING_SEED_DERIVATION}
+     * and must remain stable for deterministic replay.
+     *
+     * @param seedText textual seed
+     * @return deterministic 64-bit seed
+     */
+    public static long deriveSeed(String seedText) {
+        Objects.requireNonNull(seedText, "seedText");
+        if (seedText.isBlank()) {
+            throw new IllegalArgumentException("seedText must not be blank");
+        }
+        long hash = FNV1A_64_OFFSET_BASIS;
+        byte[] bytes = seedText.getBytes(StandardCharsets.UTF_8);
+        for (byte b : bytes) {
+            hash ^= (b & 0xffL);
+            hash *= FNV1A_64_PRIME;
+        }
+        return hash;
+    }
+
+    private static OptionalLong effectiveSeed(OptionalLong numericSeed, Optional<String> stringSeed) {
+        if (numericSeed.isPresent()) {
+            return numericSeed;
+        }
+        if (stringSeed.isPresent()) {
+            return OptionalLong.of(deriveSeed(stringSeed.get()));
+        }
+        return OptionalLong.empty();
     }
 
     // ── Builder ───────────────────────────────────────────────────────────────
@@ -114,26 +203,30 @@ public final class GeneratorConfig {
 
     public static final class Builder {
 
-        private OptionalLong      seed              = OptionalLong.empty();
+        private OptionalLong      numericSeed       = OptionalLong.empty();
+        private Optional<String>  stringSeed        = Optional.empty();
         private Charset           charset           = StandardCharsets.US_ASCII;
         private int               minStringLength   = 5;
         private int               maxStringLength   = 20;
         private int               minCollectionSize = 1;
         private int               maxCollectionSize = 10;
         private Locale            locale            = Locale.US;
+        private Supplier<Random>  randomFactory;
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
 
         private Builder() {
         }
 
         private Builder(GeneratorConfig source) {
-            this.seed = source.seed;
+            this.numericSeed = source.seed;
+            this.stringSeed = source.stringSeed;
             this.charset = source.charset;
             this.minStringLength = source.minStringLength;
             this.maxStringLength = source.maxStringLength;
             this.minCollectionSize = source.minCollectionSize;
             this.maxCollectionSize = source.maxCollectionSize;
             this.locale = source.locale;
+            this.randomFactory = source.randomFactory;
             this.registryContext = source.registryContext;
         }
 
@@ -141,7 +234,30 @@ public final class GeneratorConfig {
          * Fix the PRNG seed for reproducible output.
          */
         public Builder seed(long seed) {
-            this.seed = OptionalLong.of(seed);
+            this.numericSeed = OptionalLong.of(seed);
+            this.stringSeed = Optional.empty();
+            return this;
+        }
+
+        /**
+         * Derive a deterministic numeric seed from a non-blank string.
+         */
+        public Builder seed(String seedText) {
+            Objects.requireNonNull(seedText, "seedText");
+            if (seedText.isBlank()) {
+                throw new IllegalArgumentException("seedText must not be blank");
+            }
+            this.stringSeed = Optional.of(seedText);
+            this.numericSeed = OptionalLong.empty();
+            return this;
+        }
+
+        /**
+         * Inject custom random strategy for advanced use cases and tests.
+         */
+        public Builder randomFactory(Supplier<? extends Random> randomFactory) {
+            Objects.requireNonNull(randomFactory, "randomFactory");
+            this.randomFactory = () -> randomFactory.get();
             return this;
         }
 

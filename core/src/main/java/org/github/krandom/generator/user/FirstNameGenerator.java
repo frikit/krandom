@@ -70,9 +70,7 @@ public final class FirstNameGenerator implements Generator<String> {
                 + registryContext.firstNameRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         FirstNameDataProvider provider = registryContext.firstNameProvider(locale);
         this.maleNames = provider.getMaleFirstNames();
         this.femaleNames = provider.getFemaleFirstNames();

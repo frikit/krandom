@@ -45,9 +45,7 @@ public final class TextGenerator implements Generator<String> {
     public TextGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     private static List<String> defaultWordsForLocale(Locale locale) {

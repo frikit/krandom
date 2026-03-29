@@ -61,9 +61,7 @@ public final class StateGenerator implements Generator<String> {
                 registryContext.stateRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
 
         StateDataProvider provider = registryContext.stateProvider(locale);
         this.states = provider.getStates();

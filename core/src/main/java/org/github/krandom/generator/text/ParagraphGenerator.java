@@ -39,9 +39,7 @@ public final class ParagraphGenerator implements Generator<String> {
     public ParagraphGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.sentenceGenerator = new SentenceGenerator(config);
     }
 

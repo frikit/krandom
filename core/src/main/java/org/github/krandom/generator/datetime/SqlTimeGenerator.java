@@ -28,9 +28,7 @@ public final class SqlTimeGenerator implements Generator<Time> {
 
     public SqlTimeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     @Override

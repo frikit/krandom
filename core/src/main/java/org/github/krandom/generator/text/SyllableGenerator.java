@@ -46,9 +46,7 @@ public final class SyllableGenerator implements Generator<String> {
     public SyllableGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.phonetics = forLocale(locale);
     }
 

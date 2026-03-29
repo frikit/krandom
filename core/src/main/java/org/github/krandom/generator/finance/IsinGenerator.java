@@ -33,9 +33,7 @@ public final class IsinGenerator implements Generator<String> {
 
     public IsinGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     static int computeCheckDigit(String isinWithoutCheck) {

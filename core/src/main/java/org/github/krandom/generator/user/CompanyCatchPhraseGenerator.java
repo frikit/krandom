@@ -43,9 +43,7 @@ public final class CompanyCatchPhraseGenerator implements Generator<String> {
     public CompanyCatchPhraseGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.locale = effective.getLocale();
-        this.random = effective.getSeed().isPresent()
-                      ? new Random(effective.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = effective.createRandom();
     }
 
     private static Map<String, LocaleCatchPhraseData> dataByLanguage() {

@@ -5,10 +5,13 @@
  */
 package org.github.krandom.generator;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -59,6 +62,49 @@ public interface Generator<T> {
      */
     default Stream<T> stream() {
         return Stream.generate(this::generate);
+    }
+
+    /**
+     * Reseeds underlying mutable random sources for stateful generators.
+     *
+     * <p>This default implementation discovers non-static fields assignable to
+     * {@link Random} across the class hierarchy and applies {@link Random#setSeed(long)}.
+     *
+     * @param seed deterministic seed
+     * @throws UnsupportedOperationException if no reseedable random field is present
+     */
+    default void reseed(long seed) {
+        boolean reseeded = false;
+        for (Class<?> type = getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                field.setAccessible(true);
+                try {
+                    Object value = field.get(this);
+                    if (value instanceof Random random) {
+                        random.setSeed(seed);
+                        reseeded = true;
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new IllegalStateException("Unable to access field '" + field.getName() + "'", e);
+                }
+            }
+        }
+        if (!reseeded) {
+            throw new UnsupportedOperationException(
+                "Generator " + getClass().getName() + " does not expose a reseedable Random field");
+        }
+    }
+
+    /**
+     * Reseeds using the same string-to-seed derivation contract as {@link GeneratorConfig}.
+     *
+     * @param seedText textual seed
+     */
+    default void reseed(String seedText) {
+        reseed(GeneratorConfig.deriveSeed(seedText));
     }
 
     /**

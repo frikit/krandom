@@ -46,9 +46,7 @@ public final class CompanyUrlGenerator implements Generator<String> {
         GeneratorConfig safe = Objects.requireNonNull(config, "config must not be null");
         this.domainGenerator = new DomainGenerator(safe);
         this.companyNameGenerator = new CompanyNameGenerator(safe);
-        this.random = safe.getSeed().isPresent()
-                      ? new Random(safe.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = safe.createRandom();
     }
 
     @Override

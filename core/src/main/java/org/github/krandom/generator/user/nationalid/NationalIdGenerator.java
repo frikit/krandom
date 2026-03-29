@@ -68,7 +68,7 @@ public final class NationalIdGenerator implements Generator<String> {
                 registryContext.nationalIdRegisteredKeys());
         }
         this.provider = registryContext.nationalIdProvider(locale);
-        this.random = config.getSeed().isPresent() ? new Random(config.getSeed().getAsLong()) : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     /**

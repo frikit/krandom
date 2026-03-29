@@ -31,9 +31,7 @@ public final class UriGenerator implements Generator<String> {
 
     public UriGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.random = effective.getSeed().isPresent()
-                      ? new Random(effective.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = effective.createRandom();
         this.urlGenerator = new URLGenerator(effective);
     }
 

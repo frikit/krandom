@@ -37,9 +37,7 @@ public final class NumberWithFormatGenerator implements Generator<String> {
     public NumberWithFormatGenerator(String format, GeneratorConfig config) {
         this.defaultFormat = validateFormat(format);
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     private static String validateFormat(String format) {

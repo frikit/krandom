@@ -80,9 +80,7 @@ public final class IsbnGenerator implements Generator<String> {
     public IsbnGenerator(IsbnType type, GeneratorConfig config) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     /**

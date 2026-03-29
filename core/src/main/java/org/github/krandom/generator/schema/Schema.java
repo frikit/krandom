@@ -63,9 +63,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             throw new IllegalArgumentException("fields must not be empty");
         }
         this.fields = validateAndCopy(fields);
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.nextRecordIndex = 0;
     }
 

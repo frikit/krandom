@@ -33,9 +33,7 @@ public final class UsernameGenerator implements Generator<String> {
 
     public UsernameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.firstNameGenerator = new FirstNameGenerator(config);
         this.lastNameGenerator = new LastNameGenerator(config);
     }

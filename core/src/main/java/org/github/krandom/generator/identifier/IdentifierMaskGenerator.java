@@ -33,9 +33,7 @@ public final class IdentifierMaskGenerator implements Generator<String> {
 
     public IdentifierMaskGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     private static String requireMask(String mask) {

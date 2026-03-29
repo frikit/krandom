@@ -101,9 +101,7 @@ public final class URLGenerator implements Generator<String> {
      */
     public URLGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.domainGenerator = new DomainGenerator(config);
         this.fileExtensionGenerator = new FileExtensionGenerator(config);
         this.fileNameGenerator = new FileNameGenerator(config);

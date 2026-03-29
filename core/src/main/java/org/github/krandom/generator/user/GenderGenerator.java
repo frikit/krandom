@@ -70,9 +70,7 @@ public final class GenderGenerator implements Generator<String> {
                 + registryContext.genderRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
 
         GenderDataProvider provider = registryContext.genderProvider(locale);
         this.maleLabel = provider.getMaleLabel();

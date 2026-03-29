@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -24,6 +26,9 @@ class GeneratorConfigTest {
     void defaultValues() {
         GeneratorConfig c = GeneratorConfig.defaults();
         assertTrue(c.getSeed().isEmpty());
+        assertTrue(c.getStringSeed().isEmpty());
+        assertTrue(c.getRandomFactory().isEmpty());
+        assertEquals(GeneratorConfig.STRING_SEED_DERIVATION, c.getSeedDerivationVersion());
         assertEquals(StandardCharsets.US_ASCII, c.getCharset());
         assertEquals(5, c.getMinStringLength());
         assertEquals(20, c.getMaxStringLength());
@@ -39,6 +44,79 @@ class GeneratorConfigTest {
         GeneratorConfig c = GeneratorConfig.builder().seed(42L).build();
         assertTrue(c.getSeed().isPresent());
         assertEquals(42L, c.getSeed().getAsLong());
+        assertTrue(c.getStringSeed().isEmpty());
+    }
+
+    @Test
+    @DisplayName("seed(String) stores raw text and derives deterministic numeric seed")
+    void stringSeedStoredAndDerived() {
+        GeneratorConfig c = GeneratorConfig.builder().seed("phase2-seed").build();
+        assertEquals("phase2-seed", c.getStringSeed().orElseThrow());
+        assertEquals(5324094342740825832L, c.getSeed().orElseThrow());
+    }
+
+    @Test
+    @DisplayName("seed(String) rejects blank value")
+    void stringSeedBlankThrows() {
+        assertThrows(IllegalArgumentException.class, () -> GeneratorConfig.builder().seed("   "));
+    }
+
+    @Test
+    @DisplayName("deriveSeed is stable and versioned")
+    void deriveSeedStable() {
+        assertEquals("fnv1a64-v1", GeneratorConfig.STRING_SEED_DERIVATION);
+        assertEquals(3327696251281893669L, GeneratorConfig.deriveSeed("krandom"));
+        assertEquals(8288510794048708030L, GeneratorConfig.deriveSeed("مرحبا"));
+    }
+
+    @Test
+    @DisplayName("createRandom with long seed preserves java.util.Random sequence compatibility")
+    void longSeedCompatibility() {
+        GeneratorConfig c = GeneratorConfig.builder().seed(42L).build();
+        assertEquals(-1170105035, c.createRandom().nextInt());
+    }
+
+    @Test
+    @DisplayName("randomFactory is used and receives configured seed")
+    void randomFactoryUsed() {
+        AtomicInteger calls = new AtomicInteger();
+        GeneratorConfig c = GeneratorConfig.builder()
+                                           .seed("phase2-seed")
+                                           .randomFactory(() -> {
+                                               calls.incrementAndGet();
+                                               return new Random(1L);
+                                           })
+                                           .build();
+
+        Random actual = c.createRandom();
+        Random expected = new Random(c.getSeed().orElseThrow());
+        assertEquals(expected.nextInt(), actual.nextInt());
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    @DisplayName("randomFactory(null) throws NullPointerException")
+    void randomFactoryNullThrows() {
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().randomFactory(null));
+    }
+
+    @Test
+    @DisplayName("createRandom throws when randomFactory returns null")
+    void randomFactoryReturningNullThrows() {
+        GeneratorConfig c = GeneratorConfig.builder().randomFactory(() -> null).build();
+        assertThrows(NullPointerException.class, c::createRandom);
+    }
+
+    @Test
+    @DisplayName("latest seed call wins between long and string overloads")
+    void latestSeedWins() {
+        GeneratorConfig a = GeneratorConfig.builder().seed(1L).seed("my-seed").build();
+        assertTrue(a.getStringSeed().isPresent());
+        assertEquals(-4581536756751041509L, a.getSeed().orElseThrow());
+
+        GeneratorConfig b = GeneratorConfig.builder().seed("my-seed").seed(99L).build();
+        assertTrue(b.getStringSeed().isEmpty());
+        assertEquals(99L, b.getSeed().orElseThrow());
     }
 
     @Test
@@ -132,18 +210,24 @@ class GeneratorConfigTest {
     @DisplayName("toBuilder() copies all fields and allows deriving new config")
     void toBuilderCopiesAndDerives() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
+        AtomicInteger calls = new AtomicInteger();
         GeneratorConfig base = GeneratorConfig.builder()
-                                              .seed(123L)
+                                              .seed("my-seed")
                                               .charset(StandardCharsets.UTF_8)
                                               .stringLength(8, 16)
                                               .collectionSize(2, 4)
                                               .locale(Locale.FRANCE)
+                                              .randomFactory(() -> {
+                                                  calls.incrementAndGet();
+                                                  return new Random(5L);
+                                              })
                                               .registryContext(context)
                                               .build();
 
         GeneratorConfig derived = base.toBuilder().locale(Locale.JAPAN).build();
         assertTrue(derived.getSeed().isPresent());
-        assertEquals(123L, derived.getSeed().getAsLong());
+        assertEquals(-4581536756751041509L, derived.getSeed().getAsLong());
+        assertEquals("my-seed", derived.getStringSeed().orElseThrow());
         assertEquals(StandardCharsets.UTF_8, derived.getCharset());
         assertEquals(8, derived.getMinStringLength());
         assertEquals(16, derived.getMaxStringLength());
@@ -151,6 +235,11 @@ class GeneratorConfigTest {
         assertEquals(4, derived.getMaxCollectionSize());
         assertEquals(Locale.JAPAN, derived.getLocale());
         assertSame(context, derived.getRegistryContext());
+        assertTrue(derived.getRandomFactory().isPresent());
+
+        // Ensure copied factory remains active.
+        derived.createRandom();
+        assertEquals(1, calls.get());
     }
 
     @Test

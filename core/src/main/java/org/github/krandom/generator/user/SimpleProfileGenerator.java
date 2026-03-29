@@ -36,9 +36,7 @@ public final class SimpleProfileGenerator implements Generator<SimpleProfile> {
 
     public SimpleProfileGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.random = effective.getSeed().isPresent()
-                      ? new Random(effective.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = effective.createRandom();
         this.usernameGenerator = new UsernameGenerator(effective);
         this.fullNameGenerator = new FullNameGenerator(effective);
         this.addressGenerator = new StreetAddressGenerator(effective);

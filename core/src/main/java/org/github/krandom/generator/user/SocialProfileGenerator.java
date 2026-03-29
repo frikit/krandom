@@ -38,9 +38,7 @@ public final class SocialProfileGenerator implements Generator<SocialProfile> {
 
     public SocialProfileGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.random = effective.getSeed().isPresent()
-                      ? new Random(effective.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = effective.createRandom();
         this.handleGenerator = new SocialHandleGenerator(effective);
         this.fullNameGenerator = new FullNameGenerator(effective);
         this.sentenceGenerator = new SentenceGenerator(effective);

@@ -60,9 +60,7 @@ public final class IPv4Generator implements Generator<String> {
      */
     public IPv4Generator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     static boolean isPrivate(String ip) {

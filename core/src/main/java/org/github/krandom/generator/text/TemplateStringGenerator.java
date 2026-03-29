@@ -60,9 +60,7 @@ public final class TemplateStringGenerator implements Generator<String> {
     public TemplateStringGenerator(String template, GeneratorConfig config) {
         this.template = Objects.requireNonNull(template, "template must not be null");
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     /**

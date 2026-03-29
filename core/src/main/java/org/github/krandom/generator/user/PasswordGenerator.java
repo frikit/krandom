@@ -30,9 +30,7 @@ public final class PasswordGenerator implements Generator<String> {
 
     public PasswordGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
     }
 
     private static void validateRange(int minLength, int maxLength) {

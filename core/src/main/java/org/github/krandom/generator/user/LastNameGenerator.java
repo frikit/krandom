@@ -65,9 +65,7 @@ public final class LastNameGenerator implements Generator<String> {
                 + registryContext.lastNameRegisteredKeys());
         }
 
-        this.random = config.getSeed().isPresent()
-                      ? new Random(config.getSeed().getAsLong())
-                      : new SecureRandom();
+        this.random = config.createRandom();
         this.lastNames = registryContext.lastNameProvider(locale).getLastNames();
     }
 
