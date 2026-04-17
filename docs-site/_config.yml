@@ -11,7 +11,6 @@ minima:
 header_pages:
   - index.md
   - getting-started.md
-  - java-api.md
   - generator-catalog.md
   - examples.md
   - guides.md

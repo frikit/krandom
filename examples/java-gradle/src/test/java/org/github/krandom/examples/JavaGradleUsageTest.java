@@ -1,14 +1,17 @@
 package org.github.krandom.examples;
 
-import org.github.krandom.javaapi.Generators;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JavaGradleUsageTest {
 
     @Test
-    void javaApiCanGenerateFixtureData() {
+    void coreCanGenerateFixtureData() {
         String name = Generators.ofFullName().generate();
         String email = Generators.ofEmail().generate();
         String country = Generators.ofCountry().generate();

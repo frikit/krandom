@@ -1,15 +1,15 @@
 package org.github.krandom.examples
 
-import org.github.krandom.scalaapi.ScalaGenerators
+import org.github.krandom.generator.Generators
 import org.scalatest.funsuite.AnyFunSuite
 
 class ScalaMillUsageTest extends AnyFunSuite {
 
-  test("scala api can generate fixture data") {
+  test("core can generate fixture data from scala") {
     val fixture = UserFixture(
-      name = ScalaGenerators.fullName().one,
-      email = ScalaGenerators.email().one,
-      country = ScalaGenerators.word().one
+      name = Generators.ofFullName().generate(),
+      email = Generators.ofEmail().generate(),
+      country = Generators.ofCountry().generate()
     )
 
     assert(fixture.name.nonEmpty)

@@ -61,16 +61,12 @@ subprojects {
             else -> null
         }
 
-        if (componentName != null) {
+        if (componentName != null && project.name in setOf("core", "jackson")) {
             configure<PublishingExtension> {
                 publications {
                     if (findByName("mavenJava") == null) {
-                        val publishedArtifactId = if (project.name == "scala-api") {
-                            "krandom-scala-api_3"
-                        } else {
-                            "krandom-${project.name}"
-                        }
                         create<MavenPublication>("mavenJava") {
+                            val publishedArtifactId = "krandom-${project.name}"
                             artifactId = publishedArtifactId
                             from(components[componentName])
                             pom {

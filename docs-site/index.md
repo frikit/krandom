@@ -6,7 +6,7 @@ permalink: /
 
 # kRandom Java Documentation
 
-kRandom is a Java/Kotlin random-data generation library built for test fixtures, seedable fake data, and object graph population.
+kRandom is a Java random-data generation library built for test fixtures, seedable fake data, and object graph population.
 
 This site is focused on the Java side only.
 
@@ -21,7 +21,6 @@ This site is focused on the Java side only.
 ## Quick links
 
 - [Getting Started](getting-started.md)
-- [Java API Module](java-api.md)
 - [Generator Catalog](generator-catalog.md)
 - [Examples](examples.md)
 - [Guides](guides.md)
@@ -30,5 +29,5 @@ This site is focused on the Java side only.
 ## Design direction (current)
 
 - Java is the source-of-truth implementation.
-- `java-api` is intentionally a thin packaging layer over `core`.
-- Kotlin/Scala parity will be addressed later.
+- Consumer integrations build directly on `core`.
+- `jackson` is the only additional published integration module in this repository.

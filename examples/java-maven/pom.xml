@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>io.github.frikit</groupId>
-            <artifactId>krandom-java-api</artifactId>
+            <artifactId>krandom-core</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>

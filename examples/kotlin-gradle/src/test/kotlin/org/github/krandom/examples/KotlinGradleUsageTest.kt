@@ -1,6 +1,6 @@
 package org.github.krandom.examples
 
-import org.github.krandom.kotlinapi.KRandom
+import org.github.krandom.generator.Generators
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test
 class KotlinGradleUsageTest {
 
     @Test
-    fun `kotlin api can generate fixture data`() {
+    fun `core can generate fixture data from kotlin`() {
         val fixture = UserFixture(
-            name = KRandom.fullName().next(),
-            email = KRandom.email().next(),
-            country = KRandom.fromType(String::class.java).next()
+            name = Generators.ofFullName().generate(),
+            email = Generators.ofEmail().generate(),
+            country = Generators.ofCountry().generate()
         )
 
         assertTrue(fixture.email.contains("@"))

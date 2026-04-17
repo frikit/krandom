@@ -1,14 +1,16 @@
 package org.github.krandom.examples;
 
-import org.github.krandom.javaapi.Generators;
+import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JavaMavenUsageTest {
 
     @Test
-    void javaApiCanGenerateFixtureData() {
+    void coreCanGenerateFixtureData() {
         UserFixture fixture = new UserFixture(
                 Generators.ofFullName().generate(),
                 Generators.ofEmail().generate(),

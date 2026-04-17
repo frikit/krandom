@@ -5,7 +5,7 @@ object app extends ScalaModule {
   def scalaVersion = "3.3.7"
 
   def ivyDeps = Agg(
-    ivy"io.github.frikit:krandom-scala-api_3:0.1.0"
+    ivy"io.github.frikit:krandom-core:0.1.0"
   )
 
   override def repositoriesTask = T {

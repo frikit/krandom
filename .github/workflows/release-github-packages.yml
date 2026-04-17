@@ -56,7 +56,7 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build, test, and publish all modules to GitHub Packages
+      - name: Build, test, and publish released modules to GitHub Packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
@@ -72,15 +72,11 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: |
             core/build/libs/*.jar
-            java-api/build/libs/*.jar
-            kotlin-api/build/libs/*.jar
-            scala-api/build/libs/*.jar
+            jackson/build/libs/*.jar
           body: |
             Published modules to GitHub Packages from this release:
             - io.github.frikit:krandom-core:${{ env.VERSION }}
-            - io.github.frikit:krandom-java-api:${{ env.VERSION }}
-            - io.github.frikit:krandom-kotlin-api:${{ env.VERSION }}
-            - io.github.frikit:krandom-scala-api_3:${{ env.VERSION }}
+            - io.github.frikit:krandom-jackson:${{ env.VERSION }}
 
             Maven repository:
             https://maven.pkg.github.com/${{ github.repository }}

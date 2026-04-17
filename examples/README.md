@@ -2,6 +2,8 @@
 
 This folder contains test-based examples for each supported language/build-tool combination.
 
+All examples depend directly on `io.github.frikit:krandom-core:0.1.0`.
+
 Version used in all examples: `0.1.0`
 
 ## Matrix

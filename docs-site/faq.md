@@ -6,9 +6,9 @@ permalink: /faq/
 
 # FAQ
 
-## Should I use `core` or `java-api`?
+## Which module should I use?
 
-Today either is fine. `java-api` currently depends on `core` directly and exposes the same behavior.
+Use `core` for generation APIs and `jackson` only when you need Jackson integration.
 
 ## How do I keep generated data stable between test runs?
 
@@ -26,6 +26,6 @@ Use `Field` to bind provider names and `Schema` to generate single records or ba
 
 Use `ProviderHub.register(...)` and optional aliases via `registerAlias(...)`.
 
-## Is Kotlin/Scala API parity complete?
+## Can Kotlin or Scala consume the library?
 
-Not yet. Current delivery focus is Java parity first.
+Yes. Use the Java `core` artifact directly from Kotlin or Scala. Dedicated wrapper modules are not part of the current repository.

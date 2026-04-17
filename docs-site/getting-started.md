@@ -11,32 +11,54 @@ permalink: /getting-started/
 - Java 21+
 - Gradle or Maven
 
-## Dependency options
+## Dependency
 
-Use one of these artifacts:
+Published coordinates:
 
-1. `org.github.krandom:core` (direct core API)
-2. `org.github.krandom:java-api` (currently re-exports `core`)
+- `io.github.frikit:krandom-core:<version>`
+- `io.github.frikit:krandom-jackson:<version>`
 
 Gradle:
 
 ```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/frikit/krandom")
+        credentials {
+            username = providers.gradleProperty("gpr.user")
+                .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+                .orNull
+            password = providers.gradleProperty("gpr.key")
+                .orElse(providers.environmentVariable("GITHUB_TOKEN"))
+                .orNull
+        }
+    }
+}
+
 dependencies {
-    implementation("org.github.krandom:core:1.0-SNAPSHOT")
-    // or:
-    // implementation("org.github.krandom:java-api:1.0-SNAPSHOT")
+    implementation("io.github.frikit:krandom-core:<version>")
 }
 ```
 
 Maven:
 
 ```xml
+<repositories>
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/frikit/krandom</url>
+  </repository>
+</repositories>
+
 <dependency>
-  <groupId>org.github.krandom</groupId>
-  <artifactId>core</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <groupId>io.github.frikit</groupId>
+  <artifactId>krandom-core</artifactId>
+  <version><!-- your version --></version>
 </dependency>
 ```
+
+GitHub Packages requires credentials.
 
 ## First usage
 

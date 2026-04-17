@@ -1,5 +1,7 @@
 # Scala + Mill Example (Test-based)
 
+Uses `io.github.frikit:krandom-core:0.1.0` from Scala.
+
 ## Run
 
 ```bash

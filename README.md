@@ -3,88 +3,54 @@
 [![tests + coverage](https://github.com/frikit/krandom/actions/workflows/continuous-integration-workflow.yml/badge.svg)](https://github.com/frikit/krandom/actions/workflows/continuous-integration-workflow.yml)
 [![codecov](https://codecov.io/github/frikit/krandom/graph/badge.svg?token=CpcHkmbzo7)](https://codecov.io/github/frikit/krandom)
 
-kRandom is a Java 21 random and fake-data generation toolkit.
-The project is built around a Java core and includes thin wrappers for Kotlin and Scala, plus optional integrations and benchmarking modules.
+kRandom is a Java 21 random and fake-data generation toolkit. The repository is centered on the Java core plus a Jackson integration module. Kotlin and Scala wrapper modules have been removed so the implementation surface stays focused and maintainable.
 
-## Current Status
+## Modules
 
-- Active development, Java-first architecture.
-- `core` is the behavior source of truth.
-- CI runs tests + coverage on Java 21.
-- Local quality checks are standardized via `./scripts/pre_commit_check.sh`.
-- Team target is 100% line and branch coverage in core reports; enforced gate is 99%.
-- Publishing currently targets GitHub Packages (`io.github.frikit:*` coordinates). Maven Central is not the active distribution channel yet.
-
-## Repository Layout
-
-| Module/Path | Purpose |
+| Module | Purpose |
 |:---|:---|
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
-| `java-api` | Java facade module over `core` |
-| `kotlin-api` | Kotlin wrapper API over `core` |
-| `scala-api` | Scala 3 wrapper API over `core` |
-| `jackson` | Jackson module (`Schema` serialization support) |
-| `benchmarks` | JMH and macro generation profiling workloads |
-| `examples/` | Consumer examples for Java/Kotlin/Scala across build tools |
-| `docs-site/` | GitHub Pages documentation source |
-| `docs/` | Internal plans, parity analysis, and implementation notes |
+| `jackson` | Jackson integration on top of `core` |
+| `benchmarks` | JMH and macro-profile workloads for performance measurement |
+| `examples/` | Consumer examples for Java, Kotlin, and Scala build-tool combinations using `core` directly |
+| `docs-site/` | Public documentation site source |
+| `docs/` | Internal notes, parity tracking, and implementation plans |
 
-## What You Can Generate
+## Current status
 
-Current core coverage includes:
+- Java-first architecture.
+- `core` is the only behavior source of truth.
+- `jackson` is the only additional published module in this repository.
+- `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
+- CI runs tests and coverage on Java 21.
+- Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
+- Current release channel is GitHub Packages under `io.github.frikit`.
 
-- Primitive and numeric data
+## What the core currently covers
+
+- Primitive and numeric generators
 - Text and lorem-style content
 - Date/time and timezone values
-- Network/internet values (URLs, domains, IPs, HTTP helpers)
+- Network and internet generators
 - Locale-aware user and address data
 - Finance and identifier formats
 - File/system/version values
-- Selection combinators (`pick`, `shuffle`, `weighted`, `repeat`, `unique`)
-- Object graphs via reflection-based object generation
+- Selection combinators such as `pick`, `shuffle`, `weighted`, `repeat`, and `unique`
+- Reflection-based object graph generation
 - Schema-like record generation with `Field` and `Schema`
-- Extensible provider lookup via `ProviderHub`
+- Extensible provider lookup with `ProviderHub`
 
-## Quick Usage
-
-### Java
+## Quick usage
 
 ```java
-import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.Generators;
-import org.github.krandom.generator.user.EmailGenerator;
-import org.github.krandom.generator.user.FullNameGenerator;
-
-GeneratorConfig config = GeneratorConfig.builder()
-    .seed("demo-seed")
-    .build();
 
 int roll = Generators.ofInt(1, 7).generate();
-String name = new FullNameGenerator(config).generate();
-String email = new EmailGenerator(config).generate();
+String name = Generators.ofFullName().generate();
+String email = Generators.ofEmail().generate();
 ```
 
-### Kotlin
-
-```kotlin
-import org.github.krandom.kotlinapi.KRandom
-
-val roll = KRandom.int(1, 7, 42L).next()
-val name = KRandom.fullName().next()
-val email = KRandom.email().next()
-```
-
-### Scala
-
-```scala
-import org.github.krandom.scalaapi.ScalaGenerators
-
-val roll = ScalaGenerators.int(1, 7, 42L).one
-val name = ScalaGenerators.fullName().one
-val email = ScalaGenerators.email().one
-```
-
-## Build and Verify Locally
+## Build and verify locally
 
 ```bash
 ./gradlew clean build
@@ -93,29 +59,19 @@ val email = ScalaGenerators.email().one
 
 `pre_commit_check.sh` runs formatting, markdown checks, compilation, tests, Javadoc validation, and coverage verification.
 
-Performance workloads:
+## Install
 
-```bash
-./gradlew :benchmarks:jmh
-./gradlew :benchmarks:profileGeneration
-```
-
-## Dependencies and Publishing
-
-Current published artifact namespace:
+Current published namespace:
 
 - Group: `io.github.frikit`
 - Repository: `https://maven.pkg.github.com/frikit/krandom`
 
-Main artifacts:
+Published artifacts:
 
 - `io.github.frikit:krandom-core:<version>`
-- `io.github.frikit:krandom-java-api:<version>`
-- `io.github.frikit:krandom-kotlin-api:<version>`
-- `io.github.frikit:krandom-scala-api_3:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
 
-Gradle (Kotlin DSL):
+### Gradle (Kotlin DSL)
 
 ```kotlin
 repositories {
@@ -134,11 +90,11 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-java-api:<version>")
+    implementation("io.github.frikit:krandom-core:<version>")
 }
 ```
 
-Maven:
+### Maven
 
 ```xml
 <repositories>
@@ -151,24 +107,41 @@ Maven:
 <dependencies>
   <dependency>
     <groupId>io.github.frikit</groupId>
-    <artifactId>krandom-java-api</artifactId>
+    <artifactId>krandom-core</artifactId>
     <version><!-- your version --></version>
   </dependency>
 </dependencies>
 ```
 
-For GitHub Packages, configure credentials (`GITHUB_ACTOR`/`GITHUB_TOKEN` or `gpr.user`/`gpr.key`).
+GitHub Packages requires credentials through `GITHUB_ACTOR` / `GITHUB_TOKEN`, Gradle properties (`gpr.user`, `gpr.key`), or Maven `settings.xml`.
 
-## Examples and Docs
+## Examples
 
-- Consumer examples: [`examples/`](examples/)
-- Public docs site source: [`docs-site/`](docs-site/)
-- Docs site URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
-- Internal technical docs: [`docs/`](docs/)
+Consumer examples live in [`examples/`](examples/). They are test-based examples rather than runnable demo apps, and they all depend directly on `io.github.frikit:krandom-core`.
 
-## Automation
+- Java + Gradle
+- Java + Maven
+- Kotlin + Gradle
+- Kotlin + Maven
+- Scala + sbt
+- Scala + Mill
 
-- CI tests + coverage: [`.github/workflows/continuous-integration-workflow.yml`](.github/workflows/continuous-integration-workflow.yml)
-- Docs publishing: [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml)
-- Manual release to GitHub Packages + GitHub Release: [`.github/workflows/release-github-packages.yml`](.github/workflows/release-github-packages.yml)
-- Performance profiling workflow: [`.github/workflows/performance-profile.yml`](.github/workflows/performance-profile.yml)
+## Docs
+
+- Public docs source: [`docs-site/`](docs-site/)
+- Docs URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
+- Internal docs: [`docs/`](docs/)
+
+GitHub Pages deployment is wired through [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml).
+
+## Releases
+
+Manual release to GitHub Packages and GitHub Releases is handled by [`.github/workflows/release-github-packages.yml`](.github/workflows/release-github-packages.yml).
+
+The workflow:
+
+- validates a semver input
+- builds and tests the repository
+- publishes `krandom-core` and `krandom-jackson`
+- creates a Git tag `v<version>`
+- creates a GitHub Release with built JARs attached
