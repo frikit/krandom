@@ -1,11 +1,17 @@
 # Kotlin + Gradle Example (Test-based)
 
-Uses `io.github.frikit:krandom-core:0.1.0` from Kotlin.
+Uses `io.github.frikit:krandom-core:0.1.0-SNAPSHOT` by default for repo-local verification.
 
 ## Run
 
 ```bash
+./gradlew :core:publishToMavenLocal
+cd examples/kotlin-gradle
 ./gradlew test
 ```
 
-If GitHub Packages auth is required, set `GITHUB_ACTOR` and `GITHUB_TOKEN`, or use Gradle properties (`gpr.user`, `gpr.key`).
+To use a different artifact version:
+
+```bash
+./gradlew -PkrandomVersion=<version> test
+```

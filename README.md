@@ -52,12 +52,17 @@ String email = Generators.ofEmail().generate();
 
 ## Build and verify locally
 
+Ensure `java -version` reports Java 21+ before running the local checks.
+
 ```bash
 ./gradlew clean build
 ./scripts/pre_commit_check.sh
+./scripts/verify_examples_local.sh
 ```
 
-`pre_commit_check.sh` runs formatting, markdown checks, compilation, tests, Javadoc validation, and coverage verification.
+`pre_commit_check.sh` runs formatting, markdown checks, compilation, tests, Javadoc validation, coverage verification, and now fails fast when Java 21+ is not active.
+
+`verify_examples_local.sh` publishes the current `krandom-core` artifact to Maven local and runs the consumer examples against that local snapshot.
 
 ## Install
 

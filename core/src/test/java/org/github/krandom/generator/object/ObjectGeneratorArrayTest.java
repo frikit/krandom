@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — array auto-population")
 class ObjectGeneratorArrayTest {
@@ -25,10 +26,11 @@ class ObjectGeneratorArrayTest {
     }
 
     @Test
-    @DisplayName("String[] field has exactly 3 elements")
+    @DisplayName("String[] field size follows shared collection defaults")
     void stringArrayLength() {
         PersonWithArrays p = new ObjectGenerator<>(PersonWithArrays.class).generate();
-        assertEquals(3, p.getTags().length, "String[] should have 3 elements");
+        assertTrue(p.getTags().length >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
+        assertTrue(p.getTags().length <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
     }
 
     @Test
@@ -42,19 +44,21 @@ class ObjectGeneratorArrayTest {
     }
 
     @Test
-    @DisplayName("int[] field is auto-populated with 3 elements")
+    @DisplayName("int[] field size follows shared collection defaults")
     void intArrayLength() {
         PersonWithArrays p = new ObjectGenerator<>(PersonWithArrays.class).generate();
         assertNotNull(p.getScores(), "int[] field must not be null");
-        assertEquals(3, p.getScores().length, "int[] should have 3 elements");
+        assertTrue(p.getScores().length >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
+        assertTrue(p.getScores().length <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
     }
 
     @Test
-    @DisplayName("Address[] field is auto-populated with 3 non-null entries")
+    @DisplayName("Address[] field size follows shared collection defaults")
     void objectArrayPopulated() {
         PersonWithArrays p = new ObjectGenerator<>(PersonWithArrays.class).generate();
         assertNotNull(p.getAddresses(), "Address[] field must not be null");
-        assertEquals(3, p.getAddresses().length, "Address[] should have 3 elements");
+        assertTrue(p.getAddresses().length >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
+        assertTrue(p.getAddresses().length <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
         for (var addr : p.getAddresses()) {
             assertNotNull(addr, "each Address element must not be null");
             assertNotNull(addr.getStreet(), "each Address must have a street");
@@ -77,7 +81,8 @@ class ObjectGeneratorArrayTest {
             () -> new ObjectGenerator<>(WithIntArray.class, cfg).generate(),
             "Array.set IAE must not escape generateArray()");
         assertNotNull(obj.nums, "array must still be created");
-        assertEquals(3, obj.nums.length, "array must have 3 slots");
+        assertTrue(obj.nums.length >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
+        assertTrue(obj.nums.length <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
         for (int v : obj.nums) {
             assertEquals(0, v, "slots must retain JVM default 0 after IAE");
         }

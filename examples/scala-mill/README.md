@@ -1,11 +1,17 @@
 # Scala + Mill Example (Test-based)
 
-Uses `io.github.frikit:krandom-core:0.1.0` from Scala.
+Uses `io.github.frikit:krandom-core:0.1.0-SNAPSHOT` by default for repo-local verification.
 
 ## Run
 
 ```bash
+./gradlew :core:publishToMavenLocal
+cd examples/scala-mill
 mill -i app.test
 ```
 
-Configure Coursier credentials for GitHub Packages access.
+To use a different artifact version:
+
+```bash
+mill -Dkrandom.version=<version> -i app.test
+```

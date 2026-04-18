@@ -7,6 +7,7 @@ package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.GenerationContext;
 import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.base.BigDecimalGenerator;
 import org.github.krandom.generator.base.BigIntegerGenerator;
 import org.github.krandom.generator.base.BooleanGenerator;
@@ -28,8 +29,24 @@ import org.github.krandom.generator.datetime.SqlTimestampGenerator;
 import org.github.krandom.generator.datetime.TimeGenerator;
 import org.github.krandom.generator.datetime.UtilDateGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
+import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.location.CityGenerator;
+import org.github.krandom.generator.location.CountryGenerator;
+import org.github.krandom.generator.location.PhoneNumberGenerator;
+import org.github.krandom.generator.location.PostalCodeGenerator;
+import org.github.krandom.generator.location.StateGenerator;
+import org.github.krandom.generator.location.StreetAddressGenerator;
+import org.github.krandom.generator.network.DomainGenerator;
+import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
+import org.github.krandom.generator.user.CompanyNameGenerator;
+import org.github.krandom.generator.user.EmailGenerator;
+import org.github.krandom.generator.user.FirstNameGenerator;
+import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.LastNameGenerator;
+import org.github.krandom.generator.user.PasswordGenerator;
+import org.github.krandom.generator.user.UsernameGenerator;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
@@ -67,6 +84,7 @@ import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -76,7 +94,6 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -97,10 +114,11 @@ import java.util.function.Supplier;
  *   <li>Built-in generator for Java primitives / wrappers / {@code String} / JSR-310 types /
  *       {@link UUID} / {@link BigDecimal} / {@link BigInteger}</li>
  *   <li>Enum: random constant</li>
- *   <li>Array ({@code T[]}): auto-populated with {@value #DEFAULT_ELEMENT_COUNT} elements</li>
- *   <li>{@code List<T>} or {@code Set<T>}: auto-populated with {@value #DEFAULT_ELEMENT_COUNT}
- *       elements resolved from the declared generic element type</li>
- *   <li>{@code Map<K,V>}: auto-populated with {@value #DEFAULT_ELEMENT_COUNT} entries</li>
+ *   <li>Array ({@code T[]}): auto-populated with the shared collection-size defaults
+ *       (default {@value #DEFAULT_MIN_ELEMENT_COUNT} to {@value #DEFAULT_MAX_ELEMENT_COUNT} elements)</li>
+ *   <li>{@code List<T>} or {@code Set<T>}: auto-populated with the shared collection-size defaults
+ *       and elements resolved from the declared generic element type</li>
+ *   <li>{@code Map<K,V>}: auto-populated with the shared collection-size defaults</li>
  *   <li>{@code Optional<T>}: populated as {@code Optional.ofNullable(value)}</li>
  *   <li>Depth guard: if {@code currentDepth >= maxDepth} return primitive zero / {@code null}</li>
  *   <li>Nested class or record: delegate to a child {@link ObjectGenerator} (cycle-safe via
@@ -110,46 +128,15 @@ import java.util.function.Supplier;
  */
 final class FieldGeneratorResolver {
 
-    /**
-     * Number of elements generated for arrays, lists, sets, and map entries.
-     */
-    static final int DEFAULT_ELEMENT_COUNT = 3;
+    static final int DEFAULT_MIN_ELEMENT_COUNT = GeneratorConfig.defaults().getMinCollectionSize();
+    static final int DEFAULT_MAX_ELEMENT_COUNT = GeneratorConfig.defaults().getMaxCollectionSize();
 
-    /**
-     * Factories for non-date built-in Java base types (both primitive and wrapper forms),
-     * plus {@link BigDecimal} and {@link BigInteger}.
-     */
-    private static final Map<Class<?>, Supplier<Generator<?>>> STATIC_BUILTINS = new HashMap<>();
     /**
      * Safe zero-values used when a primitive field cannot be assigned its resolved value
      * (e.g. at max depth, or when {@code ignoreErrors=true}).
      */
     private static final Map<Class<?>, Object>                   PRIMITIVE_DEFAULTS = new HashMap<>();
     private static final Map<Class<?>, Function<String, Object>> ARGUMENT_PARSERS   = new HashMap<>();
-
-    static {
-        STATIC_BUILTINS.put(byte.class, ByteGenerator::new);
-        STATIC_BUILTINS.put(Byte.class, ByteGenerator::new);
-        STATIC_BUILTINS.put(short.class, ShortGenerator::new);
-        STATIC_BUILTINS.put(Short.class, ShortGenerator::new);
-        STATIC_BUILTINS.put(int.class, IntGenerator::new);
-        STATIC_BUILTINS.put(Integer.class, IntGenerator::new);
-        STATIC_BUILTINS.put(long.class, LongGenerator::new);
-        STATIC_BUILTINS.put(Long.class, LongGenerator::new);
-        STATIC_BUILTINS.put(float.class, FloatGenerator::new);
-        STATIC_BUILTINS.put(Float.class, FloatGenerator::new);
-        STATIC_BUILTINS.put(double.class, DoubleGenerator::new);
-        STATIC_BUILTINS.put(Double.class, DoubleGenerator::new);
-        STATIC_BUILTINS.put(char.class, CharGenerator::letters);
-        STATIC_BUILTINS.put(Character.class, CharGenerator::letters);
-        STATIC_BUILTINS.put(boolean.class, BooleanGenerator::new);
-        STATIC_BUILTINS.put(Boolean.class, BooleanGenerator::new);
-        STATIC_BUILTINS.put(String.class, StringGenerator::letters);
-        STATIC_BUILTINS.put(BigDecimal.class, BigDecimalGenerator::new);
-        STATIC_BUILTINS.put(BigInteger.class, BigIntegerGenerator::new);
-        STATIC_BUILTINS.put(AtomicInteger.class, () -> () -> new AtomicInteger(new IntGenerator().generate()));
-        STATIC_BUILTINS.put(AtomicLong.class, () -> () -> new AtomicLong(new LongGenerator().generate()));
-    }
 
     static {
         PRIMITIVE_DEFAULTS.put(byte.class, (byte) 0);
@@ -183,55 +170,397 @@ final class FieldGeneratorResolver {
     }
 
     private final ObjectGeneratorConfig config;
+    private final GeneratorConfig       generatorConfig;
     private final ObjectPool            pool;
+    private final Random                sequenceRandom;
+    private final Map<Class<?>, Generator<?>> builtins;
+    private final Map<String, Generator<?>>   semanticStringGenerators;
 
-    /**
-     * Instance-level map that combines STATIC_BUILTINS with config-specific date factories.
-     */
-    private final Map<Class<?>, Supplier<Generator<?>>> builtins;
-
-    FieldGeneratorResolver(ObjectGeneratorConfig config, ObjectPool pool) {
+    FieldGeneratorResolver(ObjectGeneratorConfig config, ObjectPool pool, Long generationSeed) {
         this.config = config;
+        this.generatorConfig = config.getGeneratorConfig();
         this.pool = pool;
-        this.builtins = buildBuiltins(config);
+        this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
+        this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
+        this.semanticStringGenerators = buildSemanticStringGenerators(this.generatorConfig, this.sequenceRandom);
     }
 
-    private static Map<Class<?>, Supplier<Generator<?>>> buildBuiltins(ObjectGeneratorConfig cfg) {
-        Map<Class<?>, Supplier<Generator<?>>> m = new HashMap<>(STATIC_BUILTINS);
+    private static Map<Class<?>, Generator<?>> buildBuiltins(ObjectGeneratorConfig cfg,
+                                                             GeneratorConfig generatorConfig,
+                                                             Random seedSource) {
+        Map<Class<?>, Generator<?>> m = new HashMap<>();
+
+        Long byteSeed = nextDeterministicSeed(generatorConfig, seedSource);
+        Long shortSeed = nextDeterministicSeed(generatorConfig, seedSource);
+        Long intSeed = nextDeterministicSeed(generatorConfig, seedSource);
+        Long longSeed = nextDeterministicSeed(generatorConfig, seedSource);
+        Long floatSeed = nextDeterministicSeed(generatorConfig, seedSource);
+        Long doubleSeed = nextDeterministicSeed(generatorConfig, seedSource);
+        Long charSeed = nextDeterministicSeed(generatorConfig, seedSource);
+        Long booleanSeed = nextDeterministicSeed(generatorConfig, seedSource);
+
+        Generator<Byte> byteGenerator = byteSeed != null ? new ByteGenerator(Byte.MIN_VALUE, Byte.MAX_VALUE, byteSeed) : new ByteGenerator();
+        Generator<Short> shortGenerator = shortSeed != null ? new ShortGenerator(Short.MIN_VALUE, Short.MAX_VALUE, shortSeed) : new ShortGenerator();
+        Generator<Integer> intGenerator = intSeed != null ? new IntGenerator(Integer.MIN_VALUE, Integer.MAX_VALUE, intSeed) : new IntGenerator();
+        Generator<Long> longGenerator = longSeed != null ? new LongGenerator(Long.MIN_VALUE, Long.MAX_VALUE, longSeed) : new LongGenerator();
+        Generator<Float> floatGenerator = floatSeed != null ? new FloatGenerator(0f, 1f, floatSeed) : new FloatGenerator();
+        Generator<Double> doubleGenerator = doubleSeed != null ? new DoubleGenerator(0.0, 1.0, doubleSeed) : new DoubleGenerator();
+        Generator<Character> charGenerator = buildCharGenerator(charSeed);
+        Generator<Boolean> booleanGenerator = booleanSeed != null ? new BooleanGenerator(booleanSeed) : new BooleanGenerator();
+        Generator<String> stringGenerator = buildStringGenerator(generatorConfig, nextDeterministicSeed(generatorConfig, seedSource));
+        Generator<BigDecimal> bigDecimalGenerator = buildBigDecimalGenerator(nextDeterministicSeed(generatorConfig, seedSource));
+        Generator<BigInteger> bigIntegerGenerator = buildBigIntegerGenerator(nextDeterministicSeed(generatorConfig, seedSource));
+        Generator<AtomicInteger> atomicIntegerGenerator = () -> new AtomicInteger(intGenerator.generate());
+        Generator<AtomicLong> atomicLongGenerator = () -> new AtomicLong(longGenerator.generate());
+
+        m.put(byte.class, byteGenerator);
+        m.put(Byte.class, byteGenerator);
+        m.put(short.class, shortGenerator);
+        m.put(Short.class, shortGenerator);
+        m.put(int.class, intGenerator);
+        m.put(Integer.class, intGenerator);
+        m.put(long.class, longGenerator);
+        m.put(Long.class, longGenerator);
+        m.put(float.class, floatGenerator);
+        m.put(Float.class, floatGenerator);
+        m.put(double.class, doubleGenerator);
+        m.put(Double.class, doubleGenerator);
+        m.put(char.class, charGenerator);
+        m.put(Character.class, charGenerator);
+        m.put(boolean.class, booleanGenerator);
+        m.put(Boolean.class, booleanGenerator);
+        m.put(String.class, stringGenerator);
+        m.put(BigDecimal.class, bigDecimalGenerator);
+        m.put(BigInteger.class, bigIntegerGenerator);
+        m.put(AtomicInteger.class, atomicIntegerGenerator);
+        m.put(AtomicLong.class, atomicLongGenerator);
+
         LocalDate lo = cfg.getDateMin() != null ? cfg.getDateMin() : LocalDate.of(1970, 1, 1);
         LocalDate hi = cfg.getDateMax() != null ? cfg.getDateMax() : LocalDate.of(2100, 12, 31);
-        m.put(LocalDate.class, () -> new DateGenerator(lo, hi));
-        m.put(LocalTime.class, TimeGenerator::new);
-        m.put(LocalDateTime.class, () -> new LocalDateTimeGenerator(lo, hi));
-        m.put(Instant.class, () -> new InstantGenerator(lo, hi));
-        m.put(ZonedDateTime.class, () -> new ZonedDateTimeGenerator(lo, hi));
-        m.put(OffsetDateTime.class, () -> () -> new ZonedDateTimeGenerator(lo, hi).generate().toOffsetDateTime());
-        m.put(OffsetTime.class, () -> () -> {
-            int quarterHours = ThreadLocalRandom.current().nextInt(-72, 73);
-            return new TimeGenerator().generate().atOffset(ZoneOffset.ofTotalSeconds(quarterHours * 15 * 60));
-        });
-        m.put(Year.class, () -> () -> Year.of(ThreadLocalRandom.current().nextInt(lo.getYear(), hi.getYear() + 1)));
-        m.put(YearMonth.class, () -> () -> YearMonth.from(new DateGenerator(lo, hi).generate()));
-        m.put(MonthDay.class, () -> () -> MonthDay.from(new DateGenerator(lo, hi).generate()));
-        m.put(Duration.class, () -> () -> Duration.ofSeconds(ThreadLocalRandom.current().nextLong(0, 10L * 365 * 24 * 60 * 60 + 1)));
-        m.put(Period.class, () -> () -> Period.of(
-            ThreadLocalRandom.current().nextInt(0, 11),
-            ThreadLocalRandom.current().nextInt(0, 12),
-            ThreadLocalRandom.current().nextInt(0, 31)));
-        m.put(ZoneId.class, () -> () -> {
-            List<String> ids = new ArrayList<>(ZoneId.getAvailableZoneIds());
-            return ZoneId.of(ids.get(ThreadLocalRandom.current().nextInt(ids.size())));
-        });
-        m.put(ZoneOffset.class, () -> () -> {
-            int quarterHours = ThreadLocalRandom.current().nextInt(-72, 73);
-            return ZoneOffset.ofTotalSeconds(quarterHours * 15 * 60);
-        });
-        m.put(java.util.Date.class, () -> new UtilDateGenerator(lo, hi));
-        m.put(java.sql.Date.class, () -> new SqlDateGenerator(lo, hi));
-        m.put(java.sql.Time.class, SqlTimeGenerator::new);
-        m.put(java.sql.Timestamp.class, () -> new SqlTimestampGenerator(lo, hi));
-        m.put(UUID.class, UUIDGenerator::new);
+        Generator<LocalDate> localDateGenerator = buildDateGenerator(generatorConfig, seedSource, lo, hi);
+        Generator<LocalTime> localTimeGenerator = new TimeGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        Generator<LocalDateTime> localDateTimeGenerator = buildLocalDateTimeGenerator(generatorConfig, seedSource, lo, hi);
+        Generator<Instant> instantGenerator = buildInstantGenerator(generatorConfig, seedSource, lo, hi);
+        Generator<ZonedDateTime> zonedDateTimeGenerator = buildZonedDateTimeGenerator(generatorConfig, seedSource, lo, hi);
+        Generator<OffsetDateTime> offsetDateTimeGenerator = () -> zonedDateTimeGenerator.generate().toOffsetDateTime();
+        Random offsetTimeRandom = randomFor(generatorConfig, seedSource);
+        Generator<OffsetTime> offsetTimeGenerator = () ->
+            localTimeGenerator.generate().atOffset(ZoneOffset.ofTotalSeconds(offsetTimeRandom.nextInt(-72, 73) * 15 * 60));
+        Random yearRandom = randomFor(generatorConfig, seedSource);
+        Generator<Year> yearGenerator = () -> Year.of(yearRandom.nextInt(lo.getYear(), hi.getYear() + 1));
+        Generator<YearMonth> yearMonthGenerator = () -> YearMonth.from(localDateGenerator.generate());
+        Generator<MonthDay> monthDayGenerator = () -> MonthDay.from(localDateGenerator.generate());
+        Random durationRandom = randomFor(generatorConfig, seedSource);
+        Generator<Duration> durationGenerator = () -> Duration.ofSeconds(durationRandom.nextLong(0, 10L * 365 * 24 * 60 * 60 + 1));
+        Random periodRandom = randomFor(generatorConfig, seedSource);
+        Generator<Period> periodGenerator = () -> Period.of(
+            periodRandom.nextInt(0, 11),
+            periodRandom.nextInt(0, 12),
+            periodRandom.nextInt(0, 31));
+        Random zoneRandom = randomFor(generatorConfig, seedSource);
+        List<String> zoneIds = new ArrayList<>(ZoneId.getAvailableZoneIds());
+        zoneIds.sort(String::compareTo);
+        Generator<ZoneId> zoneIdGenerator = () -> ZoneId.of(zoneIds.get(zoneRandom.nextInt(zoneIds.size())));
+        Random zoneOffsetRandom = randomFor(generatorConfig, seedSource);
+        Generator<ZoneOffset> zoneOffsetGenerator = () -> ZoneOffset.ofTotalSeconds(zoneOffsetRandom.nextInt(-72, 73) * 15 * 60);
+        Generator<java.util.Date> utilDateGenerator = buildUtilDateGenerator(generatorConfig, seedSource, lo, hi);
+        Generator<java.sql.Date> sqlDateGenerator = buildSqlDateGenerator(generatorConfig, seedSource, lo, hi);
+        Generator<java.sql.Time> sqlTimeGenerator = new SqlTimeGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        Generator<java.sql.Timestamp> sqlTimestampGenerator = buildSqlTimestampGenerator(generatorConfig, seedSource, lo, hi);
+        Generator<UUID> uuidGenerator = new UUIDGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+
+        m.put(LocalDate.class, localDateGenerator);
+        m.put(LocalTime.class, localTimeGenerator);
+        m.put(LocalDateTime.class, localDateTimeGenerator);
+        m.put(Instant.class, instantGenerator);
+        m.put(ZonedDateTime.class, zonedDateTimeGenerator);
+        m.put(OffsetDateTime.class, offsetDateTimeGenerator);
+        m.put(OffsetTime.class, offsetTimeGenerator);
+        m.put(Year.class, yearGenerator);
+        m.put(YearMonth.class, yearMonthGenerator);
+        m.put(MonthDay.class, monthDayGenerator);
+        m.put(Duration.class, durationGenerator);
+        m.put(Period.class, periodGenerator);
+        m.put(ZoneId.class, zoneIdGenerator);
+        m.put(ZoneOffset.class, zoneOffsetGenerator);
+        m.put(java.util.Date.class, utilDateGenerator);
+        m.put(java.sql.Date.class, sqlDateGenerator);
+        m.put(java.sql.Time.class, sqlTimeGenerator);
+        m.put(java.sql.Timestamp.class, sqlTimestampGenerator);
+        m.put(UUID.class, uuidGenerator);
         return Collections.unmodifiableMap(m);
+    }
+
+    private static Long nextDeterministicSeed(GeneratorConfig config, Random seedSource) {
+        return config.getSeed().isPresent() ? seedSource.nextLong() : null;
+    }
+
+    private static GeneratorConfig derivedGeneratorConfig(GeneratorConfig config, Random seedSource) {
+        Long seed = nextDeterministicSeed(config, seedSource);
+        return seed != null ? config.toBuilder().seed(seed).build() : config;
+    }
+
+    private static Random randomFor(GeneratorConfig config, Random seedSource) {
+        Long seed = nextDeterministicSeed(config, seedSource);
+        return seed != null ? new Random(seed) : config.createRandom();
+    }
+
+    private static CharGenerator buildCharGenerator(Long seed) {
+        CharGenerator.Builder builder = CharGenerator.builder().uppercase().lowercase();
+        if (seed != null) {
+            builder.seed(seed);
+        }
+        return builder.build();
+    }
+
+    private static StringGenerator buildStringGenerator(GeneratorConfig config, Long seed) {
+        StringGenerator.Builder builder = StringGenerator.builder()
+                                                        .minLength(config.getMinStringLength())
+                                                        .maxLength(config.getMaxStringLength())
+                                                        .charGenerator(buildCharGenerator(seed));
+        if (seed != null) {
+            builder.seed(seed);
+        }
+        return builder.build();
+    }
+
+    private static BigDecimalGenerator buildBigDecimalGenerator(Long seed) {
+        return seed != null ? new BigDecimalGenerator(new BigDecimal("0"), new BigDecimal("1000000"), 2, seed)
+                            : new BigDecimalGenerator();
+    }
+
+    private static BigIntegerGenerator buildBigIntegerGenerator(Long seed) {
+        return seed != null ? new BigIntegerGenerator(BigInteger.ZERO, BigInteger.valueOf(Long.MAX_VALUE), seed)
+                            : new BigIntegerGenerator();
+    }
+
+    private static Generator<LocalDate> buildDateGenerator(GeneratorConfig config,
+                                                           Random seedSource,
+                                                           LocalDate min,
+                                                           LocalDate max) {
+        if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
+            return new DateGenerator(derivedGeneratorConfig(config, seedSource));
+        }
+        DateGenerator generator = new DateGenerator(min, max);
+        Long seed = nextDeterministicSeed(config, seedSource);
+        if (seed != null) {
+            generator.reseed(seed);
+        }
+        return generator;
+    }
+
+    private static Generator<LocalDateTime> buildLocalDateTimeGenerator(GeneratorConfig config,
+                                                                        Random seedSource,
+                                                                        LocalDate min,
+                                                                        LocalDate max) {
+        if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
+            return new LocalDateTimeGenerator(derivedGeneratorConfig(config, seedSource));
+        }
+        LocalDateTimeGenerator generator = new LocalDateTimeGenerator(min, max);
+        Long seed = nextDeterministicSeed(config, seedSource);
+        if (seed != null) {
+            generator.reseed(seed);
+        }
+        return generator;
+    }
+
+    private static Generator<Instant> buildInstantGenerator(GeneratorConfig config,
+                                                            Random seedSource,
+                                                            LocalDate min,
+                                                            LocalDate max) {
+        if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
+            return new InstantGenerator(derivedGeneratorConfig(config, seedSource));
+        }
+        InstantGenerator generator = new InstantGenerator(min, max);
+        Long seed = nextDeterministicSeed(config, seedSource);
+        if (seed != null) {
+            generator.reseed(seed);
+        }
+        return generator;
+    }
+
+    private static Generator<ZonedDateTime> buildZonedDateTimeGenerator(GeneratorConfig config,
+                                                                        Random seedSource,
+                                                                        LocalDate min,
+                                                                        LocalDate max) {
+        if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
+            return new ZonedDateTimeGenerator(derivedGeneratorConfig(config, seedSource));
+        }
+        ZonedDateTimeGenerator generator = new ZonedDateTimeGenerator(min, max);
+        Long seed = nextDeterministicSeed(config, seedSource);
+        if (seed != null) {
+            generator.reseed(seed);
+        }
+        return generator;
+    }
+
+    private static Generator<java.util.Date> buildUtilDateGenerator(GeneratorConfig config,
+                                                                    Random seedSource,
+                                                                    LocalDate min,
+                                                                    LocalDate max) {
+        if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
+            return new UtilDateGenerator(derivedGeneratorConfig(config, seedSource));
+        }
+        UtilDateGenerator generator = new UtilDateGenerator(min, max);
+        Long seed = nextDeterministicSeed(config, seedSource);
+        if (seed != null) {
+            generator.reseed(seed);
+        }
+        return generator;
+    }
+
+    private static Generator<java.sql.Date> buildSqlDateGenerator(GeneratorConfig config,
+                                                                  Random seedSource,
+                                                                  LocalDate min,
+                                                                  LocalDate max) {
+        if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
+            return new SqlDateGenerator(derivedGeneratorConfig(config, seedSource));
+        }
+        SqlDateGenerator generator = new SqlDateGenerator(min, max);
+        Long seed = nextDeterministicSeed(config, seedSource);
+        if (seed != null) {
+            generator.reseed(seed);
+        }
+        return generator;
+    }
+
+    private static Generator<java.sql.Timestamp> buildSqlTimestampGenerator(GeneratorConfig config,
+                                                                            Random seedSource,
+                                                                            LocalDate min,
+                                                                            LocalDate max) {
+        if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
+            return new SqlTimestampGenerator(derivedGeneratorConfig(config, seedSource));
+        }
+        SqlTimestampGenerator generator = new SqlTimestampGenerator(min, max);
+        Long seed = nextDeterministicSeed(config, seedSource);
+        if (seed != null) {
+            generator.reseed(seed);
+        }
+        return generator;
+    }
+
+    private static Map<String, Generator<?>> buildSemanticStringGenerators(GeneratorConfig config, Random seedSource) {
+        Map<String, Generator<?>> generators = new HashMap<>();
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newFirstNameGenerator, "firstname", "givenname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newLastNameGenerator, "lastname", "surname", "familyname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newFullNameGenerator, "fullname", "displayname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newEmailGenerator, "email", "emailaddress");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUsernameGenerator, "username", "userhandle");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPhoneNumberGenerator, "phone", "phonenumber", "mobile", "mobilephone", "telephone");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStreetAddressGenerator, "street", "streetaddress", "addressline1");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCityGenerator, "city", "town");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStateGenerator, "state", "province", "region");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPostalCodeGenerator, "postalcode", "postcode", "zipcode", "zip");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCountryGenerator, "country", "countryname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCompanyNameGenerator, "company", "companyname", "organization", "organisation");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPasswordGenerator, "password", "passcode");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUrlGenerator, "url", "website", "homepage", "link");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newDomainGenerator, "domain", "hostname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCurrencyGenerator, "currency", "currencycode");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUuidStringGenerator, "uuid", "guid");
+        return Collections.unmodifiableMap(generators);
+    }
+
+    private static void registerSemantic(Map<String, Generator<?>> generators,
+                                         GeneratorConfig config,
+                                         Random seedSource,
+                                         Function<GeneratorConfig, Generator<?>> factory,
+                                         String... fieldNames) {
+        try {
+            Generator<?> generator = factory.apply(derivedGeneratorConfig(config, seedSource));
+            for (String fieldName : fieldNames) {
+                generators.put(normalizeFieldName(fieldName), generator);
+            }
+        } catch (UnsupportedOperationException ignored) {
+            // Locale/provider not available — fall back to generic type resolution.
+        }
+    }
+
+    private static Generator<?> newFirstNameGenerator(GeneratorConfig config) {
+        return new FirstNameGenerator(config);
+    }
+
+    private static Generator<?> newLastNameGenerator(GeneratorConfig config) {
+        return new LastNameGenerator(config);
+    }
+
+    private static Generator<?> newFullNameGenerator(GeneratorConfig config) {
+        return new FullNameGenerator(config);
+    }
+
+    private static Generator<?> newEmailGenerator(GeneratorConfig config) {
+        return new EmailGenerator(config);
+    }
+
+    private static Generator<?> newUsernameGenerator(GeneratorConfig config) {
+        return new UsernameGenerator(config);
+    }
+
+    private static Generator<?> newPhoneNumberGenerator(GeneratorConfig config) {
+        return new PhoneNumberGenerator(config);
+    }
+
+    private static Generator<?> newStreetAddressGenerator(GeneratorConfig config) {
+        return new StreetAddressGenerator(config);
+    }
+
+    private static Generator<?> newCityGenerator(GeneratorConfig config) {
+        return new CityGenerator(config);
+    }
+
+    private static Generator<?> newStateGenerator(GeneratorConfig config) {
+        return new StateGenerator(config);
+    }
+
+    private static Generator<?> newPostalCodeGenerator(GeneratorConfig config) {
+        return new PostalCodeGenerator(config);
+    }
+
+    private static Generator<?> newCountryGenerator(GeneratorConfig config) {
+        return new CountryGenerator(config);
+    }
+
+    private static Generator<?> newCompanyNameGenerator(GeneratorConfig config) {
+        return new CompanyNameGenerator(config);
+    }
+
+    private static Generator<?> newPasswordGenerator(GeneratorConfig config) {
+        return new PasswordGenerator(config);
+    }
+
+    private static Generator<?> newUrlGenerator(GeneratorConfig config) {
+        return new URLGenerator(config);
+    }
+
+    private static Generator<?> newDomainGenerator(GeneratorConfig config) {
+        return new DomainGenerator(config);
+    }
+
+    private static Generator<?> newCurrencyGenerator(GeneratorConfig config) {
+        return new CurrencyGenerator(config);
+    }
+
+    private static Generator<?> newUuidStringGenerator(GeneratorConfig config) {
+        UUIDGenerator generator = new UUIDGenerator(config);
+        return () -> generator.generate().toString();
+    }
+
+    private static String normalizeFieldName(String fieldName) {
+        StringBuilder normalized = new StringBuilder(fieldName.length());
+        for (int i = 0; i < fieldName.length(); i++) {
+            char ch = fieldName.charAt(i);
+            if (Character.isLetterOrDigit(ch)) {
+                normalized.append(Character.toLowerCase(ch));
+            }
+        }
+        return normalized.toString();
+    }
+
+    private Generator<?> semanticGeneratorFor(Class<?> rawType, String fieldName) {
+        if (rawType != String.class) {
+            return null;
+        }
+        return semanticStringGenerators.get(normalizeFieldName(fieldName));
     }
 
     // ── Primary entry point ───────────────────────────────────────────────────
@@ -469,43 +798,52 @@ final class FieldGeneratorResolver {
             return typeOverride.get().generate();
         }
 
-        // ── 3a. Declarative @Randomizer override ─────────────────────────────
-        if (element != null) {
-            Generator<?> annotationGenerator = annotationRandomizerFor(element);
-            if (annotationGenerator != null) return annotationGenerator.generate();
+        Generator<?> annotationGenerator = element != null ? annotationRandomizerFor(element) : null;
+        Generator<?> bvGen = element != null ? BeanValidationSupport.constraintGeneratorFor(element, rawType) : null;
+
+        // ── 3a. Semantic field-name resolver ─────────────────────────────────
+        Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
+        if (semanticGenerator != null && annotationGenerator == null && bvGen == null) {
+            return semanticGenerator.generate();
         }
 
-        // ── 3b. Bean Validation constraint override ───────────────────────────
-        if (element != null) {
-            Generator<?> bvGen = BeanValidationSupport.constraintGeneratorFor(element, rawType);
-            if (bvGen != null) return bvGen.generate();
+        // ── 3b. Declarative @Randomizer override ─────────────────────────────
+        if (annotationGenerator != null) {
+            return annotationGenerator.generate();
         }
 
-        // ── 3. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
-        var builtinFactory = builtins.get(rawType);
-        if (builtinFactory != null) {
-            return builtinFactory.get().generate();
+        // ── 3c. Bean Validation constraint override ───────────────────────────
+        if (bvGen != null) {
+            return bvGen.generate();
         }
 
-        // ── 4. Enum ───────────────────────────────────────────────────────────
+        // ── 4. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
+        var builtin = builtins.get(rawType);
+        if (builtin != null) {
+            return builtin.generate();
+        }
+
+        // ── 5. Enum ───────────────────────────────────────────────────────────
         if (rawType.isEnum()) {
             Object[] constants = rawType.getEnumConstants();
             if (constants.length == 0) return null;
-            return new EnumGenerator((Class<? extends Enum>) rawType).generate();
+            Long enumSeed = nextDeterministicSeed(generatorConfig, sequenceRandom);
+            return new EnumGenerator((Class<? extends Enum>) rawType, enumSeed).generate();
         }
 
-        // ── 5a. Array ─────────────────────────────────────────────────────────
+        // ── 6a. Array ─────────────────────────────────────────────────────────
         if (rawType.isArray()) {
             return generateArray(rawType, ownerType, fieldName, currentDepth);
         }
 
-        // ── 5b. List / Set ────────────────────────────────────────────────────
+        // ── 6b. List / Set ────────────────────────────────────────────────────
         if (List.class.isAssignableFrom(rawType)
             || Set.class.isAssignableFrom(rawType)
             || Queue.class.isAssignableFrom(rawType)) {
             Class<?> elem = typeArg(genericType, 0);
-            List<Object> els = new ArrayList<>(DEFAULT_ELEMENT_COUNT);
-            for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
+            int elementCount = nextCollectionSize();
+            List<Object> els = new ArrayList<>(elementCount);
+            for (int i = 0; i < elementCount; i++) {
                 els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
             }
             if (List.class.isAssignableFrom(rawType)) {
@@ -517,7 +855,7 @@ final class FieldGeneratorResolver {
             return toSetType(rawType, els);
         }
 
-        // ── 5c. Map ───────────────────────────────────────────────────────────
+        // ── 6c. Map ───────────────────────────────────────────────────────────
         if (Map.class.isAssignableFrom(rawType)) {
             Class<?> k = typeArg(genericType, 0);
             Class<?> v = typeArg(genericType, 1);
@@ -525,7 +863,8 @@ final class FieldGeneratorResolver {
             if (map == null) {
                 return null;
             }
-            for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
+            int elementCount = nextCollectionSize();
+            for (int i = 0; i < elementCount; i++) {
                 Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth, null);
                 Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth, null);
                 if (key != null) {
@@ -538,26 +877,26 @@ final class FieldGeneratorResolver {
             return map;
         }
 
-        // ── 5d. Optional ──────────────────────────────────────────────────────
+        // ── 6d. Optional ──────────────────────────────────────────────────────
         if (Optional.class == rawType) {
             Class<?> valueType = typeArg(genericType, 0);
             Object value = resolveAndGenerate(valueType, valueType, fieldName + ".value", ownerType, currentDepth, null);
             return Optional.ofNullable(value);
         }
 
-        // ── 6. Depth guard ────────────────────────────────────────────────────
+        // ── 7. Depth guard ────────────────────────────────────────────────────
         if (currentDepth >= config.getMaxDepth()) {
             return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
         }
 
-        // ── 7. Nested class or record (cycle-safe) ────────────────────────────
+        // ── 8. Nested class or record (cycle-safe) ────────────────────────────
         if (isNestableType(rawType)) {
             if (pool.isInProgress(rawType)) {
                 return pool.getCached(rawType); // break circular reference
             }
             pool.begin(rawType);
             try {
-                Object instance = new ObjectGenerator<>(rawType, config, currentDepth + 1, pool).generate();
+                Object instance = new ObjectGenerator<>(rawType, config, currentDepth + 1, pool, nextDeterministicSeed(generatorConfig, sequenceRandom)).generate();
                 pool.end(rawType, instance);
                 return instance;
             } catch (ObjectGenerationException e) {
@@ -573,7 +912,7 @@ final class FieldGeneratorResolver {
             }
         }
 
-        // ── 8. Unsupported type ───────────────────────────────────────────────
+        // ── 9. Unsupported type ───────────────────────────────────────────────
         return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
     }
 
@@ -589,8 +928,9 @@ final class FieldGeneratorResolver {
     private Object generateArray(Class<?> arrayType, Class<?> ownerType,
                                  String fieldName, int depth) {
         Class<?> comp = arrayType.getComponentType();
-        Object arr = Array.newInstance(comp, DEFAULT_ELEMENT_COUNT);
-        for (int i = 0; i < DEFAULT_ELEMENT_COUNT; i++) {
+        int elementCount = nextCollectionSize();
+        Object arr = Array.newInstance(comp, elementCount);
+        for (int i = 0; i < elementCount; i++) {
             Object el = resolveAndGenerate(comp, fieldName + "[]", ownerType, depth);
             try {
                 Array.set(arr, i, el);
@@ -599,6 +939,12 @@ final class FieldGeneratorResolver {
             }
         }
         return arr;
+    }
+
+    private int nextCollectionSize() {
+        int min = generatorConfig.getMinCollectionSize();
+        int max = generatorConfig.getMaxCollectionSize();
+        return min == max ? min : sequenceRandom.nextInt(min, max + 1);
     }
 
     /**

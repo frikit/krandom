@@ -35,3 +35,23 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: core/build/jacoco/jacoco.xml
           fail_ci_if_error: true
+
+  examples:
+    name: Examples (Local Maven Snapshot)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make gradle wrappers executable
+        run: chmod +x gradlew examples/java-gradle/gradlew examples/kotlin-gradle/gradlew
+
+      - name: Verify examples against the locally published snapshot
+        run: ./scripts/verify_examples_local.sh

@@ -2,21 +2,20 @@ plugins {
     kotlin("jvm") version "2.3.10"
 }
 
+val krandomVersion = providers.gradleProperty("krandomVersion")
+    .orElse(providers.environmentVariable("KRANDOM_VERSION"))
+    .orElse("0.1.0-SNAPSHOT")
+
 repositories {
+    mavenLocal()
     mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.github.com/frikit/krandom")
-        credentials {
-            username = providers.gradleProperty("gpr.user").orElse(providers.environmentVariable("GITHUB_ACTOR")).orNull
-            password = providers.gradleProperty("gpr.key").orElse(providers.environmentVariable("GITHUB_TOKEN")).orNull
-        }
-    }
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-core:0.1.0")
+    implementation("io.github.frikit:krandom-core:${krandomVersion.get()}")
     testImplementation("org.junit.jupiter:junit-jupiter-api:6.0.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.0.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
 }
 
 kotlin {

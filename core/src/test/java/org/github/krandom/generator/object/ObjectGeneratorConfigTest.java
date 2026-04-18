@@ -5,14 +5,17 @@
  */
 package org.github.krandom.generator.object;
 
+import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,10 +28,28 @@ class ObjectGeneratorConfigTest {
         ObjectGeneratorConfig c = ObjectGeneratorConfig.defaults();
         assertEquals(ObjectGeneratorConfig.DEFAULT_MAX_DEPTH, c.getMaxDepth());
         assertEquals(ObjectGeneratorConfig.DEFAULT_OBJECT_POOL_SIZE, c.getObjectPoolSize());
+        assertEquals(Locale.US, c.getGeneratorConfig().getLocale());
         assertFalse(c.isOverrideDefaultInitialization());
         assertFalse(c.isIgnoreErrors());
         assertTrue(c.getTypeOverride(String.class).isEmpty());
         assertTrue(c.getFieldOverride(String.class, "value").isEmpty());
+    }
+
+    @Test
+    @DisplayName("generatorConfig(...) stores the shared root config")
+    void generatorConfigStored() {
+        GeneratorConfig generatorConfig = GeneratorConfig.builder()
+                                                         .locale(Locale.GERMANY)
+                                                         .stringLength(8, 8)
+                                                         .collectionSize(4, 4)
+                                                         .seed(42L)
+                                                         .build();
+
+        ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
+                                                                 .generatorConfig(generatorConfig)
+                                                                 .build();
+
+        assertSame(generatorConfig, objectConfig.getGeneratorConfig());
     }
 
     @Test
@@ -114,6 +135,13 @@ class ObjectGeneratorConfigTest {
     void excludeTypeNullPredicateThrows() {
         assertThrows(NullPointerException.class,
                      () -> ObjectGeneratorConfig.builder().excludeType((java.util.function.Predicate<Class<?>>) null));
+    }
+
+    @Test
+    @DisplayName("generatorConfig(null) throws NullPointerException")
+    void generatorConfigNullThrows() {
+        assertThrows(NullPointerException.class,
+                     () -> ObjectGeneratorConfig.builder().generatorConfig(null));
     }
 
     @Test

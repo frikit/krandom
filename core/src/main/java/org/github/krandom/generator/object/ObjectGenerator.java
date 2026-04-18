@@ -6,6 +6,7 @@
 package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * Generates random instances of any Java class or record by introspecting its structure
@@ -31,9 +33,11 @@ import java.util.Objects;
  *       with only all-args constructors can still be populated via field reflection.</li>
  *   <li><b>Nested objects</b> — resolved recursively up to {@link ObjectGeneratorConfig#getMaxDepth()}.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
- *   <li><b>Arrays</b> — auto-populated with {@value FieldGeneratorResolver#DEFAULT_ELEMENT_COUNT} elements.</li>
- *   <li><b>Collections ({@code List}, {@code Set}, {@code Map})</b> — auto-populated with
- *       {@value FieldGeneratorResolver#DEFAULT_ELEMENT_COUNT} elements using the declared generic type.</li>
+ *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
+ *       (default {@value FieldGeneratorResolver#DEFAULT_MIN_ELEMENT_COUNT} to
+ *       {@value FieldGeneratorResolver#DEFAULT_MAX_ELEMENT_COUNT} elements).</li>
+ *   <li><b>Collections ({@code List}, {@code Set}, {@code Map})</b> — auto-populated using the
+ *       shared collection-size defaults and the declared generic type.</li>
  *   <li><b>Circular references</b> — detected via an {@link ObjectPool} and broken by
  *       returning a previously cached instance (or {@code null}) instead of recursing.</li>
  * </ul>
@@ -71,6 +75,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private final ObjectGeneratorConfig config;
     private final ObjectPool            pool;
     private final int                   depth;
+    private final Long                  generationSeed;
+    private final Random                topLevelSeedSequence;
 
     // ── Public constructors ───────────────────────────────────────────────────
 
@@ -82,20 +88,33 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     /**
+     * Creates a generator that uses the shared root configuration defaults.
+     */
+    public ObjectGenerator(Class<T> type, GeneratorConfig config) {
+        this(type, ObjectGeneratorConfig.builder().generatorConfig(config).build());
+    }
+
+    /**
      * Creates a generator with custom configuration.
      */
     public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
-        this(type, config, 0, null);
+        this(type, config, 0, null, null);
     }
 
     /**
      * Internal constructor — depth and pool are managed by {@link FieldGeneratorResolver}.
      */
-    ObjectGenerator(Class<T> type, ObjectGeneratorConfig config, int depth, ObjectPool pool) {
+    ObjectGenerator(Class<T> type, ObjectGeneratorConfig config, int depth, ObjectPool pool, Long generationSeed) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.depth = depth;
         this.pool = pool;
+        this.generationSeed = generationSeed;
+        this.topLevelSeedSequence = depth == 0 && pool == null
+                                    ? config.getGeneratorConfig().getSeed().isPresent()
+                                      ? new Random(config.getGeneratorConfig().getSeed().getAsLong())
+                                      : null
+                                    : null;
     }
 
     // ── Generator<T> ─────────────────────────────────────────────────────────
@@ -129,7 +148,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (depth == 0 && pool == null) {
             // Fresh pool for each top-level generation call to prevent cross-call leakage.
             ObjectGenerator<T> scoped = new ObjectGenerator<>(
-                type, config, 0, new ObjectPool(config.getObjectPoolSize()));
+                type, config, 0, new ObjectPool(config.getObjectPoolSize()), nextGenerationSeed());
             return scoped.generateWithPool();
         }
         return generateWithPool();
@@ -139,13 +158,17 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private T generateWithPool() {
         FieldGeneratorResolver resolver =
-            new FieldGeneratorResolver(config, Objects.requireNonNull(pool, "pool must not be null"));
+            new FieldGeneratorResolver(config, Objects.requireNonNull(pool, "pool must not be null"), generationSeed);
         try {
             return type.isRecord() ? generateRecord(resolver) : generateClass(resolver);
         } catch (ReflectiveOperationException e) {
             throw new ObjectGenerationException(
                 "Failed to generate instance of " + type.getName() + ": " + e.getMessage(), e);
         }
+    }
+
+    private Long nextGenerationSeed() {
+        return topLevelSeedSequence != null ? Long.valueOf(topLevelSeedSequence.nextLong()) : generationSeed;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

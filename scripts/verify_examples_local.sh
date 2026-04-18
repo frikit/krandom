@@ -1,0 +1,63 @@
+#!/bin/bash
+# Publish the local core artifact and run the consumer examples against it.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GRADLEW="${REPO_ROOT}/gradlew"
+VERSION="${KRANDOM_VERSION:-0.1.0-SNAPSHOT}"
+
+step() { echo; echo "==> $*"; }
+
+cd "${REPO_ROOT}"
+
+"${REPO_ROOT}/scripts/require_java21.sh"
+
+step "Publish krandom-core ${VERSION} to Maven local"
+"${GRADLEW}" :core:publishToMavenLocal -PreleaseVersion="${VERSION}" --no-daemon --console=plain
+
+step "Verify Java + Gradle example"
+(
+    cd "${REPO_ROOT}/examples/java-gradle"
+    ./gradlew -PkrandomVersion="${VERSION}" test --no-daemon --console=plain
+)
+
+step "Verify Java + Maven example"
+(
+    cd "${REPO_ROOT}/examples/java-maven"
+    mvn -q -Dkrandom.version="${VERSION}" test
+)
+
+step "Verify Kotlin + Gradle example"
+(
+    cd "${REPO_ROOT}/examples/kotlin-gradle"
+    ./gradlew -PkrandomVersion="${VERSION}" test --no-daemon --console=plain
+)
+
+step "Verify Kotlin + Maven example"
+(
+    cd "${REPO_ROOT}/examples/kotlin-maven"
+    mvn -q -Dkrandom.version="${VERSION}" test
+)
+
+if command -v sbt >/dev/null 2>&1; then
+    step "Verify Scala + sbt example"
+    (
+        cd "${REPO_ROOT}/examples/scala-sbt"
+        sbt -Dkrandom.version="${VERSION}" test
+    )
+else
+    step "Skip Scala + sbt example"
+    echo "sbt is not installed on PATH."
+fi
+
+if command -v mill >/dev/null 2>&1; then
+    step "Verify Scala + Mill example"
+    (
+        cd "${REPO_ROOT}/examples/scala-mill"
+        mill -Dkrandom.version="${VERSION}" -i app.test
+    )
+else
+    step "Skip Scala + Mill example"
+    echo "mill is not installed on PATH."
+fi

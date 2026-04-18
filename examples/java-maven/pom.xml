@@ -8,21 +8,15 @@
     <version>0.1.0</version>
 
     <properties>
+        <krandom.version>0.1.0-SNAPSHOT</krandom.version>
         <maven.compiler.release>21</maven.compiler.release>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/frikit/krandom</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-core</artifactId>
-            <version>0.1.0</version>
+            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

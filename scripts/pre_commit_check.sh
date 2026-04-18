@@ -25,6 +25,14 @@ fail() { echo -e "${FAIL} $*"; }
 
 # ── Steps ─────────────────────────────────────────────────────────────────────
 
+step "Verify Java runtime"
+if "${REPO_ROOT}/scripts/require_java21.sh"; then
+    ok "Java runtime is 21+"
+else
+    fail "Java runtime check failed"
+    exit 1
+fi
+
 step "Apply code formatting and license headers (spotlessApply)"
 if "${GRADLEW}" spotlessApply --quiet; then
     ok "Formatting applied"

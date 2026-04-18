@@ -91,11 +91,12 @@ class ObjectGeneratorCollectionsConcreteTest {
         assertEquals(CustomStringSet.class, value.customSet.getClass());
         assertEquals(CustomStringQueue.class, value.customQueue.getClass());
         assertEquals(CustomStringIntMap.class, value.customMap.getClass());
-        assertEquals(FieldGeneratorResolver.DEFAULT_ELEMENT_COUNT, value.customList.size());
-        assertTrue(value.customQueue.size() <= FieldGeneratorResolver.DEFAULT_ELEMENT_COUNT);
-        assertTrue(value.customMap.size() <= FieldGeneratorResolver.DEFAULT_ELEMENT_COUNT);
+        assertTrue(value.customList.size() >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
+        assertTrue(value.customList.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
+        assertTrue(value.customQueue.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
+        assertTrue(value.customMap.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
         assertTrue(value.customSet.size() > 0
-                   && value.customSet.size() <= FieldGeneratorResolver.DEFAULT_ELEMENT_COUNT);
+                   && value.customSet.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
     }
 
     @Test

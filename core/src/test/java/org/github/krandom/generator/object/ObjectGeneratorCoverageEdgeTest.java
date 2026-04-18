@@ -44,7 +44,8 @@ class ObjectGeneratorCoverageEdgeTest {
             Address.class,
             config,
             1,
-            new ObjectPool(config.getObjectPoolSize())
+            new ObjectPool(config.getObjectPoolSize()),
+            null
         );
         assertNotNull(scoped.generate());
     }
@@ -57,7 +58,8 @@ class ObjectGeneratorCoverageEdgeTest {
             Address.class,
             config,
             0,
-            new ObjectPool(config.getObjectPoolSize())
+            new ObjectPool(config.getObjectPoolSize()),
+            null
         );
         assertNotNull(scoped.generate());
     }

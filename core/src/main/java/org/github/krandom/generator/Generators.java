@@ -1196,6 +1196,13 @@ public final class Generators {
     }
 
     /**
+     * Returns an object generator for the given type with shared root configuration.
+     */
+    public static <T> ObjectGenerator<T> ofObject(Class<T> type, GeneratorConfig config) {
+        return new ObjectGenerator<>(type, config);
+    }
+
+    /**
      * Returns an object generator for the given type with explicit object-generation configuration.
      */
     public static <T> ObjectGenerator<T> ofObject(Class<T> type, ObjectGeneratorConfig config) {

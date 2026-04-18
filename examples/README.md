@@ -2,9 +2,27 @@
 
 This folder contains test-based examples for each supported language/build-tool combination.
 
-All examples depend directly on `io.github.frikit:krandom-core:0.1.0`.
+All examples depend directly on `io.github.frikit:krandom-core`.
 
-Version used in all examples: `0.1.0`
+Default example version: `0.1.0-SNAPSHOT`
+
+For repo-local verification, publish the current workspace artifact to Maven local first:
+
+```bash
+./scripts/verify_examples_local.sh
+```
+
+That script:
+
+- verifies Java 21+
+- publishes `krandom-core` to Maven local
+- runs the example test suites against the local artifact
+
+To point the examples at a different artifact version, set `KRANDOM_VERSION` or the build-tool-specific property:
+
+- Gradle: `-PkrandomVersion=<version>`
+- Maven: `-Dkrandom.version=<version>`
+- sbt / Mill: `-Dkrandom.version=<version>`
 
 ## Matrix
 
@@ -18,15 +36,6 @@ Version used in all examples: `0.1.0`
 ## Run commands
 
 ```bash
-# Java
-cd examples/java-gradle && ./gradlew test
-cd examples/java-maven && mvn -q test
-
-# Kotlin
-cd examples/kotlin-gradle && ./gradlew test
-cd examples/kotlin-maven && mvn -q test
-
-# Scala
-cd examples/scala-sbt && sbt test
-cd examples/scala-mill && mill -i app.test
+# Verify the whole matrix against the locally published snapshot
+./scripts/verify_examples_local.sh
 ```
