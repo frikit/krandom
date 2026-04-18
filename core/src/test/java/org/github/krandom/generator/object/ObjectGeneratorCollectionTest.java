@@ -25,11 +25,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ObjectGeneratorCollectionTest {
 
     @Test
-    @DisplayName("List<String> field is non-null and has 3 elements")
+    @DisplayName("List<String> field size follows shared collection defaults")
     void listPopulated() {
         PersonWithCollections p = new ObjectGenerator<>(PersonWithCollections.class).generate();
         assertNotNull(p.getHobbies(), "List<String> field must not be null");
-        assertEquals(3, p.getHobbies().size(), "List<String> should have 3 elements");
+        assertTrue(p.getHobbies().size() >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
+        assertTrue(p.getHobbies().size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
     }
 
     @Test
@@ -114,7 +115,8 @@ class ObjectGeneratorCollectionTest {
         // → elements resolve as Object (JDK bootstrap type → null) → list of nulls
         WithWildcardList obj = new ObjectGenerator<>(WithWildcardList.class).generate();
         assertNotNull(obj.items, "list must be created even with wildcard type");
-        assertEquals(3, obj.items.size(), "list must have 3 elements");
+        assertTrue(obj.items.size() >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
+        assertTrue(obj.items.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
     }
 
 

@@ -7,6 +7,7 @@ package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.ContextualGenerator;
 import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.GeneratorConfig;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -40,6 +41,7 @@ public final class ObjectGeneratorConfig {
     static final int DEFAULT_MAX_DEPTH        = 5;
     static final int DEFAULT_OBJECT_POOL_SIZE = 10;
 
+    private final GeneratorConfig generatorConfig;
     private final int     maxDepth;
     private final int     objectPoolSize;
     private final boolean overrideDefaultInitialization;
@@ -87,6 +89,7 @@ public final class ObjectGeneratorConfig {
     private final List<Predicate<Class<?>>> typeExclusionPredicates;
 
     private ObjectGeneratorConfig(Builder b) {
+        this.generatorConfig = b.generatorConfig;
         this.maxDepth = b.maxDepth;
         this.objectPoolSize = b.objectPoolSize;
         this.overrideDefaultInitialization = b.overrideDefaultInitialization;
@@ -115,6 +118,13 @@ public final class ObjectGeneratorConfig {
         return new Builder();
     }
 
+    /**
+     * Creates a builder pre-populated from this config.
+     */
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     // ── Accessors ─────────────────────────────────────────────────────────────
 
     private static String fieldKey(Class<?> ownerType, String fieldName) {
@@ -131,6 +141,13 @@ public final class ObjectGeneratorConfig {
      */
     public int getMaxDepth() {
         return maxDepth;
+    }
+
+    /**
+     * Shared generator configuration applied to built-in field generators.
+     */
+    public GeneratorConfig getGeneratorConfig() {
+        return generatorConfig;
     }
 
     /**
@@ -257,12 +274,40 @@ public final class ObjectGeneratorConfig {
         private final Map<String, ContextualGenerator<?>>   contextualFieldOverrides      = new HashMap<>();
         private final List<Predicate<Field>>                exclusionPredicates           = new ArrayList<>();
         private final List<Predicate<Class<?>>>             typeExclusionPredicates       = new ArrayList<>();
+        private       GeneratorConfig                       generatorConfig               = GeneratorConfig.defaults();
         private       int                                   maxDepth                      = DEFAULT_MAX_DEPTH;
         private       int                                   objectPoolSize                = DEFAULT_OBJECT_POOL_SIZE;
         private       boolean                               overrideDefaultInitialization = false;
         private       boolean                               ignoreErrors                  = false;
         private       LocalDate                             dateMin                       = null;
         private       LocalDate                             dateMax                       = null;
+
+        private Builder() {
+        }
+
+        private Builder(ObjectGeneratorConfig source) {
+            this.generatorConfig = source.generatorConfig;
+            this.maxDepth = source.maxDepth;
+            this.objectPoolSize = source.objectPoolSize;
+            this.overrideDefaultInitialization = source.overrideDefaultInitialization;
+            this.ignoreErrors = source.ignoreErrors;
+            this.dateMin = source.dateMin;
+            this.dateMax = source.dateMax;
+            this.typeOverrides.putAll(source.typeOverrides);
+            this.fieldOverrides.putAll(source.fieldOverrides);
+            this.contextualTypeOverrides.putAll(source.contextualTypeOverrides);
+            this.contextualFieldOverrides.putAll(source.contextualFieldOverrides);
+            this.exclusionPredicates.addAll(source.exclusionPredicates);
+            this.typeExclusionPredicates.addAll(source.typeExclusionPredicates);
+        }
+
+        /**
+         * Shared root configuration for built-in generators used during object population.
+         */
+        public Builder generatorConfig(GeneratorConfig generatorConfig) {
+            this.generatorConfig = Objects.requireNonNull(generatorConfig, "generatorConfig must not be null");
+            return this;
+        }
 
         /**
          * Maximum nesting depth for object-graph generation.

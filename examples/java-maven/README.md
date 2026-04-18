@@ -1,11 +1,17 @@
 # Java + Maven Example (Test-based)
 
-Uses `io.github.frikit:krandom-core:0.1.0`.
+Uses `io.github.frikit:krandom-core:0.1.0-SNAPSHOT` by default for repo-local verification.
 
 ## Run
 
 ```bash
+./gradlew :core:publishToMavenLocal
+cd examples/java-maven
 mvn -q test
 ```
 
-Configure GitHub Packages credentials in `~/.m2/settings.xml` with server id `github`.
+To use a different artifact version:
+
+```bash
+mvn -q -Dkrandom.version=<version> test
+```

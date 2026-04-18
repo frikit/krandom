@@ -1,11 +1,17 @@
 # Kotlin + Maven Example (Test-based)
 
-Uses `io.github.frikit:krandom-core:0.1.0` from Kotlin.
+Uses `io.github.frikit:krandom-core:0.1.0-SNAPSHOT` by default for repo-local verification.
 
 ## Run
 
 ```bash
+./gradlew :core:publishToMavenLocal
+cd examples/kotlin-maven
 mvn -q test
 ```
 
-Configure GitHub Packages credentials in `~/.m2/settings.xml` using server id `github`.
+To use a different artifact version:
+
+```bash
+mvn -q -Dkrandom.version=<version> test
+```

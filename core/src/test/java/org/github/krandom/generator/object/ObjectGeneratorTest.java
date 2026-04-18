@@ -5,9 +5,12 @@
  */
 package org.github.krandom.generator.object;
 
+import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.core.model.Address;
 import org.github.krandom.generator.core.model.Person;
 import org.github.krandom.generator.core.model.PersonRecord;
+import org.github.krandom.generator.core.model.PersonWithArrays;
+import org.github.krandom.generator.core.model.PersonWithCollections;
 import org.github.krandom.generator.core.model.Status;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -71,6 +75,39 @@ class ObjectGeneratorTest {
         public void setValue(String value) {
             throw new IllegalStateException("Setter must not be called");
         }
+    }
+
+
+    static class GenericStrings {
+
+        private String token;
+        private String label;
+
+        String getToken() {
+            return token;
+        }
+
+        String getLabel() {
+            return label;
+        }
+    }
+
+
+    static class SemanticProfile {
+
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String username;
+        private String phoneNumber;
+        private String city;
+        private String state;
+        private String postalCode;
+        private String country;
+        private String companyName;
+        private String url;
+        private String domain;
+        private String uuid;
     }
 
     // ── Plain class — flat (Address) ──────────────────────────────────────────
@@ -247,6 +284,89 @@ class ObjectGeneratorTest {
             List<PersonRecord> list = new ObjectGenerator<>(PersonRecord.class).generateList(20);
             assertEquals(20, list.size());
             list.forEach(r -> assertNotNull(r.firstName()));
+        }
+    }
+
+    @Nested
+    @DisplayName("Shared GeneratorConfig integration")
+    class SharedGeneratorConfigTest {
+
+        @Test
+        @DisplayName("GeneratorConfig constructor applies configured string lengths")
+        void generatorConfigAppliesStringLengthDefaults() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .stringLength(12, 12)
+                                                    .build();
+
+            GenericStrings value = new ObjectGenerator<>(GenericStrings.class, config).generate();
+
+            assertEquals(12, value.getToken().length());
+            assertEquals(12, value.getLabel().length());
+        }
+
+        @Test
+        @DisplayName("shared collection-size defaults flow into lists and arrays")
+        void generatorConfigAppliesCollectionSizes() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .collectionSize(4, 4)
+                                                    .build();
+
+            PersonWithCollections collections = new ObjectGenerator<>(PersonWithCollections.class, config).generate();
+            PersonWithArrays arrays = new ObjectGenerator<>(PersonWithArrays.class, config).generate();
+
+            assertEquals(4, collections.getHobbies().size());
+            assertEquals(4, arrays.getTags().length);
+            assertEquals(4, arrays.getScores().length);
+            assertEquals(4, arrays.getAddresses().length);
+        }
+
+        @Test
+        @DisplayName("seeded GeneratorConfig produces a repeatable sequence across generator instances")
+        void seededGeneratorConfigProducesRepeatableSequence() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .seed(11L)
+                                                    .stringLength(10, 10)
+                                                    .build();
+
+            ObjectGenerator<Person> left = new ObjectGenerator<>(Person.class, config);
+            ObjectGenerator<Person> right = new ObjectGenerator<>(Person.class, config);
+
+            Person leftFirst = left.generate();
+            Person leftSecond = left.generate();
+            Person rightFirst = right.generate();
+            Person rightSecond = right.generate();
+
+            assertEquals(leftFirst.getFirstName(), rightFirst.getFirstName());
+            assertEquals(leftFirst.getLastName(), rightFirst.getLastName());
+            assertEquals(leftFirst.getAddress().getStreet(), rightFirst.getAddress().getStreet());
+            assertEquals(leftSecond.getFirstName(), rightSecond.getFirstName());
+            assertEquals(leftSecond.getLastName(), rightSecond.getLastName());
+            assertEquals(leftSecond.getAddress().getStreet(), rightSecond.getAddress().getStreet());
+        }
+    }
+
+    @Nested
+    @DisplayName("Semantic defaults")
+    class SemanticDefaultsTest {
+
+        @Test
+        @DisplayName("common business field names use semantic generators by default")
+        void commonBusinessFieldsUseSemanticGenerators() {
+            SemanticProfile profile = new ObjectGenerator<>(SemanticProfile.class).generate();
+
+            assertNotNull(profile.firstName);
+            assertNotNull(profile.lastName);
+            assertTrue(profile.email.contains("@"));
+            assertFalse(profile.username.isBlank());
+            assertFalse(profile.phoneNumber.isBlank());
+            assertFalse(profile.city.isBlank());
+            assertFalse(profile.state.isBlank());
+            assertFalse(profile.postalCode.isBlank());
+            assertFalse(profile.country.isBlank());
+            assertFalse(profile.companyName.isBlank());
+            assertTrue(profile.url.contains("://"));
+            assertTrue(profile.domain.contains("."));
+            assertDoesNotThrow(() -> UUID.fromString(profile.uuid));
         }
     }
 
@@ -503,12 +623,13 @@ class ObjectGeneratorTest {
 
 
         @Test
-        @DisplayName("array-typed field is auto-populated with 3 elements")
+        @DisplayName("array-typed field size follows shared collection defaults")
         void arrayFieldAutoPopulated() {
             WithArrayField obj = new ObjectGenerator<>(WithArrayField.class).generate();
             assertNotNull(obj);
             assertNotNull(obj.tags, "array-typed field should be auto-populated");
-            assertEquals(3, obj.tags.length, "array should have 3 elements");
+            assertTrue(obj.tags.length >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
+            assertTrue(obj.tags.length <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
             for (String tag : obj.tags) assertNotNull(tag, "each array element should be non-null");
         }
 

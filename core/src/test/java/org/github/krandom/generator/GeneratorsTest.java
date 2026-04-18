@@ -758,6 +758,8 @@ class GeneratorsTest {
     void objectFactories() {
         assertInstanceOf(ObjectGenerator.class, Generators.ofObject(SimplePojo.class));
         assertInstanceOf(ObjectGenerator.class,
+                         Generators.ofObject(SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
+        assertInstanceOf(ObjectGenerator.class,
                          Generators.ofObject(SimplePojo.class, ObjectGeneratorConfig.defaults()));
     }
 

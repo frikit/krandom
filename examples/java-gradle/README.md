@@ -1,19 +1,17 @@
 # Java + Gradle Example (Test-based)
 
-Uses `io.github.frikit:krandom-core:0.1.0`.
+Uses `io.github.frikit:krandom-core:0.1.0-SNAPSHOT` by default for repo-local verification.
 
 ## Run
 
 ```bash
+./gradlew :core:publishToMavenLocal
+cd examples/java-gradle
 ./gradlew test
 ```
 
-If GitHub Packages auth is required, set:
+To use a different artifact version:
 
-- `GITHUB_ACTOR`
-- `GITHUB_TOKEN`
-
-Or in `~/.gradle/gradle.properties`:
-
-- `gpr.user=...`
-- `gpr.key=...`
+```bash
+./gradlew -PkrandomVersion=<version> test
+```
