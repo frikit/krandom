@@ -34,8 +34,7 @@ import java.util.Random;
  *   <li><b>Nested objects</b> — resolved recursively up to {@link ObjectGeneratorConfig#getMaxDepth()}.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
- *       (default {@value FieldGeneratorResolver#DEFAULT_MIN_ELEMENT_COUNT} to
- *       {@value FieldGeneratorResolver#DEFAULT_MAX_ELEMENT_COUNT} elements).</li>
+ *       (default 1 to 10 elements).</li>
  *   <li><b>Collections ({@code List}, {@code Set}, {@code Map})</b> — auto-populated using the
  *       shared collection-size defaults and the declared generic type.</li>
  *   <li><b>Circular references</b> — detected via an {@link ObjectPool} and broken by

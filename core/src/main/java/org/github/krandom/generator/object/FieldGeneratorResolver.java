@@ -115,7 +115,7 @@ import java.util.function.Supplier;
  *       {@link UUID} / {@link BigDecimal} / {@link BigInteger}</li>
  *   <li>Enum: random constant</li>
  *   <li>Array ({@code T[]}): auto-populated with the shared collection-size defaults
- *       (default {@value #DEFAULT_MIN_ELEMENT_COUNT} to {@value #DEFAULT_MAX_ELEMENT_COUNT} elements)</li>
+ *       (default 1 to 10 elements)</li>
  *   <li>{@code List<T>} or {@code Set<T>}: auto-populated with the shared collection-size defaults
  *       and elements resolved from the declared generic element type</li>
  *   <li>{@code Map<K,V>}: auto-populated with the shared collection-size defaults</li>
