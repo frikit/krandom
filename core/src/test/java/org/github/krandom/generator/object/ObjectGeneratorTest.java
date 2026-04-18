@@ -11,12 +11,15 @@ import org.github.krandom.generator.core.model.Person;
 import org.github.krandom.generator.core.model.PersonRecord;
 import org.github.krandom.generator.core.model.PersonWithArrays;
 import org.github.krandom.generator.core.model.PersonWithCollections;
+import org.github.krandom.generator.core.model.PersonWithDateTimes;
 import org.github.krandom.generator.core.model.Status;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -108,6 +111,34 @@ class ObjectGeneratorTest {
         private String url;
         private String domain;
         private String uuid;
+    }
+
+    static class DepthOuter {
+
+        private DepthMiddle middle;
+    }
+
+    static class DepthMiddle {
+
+        private DepthInner inner;
+    }
+
+    static class DepthInner {
+
+        private String value;
+    }
+
+    static class RootIgnoreErrorsHolder {
+
+        private RootThrowingNested nested;
+        private String             name;
+    }
+
+    static class RootThrowingNested {
+
+        RootThrowingNested() {
+            throw new IllegalStateException("boom");
+        }
     }
 
     // ── Plain class — flat (Address) ──────────────────────────────────────────
@@ -342,6 +373,46 @@ class ObjectGeneratorTest {
             assertEquals(leftSecond.getFirstName(), rightSecond.getFirstName());
             assertEquals(leftSecond.getLastName(), rightSecond.getLastName());
             assertEquals(leftSecond.getAddress().getStreet(), rightSecond.getAddress().getStreet());
+        }
+
+        @Test
+        @DisplayName("root object generation settings apply through GeneratorConfig directly")
+        void generatorConfigAppliesObjectGenerationSettings() {
+            LocalDate min = LocalDate.of(2021, 1, 1);
+            LocalDate max = LocalDate.of(2021, 12, 31);
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .seed(19L)
+                                                    .stringLength(8, 8)
+                                                    .objectMaxDepth(1)
+                                                    .objectIgnoreErrors(true)
+                                                    .objectOverrideDefaultInitialization(true)
+                                                    .objectDateRange(min, max)
+                                                    .build();
+
+            DepthOuter depthOuter = new ObjectGenerator<>(DepthOuter.class, config).generate();
+            RootIgnoreErrorsHolder ignoreErrorsHolder = new ObjectGenerator<>(RootIgnoreErrorsHolder.class, config).generate();
+            PreInitializedFields preInitialized = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
+            PersonWithDateTimes dated = new ObjectGenerator<>(PersonWithDateTimes.class, config).generate();
+
+            assertNotNull(depthOuter.middle, "first nested object should still be generated");
+            assertNull(depthOuter.middle.inner, "deeper nested object should honor root maxDepth");
+            assertNull(ignoreErrorsHolder.nested, "throwing nested type should be swallowed by root ignoreErrors");
+            assertNotNull(ignoreErrorsHolder.name, "other fields should still be generated");
+            assertEquals(8, preInitialized.getPresetName().length(), "preset string should be overwritten by root config");
+            assertNotEquals("PRESET", preInitialized.getPresetName());
+
+            LocalDate dob = dated.getDob();
+            LocalDate createdAt = dated.getCreatedAt().toLocalDate();
+            LocalDate updatedAt = dated.getUpdatedAt().atOffset(ZoneOffset.UTC).toLocalDate();
+            LocalDate scheduledAt = dated.getScheduledAt().toLocalDate();
+            assertFalse(dob.isBefore(min));
+            assertFalse(dob.isAfter(max));
+            assertFalse(createdAt.isBefore(min));
+            assertFalse(createdAt.isAfter(max));
+            assertFalse(updatedAt.isBefore(min));
+            assertFalse(updatedAt.isAfter(max));
+            assertFalse(scheduledAt.isBefore(min));
+            assertFalse(scheduledAt.isAfter(max));
         }
     }
 

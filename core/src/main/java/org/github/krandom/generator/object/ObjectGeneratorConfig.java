@@ -38,8 +38,8 @@ import java.util.function.Predicate;
  */
 public final class ObjectGeneratorConfig {
 
-    static final int DEFAULT_MAX_DEPTH        = 5;
-    static final int DEFAULT_OBJECT_POOL_SIZE = 10;
+    static final int DEFAULT_MAX_DEPTH        = GeneratorConfig.DEFAULT_OBJECT_MAX_DEPTH;
+    static final int DEFAULT_OBJECT_POOL_SIZE = GeneratorConfig.DEFAULT_OBJECT_POOL_SIZE;
 
     private final GeneratorConfig generatorConfig;
     private final int     maxDepth;
@@ -281,6 +281,11 @@ public final class ObjectGeneratorConfig {
         private       boolean                               ignoreErrors                  = false;
         private       LocalDate                             dateMin                       = null;
         private       LocalDate                             dateMax                       = null;
+        private       boolean                               maxDepthExplicit;
+        private       boolean                               objectPoolSizeExplicit;
+        private       boolean                               overrideDefaultInitializationExplicit;
+        private       boolean                               ignoreErrorsExplicit;
+        private       boolean                               dateRangeExplicit;
 
         private Builder() {
         }
@@ -293,6 +298,11 @@ public final class ObjectGeneratorConfig {
             this.ignoreErrors = source.ignoreErrors;
             this.dateMin = source.dateMin;
             this.dateMax = source.dateMax;
+            this.maxDepthExplicit = true;
+            this.objectPoolSizeExplicit = true;
+            this.overrideDefaultInitializationExplicit = true;
+            this.ignoreErrorsExplicit = true;
+            this.dateRangeExplicit = source.dateMin != null || source.dateMax != null;
             this.typeOverrides.putAll(source.typeOverrides);
             this.fieldOverrides.putAll(source.fieldOverrides);
             this.contextualTypeOverrides.putAll(source.contextualTypeOverrides);
@@ -306,6 +316,7 @@ public final class ObjectGeneratorConfig {
          */
         public Builder generatorConfig(GeneratorConfig generatorConfig) {
             this.generatorConfig = Objects.requireNonNull(generatorConfig, "generatorConfig must not be null");
+            inheritObjectDefaults(generatorConfig);
             return this;
         }
 
@@ -316,6 +327,7 @@ public final class ObjectGeneratorConfig {
         public Builder maxDepth(int maxDepth) {
             if (maxDepth < 1) throw new IllegalArgumentException("maxDepth must be >= 1, was: " + maxDepth);
             this.maxDepth = maxDepth;
+            this.maxDepthExplicit = true;
             return this;
         }
 
@@ -328,6 +340,7 @@ public final class ObjectGeneratorConfig {
                 throw new IllegalArgumentException("objectPoolSize must be >= 0, was: " + objectPoolSize);
             }
             this.objectPoolSize = objectPoolSize;
+            this.objectPoolSizeExplicit = true;
             return this;
         }
 
@@ -339,6 +352,7 @@ public final class ObjectGeneratorConfig {
          */
         public Builder overrideDefaultInitialization(boolean overrideDefaultInitialization) {
             this.overrideDefaultInitialization = overrideDefaultInitialization;
+            this.overrideDefaultInitializationExplicit = true;
             return this;
         }
 
@@ -357,6 +371,7 @@ public final class ObjectGeneratorConfig {
             }
             this.dateMin = min;
             this.dateMax = max;
+            this.dateRangeExplicit = true;
             return this;
         }
 
@@ -457,7 +472,27 @@ public final class ObjectGeneratorConfig {
          */
         public Builder ignoreErrors(boolean ignoreErrors) {
             this.ignoreErrors = ignoreErrors;
+            this.ignoreErrorsExplicit = true;
             return this;
+        }
+
+        private void inheritObjectDefaults(GeneratorConfig generatorConfig) {
+            if (!maxDepthExplicit) {
+                this.maxDepth = generatorConfig.getObjectMaxDepth();
+            }
+            if (!objectPoolSizeExplicit) {
+                this.objectPoolSize = generatorConfig.getObjectPoolSize();
+            }
+            if (!overrideDefaultInitializationExplicit) {
+                this.overrideDefaultInitialization = generatorConfig.isObjectOverrideDefaultInitialization();
+            }
+            if (!ignoreErrorsExplicit) {
+                this.ignoreErrors = generatorConfig.isObjectIgnoreErrors();
+            }
+            if (!dateRangeExplicit) {
+                this.dateMin = generatorConfig.getObjectDateMin();
+                this.dateMax = generatorConfig.getObjectDateMax();
+            }
         }
 
         /**

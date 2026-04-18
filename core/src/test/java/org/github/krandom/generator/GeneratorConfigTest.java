@@ -9,11 +9,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,6 +37,12 @@ class GeneratorConfigTest {
         assertEquals(20, c.getMaxStringLength());
         assertEquals(1, c.getMinCollectionSize());
         assertEquals(10, c.getMaxCollectionSize());
+        assertEquals(GeneratorConfig.DEFAULT_OBJECT_MAX_DEPTH, c.getObjectMaxDepth());
+        assertEquals(GeneratorConfig.DEFAULT_OBJECT_POOL_SIZE, c.getObjectPoolSize());
+        assertFalse(c.isObjectOverrideDefaultInitialization());
+        assertFalse(c.isObjectIgnoreErrors());
+        assertNull(c.getObjectDateMin());
+        assertNull(c.getObjectDateMax());
         assertEquals(Locale.US, c.getLocale());
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
     }
@@ -184,6 +193,49 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("object generation settings are stored on the root config")
+    void objectGenerationSettingsStored() {
+        LocalDate min = LocalDate.of(2021, 1, 1);
+        LocalDate max = LocalDate.of(2021, 12, 31);
+        GeneratorConfig c = GeneratorConfig.builder()
+                                           .objectMaxDepth(3)
+                                           .objectPoolSize(2)
+                                           .objectOverrideDefaultInitialization(true)
+                                           .objectIgnoreErrors(true)
+                                           .objectDateRange(min, max)
+                                           .build();
+        assertEquals(3, c.getObjectMaxDepth());
+        assertEquals(2, c.getObjectPoolSize());
+        assertTrue(c.isObjectOverrideDefaultInitialization());
+        assertTrue(c.isObjectIgnoreErrors());
+        assertEquals(min, c.getObjectDateMin());
+        assertEquals(max, c.getObjectDateMax());
+    }
+
+    @Test
+    @DisplayName("objectMaxDepth(0) throws — min must be >= 1")
+    void objectMaxDepthZeroThrows() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectMaxDepth(0));
+    }
+
+    @Test
+    @DisplayName("objectPoolSize(-1) throws — size must be >= 0")
+    void objectPoolSizeNegativeThrows() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectPoolSize(-1));
+    }
+
+    @Test
+    @DisplayName("objectDateRange(min > max) throws")
+    void objectDateRangeInvalidThrows() {
+        LocalDate min = LocalDate.of(2024, 1, 1);
+        LocalDate max = LocalDate.of(2023, 1, 1);
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectDateRange(min, max));
+    }
+
+    @Test
     @DisplayName("locale() stores the locale")
     void localeStored() {
         GeneratorConfig c = GeneratorConfig.builder().locale(Locale.GERMANY).build();
@@ -222,6 +274,11 @@ class GeneratorConfigTest {
                                               .charset(StandardCharsets.UTF_8)
                                               .stringLength(8, 16)
                                               .collectionSize(2, 4)
+                                              .objectMaxDepth(3)
+                                              .objectPoolSize(2)
+                                              .objectOverrideDefaultInitialization(true)
+                                              .objectIgnoreErrors(true)
+                                              .objectDateRange(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 12, 31))
                                               .locale(Locale.FRANCE)
                                               .randomFactory(() -> {
                                                   calls.incrementAndGet();
@@ -239,6 +296,12 @@ class GeneratorConfigTest {
         assertEquals(16, derived.getMaxStringLength());
         assertEquals(2, derived.getMinCollectionSize());
         assertEquals(4, derived.getMaxCollectionSize());
+        assertEquals(3, derived.getObjectMaxDepth());
+        assertEquals(2, derived.getObjectPoolSize());
+        assertTrue(derived.isObjectOverrideDefaultInitialization());
+        assertTrue(derived.isObjectIgnoreErrors());
+        assertEquals(LocalDate.of(2022, 1, 1), derived.getObjectDateMin());
+        assertEquals(LocalDate.of(2022, 12, 31), derived.getObjectDateMax());
         assertEquals(Locale.JAPAN, derived.getLocale());
         assertSame(context, derived.getRegistryContext());
         assertTrue(derived.getRandomFactory().isPresent());

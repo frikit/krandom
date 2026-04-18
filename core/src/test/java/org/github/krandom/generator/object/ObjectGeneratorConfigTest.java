@@ -42,6 +42,10 @@ class ObjectGeneratorConfigTest {
                                                          .locale(Locale.GERMANY)
                                                          .stringLength(8, 8)
                                                          .collectionSize(4, 4)
+                                                         .objectMaxDepth(3)
+                                                         .objectPoolSize(2)
+                                                         .objectOverrideDefaultInitialization(true)
+                                                         .objectIgnoreErrors(true)
                                                          .seed(42L)
                                                          .build();
 
@@ -50,6 +54,34 @@ class ObjectGeneratorConfigTest {
                                                                  .build();
 
         assertSame(generatorConfig, objectConfig.getGeneratorConfig());
+        assertEquals(3, objectConfig.getMaxDepth());
+        assertEquals(2, objectConfig.getObjectPoolSize());
+        assertTrue(objectConfig.isOverrideDefaultInitialization());
+        assertTrue(objectConfig.isIgnoreErrors());
+    }
+
+    @Test
+    @DisplayName("explicit object settings win over inherited GeneratorConfig defaults")
+    void explicitObjectSettingsOverrideInheritedRootDefaults() {
+        GeneratorConfig generatorConfig = GeneratorConfig.builder()
+                                                         .objectMaxDepth(2)
+                                                         .objectPoolSize(1)
+                                                         .objectOverrideDefaultInitialization(true)
+                                                         .objectIgnoreErrors(true)
+                                                         .build();
+
+        ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
+                                                                 .maxDepth(4)
+                                                                 .objectPoolSize(7)
+                                                                 .overrideDefaultInitialization(false)
+                                                                 .ignoreErrors(false)
+                                                                 .generatorConfig(generatorConfig)
+                                                                 .build();
+
+        assertEquals(4, objectConfig.getMaxDepth());
+        assertEquals(7, objectConfig.getObjectPoolSize());
+        assertFalse(objectConfig.isOverrideDefaultInitialization());
+        assertFalse(objectConfig.isIgnoreErrors());
     }
 
     @Test

@@ -8,6 +8,7 @@ package org.github.krandom.generator;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,6 +37,8 @@ public final class GeneratorConfig {
      * Stable algorithm ID used to derive {@code long} seeds from string seeds.
      */
     public static final String STRING_SEED_DERIVATION = "fnv1a64-v1";
+    public static final int    DEFAULT_OBJECT_MAX_DEPTH = 5;
+    public static final int    DEFAULT_OBJECT_POOL_SIZE = 10;
 
     private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
     private static final long FNV1A_64_PRIME        = 0x100000001b3L;
@@ -47,6 +50,12 @@ public final class GeneratorConfig {
     private final int          maxStringLength;
     private final int          minCollectionSize;
     private final int          maxCollectionSize;
+    private final int          objectMaxDepth;
+    private final int          objectPoolSize;
+    private final boolean      objectOverrideDefaultInitialization;
+    private final boolean      objectIgnoreErrors;
+    private final LocalDate    objectDateMin;
+    private final LocalDate    objectDateMax;
     private final Locale       locale;
     private final Supplier<Random> randomFactory;
     private final DataRegistryContext registryContext;
@@ -59,6 +68,12 @@ public final class GeneratorConfig {
         this.maxStringLength = b.maxStringLength;
         this.minCollectionSize = b.minCollectionSize;
         this.maxCollectionSize = b.maxCollectionSize;
+        this.objectMaxDepth = b.objectMaxDepth;
+        this.objectPoolSize = b.objectPoolSize;
+        this.objectOverrideDefaultInitialization = b.objectOverrideDefaultInitialization;
+        this.objectIgnoreErrors = b.objectIgnoreErrors;
+        this.objectDateMin = b.objectDateMin;
+        this.objectDateMax = b.objectDateMax;
         this.locale = b.locale;
         this.randomFactory = b.randomFactory;
         this.registryContext = b.registryContext;
@@ -123,6 +138,48 @@ public final class GeneratorConfig {
 
     public int getMaxCollectionSize() {
         return maxCollectionSize;
+    }
+
+    /**
+     * Maximum nesting depth used by object generation.
+     */
+    public int getObjectMaxDepth() {
+        return objectMaxDepth;
+    }
+
+    /**
+     * Maximum number of completed instances retained per type during object generation.
+     */
+    public int getObjectPoolSize() {
+        return objectPoolSize;
+    }
+
+    /**
+     * Controls whether non-default initialized fields are overwritten during object generation.
+     */
+    public boolean isObjectOverrideDefaultInitialization() {
+        return objectOverrideDefaultInitialization;
+    }
+
+    /**
+     * Controls whether object-generation population errors are swallowed.
+     */
+    public boolean isObjectIgnoreErrors() {
+        return objectIgnoreErrors;
+    }
+
+    /**
+     * Earliest date used for object-generated temporal fields, or {@code null} for built-in defaults.
+     */
+    public LocalDate getObjectDateMin() {
+        return objectDateMin;
+    }
+
+    /**
+     * Latest date used for object-generated temporal fields, or {@code null} for built-in defaults.
+     */
+    public LocalDate getObjectDateMax() {
+        return objectDateMax;
     }
 
     /**
@@ -210,6 +267,12 @@ public final class GeneratorConfig {
         private int               maxStringLength   = 20;
         private int               minCollectionSize = 1;
         private int               maxCollectionSize = 10;
+        private int               objectMaxDepth    = DEFAULT_OBJECT_MAX_DEPTH;
+        private int               objectPoolSize    = DEFAULT_OBJECT_POOL_SIZE;
+        private boolean           objectOverrideDefaultInitialization;
+        private boolean           objectIgnoreErrors;
+        private LocalDate         objectDateMin;
+        private LocalDate         objectDateMax;
         private Locale            locale            = Locale.US;
         private Supplier<Random>  randomFactory;
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
@@ -225,6 +288,12 @@ public final class GeneratorConfig {
             this.maxStringLength = source.maxStringLength;
             this.minCollectionSize = source.minCollectionSize;
             this.maxCollectionSize = source.maxCollectionSize;
+            this.objectMaxDepth = source.objectMaxDepth;
+            this.objectPoolSize = source.objectPoolSize;
+            this.objectOverrideDefaultInitialization = source.objectOverrideDefaultInitialization;
+            this.objectIgnoreErrors = source.objectIgnoreErrors;
+            this.objectDateMin = source.objectDateMin;
+            this.objectDateMax = source.objectDateMax;
             this.locale = source.locale;
             this.randomFactory = source.randomFactory;
             this.registryContext = source.registryContext;
@@ -288,6 +357,58 @@ public final class GeneratorConfig {
             if (max < min) throw new IllegalArgumentException("max collection size must be >= min");
             this.minCollectionSize = min;
             this.maxCollectionSize = max;
+            return this;
+        }
+
+        /**
+         * Maximum nesting depth for object generation.
+         */
+        public Builder objectMaxDepth(int objectMaxDepth) {
+            if (objectMaxDepth < 1) {
+                throw new IllegalArgumentException("objectMaxDepth must be >= 1");
+            }
+            this.objectMaxDepth = objectMaxDepth;
+            return this;
+        }
+
+        /**
+         * Maximum number of completed instances retained per type for cycle handling.
+         */
+        public Builder objectPoolSize(int objectPoolSize) {
+            if (objectPoolSize < 0) {
+                throw new IllegalArgumentException("objectPoolSize must be >= 0");
+            }
+            this.objectPoolSize = objectPoolSize;
+            return this;
+        }
+
+        /**
+         * Controls whether non-default initialized fields are overwritten during object generation.
+         */
+        public Builder objectOverrideDefaultInitialization(boolean objectOverrideDefaultInitialization) {
+            this.objectOverrideDefaultInitialization = objectOverrideDefaultInitialization;
+            return this;
+        }
+
+        /**
+         * Controls whether object-generation population errors are swallowed.
+         */
+        public Builder objectIgnoreErrors(boolean objectIgnoreErrors) {
+            this.objectIgnoreErrors = objectIgnoreErrors;
+            return this;
+        }
+
+        /**
+         * Global date range for object-generated temporal fields.
+         */
+        public Builder objectDateRange(LocalDate min, LocalDate max) {
+            Objects.requireNonNull(min, "min must not be null");
+            Objects.requireNonNull(max, "max must not be null");
+            if (min.isAfter(max)) {
+                throw new IllegalArgumentException("objectDateMin must be <= objectDateMax, got " + min + " > " + max);
+            }
+            this.objectDateMin = min;
+            this.objectDateMax = max;
             return this;
         }
 
