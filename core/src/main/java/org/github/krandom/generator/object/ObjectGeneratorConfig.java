@@ -14,10 +14,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -46,6 +48,11 @@ public final class ObjectGeneratorConfig {
     private final int     objectPoolSize;
     private final boolean overrideDefaultInitialization;
     private final boolean ignoreErrors;
+    private final ObjectGenerationSemanticMode semanticMode;
+    private final double                       nullProbability;
+    private final double                       optionalEmptyProbability;
+    private final Set<String>                  uniqueFieldNames;
+    private final int                          uniquenessMaxAttempts;
 
     /**
      * Global date range applied to all JSR-310 date/time fields.
@@ -94,6 +101,11 @@ public final class ObjectGeneratorConfig {
         this.objectPoolSize = b.objectPoolSize;
         this.overrideDefaultInitialization = b.overrideDefaultInitialization;
         this.ignoreErrors = b.ignoreErrors;
+        this.semanticMode = b.semanticMode;
+        this.nullProbability = b.nullProbability;
+        this.optionalEmptyProbability = b.optionalEmptyProbability;
+        this.uniqueFieldNames = Collections.unmodifiableSet(new LinkedHashSet<>(b.uniqueFieldNames));
+        this.uniquenessMaxAttempts = b.uniquenessMaxAttempts;
         this.dateMin = b.dateMin;
         this.dateMax = b.dateMax;
         this.typeOverrides = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
@@ -173,6 +185,41 @@ public final class ObjectGeneratorConfig {
      */
     public boolean isIgnoreErrors() {
         return ignoreErrors;
+    }
+
+    /**
+     * Semantic mode used by object generation.
+     */
+    public ObjectGenerationSemanticMode getSemanticMode() {
+        return semanticMode;
+    }
+
+    /**
+     * Probability that a nullable reference field resolves to {@code null}.
+     */
+    public double getNullProbability() {
+        return nullProbability;
+    }
+
+    /**
+     * Probability that an {@code Optional<T>} field resolves to {@code Optional.empty()}.
+     */
+    public double getOptionalEmptyProbability() {
+        return optionalEmptyProbability;
+    }
+
+    /**
+     * Normalized field names that should be unique within one generator sequence.
+     */
+    public Set<String> getUniqueFieldNames() {
+        return uniqueFieldNames;
+    }
+
+    /**
+     * Maximum attempts used when generating a unique field value.
+     */
+    public int getUniquenessMaxAttempts() {
+        return uniquenessMaxAttempts;
     }
 
     /**
@@ -279,12 +326,24 @@ public final class ObjectGeneratorConfig {
         private       int                                   objectPoolSize                = DEFAULT_OBJECT_POOL_SIZE;
         private       boolean                               overrideDefaultInitialization = false;
         private       boolean                               ignoreErrors                  = false;
+        private       ObjectGenerationSemanticMode          semanticMode                  = ObjectGenerationSemanticMode.RELAXED;
+        private       double                                nullProbability;
+        private       double                                optionalEmptyProbability;
+        private       Set<String>                           uniqueFieldNames              =
+            new LinkedHashSet<>(GeneratorConfig.defaults().getObjectUniqueFieldNames());
+        private       int                                   uniquenessMaxAttempts         =
+            GeneratorConfig.defaults().getObjectUniquenessMaxAttempts();
         private       LocalDate                             dateMin                       = null;
         private       LocalDate                             dateMax                       = null;
         private       boolean                               maxDepthExplicit;
         private       boolean                               objectPoolSizeExplicit;
         private       boolean                               overrideDefaultInitializationExplicit;
         private       boolean                               ignoreErrorsExplicit;
+        private       boolean                               semanticModeExplicit;
+        private       boolean                               nullProbabilityExplicit;
+        private       boolean                               optionalEmptyProbabilityExplicit;
+        private       boolean                               uniqueFieldNamesExplicit;
+        private       boolean                               uniquenessMaxAttemptsExplicit;
         private       boolean                               dateRangeExplicit;
 
         private Builder() {
@@ -296,12 +355,22 @@ public final class ObjectGeneratorConfig {
             this.objectPoolSize = source.objectPoolSize;
             this.overrideDefaultInitialization = source.overrideDefaultInitialization;
             this.ignoreErrors = source.ignoreErrors;
+            this.semanticMode = source.semanticMode;
+            this.nullProbability = source.nullProbability;
+            this.optionalEmptyProbability = source.optionalEmptyProbability;
+            this.uniqueFieldNames = new LinkedHashSet<>(source.uniqueFieldNames);
+            this.uniquenessMaxAttempts = source.uniquenessMaxAttempts;
             this.dateMin = source.dateMin;
             this.dateMax = source.dateMax;
             this.maxDepthExplicit = true;
             this.objectPoolSizeExplicit = true;
             this.overrideDefaultInitializationExplicit = true;
             this.ignoreErrorsExplicit = true;
+            this.semanticModeExplicit = true;
+            this.nullProbabilityExplicit = true;
+            this.optionalEmptyProbabilityExplicit = true;
+            this.uniqueFieldNamesExplicit = true;
+            this.uniquenessMaxAttemptsExplicit = true;
             this.dateRangeExplicit = source.dateMin != null || source.dateMax != null;
             this.typeOverrides.putAll(source.typeOverrides);
             this.fieldOverrides.putAll(source.fieldOverrides);
@@ -353,6 +422,68 @@ public final class ObjectGeneratorConfig {
         public Builder overrideDefaultInitialization(boolean overrideDefaultInitialization) {
             this.overrideDefaultInitialization = overrideDefaultInitialization;
             this.overrideDefaultInitializationExplicit = true;
+            return this;
+        }
+
+        /**
+         * Controls how strongly semantic field-name matching influences object generation.
+         */
+        public Builder semanticMode(ObjectGenerationSemanticMode semanticMode) {
+            this.semanticMode = Objects.requireNonNull(semanticMode, "semanticMode");
+            this.semanticModeExplicit = true;
+            return this;
+        }
+
+        /**
+         * Sets the probability that nullable reference fields resolve to {@code null}.
+         */
+        public Builder nullProbability(double nullProbability) {
+            this.nullProbability = requireProbability("nullProbability", nullProbability);
+            this.nullProbabilityExplicit = true;
+            return this;
+        }
+
+        /**
+         * Sets the probability that {@code Optional<T>} fields resolve to {@code Optional.empty()}.
+         */
+        public Builder optionalEmptyProbability(double optionalEmptyProbability) {
+            this.optionalEmptyProbability = requireProbability("optionalEmptyProbability", optionalEmptyProbability);
+            this.optionalEmptyProbabilityExplicit = true;
+            return this;
+        }
+
+        /**
+         * Replaces the normalized field names that should be unique within one generator sequence.
+         */
+        public Builder uniqueFields(String... fieldNames) {
+            Objects.requireNonNull(fieldNames, "fieldNames");
+            LinkedHashSet<String> normalized = new LinkedHashSet<>();
+            for (String fieldName : fieldNames) {
+                normalized.add(normalizeFieldName(fieldName));
+            }
+            this.uniqueFieldNames = normalized;
+            this.uniqueFieldNamesExplicit = true;
+            return this;
+        }
+
+        /**
+         * Adds one field name to the uniqueness set.
+         */
+        public Builder uniqueField(String fieldName) {
+            this.uniqueFieldNames.add(normalizeFieldName(fieldName));
+            this.uniqueFieldNamesExplicit = true;
+            return this;
+        }
+
+        /**
+         * Maximum attempts used when generating unique field values.
+         */
+        public Builder uniquenessMaxAttempts(int uniquenessMaxAttempts) {
+            if (uniquenessMaxAttempts < 1) {
+                throw new IllegalArgumentException("uniquenessMaxAttempts must be >= 1");
+            }
+            this.uniquenessMaxAttempts = uniquenessMaxAttempts;
+            this.uniquenessMaxAttemptsExplicit = true;
             return this;
         }
 
@@ -489,10 +620,47 @@ public final class ObjectGeneratorConfig {
             if (!ignoreErrorsExplicit) {
                 this.ignoreErrors = generatorConfig.isObjectIgnoreErrors();
             }
+            if (!semanticModeExplicit) {
+                this.semanticMode = generatorConfig.getObjectSemanticMode();
+            }
+            if (!nullProbabilityExplicit) {
+                this.nullProbability = generatorConfig.getObjectNullProbability();
+            }
+            if (!optionalEmptyProbabilityExplicit) {
+                this.optionalEmptyProbability = generatorConfig.getObjectOptionalEmptyProbability();
+            }
+            if (!uniqueFieldNamesExplicit) {
+                this.uniqueFieldNames = new LinkedHashSet<>(generatorConfig.getObjectUniqueFieldNames());
+            }
+            if (!uniquenessMaxAttemptsExplicit) {
+                this.uniquenessMaxAttempts = generatorConfig.getObjectUniquenessMaxAttempts();
+            }
             if (!dateRangeExplicit) {
                 this.dateMin = generatorConfig.getObjectDateMin();
                 this.dateMax = generatorConfig.getObjectDateMax();
             }
+        }
+
+        private static double requireProbability(String name, double value) {
+            if (Double.isNaN(value) || value < 0.0 || value > 1.0) {
+                throw new IllegalArgumentException(name + " must be between 0.0 and 1.0");
+            }
+            return value;
+        }
+
+        private static String normalizeFieldName(String fieldName) {
+            Objects.requireNonNull(fieldName, "fieldName");
+            StringBuilder normalized = new StringBuilder(fieldName.length());
+            for (int i = 0; i < fieldName.length(); i++) {
+                char ch = fieldName.charAt(i);
+                if (Character.isLetterOrDigit(ch)) {
+                    normalized.append(Character.toLowerCase(ch));
+                }
+            }
+            if (normalized.isEmpty()) {
+                throw new IllegalArgumentException("fieldName must contain at least one letter or digit");
+            }
+            return normalized.toString();
         }
 
         /**

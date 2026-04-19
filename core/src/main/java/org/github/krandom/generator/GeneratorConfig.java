@@ -5,15 +5,20 @@
  */
 package org.github.krandom.generator;
 
+import org.github.krandom.generator.object.ObjectGenerationSemanticMode;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -39,6 +44,7 @@ public final class GeneratorConfig {
     public static final String STRING_SEED_DERIVATION = "fnv1a64-v1";
     public static final int    DEFAULT_OBJECT_MAX_DEPTH = 5;
     public static final int    DEFAULT_OBJECT_POOL_SIZE = 10;
+    private static final int   DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS = 256;
 
     private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
     private static final long FNV1A_64_PRIME        = 0x100000001b3L;
@@ -56,6 +62,11 @@ public final class GeneratorConfig {
     private final boolean      objectIgnoreErrors;
     private final LocalDate    objectDateMin;
     private final LocalDate    objectDateMax;
+    private final ObjectGenerationSemanticMode objectSemanticMode;
+    private final double       objectNullProbability;
+    private final double       objectOptionalEmptyProbability;
+    private final Set<String>  objectUniqueFieldNames;
+    private final int          objectUniquenessMaxAttempts;
     private final Locale       locale;
     private final Supplier<Random> randomFactory;
     private final DataRegistryContext registryContext;
@@ -74,6 +85,11 @@ public final class GeneratorConfig {
         this.objectIgnoreErrors = b.objectIgnoreErrors;
         this.objectDateMin = b.objectDateMin;
         this.objectDateMax = b.objectDateMax;
+        this.objectSemanticMode = b.objectSemanticMode;
+        this.objectNullProbability = b.objectNullProbability;
+        this.objectOptionalEmptyProbability = b.objectOptionalEmptyProbability;
+        this.objectUniqueFieldNames = Collections.unmodifiableSet(new LinkedHashSet<>(b.objectUniqueFieldNames));
+        this.objectUniquenessMaxAttempts = b.objectUniquenessMaxAttempts;
         this.locale = b.locale;
         this.randomFactory = b.randomFactory;
         this.registryContext = b.registryContext;
@@ -183,6 +199,41 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Semantic mode used by object generation.
+     */
+    public ObjectGenerationSemanticMode getObjectSemanticMode() {
+        return objectSemanticMode;
+    }
+
+    /**
+     * Probability that a nullable reference field resolves to {@code null}.
+     */
+    public double getObjectNullProbability() {
+        return objectNullProbability;
+    }
+
+    /**
+     * Probability that an {@code Optional<T>} field resolves to {@code Optional.empty()}.
+     */
+    public double getObjectOptionalEmptyProbability() {
+        return objectOptionalEmptyProbability;
+    }
+
+    /**
+     * Field names that should be unique within one object-generator sequence.
+     */
+    public Set<String> getObjectUniqueFieldNames() {
+        return objectUniqueFieldNames;
+    }
+
+    /**
+     * Maximum attempts used when generating a unique object field value.
+     */
+    public int getObjectUniquenessMaxAttempts() {
+        return objectUniquenessMaxAttempts;
+    }
+
+    /**
      * Locale for locale-aware generators (names, addresses, etc.). Default: {@link Locale#US}.
      */
     public Locale getLocale() {
@@ -273,6 +324,12 @@ public final class GeneratorConfig {
         private boolean           objectIgnoreErrors;
         private LocalDate         objectDateMin;
         private LocalDate         objectDateMax;
+        private ObjectGenerationSemanticMode objectSemanticMode = ObjectGenerationSemanticMode.RELAXED;
+        private double            objectNullProbability;
+        private double            objectOptionalEmptyProbability;
+        private Set<String>       objectUniqueFieldNames = new LinkedHashSet<>(
+            Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid"));
+        private int               objectUniquenessMaxAttempts = DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS;
         private Locale            locale            = Locale.US;
         private Supplier<Random>  randomFactory;
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
@@ -294,6 +351,11 @@ public final class GeneratorConfig {
             this.objectIgnoreErrors = source.objectIgnoreErrors;
             this.objectDateMin = source.objectDateMin;
             this.objectDateMax = source.objectDateMax;
+            this.objectSemanticMode = source.objectSemanticMode;
+            this.objectNullProbability = source.objectNullProbability;
+            this.objectOptionalEmptyProbability = source.objectOptionalEmptyProbability;
+            this.objectUniqueFieldNames = new LinkedHashSet<>(source.objectUniqueFieldNames);
+            this.objectUniquenessMaxAttempts = source.objectUniquenessMaxAttempts;
             this.locale = source.locale;
             this.randomFactory = source.randomFactory;
             this.registryContext = source.registryContext;
@@ -413,6 +475,63 @@ public final class GeneratorConfig {
         }
 
         /**
+         * Controls how strongly semantic field-name matching influences object generation.
+         */
+        public Builder objectSemanticMode(ObjectGenerationSemanticMode objectSemanticMode) {
+            this.objectSemanticMode = Objects.requireNonNull(objectSemanticMode, "objectSemanticMode");
+            return this;
+        }
+
+        /**
+         * Sets the probability that nullable reference fields are generated as {@code null}.
+         */
+        public Builder objectNullProbability(double objectNullProbability) {
+            this.objectNullProbability = requireProbability("objectNullProbability", objectNullProbability);
+            return this;
+        }
+
+        /**
+         * Sets the probability that {@code Optional<T>} fields are generated as {@code Optional.empty()}.
+         */
+        public Builder objectOptionalEmptyProbability(double objectOptionalEmptyProbability) {
+            this.objectOptionalEmptyProbability =
+                requireProbability("objectOptionalEmptyProbability", objectOptionalEmptyProbability);
+            return this;
+        }
+
+        /**
+         * Replaces the set of field names that should be unique within one object-generator sequence.
+         */
+        public Builder objectUniqueFields(String... fieldNames) {
+            Objects.requireNonNull(fieldNames, "fieldNames");
+            LinkedHashSet<String> normalized = new LinkedHashSet<>();
+            for (String fieldName : fieldNames) {
+                normalized.add(normalizeObjectFieldName(fieldName));
+            }
+            this.objectUniqueFieldNames = normalized;
+            return this;
+        }
+
+        /**
+         * Adds one field name to the object-level uniqueness set.
+         */
+        public Builder objectUniqueField(String fieldName) {
+            this.objectUniqueFieldNames.add(normalizeObjectFieldName(fieldName));
+            return this;
+        }
+
+        /**
+         * Maximum attempts used when generating a unique object field value.
+         */
+        public Builder objectUniquenessMaxAttempts(int objectUniquenessMaxAttempts) {
+            if (objectUniquenessMaxAttempts < 1) {
+                throw new IllegalArgumentException("objectUniquenessMaxAttempts must be >= 1");
+            }
+            this.objectUniquenessMaxAttempts = objectUniquenessMaxAttempts;
+            return this;
+        }
+
+        /**
          * Locale for locale-aware generators (names, addresses, phone numbers, etc.).
          */
         public Builder locale(Locale locale) {
@@ -426,6 +545,28 @@ public final class GeneratorConfig {
         public Builder registryContext(DataRegistryContext registryContext) {
             this.registryContext = Objects.requireNonNull(registryContext, "registryContext");
             return this;
+        }
+
+        private static double requireProbability(String name, double value) {
+            if (Double.isNaN(value) || value < 0.0 || value > 1.0) {
+                throw new IllegalArgumentException(name + " must be between 0.0 and 1.0");
+            }
+            return value;
+        }
+
+        private static String normalizeObjectFieldName(String fieldName) {
+            Objects.requireNonNull(fieldName, "fieldName");
+            StringBuilder normalized = new StringBuilder(fieldName.length());
+            for (int i = 0; i < fieldName.length(); i++) {
+                char ch = fieldName.charAt(i);
+                if (Character.isLetterOrDigit(ch)) {
+                    normalized.append(Character.toLowerCase(ch));
+                }
+            }
+            if (normalized.isEmpty()) {
+                throw new IllegalArgumentException("fieldName must contain at least one letter or digit");
+            }
+            return normalized.toString();
         }
 
         public GeneratorConfig build() {

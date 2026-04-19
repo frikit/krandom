@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -31,6 +32,12 @@ class ObjectGeneratorConfigTest {
         assertEquals(Locale.US, c.getGeneratorConfig().getLocale());
         assertFalse(c.isOverrideDefaultInitialization());
         assertFalse(c.isIgnoreErrors());
+        assertEquals(ObjectGenerationSemanticMode.RELAXED, c.getSemanticMode());
+        assertEquals(0.0, c.getNullProbability());
+        assertEquals(0.0, c.getOptionalEmptyProbability());
+        assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid"),
+                     c.getUniqueFieldNames());
+        assertEquals(256, c.getUniquenessMaxAttempts());
         assertTrue(c.getTypeOverride(String.class).isEmpty());
         assertTrue(c.getFieldOverride(String.class, "value").isEmpty());
     }
@@ -46,6 +53,11 @@ class ObjectGeneratorConfigTest {
                                                          .objectPoolSize(2)
                                                          .objectOverrideDefaultInitialization(true)
                                                          .objectIgnoreErrors(true)
+                                                         .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                                         .objectNullProbability(0.25)
+                                                         .objectOptionalEmptyProbability(0.5)
+                                                         .objectUniqueFields("email", "accountId")
+                                                         .objectUniquenessMaxAttempts(7)
                                                          .seed(42L)
                                                          .build();
 
@@ -58,6 +70,11 @@ class ObjectGeneratorConfigTest {
         assertEquals(2, objectConfig.getObjectPoolSize());
         assertTrue(objectConfig.isOverrideDefaultInitialization());
         assertTrue(objectConfig.isIgnoreErrors());
+        assertEquals(ObjectGenerationSemanticMode.STRICT, objectConfig.getSemanticMode());
+        assertEquals(0.25, objectConfig.getNullProbability());
+        assertEquals(0.5, objectConfig.getOptionalEmptyProbability());
+        assertEquals(Set.of("email", "accountid"), objectConfig.getUniqueFieldNames());
+        assertEquals(7, objectConfig.getUniquenessMaxAttempts());
     }
 
     @Test
@@ -68,6 +85,11 @@ class ObjectGeneratorConfigTest {
                                                          .objectPoolSize(1)
                                                          .objectOverrideDefaultInitialization(true)
                                                          .objectIgnoreErrors(true)
+                                                         .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                                         .objectNullProbability(0.4)
+                                                         .objectOptionalEmptyProbability(0.6)
+                                                         .objectUniqueFields("email")
+                                                         .objectUniquenessMaxAttempts(9)
                                                          .build();
 
         ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
@@ -75,6 +97,11 @@ class ObjectGeneratorConfigTest {
                                                                  .objectPoolSize(7)
                                                                  .overrideDefaultInitialization(false)
                                                                  .ignoreErrors(false)
+                                                                 .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                                                 .nullProbability(0.1)
+                                                                 .optionalEmptyProbability(0.2)
+                                                                 .uniqueFields("username")
+                                                                 .uniquenessMaxAttempts(3)
                                                                  .generatorConfig(generatorConfig)
                                                                  .build();
 
@@ -82,6 +109,11 @@ class ObjectGeneratorConfigTest {
         assertEquals(7, objectConfig.getObjectPoolSize());
         assertFalse(objectConfig.isOverrideDefaultInitialization());
         assertFalse(objectConfig.isIgnoreErrors());
+        assertEquals(ObjectGenerationSemanticMode.STRUCTURAL_ONLY, objectConfig.getSemanticMode());
+        assertEquals(0.1, objectConfig.getNullProbability());
+        assertEquals(0.2, objectConfig.getOptionalEmptyProbability());
+        assertEquals(Set.of("username"), objectConfig.getUniqueFieldNames());
+        assertEquals(3, objectConfig.getUniquenessMaxAttempts());
     }
 
     @Test
@@ -174,6 +206,29 @@ class ObjectGeneratorConfigTest {
     void generatorConfigNullThrows() {
         assertThrows(NullPointerException.class,
                      () -> ObjectGeneratorConfig.builder().generatorConfig(null));
+    }
+
+    @Test
+    @DisplayName("semantic and nullability controls are stored and validated")
+    void semanticAndNullabilityControlsStored() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .semanticMode(ObjectGenerationSemanticMode.STRICT)
+                                                            .nullProbability(0.25)
+                                                            .optionalEmptyProbability(0.5)
+                                                            .uniqueFields("Email", "account_id")
+                                                            .uniquenessMaxAttempts(5)
+                                                            .build();
+        assertEquals(ObjectGenerationSemanticMode.STRICT, config.getSemanticMode());
+        assertEquals(0.25, config.getNullProbability());
+        assertEquals(0.5, config.getOptionalEmptyProbability());
+        assertEquals(Set.of("email", "accountid"), config.getUniqueFieldNames());
+        assertEquals(5, config.getUniquenessMaxAttempts());
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectGeneratorConfig.builder().nullProbability(1.1));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectGeneratorConfig.builder().optionalEmptyProbability(-0.1));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectGeneratorConfig.builder().uniquenessMaxAttempts(0));
     }
 
     @Test

@@ -113,6 +113,20 @@ class ObjectGeneratorTest {
         private String uuid;
     }
 
+    static class NullableReferences {
+
+        private String  label;
+        private Address address;
+
+        String getLabel() {
+            return label;
+        }
+
+        Address getAddress() {
+            return address;
+        }
+    }
+
     static class DepthOuter {
 
         private DepthMiddle middle;
@@ -414,6 +428,19 @@ class ObjectGeneratorTest {
             assertFalse(scheduledAt.isBefore(min));
             assertFalse(scheduledAt.isAfter(max));
         }
+
+        @Test
+        @DisplayName("root null probability can null out nullable reference fields")
+        void generatorConfigAppliesNullProbability() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .objectNullProbability(1.0)
+                                                    .build();
+
+            NullableReferences value = new ObjectGenerator<>(NullableReferences.class, config).generate();
+
+            assertNull(value.getLabel());
+            assertNull(value.getAddress());
+        }
     }
 
     @Nested
@@ -438,6 +465,22 @@ class ObjectGeneratorTest {
             assertTrue(profile.url.contains("://"));
             assertTrue(profile.domain.contains("."));
             assertDoesNotThrow(() -> UUID.fromString(profile.uuid));
+        }
+
+        @Test
+        @DisplayName("default unique semantic fields stay unique across one generator sequence")
+        void defaultUniqueSemanticFieldsStayUniqueAcrossSequence() {
+            ObjectGenerator<SemanticProfile> generator = new ObjectGenerator<>(SemanticProfile.class);
+            Set<String> emails = new HashSet<>();
+            Set<String> usernames = new HashSet<>();
+            Set<String> uuids = new HashSet<>();
+
+            for (int i = 0; i < 50; i++) {
+                SemanticProfile profile = generator.generate();
+                assertTrue(emails.add(profile.email), "duplicate email generated: " + profile.email);
+                assertTrue(usernames.add(profile.username), "duplicate username generated: " + profile.username);
+                assertTrue(uuids.add(profile.uuid), "duplicate uuid generated: " + profile.uuid);
+            }
         }
     }
 

@@ -21,6 +21,9 @@ UserDto dto = gen.generate();
 GeneratorConfig cfg = GeneratorConfig.builder()
         .locale(Locale.US)
         .objectMaxDepth(2)
+        .objectSemanticMode(ObjectGenerationSemanticMode.RELAXED)
+        .objectNullProbability(0.10)
+        .objectOptionalEmptyProbability(0.25)
         .objectDateRange(LocalDate.of(2020, 1, 1), LocalDate.of(2023, 12, 31))
         .build();
 
@@ -41,6 +44,12 @@ OrderDto order = orders.generate();
 ```
 
 Use `ObjectGeneratorConfig` when you need field overrides, exclusions, or other object-only controls on top of the shared root config.
+
+Semantic modes:
+
+- `RELAXED`: use semantic field names when available, but let annotations and bean validation win.
+- `STRICT`: semantic field names win whenever a semantic match exists.
+- `STRUCTURAL_ONLY`: disable field-name semantics and use type-based generation only.
 
 ## When to use
 

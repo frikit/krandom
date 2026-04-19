@@ -49,6 +49,18 @@ class ObjectGeneratorOptionalTest {
         assertTrue(value.getRaw().isEmpty());
     }
 
+    @Test
+    @DisplayName("optionalEmptyProbability(1.0) forces Optional.empty for typed fields")
+    void optionalEmptyProbabilityForcesEmpty() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .optionalEmptyProbability(1.0)
+                                                            .build();
+        OptionalHolder value = new ObjectGenerator<>(OptionalHolder.class, config).generate();
+        assertTrue(value.getName().isEmpty());
+        assertTrue(value.getAge().isEmpty());
+        assertTrue(value.getAddress().isEmpty());
+    }
+
 
     static class OptionalHolder {
 

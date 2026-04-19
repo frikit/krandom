@@ -73,6 +73,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private final Class<T>              type;
     private final ObjectGeneratorConfig config;
     private final ObjectPool            pool;
+    private final UniqueFieldTracker    uniqueFieldTracker;
     private final int                   depth;
     private final Long                  generationSeed;
     private final Random                topLevelSeedSequence;
@@ -97,18 +98,24 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Creates a generator with custom configuration.
      */
     public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
-        this(type, config, 0, null, null);
+        this(type, config, 0, null, null, new UniqueFieldTracker());
     }
 
     /**
      * Internal constructor — depth and pool are managed by {@link FieldGeneratorResolver}.
      */
-    ObjectGenerator(Class<T> type, ObjectGeneratorConfig config, int depth, ObjectPool pool, Long generationSeed) {
+    ObjectGenerator(Class<T> type,
+                    ObjectGeneratorConfig config,
+                    int depth,
+                    ObjectPool pool,
+                    Long generationSeed,
+                    UniqueFieldTracker uniqueFieldTracker) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.depth = depth;
         this.pool = pool;
         this.generationSeed = generationSeed;
+        this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
         this.topLevelSeedSequence = depth == 0 && pool == null
                                     ? config.getGeneratorConfig().getSeed().isPresent()
                                       ? new Random(config.getGeneratorConfig().getSeed().getAsLong())
@@ -147,7 +154,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (depth == 0 && pool == null) {
             // Fresh pool for each top-level generation call to prevent cross-call leakage.
             ObjectGenerator<T> scoped = new ObjectGenerator<>(
-                type, config, 0, new ObjectPool(config.getObjectPoolSize()), nextGenerationSeed());
+                type, config, 0, new ObjectPool(config.getObjectPoolSize()), nextGenerationSeed(), uniqueFieldTracker);
             return scoped.generateWithPool();
         }
         return generateWithPool();
@@ -157,7 +164,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private T generateWithPool() {
         FieldGeneratorResolver resolver =
-            new FieldGeneratorResolver(config, Objects.requireNonNull(pool, "pool must not be null"), generationSeed);
+            new FieldGeneratorResolver(
+                config,
+                Objects.requireNonNull(pool, "pool must not be null"),
+                uniqueFieldTracker,
+                generationSeed);
         try {
             return type.isRecord() ? generateRecord(resolver) : generateClass(resolver);
         } catch (ReflectiveOperationException e) {

@@ -119,7 +119,8 @@ import java.util.function.Supplier;
  *   <li>{@code List<T>} or {@code Set<T>}: auto-populated with the shared collection-size defaults
  *       and elements resolved from the declared generic element type</li>
  *   <li>{@code Map<K,V>}: auto-populated with the shared collection-size defaults</li>
- *   <li>{@code Optional<T>}: populated as {@code Optional.ofNullable(value)}</li>
+ *   <li>{@code Optional<T>}: populated as {@code Optional.ofNullable(value)}, optionally
+ *       respecting the configured empty-rate</li>
  *   <li>Depth guard: if {@code currentDepth >= maxDepth} return primitive zero / {@code null}</li>
  *   <li>Nested class or record: delegate to a child {@link ObjectGenerator} (cycle-safe via
  *       {@link ObjectPool})</li>
@@ -172,17 +173,26 @@ final class FieldGeneratorResolver {
     private final ObjectGeneratorConfig config;
     private final GeneratorConfig       generatorConfig;
     private final ObjectPool            pool;
+    private final UniqueFieldTracker    uniqueFieldTracker;
     private final Random                sequenceRandom;
     private final Map<Class<?>, Generator<?>> builtins;
     private final Map<String, Generator<?>>   semanticStringGenerators;
+    private final ObjectGenerationSemanticMode semanticMode;
+    private final Set<String>                 uniqueFieldNames;
 
-    FieldGeneratorResolver(ObjectGeneratorConfig config, ObjectPool pool, Long generationSeed) {
+    FieldGeneratorResolver(ObjectGeneratorConfig config,
+                           ObjectPool pool,
+                           UniqueFieldTracker uniqueFieldTracker,
+                           Long generationSeed) {
         this.config = config;
         this.generatorConfig = config.getGeneratorConfig();
         this.pool = pool;
+        this.uniqueFieldTracker = uniqueFieldTracker;
         this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
         this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
         this.semanticStringGenerators = buildSemanticStringGenerators(this.generatorConfig, this.sequenceRandom);
+        this.semanticMode = config.getSemanticMode();
+        this.uniqueFieldNames = config.getUniqueFieldNames();
     }
 
     private static Map<Class<?>, Generator<?>> buildBuiltins(ObjectGeneratorConfig cfg,
@@ -557,10 +567,43 @@ final class FieldGeneratorResolver {
     }
 
     private Generator<?> semanticGeneratorFor(Class<?> rawType, String fieldName) {
+        if (semanticMode == ObjectGenerationSemanticMode.STRUCTURAL_ONLY) {
+            return null;
+        }
         if (rawType != String.class) {
             return null;
         }
         return semanticStringGenerators.get(normalizeFieldName(fieldName));
+    }
+
+    private Object generateWithUniqueness(String fieldName, Generator<?> generator) {
+        String normalizedFieldName = normalizeFieldName(fieldName);
+        if (!uniqueFieldNames.contains(normalizedFieldName)) {
+            return generator.generate();
+        }
+        return uniqueFieldTracker.nextUnique(
+            normalizedFieldName,
+            generator::generate,
+            config.getUniquenessMaxAttempts());
+    }
+
+    private boolean shouldReturnNull(AnnotatedElement element, Class<?> rawType, Generator<?> annotationGenerator, Generator<?> bvGen) {
+        if (element == null || rawType.isPrimitive() || rawType == Optional.class) {
+            return false;
+        }
+        if (annotationGenerator != null || bvGen != null) {
+            return false;
+        }
+        double probability = config.getNullProbability();
+        return probability > 0.0 && sequenceRandom.nextDouble() < probability;
+    }
+
+    private boolean shouldReturnEmptyOptional(AnnotatedElement element) {
+        if (element == null) {
+            return false;
+        }
+        double probability = config.getOptionalEmptyProbability();
+        return probability > 0.0 && sequenceRandom.nextDouble() < probability;
     }
 
     // ── Primary entry point ───────────────────────────────────────────────────
@@ -803,8 +846,25 @@ final class FieldGeneratorResolver {
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────
         Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
-        if (semanticGenerator != null && annotationGenerator == null && bvGen == null) {
-            return semanticGenerator.generate();
+        if (semanticGenerator != null
+            && (semanticMode == ObjectGenerationSemanticMode.STRICT
+                || (semanticMode == ObjectGenerationSemanticMode.RELAXED
+                    && annotationGenerator == null
+                    && bvGen == null))) {
+            return generateWithUniqueness(fieldName, semanticGenerator);
+        }
+
+        // ── 3aa. Configured null/optional behavior ────────────────────────────
+        if (Optional.class == rawType) {
+            if (shouldReturnEmptyOptional(element)) {
+                return Optional.empty();
+            }
+            Class<?> valueType = typeArg(genericType, 0);
+            Object value = resolveAndGenerate(valueType, valueType, fieldName + ".value", ownerType, currentDepth, null);
+            return Optional.ofNullable(value);
+        }
+        if (shouldReturnNull(element, rawType, annotationGenerator, bvGen)) {
+            return null;
         }
 
         // ── 3b. Declarative @Randomizer override ─────────────────────────────
@@ -820,7 +880,7 @@ final class FieldGeneratorResolver {
         // ── 4. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
         var builtin = builtins.get(rawType);
         if (builtin != null) {
-            return builtin.generate();
+            return generateWithUniqueness(fieldName, builtin);
         }
 
         // ── 5. Enum ───────────────────────────────────────────────────────────
@@ -828,7 +888,7 @@ final class FieldGeneratorResolver {
             Object[] constants = rawType.getEnumConstants();
             if (constants.length == 0) return null;
             Long enumSeed = nextDeterministicSeed(generatorConfig, sequenceRandom);
-            return new EnumGenerator((Class<? extends Enum>) rawType, enumSeed).generate();
+            return generateWithUniqueness(fieldName, new EnumGenerator((Class<? extends Enum>) rawType, enumSeed));
         }
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
@@ -877,13 +937,6 @@ final class FieldGeneratorResolver {
             return map;
         }
 
-        // ── 6d. Optional ──────────────────────────────────────────────────────
-        if (Optional.class == rawType) {
-            Class<?> valueType = typeArg(genericType, 0);
-            Object value = resolveAndGenerate(valueType, valueType, fieldName + ".value", ownerType, currentDepth, null);
-            return Optional.ofNullable(value);
-        }
-
         // ── 7. Depth guard ────────────────────────────────────────────────────
         if (currentDepth >= config.getMaxDepth()) {
             return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
@@ -896,7 +949,13 @@ final class FieldGeneratorResolver {
             }
             pool.begin(rawType);
             try {
-                Object instance = new ObjectGenerator<>(rawType, config, currentDepth + 1, pool, nextDeterministicSeed(generatorConfig, sequenceRandom)).generate();
+                Object instance = new ObjectGenerator<>(
+                    rawType,
+                    config,
+                    currentDepth + 1,
+                    pool,
+                    nextDeterministicSeed(generatorConfig, sequenceRandom),
+                    uniqueFieldTracker).generate();
                 pool.end(rawType, instance);
                 return instance;
             } catch (ObjectGenerationException e) {

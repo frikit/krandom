@@ -5,6 +5,7 @@
  */
 package org.github.krandom.generator;
 
+import org.github.krandom.generator.object.ObjectGenerationSemanticMode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,6 +45,12 @@ class GeneratorConfigTest {
         assertFalse(c.isObjectIgnoreErrors());
         assertNull(c.getObjectDateMin());
         assertNull(c.getObjectDateMax());
+        assertEquals(ObjectGenerationSemanticMode.RELAXED, c.getObjectSemanticMode());
+        assertEquals(0.0, c.getObjectNullProbability());
+        assertEquals(0.0, c.getObjectOptionalEmptyProbability());
+        assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid"),
+                     c.getObjectUniqueFieldNames());
+        assertEquals(256, c.getObjectUniquenessMaxAttempts());
         assertEquals(Locale.US, c.getLocale());
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
     }
@@ -202,12 +210,22 @@ class GeneratorConfigTest {
                                            .objectPoolSize(2)
                                            .objectOverrideDefaultInitialization(true)
                                            .objectIgnoreErrors(true)
+                                           .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                           .objectNullProbability(0.25)
+                                           .objectOptionalEmptyProbability(0.5)
+                                           .objectUniqueFields("email", "accountId")
+                                           .objectUniquenessMaxAttempts(7)
                                            .objectDateRange(min, max)
                                            .build();
         assertEquals(3, c.getObjectMaxDepth());
         assertEquals(2, c.getObjectPoolSize());
         assertTrue(c.isObjectOverrideDefaultInitialization());
         assertTrue(c.isObjectIgnoreErrors());
+        assertEquals(ObjectGenerationSemanticMode.STRICT, c.getObjectSemanticMode());
+        assertEquals(0.25, c.getObjectNullProbability());
+        assertEquals(0.5, c.getObjectOptionalEmptyProbability());
+        assertEquals(Set.of("email", "accountid"), c.getObjectUniqueFieldNames());
+        assertEquals(7, c.getObjectUniquenessMaxAttempts());
         assertEquals(min, c.getObjectDateMin());
         assertEquals(max, c.getObjectDateMax());
     }
@@ -233,6 +251,35 @@ class GeneratorConfigTest {
         LocalDate max = LocalDate.of(2023, 1, 1);
         assertThrows(IllegalArgumentException.class,
                      () -> GeneratorConfig.builder().objectDateRange(min, max));
+    }
+
+    @Test
+    @DisplayName("object null and optional probabilities must be within [0, 1]")
+    void objectProbabilityValidation() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectNullProbability(-0.1));
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectNullProbability(1.1));
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectOptionalEmptyProbability(-0.1));
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectOptionalEmptyProbability(1.1));
+    }
+
+    @Test
+    @DisplayName("object uniqueness settings validate and normalize field names")
+    void objectUniquenessSettingsValidateAndNormalize() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectUniqueFields("Email", "user_name")
+                                                .objectUniqueField("Guid")
+                                                .objectUniquenessMaxAttempts(3)
+                                                .build();
+        assertEquals(Set.of("email", "username", "guid"), config.getObjectUniqueFieldNames());
+        assertEquals(3, config.getObjectUniquenessMaxAttempts());
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectUniquenessMaxAttempts(0));
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectUniqueField("___"));
     }
 
     @Test
@@ -278,6 +325,11 @@ class GeneratorConfigTest {
                                               .objectPoolSize(2)
                                               .objectOverrideDefaultInitialization(true)
                                               .objectIgnoreErrors(true)
+                                              .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                              .objectNullProbability(0.25)
+                                              .objectOptionalEmptyProbability(0.5)
+                                              .objectUniqueFields("email", "accountId")
+                                              .objectUniquenessMaxAttempts(7)
                                               .objectDateRange(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 12, 31))
                                               .locale(Locale.FRANCE)
                                               .randomFactory(() -> {
@@ -300,6 +352,11 @@ class GeneratorConfigTest {
         assertEquals(2, derived.getObjectPoolSize());
         assertTrue(derived.isObjectOverrideDefaultInitialization());
         assertTrue(derived.isObjectIgnoreErrors());
+        assertEquals(ObjectGenerationSemanticMode.STRICT, derived.getObjectSemanticMode());
+        assertEquals(0.25, derived.getObjectNullProbability());
+        assertEquals(0.5, derived.getObjectOptionalEmptyProbability());
+        assertEquals(Set.of("email", "accountid"), derived.getObjectUniqueFieldNames());
+        assertEquals(7, derived.getObjectUniquenessMaxAttempts());
         assertEquals(LocalDate.of(2022, 1, 1), derived.getObjectDateMin());
         assertEquals(LocalDate.of(2022, 12, 31), derived.getObjectDateMax());
         assertEquals(Locale.JAPAN, derived.getLocale());
