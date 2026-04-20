@@ -8,16 +8,30 @@ package org.github.krandom.generator.provider;
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.GeneratorProfile;
 import org.github.krandom.generator.datetime.DateGenerator;
+import org.github.krandom.generator.datetime.TimeGenerator;
+import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.location.CityGenerator;
+import org.github.krandom.generator.location.PhoneNumberGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
+import org.github.krandom.generator.network.DomainGenerator;
+import org.github.krandom.generator.network.HostnameGenerator;
 import org.github.krandom.generator.network.URLGenerator;
+import org.github.krandom.generator.selection.UniqueGenerator;
+import org.github.krandom.generator.text.ParagraphGenerator;
+import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.WordGenerator;
+import org.github.krandom.generator.user.EmailGenerator;
+import org.github.krandom.generator.user.FirstNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.LastNameGenerator;
+import org.github.krandom.generator.user.UsernameGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,18 +52,40 @@ class ProviderHubTest {
 
         assertTrue(hub.providerNames().contains("person"));
         assertTrue(hub.providerNames().contains("internet"));
-        assertEquals("person", hub.aliases().get("full_name"));
-        assertEquals("internet", hub.aliases().get("url"));
+        assertTrue(hub.providerNames().contains("person.full_name"));
+        assertTrue(hub.providerNames().contains("address.city"));
+        assertTrue(hub.providerNames().contains("internet.domain"));
+        assertTrue(hub.providerNames().contains("finance.currency"));
+        assertTrue(hub.providerNames().contains("datetime.time"));
+        assertTrue(hub.providerNames().contains("text.sentence"));
+        assertTrue(hub.providerNames().contains("text.format"));
+        assertTrue(hub.providerNames().contains("code.uuid"));
+        assertEquals("person.full_name", hub.aliases().get("full_name"));
+        assertEquals("internet.url", hub.aliases().get("url"));
 
         assertInstanceOf(FullNameGenerator.class, hub.get("person"));
         assertInstanceOf(FullNameGenerator.class, hub.get("full_name"));
+        assertInstanceOf(FirstNameGenerator.class, hub.get("person.first_name"));
+        assertInstanceOf(LastNameGenerator.class, hub.get("person.last_name"));
+        assertInstanceOf(EmailGenerator.class, hub.get("person.email"));
+        assertInstanceOf(UsernameGenerator.class, hub.get("person.username"));
         assertInstanceOf(StreetAddressGenerator.class, hub.get("address"));
+        assertInstanceOf(CityGenerator.class, hub.get("address.city"));
+        assertInstanceOf(PhoneNumberGenerator.class, hub.get("address.phone_number"));
         assertInstanceOf(URLGenerator.class, hub.get("internet"));
         assertInstanceOf(URLGenerator.class, hub.get("url"));
+        assertInstanceOf(DomainGenerator.class, hub.get("internet.domain"));
+        assertInstanceOf(HostnameGenerator.class, hub.get("internet.hostname"));
         assertInstanceOf(MoneyGenerator.class, hub.get("finance"));
+        assertInstanceOf(CurrencyGenerator.class, hub.get("finance.currency"));
         assertInstanceOf(DateGenerator.class, hub.get("datetime"));
+        assertInstanceOf(TimeGenerator.class, hub.get("datetime.time"));
         assertInstanceOf(WordGenerator.class, hub.get("text"));
+        assertInstanceOf(SentenceGenerator.class, hub.get("text.sentence"));
+        assertInstanceOf(ParagraphGenerator.class, hub.get("text.paragraph"));
+        assertInstanceOf(TextFormatProvider.class, hub.get("text.format"));
         assertInstanceOf(UUIDGenerator.class, hub.get("code"));
+        assertInstanceOf(UUIDGenerator.class, hub.get("code.uuid"));
     }
 
     @Test
@@ -125,7 +161,38 @@ class ProviderHubTest {
 
         assertTrue(hub.has("person"));
         assertTrue(hub.has("full_name"));
+        assertTrue(hub.has("person.email"));
+        assertTrue(hub.has("format"));
         assertFalse(hub.has("not_exists"));
+    }
+
+    @Test
+    @DisplayName("text format helpers are exposed through provider hub")
+    void textFormatHelpersAreExposed() {
+        ProviderHub hub = new ProviderHub(GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
+        TextFormatProvider format = hub.get("text.format", TextFormatProvider.class);
+
+        assertTrue(format.lexify("??").matches("[a-z]{2}"));
+        assertTrue(format.lexify("??", true).matches("[A-Z]{2}"));
+        assertTrue(format.template("??-##").matches("[a-z]{2}-\\d{2}"));
+        assertTrue(format.asciify("***").chars().noneMatch(ch -> ch == '*'));
+        assertTrue(format.regexify("[A-Z]{2}\\d{3}").matches("[A-Z]{2}\\d{3}"));
+    }
+
+    @Test
+    @DisplayName("provider hub exposes reusable uniqueness helpers")
+    void providerHubExposesUniquenessHelpers() {
+        ProviderHub hub = new ProviderHub();
+
+        UniqueGenerator<UUID> unique = hub.unique(new UUIDGenerator());
+        String first = unique.generate().toString();
+        String second = unique.generate().toString();
+        assertNotNull(first);
+        assertNotNull(second);
+        assertFalse(first.equals(second));
+
+        assertThrows(NullPointerException.class, () -> hub.unique(null));
+        assertThrows(NullPointerException.class, () -> hub.unique(new UUIDGenerator(), null));
     }
 
     @Test

@@ -5,16 +5,34 @@
  */
 package org.github.krandom.generator.provider;
 
+import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.GeneratorProfile;
 import org.github.krandom.generator.datetime.DateGenerator;
+import org.github.krandom.generator.datetime.TimeGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
+import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.location.CityGenerator;
+import org.github.krandom.generator.location.CountryGenerator;
+import org.github.krandom.generator.location.PhoneNumberGenerator;
+import org.github.krandom.generator.location.PostalCodeGenerator;
+import org.github.krandom.generator.location.StateGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
+import org.github.krandom.generator.network.DomainGenerator;
+import org.github.krandom.generator.network.HostnameGenerator;
 import org.github.krandom.generator.network.URLGenerator;
+import org.github.krandom.generator.selection.UniqueGenerator;
+import org.github.krandom.generator.text.ParagraphGenerator;
+import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.WordGenerator;
+import org.github.krandom.generator.user.EmailGenerator;
+import org.github.krandom.generator.user.FirstNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.LastNameGenerator;
+import org.github.krandom.generator.user.UsernameGenerator;
 
+import java.util.function.BiPredicate;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -255,6 +273,28 @@ public final class ProviderHub {
         return profile;
     }
 
+    /**
+     * Wraps a generator so repeated calls return unique values.
+     */
+    public <T> UniqueGenerator<T> unique(Generator<T> source) {
+        return new UniqueGenerator<>(Objects.requireNonNull(source, "source must not be null"));
+    }
+
+    /**
+     * Wraps a generator so repeated calls return unique values, with bounded retry attempts.
+     */
+    public <T> UniqueGenerator<T> unique(Generator<T> source, int maxAttempts) {
+        return new UniqueGenerator<>(Objects.requireNonNull(source, "source must not be null"), maxAttempts);
+    }
+
+    /**
+     * Wraps a generator so repeated calls return comparator-distinct values.
+     */
+    public <T> UniqueGenerator<T> unique(Generator<T> source, BiPredicate<T, T> comparator) {
+        return new UniqueGenerator<>(Objects.requireNonNull(source, "source must not be null"),
+                                     Objects.requireNonNull(comparator, "comparator must not be null"));
+    }
+
     private String resolveName(String name) {
         String key = normalize(name);
         if (providers.containsKey(key)) {
@@ -269,26 +309,69 @@ public final class ProviderHub {
     }
 
     private void registerBuiltIns() {
+        register("person.full_name", cfg -> new FullNameGenerator(cfg), ConflictPolicy.REPLACE);
+        register("person.first_name", cfg -> new FirstNameGenerator(cfg), ConflictPolicy.REPLACE);
+        register("person.last_name", cfg -> new LastNameGenerator(cfg), ConflictPolicy.REPLACE);
+        register("person.email", cfg -> new EmailGenerator(cfg), ConflictPolicy.REPLACE);
+        register("person.username", cfg -> new UsernameGenerator(cfg), ConflictPolicy.REPLACE);
         register("person", cfg -> new FullNameGenerator(cfg), ConflictPolicy.REPLACE);
+
+        register("address.street_address", cfg -> new StreetAddressGenerator(cfg), ConflictPolicy.REPLACE);
+        register("address.city", cfg -> new CityGenerator(cfg), ConflictPolicy.REPLACE);
+        register("address.state", cfg -> new StateGenerator(cfg), ConflictPolicy.REPLACE);
+        register("address.postal_code", cfg -> new PostalCodeGenerator(cfg), ConflictPolicy.REPLACE);
+        register("address.country", cfg -> new CountryGenerator(cfg), ConflictPolicy.REPLACE);
+        register("address.phone_number", cfg -> new PhoneNumberGenerator(cfg), ConflictPolicy.REPLACE);
         register("address", cfg -> new StreetAddressGenerator(cfg), ConflictPolicy.REPLACE);
+
+        register("internet.url", cfg -> new URLGenerator(cfg), ConflictPolicy.REPLACE);
+        register("internet.domain", cfg -> new DomainGenerator(cfg), ConflictPolicy.REPLACE);
+        register("internet.hostname", cfg -> new HostnameGenerator(cfg), ConflictPolicy.REPLACE);
         register("internet", cfg -> new URLGenerator(cfg), ConflictPolicy.REPLACE);
+
+        register("finance.money", cfg -> new MoneyGenerator(cfg), ConflictPolicy.REPLACE);
+        register("finance.currency", cfg -> new CurrencyGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance", cfg -> new MoneyGenerator(cfg), ConflictPolicy.REPLACE);
+
+        register("datetime.date", cfg -> new DateGenerator(cfg), ConflictPolicy.REPLACE);
+        register("datetime.time", cfg -> new TimeGenerator(cfg), ConflictPolicy.REPLACE);
         register("datetime", cfg -> new DateGenerator(cfg), ConflictPolicy.REPLACE);
+
+        register("text.word", cfg -> new WordGenerator(cfg), ConflictPolicy.REPLACE);
+        register("text.sentence", cfg -> new SentenceGenerator(cfg), ConflictPolicy.REPLACE);
+        register("text.paragraph", cfg -> new ParagraphGenerator(cfg), ConflictPolicy.REPLACE);
+        register("text.format", cfg -> new TextFormatProvider(cfg), ConflictPolicy.REPLACE);
         register("text", cfg -> new WordGenerator(cfg), ConflictPolicy.REPLACE);
+
+        register("code.uuid", cfg -> new UUIDGenerator(cfg), ConflictPolicy.REPLACE);
         register("code", cfg -> new UUIDGenerator(cfg), ConflictPolicy.REPLACE);
 
-        registerAlias("name", "person", ConflictPolicy.REPLACE);
-        registerAlias("full_name", "person", ConflictPolicy.REPLACE);
-        registerAlias("location", "address", ConflictPolicy.REPLACE);
-        registerAlias("network", "internet", ConflictPolicy.REPLACE);
-        registerAlias("url", "internet", ConflictPolicy.REPLACE);
-        registerAlias("money", "finance", ConflictPolicy.REPLACE);
-        registerAlias("currency", "finance", ConflictPolicy.REPLACE);
-        registerAlias("date", "datetime", ConflictPolicy.REPLACE);
-        registerAlias("time", "datetime", ConflictPolicy.REPLACE);
-        registerAlias("word", "text", ConflictPolicy.REPLACE);
-        registerAlias("sentence", "text", ConflictPolicy.REPLACE);
-        registerAlias("uuid", "code", ConflictPolicy.REPLACE);
-        registerAlias("identifier", "code", ConflictPolicy.REPLACE);
+        registerAlias("name", "person.full_name", ConflictPolicy.REPLACE);
+        registerAlias("full_name", "person.full_name", ConflictPolicy.REPLACE);
+        registerAlias("first_name", "person.first_name", ConflictPolicy.REPLACE);
+        registerAlias("last_name", "person.last_name", ConflictPolicy.REPLACE);
+        registerAlias("email", "person.email", ConflictPolicy.REPLACE);
+        registerAlias("username", "person.username", ConflictPolicy.REPLACE);
+        registerAlias("location", "address.street_address", ConflictPolicy.REPLACE);
+        registerAlias("street_address", "address.street_address", ConflictPolicy.REPLACE);
+        registerAlias("city", "address.city", ConflictPolicy.REPLACE);
+        registerAlias("state", "address.state", ConflictPolicy.REPLACE);
+        registerAlias("postal_code", "address.postal_code", ConflictPolicy.REPLACE);
+        registerAlias("country", "address.country", ConflictPolicy.REPLACE);
+        registerAlias("phone_number", "address.phone_number", ConflictPolicy.REPLACE);
+        registerAlias("network", "internet.url", ConflictPolicy.REPLACE);
+        registerAlias("url", "internet.url", ConflictPolicy.REPLACE);
+        registerAlias("domain", "internet.domain", ConflictPolicy.REPLACE);
+        registerAlias("hostname", "internet.hostname", ConflictPolicy.REPLACE);
+        registerAlias("money", "finance.money", ConflictPolicy.REPLACE);
+        registerAlias("currency", "finance.currency", ConflictPolicy.REPLACE);
+        registerAlias("date", "datetime.date", ConflictPolicy.REPLACE);
+        registerAlias("time", "datetime.time", ConflictPolicy.REPLACE);
+        registerAlias("word", "text.word", ConflictPolicy.REPLACE);
+        registerAlias("sentence", "text.sentence", ConflictPolicy.REPLACE);
+        registerAlias("paragraph", "text.paragraph", ConflictPolicy.REPLACE);
+        registerAlias("format", "text.format", ConflictPolicy.REPLACE);
+        registerAlias("uuid", "code.uuid", ConflictPolicy.REPLACE);
+        registerAlias("identifier", "code.uuid", ConflictPolicy.REPLACE);
     }
 }

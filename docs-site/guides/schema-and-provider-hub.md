@@ -76,16 +76,42 @@ String templates always render to strings. Payload templates recurse through map
 
 ## Provider hub
 
-`ProviderHub` is a generic registry with aliases, locale propagation, and runtime extensibility.
+`ProviderHub` is a generic registry with aliases, locale propagation, runtime extensibility, and a broader dotted taxonomy.
 
 ```java
 ProviderHub hub = Generators.ofProviderHub(Locale.US);
 
-FullNameGenerator person = hub.get("person", FullNameGenerator.class);
-URLGenerator internet = hub.get("url", URLGenerator.class); // alias
+FullNameGenerator person = hub.get("person.full_name", FullNameGenerator.class);
+EmailGenerator email = hub.get("person.email", EmailGenerator.class);
+CityGenerator city = hub.get("address.city", CityGenerator.class);
+URLGenerator internet = hub.get("url", URLGenerator.class); // alias for internet.url
+TextFormatProvider format = hub.get("text.format", TextFormatProvider.class);
 
 hub.register("custom-product-code", cfg -> new IdentifierMaskGenerator(cfg));
 hub.registerAlias("sku", "custom-product-code");
+
+String sku = format.template("SKU-??-####");
+String coupon = format.lexify("promo-????");
+String token = format.asciify("***-***");
+String reference = format.regexify("[A-Z]{3}\\d{4}");
+```
+
+The old coarse names like `person`, `address`, `internet`, `finance`, `datetime`, `text`, and `code` still work, but the preferred naming style is dotted and explicit:
+
+- `person.full_name`, `person.first_name`, `person.last_name`, `person.email`, `person.username`
+- `address.street_address`, `address.city`, `address.state`, `address.postal_code`, `address.country`, `address.phone_number`
+- `internet.url`, `internet.domain`, `internet.hostname`
+- `finance.money`, `finance.currency`
+- `datetime.date`, `datetime.time`
+- `text.word`, `text.sentence`, `text.paragraph`, `text.format`
+- `code.uuid`
+
+`ProviderHub` also exposes uniqueness helpers directly, so provider-based generation can stay on the same surface:
+
+```java
+UniqueGenerator<UUID> uniqueIds = hub.unique(new UUIDGenerator());
+UUID first = uniqueIds.generate();
+UUID second = uniqueIds.generate();
 ```
 
 ## Conflict policies
