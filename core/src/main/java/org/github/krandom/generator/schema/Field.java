@@ -24,6 +24,7 @@ public final class Field {
 
     private final GeneratorConfig config;
     private final FieldLookup     lookup;
+    private final SchemaTemplateEngine templateEngine;
 
     /**
      * Creates field resolver with default configuration.
@@ -49,6 +50,7 @@ public final class Field {
     public Field(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.lookup = new FieldLookup(config);
+        this.templateEngine = new SchemaTemplateEngine(this.lookup, this.config);
     }
 
     /**
@@ -59,6 +61,7 @@ public final class Field {
     public Field(FieldLookup lookup) {
         this.lookup = Objects.requireNonNull(lookup, "lookup must not be null");
         this.config = lookup.getConfig();
+        this.templateEngine = new SchemaTemplateEngine(this.lookup, this.config);
     }
 
     private static String validateFieldName(String name) {
@@ -87,6 +90,35 @@ public final class Field {
      */
     public SchemaValueProvider call(String reference) {
         return bind(reference);
+    }
+
+    /**
+     * Creates a string template provider backed by the current field registry.
+     *
+     * <p>{@code {{token}}} placeholders resolve through {@link FieldLookup}, while literal
+     * {@code #} and {@code ?} segments use the same placeholder semantics as
+     * {@link org.github.krandom.generator.text.TemplateStringGenerator}.
+     *
+     * @param template template string
+     * @return string-producing template provider
+     */
+    public SchemaValueProvider template(String template) {
+        return templateEngine.template(template);
+    }
+
+    /**
+     * Creates a recursive payload-shell provider backed by the current field registry.
+     *
+     * <p>Strings inside the payload shell support {@code {{token}}}, {@code #}, and {@code ?}
+     * placeholders. Strings that contain only a single {@code {{token}}} resolve to the raw
+     * generated value instead of a stringified value, which keeps numbers and nested objects typed
+     * correctly inside templated payloads.
+     *
+     * @param template payload shell template
+     * @return payload-producing template provider
+     */
+    public SchemaValueProvider template(Object template) {
+        return templateEngine.templatePayload(template);
     }
 
     /**

@@ -54,6 +54,26 @@ SchemaValueProvider orderId = field.bind("custom.order");
 SchemaValueProvider extraWord = field.bind("text.word.provider");
 ```
 
+The same token registry now powers declarative templates:
+
+```java
+Field field = Generators.ofField(Locale.US)
+        .register("custom.order_id", ctx -> 1000 + ctx.recordIndex())
+        .registerAlias("custom.order", "custom.order_id");
+
+SchemaValueProvider subject = field.template("Order {{custom.order}} for {{person.full_name}} (??-##)");
+
+SchemaValueProvider payload = field.template(Map.of(
+        "orderId", "{{custom.order}}",
+        "customer", "{{person.full_name}}",
+        "email", "{{person.email}}",
+        "reference", "ORD-##",
+        "tags", List.of("{{text.word}}", "{{text.word}}")
+));
+```
+
+String templates always render to strings. Payload templates recurse through maps, lists, and arrays; strings that contain only a single `{{token}}` resolve to the raw generated value, so numbers and nested objects stay typed inside the generated payload.
+
 ## Provider hub
 
 `ProviderHub` is a generic registry with aliases, locale propagation, and runtime extensibility.
