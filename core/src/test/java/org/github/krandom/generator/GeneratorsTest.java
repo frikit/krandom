@@ -74,6 +74,7 @@ import org.github.krandom.generator.network.IPv6Generator;
 import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.network.UriGenerator;
 import org.github.krandom.generator.network.UserAgentGenerator;
+import org.github.krandom.generator.object.ObjectFaker;
 import org.github.krandom.generator.object.ObjectGenerator;
 import org.github.krandom.generator.object.ObjectGeneratorConfig;
 import org.github.krandom.generator.provider.ProviderHub;
@@ -761,6 +762,11 @@ class GeneratorsTest {
                          Generators.ofObject(SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
         assertInstanceOf(ObjectGenerator.class,
                          Generators.ofObject(SimplePojo.class, ObjectGeneratorConfig.defaults()));
+        assertInstanceOf(ObjectFaker.class, Generators.ofObjectFaker(SimplePojo.class));
+        assertInstanceOf(ObjectFaker.class,
+                         Generators.ofObjectFaker(SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
+        assertInstanceOf(ObjectFaker.class,
+                         Generators.ofObjectFaker(SimplePojo.class, ObjectGeneratorConfig.defaults()));
     }
 
     @Test

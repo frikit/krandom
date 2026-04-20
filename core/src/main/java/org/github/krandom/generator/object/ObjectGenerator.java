@@ -160,6 +160,28 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return generateWithPool();
     }
 
+    /**
+     * Populates an existing mutable instance in place using this generator's configuration.
+     *
+     * <p>Records are not supported because they are immutable after construction.
+     */
+    T populate(T instance) {
+        Objects.requireNonNull(instance, "instance must not be null");
+        if (!type.isInstance(instance)) {
+            throw new IllegalArgumentException(
+                "instance must be assignable to " + type.getName() + ", got " + instance.getClass().getName());
+        }
+        if (type.isRecord()) {
+            throw new IllegalArgumentException("populate(existing) does not support record types: " + type.getName());
+        }
+        if (depth == 0 && pool == null) {
+            ObjectGenerator<T> scoped = new ObjectGenerator<>(
+                type, config, 0, new ObjectPool(config.getObjectPoolSize()), nextGenerationSeed(), uniqueFieldTracker);
+            return scoped.populateWithPool(instance);
+        }
+        return populateWithPool(instance);
+    }
+
     // ── Class population ──────────────────────────────────────────────────────
 
     private T generateWithPool() {
@@ -174,6 +196,22 @@ public final class ObjectGenerator<T> implements Generator<T> {
         } catch (ReflectiveOperationException e) {
             throw new ObjectGenerationException(
                 "Failed to generate instance of " + type.getName() + ": " + e.getMessage(), e);
+        }
+    }
+
+    private T populateWithPool(T instance) {
+        FieldGeneratorResolver resolver =
+            new FieldGeneratorResolver(
+                config,
+                Objects.requireNonNull(pool, "pool must not be null"),
+                uniqueFieldTracker,
+                generationSeed);
+        try {
+            populateClass(instance, resolver);
+            return instance;
+        } catch (ReflectiveOperationException e) {
+            throw new ObjectGenerationException(
+                "Failed to populate instance of " + type.getName() + ": " + e.getMessage(), e);
         }
     }
 
@@ -217,7 +255,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private T generateClass(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
         T instance = instantiate(); // may throw ReflectiveOperationException for throwing constructors
+        populateClass(instance, resolver);
+        return instance;
+    }
 
+    private void populateClass(T instance, FieldGeneratorResolver resolver) throws IllegalAccessException {
         for (Field field : collectSettableFields(type)) {
             if (config.shouldExclude(field)) continue; // exclusion check
             field.setAccessible(true);
@@ -242,7 +284,6 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 // ignoreErrors=true: silently leave field at its initialized value
             }
         }
-        return instance;
     }
 
     /**

@@ -85,6 +85,7 @@ import org.github.krandom.generator.network.SlugGenerator;
 import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.network.UriGenerator;
 import org.github.krandom.generator.network.UserAgentGenerator;
+import org.github.krandom.generator.object.ObjectFaker;
 import org.github.krandom.generator.object.ObjectGenerator;
 import org.github.krandom.generator.object.ObjectGeneratorConfig;
 import org.github.krandom.generator.provider.ProviderHub;
@@ -1207,6 +1208,27 @@ public final class Generators {
      */
     public static <T> ObjectGenerator<T> ofObject(Class<T> type, ObjectGeneratorConfig config) {
         return new ObjectGenerator<>(type, config);
+    }
+
+    /**
+     * Returns a fluent object faker for the given type with default configuration.
+     */
+    public static <T> ObjectFaker<T> ofObjectFaker(Class<T> type) {
+        return new ObjectFaker<>(type);
+    }
+
+    /**
+     * Returns a fluent object faker for the given type with shared root configuration.
+     */
+    public static <T> ObjectFaker<T> ofObjectFaker(Class<T> type, GeneratorConfig config) {
+        return new ObjectFaker<>(type, config);
+    }
+
+    /**
+     * Returns a fluent object faker for the given type with explicit object-generation configuration.
+     */
+    public static <T> ObjectFaker<T> ofObjectFaker(Class<T> type, ObjectGeneratorConfig config) {
+        return new ObjectFaker<>(type, config);
     }
 
     /**

@@ -51,6 +51,33 @@ Semantic modes:
 - `STRICT`: semantic field names win whenever a semantic match exists.
 - `STRUCTURAL_ONLY`: disable field-name semantics and use type-based generation only.
 
+## Fluent fixtures
+
+Use `ObjectFaker<T>` when the default object graph is close but you want a few explicit root-field rules:
+
+```java
+ObjectFaker<UserDto> faker = new ObjectFaker<>(UserDto.class)
+        .ruleFor("firstName", () -> "Ada")
+        .ruleFor("lastName", () -> "Lovelace")
+        .ruleFor("email",
+                 user -> user.getFirstName().toLowerCase() + "."
+                         + user.getLastName().toLowerCase() + "@example.com")
+        .ignore("password");
+
+UserDto user = faker.generate();
+List<UserDto> users = faker.generateList(100);
+```
+
+Supported in this first fixture layer:
+
+- root-level `ruleFor(...)` with plain generators
+- dependent `ruleFor(...)` based on the generated root object
+- `ignore(...)` for root fields
+- `afterGenerate(...)` / `postProcess(...)`
+- `populate(existing)` for mutable classes
+
+`ObjectFaker<T>` reuses the same `ObjectGeneratorConfig`, semantic resolver, locale, seed, and override rules as `ObjectGenerator<T>`.
+
 ## When to use
 
 - Integration tests with larger object graphs.
