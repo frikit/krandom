@@ -51,6 +51,25 @@ Semantic modes:
 - `STRICT`: semantic field names win whenever a semantic match exists.
 - `STRUCTURAL_ONLY`: disable field-name semantics and use type-based generation only.
 
+## Semantic field defaults
+
+In `RELAXED` and `STRICT` modes, `ObjectGenerator<T>` recognizes common business field names after normalization.
+`created_at`, `createdAt`, and `created-at` all resolve to the same semantic key.
+
+Current built-in semantic coverage includes:
+
+- strings such as `firstName`, `lastName`, `fullName`, `email`, `username`, `phoneNumber`, `streetAddress`, `city`, `postalCode`, `country`, `companyName`, `url`, `domain`, `uuid`, and `status`
+- typed business fields such as `createdAt`, `updatedAt`, `birthDate`, `amount`, `balance`, `price`, `currency`, `id`, `active`, `latitude`, and `longitude`
+
+Examples:
+
+- `dateOfBirth`, `dob`, and `birth_date` map to the same birth-date semantic
+- `accountId`, `customer_id`, and `identifier` map to the ID semantic
+- `isEnabled` and `active` map to the active-flag semantic
+- `lat` and `latitude` map to the latitude semantic
+
+Configured object date ranges still apply to semantic temporal fields. If you set `objectDateRange(...)` or `ObjectGeneratorConfig.dateRange(...)`, that range becomes the effective window for semantic fields such as `dob`, `createdAt`, and `updatedAt`.
+
 ## Fluent fixtures
 
 Use `ObjectFaker<T>` when the default object graph is close but you want a few explicit root-field rules:

@@ -35,7 +35,7 @@ class ObjectGeneratorConfigTest {
         assertEquals(ObjectGenerationSemanticMode.RELAXED, c.getSemanticMode());
         assertEquals(0.0, c.getNullProbability());
         assertEquals(0.0, c.getOptionalEmptyProbability());
-        assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid"),
+        assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
                      c.getUniqueFieldNames());
         assertEquals(256, c.getUniquenessMaxAttempts());
         assertTrue(c.getTypeOverride(String.class).isEmpty());

@@ -48,7 +48,7 @@ class GeneratorConfigTest {
         assertEquals(ObjectGenerationSemanticMode.RELAXED, c.getObjectSemanticMode());
         assertEquals(0.0, c.getObjectNullProbability());
         assertEquals(0.0, c.getObjectOptionalEmptyProbability());
-        assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid"),
+        assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
                      c.getObjectUniqueFieldNames());
         assertEquals(256, c.getObjectUniquenessMaxAttempts());
         assertEquals(Locale.US, c.getLocale());

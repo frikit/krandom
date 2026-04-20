@@ -328,7 +328,7 @@ public final class GeneratorConfig {
         private double            objectNullProbability;
         private double            objectOptionalEmptyProbability;
         private Set<String>       objectUniqueFieldNames = new LinkedHashSet<>(
-            Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid"));
+            Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"));
         private int               objectUniquenessMaxAttempts = DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS;
         private Locale            locale            = Locale.US;
         private Supplier<Random>  randomFactory;

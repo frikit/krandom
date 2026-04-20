@@ -5,6 +5,7 @@
  */
 package org.github.krandom.generator.object;
 
+import jakarta.validation.constraints.Negative;
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +47,23 @@ class ObjectGeneratorSemanticModeTest {
         assertFalse(value.email.contains("@"));
     }
 
+    @Test
+    @DisplayName("relaxed mode lets Bean Validation override semantic typed defaults")
+    void relaxedModeLetsBeanValidationWin() {
+        NegativeAccountIdHolder value = new ObjectGenerator<>(NegativeAccountIdHolder.class).generate();
+        assertTrue(value.accountId < 0);
+    }
+
+    @Test
+    @DisplayName("strict mode lets semantic typed defaults override Bean Validation")
+    void strictModeLetsSemanticTypedDefaultsWin() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                                .build();
+        NegativeAccountIdHolder value = new ObjectGenerator<>(NegativeAccountIdHolder.class, config).generate();
+        assertTrue(value.accountId > 0);
+    }
+
     static class AnnotatedEmailHolder {
 
         @Randomizer(AnnotatedValueGenerator.class)
@@ -55,6 +73,12 @@ class ObjectGeneratorSemanticModeTest {
     static class PlainEmailHolder {
 
         String email;
+    }
+
+    static class NegativeAccountIdHolder {
+
+        @Negative
+        long accountId;
     }
 
     public static class AnnotatedValueGenerator implements Generator<String> {

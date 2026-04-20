@@ -32,6 +32,7 @@ import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.location.CityGenerator;
+import org.github.krandom.generator.location.CoordinatesGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.location.PhoneNumberGenerator;
 import org.github.krandom.generator.location.PostalCodeGenerator;
@@ -177,8 +178,12 @@ final class FieldGeneratorResolver {
     private final Random                sequenceRandom;
     private final Map<Class<?>, Generator<?>> builtins;
     private final Map<String, Generator<?>>   semanticStringGenerators;
+    private final Map<String, Map<Class<?>, Generator<?>>> semanticTypedGenerators;
     private final ObjectGenerationSemanticMode semanticMode;
     private final Set<String>                 uniqueFieldNames;
+
+    private static final Map<String, String> SEMANTIC_KEYS_BY_ALIAS = buildSemanticKeysByAlias();
+    private static final Map<String, Set<String>> SEMANTIC_ALIASES_BY_KEY = buildSemanticAliasesByKey();
 
     FieldGeneratorResolver(ObjectGeneratorConfig config,
                            ObjectPool pool,
@@ -191,6 +196,7 @@ final class FieldGeneratorResolver {
         this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
         this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
         this.semanticStringGenerators = buildSemanticStringGenerators(this.generatorConfig, this.sequenceRandom);
+        this.semanticTypedGenerators = buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
         this.semanticMode = config.getSemanticMode();
         this.uniqueFieldNames = config.getUniqueFieldNames();
     }
@@ -451,23 +457,24 @@ final class FieldGeneratorResolver {
 
     private static Map<String, Generator<?>> buildSemanticStringGenerators(GeneratorConfig config, Random seedSource) {
         Map<String, Generator<?>> generators = new HashMap<>();
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newFirstNameGenerator, "firstname", "givenname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newLastNameGenerator, "lastname", "surname", "familyname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newFullNameGenerator, "fullname", "displayname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newEmailGenerator, "email", "emailaddress");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUsernameGenerator, "username", "userhandle");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPhoneNumberGenerator, "phone", "phonenumber", "mobile", "mobilephone", "telephone");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStreetAddressGenerator, "street", "streetaddress", "addressline1");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCityGenerator, "city", "town");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStateGenerator, "state", "province", "region");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPostalCodeGenerator, "postalcode", "postcode", "zipcode", "zip");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCountryGenerator, "country", "countryname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCompanyNameGenerator, "company", "companyname", "organization", "organisation");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPasswordGenerator, "password", "passcode");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUrlGenerator, "url", "website", "homepage", "link");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newDomainGenerator, "domain", "hostname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCurrencyGenerator, "currency", "currencycode");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUuidStringGenerator, "uuid", "guid");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newFirstNameGenerator, "firstname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newLastNameGenerator, "lastname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newFullNameGenerator, "fullname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newEmailGenerator, "email");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUsernameGenerator, "username");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPhoneNumberGenerator, "phone");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStreetAddressGenerator, "streetaddress");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCityGenerator, "city");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStateGenerator, "state");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPostalCodeGenerator, "postalcode");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCountryGenerator, "country");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCompanyNameGenerator, "companyname");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPasswordGenerator, "password");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUrlGenerator, "url");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newDomainGenerator, "domain");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCurrencyGenerator, "currency");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUuidStringGenerator, "uuid");
+        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStatusStringGenerator, "status");
         return Collections.unmodifiableMap(generators);
     }
 
@@ -475,15 +482,148 @@ final class FieldGeneratorResolver {
                                          GeneratorConfig config,
                                          Random seedSource,
                                          Function<GeneratorConfig, Generator<?>> factory,
-                                         String... fieldNames) {
+                                         String semanticKey) {
         try {
-            Generator<?> generator = factory.apply(derivedGeneratorConfig(config, seedSource));
-            for (String fieldName : fieldNames) {
-                generators.put(normalizeFieldName(fieldName), generator);
-            }
+            generators.put(semanticKey, factory.apply(derivedGeneratorConfig(config, seedSource)));
         } catch (UnsupportedOperationException ignored) {
             // Locale/provider not available — fall back to generic type resolution.
         }
+    }
+
+    private static Map<String, Map<Class<?>, Generator<?>>> buildSemanticTypedGenerators(ObjectGeneratorConfig objectConfig,
+                                                                                          GeneratorConfig config,
+                                                                                          Random seedSource) {
+        Map<String, Map<Class<?>, Generator<?>>> generators = new HashMap<>();
+
+        LocalDate today = LocalDate.now();
+        registerTemporalSemantic(generators, objectConfig, config, seedSource, "createdat", today.minusYears(10), today);
+        registerTemporalSemantic(generators, objectConfig, config, seedSource, "updatedat", today.minusYears(10), today);
+        registerTemporalSemantic(generators, objectConfig, config, seedSource, "birthdate", today.minusYears(90), today.minusYears(18));
+
+        registerNumericSemantic(generators, "amount",
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "1000000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
+                                intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE),
+                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 1000000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 1000000.0f, 2));
+
+        registerNumericSemantic(generators, "balance",
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "10000000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
+                                intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE),
+                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 10000000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 10000000.0f, 2));
+
+        registerNumericSemantic(generators, "price",
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "10000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, 10000L),
+                                intGenerator(nextDeterministicSeed(config, seedSource), 1, 10000),
+                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, 10000L),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 10000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 10000.0f, 2));
+
+        Generator<String> currencyCodeGenerator = buildLocaleCurrencyCodeGenerator(config, seedSource);
+        registerTypedSemantic(generators, "currency", String.class, currencyCodeGenerator);
+        registerTypedSemantic(generators, "currency", org.github.krandom.generator.finance.Currency.class,
+                              buildLibraryCurrencyGenerator(config, seedSource));
+        registerTypedSemantic(generators, "currency", java.util.Currency.class, buildJavaCurrencyGenerator(config, seedSource));
+
+        Generator<Long> stringIdGenerator = longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE);
+        registerTypedSemantic(generators, "id", UUID.class, new UUIDGenerator(derivedGeneratorConfig(config, seedSource)));
+        registerTypedSemantic(generators, "id", String.class, () -> Long.toString(stringIdGenerator.generate()));
+        registerTypedSemantic(generators, "id", BigInteger.class,
+                              bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
+        registerTypedSemantic(generators, "id", int.class, intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE));
+        registerTypedSemantic(generators, "id", Integer.class, intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE));
+        registerTypedSemantic(generators, "id", long.class, longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
+        registerTypedSemantic(generators, "id", Long.class, longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
+
+        Generator<Boolean> activeGenerator = buildActiveGenerator(config, seedSource);
+        registerTypedSemantic(generators, "active", boolean.class, activeGenerator);
+        registerTypedSemantic(generators, "active", Boolean.class, activeGenerator);
+
+        try {
+            CoordinatesGenerator coordinatesGenerator = new CoordinatesGenerator(derivedGeneratorConfig(config, seedSource));
+            registerTypedSemantic(generators, "latitude", double.class, (Generator<Double>) coordinatesGenerator::generateLatitude);
+            registerTypedSemantic(generators, "latitude", Double.class, (Generator<Double>) coordinatesGenerator::generateLatitude);
+            registerTypedSemantic(generators, "latitude", float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLatitude());
+            registerTypedSemantic(generators, "latitude", Float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLatitude());
+            registerTypedSemantic(generators, "latitude", BigDecimal.class,
+                                  () -> BigDecimal.valueOf(coordinatesGenerator.generateLatitude())
+                                                  .setScale(6, java.math.RoundingMode.HALF_UP));
+
+            registerTypedSemantic(generators, "longitude", double.class, (Generator<Double>) coordinatesGenerator::generateLongitude);
+            registerTypedSemantic(generators, "longitude", Double.class, (Generator<Double>) coordinatesGenerator::generateLongitude);
+            registerTypedSemantic(generators, "longitude", float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLongitude());
+            registerTypedSemantic(generators, "longitude", Float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLongitude());
+            registerTypedSemantic(generators, "longitude", BigDecimal.class,
+                                  () -> BigDecimal.valueOf(coordinatesGenerator.generateLongitude())
+                                                  .setScale(6, java.math.RoundingMode.HALF_UP));
+        } catch (UnsupportedOperationException ignored) {
+            // Locale/provider not available — fall back to generic type resolution.
+        }
+
+        Map<String, Map<Class<?>, Generator<?>>> unmodifiable = new HashMap<>(generators.size());
+        for (Map.Entry<String, Map<Class<?>, Generator<?>>> entry : generators.entrySet()) {
+            unmodifiable.put(entry.getKey(), Collections.unmodifiableMap(new HashMap<>(entry.getValue())));
+        }
+        return Collections.unmodifiableMap(unmodifiable);
+    }
+
+    private static void registerTemporalSemantic(Map<String, Map<Class<?>, Generator<?>>> generators,
+                                                 ObjectGeneratorConfig objectConfig,
+                                                 GeneratorConfig config,
+                                                 Random seedSource,
+                                                 String semanticKey,
+                                                 LocalDate min,
+                                                 LocalDate max) {
+        LocalDate effectiveMin = objectConfig.getDateMin() != null ? objectConfig.getDateMin() : min;
+        LocalDate effectiveMax = objectConfig.getDateMax() != null ? objectConfig.getDateMax() : max;
+        registerTypedSemantic(generators, semanticKey, LocalDate.class,
+                              buildDateGenerator(config, seedSource, effectiveMin, effectiveMax));
+        registerTypedSemantic(generators, semanticKey, LocalDateTime.class,
+                              buildLocalDateTimeGenerator(config, seedSource, effectiveMin, effectiveMax));
+        registerTypedSemantic(generators, semanticKey, Instant.class,
+                              buildInstantGenerator(config, seedSource, effectiveMin, effectiveMax));
+        Generator<ZonedDateTime> zonedGenerator = buildZonedDateTimeGenerator(config, seedSource, effectiveMin, effectiveMax);
+        registerTypedSemantic(generators, semanticKey, ZonedDateTime.class, zonedGenerator);
+        registerTypedSemantic(generators, semanticKey, OffsetDateTime.class,
+                              (Generator<OffsetDateTime>) () -> zonedGenerator.generate().toOffsetDateTime());
+        registerTypedSemantic(generators, semanticKey, java.util.Date.class,
+                              buildUtilDateGenerator(config, seedSource, effectiveMin, effectiveMax));
+        registerTypedSemantic(generators, semanticKey, java.sql.Date.class,
+                              buildSqlDateGenerator(config, seedSource, effectiveMin, effectiveMax));
+        registerTypedSemantic(generators, semanticKey, java.sql.Timestamp.class,
+                              buildSqlTimestampGenerator(config, seedSource, effectiveMin, effectiveMax));
+    }
+
+    private static void registerNumericSemantic(Map<String, Map<Class<?>, Generator<?>>> generators,
+                                                String semanticKey,
+                                                Generator<BigDecimal> bigDecimalGenerator,
+                                                Generator<BigInteger> bigIntegerGenerator,
+                                                Generator<Integer> intGenerator,
+                                                Generator<Long> longGenerator,
+                                                Generator<Double> doubleGenerator,
+                                                Generator<Float> floatGenerator) {
+        registerTypedSemantic(generators, semanticKey, BigDecimal.class, bigDecimalGenerator);
+        registerTypedSemantic(generators, semanticKey, BigInteger.class, bigIntegerGenerator);
+        registerTypedSemantic(generators, semanticKey, int.class, intGenerator);
+        registerTypedSemantic(generators, semanticKey, Integer.class, intGenerator);
+        registerTypedSemantic(generators, semanticKey, long.class, longGenerator);
+        registerTypedSemantic(generators, semanticKey, Long.class, longGenerator);
+        registerTypedSemantic(generators, semanticKey, double.class, doubleGenerator);
+        registerTypedSemantic(generators, semanticKey, Double.class, doubleGenerator);
+        registerTypedSemantic(generators, semanticKey, float.class, floatGenerator);
+        registerTypedSemantic(generators, semanticKey, Float.class, floatGenerator);
+    }
+
+    private static void registerTypedSemantic(Map<String, Map<Class<?>, Generator<?>>> generators,
+                                              String semanticKey,
+                                              Class<?> rawType,
+                                              Generator<?> generator) {
+        generators.computeIfAbsent(semanticKey, ignored -> new HashMap<>()).put(rawType, generator);
     }
 
     private static Generator<?> newFirstNameGenerator(GeneratorConfig config) {
@@ -550,12 +690,132 @@ final class FieldGeneratorResolver {
         return new CurrencyGenerator(config);
     }
 
+    private static Generator<?> newStatusStringGenerator(GeneratorConfig config) {
+        List<String> values = List.of("ACTIVE", "INACTIVE", "PENDING", "SUSPENDED", "ENABLED", "DISABLED");
+        Random random = config.createRandom();
+        return () -> values.get(random.nextInt(values.size()));
+    }
+
     private static Generator<?> newUuidStringGenerator(GeneratorConfig config) {
         UUIDGenerator generator = new UUIDGenerator(config);
         return () -> generator.generate().toString();
     }
 
-    private static String normalizeFieldName(String fieldName) {
+    private static Generator<BigDecimal> bigDecimalGenerator(Long seed, String min, String max, int scale) {
+        return seed != null
+               ? new BigDecimalGenerator(new BigDecimal(min), new BigDecimal(max), scale, seed)
+               : new BigDecimalGenerator(new BigDecimal(min), new BigDecimal(max), scale);
+    }
+
+    private static Generator<BigInteger> bigIntegerGenerator(Long seed, long min, long maxExclusive) {
+        BigInteger lower = BigInteger.valueOf(min);
+        BigInteger upper = BigInteger.valueOf(Math.max(min + 1, maxExclusive));
+        return seed != null ? new BigIntegerGenerator(lower, upper, seed) : new BigIntegerGenerator(lower, upper);
+    }
+
+    private static Generator<Integer> intGenerator(Long seed, int min, int maxExclusive) {
+        return seed != null ? new IntGenerator(min, maxExclusive, seed) : new IntGenerator(min, maxExclusive);
+    }
+
+    private static Generator<Long> longGenerator(Long seed, long min, long maxExclusive) {
+        return seed != null ? new LongGenerator(min, maxExclusive, seed) : new LongGenerator(min, maxExclusive);
+    }
+
+    private static Generator<Double> doubleGenerator(Long seed, double min, double max, int precision) {
+        DoubleGenerator generator = seed != null ? new DoubleGenerator(min, max, seed) : new DoubleGenerator(min, max);
+        return () -> round(generator.generate(), precision);
+    }
+
+    private static Generator<Float> floatGenerator(Long seed, float min, float max, int precision) {
+        FloatGenerator generator = seed != null ? new FloatGenerator(min, max, seed) : new FloatGenerator(min, max);
+        return () -> (float) round(generator.generate(), precision);
+    }
+
+    private static double round(double value, int precision) {
+        return BigDecimal.valueOf(value).setScale(precision, java.math.RoundingMode.HALF_UP).doubleValue();
+    }
+
+    private static Generator<Boolean> buildActiveGenerator(GeneratorConfig config, Random seedSource) {
+        Random random = randomFor(config, seedSource);
+        return () -> random.nextDouble() < 0.85d;
+    }
+
+    private static Generator<String> buildLocaleCurrencyCodeGenerator(GeneratorConfig config, Random seedSource) {
+        CurrencyGenerator generator = new CurrencyGenerator(derivedGeneratorConfig(config, seedSource));
+        return () -> {
+            String localeCurrency = generator.generateCurrencyIsoCode(config.getLocale());
+            return localeCurrency != null ? localeCurrency : generator.generateCurrencyIsoCode();
+        };
+    }
+
+    private static Generator<org.github.krandom.generator.finance.Currency> buildLibraryCurrencyGenerator(GeneratorConfig config,
+                                                                                                           Random seedSource) {
+        Generator<String> codeGenerator = buildLocaleCurrencyCodeGenerator(config, seedSource);
+        return () -> {
+            org.github.krandom.generator.finance.Currency localeCurrency =
+                org.github.krandom.generator.finance.Currency.forLocale(config.getLocale());
+            return localeCurrency != null ? localeCurrency
+                                          : org.github.krandom.generator.finance.Currency.fromCode(codeGenerator.generate());
+        };
+    }
+
+    private static Generator<java.util.Currency> buildJavaCurrencyGenerator(GeneratorConfig config, Random seedSource) {
+        Generator<String> codeGenerator = buildLocaleCurrencyCodeGenerator(config, seedSource);
+        return () -> java.util.Currency.getInstance(codeGenerator.generate());
+    }
+
+    private static Map<String, String> buildSemanticKeysByAlias() {
+        Map<String, String> aliases = new HashMap<>();
+        registerSemanticAliases(aliases, "firstname", "firstname", "givenname");
+        registerSemanticAliases(aliases, "lastname", "lastname", "surname", "familyname");
+        registerSemanticAliases(aliases, "fullname", "fullname", "displayname");
+        registerSemanticAliases(aliases, "email", "email", "emailaddress");
+        registerSemanticAliases(aliases, "username", "username", "userhandle");
+        registerSemanticAliases(aliases, "phone", "phone", "phonenumber", "mobile", "mobilephone", "telephone");
+        registerSemanticAliases(aliases, "streetaddress", "street", "streetaddress", "addressline1");
+        registerSemanticAliases(aliases, "city", "city", "town");
+        registerSemanticAliases(aliases, "state", "state", "province", "region");
+        registerSemanticAliases(aliases, "postalcode", "postalcode", "postcode", "zipcode", "zip");
+        registerSemanticAliases(aliases, "country", "country", "countryname");
+        registerSemanticAliases(aliases, "companyname", "company", "companyname", "organization", "organisation");
+        registerSemanticAliases(aliases, "password", "password", "passcode");
+        registerSemanticAliases(aliases, "url", "url", "website", "homepage", "link");
+        registerSemanticAliases(aliases, "domain", "domain", "hostname");
+        registerSemanticAliases(aliases, "currency", "currency", "currencycode");
+        registerSemanticAliases(aliases, "uuid", "uuid", "guid");
+        registerSemanticAliases(aliases, "createdat", "createdat", "createdon", "createddate", "createdtimestamp", "creationdate");
+        registerSemanticAliases(aliases, "updatedat", "updatedat", "updatedon", "updateddate", "updatedtimestamp", "lastupdated", "modifiedat", "modifiedon");
+        registerSemanticAliases(aliases, "birthdate", "birthdate", "dateofbirth", "dob", "birthday", "bornon");
+        registerSemanticAliases(aliases, "amount", "amount", "totalamount", "subtotal", "paymentamount");
+        registerSemanticAliases(aliases, "balance", "balance", "accountbalance", "currentbalance");
+        registerSemanticAliases(aliases, "price", "price", "unitprice", "cost");
+        registerSemanticAliases(aliases, "id", "id", "userid", "accountid", "orderid", "customerid", "productid", "geoid", "identifier");
+        registerSemanticAliases(aliases, "active", "active", "isactive", "enabled", "isenabled");
+        registerSemanticAliases(aliases, "status", "status", "accountstatus", "orderstatus");
+        registerSemanticAliases(aliases, "latitude", "latitude", "lat");
+        registerSemanticAliases(aliases, "longitude", "longitude", "lon", "lng");
+        return Collections.unmodifiableMap(aliases);
+    }
+
+    private static Map<String, Set<String>> buildSemanticAliasesByKey() {
+        Map<String, Set<String>> aliasesByKey = new HashMap<>();
+        for (Map.Entry<String, String> entry : SEMANTIC_KEYS_BY_ALIAS.entrySet()) {
+            aliasesByKey.computeIfAbsent(entry.getValue(), ignored -> new LinkedHashSet<>()).add(entry.getKey());
+        }
+        Map<String, Set<String>> unmodifiable = new HashMap<>(aliasesByKey.size());
+        for (Map.Entry<String, Set<String>> entry : aliasesByKey.entrySet()) {
+            unmodifiable.put(entry.getKey(), Collections.unmodifiableSet(new LinkedHashSet<>(entry.getValue())));
+        }
+        return Collections.unmodifiableMap(unmodifiable);
+    }
+
+    private static void registerSemanticAliases(Map<String, String> aliases, String semanticKey, String... fieldNames) {
+        for (String fieldName : fieldNames) {
+            aliases.put(normalizeSemanticFieldName(fieldName), semanticKey);
+        }
+    }
+
+    static String normalizeSemanticFieldName(String fieldName) {
         StringBuilder normalized = new StringBuilder(fieldName.length());
         for (int i = 0; i < fieldName.length(); i++) {
             char ch = fieldName.charAt(i);
@@ -566,25 +826,94 @@ final class FieldGeneratorResolver {
         return normalized.toString();
     }
 
+    static String semanticKeyForFieldName(String fieldName) {
+        return SEMANTIC_KEYS_BY_ALIAS.get(normalizeSemanticFieldName(fieldName));
+    }
+
+    static Set<String> semanticAliasesFor(String semanticKey) {
+        return SEMANTIC_ALIASES_BY_KEY.getOrDefault(normalizeSemanticFieldName(semanticKey), Set.of());
+    }
+
     private Generator<?> semanticGeneratorFor(Class<?> rawType, String fieldName) {
         if (semanticMode == ObjectGenerationSemanticMode.STRUCTURAL_ONLY) {
             return null;
         }
+        String semanticKey = semanticKeyForFieldName(fieldName);
+        if (semanticKey == null) {
+            return null;
+        }
+        if (rawType.isEnum() && "status".equals(semanticKey)) {
+            Generator<?> enumGenerator = semanticStatusEnumGenerator(rawType);
+            if (enumGenerator != null) {
+                return enumGenerator;
+            }
+        }
+        Map<Class<?>, Generator<?>> typedGenerators = semanticTypedGenerators.get(semanticKey);
+        if (typedGenerators != null) {
+            Generator<?> typedGenerator = typedGenerators.get(rawType);
+            if (typedGenerator != null) {
+                return typedGenerator;
+            }
+        }
         if (rawType != String.class) {
             return null;
         }
-        return semanticStringGenerators.get(normalizeFieldName(fieldName));
+        return semanticStringGenerators.get(semanticKey);
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private Generator<?> semanticStatusEnumGenerator(Class<?> rawType) {
+        Object[] constants = rawType.getEnumConstants();
+        if (constants == null || constants.length == 0) {
+            return null;
+        }
+        List<Enum> preferred = new ArrayList<>();
+        for (Object constant : constants) {
+            Enum<?> enumConstant = (Enum<?>) constant;
+            String name = normalizeSemanticFieldName(enumConstant.name());
+            if (Set.of("active", "inactive", "pending", "suspended", "enabled", "disabled",
+                       "open", "closed", "archived", "deleted").contains(name)) {
+                preferred.add((Enum) enumConstant);
+            }
+        }
+        if (preferred.isEmpty()) {
+            return null;
+        }
+        Random random = randomFor(generatorConfig, sequenceRandom);
+        return () -> preferred.get(random.nextInt(preferred.size()));
     }
 
     private Object generateWithUniqueness(String fieldName, Generator<?> generator) {
-        String normalizedFieldName = normalizeFieldName(fieldName);
-        if (!uniqueFieldNames.contains(normalizedFieldName)) {
+        return generateWithUniqueness(fieldName, null, generator);
+    }
+
+    private Object generateWithUniqueness(String fieldName, String semanticKey, Generator<?> generator) {
+        String normalizedFieldName = normalizeSemanticFieldName(fieldName);
+        if (!isUniqueField(normalizedFieldName, semanticKey)) {
             return generator.generate();
         }
         return uniqueFieldTracker.nextUnique(
-            normalizedFieldName,
+            semanticKey != null ? semanticKey : normalizedFieldName,
             generator::generate,
             config.getUniquenessMaxAttempts());
+    }
+
+    private boolean isUniqueField(String normalizedFieldName, String semanticKey) {
+        if (uniqueFieldNames.contains(normalizedFieldName)) {
+            return true;
+        }
+        if (semanticKey == null) {
+            return false;
+        }
+        if (uniqueFieldNames.contains(semanticKey)) {
+            return true;
+        }
+        for (String alias : semanticAliasesFor(semanticKey)) {
+            if (uniqueFieldNames.contains(alias)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean shouldReturnNull(AnnotatedElement element, Class<?> rawType, Generator<?> annotationGenerator, Generator<?> bvGen) {
@@ -845,13 +1174,14 @@ final class FieldGeneratorResolver {
         Generator<?> bvGen = element != null ? BeanValidationSupport.constraintGeneratorFor(element, rawType) : null;
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────
+        String semanticKey = semanticKeyForFieldName(fieldName);
         Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
         if (semanticGenerator != null
             && (semanticMode == ObjectGenerationSemanticMode.STRICT
                 || (semanticMode == ObjectGenerationSemanticMode.RELAXED
                     && annotationGenerator == null
                     && bvGen == null))) {
-            return generateWithUniqueness(fieldName, semanticGenerator);
+            return generateWithUniqueness(fieldName, semanticKey, semanticGenerator);
         }
 
         // ── 3aa. Configured null/optional behavior ────────────────────────────
