@@ -62,7 +62,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 `pre_commit_check.sh` runs formatting, markdown checks, compilation, tests, Javadoc validation, coverage verification, and now fails fast when Java 21+ is not active.
 
-`verify_examples_local.sh` publishes the current `krandom-core` artifact to Maven local and runs the consumer examples against that local snapshot.
+`verify_examples_local.sh` publishes the current `krandom-core` artifact to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set.
 
 ## Install
 

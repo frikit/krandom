@@ -288,5 +288,10 @@ public final class FieldLookup {
         register("code.upc", ctx -> upc.generate(), ConflictPolicy.REPLACE);
         register("code.isbn13", ctx -> isbn.generate(), ConflictPolicy.REPLACE);
         register("code.sha256", ctx -> hash.generateSha256(), ConflictPolicy.REPLACE);
+
+        registerAlias("address.street_address", "address.street", ConflictPolicy.REPLACE);
+        registerAlias("finance.currency", "finance.currency_iso_code", ConflictPolicy.REPLACE);
+        registerAlias("finance.money", "finance.price", ConflictPolicy.REPLACE);
+        registerAlias("code.uuid", "code.uuid4", ConflictPolicy.REPLACE);
     }
 }

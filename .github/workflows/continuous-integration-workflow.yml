@@ -50,8 +50,15 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Install Scala example tools
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt mill
+
       - name: Make gradle wrappers executable
         run: chmod +x gradlew examples/java-gradle/gradlew examples/kotlin-gradle/gradlew
 
       - name: Verify examples against the locally published snapshot
+        env:
+          KRANDOM_REQUIRE_SCALA_TOOLS: "true"
         run: ./scripts/verify_examples_local.sh

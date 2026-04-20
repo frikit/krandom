@@ -6,8 +6,21 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
 VERSION="${KRANDOM_VERSION:-0.1.0-SNAPSHOT}"
+REQUIRE_SCALA_TOOLS="${KRANDOM_REQUIRE_SCALA_TOOLS:-false}"
 
 step() { echo; echo "==> $*"; }
+
+require_tool() {
+    local tool="$1"
+    if command -v "${tool}" >/dev/null 2>&1; then
+        return 0
+    fi
+    if [[ "${REQUIRE_SCALA_TOOLS}" == "true" ]]; then
+        echo "${tool} is required on PATH."
+        exit 1
+    fi
+    return 1
+}
 
 cd "${REPO_ROOT}"
 
@@ -40,7 +53,7 @@ step "Verify Kotlin + Maven example"
     mvn -q -Dkrandom.version="${VERSION}" test
 )
 
-if command -v sbt >/dev/null 2>&1; then
+if require_tool sbt; then
     step "Verify Scala + sbt example"
     (
         cd "${REPO_ROOT}/examples/scala-sbt"
@@ -51,7 +64,7 @@ else
     echo "sbt is not installed on PATH."
 fi
 
-if command -v mill >/dev/null 2>&1; then
+if require_tool mill; then
     step "Verify Scala + Mill example"
     (
         cd "${REPO_ROOT}/examples/scala-mill"

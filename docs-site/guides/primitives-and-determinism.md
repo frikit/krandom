@@ -12,7 +12,9 @@ permalink: /guides/primitives-and-determinism/
 int n = Generators.ofInt(10, 99).generate();
 double p = Generators.ofDouble(0.0, 1.0).generate();
 String token = Generators.ofString(
-        StringGenerator.builder().length(16).alphanumeric()
+        StringGenerator.builder()
+                .length(16)
+                .charGenerator(CharGenerator.alphanumeric())
 ).generate();
 ```
 

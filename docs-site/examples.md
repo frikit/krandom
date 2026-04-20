@@ -31,15 +31,15 @@ Map<String, Object> user = Map.of(
 ## Batch order data with schema
 
 ```java
-Field f = Generators.ofField(Locale.US);
+Field f = Generators.ofField(cfg);
 
-Schema orders = Generators.ofSchema(Locale.US, Map.of(
-        "orderId", f.bind("code.uuid4"),
+Schema orders = Generators.ofSchema(cfg, Map.of(
+        "orderId", f.bind("code.uuid"),
         "customer", f.bind("person.full_name"),
         "email", f.bind("person.email"),
-        "currency", f.bind("finance.currency_iso_code"),
-        "amount", f.bind("finance.price"),
-        "shipTo", f.bind("address.street")
+        "currency", f.bind("finance.currency"),
+        "amount", f.bind("finance.money"),
+        "shipTo", f.bind("address.street_address")
 ));
 
 List<Map<String, Object>> batch = orders.generateBatch(50);

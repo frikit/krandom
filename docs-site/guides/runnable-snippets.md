@@ -12,14 +12,14 @@ The snippets below are copy/paste-ready and target high-usage generator areas.
 
 ```java
 import org.github.krandom.generator.Generators;
+import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.object.ObjectGenerator;
-import org.github.krandom.generator.object.ObjectGeneratorConfig;
 
 record Address(String city, String country) {}
 record User(String name, Address address) {}
 
-ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-        .maxDepth(3)
+GeneratorConfig config = GeneratorConfig.builder()
+        .objectMaxDepth(3)
         .build();
 
 ObjectGenerator<User> generator = Generators.ofObject(User.class, config);

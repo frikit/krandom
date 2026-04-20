@@ -34,6 +34,12 @@ class FieldLookupTest {
         assertTrue(refs.contains("person.full_name"));
         assertTrue(refs.contains("finance.currency_iso_code"));
         assertTrue(refs.contains("code.uuid4"));
+        assertTrue(lookup.has("finance.currency"));
+        assertTrue(lookup.has("finance.money"));
+        assertTrue(lookup.has("code.uuid"));
+        assertTrue(lookup.has("address.street_address"));
+        assertEquals("finance.currency_iso_code", lookup.aliases().get("finance.currency"));
+        assertEquals("code.uuid4", lookup.aliases().get("code.uuid"));
     }
 
     @Test
@@ -77,7 +83,7 @@ class FieldLookupTest {
         assertTrue(lookup.has("custom.order_id"));
         assertTrue(lookup.has("custom.order"));
         assertFalse(lookup.has("custom.missing"));
-        assertEquals(Map.of("custom.order", "custom.order_id"), lookup.aliases());
+        assertEquals("custom.order_id", lookup.aliases().get("custom.order"));
         assertEquals("ORD-7", lookup.resolve("custom.order").generate(context));
         assertTrue(lookup.supportedReferences().contains("custom.order_id"));
     }
