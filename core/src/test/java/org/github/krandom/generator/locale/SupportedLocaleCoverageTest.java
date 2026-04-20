@@ -18,17 +18,56 @@ import org.github.krandom.generator.user.TitleDataRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Locale;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Supported locale coverage across providers and registries")
 class SupportedLocaleCoverageTest {
 
     @Test
-    @DisplayName("user registries are seeded with exact providers for every supported locale")
+    @DisplayName("supported locale metadata exposes native and fallback tiers consistently")
+    void supportedLocaleMetadataExposesConsistentTiers() {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            assertEquals(supportedLocale, SupportedLocale.fromLocale(supportedLocale.locale()).orElseThrow());
+
+            if (supportedLocale.resourceDataTier().isFallback()) {
+                assertFalse(supportedLocale.resourceFallbackLocale().isEmpty(), "resource fallback missing " + supportedLocale);
+                assertFalse(supportedLocale.resourcePrefix().equals(supportedLocale.canonicalResourcePrefix()),
+                            "resource prefix should differ for fallback " + supportedLocale);
+            } else {
+                assertTrue(supportedLocale.resourceFallbackLocale().isEmpty(), "unexpected resource fallback " + supportedLocale);
+                assertEquals(supportedLocale.canonicalResourcePrefix(), supportedLocale.resourcePrefix());
+            }
+
+            if (supportedLocale.professionDataTier().isFallback()) {
+                assertFalse(supportedLocale.professionFallbackLocale().isEmpty(), "profession fallback missing " + supportedLocale);
+                assertTrue(supportedLocale.qualityTier().isFallback(), "overall tier should reflect fallback " + supportedLocale);
+            } else {
+                assertTrue(supportedLocale.professionFallbackLocale().isEmpty(), "unexpected profession fallback " + supportedLocale);
+            }
+
+            assertEquals(LocaleDataQualityTier.max(supportedLocale.resourceDataTier(), supportedLocale.professionDataTier()),
+                         supportedLocale.qualityTier(),
+                         "overall tier mismatch " + supportedLocale);
+        }
+
+        assertEquals(LocaleDataQualityTier.NATIVE_DATASET, SupportedLocale.EN_US.qualityTier());
+        assertEquals(LocaleDataQualityTier.ALIAS_FALLBACK_DATASET, SupportedLocale.NL_NL.qualityTier());
+        assertEquals(SupportedLocale.EN_GB, SupportedLocale.NL_NL.resourceFallbackLocale().orElseThrow());
+        assertEquals(SupportedLocale.EN_GB, SupportedLocale.TR_TR.professionFallbackLocale().orElseThrow());
+        assertEquals(SupportedLocale.EN_US, SupportedLocale.HI_IN.professionFallbackLocale().orElseThrow());
+    }
+
+    @Test
+    @DisplayName("user registries are seeded with exact providers and dataset shape for every supported locale")
     void userRegistriesCoverAllSupportedLocales() {
-        for (Locale locale : SupportedLocale.locales()) {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            Locale locale = supportedLocale.locale();
             assertTrue(FirstNameDataRegistry.isRegistered(locale), "FirstNameDataRegistry missing " + locale);
             assertTrue(LastNameDataRegistry.isRegistered(locale), "LastNameDataRegistry missing " + locale);
             assertTrue(GenderDataRegistry.isRegistered(locale), "GenderDataRegistry missing " + locale);
@@ -36,44 +75,94 @@ class SupportedLocaleCoverageTest {
             assertTrue(TitleDataRegistry.isRegistered(locale), "TitleDataRegistry missing " + locale);
             assertTrue(SuffixDataRegistry.isRegistered(locale), "SuffixDataRegistry missing " + locale);
 
-            assertTrue(FirstNameDataRegistry.forLocale(locale).getLocale().equals(locale));
-            assertTrue(LastNameDataRegistry.forLocale(locale).getLocale().equals(locale));
-            assertTrue(GenderDataRegistry.forLocale(locale).getLocale().equals(locale));
-            assertTrue(ProfessionDataRegistry.forLocale(locale).getLocale().equals(locale));
-            assertTrue(TitleDataRegistry.forLocale(locale).getLocale().equals(locale));
-            assertTrue(SuffixDataRegistry.forLocale(locale).getLocale().equals(locale));
+            Object firstNameProvider = builtInProvider("org.github.krandom.generator.user.BuiltInFirstNameDataProvider", supportedLocale);
+            Object lastNameProvider = builtInProvider("org.github.krandom.generator.user.BuiltInLastNameDataProvider", supportedLocale);
+            Object genderProvider = builtInProvider("org.github.krandom.generator.user.BuiltInGenderDataProvider", supportedLocale);
+            Object professionProvider = builtInProvider("org.github.krandom.generator.user.BuiltInProfessionDataProvider", supportedLocale);
+            Object titleProvider = builtInProvider("org.github.krandom.generator.user.BuiltInTitleDataProvider", supportedLocale);
+            Object suffixProvider = builtInProvider("org.github.krandom.generator.user.BuiltInSuffixDataProvider", supportedLocale);
 
-            assertTrue(FirstNameDataRegistry.forLocale(locale).getMaleFirstNames().length > 0);
-            assertTrue(FirstNameDataRegistry.forLocale(locale).getFemaleFirstNames().length > 0);
-            assertTrue(LastNameDataRegistry.forLocale(locale).getLastNames().length > 0);
-            assertTrue(!GenderDataRegistry.forLocale(locale).getMaleLabel().isBlank());
-            assertTrue(!GenderDataRegistry.forLocale(locale).getFemaleLabel().isBlank());
-            assertTrue(ProfessionDataRegistry.forLocale(locale).getProfessions().length > 0);
-            assertTrue(TitleDataRegistry.forLocale(locale).getTitles().length > 0);
-            assertTrue(SuffixDataRegistry.forLocale(locale).getSuffixes().length > 0);
+            assertEquals(locale, invoke(firstNameProvider, "getLocale"));
+            assertEquals(locale, invoke(lastNameProvider, "getLocale"));
+            assertEquals(locale, invoke(genderProvider, "getLocale"));
+            assertEquals(locale, invoke(professionProvider, "getLocale"));
+            assertEquals(locale, invoke(titleProvider, "getLocale"));
+            assertEquals(locale, invoke(suffixProvider, "getLocale"));
+
+            assertTrue(stringArray(firstNameProvider, "getMaleFirstNames").length >= 40);
+            assertTrue(stringArray(firstNameProvider, "getFemaleFirstNames").length >= 40);
+            assertTrue(stringArray(lastNameProvider, "getLastNames").length >= 40);
+            assertTrue(!stringValue(genderProvider, "getMaleLabel").isBlank());
+            assertTrue(!stringValue(genderProvider, "getFemaleLabel").isBlank());
+            assertTrue(!stringValue(genderProvider, "getMaleLabel").equals(stringValue(genderProvider, "getFemaleLabel")));
+            assertEquals(25, stringArray(professionProvider, "getProfessions").length);
+            assertEquals(25, intArray(professionProvider, "getWeights").length);
+            assertTrue(stringArray(titleProvider, "getTitles").length >= 4);
+            assertTrue(stringArray(suffixProvider, "getSuffixes").length >= 3);
         }
     }
 
     @Test
-    @DisplayName("location registries are seeded with exact providers for every supported locale")
+    @DisplayName("location registries are seeded with exact providers and dataset shape for every supported locale")
     void locationRegistriesCoverAllSupportedLocales() {
-        for (Locale locale : SupportedLocale.locales()) {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            Locale locale = supportedLocale.locale();
             assertTrue(CityDataRegistry.isRegistered(locale), "CityDataRegistry missing " + locale);
             assertTrue(StateDataRegistry.isRegistered(locale), "StateDataRegistry missing " + locale);
             assertTrue(CountryDataRegistry.isRegistered(locale), "CountryDataRegistry missing " + locale);
             assertTrue(StreetAddressDataRegistry.isRegistered(locale), "StreetAddressDataRegistry missing " + locale);
 
-            assertTrue(CityDataRegistry.forLocale(locale).getLocale().equals(locale));
-            assertTrue(StateDataRegistry.forLocale(locale).getLocale().equals(locale));
-            assertTrue(CountryDataRegistry.forLocale(locale).getLocale().equals(locale));
-            assertTrue(StreetAddressDataRegistry.forLocale(locale).getLocale().equals(locale));
+            Object cityProvider = builtInProvider("org.github.krandom.generator.location.BuiltInCityDataProvider", supportedLocale);
+            Object stateProvider = builtInProvider("org.github.krandom.generator.location.BuiltInStateDataProvider", supportedLocale);
+            Object countryProvider = builtInProvider("org.github.krandom.generator.location.BuiltInCountryDataProvider", supportedLocale);
+            Object streetProvider = builtInProvider("org.github.krandom.generator.location.BuiltInStreetAddressDataProvider", supportedLocale);
 
-            assertTrue(CityDataRegistry.forLocale(locale).getCities().length > 0);
-            assertTrue(StateDataRegistry.forLocale(locale).getStates().length > 0);
-            assertTrue(CountryDataRegistry.forLocale(locale).getCountries().length > 0);
-            assertTrue(StreetAddressDataRegistry.forLocale(locale).getStreetNames().length > 0);
-            assertTrue(StreetAddressDataRegistry.forLocale(locale).getStreetTypesShort().length > 0);
-            assertTrue(StreetAddressDataRegistry.forLocale(locale).getStreetTypesLong().length > 0);
+            assertEquals(locale, invoke(cityProvider, "getLocale"));
+            assertEquals(locale, invoke(stateProvider, "getLocale"));
+            assertEquals(locale, invoke(countryProvider, "getLocale"));
+            assertEquals(locale, invoke(streetProvider, "getLocale"));
+
+            assertTrue(stringArray(cityProvider, "getCities").length >= 70);
+            assertTrue(stringArray(stateProvider, "getStates").length >= 4);
+            assertEquals(stringArray(stateProvider, "getStates").length,
+                         stringArray(stateProvider, "getAbbreviations").length);
+            assertTrue(stringArray(countryProvider, "getCountries").length >= 150);
+            assertTrue(stringArray(streetProvider, "getStreetNames").length >= 20);
+            assertTrue(stringArray(streetProvider, "getStreetTypesShort").length >= 10);
+            assertTrue(stringArray(streetProvider, "getStreetTypesLong").length >= 10);
         }
+    }
+
+    private static Object builtInProvider(String className, SupportedLocale supportedLocale) {
+        try {
+            Class<?> type = Class.forName(className);
+            Constructor<?> constructor = type.getDeclaredConstructor(SupportedLocale.class);
+            constructor.setAccessible(true);
+            return constructor.newInstance(supportedLocale);
+        } catch (ReflectiveOperationException ex) {
+            throw new IllegalStateException("Unable to construct built-in provider " + className, ex);
+        }
+    }
+
+    private static Object invoke(Object target, String methodName) {
+        try {
+            Method method = target.getClass().getDeclaredMethod(methodName);
+            method.setAccessible(true);
+            return method.invoke(target);
+        } catch (ReflectiveOperationException ex) {
+            throw new IllegalStateException("Unable to invoke " + methodName + " on " + target.getClass().getName(), ex);
+        }
+    }
+
+    private static String[] stringArray(Object target, String methodName) {
+        return (String[]) invoke(target, methodName);
+    }
+
+    private static int[] intArray(Object target, String methodName) {
+        return (int[]) invoke(target, methodName);
+    }
+
+    private static String stringValue(Object target, String methodName) {
+        return (String) invoke(target, methodName);
     }
 }
