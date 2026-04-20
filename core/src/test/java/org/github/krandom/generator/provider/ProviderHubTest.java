@@ -199,8 +199,25 @@ class ProviderHubTest {
         assertNotNull(second);
         assertFalse(first.equals(second));
 
+        UniqueGenerator<String> bounded = hub.unique(() -> UUID.randomUUID().toString(), 3);
+        assertNotNull(bounded.generate());
+
+        UniqueGenerator<String> comparatorDistinct = hub.unique(() -> UUID.randomUUID().toString(), String::equalsIgnoreCase);
+        assertNotNull(comparatorDistinct.generate());
+
         assertThrows(NullPointerException.class, () -> hub.unique(null));
+        assertThrows(NullPointerException.class, () -> hub.unique(null, 3));
         assertThrows(NullPointerException.class, () -> hub.unique(new UUIDGenerator(), null));
+    }
+
+    @Test
+    @DisplayName("leaf built-ins remain reachable through their canonical names")
+    void leafBuiltInsRemainReachableThroughCanonicalNames() {
+        ProviderHub hub = new ProviderHub();
+
+        assertInstanceOf(MoneyGenerator.class, hub.get("finance.money"));
+        assertInstanceOf(DateGenerator.class, hub.get("datetime.date"));
+        assertInstanceOf(WordGenerator.class, hub.get("text.word"));
     }
 
     @Test

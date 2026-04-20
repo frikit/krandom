@@ -69,6 +69,25 @@ class FieldTemplateTest {
     }
 
     @Test
+    @DisplayName("payload templates preserve nested nulls and scalar literals")
+    void payloadTemplatesPreserveNestedNullsAndScalarLiterals() {
+        Field field = baseField();
+        Map<String, Object> shell = new LinkedHashMap<>();
+        shell.put("plainNumber", 7);
+        shell.put("plainBoolean", true);
+        shell.put("missing", null);
+        shell.put("items", new java.util.ArrayList<>(java.util.Arrays.asList(null, 3, "{{custom.order_id}}")));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> generated = (Map<String, Object>) field.template(shell).generate(context(2));
+
+        assertEquals(7, generated.get("plainNumber"));
+        assertEquals(true, generated.get("plainBoolean"));
+        assertEquals(null, generated.get("missing"));
+        assertEquals(java.util.Arrays.asList(null, 3, 1002), generated.get("items"));
+    }
+
+    @Test
     @DisplayName("provider-backed tokens can be interpolated through templates")
     void providerBackedTokensCanBeInterpolatedThroughTemplates() {
         Field field = baseField();

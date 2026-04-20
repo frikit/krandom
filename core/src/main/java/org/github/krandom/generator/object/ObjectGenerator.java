@@ -206,13 +206,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
                 generationSeed);
-        try {
-            populateClass(instance, resolver);
-            return instance;
-        } catch (ReflectiveOperationException e) {
-            throw new ObjectGenerationException(
-                "Failed to populate instance of " + type.getName() + ": " + e.getMessage(), e);
-        }
+        populateClass(instance, resolver);
+        return instance;
     }
 
     private Long nextGenerationSeed() {
@@ -259,7 +254,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return instance;
     }
 
-    private void populateClass(T instance, FieldGeneratorResolver resolver) throws IllegalAccessException {
+    private void populateClass(T instance, FieldGeneratorResolver resolver) {
         for (Field field : collectSettableFields(type)) {
             if (config.shouldExclude(field)) continue; // exclusion check
             field.setAccessible(true);

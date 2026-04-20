@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +29,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Supported locale coverage across providers and registries")
 class SupportedLocaleCoverageTest {
+
+    @Test
+    @DisplayName("locale helpers expose enum locales in declaration order and reject unknown locales")
+    void localeHelpersExposeDeclaredLocalesAndRejectUnknownLocales() {
+        assertEquals(Arrays.stream(SupportedLocale.values()).map(SupportedLocale::locale).toList(),
+                     SupportedLocale.locales());
+        assertTrue(SupportedLocale.fromLocale(Locale.CANADA_FRENCH).isEmpty());
+    }
 
     @Test
     @DisplayName("supported locale metadata exposes native and fallback tiers consistently")
@@ -61,6 +70,9 @@ class SupportedLocaleCoverageTest {
         assertEquals(SupportedLocale.EN_GB, SupportedLocale.NL_NL.resourceFallbackLocale().orElseThrow());
         assertEquals(SupportedLocale.EN_GB, SupportedLocale.TR_TR.professionFallbackLocale().orElseThrow());
         assertEquals(SupportedLocale.EN_US, SupportedLocale.HI_IN.professionFallbackLocale().orElseThrow());
+        assertEquals(LocaleDataQualityTier.ALIAS_FALLBACK_DATASET,
+                     LocaleDataQualityTier.max(LocaleDataQualityTier.NATIVE_DATASET,
+                                               LocaleDataQualityTier.ALIAS_FALLBACK_DATASET));
     }
 
     @Test

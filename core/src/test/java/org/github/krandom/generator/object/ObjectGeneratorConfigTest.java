@@ -9,13 +9,16 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -226,9 +229,79 @@ class ObjectGeneratorConfigTest {
         assertThrows(IllegalArgumentException.class,
                      () -> ObjectGeneratorConfig.builder().nullProbability(1.1));
         assertThrows(IllegalArgumentException.class,
+                     () -> ObjectGeneratorConfig.builder().nullProbability(Double.NaN));
+        assertThrows(IllegalArgumentException.class,
                      () -> ObjectGeneratorConfig.builder().optionalEmptyProbability(-0.1));
         assertThrows(IllegalArgumentException.class,
                      () -> ObjectGeneratorConfig.builder().uniquenessMaxAttempts(0));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectGeneratorConfig.builder().optionalEmptyProbability(Double.NaN));
+    }
+
+    @Test
+    @DisplayName("uniqueField normalizes one field name and rejects non-alphanumeric input")
+    void uniqueFieldNormalizesSingleFieldAndRejectsNonAlphanumericInput() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .uniqueField("Account_ID")
+                                                            .build();
+
+        assertTrue(config.getUniqueFieldNames().contains("accountid"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ObjectGeneratorConfig.builder().uniqueField("___"));
+    }
+
+    @Test
+    @DisplayName("toBuilder preserves unset date range state")
+    void toBuilderPreservesUnsetDateRangeState() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.defaults()
+                                                            .toBuilder()
+                                                            .maxDepth(2)
+                                                            .build();
+
+        assertNull(config.getDateMin());
+        assertNull(config.getDateMax());
+        assertEquals(2, config.getMaxDepth());
+    }
+
+    @Test
+    @DisplayName("toBuilder preserves explicit date range state")
+    void toBuilderPreservesExplicitDateRangeState() {
+        LocalDate min = LocalDate.of(2024, 1, 1);
+        LocalDate max = LocalDate.of(2024, 12, 31);
+
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .dateRange(min, max)
+                                                            .build()
+                                                            .toBuilder()
+                                                            .build();
+
+        assertEquals(min, config.getDateMin());
+        assertEquals(max, config.getDateMax());
+    }
+
+    @Test
+    @DisplayName("toBuilder treats one-sided reflected date state as explicit")
+    void toBuilderTreatsOneSidedReflectedDateStateAsExplicit() throws Exception {
+        LocalDate reflectedMax = LocalDate.of(2025, 6, 30);
+        GeneratorConfig inheritedGeneratorConfig = GeneratorConfig.builder()
+                                                                 .objectDateRange(LocalDate.of(1999, 1, 1), LocalDate.of(1999, 12, 31))
+                                                                 .build();
+        ObjectGeneratorConfig source = ObjectGeneratorConfig.defaults();
+
+        Field dateMaxField = ObjectGeneratorConfig.class.getDeclaredField("dateMax");
+        dateMaxField.setAccessible(true);
+        dateMaxField.set(source, reflectedMax);
+
+        Constructor<ObjectGeneratorConfig.Builder> copyConstructor =
+            ObjectGeneratorConfig.Builder.class.getDeclaredConstructor(ObjectGeneratorConfig.class);
+        copyConstructor.setAccessible(true);
+
+        ObjectGeneratorConfig copy = copyConstructor.newInstance(source)
+                                                    .generatorConfig(inheritedGeneratorConfig)
+                                                    .build();
+
+        assertNull(copy.getDateMin());
+        assertEquals(reflectedMax, copy.getDateMax());
     }
 
     @Test

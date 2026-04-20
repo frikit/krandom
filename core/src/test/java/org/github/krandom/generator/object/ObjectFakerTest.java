@@ -151,6 +151,17 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("ignore mode respects inherited fields correctly")
+    void ignoreModeRespectsInheritedFields() {
+        HierarchyChildFixture fixture = new ObjectFaker<>(HierarchyChildFixture.class)
+            .ignore("parentValue")
+            .generate();
+
+        assertNotNull(fixture.childValue);
+        assertNull(fixture.parentValue);
+    }
+
+    @Test
     @DisplayName("postProcess can mutate the generated object")
     void postProcessMutatesGeneratedObject() {
         FixtureUser user = new ObjectFaker<>(FixtureUser.class)

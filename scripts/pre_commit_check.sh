@@ -7,6 +7,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
+COVERAGE_THRESHOLD="99.9"
 
 cd "${REPO_ROOT}"
 
@@ -113,7 +114,7 @@ R="$(printf '\033[0;31m')"
 RST="$(printf '\033[0m')"
 
 # ── Summary box ───────────────────────────────────────────────────────────────
-awk -F',' -v G="${G}" -v R="${R}" -v RST="${RST}" '
+awk -F',' -v G="${G}" -v R="${R}" -v RST="${RST}" -v THRESHOLD="${COVERAGE_THRESHOLD}" '
 function bar(pct,    w, filled, i, b) {
     w = 20; filled = int(pct / 5 + 0.5); b = ""
     for (i = 1; i <= w; i++) b = b (i <= filled ? "#" : "-")
@@ -126,10 +127,10 @@ END {
     lp = (tl > 0) ? tlc * 100 / tl : 0
     bp = (tb > 0) ? tbc * 100 / tb : 0
 
-    lp_col = (lp >= 80 ? G : R) sprintf("%5.1f%%", lp) RST
-    bp_col = (bp >= 80 ? G : R) sprintf("%5.1f%%", bp) RST
-    ls_col = (lp >= 80 ? G "PASS" RST : R "FAIL" RST)
-    bs_col = (bp >= 80 ? G "PASS" RST : R "FAIL" RST)
+    lp_col = (lp >= THRESHOLD ? G : R) sprintf("%5.1f%%", lp) RST
+    bp_col = (bp >= THRESHOLD ? G : R) sprintf("%5.1f%%", bp) RST
+    ls_col = (lp >= THRESHOLD ? G "PASS" RST : R "FAIL" RST)
+    bs_col = (bp >= THRESHOLD ? G "PASS" RST : R "FAIL" RST)
 
     print ""
     print "─────────────────────────────────────────────────────────────────────────"
@@ -137,7 +138,7 @@ END {
     print "─────────────────────────────────────────────────────────────────────────"
     printf "  Line   coverage : %s  [%s]\n", lp_col, bar(lp)
     printf "  Branch coverage : %s  [%s]\n", bp_col, bar(bp)
-    printf "  Threshold       :  99.0%%  minimum (both counters)\n"
+    printf "  Threshold       :  %5.1f%%  minimum (all counters)\n", THRESHOLD
     printf "  Line   status   :  %s\n", ls_col
     printf "  Branch status   :  %s\n", bs_col
     print "─────────────────────────────────────────────────────────────────────────"
@@ -154,14 +155,14 @@ echo ""
 printf "%-55s %7s   %7s\n" "PACKAGE" "LINE%" "BRANCH%"
 printf '─%.0s' {1..73}; echo ""
 
-awk -F',' -v G="${G}" -v R="${R}" -v RST="${RST}" '
+awk -F',' -v G="${G}" -v R="${R}" -v RST="${RST}" -v THRESHOLD="${COVERAGE_THRESHOLD}" '
 function fmt(v,    c, mark) {
     # v < 0 means no branchable code in this package (N/A in JaCoCo).
     # Treat as 100.0: no branches means nothing can be missed.
     # Width must match the number path: sprintf("%6.1f") = 6 chars + 1 mark = 7 total.
     if (v < 0) return G " 100.0 " RST
-    c    = (v >= 80) ? G : R
-    mark = (v >= 80) ? " " : "!"
+    c    = (v >= THRESHOLD) ? G : R
+    mark = (v >= THRESHOLD) ? " " : "!"
     return c sprintf("%6.1f", v) mark RST
 }
 NR == 1 { next }
@@ -186,7 +187,7 @@ END {
 END     { printf "%-73s\n", "─────────────────────────────────────────────────────────────────────────"; print total }'
 
 echo ""
-printf "! = below 99%% threshold\n"
+printf "! = below %s%% threshold\n" "${COVERAGE_THRESHOLD}"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 

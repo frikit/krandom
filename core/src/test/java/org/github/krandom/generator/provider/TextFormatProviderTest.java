@@ -46,6 +46,18 @@ class TextFormatProviderTest {
     }
 
     @Test
+    @DisplayName("asciify leaves non-placeholder characters unchanged")
+    void asciifyLeavesNonPlaceholderCharactersUnchanged() {
+        TextFormatProvider provider = new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
+
+        String value = provider.asciify("a*b", '*');
+
+        assertEquals('a', value.charAt(0));
+        assertEquals('b', value.charAt(2));
+        assertTrue(value.charAt(1) >= 33 && value.charAt(1) <= 126);
+    }
+
+    @Test
     @DisplayName("formatting helpers validate null input")
     void formattingHelpersValidateNullInput() {
         TextFormatProvider provider = new TextFormatProvider();

@@ -97,6 +97,27 @@ class ObjectGeneratorPopulateTest {
         assertEquals("generated", target.blank);
     }
 
+    @Test
+    @DisplayName("populate skips the fresh-scope branch when depth is zero but a pool already exists")
+    void populateSkipsFreshScopeWhenDepthZeroAndPoolAlreadyExists() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+            .override(String.class, () -> "generated")
+            .build();
+
+        PopulateTarget target = new PopulateTarget();
+        ObjectGenerator<PopulateTarget> scoped = new ObjectGenerator<>(
+            PopulateTarget.class,
+            config,
+            0,
+            new ObjectPool(config.getObjectPoolSize()),
+            123L,
+            new UniqueFieldTracker());
+
+        scoped.populate(target);
+
+        assertEquals("generated", target.blank);
+    }
+
     static final class PopulateTarget {
         String preset;
         String blank;

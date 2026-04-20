@@ -261,9 +261,13 @@ class GeneratorConfigTest {
         assertThrows(IllegalArgumentException.class,
                      () -> GeneratorConfig.builder().objectNullProbability(1.1));
         assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectNullProbability(Double.NaN));
+        assertThrows(IllegalArgumentException.class,
                      () -> GeneratorConfig.builder().objectOptionalEmptyProbability(-0.1));
         assertThrows(IllegalArgumentException.class,
                      () -> GeneratorConfig.builder().objectOptionalEmptyProbability(1.1));
+        assertThrows(IllegalArgumentException.class,
+                     () -> GeneratorConfig.builder().objectOptionalEmptyProbability(Double.NaN));
     }
 
     @Test

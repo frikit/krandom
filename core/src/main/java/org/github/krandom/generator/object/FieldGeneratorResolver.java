@@ -520,26 +520,22 @@ final class FieldGeneratorResolver {
         registerTypedSemantic(generators, "active", boolean.class, activeGenerator);
         registerTypedSemantic(generators, "active", Boolean.class, activeGenerator);
 
-        try {
-            CoordinatesGenerator coordinatesGenerator = new CoordinatesGenerator(derivedGeneratorConfig(config, seedSource));
-            registerTypedSemantic(generators, "latitude", double.class, (Generator<Double>) coordinatesGenerator::generateLatitude);
-            registerTypedSemantic(generators, "latitude", Double.class, (Generator<Double>) coordinatesGenerator::generateLatitude);
-            registerTypedSemantic(generators, "latitude", float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLatitude());
-            registerTypedSemantic(generators, "latitude", Float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLatitude());
-            registerTypedSemantic(generators, "latitude", BigDecimal.class,
-                                  () -> BigDecimal.valueOf(coordinatesGenerator.generateLatitude())
-                                                  .setScale(6, java.math.RoundingMode.HALF_UP));
+        CoordinatesGenerator coordinatesGenerator = new CoordinatesGenerator(derivedGeneratorConfig(config, seedSource));
+        registerTypedSemantic(generators, "latitude", double.class, (Generator<Double>) coordinatesGenerator::generateLatitude);
+        registerTypedSemantic(generators, "latitude", Double.class, (Generator<Double>) coordinatesGenerator::generateLatitude);
+        registerTypedSemantic(generators, "latitude", float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLatitude());
+        registerTypedSemantic(generators, "latitude", Float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLatitude());
+        registerTypedSemantic(generators, "latitude", BigDecimal.class,
+                              () -> BigDecimal.valueOf(coordinatesGenerator.generateLatitude())
+                                              .setScale(6, java.math.RoundingMode.HALF_UP));
 
-            registerTypedSemantic(generators, "longitude", double.class, (Generator<Double>) coordinatesGenerator::generateLongitude);
-            registerTypedSemantic(generators, "longitude", Double.class, (Generator<Double>) coordinatesGenerator::generateLongitude);
-            registerTypedSemantic(generators, "longitude", float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLongitude());
-            registerTypedSemantic(generators, "longitude", Float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLongitude());
-            registerTypedSemantic(generators, "longitude", BigDecimal.class,
-                                  () -> BigDecimal.valueOf(coordinatesGenerator.generateLongitude())
-                                                  .setScale(6, java.math.RoundingMode.HALF_UP));
-        } catch (UnsupportedOperationException ignored) {
-            // Locale/provider not available — fall back to generic type resolution.
-        }
+        registerTypedSemantic(generators, "longitude", double.class, (Generator<Double>) coordinatesGenerator::generateLongitude);
+        registerTypedSemantic(generators, "longitude", Double.class, (Generator<Double>) coordinatesGenerator::generateLongitude);
+        registerTypedSemantic(generators, "longitude", float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLongitude());
+        registerTypedSemantic(generators, "longitude", Float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLongitude());
+        registerTypedSemantic(generators, "longitude", BigDecimal.class,
+                              () -> BigDecimal.valueOf(coordinatesGenerator.generateLongitude())
+                                              .setScale(6, java.math.RoundingMode.HALF_UP));
 
         Map<String, Map<Class<?>, Generator<?>>> unmodifiable = new HashMap<>(generators.size());
         for (Map.Entry<String, Map<Class<?>, Generator<?>>> entry : generators.entrySet()) {
@@ -1122,9 +1118,7 @@ final class FieldGeneratorResolver {
         Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
         if (semanticGenerator != null
             && (semanticMode == ObjectGenerationSemanticMode.STRICT
-                || (semanticMode == ObjectGenerationSemanticMode.RELAXED
-                    && annotationGenerator == null
-                    && bvGen == null))) {
+                || (annotationGenerator == null && bvGen == null))) {
             return generateWithUniqueness(fieldName, semanticKey, semanticGenerator);
         }
 

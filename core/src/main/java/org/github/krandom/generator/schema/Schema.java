@@ -37,6 +37,12 @@ public final class Schema implements Generator<Map<String, Object>> {
     private final Random                           random;
     private       int                              nextRecordIndex;
 
+    @FunctionalInterface
+    interface StringBuilderWriter {
+
+        void write(StringBuilder builder) throws IOException;
+    }
+
     /**
      * Creates schema generator with default configuration.
      *
@@ -126,13 +132,7 @@ public final class Schema implements Generator<Map<String, Object>> {
      * @return JSONL payload
      */
     public String toJsonLines(int count) {
-        StringBuilder builder = new StringBuilder();
-        try {
-            writeJsonLines(builder, count);
-        } catch (IOException e) {
-            throw new IllegalStateException("StringBuilder should not throw IOException", e);
-        }
-        return builder.toString();
+        return buildString(builder -> writeJsonLines(builder, count));
     }
 
     /**
@@ -160,13 +160,7 @@ public final class Schema implements Generator<Map<String, Object>> {
      * @return CSV payload with a header row
      */
     public String toCsv(int count) {
-        StringBuilder builder = new StringBuilder();
-        try {
-            writeCsv(builder, count);
-        } catch (IOException e) {
-            throw new IllegalStateException("StringBuilder should not throw IOException", e);
-        }
-        return builder.toString();
+        return buildString(builder -> writeCsv(builder, count));
     }
 
     /**
@@ -206,13 +200,7 @@ public final class Schema implements Generator<Map<String, Object>> {
      * @return XML payload
      */
     public String toXml(int count) {
-        StringBuilder builder = new StringBuilder();
-        try {
-            writeXml(builder, count);
-        } catch (IOException e) {
-            throw new IllegalStateException("StringBuilder should not throw IOException", e);
-        }
-        return builder.toString();
+        return buildString(builder -> writeXml(builder, count));
     }
 
     /**
@@ -258,13 +246,7 @@ public final class Schema implements Generator<Map<String, Object>> {
      * @return SQL payload
      */
     public String toSqlInserts(String tableName, int count) {
-        StringBuilder builder = new StringBuilder();
-        try {
-            writeSqlInserts(builder, tableName, count);
-        } catch (IOException e) {
-            throw new IllegalStateException("StringBuilder should not throw IOException", e);
-        }
-        return builder.toString();
+        return buildString(builder -> writeSqlInserts(builder, tableName, count));
     }
 
     /**
@@ -681,15 +663,19 @@ public final class Schema implements Generator<Map<String, Object>> {
             return String.valueOf(value);
         }
         if (value instanceof Map<?, ?> || value instanceof Iterable<?> || value.getClass().isArray()) {
-            StringBuilder builder = new StringBuilder();
-            try {
-                appendJsonValue(builder, value);
-            } catch (IOException e) {
-                throw new IllegalStateException("StringBuilder should not throw IOException", e);
-            }
-            return builder.toString();
+            return buildString(builder -> appendJsonValue(builder, value));
         }
         return String.valueOf(value);
+    }
+
+    private static String buildString(StringBuilderWriter writer) {
+        StringBuilder builder = new StringBuilder();
+        try {
+            writer.write(builder);
+        } catch (IOException e) {
+            throw new IllegalStateException("StringBuilder should not throw IOException", e);
+        }
+        return builder.toString();
     }
 
     private static Map<String, Object> inferJsonSchema(Object value) {

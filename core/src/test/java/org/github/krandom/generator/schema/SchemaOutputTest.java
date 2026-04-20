@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -283,6 +284,31 @@ class SchemaOutputTest {
 
         assertThrows(IOException.class, () -> schema.writeJsonLines(new FailingAppendable(), 1));
         assertThrows(IOException.class, () -> schema.writeCsv(new FailingAppendable(), 1));
+    }
+
+    @Test
+    @DisplayName("internal StringBuilder wrapper converts impossible IOExceptions into IllegalStateException")
+    void stringBuilderWrapperConvertsImpossibleIoExceptions() throws Exception {
+        Class<?> writerType = Arrays.stream(Schema.class.getDeclaredClasses())
+                                    .filter(candidate -> candidate.getSimpleName().equals("StringBuilderWriter"))
+                                    .findFirst()
+                                    .orElseThrow();
+
+        Method method = Schema.class.getDeclaredMethod("buildString", writerType);
+        method.setAccessible(true);
+
+        Object writer = Proxy.newProxyInstance(
+            writerType.getClassLoader(),
+            new Class<?>[]{ writerType },
+            (proxy, invoked, args) -> {
+                throw new IOException("boom");
+            });
+
+        InvocationTargetException thrown = assertThrows(InvocationTargetException.class, () -> method.invoke(null, writer));
+        IllegalStateException cause = (IllegalStateException) thrown.getCause();
+        assertEquals("StringBuilder should not throw IOException", cause.getMessage());
+        assertTrue(cause.getCause() instanceof IOException);
+        assertEquals("boom", cause.getCause().getMessage());
     }
 
     @Test

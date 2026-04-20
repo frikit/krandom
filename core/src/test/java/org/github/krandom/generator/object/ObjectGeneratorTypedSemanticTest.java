@@ -5,6 +5,7 @@
  */
 package org.github.krandom.generator.object;
 
+import jakarta.validation.constraints.Size;
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.finance.Currency;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Locale;
@@ -126,6 +128,39 @@ class ObjectGeneratorTypedSemanticTest {
     }
 
     @Test
+    @DisplayName("typed semantic variants cover string ids, java currency, offset timestamps, and coordinate wrappers")
+    void typedSemanticVariantsCoverStringIdsJavaCurrencyOffsetTimestampsAndCoordinateWrappers() {
+        ExtendedTypedSemantics value = new ObjectGenerator<>(ExtendedTypedSemantics.class).generate();
+
+        assertNotNull(value.accountId);
+        assertTrue(value.accountId.matches("\\d+"));
+        assertNotNull(value.currencyCode);
+        assertEquals("USD", value.currencyCode.getCurrencyCode());
+        assertNotNull(value.createdAt);
+
+        LocalDate today = LocalDate.now();
+        LocalDate createdDate = value.createdAt.toLocalDate();
+        assertFalse(createdDate.isBefore(today.minusYears(10)));
+        assertFalse(createdDate.isAfter(today));
+
+        assertNotNull(value.latitude);
+        assertTrue(value.latitude >= 24.5f && value.latitude <= 49.0f);
+        assertNotNull(value.longitude);
+        assertTrue(value.longitude.compareTo(BigDecimal.valueOf(-125.0)) >= 0);
+        assertTrue(value.longitude.compareTo(BigDecimal.valueOf(-66.0)) <= 0);
+        assertEquals(6, value.longitude.scale());
+    }
+
+    @Test
+    @DisplayName("bean validation constraints suppress relaxed semantic string generators")
+    void beanValidationConstraintsSuppressRelaxedSemanticStringGenerators() {
+        ValidatedSemanticString value = new ObjectGenerator<>(ValidatedSemanticString.class).generate();
+
+        assertNotNull(value.username);
+        assertEquals(40, value.username.length());
+    }
+
+    @Test
     @DisplayName("status enums without preferred constants fall back to enum generation")
     void statusEnumsWithoutPreferredConstantsFallBackToEnumGeneration() {
         NonSemanticStatusHolder value = new ObjectGenerator<>(NonSemanticStatusHolder.class).generate();
@@ -153,9 +188,24 @@ class ObjectGeneratorTypedSemanticTest {
         LifecycleStatus status;
     }
 
+    static class ExtendedTypedSemantics {
+
+        String             accountId;
+        java.util.Currency currencyCode;
+        OffsetDateTime     createdAt;
+        Float              latitude;
+        BigDecimal         longitude;
+    }
+
     static class NonSemanticStatusHolder {
 
         WeirdStatus status;
+    }
+
+    static class ValidatedSemanticString {
+
+        @Size(min = 40, max = 40)
+        String username;
     }
 
     enum LifecycleStatus {

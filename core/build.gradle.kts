@@ -3,6 +3,17 @@ plugins {
     jacoco
 }
 
+val coverageThreshold = "0.999".toBigDecimal()
+val coverageCounters = listOf(
+    // JaCoCo does not expose a STATEMENT counter; INSTRUCTION is the closest equivalent.
+    "INSTRUCTION",
+    "LINE",
+    "BRANCH",
+    "COMPLEXITY",
+    "METHOD",
+    "CLASS"
+)
+
 kotlin {
     jvmToolchain(21)
 }
@@ -51,15 +62,12 @@ tasks.jacocoTestReport {
 tasks.jacocoTestCoverageVerification {
     violationRules {
         rule {
-            limit {
-                counter = "LINE"
-                value = "COVEREDRATIO"
-                minimum = "0.99".toBigDecimal()
-            }
-            limit {
-                counter = "BRANCH"
-                value = "COVEREDRATIO"
-                minimum = "0.99".toBigDecimal()
+            coverageCounters.forEach { coverageCounter ->
+                limit {
+                    counter = coverageCounter
+                    value = "COVEREDRATIO"
+                    minimum = coverageThreshold
+                }
             }
         }
     }
