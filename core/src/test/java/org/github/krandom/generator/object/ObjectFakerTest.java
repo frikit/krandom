@@ -89,6 +89,68 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("include restricts generation to selected root fields")
+    void includeRestrictsGenerationToSelectedFields() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+            .include("firstName")
+            .generate();
+
+        assertNotNull(user.firstName);
+        assertNull(user.lastName);
+        assertNull(user.email);
+    }
+
+    @Test
+    @DisplayName("fields with explicit rules remain active in include mode")
+    void includeModeKeepsRuleDrivenFieldsActive() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+            .include("firstName")
+            .ruleFor("firstName", () -> "Ada")
+            .ruleFor("email", generated -> generated.firstName.toLowerCase() + "@example.com")
+            .generate();
+
+        assertEquals("Ada", user.firstName);
+        assertEquals("ada@example.com", user.email);
+        assertNull(user.lastName);
+    }
+
+    @Test
+    @DisplayName("include mode can still ignore other non-included fields")
+    void includeModeCanIgnoreSeparateFields() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+            .include("firstName")
+            .ignore("lastName")
+            .ruleFor("firstName", () -> "Ada")
+            .generate();
+
+        assertEquals("Ada", user.firstName);
+        assertNull(user.lastName);
+        assertNull(user.email);
+    }
+
+    @Test
+    @DisplayName("include mode works for record fixtures")
+    void includeModeWorksForRecords() {
+        FixtureRecord record = new ObjectFaker<>(FixtureRecord.class)
+            .include("firstName")
+            .generate();
+
+        assertNotNull(record.firstName());
+        assertNull(record.email());
+    }
+
+    @Test
+    @DisplayName("include mode respects inherited and static fields correctly")
+    void includeModeRespectsInheritedAndStaticFields() {
+        HierarchyChildFixture fixture = new ObjectFaker<>(HierarchyChildFixture.class)
+            .include("childValue")
+            .generate();
+
+        assertNotNull(fixture.childValue);
+        assertNull(fixture.parentValue);
+    }
+
+    @Test
     @DisplayName("postProcess can mutate the generated object")
     void postProcessMutatesGeneratedObject() {
         FixtureUser user = new ObjectFaker<>(FixtureUser.class)
@@ -98,6 +160,38 @@ class ObjectFakerTest {
 
         assertEquals("Ada", user.firstName);
         assertEquals("ada@example.com", user.email);
+    }
+
+    @Test
+    @DisplayName("named profiles can bundle reusable fixture rules")
+    void namedProfilesBundleReusableRules() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+            .profile("minimal", faker -> faker.include("firstName", "email")
+                                              .ruleFor("firstName", () -> "Ada")
+                                              .ruleFor("email", generated -> generated.firstName.toLowerCase() + "@example.com"))
+            .useProfile("minimal")
+            .generate();
+
+        assertEquals("Ada", user.firstName);
+        assertEquals("ada@example.com", user.email);
+        assertNull(user.lastName);
+    }
+
+    @Test
+    @DisplayName("useProfile applies multiple named profiles in order")
+    void useProfileAppliesMultipleProfilesInOrder() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+            .profile("names", faker -> faker.ruleFor("firstName", () -> "Ada")
+                                            .ruleFor("lastName", () -> "Lovelace"))
+            .profile("email", faker -> faker.ruleFor("email",
+                                                     generated -> generated.firstName.toLowerCase()
+                                                                  + "." + generated.lastName.toLowerCase() + "@example.com"))
+            .useProfile("names", "email")
+            .generate();
+
+        assertEquals("Ada", user.firstName);
+        assertEquals("Lovelace", user.lastName);
+        assertEquals("ada.lovelace@example.com", user.email);
     }
 
     @Test
@@ -205,6 +299,32 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("included fields cannot later be ignored")
+    void includedFieldsCannotLaterBeIgnored() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .include("email");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.ignore("email"));
+
+        assertTrue(ex.getMessage().contains("already included"));
+    }
+
+    @Test
+    @DisplayName("ignored fields cannot later be included")
+    void ignoredFieldsCannotLaterBeIncluded() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .ignore("email");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.include("email"));
+
+        assertTrue(ex.getMessage().contains("already ignored"));
+    }
+
+    @Test
     @DisplayName("context rules participate in duplicate validation")
     void contextRulesParticipateInDuplicateValidation() {
         ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
@@ -270,6 +390,57 @@ class ObjectFakerTest {
         assertTrue(ex.getMessage().contains("Unknown record component"));
     }
 
+    @Test
+    @DisplayName("duplicate profile definitions are rejected")
+    void duplicateProfileDefinitionsAreRejected() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .profile("minimal", configured -> configured.ruleFor("firstName", () -> "Ada"));
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.profile("minimal", configured -> configured.ruleFor("lastName", () -> "Lovelace")));
+
+        assertTrue(ex.getMessage().contains("already defined"));
+    }
+
+    @Test
+    @DisplayName("unknown profiles are rejected")
+    void unknownProfilesAreRejected() {
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> new ObjectFaker<>(FixtureUser.class).useProfile("missing"));
+
+        assertTrue(ex.getMessage().contains("Unknown profile"));
+    }
+
+    @Test
+    @DisplayName("profiles cannot be applied twice")
+    void profilesCannotBeAppliedTwice() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .profile("minimal", configured -> configured.ruleFor("firstName", () -> "Ada"))
+            .useProfile("minimal");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.useProfile("minimal"));
+
+        assertTrue(ex.getMessage().contains("already applied"));
+    }
+
+    @Test
+    @DisplayName("circular profile usage is rejected")
+    void circularProfileUsageIsRejected() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .profile("a", configured -> configured.useProfile("b"))
+            .profile("b", configured -> configured.useProfile("a"));
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.useProfile("a"));
+
+        assertTrue(ex.getMessage().contains("already being applied"));
+    }
+
     static final class FixtureUser {
         String firstName;
         String lastName;
@@ -294,6 +465,15 @@ class ObjectFakerTest {
 
     static final class ChildShadowFixture extends ParentShadowFixture {
         String value;
+    }
+
+    static class HierarchyParentFixture {
+        static String ignoredStatic = "STATIC";
+        String parentValue;
+    }
+
+    static final class HierarchyChildFixture extends HierarchyParentFixture {
+        String childValue;
     }
 
     record FixtureRecord(String firstName, String email) {

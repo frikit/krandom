@@ -81,7 +81,9 @@ ObjectFaker<UserDto> faker = new ObjectFaker<>(UserDto.class)
         .ruleFor("email",
                  user -> user.getFirstName().toLowerCase() + "."
                          + user.getLastName().toLowerCase() + "@example.com")
-        .ignore("password");
+        .ignore("password")
+        .profile("minimal", configured -> configured.include("firstName", "email"))
+        .useProfile("minimal");
 
 UserDto user = faker.generate();
 List<UserDto> users = faker.generateList(100);
@@ -92,6 +94,8 @@ Supported in this first fixture layer:
 - root-level `ruleFor(...)` with plain generators
 - dependent `ruleFor(...)` based on the generated root object
 - `ignore(...)` for root fields
+- `include(...)` to whitelist the root fields you want populated
+- named `profile(...)` plus `useProfile(...)` for reusable rule bundles
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
 

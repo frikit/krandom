@@ -56,8 +56,12 @@ public final class ObjectFaker<T> implements Generator<T> {
     private final Map<String, Generator<?>>               fieldRules           = new LinkedHashMap<>();
     private final Map<String, ContextualGenerator<?>>     contextualFieldRules = new LinkedHashMap<>();
     private final Map<String, Function<? super T, ?>>     dependentFieldRules  = new LinkedHashMap<>();
+    private final Map<String, Consumer<ObjectFaker<T>>>   namedProfiles        = new LinkedHashMap<>();
     private final Set<String>                             ignoredFields        = new LinkedHashSet<>();
+    private final Set<String>                             includedFields       = new LinkedHashSet<>();
     private final List<UnaryOperator<T>>                  postProcessors       = new ArrayList<>();
+    private final Set<String>                             applyingProfiles     = new LinkedHashSet<>();
+    private final Set<String>                             appliedProfiles      = new LinkedHashSet<>();
 
     private UniqueFieldTracker uniqueFieldTracker = new UniqueFieldTracker();
     private ObjectGenerator<T>  objectGenerator;
@@ -127,10 +131,89 @@ public final class ObjectFaker<T> implements Generator<T> {
      * Excludes one root field from generation.
      */
     public ObjectFaker<T> ignore(String fieldName) {
-        requireRuleTarget(fieldName, "ignore");
+        RuleTarget target = requireRuleTarget(fieldName, "ignore");
+        if (includedFields.contains(target.fieldName())) {
+            throw new IllegalStateException("Field '" + fieldName + "' is already included");
+        }
         ensureFieldAvailable(fieldName);
-        ignoredFields.add(fieldName);
+        ignoredFields.add(target.fieldName());
         invalidateGeneratorState();
+        return this;
+    }
+
+    /**
+     * Restricts generation to one root field. Once at least one include rule exists, root fields
+     * not explicitly included or covered by a field rule are left untouched.
+     */
+    public ObjectFaker<T> include(String fieldName) {
+        RuleTarget target = requireRuleTarget(fieldName, "include");
+        if (ignoredFields.contains(target.fieldName())) {
+            throw new IllegalStateException("Field '" + fieldName + "' is already ignored");
+        }
+        includedFields.add(target.fieldName());
+        invalidateGeneratorState();
+        return this;
+    }
+
+    /**
+     * Restricts generation to multiple root fields.
+     */
+    public ObjectFaker<T> include(String... fieldNames) {
+        Objects.requireNonNull(fieldNames, "fieldNames must not be null");
+        for (String fieldName : fieldNames) {
+            include(fieldName);
+        }
+        return this;
+    }
+
+    /**
+     * Defines a reusable named profile that can later be applied with {@link #useProfile(String)}.
+     */
+    public ObjectFaker<T> profile(String name, Consumer<ObjectFaker<T>> profile) {
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(profile, "profile must not be null");
+        if (namedProfiles.containsKey(name)) {
+            throw new IllegalStateException("Profile '" + name + "' is already defined");
+        }
+        namedProfiles.put(name, profile);
+        return this;
+    }
+
+    /**
+     * Applies a previously defined named profile exactly once.
+     */
+    public ObjectFaker<T> useProfile(String name) {
+        Objects.requireNonNull(name, "name must not be null");
+        Consumer<ObjectFaker<T>> profile = namedProfiles.get(name);
+        if (profile == null) {
+            throw new IllegalArgumentException("Unknown profile '" + name + "' for " + type.getName());
+        }
+        if (applyingProfiles.contains(name)) {
+            throw new IllegalStateException("Profile '" + name + "' is already being applied");
+        }
+        if (!appliedProfiles.add(name)) {
+            throw new IllegalStateException("Profile '" + name + "' is already applied");
+        }
+        applyingProfiles.add(name);
+        try {
+            profile.accept(this);
+            return this;
+        } catch (RuntimeException e) {
+            appliedProfiles.remove(name);
+            throw e;
+        } finally {
+            applyingProfiles.remove(name);
+        }
+    }
+
+    /**
+     * Applies multiple named profiles in order.
+     */
+    public ObjectFaker<T> useProfile(String... names) {
+        Objects.requireNonNull(names, "names must not be null");
+        for (String name : names) {
+            useProfile(name);
+        }
         return this;
     }
 
@@ -199,6 +282,10 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     private ObjectGeneratorConfig buildRuntimeConfig() {
         ObjectGeneratorConfig.Builder builder = baseConfig.toBuilder();
+        for (RuleTarget excludedField : excludedByIncludeRuleTargets()) {
+            builder.exclude(field -> field.getDeclaringClass() == excludedField.ownerType()
+                                     && field.getName().equals(excludedField.fieldName()));
+        }
         for (RuleTarget ignoredField : ignoredRuleTargets()) {
             builder.exclude(field -> field.getDeclaringClass() == ignoredField.ownerType()
                                      && field.getName().equals(ignoredField.fieldName()));
@@ -210,6 +297,24 @@ public final class ObjectFaker<T> implements Generator<T> {
             builder.override(target.ownerType(), target.fieldName(), contextualFieldRules.get(target.fieldName()));
         }
         return builder.build();
+    }
+
+    private List<RuleTarget> excludedByIncludeRuleTargets() {
+        if (includedFields.isEmpty()) {
+            return List.of();
+        }
+        Set<String> effectiveIncluded = new LinkedHashSet<>(includedFields);
+        effectiveIncluded.addAll(fieldRules.keySet());
+        effectiveIncluded.addAll(contextualFieldRules.keySet());
+        effectiveIncluded.addAll(dependentFieldRules.keySet());
+
+        List<RuleTarget> targets = new ArrayList<>();
+        for (RuleTarget target : allRuleTargets()) {
+            if (!effectiveIncluded.contains(target.fieldName()) && !ignoredFields.contains(target.fieldName())) {
+                targets.add(target);
+            }
+        }
+        return targets;
     }
 
     private List<RuleTarget> ignoredRuleTargets() {
@@ -307,6 +412,24 @@ public final class ObjectFaker<T> implements Generator<T> {
             || dependentFieldRules.containsKey(fieldName)) {
             throw new IllegalStateException("Field '" + fieldName + "' already has a registered rule");
         }
+    }
+
+    private List<RuleTarget> allRuleTargets() {
+        List<RuleTarget> targets = new ArrayList<>();
+        if (type.isRecord()) {
+            for (RecordComponent component : type.getRecordComponents()) {
+                targets.add(new RuleTarget(type, component.getName(), null));
+            }
+            return targets;
+        }
+        for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
+            for (Field field : current.getDeclaredFields()) {
+                if (!Modifier.isStatic(field.getModifiers())) {
+                    targets.add(new RuleTarget(field.getDeclaringClass(), field.getName(), field));
+                }
+            }
+        }
+        return targets;
     }
 
     private RuleTarget resolveRuleTarget(String fieldName) {
