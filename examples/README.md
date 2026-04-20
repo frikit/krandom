@@ -6,6 +6,12 @@ All examples depend directly on `io.github.frikit:krandom-core`.
 
 Default example version: `0.1.0-SNAPSHOT`
 
+Version strategy:
+
+- `0.1.0-SNAPSHOT` is the repo-local default for Maven-local verification.
+- CI injects the version under test instead of editing example build files.
+- published-release checks should pass an explicit version with the existing property knobs rather than changing the embedded defaults.
+
 For repo-local verification, publish the current workspace artifact to Maven local first:
 
 ```bash

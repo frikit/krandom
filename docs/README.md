@@ -33,3 +33,5 @@ Architecture and implementation details:
 - [locale-support-investigation.md](ideas/locale-support-investigation.md) - Research on locale implementation patterns
 - [locale-implementation-phase1-summary.md](ideas/locale-implementation-phase1-summary.md) - Summary of locale field addition
 - [title-generator-implementation-summary.md](ideas/title-generator-implementation-summary.md) - TitleGenerator implementation details
+- [migration-and-deprecation-policy.md](migration-and-deprecation-policy.md) - Public-surface migration notes and API deprecation rules
+- [release-readiness-checklist.md](release-readiness-checklist.md) - Checklist for docs, examples, migration notes, and performance before release
