@@ -5,6 +5,10 @@
  */
 package org.github.krandom.benchmarks;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+
 /**
  * Shared fixture models for benchmark scenarios.
  */
@@ -98,5 +102,35 @@ public final class BenchmarkFixtures {
         public String lastName;
         public String email;
         public int age;
+    }
+
+    public static final class SemanticCustomer {
+        public String          id;
+        public String          firstName;
+        public String          lastName;
+        public String          fullName;
+        public String          email;
+        public String          username;
+        public String          phoneNumber;
+        public String          companyName;
+        public String          url;
+        public String          domain;
+        public String          status;
+        public boolean         active;
+        public LocalDate       birthDate;
+        public Instant         createdAt;
+        public BigDecimal      balance;
+        public String          currencyCode;
+        public SemanticAddress address;
+    }
+
+    public static final class SemanticAddress {
+        public String     streetAddress;
+        public String     city;
+        public String     state;
+        public String     postalCode;
+        public String     country;
+        public BigDecimal latitude;
+        public BigDecimal longitude;
     }
 }
