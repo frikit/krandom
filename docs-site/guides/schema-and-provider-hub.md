@@ -22,6 +22,17 @@ fields.put("address", f.nested(Map.of(
 
 Schema schema = Generators.ofSchema(Locale.US, fields);
 List<Map<String, Object>> batch = schema.generateBatch(10);
+
+String jsonl = schema.toJsonLines(10);
+String csv = schema.toCsv(10);
+```
+
+Use the streaming writer methods when you want payload output without materializing the whole batch first:
+
+```java
+StringBuilder out = new StringBuilder();
+schema.writeJsonLines(out, 1000);
+schema.writeCsv(out, 1000);
 ```
 
 ## Provider hub
