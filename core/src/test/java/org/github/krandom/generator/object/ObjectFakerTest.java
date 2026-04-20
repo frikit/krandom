@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -362,6 +363,125 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("nested ruleFor applies deterministic nested field rules")
+    void nestedRuleForAppliesDeterministicNestedFieldRules() {
+        FixtureUserWithAddress user = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ruleFor("firstName", () -> "Ada")
+            .ruleFor("address.city", () -> "London")
+            .ruleFor("address.postalCode", generated -> generated.address.city + "-1")
+            .generate();
+
+        assertEquals("Ada", user.firstName);
+        assertNotNull(user.address);
+        assertEquals("London", user.address.city);
+        assertEquals("London-1", user.address.postalCode);
+    }
+
+    @Test
+    @DisplayName("nested context rules receive nested owner metadata")
+    void nestedContextRulesReceiveNestedOwnerMetadata() {
+        FixtureUserWithAddress user = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ruleForContext("address.city",
+                            ctx -> ctx.getOwnerType().getSimpleName().toLowerCase() + "-" + ctx.getFieldName() + "-" + ctx.getDepth())
+            .generate();
+
+        assertNotNull(user.address);
+        assertEquals("fixtureaddress-city-1", user.address.city);
+    }
+
+    @Test
+    @DisplayName("nested rules rebuild record paths when needed")
+    void nestedRulesRebuildRecordPathsWhenNeeded() {
+        FixtureRecordWithNestedRecord record = new ObjectFaker<>(FixtureRecordWithNestedRecord.class)
+            .ruleFor("address.city", () -> "Paris")
+            .ruleFor("address.postalCode", generated -> generated.address().city() + "-75000")
+            .generate();
+
+        assertNotNull(record.address());
+        assertEquals("Paris", record.address().city());
+        assertEquals("Paris-75000", record.address().postalCode());
+    }
+
+    @Test
+    @DisplayName("nested populate materializes missing parents")
+    void nestedPopulateMaterializesMissingParents() {
+        FixtureUserWithAddress existing = new FixtureUserWithAddress();
+
+        FixtureUserWithAddress populated = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ruleFor("address.city", () -> "Berlin")
+            .populate(existing);
+
+        assertSame(existing, populated);
+        assertNotNull(existing.address);
+        assertEquals("Berlin", existing.address.city);
+    }
+
+    @Test
+    @DisplayName("nested rules keep their root object active in include mode")
+    void nestedRulesKeepTheirRootObjectActiveInIncludeMode() {
+        FixtureUserWithAddress user = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .include("firstName")
+            .ruleFor("firstName", () -> "Ada")
+            .ruleFor("address.city", () -> "Rome")
+            .generate();
+
+        assertEquals("Ada", user.firstName);
+        assertNull(user.lastName);
+        assertNotNull(user.address);
+        assertEquals("Rome", user.address.city);
+    }
+
+    @Test
+    @DisplayName("nested paths are rejected for include and ignore")
+    void nestedPathsAreRejectedForIncludeAndIgnore() {
+        IllegalArgumentException includeEx = assertThrows(
+            IllegalArgumentException.class,
+            () -> new ObjectFaker<>(FixtureUserWithAddress.class).include("address.city"));
+        assertTrue(includeEx.getMessage().contains("only supports root fields"));
+
+        IllegalArgumentException ignoreEx = assertThrows(
+            IllegalArgumentException.class,
+            () -> new ObjectFaker<>(FixtureUserWithAddress.class).ignore("address.city"));
+        assertTrue(ignoreEx.getMessage().contains("only supports root fields"));
+    }
+
+    @Test
+    @DisplayName("ignored roots cannot later receive nested rules")
+    void ignoredRootsCannotLaterReceiveNestedRules() {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ignore("address");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.ruleFor("address.city", () -> "Madrid"));
+
+        assertTrue(ex.getMessage().contains("already ignored"));
+    }
+
+    @Test
+    @DisplayName("root fields with nested rules cannot later be ignored")
+    void nestedRuleRootsCannotLaterBeIgnored() {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ruleFor("address.city", () -> "Madrid");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.ignore("address"));
+
+        assertTrue(ex.getMessage().contains("nested fixture rules"));
+    }
+
+    @Test
+    @DisplayName("nested primitive paths are rejected")
+    void nestedPrimitivePathsAreRejected() {
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> new ObjectFaker<>(FixtureUserWithAddress.class).ruleFor("address.houseNumber.value", () -> 7));
+
+        assertTrue(ex.getMessage().contains("crosses primitive"));
+    }
+
+    @Test
     @DisplayName("final fields are rejected")
     void finalFieldsAreRejected() {
         IllegalArgumentException ex = assertThrows(
@@ -458,6 +578,18 @@ class ObjectFakerTest {
         String email;
     }
 
+    static final class FixtureUserWithAddress {
+        String firstName;
+        String lastName;
+        FixtureAddress address;
+    }
+
+    static final class FixtureAddress {
+        String city;
+        String postalCode;
+        int houseNumber;
+    }
+
     static final class PrimitiveFixture {
         int age;
     }
@@ -488,5 +620,11 @@ class ObjectFakerTest {
     }
 
     record FixtureRecord(String firstName, String email) {
+    }
+
+    record FixtureRecordWithNestedRecord(String firstName, FixtureAddressRecord address) {
+    }
+
+    record FixtureAddressRecord(String city, String postalCode) {
     }
 }

@@ -76,12 +76,13 @@ Object generation also runs a lightweight coherence pass after sibling values ar
 
 ## Fluent fixtures
 
-Use `ObjectFaker<T>` when the default object graph is close but you want a few explicit root-field rules:
+Use `ObjectFaker<T>` when the default object graph is close but you want a few explicit rules, including nested paths:
 
 ```java
 ObjectFaker<UserDto> faker = new ObjectFaker<>(UserDto.class)
         .ruleFor("firstName", () -> "Ada")
         .ruleFor("lastName", () -> "Lovelace")
+        .ruleFor("address.city", () -> "London")
         .ruleFor("email",
                  user -> user.getFirstName().toLowerCase() + "."
                          + user.getLastName().toLowerCase() + "@example.com")
@@ -93,15 +94,18 @@ UserDto user = faker.generate();
 List<UserDto> users = faker.generateList(100);
 ```
 
-Supported in this first fixture layer:
+Supported in the current fixture layer:
 
-- root-level `ruleFor(...)` with plain generators
-- dependent `ruleFor(...)` based on the generated root object
+- path-aware `ruleFor(...)` with plain generators, including nested paths such as `address.city`
+- path-aware dependent `ruleFor(...)` based on the generated root object
+- path-aware `ruleForContext(...)` with nested owner/depth metadata
 - `ignore(...)` for root fields
 - `include(...)` to whitelist the root fields you want populated
 - named `profile(...)` plus `useProfile(...)` for reusable rule bundles
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
+
+`include(...)` and `ignore(...)` intentionally stay root-field scoped, while `ruleFor(...)` and `ruleForContext(...)` can target nested paths.
 
 `ObjectFaker<T>` reuses the same `ObjectGeneratorConfig`, semantic resolver, locale, seed, and override rules as `ObjectGenerator<T>`.
 
