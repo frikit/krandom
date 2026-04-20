@@ -6,6 +6,8 @@
 package org.github.krandom.generator.schema;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.provider.ConflictPolicy;
+import org.github.krandom.generator.text.WordGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +32,8 @@ class FieldTest {
         assertEquals(Locale.GERMANY, new Field(Locale.GERMANY).getConfig().getLocale());
         GeneratorConfig config = GeneratorConfig.builder().locale(Locale.FRANCE).seed(5L).build();
         assertEquals(Locale.FRANCE, new Field(config).getConfig().getLocale());
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.builder().locale(Locale.CANADA).build());
+        assertEquals(Locale.CANADA, new Field(lookup).getConfig().getLocale());
     }
 
     @Test
@@ -49,6 +53,34 @@ class FieldTest {
         SchemaValueProvider provider = field.constant("fixed");
         Object value = provider.generate(new SchemaContext(Locale.US, new Random(1L), 0));
         assertEquals("fixed", value);
+    }
+
+    @Test
+    @DisplayName("custom registration and provider-backed references stay fluent")
+    void customRegistrationIsFluent() {
+        Field field = new Field();
+        field.register("custom.order_id", ctx -> "ORD-" + ctx.recordIndex())
+            .registerAlias("custom.order", "custom.order_id")
+            .registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord);
+
+        SchemaContext ctx = new SchemaContext(Locale.US, new Random(1L), 9);
+        assertEquals("ORD-9", field.bind("custom.order").generate(ctx));
+        assertTrue(field.bind("text.word.provider").generate(ctx) instanceof String);
+    }
+
+    @Test
+    @DisplayName("explicit conflict-policy overloads stay fluent")
+    void explicitConflictPolicyOverloadsStayFluent() {
+        Field field = new Field();
+        field.register("custom.code", ctx -> "A")
+            .register("custom.code", ctx -> "B", ConflictPolicy.REPLACE)
+            .registerProvider("text.word.policy", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord,
+                              ConflictPolicy.REPLACE)
+            .registerAlias("custom.code.alias", "custom.code", ConflictPolicy.REPLACE);
+
+        SchemaContext ctx = new SchemaContext(Locale.US, new Random(1L), 0);
+        assertEquals("B", field.bind("custom.code.alias").generate(ctx));
+        assertTrue(field.bind("text.word.policy").generate(ctx) instanceof String);
     }
 
     @Test
@@ -93,6 +125,7 @@ class FieldTest {
     void validation() {
         Field field = new Field();
         assertThrows(NullPointerException.class, () -> new Field((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new Field((FieldLookup) null));
         assertThrows(NullPointerException.class, () -> field.list((SchemaValueProvider) null, 1, 1));
         assertThrows(IllegalArgumentException.class, () -> field.list("text.word", -1, 2));
         assertThrows(IllegalArgumentException.class, () -> field.list("text.word", 3, 2));
@@ -108,5 +141,9 @@ class FieldTest {
         nullProvider.put("x", null);
         assertThrows(NullPointerException.class,
                      () -> field.nested(nullProvider).generate(new SchemaContext(Locale.US, new Random(1L), 0)));
+
+        assertThrows(IllegalArgumentException.class, () -> field.register("person.full_name", ctx -> "x"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> field.registerAlias("text.word", "person.full_name", ConflictPolicy.REPLACE));
     }
 }

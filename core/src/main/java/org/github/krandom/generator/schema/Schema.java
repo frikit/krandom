@@ -27,6 +27,9 @@ import java.util.Random;
 public final class Schema implements Generator<Map<String, Object>> {
 
     private static final String JSON_SCHEMA_DRAFT_2020_12 = "https://json-schema.org/draft/2020-12/schema";
+    private static final String XML_DECLARATION           = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    private static final String DEFAULT_XML_ROOT_ELEMENT  = "records";
+    private static final String DEFAULT_XML_RECORD_ELEMENT = "record";
     private static final char   NEWLINE                   = '\n';
 
     private final GeneratorConfig                  config;
@@ -195,6 +198,114 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     /**
+     * Renders generated records as XML.
+     *
+     * <p>Complex values such as maps, lists, and arrays are serialized into JSON text nodes.
+     *
+     * @param count record count
+     * @return XML payload
+     */
+    public String toXml(int count) {
+        StringBuilder builder = new StringBuilder();
+        try {
+            writeXml(builder, count);
+        } catch (IOException e) {
+            throw new IllegalStateException("StringBuilder should not throw IOException", e);
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Writes generated records as XML without materializing a batch list.
+     *
+     * <p>Complex values such as maps, lists, and arrays are serialized into JSON text nodes.
+     *
+     * @param out   appendable destination
+     * @param count record count
+     * @throws IOException if the appendable fails
+     */
+    public void writeXml(Appendable out, int count) throws IOException {
+        Objects.requireNonNull(out, "out must not be null");
+        validateCount(count);
+
+        out.append(XML_DECLARATION).append(NEWLINE);
+        if (count == 0) {
+            out.append('<').append(DEFAULT_XML_ROOT_ELEMENT).append("/>").append(NEWLINE);
+            return;
+        }
+
+        out.append('<').append(DEFAULT_XML_ROOT_ELEMENT).append('>').append(NEWLINE);
+        for (int i = 0; i < count; i++) {
+            Map<String, Object> record = generate();
+            appendIndent(out, 2);
+            out.append('<').append(DEFAULT_XML_RECORD_ELEMENT).append('>').append(NEWLINE);
+            for (Map.Entry<String, Object> field : record.entrySet()) {
+                appendXmlField(out, field.getKey(), field.getValue(), 4);
+            }
+            appendIndent(out, 2);
+            out.append("</").append(DEFAULT_XML_RECORD_ELEMENT).append('>').append(NEWLINE);
+        }
+        out.append("</").append(DEFAULT_XML_ROOT_ELEMENT).append('>').append(NEWLINE);
+    }
+
+    /**
+     * Renders generated records as SQL {@code INSERT} statements.
+     *
+     * <p>Complex values such as maps, lists, and arrays are serialized into JSON string literals.
+     *
+     * @param tableName target table name
+     * @param count     record count
+     * @return SQL payload
+     */
+    public String toSqlInserts(String tableName, int count) {
+        StringBuilder builder = new StringBuilder();
+        try {
+            writeSqlInserts(builder, tableName, count);
+        } catch (IOException e) {
+            throw new IllegalStateException("StringBuilder should not throw IOException", e);
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Writes generated records as SQL {@code INSERT} statements without materializing a batch list.
+     *
+     * <p>Complex values such as maps, lists, and arrays are serialized into JSON string literals.
+     *
+     * @param out       appendable destination
+     * @param tableName target table name
+     * @param count     record count
+     * @throws IOException if the appendable fails
+     */
+    public void writeSqlInserts(Appendable out, String tableName, int count) throws IOException {
+        Objects.requireNonNull(out, "out must not be null");
+        validateCount(count);
+
+        List<String> columns = new ArrayList<>(fields.keySet());
+        String normalizedTableName = requireSqlIdentifier(tableName, "tableName");
+        for (int i = 0; i < count; i++) {
+            Map<String, Object> record = generate();
+            out.append("INSERT INTO ");
+            appendSqlIdentifier(out, normalizedTableName);
+            out.append(" (");
+            for (int col = 0; col < columns.size(); col++) {
+                if (col > 0) {
+                    out.append(", ");
+                }
+                appendSqlIdentifier(out, columns.get(col));
+            }
+            out.append(") VALUES (");
+            for (int col = 0; col < columns.size(); col++) {
+                if (col > 0) {
+                    out.append(", ");
+                }
+                appendSqlValue(out, record.get(columns.get(col)));
+            }
+            out.append(");").append(NEWLINE);
+        }
+    }
+
+    /**
      * Returns configured locale.
      *
      * @return locale
@@ -264,6 +375,160 @@ public final class Schema implements Generator<Map<String, Object>> {
         if (count < 0) {
             throw new IllegalArgumentException("count must be >= 0, got: " + count);
         }
+    }
+
+    private static void appendIndent(Appendable out, int spaces) throws IOException {
+        for (int i = 0; i < spaces; i++) {
+            out.append(' ');
+        }
+    }
+
+    private static void appendXmlField(Appendable out, String fieldName, Object value, int indent) throws IOException {
+        appendIndent(out, indent);
+        String elementName = isValidXmlElementName(fieldName) ? fieldName : "field";
+        boolean useNameAttribute = !elementName.equals(fieldName);
+
+        out.append('<').append(elementName);
+        if (useNameAttribute) {
+            out.append(" name=\"");
+            appendXmlAttribute(out, fieldName);
+            out.append('"');
+        }
+        if (value == null) {
+            out.append("/>").append(NEWLINE);
+            return;
+        }
+        out.append('>');
+        appendXmlValue(out, value);
+        out.append("</").append(elementName).append('>').append(NEWLINE);
+    }
+
+    private static void appendXmlValue(Appendable out, Object value) throws IOException {
+        if (value instanceof CharSequence
+            || value instanceof Character
+            || value instanceof Number
+            || value instanceof Boolean) {
+            appendXmlText(out, String.valueOf(value));
+            return;
+        }
+        if (value instanceof Map<?, ?> || value instanceof Iterable<?> || value.getClass().isArray()) {
+            StringBuilder builder = new StringBuilder();
+            appendJsonValue(builder, value);
+            appendXmlText(out, builder.toString());
+            return;
+        }
+        appendXmlText(out, String.valueOf(value));
+    }
+
+    private static void appendXmlText(Appendable out, String value) throws IOException {
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            switch (ch) {
+                case '&' -> out.append("&amp;");
+                case '<' -> out.append("&lt;");
+                case '>' -> out.append("&gt;");
+                default -> out.append(ch);
+            }
+        }
+    }
+
+    private static void appendXmlAttribute(Appendable out, String value) throws IOException {
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            switch (ch) {
+                case '&' -> out.append("&amp;");
+                case '<' -> out.append("&lt;");
+                case '>' -> out.append("&gt;");
+                case '"' -> out.append("&quot;");
+                case '\'' -> out.append("&apos;");
+                default -> out.append(ch);
+            }
+        }
+    }
+
+    private static boolean isValidXmlElementName(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        char first = value.charAt(0);
+        if (!(Character.isLetter(first) || first == '_')) {
+            return false;
+        }
+        for (int i = 1; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (!(Character.isLetterOrDigit(ch) || ch == '_' || ch == '-' || ch == '.')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String requireSqlIdentifier(String value, String label) {
+        Objects.requireNonNull(value, label + " must not be null");
+        if (value.isBlank()) {
+            throw new IllegalArgumentException(label + " must not be blank");
+        }
+        String[] parts = value.split("\\.", -1);
+        for (String part : parts) {
+            if (part.isBlank()) {
+                throw new IllegalArgumentException(label + " must not contain blank identifier segments");
+            }
+        }
+        return value;
+    }
+
+    private static void appendSqlIdentifier(Appendable out, String identifier) throws IOException {
+        String[] parts = identifier.split("\\.", -1);
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                out.append('.');
+            }
+            out.append('"');
+            for (int j = 0; j < parts[i].length(); j++) {
+                char ch = parts[i].charAt(j);
+                if (ch == '"') {
+                    out.append("\"\"");
+                } else {
+                    out.append(ch);
+                }
+            }
+            out.append('"');
+        }
+    }
+
+    private static void appendSqlValue(Appendable out, Object value) throws IOException {
+        if (value == null) {
+            out.append("NULL");
+            return;
+        }
+        if (value instanceof Number) {
+            out.append(String.valueOf(value));
+            return;
+        }
+        if (value instanceof Boolean bool) {
+            out.append(bool ? "TRUE" : "FALSE");
+            return;
+        }
+        if (value instanceof Map<?, ?> || value instanceof Iterable<?> || value.getClass().isArray()) {
+            StringBuilder builder = new StringBuilder();
+            appendJsonValue(builder, value);
+            appendSqlStringLiteral(out, builder.toString());
+            return;
+        }
+        appendSqlStringLiteral(out, String.valueOf(value));
+    }
+
+    private static void appendSqlStringLiteral(Appendable out, String value) throws IOException {
+        out.append('\'');
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (ch == '\'') {
+                out.append("''");
+            } else {
+                out.append(ch);
+            }
+        }
+        out.append('\'');
     }
 
     private static void appendJsonValue(Appendable out, Object value) throws IOException {

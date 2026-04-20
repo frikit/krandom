@@ -90,6 +90,7 @@ import org.github.krandom.generator.object.ObjectGenerator;
 import org.github.krandom.generator.object.ObjectGeneratorConfig;
 import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.schema.Field;
+import org.github.krandom.generator.schema.FieldLookup;
 import org.github.krandom.generator.schema.Schema;
 import org.github.krandom.generator.schema.SchemaValueProvider;
 import org.github.krandom.generator.selection.PickGenerator;
@@ -1187,6 +1188,20 @@ public final class Generators {
      */
     public static Field ofField(Locale locale) {
         return new Field(locale);
+    }
+
+    /**
+     * Returns a field resolver with explicit configuration.
+     */
+    public static Field ofField(GeneratorConfig config) {
+        return new Field(config);
+    }
+
+    /**
+     * Returns a field resolver backed by an existing lookup registry.
+     */
+    public static Field ofField(FieldLookup lookup) {
+        return new Field(lookup);
     }
 
     /**

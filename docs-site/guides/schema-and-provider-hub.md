@@ -25,6 +25,8 @@ List<Map<String, Object>> batch = schema.generateBatch(10);
 
 String jsonl = schema.toJsonLines(10);
 String csv = schema.toCsv(10);
+String xml = schema.toXml(10);
+String sql = schema.toSqlInserts("public.orders", 10);
 ```
 
 Use the streaming writer methods when you want payload output without materializing the whole batch first:
@@ -33,6 +35,23 @@ Use the streaming writer methods when you want payload output without materializ
 StringBuilder out = new StringBuilder();
 schema.writeJsonLines(out, 1000);
 schema.writeCsv(out, 1000);
+schema.writeXml(out, 1000);
+schema.writeSqlInserts(out, "public.orders", 1000);
+```
+
+`FieldLookup` is now an extensible token registry rather than a fixed table, and `Field` exposes the same registration flow:
+
+```java
+Field field = Generators.ofField(GeneratorConfig.builder().locale(Locale.US).seed(42L).build())
+        .register("custom.order_id", ctx -> "ORD-" + ctx.recordIndex())
+        .registerAlias("custom.order", "custom.order_id")
+        .registerProvider("text.word.provider",
+                WordGenerator::new,
+                WordGenerator.class,
+                WordGenerator::generateWord);
+
+SchemaValueProvider orderId = field.bind("custom.order");
+SchemaValueProvider extraWord = field.bind("text.word.provider");
 ```
 
 ## Provider hub

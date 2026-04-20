@@ -9,6 +9,7 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -189,8 +190,9 @@ class DateGeneratorTest {
         DateGenerator generator = new DateGenerator();
         long timestamp = generator.generateTimestamp();
         assertTrue(timestamp > 0, "Timestamp should be positive");
-        // Should be between 1970 and 2100
-        assertTrue(timestamp >= 0 && timestamp <= 4102444800L,
+        long minTimestamp = LocalDate.of(1970, 1, 1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+        long maxTimestamp = LocalDate.of(2100, 12, 31).atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+        assertTrue(timestamp >= minTimestamp && timestamp <= maxTimestamp,
                    "Timestamp out of range: " + timestamp);
     }
 

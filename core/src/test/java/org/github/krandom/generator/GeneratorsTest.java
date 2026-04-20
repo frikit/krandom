@@ -79,6 +79,7 @@ import org.github.krandom.generator.object.ObjectGenerator;
 import org.github.krandom.generator.object.ObjectGeneratorConfig;
 import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.schema.Field;
+import org.github.krandom.generator.schema.FieldLookup;
 import org.github.krandom.generator.schema.Schema;
 import org.github.krandom.generator.schema.SchemaValueProvider;
 import org.github.krandom.generator.selection.PickGenerator;
@@ -731,6 +732,10 @@ class GeneratorsTest {
         assertInstanceOf(Field.class, Generators.ofField());
         Field field = Generators.ofField(Locale.US);
         assertInstanceOf(Field.class, field);
+        assertInstanceOf(Field.class,
+                         Generators.ofField(GeneratorConfig.builder().locale(Locale.CANADA).seed(2L).build()));
+        assertInstanceOf(Field.class,
+                         Generators.ofField(new FieldLookup(GeneratorConfig.builder().locale(Locale.FRANCE).build())));
         Map<String, SchemaValueProvider> fields = Map.of(
             "name", field.bind("person.full_name")
         );

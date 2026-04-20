@@ -6,6 +6,8 @@
 package org.github.krandom.generator.schema;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.provider.ConflictPolicy;
+import org.github.krandom.generator.provider.ProviderFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Mimesis-style field resolver and composition helper.
@@ -48,6 +51,16 @@ public final class Field {
         this.lookup = new FieldLookup(config);
     }
 
+    /**
+     * Creates field resolver from an existing lookup registry.
+     *
+     * @param lookup field lookup registry
+     */
+    public Field(FieldLookup lookup) {
+        this.lookup = Objects.requireNonNull(lookup, "lookup must not be null");
+        this.config = lookup.getConfig();
+    }
+
     private static String validateFieldName(String name) {
         Objects.requireNonNull(name, "field name must not be null");
         if (name.isBlank()) {
@@ -74,6 +87,94 @@ public final class Field {
      */
     public SchemaValueProvider call(String reference) {
         return bind(reference);
+    }
+
+    /**
+     * Registers a custom schema token using {@link ConflictPolicy#FAIL}.
+     *
+     * @param reference schema token reference
+     * @param provider  provider backing the token
+     * @return this field resolver for fluent configuration
+     */
+    public Field register(String reference, SchemaValueProvider provider) {
+        lookup.register(reference, provider);
+        return this;
+    }
+
+    /**
+     * Registers a custom schema token.
+     *
+     * @param reference schema token reference
+     * @param provider  provider backing the token
+     * @param policy    conflict policy
+     * @return this field resolver for fluent configuration
+     */
+    public Field register(String reference, SchemaValueProvider provider, ConflictPolicy policy) {
+        lookup.register(reference, provider, policy);
+        return this;
+    }
+
+    /**
+     * Registers a provider-backed schema token using {@link ConflictPolicy#FAIL}.
+     *
+     * @param reference      schema token reference
+     * @param factory        provider factory
+     * @param providerType   expected provider type
+     * @param valueExtractor extractor invoked on the provider instance
+     * @param <T>            provider type
+     * @return this field resolver for fluent configuration
+     */
+    public <T> Field registerProvider(String reference,
+                                      ProviderFactory factory,
+                                      Class<T> providerType,
+                                      Function<? super T, ?> valueExtractor) {
+        lookup.registerProvider(reference, factory, providerType, valueExtractor);
+        return this;
+    }
+
+    /**
+     * Registers a provider-backed schema token.
+     *
+     * @param reference      schema token reference
+     * @param factory        provider factory
+     * @param providerType   expected provider type
+     * @param valueExtractor extractor invoked on the provider instance
+     * @param policy         conflict policy
+     * @param <T>            provider type
+     * @return this field resolver for fluent configuration
+     */
+    public <T> Field registerProvider(String reference,
+                                      ProviderFactory factory,
+                                      Class<T> providerType,
+                                      Function<? super T, ?> valueExtractor,
+                                      ConflictPolicy policy) {
+        lookup.registerProvider(reference, factory, providerType, valueExtractor, policy);
+        return this;
+    }
+
+    /**
+     * Registers a token alias using {@link ConflictPolicy#FAIL}.
+     *
+     * @param alias           alias token
+     * @param targetReference canonical target token
+     * @return this field resolver for fluent configuration
+     */
+    public Field registerAlias(String alias, String targetReference) {
+        lookup.registerAlias(alias, targetReference);
+        return this;
+    }
+
+    /**
+     * Registers a token alias.
+     *
+     * @param alias           alias token
+     * @param targetReference canonical target token
+     * @param policy          conflict policy
+     * @return this field resolver for fluent configuration
+     */
+    public Field registerAlias(String alias, String targetReference, ConflictPolicy policy) {
+        lookup.registerAlias(alias, targetReference, policy);
+        return this;
     }
 
     /**

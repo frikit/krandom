@@ -6,13 +6,19 @@
 package org.github.krandom.generator.schema;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.provider.ConflictPolicy;
+import org.github.krandom.generator.text.WordGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,5 +63,95 @@ class FieldLookupTest {
     @DisplayName("constructor rejects null config")
     void nullConfig() {
         assertThrows(NullPointerException.class, () -> new FieldLookup(null));
+    }
+
+    @Test
+    @DisplayName("custom references and aliases are supported")
+    void customReferencesAndAliases() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+        SchemaContext context = new SchemaContext(Locale.US, new Random(1L), 7);
+
+        lookup.register("custom.order_id", ctx -> "ORD-" + ctx.recordIndex());
+        lookup.registerAlias("custom.order", "custom.order_id");
+
+        assertTrue(lookup.has("custom.order_id"));
+        assertTrue(lookup.has("custom.order"));
+        assertFalse(lookup.has("custom.missing"));
+        assertEquals(Map.of("custom.order", "custom.order_id"), lookup.aliases());
+        assertEquals("ORD-7", lookup.resolve("custom.order").generate(context));
+        assertTrue(lookup.supportedReferences().contains("custom.order_id"));
+    }
+
+    @Test
+    @DisplayName("provider-backed references can be registered from provider factories")
+    void providerBackedReferences() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.builder().seed(7L).locale(Locale.US).build());
+
+        lookup.registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord);
+
+        Object value = lookup.resolve("text.word.provider").generate(new SchemaContext(Locale.US, new Random(1L), 0));
+        assertTrue(value instanceof String);
+        assertFalse(((String) value).isBlank());
+    }
+
+    @Test
+    @DisplayName("custom registration honors conflict policies and validation")
+    void customRegistrationConflictPolicies() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+        SchemaContext context = new SchemaContext(Locale.US, new Random(1L), 2);
+
+        lookup.register("custom.code", ctx -> "A");
+        assertThrows(IllegalArgumentException.class, () -> lookup.register("custom.code", ctx -> "B"));
+
+        lookup.register("custom.code", ctx -> "B", ConflictPolicy.REPLACE);
+        assertEquals("B", lookup.resolve("custom.code").generate(context));
+
+        lookup.registerAlias("custom.alias", "custom.code");
+        assertThrows(IllegalArgumentException.class, () -> lookup.registerAlias("custom.alias", "custom.code"));
+        lookup.registerAlias("custom.alias", "custom.code", ConflictPolicy.REPLACE);
+        lookup.registerAlias("custom.code", "custom.code", ConflictPolicy.REPLACE);
+
+        IllegalArgumentException unknownTarget = assertThrows(IllegalArgumentException.class,
+                                                              () -> lookup.registerAlias("custom.missing", "missing.ref"));
+        assertTrue(unknownTarget.getMessage().contains("Target field reference"));
+
+        IllegalArgumentException aliasConflict = assertThrows(IllegalArgumentException.class,
+                                                              () -> lookup.registerAlias("person.full_name",
+                                                                                        "custom.code",
+                                                                                        ConflictPolicy.REPLACE));
+        assertTrue(aliasConflict.getMessage().contains("Alias conflicts"));
+
+        lookup.register("custom.alias", ctx -> "C", ConflictPolicy.REPLACE);
+        assertEquals("C", lookup.resolve("custom.alias").generate(context));
+    }
+
+    @Test
+    @DisplayName("provider-backed registration validates the resolved provider type")
+    void providerBackedRegistrationTypeValidation() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+        lookup.registerProvider("broken.provider", cfg -> "not-a-word-generator", WordGenerator.class,
+                                WordGenerator::generateWord, ConflictPolicy.REPLACE);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                                                   () -> lookup.resolve("broken.provider")
+                                                               .generate(new SchemaContext(Locale.US,
+                                                                                           new Random(1L),
+                                                                                           0)));
+        assertTrue(ex.getMessage().contains("not " + WordGenerator.class.getName()));
+    }
+
+    @Test
+    @DisplayName("resolve protects against an inconsistent alias pointing to a missing provider")
+    void resolveProtectsAgainstInconsistentAliasState() throws ReflectiveOperationException {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+
+        Field aliasesField = FieldLookup.class.getDeclaredField("aliases");
+        aliasesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, String> aliases = (Map<String, String>) aliasesField.get(lookup);
+        aliases.put("broken.alias", "broken.provider");
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> lookup.resolve("broken.alias"));
+        assertTrue(ex.getMessage().contains("Unknown field reference"));
     }
 }

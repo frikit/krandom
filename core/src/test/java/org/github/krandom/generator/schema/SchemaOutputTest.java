@@ -9,12 +9,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -104,6 +107,147 @@ class SchemaOutputTest {
     }
 
     @Test
+    @DisplayName("toXml renders escaped values, complex payloads, and invalid field-name fallback")
+    void toXmlRendersEscapedValuesAndFallbackFieldNames() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("name", ctx -> "Ada & <Ace>");
+        fields.put("meta", ctx -> {
+            Map<String, Object> meta = new LinkedHashMap<>();
+            meta.put("id", 1);
+            meta.put("active", true);
+            return meta;
+        });
+        fields.put("tags", ctx -> List.of("x", "y"));
+        fields.put("bad name", ctx -> "quoted \"value\" and 'apostrophe'");
+        fields.put("missing", ctx -> null);
+
+        Schema schema = new Schema(fields);
+
+        assertEquals(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<records>\n"
+            + "  <record>\n"
+            + "    <name>Ada &amp; &lt;Ace&gt;</name>\n"
+            + "    <meta>{\"id\":1,\"active\":true}</meta>\n"
+            + "    <tags>[\"x\",\"y\"]</tags>\n"
+            + "    <field name=\"bad name\">quoted \"value\" and 'apostrophe'</field>\n"
+            + "    <missing/>\n"
+            + "  </record>\n"
+            + "</records>\n",
+            schema.toXml(1));
+    }
+
+    @Test
+    @DisplayName("toXml zero count returns an empty root document")
+    void toXmlZeroCountReturnsEmptyRootDocument() {
+        Schema schema = new Schema(Map.of("value", ctx -> 1));
+
+        assertEquals(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<records/>\n",
+            schema.toXml(0));
+    }
+
+    @Test
+    @DisplayName("toXml covers scalar variants and escapes invalid field-name attributes")
+    void toXmlCoversScalarVariantsAndAttributeEscaping() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("count", ctx -> 5);
+        fields.put("enabled", ctx -> false);
+        fields.put("letter", ctx -> 'Q');
+        fields.put("numbers", ctx -> new int[]{ 1, 2 });
+        fields.put("1bad&<>'\"", ctx -> new NamedValue("xml"));
+
+        String xml = new Schema(fields).toXml(1);
+
+        assertTrue(xml.contains("<count>5</count>"));
+        assertTrue(xml.contains("<enabled>false</enabled>"));
+        assertTrue(xml.contains("<letter>Q</letter>"));
+        assertTrue(xml.contains("<numbers>[1,2]</numbers>"));
+        assertTrue(xml.contains("<field name=\"1bad&amp;&lt;&gt;&apos;&quot;\">NamedValue[value=xml]</field>"));
+    }
+
+    @Test
+    @DisplayName("toSqlInserts quotes identifiers and escapes values")
+    void toSqlInsertsQuotesIdentifiersAndEscapesValues() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("id", ctx -> 7);
+        fields.put("full name", ctx -> "Ada's");
+        fields.put("active", ctx -> true);
+        fields.put("meta", ctx -> {
+            Map<String, Object> meta = new LinkedHashMap<>();
+            meta.put("id", 1);
+            meta.put("tags", List.of("x", "y"));
+            return meta;
+        });
+        fields.put("notes", ctx -> null);
+        fields.put("custom", ctx -> new NamedValue("sql"));
+
+        Schema schema = new Schema(fields);
+
+        assertEquals(
+            "INSERT INTO \"public\".\"orders\" (\"id\", \"full name\", \"active\", \"meta\", \"notes\", \"custom\") VALUES "
+            + "(7, 'Ada''s', TRUE, '{\"id\":1,\"tags\":[\"x\",\"y\"]}', NULL, 'NamedValue[value=sql]');\n",
+            schema.toSqlInserts("public.orders", 1));
+    }
+
+    @Test
+    @DisplayName("toSqlInserts covers false booleans, iterable and array values, and quoted identifiers")
+    void toSqlInsertsCoversAdditionalSqlBranches() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("quoted\"name", ctx -> "x");
+        fields.put("enabled", ctx -> false);
+        fields.put("tags", ctx -> List.of("a", "b"));
+        fields.put("numbers", ctx -> new int[]{ 1, 2 });
+
+        String sql = new Schema(fields).toSqlInserts("audit.event\"logs", 1);
+
+        assertEquals(
+            "INSERT INTO \"audit\".\"event\"\"logs\" (\"quoted\"\"name\", \"enabled\", \"tags\", \"numbers\") VALUES "
+            + "('x', FALSE, '[\"a\",\"b\"]', '[1,2]');\n",
+            sql);
+    }
+
+    @Test
+    @DisplayName("writeXml and writeSqlInserts stream records and validation is enforced")
+    void writeXmlAndWriteSqlInsertsStreamRecordsAndValidate() throws IOException {
+        Schema schema = new Schema(Map.of("index", ctx -> ctx.recordIndex()));
+
+        StringBuilder xml = new StringBuilder();
+        schema.writeXml(xml, 1);
+        assertEquals(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<records>\n"
+            + "  <record>\n"
+            + "    <index>0</index>\n"
+            + "  </record>\n"
+            + "</records>\n",
+            xml.toString());
+
+        StringBuilder sql = new StringBuilder();
+        schema.writeSqlInserts(sql, "events", 2);
+        assertEquals(
+            "INSERT INTO \"events\" (\"index\") VALUES (1);\n"
+            + "INSERT INTO \"events\" (\"index\") VALUES (2);\n",
+            sql.toString());
+
+        assertThrows(NullPointerException.class, () -> schema.writeXml(null, 1));
+        assertThrows(NullPointerException.class, () -> schema.writeSqlInserts(null, "events", 1));
+        assertThrows(NullPointerException.class, () -> schema.toSqlInserts(null, 1));
+        assertThrows(IllegalArgumentException.class, () -> schema.writeXml(new StringBuilder(), -1));
+        assertThrows(IllegalArgumentException.class, () -> schema.writeSqlInserts(new StringBuilder(), " ", 1));
+        assertThrows(IllegalArgumentException.class, () -> schema.writeSqlInserts(new StringBuilder(), "public..events", 1));
+    }
+
+    @Test
+    @DisplayName("writeXml and writeSqlInserts propagate appendable failures")
+    void writeXmlAndWriteSqlInsertsPropagateAppendableFailures() {
+        Schema schema = new Schema(Map.of("value", ctx -> "x"));
+
+        assertThrows(IOException.class, () -> schema.writeXml(new FailingAppendable(), 1));
+        assertThrows(IOException.class, () -> schema.writeSqlInserts(new FailingAppendable(), "events", 1));
+    }
+
+    @Test
     @DisplayName("write methods stream records and advance record index")
     void writeMethodsStreamRecordsAndAdvanceRecordIndex() throws IOException {
         Schema schema = new Schema(Map.of("index", ctx -> ctx.recordIndex()));
@@ -124,6 +268,7 @@ class SchemaOutputTest {
 
         assertEquals("", schema.toJsonLines(0));
         assertEquals("value\n", schema.toCsv(0));
+        assertEquals("", schema.toSqlInserts("events", 0));
 
         assertThrows(NullPointerException.class, () -> schema.writeJsonLines(null, 1));
         assertThrows(NullPointerException.class, () -> schema.writeCsv(null, 1));
@@ -151,6 +296,27 @@ class SchemaOutputTest {
 
         assertEquals(List.of("b", "a"), List.copyOf(schema.getFields().keySet()));
         assertTrue(schema.toCsv(0).startsWith("b,a\n"));
+    }
+
+    @Test
+    @DisplayName("xml element-name validation covers blank, underscore, hyphen, and dot branches")
+    void xmlElementNameValidationCoversHelperBranches() {
+        assertFalse(invokeXmlElementNameValidation(null));
+        assertFalse(invokeXmlElementNameValidation(""));
+        assertTrue(invokeXmlElementNameValidation("_root"));
+        assertTrue(invokeXmlElementNameValidation("a_b-c.d1"));
+    }
+
+    private static boolean invokeXmlElementNameValidation(String value) {
+        try {
+            Method method = Schema.class.getDeclaredMethod("isValidXmlElementName", String.class);
+            method.setAccessible(true);
+            return (boolean) method.invoke(null, value);
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            throw new AssertionError("Failed to access Schema XML name validation helper", e);
+        } catch (InvocationTargetException e) {
+            throw new AssertionError("Schema XML name validation helper threw unexpectedly", e.getCause());
+        }
     }
 
     record NamedValue(String value) {
