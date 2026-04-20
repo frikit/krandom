@@ -1,0 +1,185 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+package org.github.krandom.generator.object;
+
+import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.GeneratorConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@DisplayName("ObjectGenerator semantic coherence")
+class ObjectGeneratorSemanticCoherenceTest {
+
+    @Test
+    @DisplayName("mutable classes align related semantic fields")
+    void mutableClassesAlignRelatedSemanticFields() {
+        CoherentPerson value = new ObjectGenerator<>(CoherentPerson.class).generate();
+
+        assertEquals(value.firstName + " " + value.lastName, value.fullName);
+        assertTrue(value.email.startsWith(slug(value.firstName) + "." + slug(value.lastName) + "@"));
+        assertEquals(value.domain, emailDomain(value.email));
+        assertEquals("https://www." + value.domain, value.url);
+        assertFalse(value.createdAt.toInstant(ZoneOffset.UTC).isAfter(value.updatedAt));
+    }
+
+    @Test
+    @DisplayName("records align related semantic fields")
+    void recordsAlignRelatedSemanticFields() {
+        CoherentPersonRecord value = new ObjectGenerator<>(CoherentPersonRecord.class).generate();
+
+        assertEquals(value.firstName() + " " + value.lastName(), value.fullName());
+        assertTrue(value.email().startsWith(slug(value.firstName()) + "." + slug(value.lastName()) + "@"));
+        assertEquals(value.domain(), emailDomain(value.email()));
+        assertEquals("https://www." + value.domain(), value.url());
+        assertFalse(value.createdAt().toInstant(ZoneOffset.UTC).isAfter(value.updatedAt()));
+    }
+
+    @Test
+    @DisplayName("explicit field overrides still win over semantic coherence")
+    void explicitFieldOverridesStillWinOverSemanticCoherence() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .override(CoherentPerson.class, "email",
+                                                                      () -> "custom@example.org")
+                                                            .build();
+
+        CoherentPerson value = new ObjectGenerator<>(CoherentPerson.class, config).generate();
+
+        assertEquals("custom@example.org", value.email);
+        assertEquals(value.firstName + " " + value.lastName, value.fullName);
+    }
+
+    @Test
+    @DisplayName("relaxed mode keeps annotated email fields untouched during coherence")
+    void relaxedModeKeepsAnnotatedEmailFieldsUntouchedDuringCoherence() {
+        AnnotatedEmailPerson value = new ObjectGenerator<>(AnnotatedEmailPerson.class).generate();
+
+        assertEquals("ANNOTATED", value.email);
+        assertEquals(value.firstName + " " + value.lastName, value.fullName);
+    }
+
+    @Test
+    @DisplayName("derived emails stay unique across one generator sequence")
+    void derivedEmailsStayUniqueAcrossOneGeneratorSequence() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .override(FixedNamePerson.class, "firstName", () -> "Alice")
+                                                            .override(FixedNamePerson.class, "lastName", () -> "Smith")
+                                                            .override(FixedNamePerson.class, "domain", () -> "example.com")
+                                                            .build();
+
+        ObjectGenerator<FixedNamePerson> generator = new ObjectGenerator<>(FixedNamePerson.class, config);
+
+        String first = generator.generate().email;
+        String second = generator.generate().email;
+        String third = generator.generate().email;
+
+        assertEquals("alice.smith@example.com", first);
+        assertEquals("alice.smith1@example.com", second);
+        assertEquals("alice.smith2@example.com", third);
+    }
+
+    @Test
+    @DisplayName("createdAt never lands after updatedAt across seeded sequences")
+    void createdAtNeverLandsAfterUpdatedAtAcrossSeededSequences() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+        ObjectGenerator<TemporalCoherenceHolder> generator = new ObjectGenerator<>(TemporalCoherenceHolder.class, config);
+
+        for (int i = 0; i < 40; i++) {
+            TemporalCoherenceHolder value = generator.generate();
+            assertFalse(value.createdAt.toInstant(ZoneOffset.UTC).isAfter(value.updatedAt));
+        }
+    }
+
+    @Test
+    @DisplayName("strict mode can still overwrite annotated targets through semantic coherence")
+    void strictModeCanStillOverwriteAnnotatedTargetsThroughSemanticCoherence() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                                .build();
+
+        AnnotatedEmailPerson value = new ObjectGenerator<>(AnnotatedEmailPerson.class, config).generate();
+
+        assertNotEquals("ANNOTATED", value.email);
+        assertTrue(value.email.startsWith(slug(value.firstName) + "." + slug(value.lastName) + "@"));
+    }
+
+    private static String slug(String value) {
+        StringBuilder normalized = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (ch <= 127 && Character.isLetterOrDigit(ch)) {
+                normalized.append(Character.toLowerCase(ch));
+            }
+        }
+        return normalized.toString();
+    }
+
+    private static String emailDomain(String email) {
+        return email.substring(email.indexOf('@') + 1);
+    }
+
+    static class CoherentPerson {
+
+        String        firstName;
+        String        lastName;
+        String        fullName;
+        String        email;
+        String        domain;
+        String        url;
+        LocalDateTime createdAt;
+        Instant       updatedAt;
+    }
+
+    record CoherentPersonRecord(String firstName,
+                                String lastName,
+                                String fullName,
+                                String email,
+                                String domain,
+                                String url,
+                                LocalDateTime createdAt,
+                                Instant updatedAt) {
+    }
+
+    static class FixedNamePerson {
+
+        String firstName;
+        String lastName;
+        String domain;
+        String email;
+    }
+
+    static class TemporalCoherenceHolder {
+
+        LocalDateTime createdAt;
+        Instant       updatedAt;
+    }
+
+    static class AnnotatedEmailPerson {
+
+        String firstName;
+        String lastName;
+        String fullName;
+
+        @Randomizer(AnnotatedValueGenerator.class)
+        String email;
+    }
+
+    public static class AnnotatedValueGenerator implements Generator<String> {
+
+        @Override
+        public String generate() {
+            return "ANNOTATED";
+        }
+    }
+}

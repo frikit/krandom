@@ -191,8 +191,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
                 generationSeed);
+        SemanticCoherenceAdjuster coherenceAdjuster = new SemanticCoherenceAdjuster(config, uniqueFieldTracker);
         try {
-            return type.isRecord() ? generateRecord(resolver) : generateClass(resolver);
+            return type.isRecord() ? generateRecord(resolver, coherenceAdjuster) : generateClass(resolver, coherenceAdjuster);
         } catch (ReflectiveOperationException e) {
             throw new ObjectGenerationException(
                 "Failed to generate instance of " + type.getName() + ": " + e.getMessage(), e);
@@ -206,7 +207,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
                 generationSeed);
-        populateClass(instance, resolver);
+        populateClass(instance, resolver, new SemanticCoherenceAdjuster(config, uniqueFieldTracker), config.isOverrideDefaultInitialization());
         return instance;
     }
 
@@ -216,7 +217,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private T generateRecord(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
+    private T generateRecord(FieldGeneratorResolver resolver,
+                             SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
         RecordComponent[] components = type.getRecordComponents();
 
         // Build parallel arrays: types[] for the constructor lookup, args[] for invocation
@@ -225,11 +227,13 @@ public final class ObjectGenerator<T> implements Generator<T> {
                                       .toArray(Class[]::new);
 
         Object[] args = new Object[components.length];
+        Field[] backingFields = new Field[components.length];
         for (int i = 0; i < components.length; i++) {
             RecordComponent comp = components[i];
             // For a well-formed record, getDeclaredField(comp.getName()) never throws.
             // NoSuchFieldException (a ReflectiveOperationException) propagates to generate().
             Field backingField = type.getDeclaredField(comp.getName());
+            backingFields[i] = backingField;
             if (config.shouldExclude(backingField)) {
                 args[i] = defaultForType(comp.getType());
             } else {
@@ -242,20 +246,26 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     backingField);
             }
         }
+        coherenceAdjuster.adjustRecordArguments(type, components, backingFields, args);
 
         Constructor<T> canonical = type.getDeclaredConstructor(paramTypes);
         canonical.setAccessible(true);
         return canonical.newInstance(args);
     }
 
-    private T generateClass(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
+    private T generateClass(FieldGeneratorResolver resolver,
+                            SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
         T instance = instantiate(); // may throw ReflectiveOperationException for throwing constructors
-        populateClass(instance, resolver);
+        populateClass(instance, resolver, coherenceAdjuster, true);
         return instance;
     }
 
-    private void populateClass(T instance, FieldGeneratorResolver resolver) {
-        for (Field field : collectSettableFields(type)) {
+    private void populateClass(T instance,
+                               FieldGeneratorResolver resolver,
+                               SemanticCoherenceAdjuster coherenceAdjuster,
+                               boolean allowOverwriteExisting) {
+        List<Field> settableFields = collectSettableFields(type);
+        for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check
             field.setAccessible(true);
             if (!config.isOverrideDefaultInitialization() && hasNonDefaultValue(instance, field)) {
@@ -279,6 +289,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 // ignoreErrors=true: silently leave field at its initialized value
             }
         }
+        coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting);
     }
 
     /**

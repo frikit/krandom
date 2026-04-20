@@ -72,6 +72,8 @@ Examples:
 
 Configured object date ranges still apply to semantic temporal fields. If you set `objectDateRange(...)` or `ObjectGeneratorConfig.dateRange(...)`, that range becomes the effective window for semantic fields such as `dob`, `createdAt`, and `updatedAt`.
 
+Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, and `createdAt` / `updatedAt` are aligned automatically. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win.
+
 ## Fluent fixtures
 
 Use `ObjectFaker<T>` when the default object graph is close but you want a few explicit root-field rules:
