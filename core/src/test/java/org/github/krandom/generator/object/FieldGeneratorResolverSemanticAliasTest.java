@@ -43,4 +43,16 @@ class FieldGeneratorResolverSemanticAliasTest {
         assertTrue(FieldGeneratorResolver.semanticAliasesFor("createdAt").containsAll(Set.of("createdat", "createdtimestamp")));
         assertTrue(FieldGeneratorResolver.semanticAliasesFor("latitude").containsAll(Set.of("latitude", "lat")));
     }
+
+    @Test
+    @DisplayName("provider-backed semantic keys expose their provider mapping")
+    void providerBackedSemanticKeysExposeProviderMapping() {
+        assertEquals("person.first_name", FieldGeneratorResolver.semanticProviderNameFor("firstName"));
+        assertEquals("address.city", FieldGeneratorResolver.semanticProviderNameFor("city"));
+        assertEquals("company.name", FieldGeneratorResolver.semanticProviderNameFor("companyName"));
+        assertEquals("security.password", FieldGeneratorResolver.semanticProviderNameFor("password"));
+        assertEquals("internet.url", FieldGeneratorResolver.semanticProviderNameFor("url"));
+        assertEquals("finance.currency", FieldGeneratorResolver.semanticProviderNameFor("currencyCode"));
+        assertEquals("code.uuid", FieldGeneratorResolver.semanticProviderNameFor("uuid"));
+    }
 }

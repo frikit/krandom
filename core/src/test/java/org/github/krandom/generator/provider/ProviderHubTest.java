@@ -22,10 +22,12 @@ import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.WordGenerator;
+import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FirstNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.LastNameGenerator;
+import org.github.krandom.generator.user.PasswordGenerator;
 import org.github.krandom.generator.user.UsernameGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,8 +62,12 @@ class ProviderHubTest {
         assertTrue(hub.providerNames().contains("text.sentence"));
         assertTrue(hub.providerNames().contains("text.format"));
         assertTrue(hub.providerNames().contains("code.uuid"));
+        assertTrue(hub.providerNames().contains("company.name"));
+        assertTrue(hub.providerNames().contains("security.password"));
         assertEquals("person.full_name", hub.aliases().get("full_name"));
         assertEquals("internet.url", hub.aliases().get("url"));
+        assertEquals("company.name", hub.aliases().get("company_name"));
+        assertEquals("security.password", hub.aliases().get("password"));
 
         assertInstanceOf(FullNameGenerator.class, hub.get("person"));
         assertInstanceOf(FullNameGenerator.class, hub.get("full_name"));
@@ -69,6 +75,8 @@ class ProviderHubTest {
         assertInstanceOf(LastNameGenerator.class, hub.get("person.last_name"));
         assertInstanceOf(EmailGenerator.class, hub.get("person.email"));
         assertInstanceOf(UsernameGenerator.class, hub.get("person.username"));
+        assertInstanceOf(CompanyNameGenerator.class, hub.get("company.name"));
+        assertInstanceOf(PasswordGenerator.class, hub.get("security.password"));
         assertInstanceOf(StreetAddressGenerator.class, hub.get("address"));
         assertInstanceOf(CityGenerator.class, hub.get("address.city"));
         assertInstanceOf(PhoneNumberGenerator.class, hub.get("address.phone_number"));

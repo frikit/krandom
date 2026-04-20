@@ -61,6 +61,8 @@ Current built-in semantic coverage includes:
 - strings such as `firstName`, `lastName`, `fullName`, `email`, `username`, `phoneNumber`, `streetAddress`, `city`, `postalCode`, `country`, `companyName`, `url`, `domain`, `uuid`, and `status`
 - typed business fields such as `createdAt`, `updatedAt`, `birthDate`, `amount`, `balance`, `price`, `currency`, `id`, `active`, `latitude`, and `longitude`
 
+String semantics reuse the same provider taxonomy as `ProviderHub`, so values such as `firstName`, `city`, `url`, `currencyCode`, and `uuid` resolve through providers like `person.first_name`, `address.city`, `internet.url`, `finance.currency`, and `code.uuid`. Locale and deterministic seed settings still come from the shared root `GeneratorConfig`.
+
 Examples:
 
 - `dateOfBirth`, `dob`, and `birth_date` map to the same birth-date semantic

@@ -31,23 +31,9 @@ import org.github.krandom.generator.datetime.UtilDateGenerator;
 import org.github.krandom.generator.datetime.ZonedDateTimeGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
-import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CoordinatesGenerator;
-import org.github.krandom.generator.location.CountryGenerator;
-import org.github.krandom.generator.location.PhoneNumberGenerator;
-import org.github.krandom.generator.location.PostalCodeGenerator;
-import org.github.krandom.generator.location.StateGenerator;
-import org.github.krandom.generator.location.StreetAddressGenerator;
-import org.github.krandom.generator.network.DomainGenerator;
-import org.github.krandom.generator.network.URLGenerator;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
-import org.github.krandom.generator.user.CompanyNameGenerator;
-import org.github.krandom.generator.user.EmailGenerator;
-import org.github.krandom.generator.user.FirstNameGenerator;
-import org.github.krandom.generator.user.FullNameGenerator;
-import org.github.krandom.generator.user.LastNameGenerator;
-import org.github.krandom.generator.user.PasswordGenerator;
-import org.github.krandom.generator.user.UsernameGenerator;
+import org.github.krandom.generator.provider.ProviderHub;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
@@ -83,6 +69,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
@@ -184,6 +171,7 @@ final class FieldGeneratorResolver {
 
     private static final Map<String, String> SEMANTIC_KEYS_BY_ALIAS = buildSemanticKeysByAlias();
     private static final Map<String, Set<String>> SEMANTIC_ALIASES_BY_KEY = buildSemanticAliasesByKey();
+    private static final Map<String, String> SEMANTIC_PROVIDER_NAMES_BY_KEY = buildSemanticProviderNames();
 
     FieldGeneratorResolver(ObjectGeneratorConfig config,
                            ObjectPool pool,
@@ -457,23 +445,11 @@ final class FieldGeneratorResolver {
 
     private static Map<String, Generator<?>> buildSemanticStringGenerators(GeneratorConfig config, Random seedSource) {
         Map<String, Generator<?>> generators = new HashMap<>();
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newFirstNameGenerator, "firstname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newLastNameGenerator, "lastname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newFullNameGenerator, "fullname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newEmailGenerator, "email");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUsernameGenerator, "username");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPhoneNumberGenerator, "phone");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStreetAddressGenerator, "streetaddress");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCityGenerator, "city");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStateGenerator, "state");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPostalCodeGenerator, "postalcode");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCountryGenerator, "country");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCompanyNameGenerator, "companyname");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newPasswordGenerator, "password");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUrlGenerator, "url");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newDomainGenerator, "domain");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newCurrencyGenerator, "currency");
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newUuidStringGenerator, "uuid");
+        for (String semanticKey : SEMANTIC_PROVIDER_NAMES_BY_KEY.keySet()) {
+            registerSemantic(generators, config, seedSource,
+                             derivedConfig -> buildProviderBackedSemanticGenerator(derivedConfig, semanticKey),
+                             semanticKey);
+        }
         registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStatusStringGenerator, "status");
         return Collections.unmodifiableMap(generators);
     }
@@ -626,79 +602,21 @@ final class FieldGeneratorResolver {
         generators.computeIfAbsent(semanticKey, ignored -> new HashMap<>()).put(rawType, generator);
     }
 
-    private static Generator<?> newFirstNameGenerator(GeneratorConfig config) {
-        return new FirstNameGenerator(config);
-    }
-
-    private static Generator<?> newLastNameGenerator(GeneratorConfig config) {
-        return new LastNameGenerator(config);
-    }
-
-    private static Generator<?> newFullNameGenerator(GeneratorConfig config) {
-        return new FullNameGenerator(config);
-    }
-
-    private static Generator<?> newEmailGenerator(GeneratorConfig config) {
-        return new EmailGenerator(config);
-    }
-
-    private static Generator<?> newUsernameGenerator(GeneratorConfig config) {
-        return new UsernameGenerator(config);
-    }
-
-    private static Generator<?> newPhoneNumberGenerator(GeneratorConfig config) {
-        return new PhoneNumberGenerator(config);
-    }
-
-    private static Generator<?> newStreetAddressGenerator(GeneratorConfig config) {
-        return new StreetAddressGenerator(config);
-    }
-
-    private static Generator<?> newCityGenerator(GeneratorConfig config) {
-        return new CityGenerator(config);
-    }
-
-    private static Generator<?> newStateGenerator(GeneratorConfig config) {
-        return new StateGenerator(config);
-    }
-
-    private static Generator<?> newPostalCodeGenerator(GeneratorConfig config) {
-        return new PostalCodeGenerator(config);
-    }
-
-    private static Generator<?> newCountryGenerator(GeneratorConfig config) {
-        return new CountryGenerator(config);
-    }
-
-    private static Generator<?> newCompanyNameGenerator(GeneratorConfig config) {
-        return new CompanyNameGenerator(config);
-    }
-
-    private static Generator<?> newPasswordGenerator(GeneratorConfig config) {
-        return new PasswordGenerator(config);
-    }
-
-    private static Generator<?> newUrlGenerator(GeneratorConfig config) {
-        return new URLGenerator(config);
-    }
-
-    private static Generator<?> newDomainGenerator(GeneratorConfig config) {
-        return new DomainGenerator(config);
-    }
-
-    private static Generator<?> newCurrencyGenerator(GeneratorConfig config) {
-        return new CurrencyGenerator(config);
-    }
-
     private static Generator<?> newStatusStringGenerator(GeneratorConfig config) {
         List<String> values = List.of("ACTIVE", "INACTIVE", "PENDING", "SUSPENDED", "ENABLED", "DISABLED");
         Random random = config.createRandom();
         return () -> values.get(random.nextInt(values.size()));
     }
 
-    private static Generator<?> newUuidStringGenerator(GeneratorConfig config) {
-        UUIDGenerator generator = new UUIDGenerator(config);
-        return () -> generator.generate().toString();
+    private static Generator<?> buildProviderBackedSemanticGenerator(GeneratorConfig config, String semanticKey) {
+        ProviderHub hub = new ProviderHub(config);
+        String providerName = Objects.requireNonNull(semanticProviderNameFor(semanticKey),
+                                                     "No provider mapping for semantic key: " + semanticKey);
+        Generator<?> provider = hub.get(providerName, Generator.class);
+        if ("uuid".equals(semanticKey)) {
+            return () -> provider.generate().toString();
+        }
+        return provider;
     }
 
     private static Generator<BigDecimal> bigDecimalGenerator(Long seed, String min, String max, int scale) {
@@ -741,11 +659,9 @@ final class FieldGeneratorResolver {
     }
 
     private static Generator<String> buildLocaleCurrencyCodeGenerator(GeneratorConfig config, Random seedSource) {
-        CurrencyGenerator generator = new CurrencyGenerator(derivedGeneratorConfig(config, seedSource));
-        return () -> {
-            String localeCurrency = generator.generateCurrencyIsoCode(config.getLocale());
-            return localeCurrency != null ? localeCurrency : generator.generateCurrencyIsoCode();
-        };
+        CurrencyGenerator generator =
+            new ProviderHub(derivedGeneratorConfig(config, seedSource)).get("finance.currency", CurrencyGenerator.class);
+        return () -> generator.generateCurrencyIsoCode(config.getLocale());
     }
 
     private static Generator<org.github.krandom.generator.finance.Currency> buildLibraryCurrencyGenerator(GeneratorConfig config,
@@ -809,6 +725,28 @@ final class FieldGeneratorResolver {
         return Collections.unmodifiableMap(unmodifiable);
     }
 
+    private static Map<String, String> buildSemanticProviderNames() {
+        Map<String, String> providerNames = new LinkedHashMap<>();
+        providerNames.put("firstname", "person.first_name");
+        providerNames.put("lastname", "person.last_name");
+        providerNames.put("fullname", "person.full_name");
+        providerNames.put("email", "person.email");
+        providerNames.put("username", "person.username");
+        providerNames.put("phone", "address.phone_number");
+        providerNames.put("streetaddress", "address.street_address");
+        providerNames.put("city", "address.city");
+        providerNames.put("state", "address.state");
+        providerNames.put("postalcode", "address.postal_code");
+        providerNames.put("country", "address.country");
+        providerNames.put("companyname", "company.name");
+        providerNames.put("password", "security.password");
+        providerNames.put("url", "internet.url");
+        providerNames.put("domain", "internet.domain");
+        providerNames.put("currency", "finance.currency");
+        providerNames.put("uuid", "code.uuid");
+        return Collections.unmodifiableMap(providerNames);
+    }
+
     private static void registerSemanticAliases(Map<String, String> aliases, String semanticKey, String... fieldNames) {
         for (String fieldName : fieldNames) {
             aliases.put(normalizeSemanticFieldName(fieldName), semanticKey);
@@ -832,6 +770,12 @@ final class FieldGeneratorResolver {
 
     static Set<String> semanticAliasesFor(String semanticKey) {
         return SEMANTIC_ALIASES_BY_KEY.getOrDefault(normalizeSemanticFieldName(semanticKey), Set.of());
+    }
+
+    static String semanticProviderNameFor(String semanticKey) {
+        String normalized = normalizeSemanticFieldName(semanticKey);
+        String canonicalKey = SEMANTIC_KEYS_BY_ALIAS.getOrDefault(normalized, normalized);
+        return SEMANTIC_PROVIDER_NAMES_BY_KEY.get(canonicalKey);
     }
 
     private Generator<?> semanticGeneratorFor(Class<?> rawType, String fieldName) {

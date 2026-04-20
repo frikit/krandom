@@ -26,10 +26,12 @@ import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.WordGenerator;
+import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FirstNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.LastNameGenerator;
+import org.github.krandom.generator.user.PasswordGenerator;
 import org.github.krandom.generator.user.UsernameGenerator;
 
 import java.util.function.BiPredicate;
@@ -316,6 +318,9 @@ public final class ProviderHub {
         register("person.username", cfg -> new UsernameGenerator(cfg), ConflictPolicy.REPLACE);
         register("person", cfg -> new FullNameGenerator(cfg), ConflictPolicy.REPLACE);
 
+        register("company.name", cfg -> new CompanyNameGenerator(cfg), ConflictPolicy.REPLACE);
+        register("security.password", cfg -> new PasswordGenerator(cfg), ConflictPolicy.REPLACE);
+
         register("address.street_address", cfg -> new StreetAddressGenerator(cfg), ConflictPolicy.REPLACE);
         register("address.city", cfg -> new CityGenerator(cfg), ConflictPolicy.REPLACE);
         register("address.state", cfg -> new StateGenerator(cfg), ConflictPolicy.REPLACE);
@@ -352,6 +357,8 @@ public final class ProviderHub {
         registerAlias("last_name", "person.last_name", ConflictPolicy.REPLACE);
         registerAlias("email", "person.email", ConflictPolicy.REPLACE);
         registerAlias("username", "person.username", ConflictPolicy.REPLACE);
+        registerAlias("company_name", "company.name", ConflictPolicy.REPLACE);
+        registerAlias("password", "security.password", ConflictPolicy.REPLACE);
         registerAlias("location", "address.street_address", ConflictPolicy.REPLACE);
         registerAlias("street_address", "address.street_address", ConflictPolicy.REPLACE);
         registerAlias("city", "address.city", ConflictPolicy.REPLACE);
