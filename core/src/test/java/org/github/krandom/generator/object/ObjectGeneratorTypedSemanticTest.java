@@ -37,6 +37,7 @@ class ObjectGeneratorTypedSemanticTest {
         LocalDate today = LocalDate.now();
         assertTrue(!value.dateOfBirth.isBefore(today.minusYears(90)));
         assertTrue(!value.dateOfBirth.isAfter(today.minusYears(18)));
+        assertTrue(value.ageYears >= 18 && value.ageYears <= 90);
 
         assertTrue(!value.created_at.toLocalDate().isBefore(today.minusYears(10)));
         assertTrue(!value.created_at.toLocalDate().isAfter(today));
@@ -59,7 +60,9 @@ class ObjectGeneratorTypedSemanticTest {
         assertTrue(value.accountId > 0);
         assertTrue(value.lat >= 24.5 && value.lat <= 49.0);
         assertTrue(value.lon >= -125.0 && value.lon <= -66.0);
-        assertTrue(Set.of("ACTIVE", "INACTIVE", "PENDING", "SUSPENDED", "ENABLED", "DISABLED").contains(value.status));
+        assertTrue(value.isEnabled
+                   ? Set.of("ACTIVE", "ENABLED").contains(value.status)
+                   : Set.of("INACTIVE", "DISABLED", "SUSPENDED").contains(value.status));
     }
 
     @Test
@@ -152,6 +155,25 @@ class ObjectGeneratorTypedSemanticTest {
     }
 
     @Test
+    @DisplayName("typed age variants cover primitive, wrapper, and string registrations")
+    void typedAgeVariantsCoverPrimitiveWrapperAndStringRegistrations() {
+        PrimitiveLongAgeSemantics primitiveLong = new ObjectGenerator<>(PrimitiveLongAgeSemantics.class).generate();
+        WrapperLongAgeSemantics wrapperLong = new ObjectGenerator<>(WrapperLongAgeSemantics.class).generate();
+        PrimitiveShortAgeSemantics primitiveShort = new ObjectGenerator<>(PrimitiveShortAgeSemantics.class).generate();
+        WrapperShortAgeSemantics wrapperShort = new ObjectGenerator<>(WrapperShortAgeSemantics.class).generate();
+        StringAgeSemantics stringAge = new ObjectGenerator<>(StringAgeSemantics.class).generate();
+
+        assertTrue(primitiveLong.age >= 18L && primitiveLong.age <= 90L);
+        assertNotNull(wrapperLong.age);
+        assertTrue(wrapperLong.age >= 18L && wrapperLong.age <= 90L);
+        assertTrue(primitiveShort.yearsOld >= 18 && primitiveShort.yearsOld <= 90);
+        assertNotNull(wrapperShort.yearsOld);
+        assertTrue(wrapperShort.yearsOld >= 18 && wrapperShort.yearsOld <= 90);
+        assertNotNull(stringAge.age);
+        assertTrue(Integer.parseInt(stringAge.age) >= 18 && Integer.parseInt(stringAge.age) <= 90);
+    }
+
+    @Test
     @DisplayName("bean validation constraints suppress relaxed semantic string generators")
     void beanValidationConstraintsSuppressRelaxedSemanticStringGenerators() {
         ValidatedSemanticString value = new ObjectGenerator<>(ValidatedSemanticString.class).generate();
@@ -170,6 +192,7 @@ class ObjectGeneratorTypedSemanticTest {
     static class BusinessSemantics {
 
         LocalDate     dateOfBirth;
+        int           ageYears;
         LocalDateTime created_at;
         Instant       updatedTimestamp;
         BigDecimal    totalAmount;
@@ -195,6 +218,31 @@ class ObjectGeneratorTypedSemanticTest {
         OffsetDateTime     createdAt;
         Float              latitude;
         BigDecimal         longitude;
+    }
+
+    static class PrimitiveLongAgeSemantics {
+
+        long age;
+    }
+
+    static class WrapperLongAgeSemantics {
+
+        Long age;
+    }
+
+    static class PrimitiveShortAgeSemantics {
+
+        short yearsOld;
+    }
+
+    static class WrapperShortAgeSemantics {
+
+        Short yearsOld;
+    }
+
+    static class StringAgeSemantics {
+
+        String age;
     }
 
     static class NonSemanticStatusHolder {

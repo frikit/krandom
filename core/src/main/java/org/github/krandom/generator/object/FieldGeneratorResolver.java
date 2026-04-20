@@ -475,6 +475,14 @@ final class FieldGeneratorResolver {
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "createdat", today.minusYears(10), today);
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "updatedat", today.minusYears(10), today);
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "birthdate", today.minusYears(90), today.minusYears(18));
+        Generator<Integer> ageGenerator = intGenerator(nextDeterministicSeed(config, seedSource), 18, 91);
+        registerTypedSemantic(generators, "age", int.class, ageGenerator);
+        registerTypedSemantic(generators, "age", Integer.class, ageGenerator);
+        registerTypedSemantic(generators, "age", long.class, (Generator<Long>) () -> Long.valueOf(ageGenerator.generate()));
+        registerTypedSemantic(generators, "age", Long.class, (Generator<Long>) () -> Long.valueOf(ageGenerator.generate()));
+        registerTypedSemantic(generators, "age", short.class, (Generator<Short>) () -> Short.valueOf(ageGenerator.generate().shortValue()));
+        registerTypedSemantic(generators, "age", Short.class, (Generator<Short>) () -> Short.valueOf(ageGenerator.generate().shortValue()));
+        registerTypedSemantic(generators, "age", String.class, (Generator<String>) () -> Integer.toString(ageGenerator.generate()));
 
         registerNumericSemantic(generators, "amount",
                                 bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "1000000", 2),
@@ -698,6 +706,7 @@ final class FieldGeneratorResolver {
         registerSemanticAliases(aliases, "createdat", "createdat", "createdon", "createddate", "createdtimestamp", "creationdate");
         registerSemanticAliases(aliases, "updatedat", "updatedat", "updatedon", "updateddate", "updatedtimestamp", "lastupdated", "modifiedat", "modifiedon");
         registerSemanticAliases(aliases, "birthdate", "birthdate", "dateofbirth", "dob", "birthday", "bornon");
+        registerSemanticAliases(aliases, "age", "age", "ageyears", "yearsold");
         registerSemanticAliases(aliases, "amount", "amount", "totalamount", "subtotal", "paymentamount");
         registerSemanticAliases(aliases, "balance", "balance", "accountbalance", "currentbalance");
         registerSemanticAliases(aliases, "price", "price", "unitprice", "cost");

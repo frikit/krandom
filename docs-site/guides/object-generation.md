@@ -59,7 +59,7 @@ In `RELAXED` and `STRICT` modes, `ObjectGenerator<T>` recognizes common business
 Current built-in semantic coverage includes:
 
 - strings such as `firstName`, `lastName`, `fullName`, `email`, `username`, `phoneNumber`, `streetAddress`, `city`, `postalCode`, `country`, `companyName`, `url`, `domain`, `uuid`, and `status`
-- typed business fields such as `createdAt`, `updatedAt`, `birthDate`, `amount`, `balance`, `price`, `currency`, `id`, `active`, `latitude`, and `longitude`
+- typed business fields such as `createdAt`, `updatedAt`, `birthDate`, `age`, `amount`, `balance`, `price`, `currency`, `id`, `active`, `latitude`, and `longitude`
 
 String semantics reuse the same provider taxonomy as `ProviderHub`, so values such as `firstName`, `city`, `url`, `currencyCode`, and `uuid` resolve through providers like `person.first_name`, `address.city`, `internet.url`, `finance.currency`, and `code.uuid`. Locale and deterministic seed settings still come from the shared root `GeneratorConfig`.
 
@@ -72,7 +72,7 @@ Examples:
 
 Configured object date ranges still apply to semantic temporal fields. If you set `objectDateRange(...)` or `ObjectGeneratorConfig.dateRange(...)`, that range becomes the effective window for semantic fields such as `dob`, `createdAt`, and `updatedAt`.
 
-Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, and `createdAt` / `updatedAt` are aligned automatically. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win.
+Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win.
 
 ## Fluent fixtures
 

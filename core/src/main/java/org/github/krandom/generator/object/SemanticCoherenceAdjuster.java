@@ -17,7 +17,9 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -101,6 +103,8 @@ final class SemanticCoherenceAdjuster {
         harmonizeEmail(slotsBySemanticKey, domain, allowOverwriteExisting);
         harmonizeUrl(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeTimestamps(slotsBySemanticKey, allowOverwriteExisting);
+        harmonizeAgeAndBirthDate(slotsBySemanticKey, allowOverwriteExisting);
+        harmonizeActiveStatus(slotsBySemanticKey, allowOverwriteExisting);
     }
 
     private String harmonizeDomain(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
@@ -209,6 +213,64 @@ final class SemanticCoherenceAdjuster {
         }
         if (canAssign(createdAtSlot, allowOverwriteExisting)) {
             createdAtSlot.setValue(fromInstant(updatedAt, createdAtSlot.rawType()));
+        }
+    }
+
+    private void harmonizeAgeAndBirthDate(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
+        Slot birthDateSlot = slotsBySemanticKey.get("birthdate");
+        Slot ageSlot = slotsBySemanticKey.get("age");
+        if (birthDateSlot == null || ageSlot == null) {
+            return;
+        }
+
+        LocalDate birthDate = toLocalDate(birthDateSlot.getValue());
+        Integer age = toInteger(ageSlot.getValue());
+        if (birthDate != null) {
+            int derivedAge = ageFromBirthDate(birthDate);
+            if (age != null && age == derivedAge) {
+                return;
+            }
+            if (canAssign(ageSlot, allowOverwriteExisting)) {
+                ageSlot.setValue(fromAge(derivedAge, ageSlot.rawType()));
+                return;
+            }
+            if (age != null && canAssign(birthDateSlot, allowOverwriteExisting)) {
+                birthDateSlot.setValue(fromLocalDate(LocalDate.now().minusYears(age), birthDateSlot.rawType()));
+            }
+            return;
+        }
+
+        if (age != null && canAssign(birthDateSlot, allowOverwriteExisting)) {
+            birthDateSlot.setValue(fromLocalDate(LocalDate.now().minusYears(age), birthDateSlot.rawType()));
+        }
+    }
+
+    private void harmonizeActiveStatus(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
+        Slot activeSlot = slotsBySemanticKey.get("active");
+        Slot statusSlot = slotsBySemanticKey.get("status");
+        if (activeSlot == null || statusSlot == null) {
+            return;
+        }
+
+        Boolean active = toBoolean(activeSlot.getValue());
+        Boolean statusActive = activeFromStatus(statusSlot.getValue());
+        if (active != null) {
+            if (statusActive != null && statusActive == active) {
+                return;
+            }
+            Object statusValue = statusValueFor(active, statusSlot.rawType());
+            if (statusValue != null && canAssign(statusSlot, allowOverwriteExisting)) {
+                statusSlot.setValue(statusValue);
+                return;
+            }
+            if (statusActive != null && canAssign(activeSlot, allowOverwriteExisting)) {
+                activeSlot.setValue(statusActive);
+            }
+            return;
+        }
+
+        if (statusActive != null && canAssign(activeSlot, allowOverwriteExisting)) {
+            activeSlot.setValue(statusActive);
         }
     }
 
@@ -399,6 +461,98 @@ final class SemanticCoherenceAdjuster {
             return date.toInstant();
         }
         return null;
+    }
+
+    private static LocalDate toLocalDate(Object value) {
+        if (value instanceof LocalDate localDate) {
+            return localDate;
+        }
+        Instant instant = toInstant(value);
+        return instant != null ? instant.atOffset(ZoneOffset.UTC).toLocalDate() : null;
+    }
+
+    private static Integer toInteger(Object value) {
+        if (value instanceof Integer integer) {
+            return integer;
+        }
+        if (value instanceof Long longValue && longValue >= Integer.MIN_VALUE && longValue <= Integer.MAX_VALUE) {
+            return longValue.intValue();
+        }
+        if (value instanceof Short shortValue) {
+            return shortValue.intValue();
+        }
+        if (value instanceof String stringValue) {
+            try {
+                return Integer.valueOf(stringValue.trim());
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private static Boolean toBoolean(Object value) {
+        return value instanceof Boolean bool ? bool : null;
+    }
+
+    private static int ageFromBirthDate(LocalDate birthDate) {
+        return Math.toIntExact(ChronoUnit.YEARS.between(birthDate, LocalDate.now()));
+    }
+
+    private static Object fromAge(int age, Class<?> rawType) {
+        if (rawType == int.class || rawType == Integer.class) {
+            return age;
+        }
+        if (rawType == long.class || rawType == Long.class) {
+            return (long) age;
+        }
+        if (rawType == short.class || rawType == Short.class) {
+            return (short) age;
+        }
+        if (rawType == String.class) {
+            return Integer.toString(age);
+        }
+        throw new ObjectGenerationException("Unsupported semantic age type: " + rawType.getName());
+    }
+
+    private static Object fromLocalDate(LocalDate localDate, Class<?> rawType) {
+        return fromInstant(localDate.atStartOfDay().toInstant(ZoneOffset.UTC), rawType);
+    }
+
+    private static Boolean activeFromStatus(Object statusValue) {
+        if (statusValue == null) {
+            return null;
+        }
+        String normalized = FieldGeneratorResolver.normalizeSemanticFieldName(statusValue.toString());
+        if (Set.of("active", "enabled", "open").contains(normalized)) {
+            return Boolean.TRUE;
+        }
+        if (Set.of("inactive", "disabled", "closed", "suspended", "archived", "deleted").contains(normalized)) {
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    private static Object statusValueFor(boolean active, Class<?> rawType) {
+        if (rawType == String.class) {
+            return active ? "ACTIVE" : "INACTIVE";
+        }
+        if (!rawType.isEnum()) {
+            return null;
+        }
+        Object[] constants = rawType.getEnumConstants();
+        List<Object> matches = new ArrayList<>();
+        for (Object constant : constants) {
+            Boolean constantActive = activeFromStatus(constant);
+            if (constantActive != null && constantActive == active) {
+                matches.add(constant);
+            }
+        }
+        if (matches.isEmpty()) {
+            return null;
+        }
+        matches.sort(Comparator.comparing(value -> FieldGeneratorResolver.normalizeSemanticFieldName(value.toString())));
+        return matches.getFirst();
     }
 
     private static Object fromInstant(Instant instant, Class<?> rawType) {

@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -128,6 +129,58 @@ class SemanticCoherenceAdjusterTest {
                                                            () -> invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class },
                                                                               instant, String.class));
         assertTrue(exception.getMessage().contains("Unsupported semantic timestamp type"));
+    }
+
+    @Test
+    @DisplayName("age and status utility methods cover conversion and fallback branches")
+    void ageAndStatusUtilityMethodsCoverConversionAndFallbackBranches() throws Exception {
+        Instant instant = Instant.parse("2026-04-20T12:34:56Z");
+        assertEquals(LocalDate.of(2026, 4, 20),
+                     invokeStatic("toLocalDate", new Class<?>[] { Object.class }, LocalDate.of(2026, 4, 20)));
+        assertEquals(LocalDate.of(2026, 4, 20),
+                     invokeStatic("toLocalDate", new Class<?>[] { Object.class }, java.util.Date.from(instant)));
+        assertNull(invokeStatic("toLocalDate", new Class<?>[] { Object.class }, "bad-date"));
+
+        assertEquals(42, invokeStatic("toInteger", new Class<?>[] { Object.class }, 42));
+        assertEquals(42, invokeStatic("toInteger", new Class<?>[] { Object.class }, 42L));
+        assertEquals(42, invokeStatic("toInteger", new Class<?>[] { Object.class }, (short) 42));
+        assertEquals(42, invokeStatic("toInteger", new Class<?>[] { Object.class }, " 42 "));
+        assertNull(invokeStatic("toInteger", new Class<?>[] { Object.class }, Long.MIN_VALUE));
+        assertNull(invokeStatic("toInteger", new Class<?>[] { Object.class }, Long.MAX_VALUE));
+        assertNull(invokeStatic("toInteger", new Class<?>[] { Object.class }, "forty-two"));
+        assertNull(invokeStatic("toInteger", new Class<?>[] { Object.class }, 42.0));
+
+        assertEquals(Boolean.TRUE, invokeStatic("toBoolean", new Class<?>[] { Object.class }, Boolean.TRUE));
+        assertNull(invokeStatic("toBoolean", new Class<?>[] { Object.class }, "true"));
+
+        assertEquals(42, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, int.class));
+        assertEquals(42L, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, long.class));
+        assertEquals(42L, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, Long.class));
+        assertEquals((short) 42, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, short.class));
+        assertEquals((short) 42, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, Short.class));
+        assertEquals("42", invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, String.class));
+
+        ObjectGenerationException ageException =
+            assertThrows(ObjectGenerationException.class,
+                         () -> invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, Double.class));
+        assertTrue(ageException.getMessage().contains("Unsupported semantic age type"));
+
+        assertNull(invokeStatic("activeFromStatus", new Class<?>[] { Object.class }, (Object) null));
+        assertEquals(Boolean.TRUE, invokeStatic("activeFromStatus", new Class<?>[] { Object.class }, "ENABLED"));
+        assertEquals(Boolean.FALSE, invokeStatic("activeFromStatus", new Class<?>[] { Object.class }, "archived"));
+        assertNull(invokeStatic("activeFromStatus", new Class<?>[] { Object.class }, "pending"));
+
+        assertEquals("ACTIVE", invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, true, String.class));
+        assertEquals("INACTIVE", invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, false, String.class));
+        assertEquals(ManualLifecycleState.ACTIVE,
+                     invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, true,
+                                  ManualLifecycleState.class));
+        assertEquals(ManualLifecycleState.DISABLED,
+                     invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, false,
+                                  ManualLifecycleState.class));
+        assertNull(invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, true, Integer.class));
+        assertNull(invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, true,
+                                PendingOnlyLifecycleState.class));
     }
 
     @Test
@@ -296,6 +349,133 @@ class SemanticCoherenceAdjusterTest {
         UrlOnlyHolder urlOnly = new UrlOnlyHolder();
         defaultAdjuster.adjustInstance(UrlOnlyHolder.class, urlOnly, declaredFields(UrlOnlyHolder.class), true);
         assertNull(urlOnly.url);
+    }
+
+    @Test
+    @DisplayName("age and status coherence cover protected, missing, and unsupported fallback paths")
+    void ageAndStatusCoherenceCoverProtectedMissingAndUnsupportedFallbackPaths() throws Exception {
+        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+
+        ManualAgeHolder derivedAge = new ManualAgeHolder();
+        derivedAge.birthDate = LocalDate.now().minusYears(33);
+        defaultAdjuster.adjustInstance(ManualAgeHolder.class, derivedAge, declaredFields(ManualAgeHolder.class), true);
+        assertEquals(33, derivedAge.age);
+
+        ManualAgeHolder noOverwriteConflict = new ManualAgeHolder();
+        noOverwriteConflict.birthDate = LocalDate.now().minusYears(29);
+        noOverwriteConflict.age = 17;
+        defaultAdjuster.adjustInstance(ManualAgeHolder.class, noOverwriteConflict, declaredFields(ManualAgeHolder.class), false);
+        assertEquals(17, noOverwriteConflict.age);
+        assertEquals(LocalDate.now().minusYears(29), noOverwriteConflict.birthDate);
+
+        SemanticCoherenceAdjuster protectedNullAgeAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(ManualAgeHolder.class, "age", () -> 41).build(),
+                                          new UniqueFieldTracker());
+        ManualAgeHolder protectedNullAge = new ManualAgeHolder();
+        protectedNullAge.birthDate = LocalDate.now().minusYears(31);
+        protectedNullAgeAdjuster.adjustInstance(ManualAgeHolder.class, protectedNullAge, declaredFields(ManualAgeHolder.class), true);
+        assertNull(protectedNullAge.age);
+        assertEquals(LocalDate.now().minusYears(31), protectedNullAge.birthDate);
+
+        ManualAgeHolder matchingAge = new ManualAgeHolder();
+        matchingAge.birthDate = LocalDate.now().minusYears(29);
+        matchingAge.age = 29;
+        defaultAdjuster.adjustInstance(ManualAgeHolder.class, matchingAge, declaredFields(ManualAgeHolder.class), true);
+        assertEquals(29, matchingAge.age);
+
+        SemanticCoherenceAdjuster protectedAgeAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(ManualAgeHolder.class, "age", () -> 42).build(),
+                                          new UniqueFieldTracker());
+        ManualAgeHolder protectedAge = new ManualAgeHolder();
+        protectedAge.birthDate = LocalDate.now().minusYears(20);
+        protectedAge.age = 42;
+        protectedAgeAdjuster.adjustInstance(ManualAgeHolder.class, protectedAge, declaredFields(ManualAgeHolder.class), true);
+        assertEquals(42, protectedAge.age);
+        assertEquals(LocalDate.now().minusYears(42), protectedAge.birthDate);
+
+        ManualAgeHolder missingBirthDate = new ManualAgeHolder();
+        missingBirthDate.age = 27;
+        defaultAdjuster.adjustInstance(ManualAgeHolder.class, missingBirthDate, declaredFields(ManualAgeHolder.class), true);
+        assertEquals(LocalDate.now().minusYears(27), missingBirthDate.birthDate);
+
+        SemanticCoherenceAdjuster protectedBirthDateAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .override(ManualAgeHolder.class, "birthDate", () -> LocalDate.EPOCH)
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualAgeHolder protectedBirthDate = new ManualAgeHolder();
+        protectedBirthDate.age = 36;
+        protectedBirthDateAdjuster.adjustInstance(ManualAgeHolder.class, protectedBirthDate,
+                                                  declaredFields(ManualAgeHolder.class), true);
+        assertNull(protectedBirthDate.birthDate);
+        assertEquals(36, protectedBirthDate.age);
+
+        ManualAgeHolder missingBoth = new ManualAgeHolder();
+        defaultAdjuster.adjustInstance(ManualAgeHolder.class, missingBoth, declaredFields(ManualAgeHolder.class), true);
+        assertNull(missingBoth.birthDate);
+        assertNull(missingBoth.age);
+
+        ManualStatusHolder alignedStatus = new ManualStatusHolder();
+        alignedStatus.active = true;
+        alignedStatus.status = "ENABLED";
+        defaultAdjuster.adjustInstance(ManualStatusHolder.class, alignedStatus, declaredFields(ManualStatusHolder.class), true);
+        assertEquals("ENABLED", alignedStatus.status);
+
+        ManualStatusHolder rewrittenStatus = new ManualStatusHolder();
+        rewrittenStatus.active = true;
+        rewrittenStatus.status = "SUSPENDED";
+        defaultAdjuster.adjustInstance(ManualStatusHolder.class, rewrittenStatus, declaredFields(ManualStatusHolder.class), true);
+        assertEquals("ACTIVE", rewrittenStatus.status);
+
+        SemanticCoherenceAdjuster protectedStatusAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(ManualStatusHolder.class, "status", () -> "fixed").build(),
+                                          new UniqueFieldTracker());
+        ManualStatusHolder protectedStatus = new ManualStatusHolder();
+        protectedStatus.active = true;
+        protectedStatus.status = "SUSPENDED";
+        protectedStatusAdjuster.adjustInstance(ManualStatusHolder.class, protectedStatus, declaredFields(ManualStatusHolder.class), true);
+        assertEquals("SUSPENDED", protectedStatus.status);
+        assertFalse(protectedStatus.active);
+
+        ManualStatusHolder protectedStatusWithoutOverwrite = new ManualStatusHolder();
+        protectedStatusWithoutOverwrite.active = true;
+        protectedStatusWithoutOverwrite.status = "SUSPENDED";
+        protectedStatusAdjuster.adjustInstance(ManualStatusHolder.class, protectedStatusWithoutOverwrite,
+                                              declaredFields(ManualStatusHolder.class), false);
+        assertTrue(protectedStatusWithoutOverwrite.active);
+        assertEquals("SUSPENDED", protectedStatusWithoutOverwrite.status);
+
+        ManualNullableStatusHolder derivedActive = new ManualNullableStatusHolder();
+        derivedActive.status = "ACTIVE";
+        defaultAdjuster.adjustInstance(ManualNullableStatusHolder.class, derivedActive, declaredFields(ManualNullableStatusHolder.class), true);
+        assertEquals(Boolean.TRUE, derivedActive.active);
+
+        ManualNullableStatusHolder unknownStatus = new ManualNullableStatusHolder();
+        unknownStatus.status = "PENDING";
+        defaultAdjuster.adjustInstance(ManualNullableStatusHolder.class, unknownStatus, declaredFields(ManualNullableStatusHolder.class), true);
+        assertNull(unknownStatus.active);
+
+        SemanticCoherenceAdjuster protectedActiveAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(ManualNullableStatusHolder.class, "active", () -> Boolean.FALSE)
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualNullableStatusHolder protectedActive = new ManualNullableStatusHolder();
+        protectedActive.status = "ACTIVE";
+        protectedActiveAdjuster.adjustInstance(ManualNullableStatusHolder.class, protectedActive,
+                                               declaredFields(ManualNullableStatusHolder.class), true);
+        assertNull(protectedActive.active);
+
+        ManualEnumStatusHolder enumStatus = new ManualEnumStatusHolder();
+        enumStatus.active = false;
+        defaultAdjuster.adjustInstance(ManualEnumStatusHolder.class, enumStatus, declaredFields(ManualEnumStatusHolder.class), true);
+        assertEquals(ManualLifecycleState.DISABLED, enumStatus.status);
+
+        ManualOpaqueStatusHolder opaqueStatus = new ManualOpaqueStatusHolder();
+        opaqueStatus.active = true;
+        opaqueStatus.status = 7;
+        defaultAdjuster.adjustInstance(ManualOpaqueStatusHolder.class, opaqueStatus, declaredFields(ManualOpaqueStatusHolder.class), true);
+        assertEquals(7, opaqueStatus.status);
+        assertTrue(opaqueStatus.active);
     }
 
     @Test
@@ -495,6 +675,12 @@ class SemanticCoherenceAdjusterTest {
         Instant       updatedAt;
     }
 
+    static class ManualAgeHolder {
+
+        LocalDate birthDate;
+        Integer   age;
+    }
+
     static class EmailAliasHolder {
 
         String firstName;
@@ -505,6 +691,30 @@ class SemanticCoherenceAdjusterTest {
     static class UrlOnlyHolder {
 
         String url;
+    }
+
+    static class ManualStatusHolder {
+
+        boolean active;
+        String  status;
+    }
+
+    static class ManualNullableStatusHolder {
+
+        Boolean active;
+        String  status;
+    }
+
+    static class ManualEnumStatusHolder {
+
+        boolean              active;
+        ManualLifecycleState status;
+    }
+
+    static class ManualOpaqueStatusHolder {
+
+        boolean active;
+        Integer status;
     }
 
     static class ProtectedSemanticHolder {
@@ -538,5 +748,16 @@ class SemanticCoherenceAdjusterTest {
         public String generate() {
             return "ANNOTATED";
         }
+    }
+
+    enum ManualLifecycleState {
+        ACTIVE,
+        ENABLED,
+        DISABLED,
+        SUSPENDED
+    }
+
+    enum PendingOnlyLifecycleState {
+        PENDING
     }
 }

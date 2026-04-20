@@ -250,13 +250,13 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("all four Status constants appear over many generations")
-        void allEnumConstantsAppear() {
+        @DisplayName("status field semantics keep Person lifecycle enums in the business subset")
+        void statusFieldUsesBusinessLifecycleSubset() {
             Set<Status> seen = new HashSet<>();
             ObjectGenerator<Person> gen = new ObjectGenerator<>(Person.class);
             for (int i = 0; i < 200; i++) seen.add(gen.generate().getStatus());
-            assertEquals(Status.values().length, seen.size(),
-                         "Not all Status constants were generated. Seen: " + seen);
+            assertTrue(seen.contains(Status.ACTIVE), "ACTIVE should still appear. Seen: " + seen);
+            assertFalse(seen.contains(Status.PENDING), "PENDING should be filtered out by active/status coherence. Seen: " + seen);
         }
 
         @Test

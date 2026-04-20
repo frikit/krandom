@@ -11,8 +11,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -114,6 +116,45 @@ class ObjectGeneratorSemanticCoherenceTest {
         assertTrue(value.email.startsWith(slug(value.firstName) + "." + slug(value.lastName) + "@"));
     }
 
+    @Test
+    @DisplayName("birthDate and age stay aligned")
+    void birthDateAndAgeStayAligned() {
+        AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class).generate();
+
+        assertEquals((int) ChronoUnit.YEARS.between(value.dateOfBirth, LocalDate.now()), value.ageYears);
+    }
+
+    @Test
+    @DisplayName("birthDate is rebuilt from overridden age when age is protected")
+    void birthDateIsRebuiltFromProtectedAge() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .override(AgeCoherenceHolder.class, "ageYears", () -> 42)
+                                                            .build();
+
+        AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class, config).generate();
+
+        assertEquals(42, value.ageYears);
+        assertEquals(42, (int) ChronoUnit.YEARS.between(value.dateOfBirth, LocalDate.now()));
+    }
+
+    @Test
+    @DisplayName("active and string status stay aligned")
+    void activeAndStringStatusStayAligned() {
+        LifecycleCoherenceHolder value = new ObjectGenerator<>(LifecycleCoherenceHolder.class).generate();
+
+        assertTrue(value.isEnabled
+                   ? java.util.Set.of("ACTIVE", "ENABLED").contains(value.status)
+                   : java.util.Set.of("INACTIVE", "DISABLED", "SUSPENDED").contains(value.status));
+    }
+
+    @Test
+    @DisplayName("active and enum status stay aligned")
+    void activeAndEnumStatusStayAligned() {
+        EnumLifecycleCoherenceHolder value = new ObjectGenerator<>(EnumLifecycleCoherenceHolder.class).generate();
+
+        assertEquals(value.isEnabled, value.status == LifecycleState.ACTIVE || value.status == LifecycleState.ENABLED);
+    }
+
     private static String slug(String value) {
         StringBuilder normalized = new StringBuilder(value.length());
         for (int i = 0; i < value.length(); i++) {
@@ -165,6 +206,24 @@ class ObjectGeneratorSemanticCoherenceTest {
         Instant       updatedAt;
     }
 
+    static class AgeCoherenceHolder {
+
+        LocalDate dateOfBirth;
+        int       ageYears;
+    }
+
+    static class LifecycleCoherenceHolder {
+
+        boolean isEnabled;
+        String  status;
+    }
+
+    static class EnumLifecycleCoherenceHolder {
+
+        boolean        isEnabled;
+        LifecycleState status;
+    }
+
     static class AnnotatedEmailPerson {
 
         String firstName;
@@ -181,5 +240,13 @@ class ObjectGeneratorSemanticCoherenceTest {
         public String generate() {
             return "ANNOTATED";
         }
+    }
+
+    enum LifecycleState {
+        ACTIVE,
+        ENABLED,
+        INACTIVE,
+        DISABLED,
+        PENDING
     }
 }

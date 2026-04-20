@@ -9,6 +9,7 @@ import org.github.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -417,6 +418,35 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("nested assignment helpers materialize missing parents and reuse mutable parents")
+    void nestedAssignmentHelpersMaterializeMissingParentsAndReuseMutableParents() throws Exception {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class);
+        Method resolveRulePath = ObjectFaker.class.getDeclaredMethod("resolveRulePath", String.class);
+        resolveRulePath.setAccessible(true);
+        Object path = resolveRulePath.invoke(faker, "address.city");
+        Class<?> rulePathType = Class.forName("org.github.krandom.generator.object.ObjectFaker$RulePath");
+        Method assignNestedValue = ObjectFaker.class.getDeclaredMethod("assignNestedValue", Object.class, rulePathType, int.class,
+                                                                       Object.class);
+        assignNestedValue.setAccessible(true);
+
+        FixtureUserWithAddress missingAddress = new FixtureUserWithAddress();
+        FixtureUserWithAddress materialized =
+            (FixtureUserWithAddress) assignNestedValue.invoke(faker, missingAddress, path, 0, "Berlin");
+        assertSame(missingAddress, materialized);
+        assertNotNull(missingAddress.address);
+        assertEquals("Berlin", missingAddress.address.city);
+
+        FixtureUserWithAddress existingAddressHolder = new FixtureUserWithAddress();
+        existingAddressHolder.address = new FixtureAddress();
+        FixtureAddress existingAddress = existingAddressHolder.address;
+        FixtureUserWithAddress reused =
+            (FixtureUserWithAddress) assignNestedValue.invoke(faker, existingAddressHolder, path, 0, "Paris");
+        assertSame(existingAddressHolder, reused);
+        assertSame(existingAddress, existingAddressHolder.address);
+        assertEquals("Paris", existingAddressHolder.address.city);
+    }
+
+    @Test
     @DisplayName("nested rules keep their root object active in include mode")
     void nestedRulesKeepTheirRootObjectActiveInIncludeMode() {
         FixtureUserWithAddress user = new ObjectFaker<>(FixtureUserWithAddress.class)
@@ -479,6 +509,16 @@ class ObjectFakerTest {
             () -> new ObjectFaker<>(FixtureUserWithAddress.class).ruleFor("address.houseNumber.value", () -> 7));
 
         assertTrue(ex.getMessage().contains("crosses primitive"));
+    }
+
+    @Test
+    @DisplayName("blank nested path segments are rejected")
+    void blankNestedPathSegmentsAreRejected() {
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> new ObjectFaker<>(FixtureUserWithAddress.class).ruleFor("address..city", () -> "Rome"));
+
+        assertTrue(ex.getMessage().contains("Invalid field path"));
     }
 
     @Test
