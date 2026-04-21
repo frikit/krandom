@@ -25,6 +25,7 @@ final class BuiltInCountryDataProvider implements CountryDataProvider {
             || supportedLocale == SupportedLocale.PL_PL
             || supportedLocale == SupportedLocale.TR_TR
             || supportedLocale == SupportedLocale.SV_SE
+            || supportedLocale == SupportedLocale.NB_NO
             || supportedLocale == SupportedLocale.AR_SA
             || supportedLocale == SupportedLocale.HI_IN) {
             this.countries = localizedCountryNames(locale);

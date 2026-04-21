@@ -1,0 +1,26 @@
+Storgata
+Kirkegata
+Skolegata
+Parkveien
+Stasjonsveien
+Jernbanegata
+Strandgata
+Dronningens gate
+Kongens gate
+Bjørkeveien
+Granveien
+Solbakken
+Fjellveien
+Sjøgata
+Elvegata
+Idrettsveien
+Haugenveien
+Sentrumsgata
+Nygata
+Myrveien
+Furulund
+Seterveien
+Engveien
+Lyngveien
+Skogveien
+Torggata

@@ -1,0 +1,22 @@
+Oslo
+OS
+Rogaland
+RO
+Møre og Romsdal
+MR
+Nordland
+NO
+Trøndelag
+TR
+Innlandet
+IN
+Viken
+VI
+Vestfold og Telemark
+VT
+Agder
+AG
+Vestland
+VL
+Troms og Finnmark
+TF

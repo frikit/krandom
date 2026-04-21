@@ -35,7 +35,7 @@ public enum SupportedLocale {
     KO_KR("ko", "KR", "ja_JP", "ja_JP"),
     TR_TR("tr", "TR"),
     SV_SE("sv", "SE"),
-    NB_NO("nb", "NO", "en_GB", "en_GB"),
+    NB_NO("nb", "NO"),
     CS_CZ("cs", "CZ", "de_DE", "de_DE"),
     AR_SA("ar", "SA"),
     HI_IN("hi", "IN");
