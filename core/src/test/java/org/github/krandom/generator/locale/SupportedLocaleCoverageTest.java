@@ -72,6 +72,15 @@ class SupportedLocaleCoverageTest {
         assertEquals(LocaleDataQualityTier.NATIVE_DATASET, SupportedLocale.PL_PL.qualityTier());
         assertTrue(SupportedLocale.PL_PL.resourceFallbackLocale().isEmpty());
         assertTrue(SupportedLocale.PL_PL.professionFallbackLocale().isEmpty());
+        assertEquals(LocaleDataQualityTier.NATIVE_DATASET, SupportedLocale.CS_CZ.qualityTier());
+        assertTrue(SupportedLocale.CS_CZ.resourceFallbackLocale().isEmpty());
+        assertTrue(SupportedLocale.CS_CZ.professionFallbackLocale().isEmpty());
+        assertEquals(LocaleDataQualityTier.NATIVE_DATASET, SupportedLocale.KO_KR.qualityTier());
+        assertTrue(SupportedLocale.KO_KR.resourceFallbackLocale().isEmpty());
+        assertTrue(SupportedLocale.KO_KR.professionFallbackLocale().isEmpty());
+        assertEquals(LocaleDataQualityTier.NATIVE_DATASET, SupportedLocale.RU_RU.qualityTier());
+        assertTrue(SupportedLocale.RU_RU.resourceFallbackLocale().isEmpty());
+        assertTrue(SupportedLocale.RU_RU.professionFallbackLocale().isEmpty());
         assertEquals(LocaleDataQualityTier.NATIVE_DATASET, SupportedLocale.TR_TR.qualityTier());
         assertTrue(SupportedLocale.TR_TR.resourceFallbackLocale().isEmpty());
         assertTrue(SupportedLocale.TR_TR.professionFallbackLocale().isEmpty());
@@ -90,6 +99,19 @@ class SupportedLocaleCoverageTest {
         assertEquals(LocaleDataQualityTier.ALIAS_FALLBACK_DATASET,
                      LocaleDataQualityTier.max(LocaleDataQualityTier.NATIVE_DATASET,
                                                LocaleDataQualityTier.ALIAS_FALLBACK_DATASET));
+    }
+
+    @Test
+    @DisplayName("fallback locale helpers still support synthetic fallback metadata paths")
+    void fallbackLocaleHelpersSupportSyntheticFallbackMetadataPaths() {
+        assertTrue(SupportedLocale.resolveFallbackLocale("de_DE", LocaleDataQualityTier.NATIVE_DATASET).isEmpty());
+        assertEquals(SupportedLocale.DE_DE,
+                     SupportedLocale.resolveFallbackLocale("de_DE", LocaleDataQualityTier.ALIAS_FALLBACK_DATASET)
+                                    .orElseThrow());
+        assertEquals(SupportedLocale.JA_JP,
+                     SupportedLocale.resolveFallbackLocale("ja_JP", LocaleDataQualityTier.CURATED_FALLBACK_DATASET)
+                                    .orElseThrow());
+        assertTrue(SupportedLocale.resolveFallbackLocale("missing_locale", LocaleDataQualityTier.ALIAS_FALLBACK_DATASET).isEmpty());
     }
 
     @Test

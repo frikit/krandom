@@ -49,9 +49,9 @@ Optional<SupportedLocale> resourceFallback = locale.resourceFallbackLocale();
 
 Current built-in quality split:
 
-- Native today for resource-backed identity/address data plus profession data: `en_US`, `en_GB`, `en_AU`, `fr_FR`, `de_DE`, `ja_JP`, `es_ES`, `it_IT`, `pt_BR`, `zh_CN`, `nl_NL`, `pl_PL`, `tr_TR`, `sv_SE`, `nb_NO`, `ar_SA`, `hi_IN`
-- Fallback-backed today: `ru_RU`, `ko_KR`, `cs_CZ`
+- Native today for resource-backed identity/address data plus profession data: `en_US`, `en_GB`, `en_AU`, `fr_FR`, `de_DE`, `ja_JP`, `es_ES`, `it_IT`, `pt_BR`, `zh_CN`, `nl_NL`, `pl_PL`, `cs_CZ`, `ko_KR`, `ru_RU`, `tr_TR`, `sv_SE`, `nb_NO`, `ar_SA`, `hi_IN`
+- Fallback-backed today: none in the built-in `SupportedLocale` catalog
 
-Fallback tiers are productized compatibility behavior, not hidden implementation details. They remain supported, but they are explicitly lower quality than native datasets and are the main targets for future native-data upgrades.
+Fallback tiers are still productized compatibility behavior, not hidden implementation details. They remain part of the metadata model for future or custom locale expansions even though the current built-in catalog is fully native-backed.
 
-The explicit native-upgrade priority list is currently exhausted; the remaining fallback-backed locales stay clearly marked as compatibility tiers until they receive native datasets.
+The previous native-upgrade priority list is now exhausted for the current built-in locale catalog.

@@ -23,6 +23,9 @@ final class BuiltInCountryDataProvider implements CountryDataProvider {
         this.locale = supportedLocale.locale();
         if (supportedLocale == SupportedLocale.NL_NL
             || supportedLocale == SupportedLocale.PL_PL
+            || supportedLocale == SupportedLocale.CS_CZ
+            || supportedLocale == SupportedLocale.KO_KR
+            || supportedLocale == SupportedLocale.RU_RU
             || supportedLocale == SupportedLocale.TR_TR
             || supportedLocale == SupportedLocale.SV_SE
             || supportedLocale == SupportedLocale.NB_NO

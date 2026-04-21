@@ -31,12 +31,12 @@ public enum SupportedLocale {
     ZH_CN("zh", "CN"),
     NL_NL("nl", "NL"),
     PL_PL("pl", "PL"),
-    RU_RU("ru", "RU", "de_DE", "de_DE"),
-    KO_KR("ko", "KR", "ja_JP", "ja_JP"),
+    RU_RU("ru", "RU"),
+    KO_KR("ko", "KR"),
     TR_TR("tr", "TR"),
     SV_SE("sv", "SE"),
     NB_NO("nb", "NO"),
-    CS_CZ("cs", "CZ", "de_DE", "de_DE"),
+    CS_CZ("cs", "CZ"),
     AR_SA("ar", "SA"),
     HI_IN("hi", "IN");
 
@@ -54,15 +54,6 @@ public enum SupportedLocale {
              LocaleDataQualityTier.NATIVE_DATASET,
              language + "_" + country,
              LocaleDataQualityTier.NATIVE_DATASET);
-    }
-
-    SupportedLocale(String language, String country, String resourcePrefix, String professionDatasetPrefix) {
-        this(language,
-             country,
-             resourcePrefix,
-             LocaleDataQualityTier.ALIAS_FALLBACK_DATASET,
-             professionDatasetPrefix,
-             LocaleDataQualityTier.CURATED_FALLBACK_DATASET);
     }
 
     SupportedLocale(String language,
@@ -122,17 +113,18 @@ public enum SupportedLocale {
     }
 
     public Optional<SupportedLocale> resourceFallbackLocale() {
-        if (!resourceDataTier.isFallback()) {
-            return Optional.empty();
-        }
-        return fromCanonicalResourcePrefix(resourcePrefix);
+        return resolveFallbackLocale(resourcePrefix, resourceDataTier);
     }
 
     public Optional<SupportedLocale> professionFallbackLocale() {
-        if (!professionDataTier.isFallback()) {
+        return resolveFallbackLocale(professionDatasetPrefix, professionDataTier);
+    }
+
+    static Optional<SupportedLocale> resolveFallbackLocale(String resourcePrefix, LocaleDataQualityTier dataTier) {
+        if (!dataTier.isFallback()) {
             return Optional.empty();
         }
-        return fromCanonicalResourcePrefix(professionDatasetPrefix);
+        return fromCanonicalResourcePrefix(resourcePrefix);
     }
 
     private static Optional<SupportedLocale> fromCanonicalResourcePrefix(String resourcePrefix) {

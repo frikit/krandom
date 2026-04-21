@@ -1,0 +1,10 @@
+byt
+kancelář
+patro
+blok
+sekce
+vchod
+křídlo
+budova
+pokoj
+apartmán

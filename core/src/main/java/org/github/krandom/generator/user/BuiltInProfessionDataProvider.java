@@ -116,6 +116,27 @@ final class BuiltInProfessionDataProvider implements ProfessionDataProvider {
                 "Inżynier budownictwa", "Specjalista ds. marketingu", "Menedżer HR", "Kierownik operacyjny", "Menedżer produktu",
                 "Projektant UX", "Dentysta", "Ratownik medyczny", "Analityk finansowy", "Specjalista ds. obsługi klienta"
             };
+            case CS_CZ -> new String[] {
+                "Softwarový inženýr", "Učitel", "Zdravotní sestra", "Účetní", "Obchodní zástupce",
+                "Projektový manažer", "Datový analytik", "Grafický designér", "Elektrikář", "Mechanik",
+                "Právník", "Lékař", "Lékárník", "Šéfkuchař", "Architekt",
+                "Stavební inženýr", "Marketingový specialista", "HR manažer", "Provozní manažer", "Produktový manažer",
+                "UX designér", "Zubař", "Záchranář", "Finanční analytik", "Specialista zákaznické podpory"
+            };
+            case KO_KR -> new String[] {
+                "소프트웨어 엔지니어", "교사", "간호사", "회계사", "영업 담당자",
+                "프로젝트 매니저", "데이터 분석가", "그래픽 디자이너", "전기기사", "정비사",
+                "변호사", "의사", "약사", "셰프", "건축가",
+                "토목 엔지니어", "마케팅 전문가", "인사 관리자", "운영 관리자", "제품 관리자",
+                "UX 디자이너", "치과의사", "응급구조사", "재무 분석가", "고객 지원 전문가"
+            };
+            case RU_RU -> new String[] {
+                "Разработчик программного обеспечения", "Учитель", "Медсестра", "Бухгалтер", "Менеджер по продажам",
+                "Руководитель проекта", "Аналитик данных", "Графический дизайнер", "Электрик", "Механик",
+                "Юрист", "Врач", "Фармацевт", "Шеф-повар", "Архитектор",
+                "Инженер-строитель", "Специалист по маркетингу", "HR-менеджер", "Операционный менеджер", "Продакт-менеджер",
+                "UX-дизайнер", "Стоматолог", "Парамедик", "Финансовый аналитик", "Специалист поддержки клиентов"
+            };
             case TR_TR -> new String[] {
                 "Yazılım Mühendisi", "Öğretmen", "Hemşire", "Muhasebeci", "Satış Temsilcisi",
                 "Proje Yöneticisi", "Veri Analisti", "Grafik Tasarımcı", "Elektrikçi", "Mekanik Teknisyeni",
@@ -151,8 +172,6 @@ final class BuiltInProfessionDataProvider implements ProfessionDataProvider {
                 "Sivilingeniør", "Markedsspesialist", "HR-leder", "Driftsleder", "Produktsjef",
                 "UX-designer", "Tannlege", "Ambulansearbeider", "Finansanalytiker", "Kundestøttespesialist"
             };
-            case RU_RU, CS_CZ -> professionsFor(SupportedLocale.DE_DE);
-            case KO_KR -> professionsFor(SupportedLocale.JA_JP);
         };
     }
 

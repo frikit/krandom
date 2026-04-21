@@ -176,6 +176,36 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("Czech locale returns Czech country names")
+    void czechLocale() {
+        Locale locale = Locale.of("cs", "CZ");
+        CountryGenerator gen = new CountryGenerator(locale);
+        assertEquals(Locale.of("", "CZ").getDisplayCountry(locale), gen.currentCountry());
+        assertFalse(gen.generate().isBlank());
+        assertTrue(gen.getCountryCount() > 150);
+    }
+
+    @Test
+    @DisplayName("Korean locale returns Korean country names")
+    void koreanLocale() {
+        Locale locale = Locale.of("ko", "KR");
+        CountryGenerator gen = new CountryGenerator(locale);
+        assertEquals(Locale.of("", "KR").getDisplayCountry(locale), gen.currentCountry());
+        assertFalse(gen.generate().isBlank());
+        assertTrue(gen.getCountryCount() > 150);
+    }
+
+    @Test
+    @DisplayName("Russian locale returns Russian country names")
+    void russianLocale() {
+        Locale locale = Locale.of("ru", "RU");
+        CountryGenerator gen = new CountryGenerator(locale);
+        assertEquals(Locale.of("", "RU").getDisplayCountry(locale), gen.currentCountry());
+        assertFalse(gen.generate().isBlank());
+        assertTrue(gen.getCountryCount() > 150);
+    }
+
+    @Test
     @DisplayName("Turkish locale returns Turkish country names")
     void turkishLocale() {
         Locale locale = Locale.of("tr", "TR");

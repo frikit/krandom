@@ -1,0 +1,10 @@
+ulice
+třída
+náměstí
+nábřeží
+alej
+cesta
+stezka
+okruh
+průchod
+parková

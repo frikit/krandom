@@ -1,0 +1,28 @@
+Praha
+PHA
+Středočeský kraj
+STC
+Jihočeský kraj
+JHC
+Plzeňský kraj
+PLK
+Karlovarský kraj
+KVK
+Ústecký kraj
+ULK
+Liberecký kraj
+LBK
+Královéhradecký kraj
+HKK
+Pardubický kraj
+PAK
+Kraj Vysočina
+VYS
+Jihomoravský kraj
+JHM
+Olomoucký kraj
+OLK
+Zlínský kraj
+ZLK
+Moravskoslezský kraj
+MSK
