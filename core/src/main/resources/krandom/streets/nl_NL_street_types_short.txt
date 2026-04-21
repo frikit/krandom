@@ -1,0 +1,10 @@
+str.
+ln.
+wg.
+pln.
+gr.
+dr.
+sgl.
+kd.
+pad
+hf.

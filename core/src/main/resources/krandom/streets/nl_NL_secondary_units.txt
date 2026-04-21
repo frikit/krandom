@@ -1,0 +1,10 @@
+Appartement
+Unit
+Kamer
+Verdieping
+Bus
+Huis
+Achterhuis
+Studio
+Blok
+Portiek

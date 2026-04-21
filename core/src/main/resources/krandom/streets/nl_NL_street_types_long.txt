@@ -1,0 +1,10 @@
+Straat
+Laan
+Weg
+Plein
+Gracht
+Dreef
+Singel
+Kade
+Pad
+Hof
