@@ -19,6 +19,7 @@ public final class TextFormatProvider {
 
     private static final int PRINTABLE_ASCII_MIN = 33;
     private static final int PRINTABLE_ASCII_MAX = 126;
+    private static final int LOWER_ALPHA_SIZE    = 26;
 
     private final TemplateStringGenerator templateGenerator;
     private final Random                  random;
@@ -107,7 +108,38 @@ public final class TextFormatProvider {
         return new RegexGenerator(pattern, random.nextLong()).generate();
     }
 
+    /**
+     * Generates a string that follows the character-type pattern of an example value.
+     *
+     * <p>Digits stay digits, uppercase letters stay uppercase, lowercase letters stay
+     * lowercase, and punctuation / separators are preserved literally.
+     */
+    public String examplify(String example) {
+        Objects.requireNonNull(example, "example must not be null");
+        StringBuilder out = new StringBuilder(example.length());
+        for (int i = 0; i < example.length(); i++) {
+            char c = example.charAt(i);
+            if (Character.isDigit(c)) {
+                out.append((char) ('0' + random.nextInt(10)));
+            } else if (Character.isUpperCase(c)) {
+                out.append(randomAlpha(true));
+            } else if (Character.isLowerCase(c)) {
+                out.append(randomAlpha(false));
+            } else if (Character.isLetter(c)) {
+                out.append(randomAlpha(false));
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
+    }
+
     private char randomPrintableAscii() {
         return (char) (PRINTABLE_ASCII_MIN + random.nextInt(PRINTABLE_ASCII_MAX - PRINTABLE_ASCII_MIN + 1));
+    }
+
+    private char randomAlpha(boolean uppercase) {
+        int offset = random.nextInt(LOWER_ALPHA_SIZE);
+        return (char) ((uppercase ? 'A' : 'a') + offset);
     }
 }

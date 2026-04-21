@@ -239,6 +239,7 @@ class ProviderHubTest {
         assertTrue(format.template("??-##").matches("[a-z]{2}-\\d{2}"));
         assertTrue(format.asciify("***").chars().noneMatch(ch -> ch == '*'));
         assertTrue(format.regexify("[A-Z]{2}\\d{3}").matches("[A-Z]{2}\\d{3}"));
+        assertTrue(format.examplify("AA-999").matches("[A-Z]{2}-\\d{3}"));
     }
 
     @Test

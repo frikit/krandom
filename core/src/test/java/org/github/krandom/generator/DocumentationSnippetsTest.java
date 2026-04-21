@@ -18,6 +18,8 @@ import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.location.PhoneNumberGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
 import org.github.krandom.generator.object.ObjectGenerator;
+import org.github.krandom.generator.provider.ProviderHub;
+import org.github.krandom.generator.provider.TextFormatProvider;
 import org.github.krandom.generator.schema.Field;
 import org.github.krandom.generator.schema.Schema;
 import org.github.krandom.generator.selection.UniqueGenerator;
@@ -178,6 +180,25 @@ class DocumentationSnippetsTest {
         assertTrue(firstEmail.contains("@"));
         assertTrue(secondEmail.contains("@"));
         assertTrue(!firstEmail.equals(secondEmail));
+    }
+
+    @Test
+    @DisplayName("schema and provider hub guide snippets stay runnable")
+    void schemaAndProviderHubGuideSnippetsStayRunnable() {
+        ProviderHub hub = new ProviderHub(GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
+        TextFormatProvider format = hub.get("text.format", TextFormatProvider.class);
+
+        String sku = format.template("SKU-??-####");
+        String coupon = format.lexify("promo-????");
+        String token = format.asciify("***-***");
+        String reference = format.regexify("[A-Z]{3}\\d{4}");
+        String invoice = format.examplify("INV-2026-AB12");
+
+        assertTrue(sku.matches("SKU-[a-z]{2}-\\d{4}"));
+        assertTrue(coupon.matches("promo-[a-z]{4}"));
+        assertTrue(token.length() == 7 && token.charAt(3) == '-');
+        assertTrue(reference.matches("[A-Z]{3}\\d{4}"));
+        assertTrue(invoice.matches("[A-Z]{3}-\\d{4}-[A-Z]{2}\\d{2}"));
     }
 
     private record AddressRecord(String city, String country) {

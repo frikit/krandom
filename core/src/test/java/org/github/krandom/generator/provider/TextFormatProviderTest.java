@@ -29,6 +29,7 @@ class TextFormatProviderTest {
         assertEquals(first.asciify("***"), second.asciify("***"));
         assertEquals(first.asciify("___", '_'), second.asciify("___", '_'));
         assertEquals(first.regexify("[A-Z]{2}\\d{3}"), second.regexify("[A-Z]{2}\\d{3}"));
+        assertEquals(first.examplify("ABc-123"), second.examplify("ABc-123"));
     }
 
     @Test
@@ -43,6 +44,7 @@ class TextFormatProviderTest {
         assertTrue(provider.asciify("***").chars().noneMatch(ch -> ch == '*'));
         assertTrue(provider.asciify("___", '_').chars().noneMatch(ch -> ch == '_'));
         assertTrue(provider.regexify("(foo|bar)\\d{2}").matches("(foo|bar)\\d{2}"));
+        assertTrue(provider.examplify("ABC-1234").matches("[A-Z]{3}-\\d{4}"));
     }
 
     @Test
@@ -58,6 +60,18 @@ class TextFormatProviderTest {
     }
 
     @Test
+    @DisplayName("examplify preserves separators and matches character categories")
+    void examplifyPreservesSeparatorsAndMatchesCharacterCategories() {
+        TextFormatProvider provider = new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
+
+        String value = provider.examplify("ABc-19_ß");
+
+        assertTrue(value.matches("[A-Z]{2}[a-z]-\\d{2}_[a-z]"));
+        assertEquals('-', value.charAt(3));
+        assertEquals('_', value.charAt(6));
+    }
+
+    @Test
     @DisplayName("formatting helpers validate null input")
     void formattingHelpersValidateNullInput() {
         TextFormatProvider provider = new TextFormatProvider();
@@ -70,6 +84,7 @@ class TextFormatProviderTest {
         assertThrows(NullPointerException.class, () -> provider.asciify(null));
         assertThrows(NullPointerException.class, () -> provider.asciify(null, '_'));
         assertThrows(NullPointerException.class, () -> provider.regexify(null));
+        assertThrows(NullPointerException.class, () -> provider.examplify(null));
         assertThrows(NullPointerException.class, () -> new TextFormatProvider(null));
     }
 }

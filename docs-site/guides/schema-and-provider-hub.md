@@ -98,6 +98,7 @@ String sku = format.template("SKU-??-####");
 String coupon = format.lexify("promo-????");
 String token = format.asciify("***-***");
 String reference = format.regexify("[A-Z]{3}\\d{4}");
+String invoice = format.examplify("INV-2026-AB12");
 ```
 
 The old coarse names like `person`, `address`, `internet`, `finance`, `datetime`, `text`, and `code` still work, but the preferred naming style is dotted and explicit:
