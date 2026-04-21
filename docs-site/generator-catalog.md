@@ -39,7 +39,7 @@ Main entrypoint: `org.github.krandom.generator.Generators`
 
 ## User and identity
 
-- `ofFullName`, `ofEmail`, `ofContactInfo`, `ofPersonInfo`, `ofCompanyEmail`
+- `ofFullName`, `ofEmail`, `ofContactInfo`, `ofJobInfo`, `ofPersonInfo`, `ofCompanyEmail`
 - `ofUsername`, `ofPassword`, `ofAvatarUrl`
 - `ofSimpleProfile`, `ofProfile`
 - `ofProfession`, `ofJobField`, `ofJobType`, `ofPosition`, `ofIndustry`
@@ -49,13 +49,13 @@ Main entrypoint: `org.github.krandom.generator.Generators`
 ## Company and commerce
 
 - `ofCompanyName`, `ofCompanyUrl`, `ofCompanyBuzzword`, `ofCompanyCatchPhrase`
-- `ofCommerce`
+- `ofCommerce`, `ofProductInfo`
 
 ## Finance and codes
 
 - `ofCurrency`, `ofMoney`
-- `ofCreditCard`, `ofCardExpiration`
-- `ofBic`, `ofBban`, `ofIban`, `ofAbaRouting`, `ofBankCountry`, `ofBankAccount`, `ofBankName`, `ofBankType`
+- `ofCreditCard`, `ofCreditCardInfo`, `ofCardExpiration`
+- `ofBic`, `ofBban`, `ofIban`, `ofAbaRouting`, `ofBankCountry`, `ofBankAccount`, `ofBankInfo`, `ofBankName`, `ofBankType`
 - `ofIsin`, `ofCusip`, `ofEin`, `ofCryptoAddress`
 - `ofUuid`, `ofHash`, `ofIdentifierMask`, `ofEan`, `ofUpc`, `ofIsbn`
 

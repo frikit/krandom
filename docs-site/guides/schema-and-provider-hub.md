@@ -83,6 +83,9 @@ ProviderHub hub = Generators.ofProviderHub(Locale.US);
 
 FullNameGenerator person = hub.get("person.full_name", FullNameGenerator.class);
 EmailGenerator email = hub.get("person.email", EmailGenerator.class);
+ContactInfoGenerator contacts = hub.get("person.contact_info", ContactInfoGenerator.class);
+ProductInfoGenerator products = hub.get("commerce.product_info", ProductInfoGenerator.class);
+BankInfoGenerator banks = hub.get("finance.bank_info", BankInfoGenerator.class);
 CityGenerator city = hub.get("address.city", CityGenerator.class);
 URLGenerator internet = hub.get("url", URLGenerator.class); // alias for internet.url
 TextFormatProvider format = hub.get("text.format", TextFormatProvider.class);
@@ -99,9 +102,12 @@ String reference = format.regexify("[A-Z]{3}\\d{4}");
 The old coarse names like `person`, `address`, `internet`, `finance`, `datetime`, `text`, and `code` still work, but the preferred naming style is dotted and explicit:
 
 - `person.full_name`, `person.first_name`, `person.last_name`, `person.email`, `person.username`
+- `person.contact_info`, `person.person_info`, `person.job_info`
+- `address.address_info`
+- `commerce.product_info`
 - `address.street_address`, `address.city`, `address.state`, `address.postal_code`, `address.country`, `address.phone_number`
 - `internet.url`, `internet.domain`, `internet.hostname`
-- `finance.money`, `finance.currency`
+- `finance.money`, `finance.currency`, `finance.bank_info`, `finance.credit_card_info`
 - `datetime.date`, `datetime.time`
 - `text.word`, `text.sentence`, `text.paragraph`, `text.format`
 - `code.uuid`

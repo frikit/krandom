@@ -37,8 +37,16 @@ GeneratorConfig cfg = GeneratorConfig.builder()
         .build();
 
 PersonInfo person = Generators.ofPersonInfo(cfg).generate();
+JobInfo job = Generators.ofJobInfo(cfg).generate();
+ProductInfo product = Generators.ofProductInfo(cfg).generate();
+BankInfo bank = Generators.ofBankInfo(cfg).generate();
+CreditCardInfo card = Generators.ofCreditCardInfo(cfg).generate();
 
 assert person.username().equals(person.contact().email().split("@")[0]);
+assert job.title().contains(job.profession());
+assert product.upc().matches("\\d{12}");
+assert bank.routingNumber().matches("\\d{9}");
+assert card.exp().matches("\\d{2}/\\d{2}");
 ```
 
 ## Batch order data with schema

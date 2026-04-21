@@ -24,6 +24,7 @@ import org.github.krandom.generator.base.PyDecimalGenerator;
 import org.github.krandom.generator.base.ShortGenerator;
 import org.github.krandom.generator.base.StringGenerator;
 import org.github.krandom.generator.color.ColorGenerator;
+import org.github.krandom.generator.commerce.ProductInfoGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.DurationGenerator;
 import org.github.krandom.generator.datetime.InstantGenerator;
@@ -37,6 +38,7 @@ import org.github.krandom.generator.file.FilePathGenerator;
 import org.github.krandom.generator.file.MimeTypeGenerator;
 import org.github.krandom.generator.file.SemverGenerator;
 import org.github.krandom.generator.finance.AbaRoutingGenerator;
+import org.github.krandom.generator.finance.BankInfoGenerator;
 import org.github.krandom.generator.finance.BankCountryGenerator;
 import org.github.krandom.generator.finance.BankNameGenerator;
 import org.github.krandom.generator.finance.BankTypeGenerator;
@@ -44,6 +46,7 @@ import org.github.krandom.generator.finance.BbanGenerator;
 import org.github.krandom.generator.finance.BicGenerator;
 import org.github.krandom.generator.finance.CardExpirationGenerator;
 import org.github.krandom.generator.finance.CreditCardGenerator;
+import org.github.krandom.generator.finance.CreditCardInfoGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.finance.CurrencyPairGenerator;
 import org.github.krandom.generator.finance.CusipGenerator;
@@ -100,6 +103,7 @@ import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
 import org.github.krandom.generator.user.ContactInfoGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
+import org.github.krandom.generator.user.JobInfoGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.MiddleNameGenerator;
 import org.github.krandom.generator.user.PersonInfoGenerator;
@@ -646,6 +650,9 @@ class GeneratorsTest {
         assertInstanceOf(ContactInfoGenerator.class, Generators.ofContactInfo());
         assertInstanceOf(ContactInfoGenerator.class, Generators.ofContactInfo(Locale.US));
         assertInstanceOf(ContactInfoGenerator.class, Generators.ofContactInfo(GeneratorConfig.defaults()));
+        assertInstanceOf(JobInfoGenerator.class, Generators.ofJobInfo());
+        assertInstanceOf(JobInfoGenerator.class, Generators.ofJobInfo(Locale.US));
+        assertInstanceOf(JobInfoGenerator.class, Generators.ofJobInfo(GeneratorConfig.defaults()));
         assertInstanceOf(PersonInfoGenerator.class, Generators.ofPersonInfo());
         assertInstanceOf(PersonInfoGenerator.class, Generators.ofPersonInfo(Locale.US));
         assertInstanceOf(PersonInfoGenerator.class, Generators.ofPersonInfo(GeneratorConfig.defaults()));
@@ -814,6 +821,9 @@ class GeneratorsTest {
     @Test
     @DisplayName("finance factories return corresponding generators")
     void financeFactories() {
+        assertInstanceOf(ProductInfoGenerator.class, Generators.ofProductInfo());
+        assertInstanceOf(ProductInfoGenerator.class, Generators.ofProductInfo(Locale.US));
+        assertInstanceOf(ProductInfoGenerator.class, Generators.ofProductInfo(GeneratorConfig.defaults()));
         assertInstanceOf(CurrencyGenerator.class, Generators.ofCurrency());
         assertInstanceOf(CurrencyPairGenerator.class, Generators.ofCurrencyPair());
         assertInstanceOf(CurrencyPairGenerator.class,
@@ -821,10 +831,16 @@ class GeneratorsTest {
         assertInstanceOf(MoneyGenerator.class, Generators.ofMoney());
         assertInstanceOf(CardExpirationGenerator.class, Generators.ofCardExpiration());
         assertInstanceOf(CreditCardGenerator.class, Generators.ofCreditCard());
+        assertInstanceOf(CreditCardInfoGenerator.class, Generators.ofCreditCardInfo());
+        assertInstanceOf(CreditCardInfoGenerator.class, Generators.ofCreditCardInfo(Locale.US));
+        assertInstanceOf(CreditCardInfoGenerator.class, Generators.ofCreditCardInfo(GeneratorConfig.defaults()));
         assertInstanceOf(BbanGenerator.class, Generators.ofBban());
         assertInstanceOf(IbanGenerator.class, Generators.ofIban());
         assertInstanceOf(AbaRoutingGenerator.class, Generators.ofAbaRouting());
         assertInstanceOf(BankCountryGenerator.class, Generators.ofBankCountry());
+        assertInstanceOf(BankInfoGenerator.class, Generators.ofBankInfo());
+        assertInstanceOf(BankInfoGenerator.class, Generators.ofBankInfo(Locale.US));
+        assertInstanceOf(BankInfoGenerator.class, Generators.ofBankInfo(GeneratorConfig.defaults()));
         assertInstanceOf(BankNameGenerator.class, Generators.ofBankName());
         assertInstanceOf(BankTypeGenerator.class, Generators.ofBankType());
         assertInstanceOf(CusipGenerator.class, Generators.ofCusip());

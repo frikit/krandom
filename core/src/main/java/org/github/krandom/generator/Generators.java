@@ -27,6 +27,7 @@ import org.github.krandom.generator.base.ShortGenerator;
 import org.github.krandom.generator.base.StringGenerator;
 import org.github.krandom.generator.color.ColorGenerator;
 import org.github.krandom.generator.commerce.CommerceGenerator;
+import org.github.krandom.generator.commerce.ProductInfoGenerator;
 import org.github.krandom.generator.database.DatabaseGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.DurationGenerator;
@@ -42,6 +43,7 @@ import org.github.krandom.generator.file.MimeTypeGenerator;
 import org.github.krandom.generator.file.SemverGenerator;
 import org.github.krandom.generator.finance.AbaRoutingGenerator;
 import org.github.krandom.generator.finance.BankAccountGenerator;
+import org.github.krandom.generator.finance.BankInfoGenerator;
 import org.github.krandom.generator.finance.BankCountryGenerator;
 import org.github.krandom.generator.finance.BankNameGenerator;
 import org.github.krandom.generator.finance.BankTypeGenerator;
@@ -49,6 +51,7 @@ import org.github.krandom.generator.finance.BbanGenerator;
 import org.github.krandom.generator.finance.BicGenerator;
 import org.github.krandom.generator.finance.CardExpirationGenerator;
 import org.github.krandom.generator.finance.CreditCardGenerator;
+import org.github.krandom.generator.finance.CreditCardInfoGenerator;
 import org.github.krandom.generator.finance.CryptoAddressGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.finance.CurrencyPairGenerator;
@@ -122,6 +125,7 @@ import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.IndustryGenerator;
 import org.github.krandom.generator.user.JobFieldGenerator;
+import org.github.krandom.generator.user.JobInfoGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.MaritalStatusGenerator;
 import org.github.krandom.generator.user.MiddleNameGenerator;
@@ -681,6 +685,27 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces structured job payloads.
+     */
+    public static JobInfoGenerator ofJobInfo() {
+        return new JobInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured job payloads for a specific locale.
+     */
+    public static JobInfoGenerator ofJobInfo(Locale locale) {
+        return new JobInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured job payloads with explicit configuration.
+     */
+    public static JobInfoGenerator ofJobInfo(GeneratorConfig config) {
+        return new JobInfoGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces structured person payloads.
      */
     public static PersonInfoGenerator ofPersonInfo() {
@@ -907,6 +932,27 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces structured commerce product payloads.
+     */
+    public static ProductInfoGenerator ofProductInfo() {
+        return new ProductInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured commerce product payloads for a specific locale.
+     */
+    public static ProductInfoGenerator ofProductInfo(Locale locale) {
+        return new ProductInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured commerce product payloads with explicit configuration.
+     */
+    public static ProductInfoGenerator ofProductInfo(GeneratorConfig config) {
+        return new ProductInfoGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces locale-aware profession/job-title values.
      */
     public static ProfessionGenerator ofProfession() {
@@ -953,6 +999,27 @@ public final class Generators {
      */
     public static BankAccountGenerator ofBankAccount() {
         return new BankAccountGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured bank payloads.
+     */
+    public static BankInfoGenerator ofBankInfo() {
+        return new BankInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured bank payloads for a specific locale.
+     */
+    public static BankInfoGenerator ofBankInfo(Locale locale) {
+        return new BankInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured bank payloads with explicit configuration.
+     */
+    public static BankInfoGenerator ofBankInfo(GeneratorConfig config) {
+        return new BankInfoGenerator(config);
     }
 
     /**
@@ -1009,6 +1076,27 @@ public final class Generators {
      */
     public static CreditCardGenerator ofCreditCard() {
         return new CreditCardGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured credit-card payloads.
+     */
+    public static CreditCardInfoGenerator ofCreditCardInfo() {
+        return new CreditCardInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured credit-card payloads for a specific locale.
+     */
+    public static CreditCardInfoGenerator ofCreditCardInfo(Locale locale) {
+        return new CreditCardInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured credit-card payloads with explicit configuration.
+     */
+    public static CreditCardInfoGenerator ofCreditCardInfo(GeneratorConfig config) {
+        return new CreditCardInfoGenerator(config);
     }
 
     /**

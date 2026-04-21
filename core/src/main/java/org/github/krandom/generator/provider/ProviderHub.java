@@ -8,11 +8,15 @@ package org.github.krandom.generator.provider;
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.GeneratorProfile;
+import org.github.krandom.generator.commerce.ProductInfoGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.TimeGenerator;
+import org.github.krandom.generator.finance.BankInfoGenerator;
+import org.github.krandom.generator.finance.CreditCardInfoGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.location.PhoneNumberGenerator;
@@ -27,11 +31,14 @@ import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
+import org.github.krandom.generator.user.ContactInfoGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FirstNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.JobInfoGenerator;
 import org.github.krandom.generator.user.LastNameGenerator;
 import org.github.krandom.generator.user.PasswordGenerator;
+import org.github.krandom.generator.user.PersonInfoGenerator;
 import org.github.krandom.generator.user.UsernameGenerator;
 
 import java.util.function.BiPredicate;
@@ -316,11 +323,15 @@ public final class ProviderHub {
         register("person.last_name", cfg -> new LastNameGenerator(cfg), ConflictPolicy.REPLACE);
         register("person.email", cfg -> new EmailGenerator(cfg), ConflictPolicy.REPLACE);
         register("person.username", cfg -> new UsernameGenerator(cfg), ConflictPolicy.REPLACE);
+        register("person.contact_info", cfg -> new ContactInfoGenerator(cfg), ConflictPolicy.REPLACE);
+        register("person.person_info", cfg -> new PersonInfoGenerator(cfg), ConflictPolicy.REPLACE);
+        register("person.job_info", cfg -> new JobInfoGenerator(cfg), ConflictPolicy.REPLACE);
         register("person", cfg -> new FullNameGenerator(cfg), ConflictPolicy.REPLACE);
 
         register("company.name", cfg -> new CompanyNameGenerator(cfg), ConflictPolicy.REPLACE);
         register("security.password", cfg -> new PasswordGenerator(cfg), ConflictPolicy.REPLACE);
 
+        register("address.address_info", cfg -> new AddressInfoGenerator(cfg), ConflictPolicy.REPLACE);
         register("address.street_address", cfg -> new StreetAddressGenerator(cfg), ConflictPolicy.REPLACE);
         register("address.city", cfg -> new CityGenerator(cfg), ConflictPolicy.REPLACE);
         register("address.state", cfg -> new StateGenerator(cfg), ConflictPolicy.REPLACE);
@@ -334,8 +345,11 @@ public final class ProviderHub {
         register("internet.hostname", cfg -> new HostnameGenerator(cfg), ConflictPolicy.REPLACE);
         register("internet", cfg -> new URLGenerator(cfg), ConflictPolicy.REPLACE);
 
+        register("commerce.product_info", cfg -> new ProductInfoGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance.money", cfg -> new MoneyGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance.currency", cfg -> new CurrencyGenerator(cfg), ConflictPolicy.REPLACE);
+        register("finance.bank_info", cfg -> new BankInfoGenerator(cfg), ConflictPolicy.REPLACE);
+        register("finance.credit_card_info", cfg -> new CreditCardInfoGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance", cfg -> new MoneyGenerator(cfg), ConflictPolicy.REPLACE);
 
         register("datetime.date", cfg -> new DateGenerator(cfg), ConflictPolicy.REPLACE);
@@ -357,8 +371,12 @@ public final class ProviderHub {
         registerAlias("last_name", "person.last_name", ConflictPolicy.REPLACE);
         registerAlias("email", "person.email", ConflictPolicy.REPLACE);
         registerAlias("username", "person.username", ConflictPolicy.REPLACE);
+        registerAlias("contact_info", "person.contact_info", ConflictPolicy.REPLACE);
+        registerAlias("person_info", "person.person_info", ConflictPolicy.REPLACE);
+        registerAlias("job_info", "person.job_info", ConflictPolicy.REPLACE);
         registerAlias("company_name", "company.name", ConflictPolicy.REPLACE);
         registerAlias("password", "security.password", ConflictPolicy.REPLACE);
+        registerAlias("address_info", "address.address_info", ConflictPolicy.REPLACE);
         registerAlias("location", "address.street_address", ConflictPolicy.REPLACE);
         registerAlias("street_address", "address.street_address", ConflictPolicy.REPLACE);
         registerAlias("city", "address.city", ConflictPolicy.REPLACE);
@@ -372,6 +390,9 @@ public final class ProviderHub {
         registerAlias("hostname", "internet.hostname", ConflictPolicy.REPLACE);
         registerAlias("money", "finance.money", ConflictPolicy.REPLACE);
         registerAlias("currency", "finance.currency", ConflictPolicy.REPLACE);
+        registerAlias("bank_info", "finance.bank_info", ConflictPolicy.REPLACE);
+        registerAlias("credit_card_info", "finance.credit_card_info", ConflictPolicy.REPLACE);
+        registerAlias("product_info", "commerce.product_info", ConflictPolicy.REPLACE);
         registerAlias("date", "datetime.date", ConflictPolicy.REPLACE);
         registerAlias("time", "datetime.time", ConflictPolicy.REPLACE);
         registerAlias("word", "text.word", ConflictPolicy.REPLACE);

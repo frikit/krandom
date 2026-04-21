@@ -8,7 +8,10 @@ package org.github.krandom.generator;
 import org.github.krandom.generator.base.CharGenerator;
 import org.github.krandom.generator.base.IntGenerator;
 import org.github.krandom.generator.base.StringGenerator;
+import org.github.krandom.generator.commerce.ProductInfo;
+import org.github.krandom.generator.finance.BankInfo;
 import org.github.krandom.generator.finance.CreditCardGenerator;
+import org.github.krandom.generator.finance.CreditCardInfo;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
@@ -20,6 +23,7 @@ import org.github.krandom.generator.schema.Schema;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.JobInfo;
 import org.github.krandom.generator.user.PersonInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -121,6 +125,10 @@ class DocumentationSnippetsTest {
         PhoneNumberGenerator phones = new PhoneNumberGenerator(cfg);
         StreetAddressGenerator addresses = new StreetAddressGenerator(cfg);
         PersonInfo person = Generators.ofPersonInfo(cfg).generate();
+        JobInfo job = Generators.ofJobInfo(cfg).generate();
+        ProductInfo product = Generators.ofProductInfo(cfg).generate();
+        BankInfo bank = Generators.ofBankInfo(cfg).generate();
+        CreditCardInfo cardInfo = Generators.ofCreditCardInfo(cfg).generate();
 
         Map<String, Object> user = Map.of(
             "id", Generators.ofUuid().generate().toString(),
@@ -152,6 +160,10 @@ class DocumentationSnippetsTest {
         assertNotNull(person.address());
         assertTrue(person.contact().email().contains("@"));
         assertEquals(person.username(), person.contact().email().substring(0, person.contact().email().indexOf('@')));
+        assertTrue(job.title().contains(job.profession()));
+        assertTrue(product.upc().matches("\\d{12}"));
+        assertTrue(bank.routingNumber().matches("\\d{9}"));
+        assertTrue(cardInfo.exp().matches("\\d{2}/\\d{2}"));
 
         int id = stableIds.generate();
         String firstEmail = uniqueEmails.generate();
