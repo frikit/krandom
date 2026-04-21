@@ -28,6 +28,19 @@ Map<String, Object> user = Map.of(
 );
 ```
 
+## Structured person fixture
+
+```java
+GeneratorConfig cfg = GeneratorConfig.builder()
+        .locale(Locale.US)
+        .seed(20260303L)
+        .build();
+
+PersonInfo person = Generators.ofPersonInfo(cfg).generate();
+
+assert person.username().equals(person.contact().email().split("@")[0]);
+```
+
 ## Batch order data with schema
 
 ```java

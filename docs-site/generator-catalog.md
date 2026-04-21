@@ -35,11 +35,11 @@ Main entrypoint: `org.github.krandom.generator.Generators`
 
 ## Location
 
-- `ofStreetAddress`, `ofCity`, `ofState`, `ofPostalCode`, `ofCountry`, `ofPhoneNumber`
+- `ofStreetAddress`, `ofAddressInfo`, `ofCity`, `ofState`, `ofPostalCode`, `ofCountry`, `ofPhoneNumber`
 
 ## User and identity
 
-- `ofFullName`, `ofEmail`, `ofCompanyEmail`
+- `ofFullName`, `ofEmail`, `ofContactInfo`, `ofPersonInfo`, `ofCompanyEmail`
 - `ofUsername`, `ofPassword`, `ofAvatarUrl`
 - `ofSimpleProfile`, `ofProfile`
 - `ofProfession`, `ofJobField`, `ofJobType`, `ofPosition`, `ofIndustry`

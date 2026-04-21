@@ -66,6 +66,7 @@ import org.github.krandom.generator.identifier.IdentifierMaskGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.identifier.UpcGenerator;
+import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.location.PhoneNumberGenerator;
@@ -115,6 +116,7 @@ import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.CompanyUrlGenerator;
+import org.github.krandom.generator.user.ContactInfoGenerator;
 import org.github.krandom.generator.user.EducationalAttainmentGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
@@ -124,6 +126,7 @@ import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.MaritalStatusGenerator;
 import org.github.krandom.generator.user.MiddleNameGenerator;
 import org.github.krandom.generator.user.PasswordGenerator;
+import org.github.krandom.generator.user.PersonInfoGenerator;
 import org.github.krandom.generator.user.PositionGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
 import org.github.krandom.generator.user.ProfileGenerator;
@@ -634,6 +637,27 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces structured contact payloads.
+     */
+    public static ContactInfoGenerator ofContactInfo() {
+        return new ContactInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured contact payloads for a specific locale.
+     */
+    public static ContactInfoGenerator ofContactInfo(Locale locale) {
+        return new ContactInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured contact payloads with explicit configuration.
+     */
+    public static ContactInfoGenerator ofContactInfo(GeneratorConfig config) {
+        return new ContactInfoGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces company email addresses.
      */
     public static CompanyEmailGenerator ofCompanyEmail() {
@@ -657,6 +681,27 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces structured person payloads.
+     */
+    public static PersonInfoGenerator ofPersonInfo() {
+        return new PersonInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured person payloads for a specific locale.
+     */
+    public static PersonInfoGenerator ofPersonInfo(Locale locale) {
+        return new PersonInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured person payloads with explicit configuration.
+     */
+    public static PersonInfoGenerator ofPersonInfo(GeneratorConfig config) {
+        return new PersonInfoGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces social-media style handles.
      */
     public static SocialHandleGenerator ofSocialHandle() {
@@ -675,6 +720,27 @@ public final class Generators {
      */
     public static StreetAddressGenerator ofStreetAddress() {
         return new StreetAddressGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured address payloads.
+     */
+    public static AddressInfoGenerator ofAddressInfo() {
+        return new AddressInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured address payloads for a specific locale.
+     */
+    public static AddressInfoGenerator ofAddressInfo(Locale locale) {
+        return new AddressInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured address payloads with explicit configuration.
+     */
+    public static AddressInfoGenerator ofAddressInfo(GeneratorConfig config) {
+        return new AddressInfoGenerator(config);
     }
 
     /**

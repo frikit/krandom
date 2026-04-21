@@ -20,6 +20,7 @@ import org.github.krandom.generator.schema.Schema;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.PersonInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -119,6 +120,7 @@ class DocumentationSnippetsTest {
         EmailGenerator emails = new EmailGenerator(cfg);
         PhoneNumberGenerator phones = new PhoneNumberGenerator(cfg);
         StreetAddressGenerator addresses = new StreetAddressGenerator(cfg);
+        PersonInfo person = Generators.ofPersonInfo(cfg).generate();
 
         Map<String, Object> user = Map.of(
             "id", Generators.ofUuid().generate().toString(),
@@ -146,6 +148,10 @@ class DocumentationSnippetsTest {
         assertTrue(user.get("email").toString().contains("@"));
         assertEquals(5, batch.size());
         assertEquals(6, batch.getFirst().size());
+        assertNotNull(person.contact());
+        assertNotNull(person.address());
+        assertTrue(person.contact().email().contains("@"));
+        assertEquals(person.username(), person.contact().email().substring(0, person.contact().email().indexOf('@')));
 
         int id = stableIds.generate();
         String firstEmail = uniqueEmails.generate();

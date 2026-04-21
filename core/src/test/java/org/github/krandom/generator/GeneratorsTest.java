@@ -59,11 +59,13 @@ import org.github.krandom.generator.identifier.HashGenerator;
 import org.github.krandom.generator.identifier.IdentifierMaskGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.identifier.UpcGenerator;
+import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.location.PhoneNumberGenerator;
 import org.github.krandom.generator.location.PostalCodeGenerator;
 import org.github.krandom.generator.location.StateGenerator;
+import org.github.krandom.generator.location.StreetAddressGenerator;
 import org.github.krandom.generator.network.DomainGenerator;
 import org.github.krandom.generator.network.HostnameGenerator;
 import org.github.krandom.generator.network.HttpMethodGenerator;
@@ -96,9 +98,11 @@ import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyBuzzwordGenerator;
 import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
+import org.github.krandom.generator.user.ContactInfoGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.MiddleNameGenerator;
+import org.github.krandom.generator.user.PersonInfoGenerator;
 import org.github.krandom.generator.user.ProfessionGenerator;
 import org.github.krandom.generator.user.ProfileGenerator;
 import org.github.krandom.generator.user.SimpleProfileGenerator;
@@ -637,6 +641,17 @@ class GeneratorsTest {
     }
 
     @Test
+    @DisplayName("contact/person info factories return structured payload generators")
+    void structuredUserFactories() {
+        assertInstanceOf(ContactInfoGenerator.class, Generators.ofContactInfo());
+        assertInstanceOf(ContactInfoGenerator.class, Generators.ofContactInfo(Locale.US));
+        assertInstanceOf(ContactInfoGenerator.class, Generators.ofContactInfo(GeneratorConfig.defaults()));
+        assertInstanceOf(PersonInfoGenerator.class, Generators.ofPersonInfo());
+        assertInstanceOf(PersonInfoGenerator.class, Generators.ofPersonInfo(Locale.US));
+        assertInstanceOf(PersonInfoGenerator.class, Generators.ofPersonInfo(GeneratorConfig.defaults()));
+    }
+
+    @Test
     @DisplayName("ofCompanyEmail() returns CompanyEmailGenerator")
     void ofCompanyEmail() {
         assertInstanceOf(CompanyEmailGenerator.class, Generators.ofCompanyEmail());
@@ -661,6 +676,15 @@ class GeneratorsTest {
     @DisplayName("ofProfile() returns ProfileGenerator")
     void ofProfile() {
         assertInstanceOf(ProfileGenerator.class, Generators.ofProfile());
+    }
+
+    @Test
+    @DisplayName("ofStreetAddress() and ofAddressInfo() return location generators")
+    void structuredLocationFactories() {
+        assertInstanceOf(StreetAddressGenerator.class, Generators.ofStreetAddress());
+        assertInstanceOf(AddressInfoGenerator.class, Generators.ofAddressInfo());
+        assertInstanceOf(AddressInfoGenerator.class, Generators.ofAddressInfo(Locale.US));
+        assertInstanceOf(AddressInfoGenerator.class, Generators.ofAddressInfo(GeneratorConfig.defaults()));
     }
 
     @Test
