@@ -1,0 +1,10 @@
+Caddesi
+Sokak
+Bulvarı
+Mahallesi
+Rondo
+Meydanı
+Yolu
+Parkı
+Sitesi
+Geçidi

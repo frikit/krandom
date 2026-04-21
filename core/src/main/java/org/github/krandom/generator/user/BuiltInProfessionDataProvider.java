@@ -116,7 +116,14 @@ final class BuiltInProfessionDataProvider implements ProfessionDataProvider {
                 "Inżynier budownictwa", "Specjalista ds. marketingu", "Menedżer HR", "Kierownik operacyjny", "Menedżer produktu",
                 "Projektant UX", "Dentysta", "Ratownik medyczny", "Analityk finansowy", "Specjalista ds. obsługi klienta"
             };
-            case SV_SE, NB_NO, TR_TR -> professionsFor(SupportedLocale.EN_GB);
+            case TR_TR -> new String[] {
+                "Yazılım Mühendisi", "Öğretmen", "Hemşire", "Muhasebeci", "Satış Temsilcisi",
+                "Proje Yöneticisi", "Veri Analisti", "Grafik Tasarımcı", "Elektrikçi", "Mekanik Teknisyeni",
+                "Avukat", "Doktor", "Eczacı", "Şef", "Mimar",
+                "İnşaat Mühendisi", "Pazarlama Uzmanı", "İK Müdürü", "Operasyon Müdürü", "Ürün Müdürü",
+                "UX Tasarımcı", "Diş Hekimi", "Paramedik", "Finans Analisti", "Müşteri Destek Uzmanı"
+            };
+            case SV_SE, NB_NO -> professionsFor(SupportedLocale.EN_GB);
             case RU_RU, CS_CZ -> professionsFor(SupportedLocale.DE_DE);
             case KO_KR -> professionsFor(SupportedLocale.JA_JP);
             case AR_SA, HI_IN -> professionsFor(SupportedLocale.EN_US);
