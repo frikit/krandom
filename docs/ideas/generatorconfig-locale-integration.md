@@ -158,7 +158,7 @@ GeneratorConfig configJA = GeneratorConfig.builder()
 
 // Spanish Mexico
 GeneratorConfig configMX = GeneratorConfig.builder()
-                                          .locale(new Locale("es", "MX"))
+                                          .locale(Locale.of("es", "MX"))
                                           .build();
 ```
 
@@ -432,11 +432,10 @@ FirstName germanGen = new FirstName(config);
 String germanName = germanGen.generate();
 ```
 
-### Deprecation Strategy (Optional)
+### API Cleanup Strategy (Optional)
 
 ```java
-// Option: Deprecate locale-less constructors in favor of config
-@Deprecated(since = "2.0", forRemoval = false)
+// Option: remove locale-less constructors in favor of config
 public FirstName() {
     this(GeneratorConfig.defaults());
 }

@@ -300,7 +300,7 @@ class SemanticCoherenceAdjusterTest {
                                   unsupportedSlot, new BigDecimal("2.00"), "USD"));
         assertNull(unsupportedMoneyTarget.value);
 
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualStringMoneyHolder stringHolder = new ManualStringMoneyHolder();
         Object stringPriceSlot = rawSlot(stringHolder, "price");
         assertFalse((Boolean) invokeInstance(adjuster, "shouldFormatMoneyString",
@@ -348,7 +348,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("manual instances derive domain, url, email, and full name")
     void manualInstancesDeriveDomainUrlEmailAndFullName() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualCoherenceHolder company = new ManualCoherenceHolder();
         company.companyName = "Acme Labs";
@@ -359,7 +359,7 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("https://www.acmelabs.com", company.companyUrl);
 
         SemanticCoherenceAdjuster emailAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualEmailHolder fromEmail = new ManualEmailHolder();
         fromEmail.firstName = "Ada";
         fromEmail.lastName = "Lovelace";
@@ -368,7 +368,7 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("ada.lovelace@widgets.test", fromEmail.email);
 
         SemanticCoherenceAdjuster urlAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualEmailHolder fromUrl = new ManualEmailHolder();
         fromUrl.firstName = "Ada";
         fromUrl.lastName = "Lovelace";
@@ -377,7 +377,7 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("ada.lovelace@widgets.test", fromUrl.email);
 
         SemanticCoherenceAdjuster fallbackAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualEmailHolder fallback = new ManualEmailHolder();
         fallback.firstName = "Ada";
         fallback.lastName = "Lovelace";
@@ -385,7 +385,7 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("ada.lovelace@example.com", fallback.email);
 
         SemanticCoherenceAdjuster nameAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualNameHolder fromNames = new ManualNameHolder();
         fromNames.firstName = "Ada";
         fromNames.lastName = "Lovelace";
@@ -396,7 +396,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("manual instances align locale country and monetary fields")
     void manualInstancesAlignLocaleCountryAndMonetaryFields() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
                                                                            new UniqueFieldTracker());
 
         ManualAddressHolder address = new ManualAddressHolder();
@@ -429,7 +429,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("company contact fallback paths derive from self, companion fields, and company fallback inputs")
     void companyContactFallbackPathsDeriveFromSelfCompanionFieldsAndCompanyFallbackInputs() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
                                                                            new UniqueFieldTracker());
 
         ManualCompanyContactHolder fromOwnEmail = new ManualCompanyContactHolder();
@@ -470,7 +470,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("generic email falls back to company name when full-name slugs are unavailable")
     void genericEmailFallsBackToCompanyNameWhenFullNameSlugsAreUnavailable() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
                                                                            new UniqueFieldTracker());
 
         ManualCompanyFallbackEmailHolder singleWord = new ManualCompanyFallbackEmailHolder();
@@ -491,7 +491,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("manual money holders backfill missing amount from price")
     void manualMoneyHoldersBackfillMissingAmountFromPrice() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
                                                                            new UniqueFieldTracker());
 
         ManualMoneyHolder money = new ManualMoneyHolder();
@@ -543,7 +543,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("address and money coherence cover null-locale and protected fallback branches")
     void addressAndMoneyCoherenceCoverNullLocaleAndProtectedFallbackBranches() throws Exception {
-        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
                                                                                   new UniqueFieldTracker());
 
         ManualAddressHolder noAddressSignals = new ManualAddressHolder();
@@ -670,7 +670,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("overwrite rules and protections are respected")
     void overwriteRulesAndProtectionsAreRespected() throws Exception {
-        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualNameHolder blankOnly = new ManualNameHolder();
         blankOnly.firstName = "Ada";
@@ -765,7 +765,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("age and status coherence cover protected, missing, and unsupported fallback paths")
     void ageAndStatusCoherenceCoverProtectedMissingAndUnsupportedFallbackPaths() throws Exception {
-        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualAgeHolder derivedAge = new ManualAgeHolder();
         derivedAge.birthDate = LocalDate.now().minusYears(33);
@@ -899,7 +899,7 @@ class SemanticCoherenceAdjusterTest {
         relaxed.email = "ANNOTATED";
 
         SemanticCoherenceAdjuster relaxedAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         relaxedAdjuster.adjustInstance(ProtectedSemanticHolder.class, relaxed, declaredFields(ProtectedSemanticHolder.class), true);
         assertEquals("RAW", relaxed.fullName);
         assertEquals("ANNOTATED", relaxed.email);
@@ -1219,6 +1219,10 @@ class SemanticCoherenceAdjusterTest {
         String fullName;
         String companyName;
         String email;
+    }
+
+    private static ObjectGeneratorConfig defaultObjectConfig() {
+        return ObjectGeneratorConfig.builder().build();
     }
 
     static class UnsupportedMoneyTarget {

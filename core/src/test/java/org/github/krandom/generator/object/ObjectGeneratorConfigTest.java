@@ -28,9 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ObjectGeneratorConfigTest {
 
     @Test
-    @DisplayName("defaults() returns config with default values")
+    @DisplayName("builder defaults produce config with default values")
     void defaultValues() {
-        ObjectGeneratorConfig c = ObjectGeneratorConfig.defaults();
+        ObjectGeneratorConfig c = ObjectGeneratorConfig.builder().build();
         assertEquals(ObjectGeneratorConfig.DEFAULT_MAX_DEPTH, c.getMaxDepth());
         assertEquals(ObjectGeneratorConfig.DEFAULT_OBJECT_POOL_SIZE, c.getObjectPoolSize());
         assertEquals(Locale.US, c.getGeneratorConfig().getLocale());
@@ -44,13 +44,6 @@ class ObjectGeneratorConfigTest {
         assertEquals(256, c.getUniquenessMaxAttempts());
         assertTrue(c.getTypeOverride(String.class).isEmpty());
         assertTrue(c.getFieldOverride(String.class, "value").isEmpty());
-    }
-
-    @Test
-    @DisplayName("defaults() is deprecated in favor of GeneratorConfig defaults")
-    void defaultsMethodIsDeprecated() throws Exception {
-        Method defaults = ObjectGeneratorConfig.class.getDeclaredMethod("defaults");
-        assertTrue(defaults.isAnnotationPresent(Deprecated.class));
     }
 
     @Test
@@ -369,7 +362,8 @@ class ObjectGeneratorConfigTest {
     @Test
     @DisplayName("toBuilder preserves unset date range state")
     void toBuilderPreservesUnsetDateRangeState() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.defaults()
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .build()
                                                             .toBuilder()
                                                             .maxDepth(2)
                                                             .build();
@@ -402,7 +396,7 @@ class ObjectGeneratorConfigTest {
         GeneratorConfig inheritedGeneratorConfig = GeneratorConfig.builder()
                                                                  .objectDateRange(LocalDate.of(1999, 1, 1), LocalDate.of(1999, 12, 31))
                                                                  .build();
-        ObjectGeneratorConfig source = ObjectGeneratorConfig.defaults();
+        ObjectGeneratorConfig source = ObjectGeneratorConfig.builder().build();
 
         Field dateMaxField = ObjectGeneratorConfig.class.getDeclaredField("dateMax");
         dateMaxField.setAccessible(true);

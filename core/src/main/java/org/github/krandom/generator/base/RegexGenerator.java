@@ -51,8 +51,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p><b>Integration with ObjectGenerator</b>
  * <pre>{@code
- * ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
- *     .override(String.class, new RegexGenerator("\\d{3}-\\d{4}"))
+ * GeneratorConfig config = GeneratorConfig.builder()
+ *     .objectOverride(String.class, new RegexGenerator("\\d{3}-\\d{4}"))
  *     .build();
  * }</pre>
  *

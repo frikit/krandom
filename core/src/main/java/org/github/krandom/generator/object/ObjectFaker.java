@@ -84,12 +84,8 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Creates a fixture authoring API with explicit object-generation configuration.
-     *
-     * @deprecated Prefer {@link #ObjectFaker(Class, GeneratorConfig)} and migrate
-     *             object-local settings with {@link ObjectGeneratorConfig#toGeneratorConfig()}.
+     * Creates a fixture authoring API using object-scoped configuration overrides.
      */
-    @Deprecated(since = "0.1.0", forRemoval = false)
     public ObjectFaker(Class<T> type, ObjectGeneratorConfig config) {
         this(type, config, true);
     }
@@ -470,8 +466,9 @@ public final class ObjectFaker<T> implements Generator<T> {
         }
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Object materializeValue(Class<?> rawType) {
-        return new ObjectGenerator<>(rawType, buildRuntimeConfig()).generate();
+        return new ObjectGenerator(rawType, buildRuntimeConfig(), 0, null, null, uniqueFieldTracker).generate();
     }
 
     private Object readTargetValue(Object instance, RuleTarget target) throws ReflectiveOperationException {

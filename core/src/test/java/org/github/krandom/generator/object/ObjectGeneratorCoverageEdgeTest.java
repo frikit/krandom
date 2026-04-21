@@ -39,7 +39,7 @@ class ObjectGeneratorCoverageEdgeTest {
     @Test
     @DisplayName("generate() uses existing scoped pool when depth/pool are preconfigured")
     void generateUsesExistingPoolForScopedGenerator() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.defaults();
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder().build();
         ObjectGenerator<Address> scoped = new ObjectGenerator<>(
             Address.class,
             config,
@@ -54,7 +54,7 @@ class ObjectGeneratorCoverageEdgeTest {
     @Test
     @DisplayName("generate() uses existing pool when depth is zero but pool is preconfigured")
     void generateUsesExistingPoolAtDepthZero() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.defaults();
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder().build();
         ObjectGenerator<Address> scoped = new ObjectGenerator<>(
             Address.class,
             config,

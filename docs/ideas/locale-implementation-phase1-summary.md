@@ -69,7 +69,7 @@ GeneratorConfig japanConfig = GeneratorConfig.builder()
 
 // Custom locale (Spanish Mexico)
 GeneratorConfig mexicoConfig = GeneratorConfig.builder()
-                                              .locale(new Locale("es", "MX"))
+                                              .locale(Locale.of("es", "MX"))
                                               .build();
 ```
 

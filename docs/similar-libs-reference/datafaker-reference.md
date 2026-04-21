@@ -97,12 +97,12 @@ Add the Sonatype snapshots repository, then use version `2.6.0-SNAPSHOT`.
 Faker faker = new Faker();
 
 // Specific locale
-Faker faker = new Faker(new Locale("de"));
-Faker faker = new Faker(new Locale("en", "US"));
+Faker faker = new Faker(Locale.of("de"));
+Faker faker = new Faker(Locale.of("en", "US"));
 
 // Seeded (reproducible output)
 Faker faker = new Faker(new Random(42));
-Faker faker = new Faker(new Locale("en"), new Random(12345));
+Faker faker = new Faker(Locale.of("en"), new Random(12345));
 ```
 
 ```kotlin
@@ -116,25 +116,25 @@ val faker = Faker(Random(42))
 DataFaker supports 60+ locales. Pass a `java.util.Locale` to the constructor:
 
 ```java
-new Faker(new Locale("fr"))        // French
+new Faker(Locale.of("fr"))        // French
     new
 
-Faker(new Locale("zh", "CN"))  // Chinese (Simplified)
+Faker(Locale.of("zh", "CN"))  // Chinese (Simplified)
     new
 
-Faker(new Locale("ja"))        // Japanese
+Faker(Locale.of("ja"))        // Japanese
     new
 
-Faker(new Locale("ko"))        // Korean
+Faker(Locale.of("ko"))        // Korean
     new
 
-Faker(new Locale("ru"))        // Russian
+Faker(Locale.of("ru"))        // Russian
     new
 
-Faker(new Locale("es", "MX"))  // Spanish (Mexico)
+Faker(Locale.of("es", "MX"))  // Spanish (Mexico)
     new
 
-Faker(new Locale("pt", "BR"))  // Portuguese (Brazil)
+Faker(Locale.of("pt", "BR"))  // Portuguese (Brazil)
 ```
 
 Use `faker.locality().allSupportedLocales()` to list all supported locale strings at runtime.

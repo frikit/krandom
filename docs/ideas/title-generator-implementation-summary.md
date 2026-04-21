@@ -212,7 +212,7 @@ println("Locale fully supported!");
 ```java
 // Just add a new enum value
 NEW_LOCALE(
-    new Locale("language", "COUNTRY"),
+    Locale.of("language", "COUNTRY"),
     new String[]{"Title1","Title2","Title3"}
         )
 ```
@@ -331,7 +331,7 @@ TitleGenerator gen = new TitleGenerator(config);
 ```java
 // Step 1: Add to LocaleTitleData enum
 NL_NL(
-    new Locale("nl", "NL"),
+    Locale.of("nl", "NL"),
     new String[]{
         "Dhr.",    // De Heer (Mr.)
         "Mevr.",   // Mevrouw (Mrs.)

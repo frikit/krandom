@@ -105,12 +105,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     /**
-     * Creates a generator with custom configuration.
-     *
-     * @deprecated Prefer {@link #ObjectGenerator(Class, GeneratorConfig)} and migrate
-     *             object-local settings with {@link ObjectGeneratorConfig#toGeneratorConfig()}.
+     * Creates a generator using object-scoped configuration overrides.
      */
-    @Deprecated(since = "0.1.0", forRemoval = false)
     public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
         this(type, config, 0, null, null, new UniqueFieldTracker());
     }

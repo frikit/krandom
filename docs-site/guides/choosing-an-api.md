@@ -52,8 +52,6 @@ Choose this path when:
 - you want good defaults with minimal setup
 - your target is an existing Java object model
 
-Use `GeneratorConfig` as the primary config surface. `ObjectGeneratorConfig` remains a compatibility path for older object-local setups.
-
 ## 3. Fluent fixture authoring
 
 Use `ObjectFaker<T>` when defaults are close but you need explicit fixture rules.

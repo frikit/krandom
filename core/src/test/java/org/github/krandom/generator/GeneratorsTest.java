@@ -81,7 +81,6 @@ import org.github.krandom.generator.network.UriGenerator;
 import org.github.krandom.generator.network.UserAgentGenerator;
 import org.github.krandom.generator.object.ObjectFaker;
 import org.github.krandom.generator.object.ObjectGenerator;
-import org.github.krandom.generator.object.ObjectGeneratorConfig;
 import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.schema.Field;
 import org.github.krandom.generator.schema.FieldLookup;
@@ -798,24 +797,19 @@ class GeneratorsTest {
         assertInstanceOf(ObjectGenerator.class, Generators.ofObject(SimplePojo.class));
         assertInstanceOf(ObjectGenerator.class,
                          Generators.ofObject(SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
-        assertInstanceOf(ObjectGenerator.class,
-                         Generators.ofObject(SimplePojo.class, ObjectGeneratorConfig.defaults()));
         assertInstanceOf(ObjectFaker.class, Generators.ofObjectFaker(SimplePojo.class));
         assertInstanceOf(ObjectFaker.class,
                          Generators.ofObjectFaker(SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
-        assertInstanceOf(ObjectFaker.class,
-                         Generators.ofObjectFaker(SimplePojo.class, ObjectGeneratorConfig.defaults()));
     }
 
     @Test
-    @DisplayName("ObjectGeneratorConfig-based object factories are deprecated compatibility entry points")
-    void objectConfigFactoriesAreDeprecated() throws Exception {
-        Method objectFactory = Generators.class.getDeclaredMethod("ofObject", Class.class, ObjectGeneratorConfig.class);
-        Method fakerFactory =
-            Generators.class.getDeclaredMethod("ofObjectFaker", Class.class, ObjectGeneratorConfig.class);
+    @DisplayName("ObjectGeneratorConfig-based object factories remain available")
+    void objectConfigFactoriesRemainAvailable() {
+        org.github.krandom.generator.object.ObjectGeneratorConfig config =
+            org.github.krandom.generator.object.ObjectGeneratorConfig.builder().build();
 
-        assertTrue(objectFactory.isAnnotationPresent(Deprecated.class));
-        assertTrue(fakerFactory.isAnnotationPresent(Deprecated.class));
+        assertInstanceOf(ObjectGenerator.class, Generators.ofObject(SimplePojo.class, config));
+        assertInstanceOf(ObjectFaker.class, Generators.ofObjectFaker(SimplePojo.class, config));
     }
 
     @Test

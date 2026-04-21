@@ -131,7 +131,7 @@ class FieldGeneratorResolverCoverageTest {
     @Test
     @DisplayName("semantic status helper returns null for non-enum types")
     void semanticStatusHelperReturnsNullForNonEnumTypes() throws Exception {
-        FieldGeneratorResolver resolver = resolver(ObjectGeneratorConfig.defaults());
+        FieldGeneratorResolver resolver = resolver(ObjectGeneratorConfig.builder().build());
 
         assertNull(invokeInstance(resolver,
                                   "semanticStatusEnumGenerator",

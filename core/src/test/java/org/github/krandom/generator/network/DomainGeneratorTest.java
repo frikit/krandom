@@ -167,19 +167,19 @@ class DomainGeneratorTest {
 
     @Test
     void testGetLocaleTLD_Brazil() {
-        DomainGenerator generator = new DomainGenerator(new Locale("pt", "BR"));
+        DomainGenerator generator = new DomainGenerator(Locale.of("pt", "BR"));
         assertEquals("br", generator.getLocaleTLD());
     }
 
     @Test
     void testGetLocaleTLD_Australia() {
-        DomainGenerator generator = new DomainGenerator(new Locale("en", "AU"));
+        DomainGenerator generator = new DomainGenerator(Locale.of("en", "AU"));
         assertEquals("au", generator.getLocaleTLD());
     }
 
     @Test
     void testGetLocaleTLD_Spain() {
-        DomainGenerator generator = new DomainGenerator(new Locale("es", "ES"));
+        DomainGenerator generator = new DomainGenerator(Locale.of("es", "ES"));
         assertEquals("es", generator.getLocaleTLD());
     }
 
@@ -287,7 +287,7 @@ class DomainGeneratorTest {
     @Test
     void testGetTLDWithNullLocaleConfig() {
         // Create config with locale explicitly set to null locale country
-        GeneratorConfig config = GeneratorConfig.builder().locale(new Locale("xx", "XX")).build();
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.of("xx", "XX")).build();
         DomainGenerator generator = new DomainGenerator(config);
         String tld = generator.getTLD();
         assertNotNull(tld);
@@ -384,7 +384,7 @@ class DomainGeneratorTest {
     @Test
     void testGenerateWithNullLocaleForcesBothBranches() {
         // Test with a generator that has null localeTLD
-        DomainGenerator nullLocaleGen = new DomainGenerator(new Locale("xx", "XX"));
+        DomainGenerator nullLocaleGen = new DomainGenerator(Locale.of("xx", "XX"));
         assertNull(nullLocaleGen.getLocaleTLD());
 
         // Generate many times - with null localeTLD, should always use popular TLD
@@ -452,7 +452,7 @@ class DomainGeneratorTest {
     @Test
     void testGenerateWhenLocaleTLDIsNullBranch() {
         // Ensure we hit the branch where random.nextBoolean() returns true but localeTLD is null
-        DomainGenerator gen = new DomainGenerator(new Locale("zz", "ZZ")); // Unknown locale
+        DomainGenerator gen = new DomainGenerator(Locale.of("zz", "ZZ")); // Unknown locale
         assertNull(gen.getLocaleTLD());
 
         // Generate many - should only get popular TLDs since localeTLD is null
@@ -464,7 +464,7 @@ class DomainGeneratorTest {
 
     @Test
     void testGetTLDWhenLocaleTLDIsNullBranch() {
-        DomainGenerator gen = new DomainGenerator(new Locale("aa", "AA")); // Unknown locale
+        DomainGenerator gen = new DomainGenerator(Locale.of("aa", "AA")); // Unknown locale
         assertNull(gen.getLocaleTLD());
 
         for (int i = 0; i < 50; i++) {

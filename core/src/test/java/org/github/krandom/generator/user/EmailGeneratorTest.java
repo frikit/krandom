@@ -372,16 +372,16 @@ class EmailGeneratorTest {
     @Test
     void testAll10Locales() {
         Locale[] locales = {
-            new Locale("en", "US"),
-            new Locale("en", "GB"),
-            new Locale("en", "AU"),
-            new Locale("de", "DE"),
-            new Locale("fr", "FR"),
-            new Locale("es", "ES"),
-            new Locale("it", "IT"),
-            new Locale("pt", "BR"),
-            new Locale("ja", "JP"),
-            new Locale("zh", "CN")
+            Locale.of("en", "US"),
+            Locale.of("en", "GB"),
+            Locale.of("en", "AU"),
+            Locale.of("de", "DE"),
+            Locale.of("fr", "FR"),
+            Locale.of("es", "ES"),
+            Locale.of("it", "IT"),
+            Locale.of("pt", "BR"),
+            Locale.of("ja", "JP"),
+            Locale.of("zh", "CN")
         };
 
         for (Locale locale : locales) {

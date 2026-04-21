@@ -23,13 +23,11 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Immutable compatibility configuration for {@link ObjectGenerator}.
+ * Immutable object-scoped configuration for {@link ObjectGenerator}.
  *
- * <p>{@link GeneratorConfig} is the preferred public entry point for object-generation
- * defaults, overrides, exclusions, locale, and seed settings. This type remains as an
- * object-scoped adapter for callers that still want to compose object-only settings
- * separately, and it can be migrated back into the root config via
- * {@link #toGeneratorConfig()}.
+ * <p>{@link GeneratorConfig} remains the primary root configuration surface for the library.
+ * This type exists for callers that want to compose object-generation settings separately
+ * and then project them back into a root config via {@link #toGeneratorConfig()}.
  *
  * <p>Build via the fluent {@link Builder}:
  * <pre>{@code
@@ -120,18 +118,6 @@ public final class ObjectGeneratorConfig {
         this.contextualFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.contextualFieldOverrides));
         this.exclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.exclusionPredicates));
         this.typeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.typeExclusionPredicates));
-    }
-
-    /**
-     * Default configuration.
-     *
-     * @deprecated Use {@link GeneratorConfig#defaults()} with
-     *             {@link ObjectGenerator#ObjectGenerator(Class, GeneratorConfig)} or
-     *             {@link org.github.krandom.generator.Generators#ofObject(Class, GeneratorConfig)}.
-     */
-    @Deprecated(since = "0.1.0", forRemoval = false)
-    public static ObjectGeneratorConfig defaults() {
-        return builder().build();
     }
 
     /**

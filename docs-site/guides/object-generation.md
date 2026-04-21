@@ -33,21 +33,7 @@ ObjectGenerator<OrderDto> orders = new ObjectGenerator<>(OrderDto.class, cfg);
 OrderDto order = orders.generate();
 ```
 
-## With custom config
-
-```java
-ObjectGeneratorConfig legacyCfg = ObjectGeneratorConfig.builder()
-        .maxDepth(2)
-        .override(OrderDto.class, "status", () -> "PENDING")
-        .ignoreErrors(false)
-        .build();
-
-GeneratorConfig cfg = legacyCfg.toGeneratorConfig();
-ObjectGenerator<OrderDto> orders = new ObjectGenerator<>(OrderDto.class, cfg);
-OrderDto order = orders.generate();
-```
-
-`GeneratorConfig` is the preferred public entry point, including for advanced object overrides and exclusions. `ObjectGeneratorConfig` now acts as a compatibility adapter for legacy object-local composition; when you still have one, migrate it with `toGeneratorConfig()` and pass the root config into `ObjectGenerator<T>` or `ObjectFaker<T>`.
+`GeneratorConfig` is the public entry point, including for advanced object overrides and exclusions.
 
 Semantic modes:
 
@@ -74,7 +60,7 @@ Examples:
 - `isEnabled` and `active` map to the active-flag semantic
 - `lat` and `latitude` map to the latitude semantic
 
-Configured object date ranges still apply to semantic temporal fields. If you set `objectDateRange(...)` or `ObjectGeneratorConfig.dateRange(...)`, that range becomes the effective window for semantic fields such as `dob`, `createdAt`, and `updatedAt`.
+Configured object date ranges still apply to semantic temporal fields. If you set `objectDateRange(...)`, that range becomes the effective window for semantic fields such as `dob`, `createdAt`, and `updatedAt`.
 
 Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now also force `country` back to the configured locale when sibling fields such as `city`, `state`, or `postalCode` indicate a locale-backed address, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win.
 

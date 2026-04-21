@@ -6,7 +6,7 @@
 package org.github.krandom.benchmarks;
 
 import org.github.krandom.generator.object.ObjectGenerator;
-import org.github.krandom.generator.object.ObjectGeneratorConfig;
+import org.github.krandom.generator.GeneratorConfig;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -30,15 +30,15 @@ public class ObjectGeneratorBenchmark {
     public static class GeneratorState {
         public final ObjectGenerator<BenchmarkFixtures.Depth2Root> depth2Generator =
             new ObjectGenerator<>(BenchmarkFixtures.Depth2Root.class,
-                                  ObjectGeneratorConfig.builder().maxDepth(2).build());
+                                  GeneratorConfig.builder().objectMaxDepth(2).build());
 
         public final ObjectGenerator<BenchmarkFixtures.Depth5Root> depth5Generator =
             new ObjectGenerator<>(BenchmarkFixtures.Depth5Root.class,
-                                  ObjectGeneratorConfig.builder().maxDepth(5).build());
+                                  GeneratorConfig.builder().objectMaxDepth(5).build());
 
         public final ObjectGenerator<BenchmarkFixtures.Depth10Root> depth10Generator =
             new ObjectGenerator<>(BenchmarkFixtures.Depth10Root.class,
-                                  ObjectGeneratorConfig.builder().maxDepth(10).build());
+                                  GeneratorConfig.builder().objectMaxDepth(10).build());
     }
 
     @Benchmark

@@ -82,8 +82,8 @@ All generators are **locale-agnostic:**
 
 ```java
 // Constructor with Locale
-Faker faker = new Faker(new Locale("de"));
-Faker faker = new Faker(new Locale("es", "MX"));
+Faker faker = new Faker(Locale.of("de"));
+Faker faker = new Faker(Locale.of("es", "MX"));
 
 // Usage
 String name = faker.name().firstName();  // German name

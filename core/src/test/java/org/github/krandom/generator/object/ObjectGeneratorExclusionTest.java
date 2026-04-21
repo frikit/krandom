@@ -10,6 +10,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Modifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -91,7 +95,7 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("exclude(FieldPredicates.isAnnotatedWith(...)) suppresses annotated fields")
     void excludeViaAnnotationPredicate() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.isAnnotatedWith(Deprecated.class))
+                                                            .exclude(FieldPredicates.isAnnotatedWith(LegacyField.class))
                                                             .build();
         AnnotationPredicateTarget target = new ObjectGenerator<>(AnnotationPredicateTarget.class, config).generate();
         assertNull(target.getLegacyValue(), "annotated field must be excluded");
@@ -183,7 +187,7 @@ class ObjectGeneratorExclusionTest {
 
     static class AnnotationPredicateTarget {
 
-        @Deprecated
+        @LegacyField
         private String legacyValue;
         private String activeValue;
 
@@ -194,6 +198,11 @@ class ObjectGeneratorExclusionTest {
         String getActiveValue() {
             return activeValue;
         }
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    @interface LegacyField {
     }
 
 

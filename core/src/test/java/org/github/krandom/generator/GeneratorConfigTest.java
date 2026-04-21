@@ -452,7 +452,7 @@ class GeneratorConfigTest {
         assertEquals(Locale.JAPAN, japan.getLocale());
 
         GeneratorConfig custom = GeneratorConfig.builder()
-                                                .locale(new Locale("es", "MX"))
+                                                .locale(Locale.of("es", "MX"))
                                                 .build();
         assertEquals("es", custom.getLocale().getLanguage());
         assertEquals("MX", custom.getLocale().getCountry());

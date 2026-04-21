@@ -32,11 +32,10 @@ class ObjectFakerTest {
     }
 
     @Test
-    @DisplayName("ObjectGeneratorConfig constructor is deprecated in favor of GeneratorConfig")
-    void objectConfigConstructorIsDeprecated() throws Exception {
-        Constructor<ObjectFaker> constructor =
-            ObjectFaker.class.getDeclaredConstructor(Class.class, ObjectGeneratorConfig.class);
-        assertTrue(constructor.isAnnotationPresent(Deprecated.class));
+    @DisplayName("ObjectGeneratorConfig constructor overload remains available")
+    void objectConfigConstructorRemainsAvailable() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class, ObjectGeneratorConfig.builder().build()).generate();
+        assertNotNull(user);
     }
 
     @Test

@@ -18,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Constructor;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -82,11 +81,10 @@ class ObjectGeneratorTest {
     }
 
     @Test
-    @DisplayName("ObjectGeneratorConfig constructor is deprecated in favor of GeneratorConfig")
-    void objectConfigConstructorIsDeprecated() throws Exception {
-        Constructor<ObjectGenerator> constructor =
-            ObjectGenerator.class.getDeclaredConstructor(Class.class, ObjectGeneratorConfig.class);
-        assertTrue(constructor.isAnnotationPresent(Deprecated.class));
+    @DisplayName("ObjectGeneratorConfig constructor overload remains available")
+    void objectConfigConstructorRemainsAvailable() {
+        Address address = new ObjectGenerator<>(Address.class, ObjectGeneratorConfig.builder().build()).generate();
+        assertNotNull(address);
     }
 
 

@@ -171,7 +171,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("Australia locale has correct bounds")
     void australiaBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(
-            new Locale("en", "AU")
+            Locale.of("en", "AU")
         );
 
         assertEquals(-44.0, gen.getMinLatitude(), EPSILON);
@@ -183,7 +183,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Australia locale generates latitude within bounds")
     void australiaLatitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en", "AU"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("en", "AU"));
 
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
@@ -195,7 +195,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Australia locale generates longitude within bounds")
     void australiaLongitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en", "AU"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("en", "AU"));
 
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
@@ -284,7 +284,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("Spain locale has correct bounds")
     void spainBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(
-            new Locale("es", "ES")
+            Locale.of("es", "ES")
         );
 
         assertEquals(36.0, gen.getMinLatitude(), EPSILON);
@@ -296,7 +296,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Spain locale generates latitude within bounds")
     void spainLatitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("es", "ES"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("es", "ES"));
 
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
@@ -308,7 +308,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Spain locale generates longitude within bounds")
     void spainLongitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("es", "ES"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("es", "ES"));
 
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
@@ -360,7 +360,7 @@ class CoordinatesGeneratorTest {
     @DisplayName("Brazil locale has correct bounds")
     void brazilBounds() {
         CoordinatesGenerator gen = new CoordinatesGenerator(
-            new Locale("pt", "BR")
+            Locale.of("pt", "BR")
         );
 
         assertEquals(-33.7, gen.getMinLatitude(), EPSILON);
@@ -372,7 +372,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Brazil locale generates latitude within bounds")
     void brazilLatitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("pt", "BR"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("pt", "BR"));
 
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
@@ -384,7 +384,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Brazil locale generates longitude within bounds")
     void brazilLongitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("pt", "BR"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("pt", "BR"));
 
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
@@ -683,9 +683,9 @@ class CoordinatesGeneratorTest {
     @DisplayName("all locales produce coordinates within global bounds")
     void allLocalesWithinGlobalBounds() {
         Locale[] locales = {
-            Locale.US, Locale.UK, new Locale("en", "AU"),
-            Locale.GERMANY, Locale.FRANCE, new Locale("es", "ES"),
-            Locale.ITALY, new Locale("pt", "BR"), Locale.JAPAN, Locale.CHINA
+            Locale.US, Locale.UK, Locale.of("en", "AU"),
+            Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"),
+            Locale.ITALY, Locale.of("pt", "BR"), Locale.JAPAN, Locale.CHINA
         };
 
         for (Locale locale : locales) {
@@ -741,7 +741,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("unknown locale defaults to US bounds")
     void unknownLocaleDefaultsToUS() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("xx", "XX"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("xx", "XX"));
 
         // Should use US bounds
         assertEquals(24.5, gen.getMinLatitude(), EPSILON);
@@ -761,7 +761,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("locale with language only defaults to US bounds")
     void localeLanguageOnlyDefaultsToUS() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("en"));
 
         // Should use US bounds
         assertEquals(24.5, gen.getMinLatitude(), EPSILON);

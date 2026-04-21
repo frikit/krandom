@@ -1395,12 +1395,8 @@ public final class Generators {
     }
 
     /**
-     * Returns an object generator for the given type with explicit object-generation configuration.
-     *
-     * @deprecated Prefer {@link #ofObject(Class, GeneratorConfig)} and migrate
-     *             object-local settings with {@link ObjectGeneratorConfig#toGeneratorConfig()}.
+     * Returns an object generator for the given type with object-scoped configuration overrides.
      */
-    @Deprecated(since = "0.1.0", forRemoval = false)
     public static <T> ObjectGenerator<T> ofObject(Class<T> type, ObjectGeneratorConfig config) {
         return new ObjectGenerator<>(type, config);
     }
@@ -1420,12 +1416,8 @@ public final class Generators {
     }
 
     /**
-     * Returns a fluent object faker for the given type with explicit object-generation configuration.
-     *
-     * @deprecated Prefer {@link #ofObjectFaker(Class, GeneratorConfig)} and migrate
-     *             object-local settings with {@link ObjectGeneratorConfig#toGeneratorConfig()}.
+     * Returns a fluent object faker for the given type with object-scoped configuration overrides.
      */
-    @Deprecated(since = "0.1.0", forRemoval = false)
     public static <T> ObjectFaker<T> ofObjectFaker(Class<T> type, ObjectGeneratorConfig config) {
         return new ObjectFaker<>(type, config);
     }

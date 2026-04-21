@@ -37,17 +37,8 @@ class CardExpirationGeneratorTest {
     @Test
     void testDefaultConstructor() {
         assertNotNull(generator);
-        assertTrue(generator.isFutureOnly());
+        assertEquals(DateRange.FUTURE, generator.getDateRange());
         assertNotNull(generator.generate());
-    }
-
-    @Test
-    void testBooleanConstructor() {
-        CardExpirationGenerator futureGen = new CardExpirationGenerator(true);
-        assertEquals(DateRange.FUTURE, futureGen.getDateRange());
-
-        CardExpirationGenerator anyGen = new CardExpirationGenerator(false);
-        assertEquals(DateRange.ANY, anyGen.getDateRange());
     }
 
     @Test
@@ -67,15 +58,7 @@ class CardExpirationGeneratorTest {
         GeneratorConfig config = GeneratorConfig.builder().seed(12345L).build();
         CardExpirationGenerator gen = new CardExpirationGenerator(config);
         assertNotNull(gen);
-        assertTrue(gen.isFutureOnly());
-    }
-
-    @Test
-    void testConfigBooleanConstructor() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(12345L).build();
-        CardExpirationGenerator gen = new CardExpirationGenerator(config, false);
-        assertNotNull(gen);
-        assertEquals(DateRange.ANY, gen.getDateRange());
+        assertEquals(DateRange.FUTURE, gen.getDateRange());
     }
 
     @Test
@@ -215,11 +198,9 @@ class CardExpirationGeneratorTest {
         assertEquals(DateRange.ANY, anyGen.getDateRange());
     }
 
-    // Future-Only Tests (backward compatibility)
-
     @Test
-    void testFutureOnlyGenerate() {
-        CardExpirationGenerator futureGen = new CardExpirationGenerator(true);
+    void testFutureDateRangeGenerateAlias() {
+        CardExpirationGenerator futureGen = new CardExpirationGenerator(DateRange.FUTURE);
         YearMonth now = YearMonth.now();
 
         for (int i = 0; i < 100; i++) {
@@ -231,8 +212,8 @@ class CardExpirationGeneratorTest {
     }
 
     @Test
-    void testNonFutureOnlyGenerate() {
-        CardExpirationGenerator anyGen = new CardExpirationGenerator(false);
+    void testAnyDateRangeGenerateAlias() {
+        CardExpirationGenerator anyGen = new CardExpirationGenerator(DateRange.ANY);
         Set<Boolean> hasPast = new HashSet<>();
         Set<Boolean> hasFuture = new HashSet<>();
         YearMonth now = YearMonth.now();
@@ -253,26 +234,11 @@ class CardExpirationGeneratorTest {
         // Past dates might not appear in small sample, so we don't strictly require them
     }
 
-    @Test
-    void testGenerateWithFutureOnlyParameter() {
-        YearMonth now = YearMonth.now();
-
-        // Test with futureOnly = true
-        String futureExpiry = generator.generate(true);
-        YearMonth futureDate = parseExpiryDate(futureExpiry);
-        assertTrue(futureDate.isAfter(now) || futureDate.equals(now.plusMonths(1)));
-
-        // Test with futureOnly = false
-        String anyExpiry = generator.generate(false);
-        assertNotNull(anyExpiry);
-        assertTrue(anyExpiry.matches("\\d{2}/\\d{2}"));
-    }
-
     // Locale-Specific Tests
 
     @Test
     void testGenerateWithLocaleUS() {
-        Locale locale = new Locale("en", "US");
+        Locale locale = Locale.of("en", "US");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "US should use MM/YY format");
@@ -280,7 +246,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleGB() {
-        Locale locale = new Locale("en", "GB");
+        Locale locale = Locale.of("en", "GB");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "GB should use MM/YY format");
@@ -288,7 +254,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleDE() {
-        Locale locale = new Locale("de", "DE");
+        Locale locale = Locale.of("de", "DE");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "DE should use MM/YY format");
@@ -296,7 +262,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleJP() {
-        Locale locale = new Locale("ja", "JP");
+        Locale locale = Locale.of("ja", "JP");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "JP should use YY/MM format");
@@ -314,7 +280,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleCN() {
-        Locale locale = new Locale("zh", "CN");
+        Locale locale = Locale.of("zh", "CN");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "CN should use YY/MM format");
@@ -328,13 +294,13 @@ class CardExpirationGeneratorTest {
     }
 
     @Test
-    void testGenerateWithLocaleBooleanParameters() {
-        Locale usLocale = new Locale("en", "US");
-        Locale jpLocale = new Locale("ja", "JP");
+    void testGenerateWithLocaleDateRangeParameters() {
+        Locale usLocale = Locale.of("en", "US");
+        Locale jpLocale = Locale.of("ja", "JP");
 
-        String usFuture = generator.generate(usLocale, true);
-        String usAny = generator.generate(usLocale, false);
-        String jpFuture = generator.generate(jpLocale, true);
+        String usFuture = generator.generate(usLocale, DateRange.FUTURE);
+        String usAny = generator.generate(usLocale, DateRange.ANY);
+        String jpFuture = generator.generate(jpLocale, DateRange.FUTURE);
 
         assertNotNull(usFuture);
         assertNotNull(usAny);
@@ -366,8 +332,8 @@ class CardExpirationGeneratorTest {
     }
 
     @Test
-    void testGetMonthWithFutureOnly() {
-        String month = generator.getMonth(true);
+    void testGetMonthWithFutureDateRange() {
+        String month = generator.getMonth(DateRange.FUTURE);
         assertNotNull(month);
         assertTrue(month.matches("\\d{2}"));
         int monthValue = Integer.parseInt(month);
@@ -375,8 +341,8 @@ class CardExpirationGeneratorTest {
     }
 
     @Test
-    void testGetMonthWithNonFutureOnly() {
-        String month = generator.getMonth(false);
+    void testGetMonthWithAnyDateRange() {
+        String month = generator.getMonth(DateRange.ANY);
         assertNotNull(month);
         assertTrue(month.matches("\\d{2}"));
         int monthValue = Integer.parseInt(month);
@@ -410,11 +376,11 @@ class CardExpirationGeneratorTest {
     }
 
     @Test
-    void testGetYearWithBooleanParameters() {
-        String shortFuture = generator.getYear(false, true);
-        String fullFuture = generator.getYear(true, true);
-        String shortAny = generator.getYear(false, false);
-        String fullAny = generator.getYear(true, false);
+    void testGetYearWithDateRangeParameters() {
+        String shortFuture = generator.getYear(false, DateRange.FUTURE);
+        String fullFuture = generator.getYear(true, DateRange.FUTURE);
+        String shortAny = generator.getYear(false, DateRange.ANY);
+        String fullAny = generator.getYear(true, DateRange.ANY);
 
         assertTrue(shortFuture.matches("\\d{2}"));
         assertTrue(fullFuture.matches("\\d{4}"));
@@ -423,8 +389,8 @@ class CardExpirationGeneratorTest {
     }
 
     @Test
-    void testGetYearFutureOnly() {
-        CardExpirationGenerator futureGen = new CardExpirationGenerator(true);
+    void testGetYearFutureDateRange() {
+        CardExpirationGenerator futureGen = new CardExpirationGenerator(DateRange.FUTURE);
         int currentYear = LocalDate.now().getYear();
 
         for (int i = 0; i < 50; i++) {
@@ -557,8 +523,8 @@ class CardExpirationGeneratorTest {
     // Edge Case Tests
 
     @Test
-    void testFutureOnlyNeverExpiresSoon() {
-        CardExpirationGenerator futureGen = new CardExpirationGenerator(true);
+    void testFutureDateRangeNeverExpiresSoon() {
+        CardExpirationGenerator futureGen = new CardExpirationGenerator(DateRange.FUTURE);
         YearMonth now = YearMonth.now();
 
         for (int i = 0; i < 100; i++) {
@@ -570,18 +536,6 @@ class CardExpirationGeneratorTest {
     }
 
     @Test
-    void testIsFutureOnlyFlag() {
-        CardExpirationGenerator futureGen = new CardExpirationGenerator(DateRange.FUTURE);
-        assertTrue(futureGen.isFutureOnly());
-
-        CardExpirationGenerator pastGen = new CardExpirationGenerator(DateRange.PAST);
-        assertFalse(pastGen.isFutureOnly());
-
-        CardExpirationGenerator anyGen = new CardExpirationGenerator(DateRange.ANY);
-        assertFalse(anyGen.isFutureOnly());
-    }
-
-    @Test
     void testDateRangeFromBoolean() {
         assertEquals(DateRange.FUTURE, DateRange.fromBoolean(true));
         assertEquals(DateRange.ANY, DateRange.fromBoolean(false));
@@ -589,8 +543,8 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testLocaleFormatDifference() {
-        Locale usLocale = new Locale("en", "US");
-        Locale jpLocale = new Locale("ja", "JP");
+        Locale usLocale = Locale.of("en", "US");
+        Locale jpLocale = Locale.of("ja", "JP");
 
         // Generate with same seed to get same date
         GeneratorConfig config = GeneratorConfig.builder().seed(99999L).build();
