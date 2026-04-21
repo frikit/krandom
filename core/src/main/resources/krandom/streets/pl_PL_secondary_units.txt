@@ -1,0 +1,10 @@
+Mieszkanie
+Lokal
+Piętro
+Klatka
+Budynek
+Segment
+Pokój
+Oficyna
+Skrzynka
+Studio

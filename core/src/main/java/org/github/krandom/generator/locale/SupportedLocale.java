@@ -30,7 +30,7 @@ public enum SupportedLocale {
     PT_BR("pt", "BR"),
     ZH_CN("zh", "CN"),
     NL_NL("nl", "NL"),
-    PL_PL("pl", "PL", "de_DE", "de_DE"),
+    PL_PL("pl", "PL"),
     RU_RU("ru", "RU", "de_DE", "de_DE"),
     KO_KR("ko", "KR", "ja_JP", "ja_JP"),
     TR_TR("tr", "TR", "de_DE", "en_GB"),

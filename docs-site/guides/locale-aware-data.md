@@ -49,14 +49,13 @@ Optional<SupportedLocale> resourceFallback = locale.resourceFallbackLocale();
 
 Current built-in quality split:
 
-- Native today for resource-backed identity/address data plus profession data: `en_US`, `en_GB`, `en_AU`, `fr_FR`, `de_DE`, `ja_JP`, `es_ES`, `it_IT`, `pt_BR`, `zh_CN`, `nl_NL`
-- Fallback-backed today: `pl_PL`, `ru_RU`, `ko_KR`, `tr_TR`, `sv_SE`, `nb_NO`, `cs_CZ`, `ar_SA`, `hi_IN`
+- Native today for resource-backed identity/address data plus profession data: `en_US`, `en_GB`, `en_AU`, `fr_FR`, `de_DE`, `ja_JP`, `es_ES`, `it_IT`, `pt_BR`, `zh_CN`, `nl_NL`, `pl_PL`
+- Fallback-backed today: `ru_RU`, `ko_KR`, `tr_TR`, `sv_SE`, `nb_NO`, `cs_CZ`, `ar_SA`, `hi_IN`
 
 Fallback tiers are productized compatibility behavior, not hidden implementation details. They remain supported, but they are explicitly lower quality than native datasets and are the main targets for future native-data upgrades.
 
 Current priority list for native-quality upgrades:
 
-- `pl_PL`
 - `tr_TR`
 - `ar_SA`
 - `hi_IN`

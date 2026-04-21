@@ -1,0 +1,10 @@
+Ulica
+Aleja
+Plac
+Osiedle
+Rondo
+Skwer
+Bulwar
+Droga
+Trasa
+Deptak

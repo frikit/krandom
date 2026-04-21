@@ -167,6 +167,15 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("Polish locale returns Polish country names")
+    void polishLocale() {
+        CountryGenerator gen = new CountryGenerator(Locale.of("pl", "PL"));
+        assertEquals("Polska", gen.currentCountry());
+        assertFalse(gen.generate().isBlank());
+        assertTrue(gen.getCountryCount() > 150);
+    }
+
+    @Test
     @DisplayName("Japanese locale returns Japanese country names")
     void japaneseLocale() {
         CountryGenerator gen = new CountryGenerator(Locale.JAPAN);

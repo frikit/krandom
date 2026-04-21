@@ -69,6 +69,9 @@ class SupportedLocaleCoverageTest {
         assertEquals(LocaleDataQualityTier.NATIVE_DATASET, SupportedLocale.NL_NL.qualityTier());
         assertTrue(SupportedLocale.NL_NL.resourceFallbackLocale().isEmpty());
         assertTrue(SupportedLocale.NL_NL.professionFallbackLocale().isEmpty());
+        assertEquals(LocaleDataQualityTier.NATIVE_DATASET, SupportedLocale.PL_PL.qualityTier());
+        assertTrue(SupportedLocale.PL_PL.resourceFallbackLocale().isEmpty());
+        assertTrue(SupportedLocale.PL_PL.professionFallbackLocale().isEmpty());
         assertEquals(SupportedLocale.EN_GB, SupportedLocale.TR_TR.professionFallbackLocale().orElseThrow());
         assertEquals(SupportedLocale.EN_US, SupportedLocale.HI_IN.professionFallbackLocale().orElseThrow());
         assertEquals(LocaleDataQualityTier.ALIAS_FALLBACK_DATASET,
