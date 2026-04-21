@@ -38,7 +38,7 @@ public enum SupportedLocale {
     NB_NO("nb", "NO", "en_GB", "en_GB"),
     CS_CZ("cs", "CZ", "de_DE", "de_DE"),
     AR_SA("ar", "SA", "en_US", "en_US"),
-    HI_IN("hi", "IN", "en_GB", "en_US");
+    HI_IN("hi", "IN");
 
     private final Locale locale;
     private final String canonicalResourcePrefix;

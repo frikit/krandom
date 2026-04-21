@@ -23,7 +23,8 @@ final class BuiltInCountryDataProvider implements CountryDataProvider {
         this.locale = supportedLocale.locale();
         if (supportedLocale == SupportedLocale.NL_NL
             || supportedLocale == SupportedLocale.PL_PL
-            || supportedLocale == SupportedLocale.TR_TR) {
+            || supportedLocale == SupportedLocale.TR_TR
+            || supportedLocale == SupportedLocale.HI_IN) {
             this.countries = localizedCountryNames(locale);
         } else {
             String resourcePrefix = supportedLocale.resourcePrefix();
