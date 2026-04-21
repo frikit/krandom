@@ -42,6 +42,22 @@ public final class GenerationProfileRunner {
                                                 .locale(Locale.US)
                                                 .seed(7L)
                                                 .build();
+        GeneratorConfig structuralObjectConfig = GeneratorConfig.builder()
+                                                                .locale(Locale.US)
+                                                                .seed(7L)
+                                                                .objectMaxDepth(4)
+                                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                                                .objectNullProbability(0.0)
+                                                                .objectOptionalEmptyProbability(0.0)
+                                                                .build();
+        GeneratorConfig relaxedObjectConfig = GeneratorConfig.builder()
+                                                             .locale(Locale.US)
+                                                             .seed(7L)
+                                                             .objectMaxDepth(4)
+                                                             .objectSemanticMode(ObjectGenerationSemanticMode.RELAXED)
+                                                             .objectNullProbability(0.0)
+                                                             .objectOptionalEmptyProbability(0.0)
+                                                             .build();
         GeneratorConfig semanticObjectConfig = GeneratorConfig.builder()
                                                               .locale(Locale.US)
                                                               .seed(7L)
@@ -59,6 +75,8 @@ public final class GenerationProfileRunner {
         profileCase("first-name", new FirstNameGenerator(config));
         profileCase("regex-ssn", new RegexGenerator("\\d{3}-\\d{2}-\\d{4}", 7L));
         profileCase("object-simple-user", Generators.ofObject(BenchmarkFixtures.SimpleUser.class));
+        profileCase("object-structural-customer", Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, structuralObjectConfig));
+        profileCase("object-relaxed-customer", Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, relaxedObjectConfig));
         profileCase("object-semantic-customer", Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, semanticObjectConfig));
         profileCase("unique-email", Generators.unique(new EmailGenerator(config), 2_000));
         profileTask("schema-batch-250", () -> schema.generateBatch(250));

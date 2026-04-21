@@ -33,6 +33,24 @@ public class ExpandedGenerationBenchmark {
 
     @State(Scope.Thread)
     public static class GeneratorState {
+        private final GeneratorConfig structuralConfig = GeneratorConfig.builder()
+                                                                       .locale(Locale.US)
+                                                                       .seed(7L)
+                                                                       .objectMaxDepth(4)
+                                                                       .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                                                       .objectNullProbability(0.0)
+                                                                       .objectOptionalEmptyProbability(0.0)
+                                                                       .build();
+
+        private final GeneratorConfig relaxedConfig = GeneratorConfig.builder()
+                                                                    .locale(Locale.US)
+                                                                    .seed(7L)
+                                                                    .objectMaxDepth(4)
+                                                                    .objectSemanticMode(ObjectGenerationSemanticMode.RELAXED)
+                                                                    .objectNullProbability(0.0)
+                                                                    .objectOptionalEmptyProbability(0.0)
+                                                                    .build();
+
         private final GeneratorConfig semanticConfig = GeneratorConfig.builder()
                                                                      .locale(Locale.US)
                                                                      .seed(7L)
@@ -53,6 +71,12 @@ public class ExpandedGenerationBenchmark {
                                                                          .objectUniquenessMaxAttempts(2_000)
                                                                          .build();
 
+        public final ObjectGenerator<BenchmarkFixtures.SemanticCustomer> structuralCustomer =
+            Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, structuralConfig);
+
+        public final ObjectGenerator<BenchmarkFixtures.SemanticCustomer> relaxedCustomer =
+            Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, relaxedConfig);
+
         public final ObjectGenerator<BenchmarkFixtures.SemanticCustomer> semanticCustomer =
             Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, semanticConfig);
 
@@ -65,6 +89,16 @@ public class ExpandedGenerationBenchmark {
                                                                 .seed(7L)
                                                                 .build()),
                               2_000);
+    }
+
+    @Benchmark
+    public BenchmarkFixtures.SemanticCustomer structuralOnlyObjectGraph(GeneratorState state) {
+        return state.structuralCustomer.generate();
+    }
+
+    @Benchmark
+    public BenchmarkFixtures.SemanticCustomer relaxedSemanticObjectGraph(GeneratorState state) {
+        return state.relaxedCustomer.generate();
     }
 
     @Benchmark

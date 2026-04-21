@@ -55,6 +55,43 @@ Run macro profile (100k / 1M loops):
 - `CountryGenerator` now lazy-loads ISO alpha-3 country-code data on first use.
 - `benchmarks/profileGeneration` provides CI-optional macro runs for startup + large throughput checks.
 
+## Structural vs semantic object cost
+
+The benchmark suite now keeps an explicit structural-only baseline next to the semantic object cases.
+
+- `STRUCTURAL_ONLY`: use this as the raw throughput baseline for object generation.
+- `RELAXED`: semantic defaults are enabled, but annotations and Bean Validation can still win.
+- `STRICT`: semantic defaults win whenever a semantic match exists.
+
+For JMH, compare the `ExpandedGenerationBenchmark` object cases directly.
+
+For macro runs, compare:
+
+- `object-structural-customer`
+- `object-relaxed-customer`
+- `object-semantic-customer`
+
+If a workload cares more about throughput than realism, set:
+
+```java
+GeneratorConfig cfg = GeneratorConfig.builder()
+        .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+        .build();
+```
+
+That disables semantic field-name resolution and the coherence pass while keeping the same object-generation entry points.
+
+## Performance budgets
+
+The project currently tracks these practical budgets:
+
+- scalar generators should stay in the high-throughput, low-allocation range and should not regress noticeably against existing first-name / regex baselines
+- structural-only object generation is the baseline for object throughput comparisons
+- relaxed and strict semantic object generation should be measured against that structural baseline before release work
+- schema streaming writers should remain measurable separately from in-memory batch generation
+
+These are release-readiness budgets, not hardcoded runtime limits. Re-run the benchmark suite after object-semantic or schema-output changes and compare against the structural-only baseline rather than against old point-in-time snapshot numbers alone.
+
 ## Capability matrix (versioned snapshot)
 
 | Capability | kRandom | Java Faker | Chance.js |

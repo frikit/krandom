@@ -16,12 +16,19 @@ JMH benchmark classes:
 - `ExpandedGenerationBenchmark`
 - `SchemaOutputBenchmark`
 
+`ExpandedGenerationBenchmark` now includes:
+
+- structural-only semantic-customer baseline
+- relaxed semantic customer generation
+- strict semantic customer generation
+- uniqueness-heavy semantic customer generation
+
 Macro profile runner:
 
 - `GenerationProfileRunner`
 - Run sizes: `1,000`, `10,000`, `100,000`, `1,000,000`, `10,000,000`
 - Output columns: `count`, `ops/sec`, `heap-delta-mb`
-- Current macro cases include semantic object generation, uniqueness-heavy generation, schema batch generation, and streaming JSONL/CSV writers
+- Current macro cases include structural-only vs relaxed vs strict object generation, uniqueness-heavy generation, schema batch generation, and streaming JSONL/CSV writers
 
 ## Run JMH (Proper)
 
@@ -72,3 +79,4 @@ Notes:
 - Numbers above are a single local snapshot, not a stability baseline.
 - `heap-delta-mb` can be negative because of GC timing during long runs.
 - The benchmark suite has expanded since this snapshot; rerun `:benchmarks:jmh` or `:benchmarks:profileGeneration` for current numbers on the new cases.
+- Use the structural-only benchmark cases as the current throughput baseline when evaluating the cost of stricter semantic realism.
