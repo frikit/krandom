@@ -53,9 +53,11 @@ class ObjectGeneratorTypedSemanticTest {
         assertNotNull(value.accountBalance);
         assertEquals(2, value.accountBalance.scale());
         assertTrue(value.accountBalance.compareTo(BigDecimal.ZERO) >= 0);
+        assertTrue(value.accountBalance.compareTo(value.totalAmount) >= 0);
 
         assertTrue(value.unitPrice >= 0.0);
         assertTrue(value.unitPrice < 10000.0);
+        assertTrue(value.totalAmount.doubleValue() + 0.0001d >= value.unitPrice);
         assertEquals(Currency.USD, value.currencyCode);
         assertTrue(value.accountId > 0);
         assertTrue(value.lat >= 24.5 && value.lat <= 49.0);

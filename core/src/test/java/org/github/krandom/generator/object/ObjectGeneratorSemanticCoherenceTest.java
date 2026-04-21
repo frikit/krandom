@@ -7,18 +7,22 @@ package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.location.CountryGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator semantic coherence")
@@ -155,6 +159,53 @@ class ObjectGeneratorSemanticCoherenceTest {
         assertEquals(value.isEnabled, value.status == LifecycleState.ACTIVE || value.status == LifecycleState.ENABLED);
     }
 
+    @Test
+    @DisplayName("locale-backed address fields force country to the configured locale country")
+    void localeBackedAddressFieldsForceCountryToConfiguredLocaleCountry() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.GERMANY).build();
+
+        AddressCoherenceHolder value = new ObjectGenerator<>(AddressCoherenceHolder.class, config).generate();
+
+        assertFalse(value.city.isBlank());
+        assertFalse(value.state.isBlank());
+        assertFalse(value.postalCode.isBlank());
+        assertEquals(new CountryGenerator(Locale.GERMANY).currentCountry(), value.country);
+    }
+
+    @Test
+    @DisplayName("explicit country overrides still win over address coherence")
+    void explicitCountryOverridesStillWinOverAddressCoherence() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .override(AddressCoherenceHolder.class, "country", () -> "Canada")
+                                                            .build();
+
+        AddressCoherenceHolder value = new ObjectGenerator<>(AddressCoherenceHolder.class, config).generate();
+
+        assertEquals("Canada", value.country);
+    }
+
+    @Test
+    @DisplayName("money fields stay ordered and string money fields derive formatted values")
+    void moneyFieldsStayOrderedAndStringMoneyFieldsDeriveFormattedValues() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .override(StringMoneyHolder.class, "price", () -> "7.50")
+                                                            .override(StringMoneyHolder.class, "currencyCode", () -> "USD")
+                                                            .build();
+
+        StringMoneyHolder stringMoney = new ObjectGenerator<>(StringMoneyHolder.class, config).generate();
+        OrderedMoneyHolder orderedMoney = new ObjectGenerator<>(OrderedMoneyHolder.class).generate();
+
+        assertEquals("7.50", stringMoney.price);
+        assertEquals("USD 7.50", stringMoney.amount);
+        assertEquals("USD 7.50", stringMoney.balance);
+
+        assertNotNull(orderedMoney.price);
+        assertNotNull(orderedMoney.amount);
+        assertNotNull(orderedMoney.balance);
+        assertTrue(orderedMoney.amount.compareTo(orderedMoney.price) >= 0);
+        assertTrue(orderedMoney.balance.compareTo(orderedMoney.amount) >= 0);
+    }
+
     private static String slug(String value) {
         StringBuilder normalized = new StringBuilder(value.length());
         for (int i = 0; i < value.length(); i++) {
@@ -222,6 +273,29 @@ class ObjectGeneratorSemanticCoherenceTest {
 
         boolean        isEnabled;
         LifecycleState status;
+    }
+
+    static class AddressCoherenceHolder {
+
+        String city;
+        String state;
+        String postalCode;
+        String country;
+    }
+
+    static class StringMoneyHolder {
+
+        String currencyCode;
+        String price;
+        String amount;
+        String balance;
+    }
+
+    static class OrderedMoneyHolder {
+
+        BigDecimal price;
+        BigDecimal amount;
+        BigDecimal balance;
     }
 
     static class AnnotatedEmailPerson {

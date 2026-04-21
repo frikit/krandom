@@ -7,6 +7,7 @@ package org.github.krandom.generator.object;
 
 import jakarta.validation.constraints.Size;
 import org.github.krandom.generator.Generator;
+import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +24,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -184,6 +188,137 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
+    @DisplayName("money and currency utility methods cover parsing and formatting branches")
+    void moneyAndCurrencyUtilityMethodsCoverParsingAndFormattingBranches() throws Exception {
+        assertEquals(new BigDecimal("12.35"),
+                     invokeStatic("moneyValue", new Class<?>[] { Object.class }, "USD 12.345"));
+        assertEquals(new BigDecimal("42.00"),
+                     invokeStatic("moneyValue", new Class<?>[] { Object.class }, 42));
+        assertEquals(new BigDecimal("42.00"),
+                     invokeStatic("moneyValue", new Class<?>[] { Object.class }, BigInteger.valueOf(42)));
+        assertEquals(new BigDecimal("7.50"),
+                     invokeStatic("moneyValue", new Class<?>[] { Object.class }, 7.5d));
+        assertNull(invokeStatic("moneyValue", new Class<?>[] { Object.class }, "not-money"));
+        assertNull(invokeStatic("moneyValue", new Class<?>[] { Object.class }, LocalDate.now()));
+
+        assertEquals("USD",
+                     invokeStatic("currencyCode", new Class<?>[] { Object.class },
+                                  org.github.krandom.generator.finance.Currency.USD));
+        assertEquals("EUR",
+                     invokeStatic("currencyCode", new Class<?>[] { Object.class }, java.util.Currency.getInstance("EUR")));
+        assertEquals("SAR", invokeStatic("currencyCode", new Class<?>[] { Object.class }, "sar"));
+        assertEquals("BHD", invokeStatic("currencyCode", new Class<?>[] { Object.class }, "bhd"));
+        assertNull(invokeStatic("currencyCode", new Class<?>[] { Object.class }, 123));
+        assertNull(invokeStatic("currencyCode", new Class<?>[] { Object.class }, "   "));
+        assertNull(invokeStatic("currencyCode", new Class<?>[] { Object.class }, "not-a-currency"));
+
+        assertEquals("USD 12.35",
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), String.class, "USD"));
+        assertEquals("12.35",
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), String.class, null));
+        assertEquals(new BigDecimal("12.35"),
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), BigDecimal.class, "USD"));
+        assertEquals(BigInteger.valueOf(12),
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), BigInteger.class, "USD"));
+        assertEquals((byte) 12,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), byte.class, "USD"));
+        assertEquals((byte) 12,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), Byte.class, "USD"));
+        assertEquals((short) 12,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), Short.class, "USD"));
+        assertEquals((short) 12,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), short.class, "USD"));
+        assertEquals(12,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), Integer.class, "USD"));
+        assertEquals(12,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), int.class, "USD"));
+        assertEquals(12L,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), Long.class, "USD"));
+        assertEquals(12L,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), long.class, "USD"));
+        assertEquals(12.35f,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), Float.class, "USD"));
+        assertEquals(12.35f,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), float.class, "USD"));
+        assertEquals(12.35d,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), Double.class, "USD"));
+        assertEquals(12.35d,
+                     invokeStatic("moneyValueFor",
+                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                  new BigDecimal("12.345"), double.class, "USD"));
+        assertNull(invokeStatic("moneyValueFor",
+                                new Class<?>[] { BigDecimal.class, Class.class, String.class },
+                                new BigDecimal("12.345"), LocalDate.class, "USD"));
+
+        Class<?> slotType = Class.forName("org.github.krandom.generator.object.SemanticCoherenceAdjuster$Slot");
+        assertEquals(new BigDecimal("1.00"),
+                     invokeStatic("assignMoney",
+                                  new Class<?>[] { slotType, BigDecimal.class, String.class },
+                                  null, new BigDecimal("1.00"), "USD"));
+
+        ManualMoneyHolder nullMoneyHolder = new ManualMoneyHolder();
+        Object priceSlot = rawSlot(nullMoneyHolder, "price");
+        assertNull(invokeStatic("assignMoney",
+                                new Class<?>[] { slotType, BigDecimal.class, String.class },
+                                priceSlot, null, "USD"));
+
+        UnsupportedMoneyTarget unsupportedMoneyTarget = new UnsupportedMoneyTarget();
+        Object unsupportedSlot = rawSlot(unsupportedMoneyTarget, "value");
+        assertEquals(new BigDecimal("2.00"),
+                     invokeStatic("assignMoney",
+                                  new Class<?>[] { slotType, BigDecimal.class, String.class },
+                                  unsupportedSlot, new BigDecimal("2.00"), "USD"));
+        assertNull(unsupportedMoneyTarget.value);
+
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
+        ManualStringMoneyHolder stringHolder = new ManualStringMoneyHolder();
+        Object stringPriceSlot = rawSlot(stringHolder, "price");
+        assertFalse((Boolean) invokeInstance(adjuster, "shouldFormatMoneyString",
+                                             new Class<?>[] { BigDecimal.class, slotType, boolean.class },
+                                             new BigDecimal("1.00"), null, true));
+        assertFalse((Boolean) invokeInstance(adjuster, "shouldFormatMoneyString",
+                                             new Class<?>[] { BigDecimal.class, slotType, boolean.class },
+                                             null, stringPriceSlot, true));
+        assertFalse((Boolean) invokeInstance(adjuster, "shouldFormatMoneyString",
+                                             new Class<?>[] { BigDecimal.class, slotType, boolean.class },
+                                             new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true));
+
+        assertFalse((Boolean) invokeStatic("isLessThan",
+                                           new Class<?>[] { BigDecimal.class, BigDecimal.class },
+                                           new BigDecimal("1.00"), null));
+    }
+
+    @Test
     @DisplayName("structural-only mode leaves class instances and record args untouched")
     void structuralOnlyModeLeavesClassInstancesAndRecordArgsUntouched() throws Exception {
         SemanticCoherenceAdjuster adjuster =
@@ -254,6 +389,166 @@ class SemanticCoherenceAdjusterTest {
         fromNames.lastName = "Lovelace";
         nameAdjuster.adjustInstance(ManualNameHolder.class, fromNames, declaredFields(ManualNameHolder.class), true);
         assertEquals("Ada Lovelace", fromNames.fullName);
+    }
+
+    @Test
+    @DisplayName("manual instances align locale country and monetary fields")
+    void manualInstancesAlignLocaleCountryAndMonetaryFields() throws Exception {
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+                                                                           new UniqueFieldTracker());
+
+        ManualAddressHolder address = new ManualAddressHolder();
+        address.city = "Dallas";
+        address.state = "Texas";
+        address.postalCode = "75201";
+        address.country = "France";
+        adjuster.adjustInstance(ManualAddressHolder.class, address, declaredFields(ManualAddressHolder.class), true);
+        assertEquals("United States", address.country);
+
+        ManualMoneyHolder money = new ManualMoneyHolder();
+        money.currencyCode = "usd";
+        money.price = new BigDecimal("80.00");
+        money.amount = new BigDecimal("50.00");
+        money.balance = new BigDecimal("40.00");
+        adjuster.adjustInstance(ManualMoneyHolder.class, money, declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("80.00"), money.price);
+        assertEquals(new BigDecimal("80.00"), money.amount);
+        assertEquals(new BigDecimal("80.00"), money.balance);
+
+        ManualStringMoneyHolder stringMoney = new ManualStringMoneyHolder();
+        stringMoney.currencyCode = "usd";
+        stringMoney.price = "7.5";
+        adjuster.adjustInstance(ManualStringMoneyHolder.class, stringMoney, declaredFields(ManualStringMoneyHolder.class), true);
+        assertEquals("USD 7.50", stringMoney.price);
+        assertEquals("USD 7.50", stringMoney.amount);
+        assertEquals("USD 7.50", stringMoney.balance);
+    }
+
+    @Test
+    @DisplayName("address and money coherence cover null-locale and protected fallback branches")
+    void addressAndMoneyCoherenceCoverNullLocaleAndProtectedFallbackBranches() throws Exception {
+        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+                                                                                  new UniqueFieldTracker());
+
+        ManualAddressHolder noAddressSignals = new ManualAddressHolder();
+        noAddressSignals.country = "France";
+        defaultAdjuster.adjustInstance(ManualAddressHolder.class, noAddressSignals,
+                                       declaredFields(ManualAddressHolder.class), true);
+        assertEquals("France", noAddressSignals.country);
+
+        StreetOnlyAddressHolder streetOnly = new StreetOnlyAddressHolder();
+        streetOnly.streetAddress = "1 Main Street";
+        streetOnly.country = "France";
+        defaultAdjuster.adjustInstance(StreetOnlyAddressHolder.class, streetOnly,
+                                       declaredFields(StreetOnlyAddressHolder.class), true);
+        assertEquals("United States", streetOnly.country);
+
+        SemanticCoherenceAdjuster languageOnlyAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .generatorConfig(GeneratorConfig.builder()
+                                                                                               .locale(Locale.ENGLISH)
+                                                                                               .build())
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualAddressHolder languageOnly = new ManualAddressHolder();
+        languageOnly.city = "London";
+        languageOnly.country = "France";
+        languageOnlyAdjuster.adjustInstance(ManualAddressHolder.class, languageOnly,
+                                            declaredFields(ManualAddressHolder.class), true);
+        assertEquals("France", languageOnly.country);
+
+        SemanticCoherenceAdjuster unregisteredLocaleAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .generatorConfig(GeneratorConfig.builder()
+                                                                                               .locale(Locale.of("zz", "US"))
+                                                                                               .build())
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualAddressHolder unregisteredLocale = new ManualAddressHolder();
+        unregisteredLocale.city = "Nowhere";
+        unregisteredLocale.country = "France";
+        unregisteredLocaleAdjuster.adjustInstance(ManualAddressHolder.class, unregisteredLocale,
+                                                  declaredFields(ManualAddressHolder.class), true);
+        assertEquals("France", unregisteredLocale.country);
+
+        ManualMoneyHolder derivedPrice = new ManualMoneyHolder();
+        derivedPrice.amount = new BigDecimal("12.50");
+        defaultAdjuster.adjustInstance(ManualMoneyHolder.class, derivedPrice, declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("12.50"), derivedPrice.price);
+        assertEquals(new BigDecimal("12.50"), derivedPrice.amount);
+        assertEquals(new BigDecimal("12.50"), derivedPrice.balance);
+
+        SemanticCoherenceAdjuster protectedAmountAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .override(ManualMoneyHolder.class, "amount",
+                                                                         () -> new BigDecimal("50.00"))
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualMoneyHolder protectedAmount = new ManualMoneyHolder();
+        protectedAmount.price = new BigDecimal("80.00");
+        protectedAmount.amount = new BigDecimal("50.00");
+        protectedAmountAdjuster.adjustInstance(ManualMoneyHolder.class, protectedAmount,
+                                               declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("50.00"), protectedAmount.price);
+        assertEquals(new BigDecimal("50.00"), protectedAmount.amount);
+
+        SemanticCoherenceAdjuster protectedBalanceAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .override(ManualMoneyHolder.class, "balance",
+                                                                         () -> new BigDecimal("40.00"))
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualMoneyHolder protectedBalance = new ManualMoneyHolder();
+        protectedBalance.amount = new BigDecimal("80.00");
+        protectedBalance.balance = new BigDecimal("40.00");
+        protectedBalanceAdjuster.adjustInstance(ManualMoneyHolder.class, protectedBalance,
+                                                declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("40.00"), protectedBalance.amount);
+        assertEquals(new BigDecimal("40.00"), protectedBalance.balance);
+
+        SemanticCoherenceAdjuster protectedMissingAmountAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .override(ManualMoneyHolder.class, "amount",
+                                                                         () -> new BigDecimal("25.00"))
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualMoneyHolder protectedMissingAmount = new ManualMoneyHolder();
+        protectedMissingAmount.price = new BigDecimal("25.00");
+        protectedMissingAmountAdjuster.adjustInstance(ManualMoneyHolder.class, protectedMissingAmount,
+                                                      declaredFields(ManualMoneyHolder.class), true);
+        assertNull(protectedMissingAmount.amount);
+
+        SemanticCoherenceAdjuster fullyProtectedPriceAmountAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .override(ManualMoneyHolder.class, "price",
+                                                                         () -> new BigDecimal("80.00"))
+                                                               .override(ManualMoneyHolder.class, "amount",
+                                                                         () -> new BigDecimal("50.00"))
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualMoneyHolder fullyProtectedPriceAmount = new ManualMoneyHolder();
+        fullyProtectedPriceAmount.price = new BigDecimal("80.00");
+        fullyProtectedPriceAmount.amount = new BigDecimal("50.00");
+        fullyProtectedPriceAmountAdjuster.adjustInstance(ManualMoneyHolder.class, fullyProtectedPriceAmount,
+                                                         declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("80.00"), fullyProtectedPriceAmount.price);
+        assertEquals(new BigDecimal("50.00"), fullyProtectedPriceAmount.amount);
+
+        SemanticCoherenceAdjuster fullyProtectedAmountBalanceAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .override(ManualMoneyHolder.class, "amount",
+                                                                         () -> new BigDecimal("80.00"))
+                                                               .override(ManualMoneyHolder.class, "balance",
+                                                                         () -> new BigDecimal("40.00"))
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualMoneyHolder fullyProtectedAmountBalance = new ManualMoneyHolder();
+        fullyProtectedAmountBalance.amount = new BigDecimal("80.00");
+        fullyProtectedAmountBalance.balance = new BigDecimal("40.00");
+        fullyProtectedAmountBalanceAdjuster.adjustInstance(ManualMoneyHolder.class, fullyProtectedAmountBalance,
+                                                           declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("80.00"), fullyProtectedAmountBalance.amount);
+        assertEquals(new BigDecimal("40.00"), fullyProtectedAmountBalance.balance);
     }
 
     @Test
@@ -633,18 +928,21 @@ class SemanticCoherenceAdjusterTest {
     }
 
     private static Map<String, Object> slotMap(Object instance, String... fieldNames) throws Exception {
+        Map<String, Object> slots = new java.util.LinkedHashMap<>();
+        for (String fieldName : fieldNames) {
+            String semanticKey = FieldGeneratorResolver.semanticKeyForFieldName(fieldName);
+            slots.put(semanticKey, rawSlot(instance, fieldName));
+        }
+        return slots;
+    }
+
+    private static Object rawSlot(Object instance, String fieldName) throws Exception {
         Constructor<?> constructor = Class.forName("org.github.krandom.generator.object.SemanticCoherenceAdjuster$ReflectionSlot")
                                          .getDeclaredConstructor(Class.class, Field.class, Object.class, boolean.class);
         constructor.setAccessible(true);
-
-        Map<String, Object> slots = new java.util.LinkedHashMap<>();
-        for (String fieldName : fieldNames) {
-            Field field = instance.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            String semanticKey = FieldGeneratorResolver.semanticKeyForFieldName(fieldName);
-            slots.put(semanticKey, constructor.newInstance(instance.getClass(), field, instance, false));
-        }
-        return slots;
+        Field field = instance.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return constructor.newInstance(instance.getClass(), field, instance, false);
     }
 
     static class ManualCoherenceHolder {
@@ -759,5 +1057,40 @@ class SemanticCoherenceAdjusterTest {
 
     enum PendingOnlyLifecycleState {
         PENDING
+    }
+
+    static class ManualAddressHolder {
+
+        String city;
+        String state;
+        String postalCode;
+        String country;
+    }
+
+    static class StreetOnlyAddressHolder {
+
+        String streetAddress;
+        String country;
+    }
+
+    static class ManualMoneyHolder {
+
+        String     currencyCode;
+        BigDecimal price;
+        BigDecimal amount;
+        BigDecimal balance;
+    }
+
+    static class ManualStringMoneyHolder {
+
+        String currencyCode;
+        String price;
+        String amount;
+        String balance;
+    }
+
+    static class UnsupportedMoneyTarget {
+
+        LocalDate value;
     }
 }

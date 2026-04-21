@@ -46,10 +46,7 @@ final class BuiltInCountryDataProvider implements CountryDataProvider {
     private static String[] localizedCountryNames(Locale locale) {
         Set<String> countries = new LinkedHashSet<>();
         for (String countryCode : Locale.getISOCountries()) {
-            String displayCountry = Locale.of("", countryCode).getDisplayCountry(locale);
-            if (displayCountry != null && !displayCountry.isBlank()) {
-                countries.add(displayCountry);
-            }
+            countries.add(Locale.of("", countryCode).getDisplayCountry(locale));
         }
         return countries.toArray(String[]::new);
     }

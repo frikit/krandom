@@ -5,11 +5,15 @@
  */
 package org.github.krandom.generator.object;
 
+import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -27,11 +31,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Applies lightweight sibling-field coherence after structural value generation.
  */
 final class SemanticCoherenceAdjuster {
+
+    private static final Pattern MONEY_FRAGMENT = Pattern.compile("[-+]?\\d+(?:\\.\\d+)?");
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
@@ -98,13 +106,35 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
+        harmonizeAddressCountry(slotsBySemanticKey, allowOverwriteExisting);
         String domain = harmonizeDomain(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeFullName(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeEmail(slotsBySemanticKey, domain, allowOverwriteExisting);
         harmonizeUrl(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeTimestamps(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeAgeAndBirthDate(slotsBySemanticKey, allowOverwriteExisting);
+        harmonizeMonetaryFields(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeActiveStatus(slotsBySemanticKey, allowOverwriteExisting);
+    }
+
+    private void harmonizeAddressCountry(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
+        Slot countrySlot = slotsBySemanticKey.get("country");
+        if (countrySlot == null || !canAssign(countrySlot, allowOverwriteExisting)) {
+            return;
+        }
+
+        boolean hasAddressSignals = stringValue(slotsBySemanticKey.get("streetaddress")) != null;
+        hasAddressSignals |= stringValue(slotsBySemanticKey.get("city")) != null;
+        hasAddressSignals |= stringValue(slotsBySemanticKey.get("state")) != null;
+        hasAddressSignals |= stringValue(slotsBySemanticKey.get("postalcode")) != null;
+        if (!hasAddressSignals) {
+            return;
+        }
+
+        String localeCountry = localeCurrentCountry();
+        if (localeCountry != null) {
+            countrySlot.setValue(applyUniqueness(countrySlot, "country", localeCountry));
+        }
     }
 
     private String harmonizeDomain(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
@@ -271,6 +301,65 @@ final class SemanticCoherenceAdjuster {
 
         if (statusActive != null && canAssign(activeSlot, allowOverwriteExisting)) {
             activeSlot.setValue(statusActive);
+        }
+    }
+
+    private void harmonizeMonetaryFields(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
+        Slot priceSlot = slotsBySemanticKey.get("price");
+        Slot amountSlot = slotsBySemanticKey.get("amount");
+        Slot balanceSlot = slotsBySemanticKey.get("balance");
+        boolean hasAnyMoneySlot = priceSlot != null | amountSlot != null | balanceSlot != null;
+        if (!hasAnyMoneySlot) {
+            return;
+        }
+
+        String currencyCode = currencyCode(slotsBySemanticKey.get("currency"));
+        BigDecimal price = moneyValue(priceSlot);
+        BigDecimal amount = moneyValue(amountSlot);
+        BigDecimal balance = moneyValue(balanceSlot);
+
+        boolean backfillPrice = price == null & amount != null & canAssign(priceSlot, allowOverwriteExisting);
+        if (backfillPrice) {
+            price = assignMoney(priceSlot, amount, currencyCode);
+        }
+        boolean backfillAmount = amount == null & price != null & canAssign(amountSlot, allowOverwriteExisting);
+        if (backfillAmount) {
+            amount = assignMoney(amountSlot, price, currencyCode);
+        }
+        boolean backfillBalance = balance == null & amount != null & canAssign(balanceSlot, allowOverwriteExisting);
+        if (backfillBalance) {
+            balance = assignMoney(balanceSlot, amount, currencyCode);
+        }
+
+        boolean amountBelowPrice = isLessThan(amount, price);
+        if (amountBelowPrice) {
+            if (canAssign(amountSlot, allowOverwriteExisting)) {
+                amount = assignMoney(amountSlot, price, currencyCode);
+            } else if (canAssign(priceSlot, allowOverwriteExisting)) {
+                price = assignMoney(priceSlot, amount, currencyCode);
+            }
+        }
+
+        boolean balanceBelowAmount = isLessThan(balance, amount);
+        if (balanceBelowAmount) {
+            if (canAssign(balanceSlot, allowOverwriteExisting)) {
+                balance = assignMoney(balanceSlot, amount, currencyCode);
+            } else if (canAssign(amountSlot, allowOverwriteExisting)) {
+                amount = assignMoney(amountSlot, balance, currencyCode);
+            }
+        }
+
+        boolean formatPriceString = shouldFormatMoneyString(price, priceSlot, allowOverwriteExisting);
+        if (formatPriceString) {
+            assignMoney(priceSlot, price, currencyCode);
+        }
+        boolean formatAmountString = shouldFormatMoneyString(amount, amountSlot, allowOverwriteExisting);
+        if (formatAmountString) {
+            assignMoney(amountSlot, amount, currencyCode);
+        }
+        boolean formatBalanceString = shouldFormatMoneyString(balance, balanceSlot, allowOverwriteExisting);
+        if (formatBalanceString) {
+            assignMoney(balanceSlot, balance, currencyCode);
         }
     }
 
@@ -471,6 +560,36 @@ final class SemanticCoherenceAdjuster {
         return instant != null ? instant.atOffset(ZoneOffset.UTC).toLocalDate() : null;
     }
 
+    private static BigDecimal moneyValue(Slot slot) {
+        return slot == null ? null : moneyValue(slot.getValue());
+    }
+
+    private static BigDecimal moneyValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof BigDecimal decimal) {
+            return normalizeMoney(decimal);
+        }
+        if (value instanceof BigInteger integer) {
+            return normalizeMoney(new BigDecimal(integer));
+        }
+        if (value instanceof Byte | value instanceof Short | value instanceof Integer | value instanceof Long) {
+            return normalizeMoney(BigDecimal.valueOf(((Number) value).longValue()));
+        }
+        if (value instanceof Float | value instanceof Double) {
+            return normalizeMoney(BigDecimal.valueOf(((Number) value).doubleValue()));
+        }
+        if (value instanceof String stringValue) {
+            Matcher matcher = MONEY_FRAGMENT.matcher(stringValue);
+            if (!matcher.find()) {
+                return null;
+            }
+            return normalizeMoney(new BigDecimal(matcher.group()));
+        }
+        return null;
+    }
+
     private static Integer toInteger(Object value) {
         if (value instanceof Integer integer) {
             return integer;
@@ -491,8 +610,114 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
+    private String localeCurrentCountry() {
+        Locale locale = config.getGeneratorConfig().getLocale();
+        boolean localeHasNoCountry = locale.getCountry().isBlank();
+        boolean localeRegistered = config.getGeneratorConfig().getRegistryContext().isCountryRegistered(locale);
+        if (localeHasNoCountry | !localeRegistered) {
+            return null;
+        }
+        return new CountryGenerator(config.getGeneratorConfig()).currentCountry();
+    }
+
+    private static BigDecimal normalizeMoney(BigDecimal value) {
+        return value.abs().setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static String currencyCode(Slot slot) {
+        return slot == null ? null : currencyCode(slot.getValue());
+    }
+
+    private static String currencyCode(Object value) {
+        if (value instanceof org.github.krandom.generator.finance.Currency currency) {
+            return currency.getCode();
+        }
+        if (value instanceof java.util.Currency currency) {
+            return currency.getCurrencyCode();
+        }
+        if (!(value instanceof String stringValue)) {
+            return null;
+        }
+        String normalized = stringValue(stringValue);
+        if (normalized == null) {
+            return null;
+        }
+        normalized = normalized.toUpperCase(Locale.ROOT);
+        org.github.krandom.generator.finance.Currency libraryCurrency =
+            org.github.krandom.generator.finance.Currency.fromCode(normalized);
+        if (libraryCurrency != null) {
+            return libraryCurrency.getCode();
+        }
+        try {
+            return java.util.Currency.getInstance(normalized).getCurrencyCode();
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    private static Object moneyValueFor(BigDecimal value, Class<?> rawType, String currencyCode) {
+        BigDecimal normalized = normalizeMoney(value);
+        if (rawType == BigDecimal.class) {
+            return normalized;
+        }
+        if (rawType == BigInteger.class) {
+            return normalized.setScale(0, RoundingMode.HALF_UP).toBigInteger();
+        }
+        if (rawType == byte.class | rawType == Byte.class) {
+            return normalized.setScale(0, RoundingMode.HALF_UP).byteValue();
+        }
+        if (rawType == short.class | rawType == Short.class) {
+            return normalized.setScale(0, RoundingMode.HALF_UP).shortValue();
+        }
+        if (rawType == int.class | rawType == Integer.class) {
+            return normalized.setScale(0, RoundingMode.HALF_UP).intValue();
+        }
+        if (rawType == long.class | rawType == Long.class) {
+            return normalized.setScale(0, RoundingMode.HALF_UP).longValue();
+        }
+        if (rawType == float.class | rawType == Float.class) {
+            return normalized.floatValue();
+        }
+        if (rawType == double.class | rawType == Double.class) {
+            return normalized.doubleValue();
+        }
+        if (rawType == String.class) {
+            return currencyCode != null ? currencyCode + " " + normalized.toPlainString() : normalized.toPlainString();
+        }
+        return null;
+    }
+
+    private static BigDecimal assignMoney(Slot slot, BigDecimal value, String currencyCode) {
+        if (slot == null || value == null) {
+            return value;
+        }
+        Object converted = moneyValueFor(value, slot.rawType(), currencyCode);
+        if (converted == null) {
+            return value;
+        }
+        slot.setValue(converted);
+        return normalizeMoney(value);
+    }
+
     private static Boolean toBoolean(Object value) {
         return value instanceof Boolean bool ? bool : null;
+    }
+
+    private boolean shouldFormatMoneyString(BigDecimal value, Slot slot, boolean allowOverwriteExisting) {
+        if (value == null || slot == null) {
+            return false;
+        }
+        if (slot.rawType() != String.class) {
+            return false;
+        }
+        return canAssign(slot, allowOverwriteExisting);
+    }
+
+    private static boolean isLessThan(BigDecimal left, BigDecimal right) {
+        if (left == null || right == null) {
+            return false;
+        }
+        return left.compareTo(right) < 0;
     }
 
     private static int ageFromBirthDate(LocalDate birthDate) {
