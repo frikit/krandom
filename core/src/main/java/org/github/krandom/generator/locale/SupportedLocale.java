@@ -37,7 +37,7 @@ public enum SupportedLocale {
     SV_SE("sv", "SE", "en_GB", "en_GB"),
     NB_NO("nb", "NO", "en_GB", "en_GB"),
     CS_CZ("cs", "CZ", "de_DE", "de_DE"),
-    AR_SA("ar", "SA", "en_US", "en_US"),
+    AR_SA("ar", "SA"),
     HI_IN("hi", "IN");
 
     private final Locale locale;
