@@ -137,7 +137,14 @@ final class BuiltInProfessionDataProvider implements ProfessionDataProvider {
                 "مهندس مدني", "أخصائي تسويق", "مدير موارد بشرية", "مدير عمليات", "مدير منتج",
                 "مصمم تجربة مستخدم", "طبيب أسنان", "مسعف", "محلل مالي", "أخصائي دعم العملاء"
             };
-            case SV_SE, NB_NO -> professionsFor(SupportedLocale.EN_GB);
+            case SV_SE -> new String[] {
+                "Mjukvaruingenjör", "Lärare", "Sjuksköterska", "Redovisningsekonom", "Säljare",
+                "Projektledare", "Dataanalytiker", "Grafisk designer", "Elektriker", "Mekaniker",
+                "Jurist", "Läkare", "Apotekare", "Kock", "Arkitekt",
+                "Civilingenjör", "Marknadsföringsspecialist", "HR-chef", "Verksamhetschef", "Produktchef",
+                "UX-designer", "Tandläkare", "Ambulanssjukvårdare", "Finansanalytiker", "Kundsupportspecialist"
+            };
+            case NB_NO -> professionsFor(SupportedLocale.EN_GB);
             case RU_RU, CS_CZ -> professionsFor(SupportedLocale.DE_DE);
             case KO_KR -> professionsFor(SupportedLocale.JA_JP);
         };

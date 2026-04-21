@@ -1,0 +1,42 @@
+Stockholms län
+AB
+Uppsala län
+C
+Södermanlands län
+D
+Östergötlands län
+E
+Jönköpings län
+F
+Kronobergs län
+G
+Kalmar län
+H
+Gotlands län
+I
+Blekinge län
+K
+Skåne län
+M
+Hallands län
+N
+Västra Götalands län
+O
+Värmlands län
+S
+Örebro län
+T
+Västmanlands län
+U
+Dalarnas län
+W
+Gävleborgs län
+X
+Västernorrlands län
+Y
+Jämtlands län
+Z
+Västerbottens län
+AC
+Norrbottens län
+BD

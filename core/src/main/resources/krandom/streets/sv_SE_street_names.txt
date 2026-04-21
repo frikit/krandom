@@ -1,0 +1,26 @@
+Drottninggatan
+Storgatan
+Kungsgatan
+Skolgatan
+Parkgatan
+Stationsgatan
+Järnvägsgatan
+Kyrkogatan
+Villagatan
+Bergsgatan
+Tallvägen
+Björkvägen
+Ringvägen
+Ängsvägen
+Furugatan
+Nygatan
+Hantverkargatan
+Sjövägen
+Solvägen
+Ekvägen
+Hagagatan
+Norra Vägen
+Södra Vägen
+Strandvägen
+Odengatan
+Vikingagatan
