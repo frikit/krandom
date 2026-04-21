@@ -28,6 +28,41 @@ String sentence = new SentenceGenerator(de).generate();
 - Build one `GeneratorConfig` per test fixture profile.
 - Reuse it across generators to keep locale + seed consistent.
 
+## Custom locale bundles
+
+For application-level locales or test-only overrides, you can register one locale pack instead of wiring every provider registry by hand.
+
+```java
+Locale locale = Locale.of("es", "MX");
+
+LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
+        .firstNames(new String[]{"Mateo"}, new String[]{"Sofía"})
+        .lastNames("Hernández", "Ramírez")
+        .genderLabels("Hombre", "Mujer")
+        .cities("Ciudad de México", "Guadalajara")
+        .states(new String[]{"Jalisco", "Ciudad de México"}, new String[]{"JAL", "CDMX"})
+        .countries("México")
+        .streetAddress(new String[]{"Juárez"}, new String[]{"Av"}, new String[]{"Avenida"})
+        .build();
+
+DataRegistryContext context = DataRegistryContext.builder()
+        .isolated()
+        .registerLocaleData(bundle)
+        .build();
+
+GeneratorConfig mx = GeneratorConfig.builder()
+        .locale(locale)
+        .registryContext(context)
+        .seed(7L)
+        .build();
+
+String firstName = new FirstNameGenerator(mx).generate(Gender.MALE);
+String city = new CityGenerator(mx).generate();
+String street = new StreetAddressGenerator(mx).generate();
+```
+
+Use `bundle.registerGlobal()` only when you want to extend the process-wide static registries. Prefer `DataRegistryContext.builder().registerLocaleData(...)` for isolated tests and embedded runtimes.
+
 ## Locale quality tiers
 
 `SupportedLocale` now exposes built-in dataset quality metadata so callers can tell whether a locale is backed by native data or a fallback.
@@ -67,4 +102,4 @@ The current built-in quality gates enforce:
 - duplicate ratio no worse than `5%`
 - script sanity coverage for the locale's expected writing system
 
-Contributor-facing details for resource layout and validation rules are documented in the repository-level `docs/locale-contribution-guide.md`.
+Contributor-facing details for built-in resource layout, validation rules, and application-level custom locale bundles are documented in the repository-level `docs/locale-contribution-guide.md`.

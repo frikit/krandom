@@ -13,6 +13,7 @@ import org.github.krandom.generator.location.StateDataProvider;
 import org.github.krandom.generator.location.StateDataRegistry;
 import org.github.krandom.generator.location.StreetAddressDataProvider;
 import org.github.krandom.generator.location.StreetAddressDataRegistry;
+import org.github.krandom.generator.locale.LocaleDataBundle;
 import org.github.krandom.generator.user.FirstNameDataProvider;
 import org.github.krandom.generator.user.FirstNameDataRegistry;
 import org.github.krandom.generator.user.GenderDataProvider;
@@ -367,6 +368,13 @@ public final class DataRegistryContext {
          */
         public Builder isolated() {
             return useGlobalFallback(false);
+        }
+
+        /**
+         * Registers all provider families defined by a locale data bundle.
+         */
+        public Builder registerLocaleData(LocaleDataBundle bundle) {
+            return Objects.requireNonNull(bundle, "bundle").applyTo(this);
         }
 
         public Builder registerFirstNameProvider(FirstNameDataProvider provider) {

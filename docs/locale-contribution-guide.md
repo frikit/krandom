@@ -2,6 +2,31 @@
 
 This guide defines the minimum bar for adding or upgrading a built-in locale in `krandom`.
 
+## Application-level custom locale bundles
+
+Not every locale addition should become a built-in dataset. For test-only or application-specific locales, prefer `LocaleDataBundle` with a config-scoped `DataRegistryContext`:
+
+```java
+Locale locale = Locale.of("es", "MX");
+
+LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
+        .firstNames(new String[]{"Mateo"}, new String[]{"Sofía"})
+        .lastNames("Hernández", "Ramírez")
+        .genderLabels("Hombre", "Mujer")
+        .cities("Ciudad de México", "Guadalajara")
+        .states(new String[]{"Jalisco", "Ciudad de México"}, new String[]{"JAL", "CDMX"})
+        .countries("México")
+        .streetAddress(new String[]{"Juárez"}, new String[]{"Av"}, new String[]{"Avenida"})
+        .build();
+
+DataRegistryContext context = DataRegistryContext.builder()
+        .isolated()
+        .registerLocaleData(bundle)
+        .build();
+```
+
+That path keeps overrides local to one `GeneratorConfig` / runtime instead of mutating the global static registries. Use `bundle.registerGlobal()` only when you deliberately want process-wide registration.
+
 ## Required resource families
 
 A native built-in locale is expected to provide:

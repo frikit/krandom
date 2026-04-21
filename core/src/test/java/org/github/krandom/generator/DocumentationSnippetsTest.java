@@ -17,6 +17,7 @@ import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.location.PhoneNumberGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
+import org.github.krandom.generator.locale.LocaleDataBundle;
 import org.github.krandom.generator.object.ObjectGenerator;
 import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.provider.TextFormatProvider;
@@ -181,6 +182,45 @@ class DocumentationSnippetsTest {
         assertTrue(firstEmail.contains("@"));
         assertTrue(secondEmail.contains("@"));
         assertTrue(!firstEmail.equals(secondEmail));
+    }
+
+    @Test
+    @DisplayName("locale aware custom bundle snippets stay runnable")
+    void localeAwareCustomBundleSnippetsStayRunnable() {
+        Locale locale = Locale.of("es", "MX");
+
+        LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
+                                                  .firstNames(new String[] { "Mateo" }, new String[] { "Sofía" })
+                                                  .lastNames("Hernández", "Ramírez")
+                                                  .genderLabels("Hombre", "Mujer")
+                                                  .cities("Ciudad de México", "Guadalajara")
+                                                  .states(new String[] { "Jalisco", "Ciudad de México" },
+                                                          new String[] { "JAL", "CDMX" })
+                                                  .countries("México")
+                                                  .streetAddress(new String[] { "Juárez" },
+                                                                 new String[] { "Av" },
+                                                                 new String[] { "Avenida" })
+                                                  .build();
+
+        DataRegistryContext context = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerLocaleData(bundle)
+                                                         .build();
+
+        GeneratorConfig mx = GeneratorConfig.builder()
+                                            .locale(locale)
+                                            .registryContext(context)
+                                            .seed(7L)
+                                            .build();
+
+        String firstName = new org.github.krandom.generator.user.FirstNameGenerator(mx)
+            .generate(org.github.krandom.generator.user.Gender.MALE);
+        String city = new CityGenerator(mx).generate();
+        String street = new StreetAddressGenerator(mx).generate();
+
+        assertEquals("Mateo", firstName);
+        assertTrue(Set.of("Ciudad de México", "Guadalajara").contains(city));
+        assertTrue(street.contains("Juárez"));
     }
 
     @Test
