@@ -7,6 +7,7 @@ permalink: /guides/
 # Guides
 
 - [Primitives and Determinism](guides/primitives-and-determinism.md)
+- [Choosing an API](guides/choosing-an-api.md)
 - [Locale-Aware Data](guides/locale-aware-data.md)
 - [Network, URL, and File Data](guides/network-url-file.md)
 - [Finance and Identity](guides/finance-and-identity.md)

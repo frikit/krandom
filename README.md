@@ -50,6 +50,15 @@ String name = Generators.ofFullName().generate();
 String email = Generators.ofEmail().generate();
 ```
 
+## Choosing an API
+
+- Use scalar generators like `Generators.ofInt(...)`, `Generators.ofEmail()`, or `Generators.ofCity()` when you need a few direct values.
+- Use `ObjectGenerator<T>` when you want an existing DTO / record populated with realistic defaults.
+- Use `ObjectFaker<T>` when you need explicit fixture rules, nested overrides, or reusable profiles.
+- Use `Field` + `Schema` when you want row-style payloads or formatted export output such as CSV, JSONL, XML, or SQL.
+
+The public docs now also include a dedicated guide: [Choosing an API](docs-site/guides/choosing-an-api.md).
+
 ## Build and verify locally
 
 Ensure `java -version` reports Java 21+ before running the local checks.

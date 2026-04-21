@@ -22,6 +22,7 @@ import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.provider.TextFormatProvider;
 import org.github.krandom.generator.schema.Field;
 import org.github.krandom.generator.schema.Schema;
+import org.github.krandom.generator.schema.SchemaValueProvider;
 import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
@@ -201,9 +202,63 @@ class DocumentationSnippetsTest {
         assertTrue(invoice.matches("[A-Z]{3}-\\d{4}-[A-Z]{2}\\d{2}"));
     }
 
+    @Test
+    @DisplayName("choosing an api guide snippets stay runnable")
+    void choosingAnApiGuideSnippetsStayRunnable() {
+        int roll = Generators.ofInt(1, 7).generate();
+        String email = Generators.ofEmail().generate();
+        String city = Generators.ofCity().generate();
+
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                                             .locale(Locale.US)
+                                             .seed(42L)
+                                             .build();
+
+        OrderDto order = Generators.ofObject(OrderDto.class, cfg).generate();
+
+        UserFixture user = Generators.ofObjectFaker(UserFixture.class)
+                                     .ruleFor("email", () -> "owner@example.test")
+                                     .ruleFor("address.city", () -> "Berlin")
+                                     .generate();
+
+        Field field = Generators.ofField();
+        LinkedHashMap<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("orderId", field.bind("code.uuid"));
+        fields.put("email", field.bind("person.email"));
+        fields.put("amount", field.bind("finance.money"));
+        Schema orders = Generators.ofSchema(fields);
+
+        String jsonl = orders.toJsonLines(10);
+        String csv = orders.toCsv(10);
+
+        assertTrue(roll >= 1 && roll < 7);
+        assertTrue(email.contains("@"));
+        assertNotNull(city);
+        assertNotNull(order.email());
+        assertNotNull(order.amount());
+        assertEquals("owner@example.test", user.email);
+        assertEquals("Berlin", user.address.city);
+        assertEquals(10, jsonl.lines().count());
+        assertTrue(csv.startsWith("orderId,email,amount"));
+    }
+
     private record AddressRecord(String city, String country) {
     }
 
     private record UserRecord(String name, AddressRecord address) {
+    }
+
+    private record OrderDto(String email, String amount) {
+    }
+
+    static final class UserFixture {
+
+        String email;
+        FixtureAddress address;
+    }
+
+    static final class FixtureAddress {
+
+        String city;
     }
 }
