@@ -242,7 +242,11 @@ public final class ObjectGeneratorConfig {
      * Return the type-level override for {@code type}, if any.
      */
     public Optional<Generator<?>> getTypeOverride(Class<?> type) {
-        return Optional.ofNullable(typeOverrides.get(type));
+        Generator<?> localOverride = typeOverrides.get(type);
+        if (localOverride != null) {
+            return Optional.of(localOverride);
+        }
+        return generatorConfig.getObjectTypeOverride(type);
     }
 
     /**
@@ -257,14 +261,22 @@ public final class ObjectGeneratorConfig {
         if (direct != null) {
             return Optional.of(direct);
         }
-        return Optional.ofNullable(fieldOverrides.get(legacyFieldKey(ownerType, fieldName)));
+        Generator<?> legacy = fieldOverrides.get(legacyFieldKey(ownerType, fieldName));
+        if (legacy != null) {
+            return Optional.of(legacy);
+        }
+        return generatorConfig.getObjectFieldOverride(ownerType, fieldName);
     }
 
     /**
      * Return the contextual type-level override for {@code type}, if any.
      */
     public Optional<ContextualGenerator<?>> getContextualTypeOverride(Class<?> type) {
-        return Optional.ofNullable(contextualTypeOverrides.get(type));
+        ContextualGenerator<?> localOverride = contextualTypeOverrides.get(type);
+        if (localOverride != null) {
+            return Optional.of(localOverride);
+        }
+        return generatorConfig.getObjectContextualTypeOverride(type);
     }
 
     /**
@@ -280,7 +292,11 @@ public final class ObjectGeneratorConfig {
         if (direct != null) {
             return Optional.of(direct);
         }
-        return Optional.ofNullable(contextualFieldOverrides.get(legacyFieldKey(ownerType, fieldName)));
+        ContextualGenerator<?> legacy = contextualFieldOverrides.get(legacyFieldKey(ownerType, fieldName));
+        if (legacy != null) {
+            return Optional.of(legacy);
+        }
+        return generatorConfig.getObjectContextualFieldOverride(ownerType, fieldName);
     }
 
     /**
@@ -304,7 +320,7 @@ public final class ObjectGeneratorConfig {
         for (Predicate<Class<?>> predicate : typeExclusionPredicates) {
             if (predicate.test(field.getType())) return true;
         }
-        return false;
+        return generatorConfig.shouldObjectExclude(field);
     }
 
     // ── Builder ───────────────────────────────────────────────────────────────

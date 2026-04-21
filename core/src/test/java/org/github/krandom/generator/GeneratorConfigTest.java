@@ -9,9 +9,11 @@ import org.github.krandom.generator.object.ObjectGenerationSemanticMode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,6 +53,10 @@ class GeneratorConfigTest {
         assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
                      c.getObjectUniqueFieldNames());
         assertEquals(256, c.getObjectUniquenessMaxAttempts());
+        assertTrue(c.getObjectTypeOverride(String.class).isEmpty());
+        assertTrue(c.getObjectFieldOverride(RootObjectConfigFixture.class, "name").isEmpty());
+        assertTrue(c.getObjectContextualTypeOverride(String.class).isEmpty());
+        assertTrue(c.getObjectContextualFieldOverride(RootObjectConfigFixture.class, "name").isEmpty());
         assertEquals(Locale.US, c.getLocale());
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
     }
@@ -287,6 +293,67 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("advanced object overrides and exclusions are stored on the root config")
+    void advancedObjectOverridesAndExclusionsStored() throws Exception {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectOverride(String.class, () -> "root-string")
+                                                .objectOverride(RootObjectConfigFixture.class, "name", () -> "field-value")
+                                                .objectOverride(Integer.class, ctx -> 11)
+                                                .objectOverride(RootObjectConfigFixture.class, "score", ctx -> 19)
+                                                .objectExcludeField("password")
+                                                .objectExcludeType(type -> type == LocalDate.class)
+                                                .build();
+
+        assertEquals("root-string", config.getObjectTypeOverride(String.class).orElseThrow().generate());
+        assertEquals("field-value",
+                     config.getObjectFieldOverride(RootObjectConfigFixture.class, "name").orElseThrow().generate());
+        assertTrue(config.getObjectContextualTypeOverride(Integer.class).isPresent());
+        assertTrue(config.getObjectContextualFieldOverride(RootObjectConfigFixture.class, "score").isPresent());
+
+        Field password = RootObjectConfigFixture.class.getDeclaredField("password");
+        Field createdAt = RootObjectConfigFixture.class.getDeclaredField("createdAt");
+        Field name = RootObjectConfigFixture.class.getDeclaredField("name");
+        assertTrue(config.shouldObjectExclude(password));
+        assertTrue(config.shouldObjectExclude(createdAt));
+        assertFalse(config.shouldObjectExclude(name));
+    }
+
+    @Test
+    @DisplayName("legacy simple-name object field override key remains supported on the root config")
+    void legacySimpleNameObjectFieldOverrideKeyStillWorks() throws Exception {
+        GeneratorConfig.Builder builder = GeneratorConfig.builder();
+
+        Field overridesField = GeneratorConfig.Builder.class.getDeclaredField("objectFieldOverrides");
+        overridesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, Generator<?>> fieldOverrides = (Map<String, Generator<?>>) overridesField.get(builder);
+        fieldOverrides.put("RootObjectConfigFixture.name", () -> "LEGACY");
+
+        GeneratorConfig config = builder.build();
+        assertEquals("LEGACY",
+                     config.getObjectFieldOverride(RootObjectConfigFixture.class, "name").orElseThrow().generate());
+    }
+
+    @Test
+    @DisplayName("advanced object override and exclusion methods validate null inputs")
+    void advancedObjectOverrideAndExclusionMethodsValidateNullInputs() {
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().objectOverride((Class<String>) null, () -> "x"));
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().objectOverride(String.class, (Generator<String>) null));
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().objectOverride(RootObjectConfigFixture.class, null, () -> "x"));
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().objectOverride(String.class, (ContextualGenerator<String>) null));
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().objectExclude(null));
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().objectExcludeType((Class<?>) null));
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().objectExcludeType((java.util.function.Predicate<Class<?>>) null));
+    }
+
+    @Test
     @DisplayName("locale() stores the locale")
     void localeStored() {
         GeneratorConfig c = GeneratorConfig.builder().locale(Locale.GERMANY).build();
@@ -335,6 +402,9 @@ class GeneratorConfigTest {
                                               .objectUniqueFields("email", "accountId")
                                               .objectUniquenessMaxAttempts(7)
                                               .objectDateRange(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 12, 31))
+                                              .objectOverride(String.class, () -> "root-string")
+                                              .objectOverride(RootObjectConfigFixture.class, "name", () -> "field-value")
+                                              .objectExcludeField("password")
                                               .locale(Locale.FRANCE)
                                               .randomFactory(() -> {
                                                   calls.incrementAndGet();
@@ -363,6 +433,9 @@ class GeneratorConfigTest {
         assertEquals(7, derived.getObjectUniquenessMaxAttempts());
         assertEquals(LocalDate.of(2022, 1, 1), derived.getObjectDateMin());
         assertEquals(LocalDate.of(2022, 12, 31), derived.getObjectDateMax());
+        assertEquals("root-string", derived.getObjectTypeOverride(String.class).orElseThrow().generate());
+        assertEquals("field-value",
+                     derived.getObjectFieldOverride(RootObjectConfigFixture.class, "name").orElseThrow().generate());
         assertEquals(Locale.JAPAN, derived.getLocale());
         assertSame(context, derived.getRegistryContext());
         assertTrue(derived.getRandomFactory().isPresent());
@@ -383,5 +456,13 @@ class GeneratorConfigTest {
                                                 .build();
         assertEquals("es", custom.getLocale().getLanguage());
         assertEquals("MX", custom.getLocale().getCountry());
+    }
+
+    static class RootObjectConfigFixture {
+
+        String    name;
+        String    password;
+        Integer   score;
+        LocalDate createdAt;
     }
 }

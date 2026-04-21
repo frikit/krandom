@@ -81,6 +81,32 @@ class ObjectGeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("root GeneratorConfig advanced object overrides and exclusions are inherited")
+    void inheritedAdvancedObjectOverridesAndExclusionsAreVisible() throws Exception {
+        GeneratorConfig generatorConfig = GeneratorConfig.builder()
+                                                         .objectOverride(String.class, () -> "root-type")
+                                                         .objectOverride(RootInheritedFixture.class, "name", () -> "root-field")
+                                                         .objectOverride(Integer.class, ctx -> 11)
+                                                         .objectOverride(RootInheritedFixture.class, "score", ctx -> 19)
+                                                         .objectExcludeField("password")
+                                                         .objectExcludeType(LocalDate.class)
+                                                         .build();
+
+        ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
+                                                                 .generatorConfig(generatorConfig)
+                                                                 .build();
+
+        assertEquals("root-type", objectConfig.getTypeOverride(String.class).orElseThrow().generate());
+        assertEquals("root-field",
+                     objectConfig.getFieldOverride(RootInheritedFixture.class, "name").orElseThrow().generate());
+        assertTrue(objectConfig.getContextualTypeOverride(Integer.class).isPresent());
+        assertTrue(objectConfig.getContextualFieldOverride(RootInheritedFixture.class, "score").isPresent());
+        assertTrue(objectConfig.shouldExclude(RootInheritedFixture.class.getDeclaredField("password")));
+        assertTrue(objectConfig.shouldExclude(RootInheritedFixture.class.getDeclaredField("createdAt")));
+        assertFalse(objectConfig.shouldExclude(RootInheritedFixture.class.getDeclaredField("name")));
+    }
+
+    @Test
     @DisplayName("explicit object settings win over inherited GeneratorConfig defaults")
     void explicitObjectSettingsOverrideInheritedRootDefaults() {
         GeneratorConfig generatorConfig = GeneratorConfig.builder()
@@ -117,6 +143,25 @@ class ObjectGeneratorConfigTest {
         assertEquals(0.2, objectConfig.getOptionalEmptyProbability());
         assertEquals(Set.of("username"), objectConfig.getUniqueFieldNames());
         assertEquals(3, objectConfig.getUniquenessMaxAttempts());
+    }
+
+    @Test
+    @DisplayName("local object overrides win over inherited root overrides")
+    void localObjectOverridesWinOverInheritedRootOverrides() {
+        GeneratorConfig generatorConfig = GeneratorConfig.builder()
+                                                         .objectOverride(String.class, () -> "root-type")
+                                                         .objectOverride(RootInheritedFixture.class, "name", () -> "root-field")
+                                                         .build();
+
+        ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
+                                                                 .generatorConfig(generatorConfig)
+                                                                 .override(String.class, () -> "local-type")
+                                                                 .override(RootInheritedFixture.class, "name", () -> "local-field")
+                                                                 .build();
+
+        assertEquals("local-type", objectConfig.getTypeOverride(String.class).orElseThrow().generate());
+        assertEquals("local-field",
+                     objectConfig.getFieldOverride(RootInheritedFixture.class, "name").orElseThrow().generate());
     }
 
     @Test
@@ -341,5 +386,13 @@ class ObjectGeneratorConfigTest {
                 .generate();
 
         assertEquals("LEGACY", value.getValue());
+    }
+
+    static class RootInheritedFixture {
+
+        String    name;
+        String    password;
+        Integer   score;
+        LocalDate createdAt;
     }
 }

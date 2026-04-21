@@ -148,6 +148,14 @@ class ObjectGeneratorTest {
         private String             name;
     }
 
+    static class RootAdvancedConfigHolder {
+
+        private String    name;
+        private String    password;
+        private Integer   score;
+        private LocalDate createdAt;
+    }
+
     static class RootThrowingNested {
 
         RootThrowingNested() {
@@ -440,6 +448,25 @@ class ObjectGeneratorTest {
 
             assertNull(value.getLabel());
             assertNull(value.getAddress());
+        }
+
+        @Test
+        @DisplayName("root GeneratorConfig can drive advanced object overrides and exclusions directly")
+        void generatorConfigAppliesAdvancedObjectOverridesAndExclusions() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .objectOverride(String.class, () -> "root-type")
+                                                    .objectOverride(RootAdvancedConfigHolder.class, "name", () -> "root-field")
+                                                    .objectOverride(Integer.class, ctx -> 9)
+                                                    .objectExcludeField("password")
+                                                    .objectExcludeType(LocalDate.class)
+                                                    .build();
+
+            RootAdvancedConfigHolder value = new ObjectGenerator<>(RootAdvancedConfigHolder.class, config).generate();
+
+            assertEquals("root-field", value.name);
+            assertNull(value.password);
+            assertEquals(9, value.score);
+            assertNull(value.createdAt);
         }
     }
 

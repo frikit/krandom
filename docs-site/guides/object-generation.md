@@ -25,6 +25,8 @@ GeneratorConfig cfg = GeneratorConfig.builder()
         .objectNullProbability(0.10)
         .objectOptionalEmptyProbability(0.25)
         .objectDateRange(LocalDate.of(2020, 1, 1), LocalDate.of(2023, 12, 31))
+        .objectOverride(OrderDto.class, "status", () -> "PENDING")
+        .objectExcludeField("internalToken")
         .build();
 
 ObjectGenerator<OrderDto> orders = new ObjectGenerator<>(OrderDto.class, cfg);
@@ -43,7 +45,7 @@ ObjectGenerator<OrderDto> orders = new ObjectGenerator<>(OrderDto.class, cfg);
 OrderDto order = orders.generate();
 ```
 
-Use `ObjectGeneratorConfig` when you need field overrides, exclusions, or other object-only controls on top of the shared root config.
+`GeneratorConfig` is the preferred public entry point, including for advanced object overrides and exclusions. Use `ObjectGeneratorConfig` when you want an object-local compatibility layer on top of a shared root config, or when you need to compose object-only tuning separately from the rest of the fixture pipeline.
 
 Semantic modes:
 

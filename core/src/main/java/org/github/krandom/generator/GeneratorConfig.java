@@ -7,18 +7,24 @@ package org.github.krandom.generator;
 
 import org.github.krandom.generator.object.ObjectGenerationSemanticMode;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -67,6 +73,12 @@ public final class GeneratorConfig {
     private final double       objectOptionalEmptyProbability;
     private final Set<String>  objectUniqueFieldNames;
     private final int          objectUniquenessMaxAttempts;
+    private final Map<Class<?>, Generator<?>>           objectTypeOverrides;
+    private final Map<String, Generator<?>>             objectFieldOverrides;
+    private final Map<Class<?>, ContextualGenerator<?>> objectContextualTypeOverrides;
+    private final Map<String, ContextualGenerator<?>>   objectContextualFieldOverrides;
+    private final List<Predicate<Field>>                objectExclusionPredicates;
+    private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates;
     private final Locale       locale;
     private final Supplier<Random> randomFactory;
     private final DataRegistryContext registryContext;
@@ -90,6 +102,12 @@ public final class GeneratorConfig {
         this.objectOptionalEmptyProbability = b.objectOptionalEmptyProbability;
         this.objectUniqueFieldNames = Collections.unmodifiableSet(new LinkedHashSet<>(b.objectUniqueFieldNames));
         this.objectUniquenessMaxAttempts = b.objectUniquenessMaxAttempts;
+        this.objectTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectTypeOverrides));
+        this.objectFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectFieldOverrides));
+        this.objectContextualTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectContextualTypeOverrides));
+        this.objectContextualFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectContextualFieldOverrides));
+        this.objectExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectExclusionPredicates));
+        this.objectTypeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectTypeExclusionPredicates));
         this.locale = b.locale;
         this.randomFactory = b.randomFactory;
         this.registryContext = b.registryContext;
@@ -234,6 +252,65 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Return the root-configured type-level override for object generation, if any.
+     */
+    public Optional<Generator<?>> getObjectTypeOverride(Class<?> type) {
+        return Optional.ofNullable(objectTypeOverrides.get(type));
+    }
+
+    /**
+     * Return the root-configured field-level override for object generation, if any.
+     *
+     * <p>Primary lookup key is {@code "fully.qualified.ClassName.fieldName"}.
+     * Legacy simple-name keys are still supported for backward compatibility.
+     */
+    public Optional<Generator<?>> getObjectFieldOverride(Class<?> ownerType, String fieldName) {
+        String key = objectFieldKey(ownerType, fieldName);
+        Generator<?> direct = objectFieldOverrides.get(key);
+        if (direct != null) {
+            return Optional.of(direct);
+        }
+        return Optional.ofNullable(objectFieldOverrides.get(objectLegacyFieldKey(ownerType, fieldName)));
+    }
+
+    /**
+     * Return the root-configured contextual type-level override for object generation, if any.
+     */
+    public Optional<ContextualGenerator<?>> getObjectContextualTypeOverride(Class<?> type) {
+        return Optional.ofNullable(objectContextualTypeOverrides.get(type));
+    }
+
+    /**
+     * Return the root-configured contextual field-level override for object generation, if any.
+     */
+    public Optional<ContextualGenerator<?>> getObjectContextualFieldOverride(Class<?> ownerType, String fieldName) {
+        String key = objectFieldKey(ownerType, fieldName);
+        ContextualGenerator<?> direct = objectContextualFieldOverrides.get(key);
+        if (direct != null) {
+            return Optional.of(direct);
+        }
+        return Optional.ofNullable(objectContextualFieldOverrides.get(objectLegacyFieldKey(ownerType, fieldName)));
+    }
+
+    /**
+     * Returns {@code true} if the root config excludes the given field from object generation.
+     */
+    public boolean shouldObjectExclude(Field field) {
+        Objects.requireNonNull(field, "field must not be null");
+        for (Predicate<Field> predicate : objectExclusionPredicates) {
+            if (predicate.test(field)) {
+                return true;
+            }
+        }
+        for (Predicate<Class<?>> predicate : objectTypeExclusionPredicates) {
+            if (predicate.test(field.getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Locale for locale-aware generators (names, addresses, etc.). Default: {@link Locale#US}.
      */
     public Locale getLocale() {
@@ -306,6 +383,14 @@ public final class GeneratorConfig {
         return OptionalLong.empty();
     }
 
+    private static String objectFieldKey(Class<?> ownerType, String fieldName) {
+        return ownerType.getName() + "." + fieldName;
+    }
+
+    private static String objectLegacyFieldKey(Class<?> ownerType, String fieldName) {
+        return ownerType.getSimpleName() + "." + fieldName;
+    }
+
     // ── Builder ───────────────────────────────────────────────────────────────
 
 
@@ -330,6 +415,12 @@ public final class GeneratorConfig {
         private Set<String>       objectUniqueFieldNames = new LinkedHashSet<>(
             Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"));
         private int               objectUniquenessMaxAttempts = DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS;
+        private final Map<Class<?>, Generator<?>>           objectTypeOverrides           = new HashMap<>();
+        private final Map<String, Generator<?>>             objectFieldOverrides          = new HashMap<>();
+        private final Map<Class<?>, ContextualGenerator<?>> objectContextualTypeOverrides = new HashMap<>();
+        private final Map<String, ContextualGenerator<?>>   objectContextualFieldOverrides = new HashMap<>();
+        private final List<Predicate<Field>>                objectExclusionPredicates     = new ArrayList<>();
+        private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates = new ArrayList<>();
         private Locale            locale            = Locale.US;
         private Supplier<Random>  randomFactory;
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
@@ -356,6 +447,12 @@ public final class GeneratorConfig {
             this.objectOptionalEmptyProbability = source.objectOptionalEmptyProbability;
             this.objectUniqueFieldNames = new LinkedHashSet<>(source.objectUniqueFieldNames);
             this.objectUniquenessMaxAttempts = source.objectUniquenessMaxAttempts;
+            this.objectTypeOverrides.putAll(source.objectTypeOverrides);
+            this.objectFieldOverrides.putAll(source.objectFieldOverrides);
+            this.objectContextualTypeOverrides.putAll(source.objectContextualTypeOverrides);
+            this.objectContextualFieldOverrides.putAll(source.objectContextualFieldOverrides);
+            this.objectExclusionPredicates.addAll(source.objectExclusionPredicates);
+            this.objectTypeExclusionPredicates.addAll(source.objectTypeExclusionPredicates);
             this.locale = source.locale;
             this.randomFactory = source.randomFactory;
             this.registryContext = source.registryContext;
@@ -528,6 +625,83 @@ public final class GeneratorConfig {
                 throw new IllegalArgumentException("objectUniquenessMaxAttempts must be >= 1");
             }
             this.objectUniquenessMaxAttempts = objectUniquenessMaxAttempts;
+            return this;
+        }
+
+        /**
+         * Register a type-level override for object generation.
+         */
+        public <T> Builder objectOverride(Class<T> type, Generator<? extends T> generator) {
+            Objects.requireNonNull(type, "type must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            objectTypeOverrides.put(type, generator);
+            return this;
+        }
+
+        /**
+         * Register a field-level override for object generation.
+         */
+        public <T> Builder objectOverride(Class<?> ownerType, String fieldName, Generator<T> generator) {
+            Objects.requireNonNull(ownerType, "ownerType must not be null");
+            Objects.requireNonNull(fieldName, "fieldName must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            objectFieldOverrides.put(objectFieldKey(ownerType, fieldName), generator);
+            return this;
+        }
+
+        /**
+         * Register a contextual type-level override for object generation.
+         */
+        public <T> Builder objectOverride(Class<T> type, ContextualGenerator<? extends T> generator) {
+            Objects.requireNonNull(type, "type must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            objectContextualTypeOverrides.put(type, generator);
+            return this;
+        }
+
+        /**
+         * Register a contextual field-level override for object generation.
+         */
+        public <T> Builder objectOverride(Class<?> ownerType, String fieldName, ContextualGenerator<T> generator) {
+            Objects.requireNonNull(ownerType, "ownerType must not be null");
+            Objects.requireNonNull(fieldName, "fieldName must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            objectContextualFieldOverrides.put(objectFieldKey(ownerType, fieldName), generator);
+            return this;
+        }
+
+        /**
+         * Add a field-exclusion predicate for object generation.
+         */
+        public Builder objectExclude(Predicate<Field> predicate) {
+            Objects.requireNonNull(predicate, "predicate must not be null");
+            objectExclusionPredicates.add(predicate);
+            return this;
+        }
+
+        /**
+         * Exclude all object fields whose name equals {@code name}.
+         */
+        public Builder objectExcludeField(String name) {
+            Objects.requireNonNull(name, "name must not be null");
+            return objectExclude(field -> field.getName().equals(name));
+        }
+
+        /**
+         * Exclude all object fields whose declared type is exactly {@code type}.
+         */
+        public Builder objectExcludeType(Class<?> type) {
+            Objects.requireNonNull(type, "type must not be null");
+            objectTypeExclusionPredicates.add(candidate -> candidate == type);
+            return this;
+        }
+
+        /**
+         * Exclude all object fields whose declared type matches {@code predicate}.
+         */
+        public Builder objectExcludeType(Predicate<Class<?>> predicate) {
+            Objects.requireNonNull(predicate, "predicate must not be null");
+            objectTypeExclusionPredicates.add(predicate);
             return this;
         }
 
