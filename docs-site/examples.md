@@ -37,12 +37,14 @@ GeneratorConfig cfg = GeneratorConfig.builder()
         .build();
 
 PersonInfo person = Generators.ofPersonInfo(cfg).generate();
+CompanyInfo company = Generators.ofCompanyInfo(cfg).generate();
 JobInfo job = Generators.ofJobInfo(cfg).generate();
 ProductInfo product = Generators.ofProductInfo(cfg).generate();
 BankInfo bank = Generators.ofBankInfo(cfg).generate();
 CreditCardInfo card = Generators.ofCreditCardInfo(cfg).generate();
 
 assert person.username().equals(person.contact().email().split("@")[0]);
+assert company.email().endsWith(company.website().replace("https://www.", ""));
 assert job.title().contains(job.profession());
 assert product.upc().matches("\\d{12}");
 assert bank.routingNumber().matches("\\d{9}");

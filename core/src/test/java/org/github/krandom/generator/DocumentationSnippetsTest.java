@@ -25,9 +25,11 @@ import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.JobInfo;
 import org.github.krandom.generator.user.PersonInfo;
+import org.github.krandom.generator.user.CompanyInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -125,6 +127,7 @@ class DocumentationSnippetsTest {
         PhoneNumberGenerator phones = new PhoneNumberGenerator(cfg);
         StreetAddressGenerator addresses = new StreetAddressGenerator(cfg);
         PersonInfo person = Generators.ofPersonInfo(cfg).generate();
+        CompanyInfo company = Generators.ofCompanyInfo(cfg).generate();
         JobInfo job = Generators.ofJobInfo(cfg).generate();
         ProductInfo product = Generators.ofProductInfo(cfg).generate();
         BankInfo bank = Generators.ofBankInfo(cfg).generate();
@@ -160,6 +163,8 @@ class DocumentationSnippetsTest {
         assertNotNull(person.address());
         assertTrue(person.contact().email().contains("@"));
         assertEquals(person.username(), person.contact().email().substring(0, person.contact().email().indexOf('@')));
+        assertEquals(company.email().substring(company.email().indexOf('@') + 1),
+                     URI.create(company.website()).getHost().substring("www.".length()));
         assertTrue(job.title().contains(job.profession()));
         assertTrue(product.upc().matches("\\d{12}"));
         assertTrue(bank.routingNumber().matches("\\d{9}"));

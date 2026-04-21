@@ -698,6 +698,9 @@ final class FieldGeneratorResolver {
         registerSemanticAliases(aliases, "postalcode", "postalcode", "postcode", "zipcode", "zip");
         registerSemanticAliases(aliases, "country", "country", "countryname");
         registerSemanticAliases(aliases, "companyname", "company", "companyname", "organization", "organisation");
+        registerSemanticAliases(aliases, "industry", "industry", "sector");
+        registerSemanticAliases(aliases, "companyemail", "companyemail", "businessemail", "corporateemail");
+        registerSemanticAliases(aliases, "companyurl", "companyurl", "companywebsite", "businesswebsite");
         registerSemanticAliases(aliases, "password", "password", "passcode");
         registerSemanticAliases(aliases, "url", "url", "website", "homepage", "link");
         registerSemanticAliases(aliases, "domain", "domain", "hostname");
@@ -744,6 +747,9 @@ final class FieldGeneratorResolver {
         providerNames.put("postalcode", "address.postal_code");
         providerNames.put("country", "address.country");
         providerNames.put("companyname", "company.name");
+        providerNames.put("industry", "company.industry");
+        providerNames.put("companyemail", "company.email");
+        providerNames.put("companyurl", "company.url");
         providerNames.put("password", "security.password");
         providerNames.put("url", "internet.url");
         providerNames.put("domain", "internet.domain");

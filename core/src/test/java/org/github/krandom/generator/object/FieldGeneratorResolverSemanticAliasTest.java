@@ -34,6 +34,9 @@ class FieldGeneratorResolverSemanticAliasTest {
         assertEquals("active", FieldGeneratorResolver.semanticKeyForFieldName("is_enabled"));
         assertEquals("latitude", FieldGeneratorResolver.semanticKeyForFieldName("lat"));
         assertEquals("longitude", FieldGeneratorResolver.semanticKeyForFieldName("lon"));
+        assertEquals("industry", FieldGeneratorResolver.semanticKeyForFieldName("sector"));
+        assertEquals("companyemail", FieldGeneratorResolver.semanticKeyForFieldName("companyEmail"));
+        assertEquals("companyurl", FieldGeneratorResolver.semanticKeyForFieldName("companyWebsite"));
     }
 
     @Test
@@ -42,6 +45,7 @@ class FieldGeneratorResolverSemanticAliasTest {
         assertTrue(FieldGeneratorResolver.semanticAliasesFor("id").containsAll(Set.of("id", "userid", "accountid")));
         assertTrue(FieldGeneratorResolver.semanticAliasesFor("createdAt").containsAll(Set.of("createdat", "createdtimestamp")));
         assertTrue(FieldGeneratorResolver.semanticAliasesFor("latitude").containsAll(Set.of("latitude", "lat")));
+        assertTrue(FieldGeneratorResolver.semanticAliasesFor("companyEmail").containsAll(Set.of("companyemail", "businessemail")));
     }
 
     @Test
@@ -50,6 +54,9 @@ class FieldGeneratorResolverSemanticAliasTest {
         assertEquals("person.first_name", FieldGeneratorResolver.semanticProviderNameFor("firstName"));
         assertEquals("address.city", FieldGeneratorResolver.semanticProviderNameFor("city"));
         assertEquals("company.name", FieldGeneratorResolver.semanticProviderNameFor("companyName"));
+        assertEquals("company.industry", FieldGeneratorResolver.semanticProviderNameFor("industry"));
+        assertEquals("company.email", FieldGeneratorResolver.semanticProviderNameFor("companyEmail"));
+        assertEquals("company.url", FieldGeneratorResolver.semanticProviderNameFor("companyWebsite"));
         assertEquals("security.password", FieldGeneratorResolver.semanticProviderNameFor("password"));
         assertEquals("internet.url", FieldGeneratorResolver.semanticProviderNameFor("url"));
         assertEquals("finance.currency", FieldGeneratorResolver.semanticProviderNameFor("currencyCode"));

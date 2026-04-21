@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -176,6 +177,22 @@ class ObjectGeneratorTypedSemanticTest {
     }
 
     @Test
+    @DisplayName("business profile string fields use company semantics and stay coherent")
+    void businessProfileStringFieldsUseCompanySemanticsAndStayCoherent() {
+        BusinessProfileSemantics value = new ObjectGenerator<>(BusinessProfileSemantics.class).generate();
+
+        assertNotNull(value.companyName);
+        assertNotNull(value.industry);
+        assertTrue(value.companyEmail.contains("@"));
+        assertTrue(value.companyUrl.startsWith("https://www."));
+
+        String host = URI.create(value.companyUrl).getHost();
+        assertNotNull(host);
+        String domain = host.startsWith("www.") ? host.substring(4) : host;
+        assertEquals(domain, value.companyEmail.substring(value.companyEmail.indexOf('@') + 1));
+    }
+
+    @Test
     @DisplayName("bean validation constraints suppress relaxed semantic string generators")
     void beanValidationConstraintsSuppressRelaxedSemanticStringGenerators() {
         ValidatedSemanticString value = new ObjectGenerator<>(ValidatedSemanticString.class).generate();
@@ -250,6 +267,14 @@ class ObjectGeneratorTypedSemanticTest {
     static class NonSemanticStatusHolder {
 
         WeirdStatus status;
+    }
+
+    static class BusinessProfileSemantics {
+
+        String companyName;
+        String industry;
+        String companyEmail;
+        String companyUrl;
     }
 
     static class ValidatedSemanticString {

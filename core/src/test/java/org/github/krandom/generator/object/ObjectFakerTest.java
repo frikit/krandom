@@ -707,6 +707,7 @@ class ObjectFakerTest {
         Method supportsNestedPruning = ObjectFaker.class.getDeclaredMethod("supportsNestedPruning", Class.class);
         supportsNestedPruning.setAccessible(true);
         assertEquals(Boolean.TRUE, supportsNestedPruning.invoke(null, FixtureAddress.class));
+        assertEquals(Boolean.TRUE, supportsNestedPruning.invoke(null, Class.forName("PackageLessFixture")));
         assertEquals(Boolean.FALSE, supportsNestedPruning.invoke(null, String.class));
         assertEquals(Boolean.FALSE, supportsNestedPruning.invoke(null, int.class));
         assertEquals(Boolean.FALSE, supportsNestedPruning.invoke(null, int[].class));
@@ -740,6 +741,42 @@ class ObjectFakerTest {
         Method fieldName = rulePathType.getDeclaredMethod("fieldName");
         fieldName.setAccessible(true);
         assertEquals("city", fieldName.invoke(path));
+    }
+
+    @Test
+    @DisplayName("nested include wraps reflective pruning failures")
+    void nestedIncludeWrapsReflectivePruningFailures() throws Exception {
+        ObjectFaker<FixtureUserWithBrokenAddress> faker = new ObjectFaker<>(FixtureUserWithBrokenAddress.class)
+            .include("address.city");
+        Method applyNestedIncludeRules = ObjectFaker.class.getDeclaredMethod("applyNestedIncludeRules", Object.class);
+        applyNestedIncludeRules.setAccessible(true);
+        FixtureUserWithBrokenAddress user = new FixtureUserWithBrokenAddress();
+        user.address = new BrokenAddressRecord("Rome", "00100");
+
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> {
+                try {
+                    applyNestedIncludeRules.invoke(faker, user);
+                } catch (ReflectiveOperationException e) {
+                    throw e.getCause();
+                }
+            });
+
+        assertTrue(ex.getMessage().contains("Failed to apply nested include rules"));
+    }
+
+    @Test
+    @DisplayName("nested ignore wraps reflective clear failures")
+    void nestedIgnoreWrapsReflectiveClearFailures() {
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectFaker<>(FixtureUserWithBrokenAddress.class)
+                .ignore("address.city")
+                .ruleFor("address", () -> new BrokenAddressRecord("Rome", "00100"))
+                .generate());
+
+        assertTrue(ex.getMessage().contains("Failed to apply ignore rule"));
     }
 
     @Test
@@ -855,6 +892,10 @@ class ObjectFakerTest {
         int age;
     }
 
+    static final class FixtureUserWithBrokenAddress {
+        BrokenAddressRecord address;
+    }
+
     static final class WrongFixtureType {
         String value;
     }
@@ -887,5 +928,18 @@ class ObjectFakerTest {
     }
 
     record FixtureAddressRecord(String city, String postalCode) {
+    }
+
+    record BrokenAddressRecord(String city, String postalCode) {
+
+        @Override
+        public String city() {
+            throw new IllegalStateException("boom");
+        }
+
+        @Override
+        public String postalCode() {
+            throw new IllegalStateException("boom");
+        }
     }
 }

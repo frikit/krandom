@@ -355,6 +355,8 @@ class SemanticCoherenceAdjusterTest {
         adjuster.adjustInstance(ManualCoherenceHolder.class, company, declaredFields(ManualCoherenceHolder.class), true);
         assertEquals("acmelabs.com", company.domain);
         assertEquals("https://www.acmelabs.com", company.url);
+        assertEquals("hello@acmelabs.com", company.companyEmail);
+        assertEquals("https://www.acmelabs.com", company.companyUrl);
 
         SemanticCoherenceAdjuster emailAdjuster =
             new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(), new UniqueFieldTracker());
@@ -422,6 +424,120 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("USD 7.50", stringMoney.price);
         assertEquals("USD 7.50", stringMoney.amount);
         assertEquals("USD 7.50", stringMoney.balance);
+    }
+
+    @Test
+    @DisplayName("company contact fallback paths derive from self, companion fields, and company fallback inputs")
+    void companyContactFallbackPathsDeriveFromSelfCompanionFieldsAndCompanyFallbackInputs() throws Exception {
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+                                                                           new UniqueFieldTracker());
+
+        ManualCompanyContactHolder fromOwnEmail = new ManualCompanyContactHolder();
+        fromOwnEmail.companyEmail = "legacy@widgets.test";
+        adjuster.adjustInstance(ManualCompanyContactHolder.class, fromOwnEmail,
+                                declaredFields(ManualCompanyContactHolder.class), true);
+        assertEquals("hello@widgets.test", fromOwnEmail.companyEmail);
+
+        ManualCompanyContactHolder fromCompanyUrl = new ManualCompanyContactHolder();
+        fromCompanyUrl.companyUrl = "https://www.widgets.test/path";
+        adjuster.adjustInstance(ManualCompanyContactHolder.class, fromCompanyUrl,
+                                declaredFields(ManualCompanyContactHolder.class), true);
+        assertEquals("hello@widgets.test", fromCompanyUrl.companyEmail);
+        assertEquals("https://www.widgets.test", fromCompanyUrl.companyUrl);
+
+        ManualCompanyContactHolder fromOwnUrl = new ManualCompanyContactHolder();
+        fromOwnUrl.companyUrl = "https://www.widgets.test/old";
+        adjuster.adjustInstance(ManualCompanyContactHolder.class, fromOwnUrl,
+                                declaredFields(ManualCompanyContactHolder.class), true);
+        assertEquals("https://www.widgets.test", fromOwnUrl.companyUrl);
+
+        ManualCompanyContactHolder fromCompanyEmail = new ManualCompanyContactHolder();
+        fromCompanyEmail.companyEmail = "hello@widgets.test";
+        adjuster.adjustInstance(ManualCompanyContactHolder.class, fromCompanyEmail,
+                                declaredFields(ManualCompanyContactHolder.class), true);
+        assertEquals("https://www.widgets.test", fromCompanyEmail.companyUrl);
+
+        ManualCompanyContactHolder unresolved = new ManualCompanyContactHolder();
+        unresolved.companyName = "株式会社";
+        unresolved.companyEmail = "";
+        unresolved.companyUrl = "";
+        adjuster.adjustInstance(ManualCompanyContactHolder.class, unresolved,
+                                declaredFields(ManualCompanyContactHolder.class), true);
+        assertEquals("", unresolved.companyEmail);
+        assertEquals("", unresolved.companyUrl);
+    }
+
+    @Test
+    @DisplayName("generic email falls back to company name when full-name slugs are unavailable")
+    void genericEmailFallsBackToCompanyNameWhenFullNameSlugsAreUnavailable() throws Exception {
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+                                                                           new UniqueFieldTracker());
+
+        ManualCompanyFallbackEmailHolder singleWord = new ManualCompanyFallbackEmailHolder();
+        singleWord.fullName = "株式会社";
+        singleWord.companyName = "Acme Labs";
+        adjuster.adjustInstance(ManualCompanyFallbackEmailHolder.class, singleWord,
+                                declaredFields(ManualCompanyFallbackEmailHolder.class), true);
+        assertEquals("hello@acmelabs.com", singleWord.email);
+
+        ManualCompanyFallbackEmailHolder multiWord = new ManualCompanyFallbackEmailHolder();
+        multiWord.fullName = "株式会社 株式会社";
+        multiWord.companyName = "Widgets Co";
+        adjuster.adjustInstance(ManualCompanyFallbackEmailHolder.class, multiWord,
+                                declaredFields(ManualCompanyFallbackEmailHolder.class), true);
+        assertEquals("hello@widgetsco.com", multiWord.email);
+    }
+
+    @Test
+    @DisplayName("manual money holders backfill missing amount from price")
+    void manualMoneyHoldersBackfillMissingAmountFromPrice() throws Exception {
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(ObjectGeneratorConfig.defaults(),
+                                                                           new UniqueFieldTracker());
+
+        ManualMoneyHolder money = new ManualMoneyHolder();
+        money.currencyCode = "usd";
+        money.price = new BigDecimal("19.99");
+        adjuster.adjustInstance(ManualMoneyHolder.class, money, declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("19.99"), money.amount);
+    }
+
+    @Test
+    @DisplayName("protected company contact fields are left untouched")
+    void protectedCompanyContactFieldsAreLeftUntouched() throws Exception {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+            .override(ManualCompanyContactHolder.class, "companyEmail", () -> "ignored@example.test")
+            .override(ManualCompanyContactHolder.class, "companyUrl", () -> "https://ignored.example.test")
+            .build();
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(config, new UniqueFieldTracker());
+
+        ManualCompanyContactHolder holder = new ManualCompanyContactHolder();
+        holder.companyName = "Acme Labs";
+        holder.companyEmail = "legacy@widgets.test";
+        holder.companyUrl = "https://portal.widgets.test";
+
+        adjuster.adjustInstance(ManualCompanyContactHolder.class, holder,
+                                declaredFields(ManualCompanyContactHolder.class), true);
+
+        assertEquals("legacy@widgets.test", holder.companyEmail);
+        assertEquals("https://portal.widgets.test", holder.companyUrl);
+    }
+
+    @Test
+    @DisplayName("protected amount slots skip price backfill")
+    void protectedAmountSlotsSkipPriceBackfill() throws Exception {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+            .override(ManualMoneyHolder.class, "amount", () -> new BigDecimal("1.00"))
+            .build();
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(config, new UniqueFieldTracker());
+
+        ManualMoneyHolder money = new ManualMoneyHolder();
+        money.currencyCode = "usd";
+        money.price = new BigDecimal("19.99");
+
+        adjuster.adjustInstance(ManualMoneyHolder.class, money, declaredFields(ManualMoneyHolder.class), true);
+
+        assertNull(money.amount);
+        assertEquals(new BigDecimal("19.99"), money.price);
     }
 
     @Test
@@ -950,6 +1066,8 @@ class SemanticCoherenceAdjusterTest {
         String companyName;
         String domain;
         String url;
+        String companyEmail;
+        String companyUrl;
     }
 
     static class ManualEmailHolder {
@@ -1087,6 +1205,20 @@ class SemanticCoherenceAdjusterTest {
         String price;
         String amount;
         String balance;
+    }
+
+    static class ManualCompanyContactHolder {
+
+        String companyName;
+        String companyEmail;
+        String companyUrl;
+    }
+
+    static class ManualCompanyFallbackEmailHolder {
+
+        String fullName;
+        String companyName;
+        String email;
     }
 
     static class UnsupportedMoneyTarget {

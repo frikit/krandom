@@ -117,6 +117,7 @@ import org.github.krandom.generator.user.AvatarUrlGenerator;
 import org.github.krandom.generator.user.CompanyBuzzwordGenerator;
 import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
+import org.github.krandom.generator.user.CompanyInfoGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.CompanyUrlGenerator;
 import org.github.krandom.generator.user.ContactInfoGenerator;
@@ -666,6 +667,27 @@ public final class Generators {
      */
     public static CompanyEmailGenerator ofCompanyEmail() {
         return new CompanyEmailGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured company payloads.
+     */
+    public static CompanyInfoGenerator ofCompanyInfo() {
+        return new CompanyInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured company payloads for a specific locale.
+     */
+    public static CompanyInfoGenerator ofCompanyInfo(Locale locale) {
+        return new CompanyInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured company payloads with explicit configuration.
+     */
+    public static CompanyInfoGenerator ofCompanyInfo(GeneratorConfig config) {
+        return new CompanyInfoGenerator(config);
     }
 
     // ── Street address ────────────────────────────────────────────────────────

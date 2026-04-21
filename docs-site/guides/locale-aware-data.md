@@ -55,3 +55,16 @@ Current built-in quality split:
 Fallback tiers are still productized compatibility behavior, not hidden implementation details. They remain part of the metadata model for future or custom locale expansions even though the current built-in catalog is fully native-backed.
 
 The previous native-upgrade priority list is now exhausted for the current built-in locale catalog.
+
+## Locale contribution quality bar
+
+Native locale additions are expected to ship real dataset coverage, not only registration hooks.
+
+The current built-in quality gates enforce:
+
+- minimum dataset sizes for names, cities, states, streets, titles, suffixes, and professions
+- no blank values in validated built-in arrays
+- duplicate ratio no worse than `5%`
+- script sanity coverage for the locale's expected writing system
+
+Contributor-facing details for resource layout and validation rules are documented in the repository-level `docs/locale-contribution-guide.md`.

@@ -22,6 +22,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,6 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Supported locale coverage across providers and registries")
 class SupportedLocaleCoverageTest {
+
+    private static final double MIN_UNIQUE_RATIO          = 0.95d;
+    private static final double MIN_EXPECTED_SCRIPT_RATIO = 0.90d;
 
     @Test
     @DisplayName("locale helpers expose enum locales in declaration order and reject unknown locales")
@@ -140,16 +144,30 @@ class SupportedLocaleCoverageTest {
             assertEquals(locale, invoke(titleProvider, "getLocale"));
             assertEquals(locale, invoke(suffixProvider, "getLocale"));
 
-            assertTrue(stringArray(firstNameProvider, "getMaleFirstNames").length >= 40);
-            assertTrue(stringArray(firstNameProvider, "getFemaleFirstNames").length >= 40);
-            assertTrue(stringArray(lastNameProvider, "getLastNames").length >= 40);
+            String[] maleFirstNames = stringArray(firstNameProvider, "getMaleFirstNames");
+            String[] femaleFirstNames = stringArray(firstNameProvider, "getFemaleFirstNames");
+            String[] lastNames = stringArray(lastNameProvider, "getLastNames");
+            String[] professions = stringArray(professionProvider, "getProfessions");
+            String[] titles = stringArray(titleProvider, "getTitles");
+            String[] suffixes = stringArray(suffixProvider, "getSuffixes");
+
+            assertDatasetQuality(supportedLocale + " male first names", maleFirstNames, 40);
+            assertDatasetQuality(supportedLocale + " female first names", femaleFirstNames, 40);
+            assertDatasetQuality(supportedLocale + " last names", lastNames, 40);
             assertTrue(!stringValue(genderProvider, "getMaleLabel").isBlank());
             assertTrue(!stringValue(genderProvider, "getFemaleLabel").isBlank());
             assertTrue(!stringValue(genderProvider, "getMaleLabel").equals(stringValue(genderProvider, "getFemaleLabel")));
-            assertEquals(25, stringArray(professionProvider, "getProfessions").length);
+            assertDatasetQuality(supportedLocale + " professions", professions, 25);
             assertEquals(25, intArray(professionProvider, "getWeights").length);
-            assertTrue(stringArray(titleProvider, "getTitles").length >= 4);
-            assertTrue(stringArray(suffixProvider, "getSuffixes").length >= 3);
+            assertDatasetQuality(supportedLocale + " titles", titles, 4);
+            assertDatasetQuality(supportedLocale + " suffixes", suffixes, 3);
+            assertExpectedScriptCoverage(supportedLocale,
+                                         maleFirstNames,
+                                         femaleFirstNames,
+                                         lastNames,
+                                         professions,
+                                         titles,
+                                         suffixes);
         }
     }
 
@@ -173,15 +191,91 @@ class SupportedLocaleCoverageTest {
             assertEquals(locale, invoke(countryProvider, "getLocale"));
             assertEquals(locale, invoke(streetProvider, "getLocale"));
 
-            assertTrue(stringArray(cityProvider, "getCities").length >= 70);
-            assertTrue(stringArray(stateProvider, "getStates").length >= 4);
-            assertEquals(stringArray(stateProvider, "getStates").length,
-                         stringArray(stateProvider, "getAbbreviations").length);
-            assertTrue(stringArray(countryProvider, "getCountries").length >= 150);
-            assertTrue(stringArray(streetProvider, "getStreetNames").length >= 20);
-            assertTrue(stringArray(streetProvider, "getStreetTypesShort").length >= 10);
-            assertTrue(stringArray(streetProvider, "getStreetTypesLong").length >= 10);
+            String[] cities = stringArray(cityProvider, "getCities");
+            String[] states = stringArray(stateProvider, "getStates");
+            String[] stateAbbreviations = stringArray(stateProvider, "getAbbreviations");
+            String[] countries = stringArray(countryProvider, "getCountries");
+            String[] streetNames = stringArray(streetProvider, "getStreetNames");
+            String[] streetTypesShort = stringArray(streetProvider, "getStreetTypesShort");
+            String[] streetTypesLong = stringArray(streetProvider, "getStreetTypesLong");
+
+            assertDatasetQuality(supportedLocale + " cities", cities, 70);
+            assertDatasetQuality(supportedLocale + " states", states, 4);
+            assertEquals(states.length, stateAbbreviations.length);
+            assertOptionalDatasetQuality(supportedLocale + " state abbreviations", stateAbbreviations);
+            assertDatasetQuality(supportedLocale + " countries", countries, 150);
+            assertDatasetQuality(supportedLocale + " street names", streetNames, 20);
+            assertDatasetQuality(supportedLocale + " street types short", streetTypesShort, 10);
+            assertDatasetQuality(supportedLocale + " street types long", streetTypesLong, 10);
+            assertExpectedScriptCoverage(supportedLocale, cities, states, streetNames, streetTypesShort, streetTypesLong);
         }
+    }
+
+    private static void assertDatasetQuality(String label, String[] values, int minimumCount) {
+        assertTrue(values.length >= minimumCount, label + " below minimum count");
+        long nonBlankCount = Arrays.stream(values).filter(value -> value != null && !value.isBlank()).count();
+        assertEquals(values.length, nonBlankCount, label + " should not contain blank values");
+        long uniqueCount = Arrays.stream(values)
+                                 .map(String::trim)
+                                 .distinct()
+                                 .count();
+        assertTrue(uniqueCount / (double) values.length >= MIN_UNIQUE_RATIO,
+                   label + " duplicate ratio too high");
+    }
+
+    private static void assertOptionalDatasetQuality(String label, String[] values) {
+        long nonBlankCount = Arrays.stream(values).filter(value -> value != null && !value.isBlank()).count();
+        if (nonBlankCount == 0) {
+            return;
+        }
+        long uniqueCount = Arrays.stream(values)
+                                 .filter(value -> value != null && !value.isBlank())
+                                 .map(String::trim)
+                                 .distinct()
+                                 .count();
+        assertTrue(uniqueCount / (double) nonBlankCount >= MIN_UNIQUE_RATIO,
+                   label + " duplicate ratio too high");
+    }
+
+    private static void assertExpectedScriptCoverage(SupportedLocale supportedLocale, String[]... datasets) {
+        Set<Character.UnicodeScript> expectedScripts = expectedScriptsFor(supportedLocale);
+        long totalEntries = 0;
+        long expectedScriptEntries = 0;
+        for (String[] dataset : datasets) {
+            for (String value : dataset) {
+                if (value == null || value.isBlank()) {
+                    continue;
+                }
+                totalEntries++;
+                if (containsExpectedScript(value, expectedScripts)) {
+                    expectedScriptEntries++;
+                }
+            }
+        }
+        assertTrue(totalEntries > 0, supportedLocale + " has no entries to validate for script coverage");
+        assertTrue(expectedScriptEntries / (double) totalEntries >= MIN_EXPECTED_SCRIPT_RATIO,
+                   supportedLocale + " script coverage below expected ratio");
+    }
+
+    private static boolean containsExpectedScript(String value, Set<Character.UnicodeScript> expectedScripts) {
+        return value.codePoints()
+                    .filter(Character::isLetter)
+                    .mapToObj(Character.UnicodeScript::of)
+                    .anyMatch(expectedScripts::contains);
+    }
+
+    private static Set<Character.UnicodeScript> expectedScriptsFor(SupportedLocale supportedLocale) {
+        return switch (supportedLocale.locale().getLanguage()) {
+            case "ar" -> Set.of(Character.UnicodeScript.ARABIC);
+            case "hi" -> Set.of(Character.UnicodeScript.DEVANAGARI);
+            case "ja" -> Set.of(Character.UnicodeScript.HAN,
+                                Character.UnicodeScript.HIRAGANA,
+                                Character.UnicodeScript.KATAKANA);
+            case "ko" -> Set.of(Character.UnicodeScript.HANGUL);
+            case "ru" -> Set.of(Character.UnicodeScript.CYRILLIC);
+            case "zh" -> Set.of(Character.UnicodeScript.HAN);
+            default -> Set.of(Character.UnicodeScript.LATIN);
+        };
     }
 
     private static Object builtInProvider(String className, SupportedLocale supportedLocale) {

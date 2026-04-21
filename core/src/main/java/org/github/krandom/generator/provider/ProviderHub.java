@@ -30,11 +30,17 @@ import org.github.krandom.generator.selection.UniqueGenerator;
 import org.github.krandom.generator.text.ParagraphGenerator;
 import org.github.krandom.generator.text.SentenceGenerator;
 import org.github.krandom.generator.text.WordGenerator;
+import org.github.krandom.generator.user.CompanyBuzzwordGenerator;
+import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
+import org.github.krandom.generator.user.CompanyEmailGenerator;
+import org.github.krandom.generator.user.CompanyInfoGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
+import org.github.krandom.generator.user.CompanyUrlGenerator;
 import org.github.krandom.generator.user.ContactInfoGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FirstNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
+import org.github.krandom.generator.user.IndustryGenerator;
 import org.github.krandom.generator.user.JobInfoGenerator;
 import org.github.krandom.generator.user.LastNameGenerator;
 import org.github.krandom.generator.user.PasswordGenerator;
@@ -329,6 +335,12 @@ public final class ProviderHub {
         register("person", cfg -> new FullNameGenerator(cfg), ConflictPolicy.REPLACE);
 
         register("company.name", cfg -> new CompanyNameGenerator(cfg), ConflictPolicy.REPLACE);
+        register("company.email", cfg -> new CompanyEmailGenerator(cfg), ConflictPolicy.REPLACE);
+        register("company.url", cfg -> new CompanyUrlGenerator(cfg), ConflictPolicy.REPLACE);
+        register("company.buzzword", cfg -> new CompanyBuzzwordGenerator(cfg), ConflictPolicy.REPLACE);
+        register("company.catch_phrase", cfg -> new CompanyCatchPhraseGenerator(cfg), ConflictPolicy.REPLACE);
+        register("company.industry", cfg -> new IndustryGenerator(cfg), ConflictPolicy.REPLACE);
+        register("company.info", cfg -> new CompanyInfoGenerator(cfg), ConflictPolicy.REPLACE);
         register("security.password", cfg -> new PasswordGenerator(cfg), ConflictPolicy.REPLACE);
 
         register("address.address_info", cfg -> new AddressInfoGenerator(cfg), ConflictPolicy.REPLACE);
@@ -375,6 +387,12 @@ public final class ProviderHub {
         registerAlias("person_info", "person.person_info", ConflictPolicy.REPLACE);
         registerAlias("job_info", "person.job_info", ConflictPolicy.REPLACE);
         registerAlias("company_name", "company.name", ConflictPolicy.REPLACE);
+        registerAlias("company_email", "company.email", ConflictPolicy.REPLACE);
+        registerAlias("company_url", "company.url", ConflictPolicy.REPLACE);
+        registerAlias("company_buzzword", "company.buzzword", ConflictPolicy.REPLACE);
+        registerAlias("company_catch_phrase", "company.catch_phrase", ConflictPolicy.REPLACE);
+        registerAlias("company_industry", "company.industry", ConflictPolicy.REPLACE);
+        registerAlias("company_info", "company.info", ConflictPolicy.REPLACE);
         registerAlias("password", "security.password", ConflictPolicy.REPLACE);
         registerAlias("address_info", "address.address_info", ConflictPolicy.REPLACE);
         registerAlias("location", "address.street_address", ConflictPolicy.REPLACE);

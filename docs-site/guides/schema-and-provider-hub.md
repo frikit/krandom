@@ -86,6 +86,7 @@ EmailGenerator email = hub.get("person.email", EmailGenerator.class);
 ContactInfoGenerator contacts = hub.get("person.contact_info", ContactInfoGenerator.class);
 ProductInfoGenerator products = hub.get("commerce.product_info", ProductInfoGenerator.class);
 BankInfoGenerator banks = hub.get("finance.bank_info", BankInfoGenerator.class);
+CompanyInfoGenerator companies = hub.get("company.info", CompanyInfoGenerator.class);
 CityGenerator city = hub.get("address.city", CityGenerator.class);
 URLGenerator internet = hub.get("url", URLGenerator.class); // alias for internet.url
 TextFormatProvider format = hub.get("text.format", TextFormatProvider.class);
@@ -103,6 +104,7 @@ The old coarse names like `person`, `address`, `internet`, `finance`, `datetime`
 
 - `person.full_name`, `person.first_name`, `person.last_name`, `person.email`, `person.username`
 - `person.contact_info`, `person.person_info`, `person.job_info`
+- `company.name`, `company.email`, `company.url`, `company.buzzword`, `company.catch_phrase`, `company.industry`, `company.info`
 - `address.address_info`
 - `commerce.product_info`
 - `address.street_address`, `address.city`, `address.state`, `address.postal_code`, `address.country`, `address.phone_number`

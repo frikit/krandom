@@ -91,6 +91,7 @@ class BusinessProfileGeneratorsTest {
     @DisplayName("Generators factory methods expose business/profile generators")
     void generatorFactoryCoverage() {
         assertNotNull(Generators.ofIndustry().generate());
+        assertNotNull(Generators.ofCompanyInfo().generate());
         assertNotNull(Generators.ofCompanyUrl().generate());
         assertNotNull(Generators.ofJobField().generate());
         assertNotNull(Generators.ofJobType().generate());

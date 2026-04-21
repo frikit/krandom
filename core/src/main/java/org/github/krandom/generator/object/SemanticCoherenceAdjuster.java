@@ -110,7 +110,9 @@ final class SemanticCoherenceAdjuster {
         String domain = harmonizeDomain(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeFullName(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeEmail(slotsBySemanticKey, domain, allowOverwriteExisting);
+        harmonizeCompanyEmail(slotsBySemanticKey, domain, allowOverwriteExisting);
         harmonizeUrl(slotsBySemanticKey, allowOverwriteExisting);
+        harmonizeCompanyUrl(slotsBySemanticKey, domain, allowOverwriteExisting);
         harmonizeTimestamps(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeAgeAndBirthDate(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeMonetaryFields(slotsBySemanticKey, allowOverwriteExisting);
@@ -207,6 +209,29 @@ final class SemanticCoherenceAdjuster {
         emailSlot.setValue(applyUniqueness(emailSlot, "email", localPart + "@" + domain));
     }
 
+    private void harmonizeCompanyEmail(Map<String, Slot> slotsBySemanticKey, String resolvedDomain, boolean allowOverwriteExisting) {
+        Slot companyEmailSlot = slotsBySemanticKey.get("companyemail");
+        if (companyEmailSlot == null || !canAssign(companyEmailSlot, allowOverwriteExisting)) {
+            return;
+        }
+
+        String domain = resolvedDomain;
+        if (domain == null) {
+            domain = normalizeDomain(emailDomain(stringValue(companyEmailSlot)));
+        }
+        if (domain == null) {
+            domain = normalizeDomain(urlHost(stringValue(slotsBySemanticKey.get("companyurl"))));
+        }
+        if (domain == null) {
+            domain = normalizeDomain(domainFromCompany(stringValue(slotsBySemanticKey.get("companyname"))));
+        }
+        if (domain == null) {
+            return;
+        }
+
+        companyEmailSlot.setValue(applyUniqueness(companyEmailSlot, "companyemail", "hello@" + domain));
+    }
+
     private void harmonizeUrl(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
         Slot urlSlot = slotsBySemanticKey.get("url");
         if (urlSlot == null || !canAssign(urlSlot, allowOverwriteExisting)) {
@@ -222,6 +247,29 @@ final class SemanticCoherenceAdjuster {
         }
 
         urlSlot.setValue(applyUniqueness(urlSlot, "url", "https://www." + domain));
+    }
+
+    private void harmonizeCompanyUrl(Map<String, Slot> slotsBySemanticKey, String resolvedDomain, boolean allowOverwriteExisting) {
+        Slot companyUrlSlot = slotsBySemanticKey.get("companyurl");
+        if (companyUrlSlot == null || !canAssign(companyUrlSlot, allowOverwriteExisting)) {
+            return;
+        }
+
+        String domain = resolvedDomain;
+        if (domain == null) {
+            domain = normalizeDomain(urlHost(stringValue(companyUrlSlot)));
+        }
+        if (domain == null) {
+            domain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("companyemail"))));
+        }
+        if (domain == null) {
+            domain = normalizeDomain(domainFromCompany(stringValue(slotsBySemanticKey.get("companyname"))));
+        }
+        if (domain == null) {
+            return;
+        }
+
+        companyUrlSlot.setValue(applyUniqueness(companyUrlSlot, "companyurl", "https://www." + domain));
     }
 
     private void harmonizeTimestamps(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
@@ -452,11 +500,18 @@ final class SemanticCoherenceAdjuster {
 
         String[] parts = fullName.split("\\s+");
         if (parts.length < 2) {
-            return slugFragment(fullName);
+            String fullNameSlug = slugFragment(fullName);
+            if (fullNameSlug != null) {
+                return fullNameSlug;
+            }
+        } else {
+            String left = slugFragment(parts[0]);
+            String right = slugFragment(parts[parts.length - 1]);
+            if (left != null && right != null) {
+                return left + "." + right;
+            }
         }
-        String left = slugFragment(parts[0]);
-        String right = slugFragment(parts[parts.length - 1]);
-        return left != null && right != null ? left + "." + right : null;
+        return stringValue(slotsBySemanticKey.get("companyname")) != null ? "hello" : null;
     }
 
     private static String domainFromCompany(String companyName) {

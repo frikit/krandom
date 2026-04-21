@@ -39,7 +39,7 @@ Main entrypoint: `org.github.krandom.generator.Generators`
 
 ## User and identity
 
-- `ofFullName`, `ofEmail`, `ofContactInfo`, `ofJobInfo`, `ofPersonInfo`, `ofCompanyEmail`
+- `ofFullName`, `ofEmail`, `ofContactInfo`, `ofJobInfo`, `ofPersonInfo`, `ofCompanyEmail`, `ofCompanyInfo`
 - `ofUsername`, `ofPassword`, `ofAvatarUrl`
 - `ofSimpleProfile`, `ofProfile`
 - `ofProfession`, `ofJobField`, `ofJobType`, `ofPosition`, `ofIndustry`
