@@ -36,16 +36,18 @@ OrderDto order = orders.generate();
 ## With custom config
 
 ```java
-ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
+ObjectGeneratorConfig legacyCfg = ObjectGeneratorConfig.builder()
         .maxDepth(2)
+        .override(OrderDto.class, "status", () -> "PENDING")
         .ignoreErrors(false)
         .build();
 
+GeneratorConfig cfg = legacyCfg.toGeneratorConfig();
 ObjectGenerator<OrderDto> orders = new ObjectGenerator<>(OrderDto.class, cfg);
 OrderDto order = orders.generate();
 ```
 
-`GeneratorConfig` is the preferred public entry point, including for advanced object overrides and exclusions. Use `ObjectGeneratorConfig` when you want an object-local compatibility layer on top of a shared root config, or when you need to compose object-only tuning separately from the rest of the fixture pipeline.
+`GeneratorConfig` is the preferred public entry point, including for advanced object overrides and exclusions. `ObjectGeneratorConfig` now acts as a compatibility adapter for legacy object-local composition; when you still have one, migrate it with `toGeneratorConfig()` and pass the root config into `ObjectGenerator<T>` or `ObjectFaker<T>`.
 
 Semantic modes:
 
@@ -109,7 +111,7 @@ Supported in the current fixture layer:
 
 `include(...)` and `ignore(...)` intentionally stay root-field scoped, while `ruleFor(...)` and `ruleForContext(...)` can target nested paths.
 
-`ObjectFaker<T>` reuses the same `ObjectGeneratorConfig`, semantic resolver, locale, seed, and override rules as `ObjectGenerator<T>`.
+`ObjectFaker<T>` reuses the same root `GeneratorConfig`, semantic resolver, locale, seed, and override rules as `ObjectGenerator<T>`.
 
 ## When to use
 

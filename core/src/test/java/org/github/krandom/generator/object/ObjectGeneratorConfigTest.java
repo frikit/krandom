@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Map;
@@ -43,6 +44,13 @@ class ObjectGeneratorConfigTest {
         assertEquals(256, c.getUniquenessMaxAttempts());
         assertTrue(c.getTypeOverride(String.class).isEmpty());
         assertTrue(c.getFieldOverride(String.class, "value").isEmpty());
+    }
+
+    @Test
+    @DisplayName("defaults() is deprecated in favor of GeneratorConfig defaults")
+    void defaultsMethodIsDeprecated() throws Exception {
+        Method defaults = ObjectGeneratorConfig.class.getDeclaredMethod("defaults");
+        assertTrue(defaults.isAnnotationPresent(Deprecated.class));
     }
 
     @Test
@@ -162,6 +170,69 @@ class ObjectGeneratorConfigTest {
         assertEquals("local-type", objectConfig.getTypeOverride(String.class).orElseThrow().generate());
         assertEquals("local-field",
                      objectConfig.getFieldOverride(RootInheritedFixture.class, "name").orElseThrow().generate());
+    }
+
+    @Test
+    @DisplayName("toGeneratorConfig preserves effective object settings and local overrides")
+    void toGeneratorConfigPreservesEffectiveSettings() throws Exception {
+        GeneratorConfig base = GeneratorConfig.builder()
+                                             .locale(Locale.JAPAN)
+                                             .seed(17L)
+                                             .stringLength(9, 11)
+                                             .collectionSize(2, 4)
+                                             .objectMaxDepth(2)
+                                             .objectPoolSize(1)
+                                             .objectIgnoreErrors(true)
+                                             .objectOverride(RootInheritedFixture.class, "password", () -> "root-password")
+                                             .build();
+
+        ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
+                                                                 .generatorConfig(base)
+                                                                 .maxDepth(4)
+                                                                 .objectPoolSize(7)
+                                                                 .overrideDefaultInitialization(true)
+                                                                 .ignoreErrors(false)
+                                                                 .semanticMode(ObjectGenerationSemanticMode.STRICT)
+                                                                 .nullProbability(0.25)
+                                                                 .optionalEmptyProbability(0.5)
+                                                                 .uniqueFields("email", "accountId")
+                                                                 .uniquenessMaxAttempts(12)
+                                                                 .dateRange(LocalDate.of(2021, 1, 1),
+                                                                            LocalDate.of(2021, 12, 31))
+                                                                 .override(String.class, () -> "local-type")
+                                                                 .override(RootInheritedFixture.class, "name", () -> "local-field")
+                                                                 .override(Integer.class, ctx -> 11)
+                                                                 .override(RootInheritedFixture.class, "score", ctx -> 19)
+                                                                 .excludeField("password")
+                                                                 .excludeType(LocalDate.class)
+                                                                 .build();
+
+        GeneratorConfig migrated = objectConfig.toGeneratorConfig();
+
+        assertEquals(Locale.JAPAN, migrated.getLocale());
+        assertEquals(17L, migrated.getSeed().orElseThrow());
+        assertEquals(9, migrated.getMinStringLength());
+        assertEquals(11, migrated.getMaxStringLength());
+        assertEquals(2, migrated.getMinCollectionSize());
+        assertEquals(4, migrated.getMaxCollectionSize());
+        assertEquals(4, migrated.getObjectMaxDepth());
+        assertEquals(7, migrated.getObjectPoolSize());
+        assertTrue(migrated.isObjectOverrideDefaultInitialization());
+        assertFalse(migrated.isObjectIgnoreErrors());
+        assertEquals(ObjectGenerationSemanticMode.STRICT, migrated.getObjectSemanticMode());
+        assertEquals(0.25, migrated.getObjectNullProbability());
+        assertEquals(0.5, migrated.getObjectOptionalEmptyProbability());
+        assertEquals(Set.of("email", "accountid"), migrated.getObjectUniqueFieldNames());
+        assertEquals(12, migrated.getObjectUniquenessMaxAttempts());
+        assertEquals(LocalDate.of(2021, 1, 1), migrated.getObjectDateMin());
+        assertEquals(LocalDate.of(2021, 12, 31), migrated.getObjectDateMax());
+        assertEquals("local-type", migrated.getObjectTypeOverride(String.class).orElseThrow().generate());
+        assertEquals("local-field",
+                     migrated.getObjectFieldOverride(RootInheritedFixture.class, "name").orElseThrow().generate());
+        assertTrue(migrated.getObjectContextualTypeOverride(Integer.class).isPresent());
+        assertTrue(migrated.getObjectContextualFieldOverride(RootInheritedFixture.class, "score").isPresent());
+        assertTrue(migrated.shouldObjectExclude(RootInheritedFixture.class.getDeclaredField("password")));
+        assertTrue(migrated.shouldObjectExclude(RootInheritedFixture.class.getDeclaredField("createdAt")));
     }
 
     @Test
@@ -386,6 +457,112 @@ class ObjectGeneratorConfigTest {
                 .generate();
 
         assertEquals("LEGACY", value.getValue());
+    }
+
+    @Test
+    @DisplayName("legacy simple-name contextual field override key remains supported")
+    void legacySimpleNameContextualFieldOverrideKeyStillWorks() throws Exception {
+        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
+
+        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("contextualFieldOverrides");
+        overridesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, org.github.krandom.generator.ContextualGenerator<?>> fieldOverrides =
+            (Map<String, org.github.krandom.generator.ContextualGenerator<?>>) overridesField.get(builder);
+        fieldOverrides.put("SameNameHolder.value", ctx -> "LEGACY-CONTEXTUAL");
+
+        ObjectGeneratorConfig config = builder.build();
+
+        assertEquals("LEGACY-CONTEXTUAL",
+                     config.getContextualFieldOverride(
+                             org.github.krandom.generator.object.collision.left.SameNameHolder.class,
+                             "value")
+                           .orElseThrow()
+                           .generate(null));
+    }
+
+    @Test
+    @DisplayName("toGeneratorConfig keeps object date range unset when compatibility config has none")
+    void toGeneratorConfigKeepsDateRangeUnsetWhenAbsent() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                           .maxDepth(3)
+                                                           .build();
+
+        GeneratorConfig migrated = config.toGeneratorConfig();
+
+        assertNull(migrated.getObjectDateMin());
+        assertNull(migrated.getObjectDateMax());
+    }
+
+    @Test
+    @DisplayName("toGeneratorConfig ignores one-sided date range state from malformed compatibility configs")
+    void toGeneratorConfigIgnoresOneSidedDateRangeState() throws Exception {
+        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
+
+        Field dateMinField = ObjectGeneratorConfig.Builder.class.getDeclaredField("dateMin");
+        dateMinField.setAccessible(true);
+        dateMinField.set(builder, LocalDate.of(2024, 1, 1));
+
+        ObjectGeneratorConfig config = builder.build();
+        GeneratorConfig migrated = config.toGeneratorConfig();
+
+        assertNull(migrated.getObjectDateMin());
+        assertNull(migrated.getObjectDateMax());
+    }
+
+    @Test
+    @DisplayName("toGeneratorConfig rejects malformed legacy field override keys")
+    void toGeneratorConfigRejectsMalformedLegacyFieldOverrideKeys() throws Exception {
+        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
+
+        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("fieldOverrides");
+        overridesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, org.github.krandom.generator.Generator<?>> fieldOverrides =
+            (Map<String, org.github.krandom.generator.Generator<?>>) overridesField.get(builder);
+        fieldOverrides.put("broken", () -> "LEGACY");
+
+        ObjectGeneratorConfig config = builder.build();
+
+        IllegalStateException error = assertThrows(IllegalStateException.class, config::toGeneratorConfig);
+        assertTrue(error.getMessage().contains("Cannot migrate legacy object field key"));
+    }
+
+    @Test
+    @DisplayName("toGeneratorConfig rejects malformed legacy field override keys with trailing separators")
+    void toGeneratorConfigRejectsMalformedLegacyFieldOverrideKeysWithTrailingSeparator() throws Exception {
+        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
+
+        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("fieldOverrides");
+        overridesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, org.github.krandom.generator.Generator<?>> fieldOverrides =
+            (Map<String, org.github.krandom.generator.Generator<?>>) overridesField.get(builder);
+        fieldOverrides.put("broken.", () -> "LEGACY");
+
+        ObjectGeneratorConfig config = builder.build();
+
+        IllegalStateException error = assertThrows(IllegalStateException.class, config::toGeneratorConfig);
+        assertTrue(error.getMessage().contains("Cannot migrate legacy object field key"));
+    }
+
+    @Test
+    @DisplayName("toGeneratorConfig rejects unresolved legacy field owner types")
+    void toGeneratorConfigRejectsUnresolvedLegacyFieldOwnerTypes() throws Exception {
+        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
+
+        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("fieldOverrides");
+        overridesField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, org.github.krandom.generator.Generator<?>> fieldOverrides =
+            (Map<String, org.github.krandom.generator.Generator<?>>) overridesField.get(builder);
+        fieldOverrides.put("SameNameHolder.value", () -> "LEGACY");
+
+        ObjectGeneratorConfig config = builder.build();
+
+        IllegalStateException error = assertThrows(IllegalStateException.class, config::toGeneratorConfig);
+        assertTrue(error.getMessage().contains("Cannot resolve object field owner type"));
+        assertTrue(error.getCause() instanceof ClassNotFoundException);
     }
 
     static class RootInheritedFixture {

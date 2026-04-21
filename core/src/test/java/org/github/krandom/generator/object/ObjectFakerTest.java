@@ -9,6 +9,7 @@ import org.github.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -27,6 +28,14 @@ class ObjectFakerTest {
     @DisplayName("static factory returns an ObjectFaker")
     void staticFactoryReturnsObjectFaker() {
         assertInstanceOf(ObjectFaker.class, ObjectFaker.of(FixtureUser.class));
+    }
+
+    @Test
+    @DisplayName("ObjectGeneratorConfig constructor is deprecated in favor of GeneratorConfig")
+    void objectConfigConstructorIsDeprecated() throws Exception {
+        Constructor<ObjectFaker> constructor =
+            ObjectFaker.class.getDeclaredConstructor(Class.class, ObjectGeneratorConfig.class);
+        assertTrue(constructor.isAnnotationPresent(Deprecated.class));
     }
 
     @Test

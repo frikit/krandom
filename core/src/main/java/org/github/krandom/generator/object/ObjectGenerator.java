@@ -46,12 +46,12 @@ import java.util.Random;
  *   // Minimal
  *   Person p = new ObjectGenerator<>(Person.class).generate();
  *
- *   // With configuration
- *   ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
- *       .maxDepth(3)
- *       .override(String.class, () -> "test-value")
- *       .override(Person.class, "firstName", () -> "Alice")
- *       .excludeField("password")
+ *   // Preferred public configuration path
+ *   GeneratorConfig config = GeneratorConfig.builder()
+ *       .objectMaxDepth(3)
+ *       .objectOverride(String.class, () -> "test-value")
+ *       .objectOverride(Person.class, "firstName", () -> "Alice")
+ *       .objectExcludeField("password")
  *       .build();
  *
  *   ObjectGenerator<Person> gen = new ObjectGenerator<>(Person.class, config);
@@ -84,19 +84,33 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Creates a generator with default configuration.
      */
     public ObjectGenerator(Class<T> type) {
-        this(type, ObjectGeneratorConfig.defaults());
+        this(type,
+             ObjectGeneratorConfig.builder().generatorConfig(GeneratorConfig.defaults()).build(),
+             0,
+             null,
+             null,
+             new UniqueFieldTracker());
     }
 
     /**
      * Creates a generator that uses the shared root configuration defaults.
      */
     public ObjectGenerator(Class<T> type, GeneratorConfig config) {
-        this(type, ObjectGeneratorConfig.builder().generatorConfig(config).build());
+        this(type,
+             ObjectGeneratorConfig.builder().generatorConfig(config).build(),
+             0,
+             null,
+             null,
+             new UniqueFieldTracker());
     }
 
     /**
      * Creates a generator with custom configuration.
+     *
+     * @deprecated Prefer {@link #ObjectGenerator(Class, GeneratorConfig)} and migrate
+     *             object-local settings with {@link ObjectGeneratorConfig#toGeneratorConfig()}.
      */
+    @Deprecated(since = "0.1.0", forRemoval = false)
     public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
         this(type, config, 0, null, null, new UniqueFieldTracker());
     }

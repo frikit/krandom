@@ -108,6 +108,7 @@ import org.github.krandom.generator.user.nationalid.NationalIdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -117,6 +118,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Generators factory")
 class GeneratorsTest {
@@ -772,6 +774,17 @@ class GeneratorsTest {
                          Generators.ofObjectFaker(SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
         assertInstanceOf(ObjectFaker.class,
                          Generators.ofObjectFaker(SimplePojo.class, ObjectGeneratorConfig.defaults()));
+    }
+
+    @Test
+    @DisplayName("ObjectGeneratorConfig-based object factories are deprecated compatibility entry points")
+    void objectConfigFactoriesAreDeprecated() throws Exception {
+        Method objectFactory = Generators.class.getDeclaredMethod("ofObject", Class.class, ObjectGeneratorConfig.class);
+        Method fakerFactory =
+            Generators.class.getDeclaredMethod("ofObjectFaker", Class.class, ObjectGeneratorConfig.class);
+
+        assertTrue(objectFactory.isAnnotationPresent(Deprecated.class));
+        assertTrue(fakerFactory.isAnnotationPresent(Deprecated.class));
     }
 
     @Test

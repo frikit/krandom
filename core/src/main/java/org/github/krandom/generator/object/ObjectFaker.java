@@ -73,20 +73,28 @@ public final class ObjectFaker<T> implements Generator<T> {
      * Creates a fixture authoring API with default object-generation settings.
      */
     public ObjectFaker(Class<T> type) {
-        this(type, ObjectGeneratorConfig.defaults());
+        this(type, GeneratorConfig.defaults());
     }
 
     /**
      * Creates a fixture authoring API using the shared root configuration.
      */
     public ObjectFaker(Class<T> type, GeneratorConfig config) {
-        this(type, ObjectGeneratorConfig.builder().generatorConfig(config).build());
+        this(type, ObjectGeneratorConfig.builder().generatorConfig(config).build(), true);
     }
 
     /**
      * Creates a fixture authoring API with explicit object-generation configuration.
+     *
+     * @deprecated Prefer {@link #ObjectFaker(Class, GeneratorConfig)} and migrate
+     *             object-local settings with {@link ObjectGeneratorConfig#toGeneratorConfig()}.
      */
+    @Deprecated(since = "0.1.0", forRemoval = false)
     public ObjectFaker(Class<T> type, ObjectGeneratorConfig config) {
+        this(type, config, true);
+    }
+
+    private ObjectFaker(Class<T> type, ObjectGeneratorConfig config, boolean ignored) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.baseConfig = Objects.requireNonNull(config, "config must not be null");
     }

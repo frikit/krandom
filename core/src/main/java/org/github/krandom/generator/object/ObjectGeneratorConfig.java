@@ -23,7 +23,13 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Immutable configuration for {@link ObjectGenerator}.
+ * Immutable compatibility configuration for {@link ObjectGenerator}.
+ *
+ * <p>{@link GeneratorConfig} is the preferred public entry point for object-generation
+ * defaults, overrides, exclusions, locale, and seed settings. This type remains as an
+ * object-scoped adapter for callers that still want to compose object-only settings
+ * separately, and it can be migrated back into the root config via
+ * {@link #toGeneratorConfig()}.
  *
  * <p>Build via the fluent {@link Builder}:
  * <pre>{@code
@@ -118,7 +124,12 @@ public final class ObjectGeneratorConfig {
 
     /**
      * Default configuration.
+     *
+     * @deprecated Use {@link GeneratorConfig#defaults()} with
+     *             {@link ObjectGenerator#ObjectGenerator(Class, GeneratorConfig)} or
+     *             {@link org.github.krandom.generator.Generators#ofObject(Class, GeneratorConfig)}.
      */
+    @Deprecated(since = "0.1.0", forRemoval = false)
     public static ObjectGeneratorConfig defaults() {
         return builder().build();
     }
@@ -321,6 +332,94 @@ public final class ObjectGeneratorConfig {
             if (predicate.test(field.getType())) return true;
         }
         return generatorConfig.shouldObjectExclude(field);
+    }
+
+    /**
+     * Converts this compatibility adapter into a root {@link GeneratorConfig} with the same
+     * effective object-generation behavior.
+     */
+    public GeneratorConfig toGeneratorConfig() {
+        GeneratorConfig.Builder builder = generatorConfig.toBuilder()
+                                                         .objectMaxDepth(maxDepth)
+                                                         .objectPoolSize(objectPoolSize)
+                                                         .objectOverrideDefaultInitialization(overrideDefaultInitialization)
+                                                         .objectIgnoreErrors(ignoreErrors)
+                                                         .objectSemanticMode(semanticMode)
+                                                         .objectNullProbability(nullProbability)
+                                                         .objectOptionalEmptyProbability(optionalEmptyProbability)
+                                                         .objectUniqueFields(uniqueFieldNames.toArray(String[]::new))
+                                                         .objectUniquenessMaxAttempts(uniquenessMaxAttempts);
+
+        if (dateMin != null && dateMax != null) {
+            builder.objectDateRange(dateMin, dateMax);
+        }
+
+        typeOverrides.forEach((type, generator) -> applyTypeOverride(builder, type, generator));
+        fieldOverrides.forEach((key, generator) -> applyFieldOverride(builder, key, generator));
+        contextualTypeOverrides.forEach((type, generator) -> applyContextualTypeOverride(builder, type, generator));
+        contextualFieldOverrides.forEach((key, generator) -> applyContextualFieldOverride(builder, key, generator));
+        exclusionPredicates.forEach(builder::objectExclude);
+        typeExclusionPredicates.forEach(builder::objectExcludeType);
+        return builder.build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void applyTypeOverride(GeneratorConfig.Builder builder, Class<?> type, Generator<?> generator) {
+        builder.objectOverride((Class<T>) type, (Generator<? extends T>) generator);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void applyContextualTypeOverride(GeneratorConfig.Builder builder,
+                                                        Class<?> type,
+                                                        ContextualGenerator<?> generator) {
+        builder.objectOverride((Class<T>) type, (ContextualGenerator<? extends T>) generator);
+    }
+
+    private static void applyFieldOverride(GeneratorConfig.Builder builder, String key, Generator<?> generator) {
+        ParsedFieldKey parsed = parseFieldKey(key);
+        applyFieldOverride(builder, parsed.ownerType(), parsed.fieldName(), generator);
+    }
+
+    private static void applyContextualFieldOverride(GeneratorConfig.Builder builder,
+                                                     String key,
+                                                     ContextualGenerator<?> generator) {
+        ParsedFieldKey parsed = parseFieldKey(key);
+        applyContextualFieldOverride(builder, parsed.ownerType(), parsed.fieldName(), generator);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void applyFieldOverride(GeneratorConfig.Builder builder,
+                                               Class<?> ownerType,
+                                               String fieldName,
+                                               Generator<?> generator) {
+        builder.objectOverride(ownerType, fieldName, (Generator<T>) generator);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void applyContextualFieldOverride(GeneratorConfig.Builder builder,
+                                                         Class<?> ownerType,
+                                                         String fieldName,
+                                                         ContextualGenerator<?> generator) {
+        builder.objectOverride(ownerType, fieldName, (ContextualGenerator<T>) generator);
+    }
+
+    private static ParsedFieldKey parseFieldKey(String key) {
+        int separator = Objects.requireNonNull(key, "key").lastIndexOf('.');
+        if (separator <= 0 || separator == key.length() - 1) {
+            throw new IllegalStateException(
+                "Cannot migrate legacy object field key '" + key
+                + "' to GeneratorConfig; rebuild it with ownerType + fieldName");
+        }
+        String ownerTypeName = key.substring(0, separator);
+        String fieldName = key.substring(separator + 1);
+        try {
+            return new ParsedFieldKey(Class.forName(ownerTypeName), fieldName);
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalStateException("Cannot resolve object field owner type '" + ownerTypeName + "'", ex);
+        }
+    }
+
+    private record ParsedFieldKey(Class<?> ownerType, String fieldName) {
     }
 
     // ── Builder ───────────────────────────────────────────────────────────────
