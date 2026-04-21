@@ -103,13 +103,13 @@ Supported in the current fixture layer:
 - path-aware `ruleFor(...)` with plain generators, including nested paths such as `address.city`
 - path-aware dependent `ruleFor(...)` based on the generated root object
 - path-aware `ruleForContext(...)` with nested owner/depth metadata
-- `ignore(...)` for root fields
-- `include(...)` to whitelist the root fields you want populated
+- path-aware `ignore(...)`, including nested paths such as `address.city`
+- path-aware `include(...)` to whitelist root fields or prune nested payload slices such as `address.city`
 - named `profile(...)` plus `useProfile(...)` for reusable rule bundles
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
 
-`include(...)` and `ignore(...)` intentionally stay root-field scoped, while `ruleFor(...)` and `ruleForContext(...)` can target nested paths.
+Nested `include(...)` paths keep the parent object alive and clear sibling fields below that path unless you also include the wider root object.
 
 `ObjectFaker<T>` reuses the same root `GeneratorConfig`, semantic resolver, locale, seed, and override rules as `ObjectGenerator<T>`.
 

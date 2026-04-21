@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -97,6 +98,15 @@ class ObjectFakerTest {
         assertNull(user.firstName);
         assertNull(user.email);
         assertNotNull(user.lastName);
+    }
+
+    @Test
+    @DisplayName("duplicate ignore paths are idempotent")
+    void duplicateIgnorePathsAreIdempotent() {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class);
+
+        assertSame(faker, faker.ignore("address.city"));
+        assertSame(faker, faker.ignore("address.city"));
     }
 
     @Test
@@ -471,17 +481,77 @@ class ObjectFakerTest {
     }
 
     @Test
-    @DisplayName("nested paths are rejected for include and ignore")
-    void nestedPathsAreRejectedForIncludeAndIgnore() {
-        IllegalArgumentException includeEx = assertThrows(
-            IllegalArgumentException.class,
-            () -> new ObjectFaker<>(FixtureUserWithAddress.class).include("address.city"));
-        assertTrue(includeEx.getMessage().contains("only supports root fields"));
+    @DisplayName("nested include prunes sibling fields under the selected root")
+    void nestedIncludePrunesSiblingFields() {
+        FixtureUserWithAddress user = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .include("address.city")
+            .generate();
 
-        IllegalArgumentException ignoreEx = assertThrows(
-            IllegalArgumentException.class,
-            () -> new ObjectFaker<>(FixtureUserWithAddress.class).ignore("address.city"));
-        assertTrue(ignoreEx.getMessage().contains("only supports root fields"));
+        assertNull(user.firstName);
+        assertNull(user.lastName);
+        assertNotNull(user.address);
+        assertNotNull(user.address.city);
+        assertNull(user.address.postalCode);
+        assertEquals(0, user.address.houseNumber);
+    }
+
+    @Test
+    @DisplayName("nested include prunes nested record components too")
+    void nestedIncludePrunesNestedRecordComponents() {
+        FixtureRecordWithNestedRecord record = new ObjectFaker<>(FixtureRecordWithNestedRecord.class)
+            .include("address.city")
+            .generate();
+
+        assertNull(record.firstName());
+        assertNotNull(record.address());
+        assertNotNull(record.address().city());
+        assertNull(record.address().postalCode());
+    }
+
+    @Test
+    @DisplayName("nested ignore clears only the targeted nested field")
+    void nestedIgnoreClearsOnlyTargetedField() {
+        FixtureUserWithAddress user = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ignore("address.city")
+            .generate();
+
+        assertNotNull(user.address);
+        assertNull(user.address.city);
+        assertNotNull(user.address.postalCode);
+    }
+
+    @Test
+    @DisplayName("nested ignore skips missing parent paths during populate")
+    void nestedIgnoreSkipsMissingParentPathsDuringPopulate() throws Exception {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ignore("address.city");
+        FixtureUserWithAddress existing = new FixtureUserWithAddress();
+
+        Method resolveRulePath = ObjectFaker.class.getDeclaredMethod("resolveRulePath", String.class);
+        resolveRulePath.setAccessible(true);
+        Object path = resolveRulePath.invoke(faker, "address.city");
+        Class<?> rulePathType = Class.forName("org.github.krandom.generator.object.ObjectFaker$RulePath");
+        Method clearFieldValue = ObjectFaker.class.getDeclaredMethod("clearFieldValue", Object.class, rulePathType);
+        clearFieldValue.setAccessible(true);
+
+        FixtureUserWithAddress cleared = (FixtureUserWithAddress) clearFieldValue.invoke(faker, existing, path);
+        assertSame(existing, cleared);
+        assertNull(existing.address);
+    }
+
+    @Test
+    @DisplayName("root include can still combine with nested ignore")
+    void rootIncludeCanCombineWithNestedIgnore() {
+        FixtureUserWithAddress user = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .include("address")
+            .ignore("address.city")
+            .generate();
+
+        assertNull(user.firstName);
+        assertNull(user.lastName);
+        assertNotNull(user.address);
+        assertNull(user.address.city);
+        assertNotNull(user.address.postalCode);
     }
 
     @Test
@@ -511,6 +581,60 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("nested include roots cannot later be ignored")
+    void nestedIncludeRootsCannotLaterBeIgnored() {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .include("address.city");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.ignore("address"));
+
+        assertTrue(ex.getMessage().contains("nested include")
+                   || ex.getMessage().contains("nested fixture rules")
+                   || ex.getMessage().contains("already included"));
+    }
+
+    @Test
+    @DisplayName("root include plus nested include keeps the wider root payload")
+    void rootIncludePlusNestedIncludeKeepsWiderRootPayload() {
+        FixtureUserWithAddress user = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .include("address")
+            .include("address.city")
+            .generate();
+
+        assertNotNull(user.address);
+        assertNotNull(user.address.city);
+        assertNotNull(user.address.postalCode);
+    }
+
+    @Test
+    @DisplayName("ignored roots cannot later receive nested include paths")
+    void ignoredRootsCannotLaterReceiveNestedIncludePaths() {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ignore("address");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.include("address.city"));
+
+        assertTrue(ex.getMessage().contains("already ignored"));
+    }
+
+    @Test
+    @DisplayName("exact nested include and ignore conflicts are rejected")
+    void exactNestedIncludeAndIgnoreConflictsAreRejected() {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .include("address.city");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> faker.ignore("address.city"));
+
+        assertTrue(ex.getMessage().contains("already included"));
+    }
+
+    @Test
     @DisplayName("nested primitive paths are rejected")
     void nestedPrimitivePathsAreRejected() {
         IllegalArgumentException ex = assertThrows(
@@ -528,6 +652,94 @@ class ObjectFakerTest {
             () -> new ObjectFaker<>(FixtureUserWithAddress.class).ruleFor("address..city", () -> "Rome"));
 
         assertTrue(ex.getMessage().contains("Invalid field path"));
+    }
+
+    @Test
+    @DisplayName("nested include helper methods cover pruning edge branches and primitive defaults")
+    void nestedIncludeHelperMethodsCoverPruningEdgesAndPrimitiveDefaults() throws Exception {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .include("address.city");
+
+        Method buildIncludeTree = ObjectFaker.class.getDeclaredMethod("buildIncludeTree");
+        buildIncludeTree.setAccessible(true);
+        Object includeTree = buildIncludeTree.invoke(faker);
+        Class<?> includeNodeType = Class.forName("org.github.krandom.generator.object.ObjectFaker$IncludeNode");
+
+        Method pruneToIncludedPaths = ObjectFaker.class.getDeclaredMethod("pruneToIncludedPaths", Object.class, includeNodeType);
+        pruneToIncludedPaths.setAccessible(true);
+        assertNull(pruneToIncludedPaths.invoke(faker, null, includeTree));
+
+        Field childrenField = includeNodeType.getDeclaredField("children");
+        childrenField.setAccessible(true);
+        Object addressNode = ((java.util.Map<?, ?>) childrenField.get(includeTree)).get("address");
+        assertNotNull(addressNode);
+
+        FixtureAddress address = new FixtureAddress();
+        address.city = "Rome";
+        address.postalCode = "00100";
+        address.houseNumber = 7;
+        FixtureAddress prunedAddress = (FixtureAddress) pruneToIncludedPaths.invoke(faker, address, addressNode);
+        assertSame(address, prunedAddress);
+        assertEquals("Rome", prunedAddress.city);
+        assertNull(prunedAddress.postalCode);
+        assertEquals(0, prunedAddress.houseNumber);
+
+        ObjectFaker<FixtureUserWithAddress> keepAllFaker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .include("address");
+        Object keepAllTree = buildIncludeTree.invoke(keepAllFaker);
+        Object keepAllAddressNode = ((java.util.Map<?, ?>) childrenField.get(keepAllTree)).get("address");
+        assertSame(address, pruneToIncludedPaths.invoke(keepAllFaker, address, keepAllAddressNode));
+
+        Constructor<?> includeNodeConstructor = includeNodeType.getDeclaredConstructor();
+        includeNodeConstructor.setAccessible(true);
+        Object emptyNode = includeNodeConstructor.newInstance();
+        assertSame(address, pruneToIncludedPaths.invoke(faker, address, emptyNode));
+
+        Object syntheticNode = includeNodeConstructor.newInstance();
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> syntheticChildren = (java.util.Map<String, Object>) childrenField.get(syntheticNode);
+        Object danglingChild = includeNodeConstructor.newInstance();
+        syntheticChildren.put("firstName", danglingChild);
+        FixtureUser syntheticUser = new FixtureUser();
+        syntheticUser.firstName = "Ada";
+        assertSame(syntheticUser, pruneToIncludedPaths.invoke(faker, syntheticUser, syntheticNode));
+
+        Method supportsNestedPruning = ObjectFaker.class.getDeclaredMethod("supportsNestedPruning", Class.class);
+        supportsNestedPruning.setAccessible(true);
+        assertEquals(Boolean.TRUE, supportsNestedPruning.invoke(null, FixtureAddress.class));
+        assertEquals(Boolean.FALSE, supportsNestedPruning.invoke(null, String.class));
+        assertEquals(Boolean.FALSE, supportsNestedPruning.invoke(null, int.class));
+        assertEquals(Boolean.FALSE, supportsNestedPruning.invoke(null, int[].class));
+        assertEquals(Boolean.FALSE, supportsNestedPruning.invoke(null, Thread.State.class));
+
+        Method defaultValue = ObjectFaker.class.getDeclaredMethod("defaultValue", Class.class);
+        defaultValue.setAccessible(true);
+        assertEquals(false, defaultValue.invoke(null, boolean.class));
+        assertEquals((byte) 0, defaultValue.invoke(null, byte.class));
+        assertEquals((short) 0, defaultValue.invoke(null, short.class));
+        assertEquals(0, defaultValue.invoke(null, int.class));
+        assertEquals(0L, defaultValue.invoke(null, long.class));
+        assertEquals(0f, defaultValue.invoke(null, float.class));
+        assertEquals(0d, defaultValue.invoke(null, double.class));
+        assertEquals('\0', defaultValue.invoke(null, char.class));
+        IllegalArgumentException defaultEx = assertThrows(
+            IllegalArgumentException.class,
+            () -> {
+                try {
+                    defaultValue.invoke(null, void.class);
+                } catch (ReflectiveOperationException e) {
+                    throw e.getCause();
+                }
+            });
+        assertTrue(defaultEx.getMessage().contains("Unsupported primitive type"));
+
+        Method resolveRulePath = ObjectFaker.class.getDeclaredMethod("resolveRulePath", String.class);
+        resolveRulePath.setAccessible(true);
+        Object path = resolveRulePath.invoke(faker, "address.city");
+        Class<?> rulePathType = Class.forName("org.github.krandom.generator.object.ObjectFaker$RulePath");
+        Method fieldName = rulePathType.getDeclaredMethod("fieldName");
+        fieldName.setAccessible(true);
+        assertEquals("city", fieldName.invoke(path));
     }
 
     @Test

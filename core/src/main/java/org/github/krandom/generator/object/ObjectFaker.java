@@ -46,8 +46,8 @@ import java.util.function.UnaryOperator;
  * }</pre>
  *
  * <p>Field rules can target nested paths such as {@code "address.city"} or
- * {@code "billingAddress.postalCode"}. Include/ignore rules stay root-field scoped
- * so the top-level shape remains explicit.
+ * {@code "billingAddress.postalCode"}. Include/ignore rules can also target nested paths,
+ * allowing the top-level shape and nested payload slices to be constrained declaratively.
  *
  * @param <T> the root type being generated
  */
@@ -139,36 +139,43 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Excludes one root field from generation.
+     * Excludes one field or nested field path from generation.
      */
     public ObjectFaker<T> ignore(String fieldName) {
-        RulePath target = requireRootRulePath(fieldName, "ignore");
-        if (includedFields.contains(target.fieldName())) {
+        RulePath target = requireRulePath(fieldName, "ignore");
+        if (includedFields.contains(target.path())) {
             throw new IllegalStateException("Field '" + fieldName + "' is already included");
         }
-        ensureRootFieldNotUsedByNestedRule(fieldName, "ignored");
+        if (ignoredFields.contains(target.path())) {
+            return this;
+        }
+        if (target.isRoot()) {
+            ensureRootFieldNotUsedByNestedInclude(fieldName, "ignored");
+            ensureRootFieldNotUsedByNestedRule(fieldName, "ignored");
+        }
         ensureFieldAvailable(fieldName);
-        ignoredFields.add(target.fieldName());
+        ignoredFields.add(target.path());
         invalidateGeneratorState();
         return this;
     }
 
     /**
-     * Restricts generation to one root field. Once at least one include rule exists, root fields
-     * not explicitly included or covered by a field rule are left untouched.
+     * Restricts generation to one field or nested field path. Once at least one include rule
+     * exists, root fields not explicitly included or covered by a field rule are left untouched,
+     * and nested include paths prune sibling fields beneath the included root object.
      */
     public ObjectFaker<T> include(String fieldName) {
-        RulePath target = requireRootRulePath(fieldName, "include");
-        if (ignoredFields.contains(target.fieldName())) {
+        RulePath target = requireRulePath(fieldName, "include");
+        if (ignoredFields.contains(target.path()) || ignoredFields.contains(rootFieldName(fieldName))) {
             throw new IllegalStateException("Field '" + fieldName + "' is already ignored");
         }
-        includedFields.add(target.fieldName());
+        includedFields.add(target.path());
         invalidateGeneratorState();
         return this;
     }
 
     /**
-     * Restricts generation to multiple root fields.
+     * Restricts generation to multiple field or nested field paths.
      */
     public ObjectFaker<T> include(String... fieldNames) {
         Objects.requireNonNull(fieldNames, "fieldNames must not be null");
@@ -315,7 +322,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         if (includedFields.isEmpty()) {
             return List.of();
         }
-        Set<String> effectiveIncluded = new LinkedHashSet<>(includedFields);
+        Set<String> effectiveIncluded = new LinkedHashSet<>(rootFieldNames(includedFields));
         effectiveIncluded.addAll(rootFieldNames(fieldRules.keySet()));
         effectiveIncluded.addAll(rootFieldNames(contextualFieldRules.keySet()));
         effectiveIncluded.addAll(rootFieldNames(dependentFieldRules.keySet()));
@@ -332,7 +339,10 @@ public final class ObjectFaker<T> implements Generator<T> {
     private List<RuleTarget> ignoredRuleTargets() {
         List<RuleTarget> targets = new ArrayList<>(ignoredFields.size());
         for (String fieldName : ignoredFields) {
-            targets.add(rulePaths.get(fieldName).leaf());
+            RulePath path = rulePaths.get(fieldName);
+            if (path.isRoot()) {
+                targets.add(path.leaf());
+            }
         }
         return targets;
     }
@@ -381,8 +391,34 @@ public final class ObjectFaker<T> implements Generator<T> {
             Object fieldValue = entry.getValue().apply(current);
             current = assignFieldValue(current, path, fieldValue);
         }
+        current = applyNestedIncludeRules(current);
+        current = applyNestedIgnoreRules(current);
         for (UnaryOperator<T> postProcessor : postProcessors) {
             current = Objects.requireNonNull(postProcessor.apply(current), "postProcessor must not return null");
+        }
+        return current;
+    }
+
+    private T applyNestedIncludeRules(T value) {
+        if (includedFields.isEmpty()) {
+            return value;
+        }
+        IncludeNode includeTree = buildIncludeTree();
+        try {
+            return type.cast(pruneToIncludedPaths(value, includeTree));
+        } catch (ReflectiveOperationException e) {
+            throw new ObjectGenerationException(
+                "Failed to apply nested include rules on " + type.getName(), e);
+        }
+    }
+
+    private T applyNestedIgnoreRules(T value) {
+        T current = value;
+        for (String fieldName : ignoredFields) {
+            RulePath path = rulePaths.get(fieldName);
+            if (!path.isRoot()) {
+                current = clearFieldValue(current, path);
+            }
         }
         return current;
     }
@@ -398,6 +434,11 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     private Object assignNestedValue(Object current, RulePath path, int index, Object fieldValue)
         throws ReflectiveOperationException {
+        return assignNestedValue(current, path, index, fieldValue, true);
+    }
+
+    private Object assignNestedValue(Object current, RulePath path, int index, Object fieldValue, boolean materializeMissingParents)
+        throws ReflectiveOperationException {
         RuleTarget segment = path.segments().get(index);
         if (index == path.segments().size() - 1) {
             return writeTargetValue(current, segment, fieldValue);
@@ -406,15 +447,27 @@ public final class ObjectFaker<T> implements Generator<T> {
         Object nestedValue = readTargetValue(current, segment);
         boolean materialized = false;
         if (nestedValue == null) {
+            if (!materializeMissingParents) {
+                return current;
+            }
             nestedValue = materializeValue(segment.valueType());
             materialized = true;
         }
 
-        Object updatedNested = assignNestedValue(nestedValue, path, index + 1, fieldValue);
+        Object updatedNested = assignNestedValue(nestedValue, path, index + 1, fieldValue, materializeMissingParents);
         if (materialized || updatedNested != nestedValue) {
             return writeTargetValue(current, segment, updatedNested);
         }
         return current;
+    }
+
+    private T clearFieldValue(T instance, RulePath path) {
+        try {
+            return type.cast(assignNestedValue(instance, path, 0, defaultValue(path.leaf().valueType()), false));
+        } catch (ReflectiveOperationException | IllegalArgumentException e) {
+            throw new ObjectGenerationException(
+                "Failed to apply ignore rule for field path '" + path.path() + "' on " + type.getName(), e);
+        }
     }
 
     private Object materializeValue(Class<?> rawType) {
@@ -473,15 +526,6 @@ public final class ObjectFaker<T> implements Generator<T> {
         return path;
     }
 
-    private RulePath requireRootRulePath(String fieldName, String operation) {
-        if (fieldName.indexOf('.') >= 0) {
-            throw new IllegalArgumentException(
-                "ObjectFaker " + operation + " only supports root fields; nested path '" + fieldName
-                + "' should use ruleFor(...) instead");
-        }
-        return requireRulePath(fieldName, operation);
-    }
-
     private void ensureRootFieldNotUsedByNestedRule(String fieldName, String action) {
         String prefix = fieldName + ".";
         for (String path : rulePaths.keySet()) {
@@ -489,6 +533,17 @@ public final class ObjectFaker<T> implements Generator<T> {
                 throw new IllegalStateException(
                     "Root field '" + fieldName + "' cannot be " + action
                     + " because nested fixture rules already target '" + path + "'");
+            }
+        }
+    }
+
+    private void ensureRootFieldNotUsedByNestedInclude(String fieldName, String action) {
+        String prefix = fieldName + ".";
+        for (String path : includedFields) {
+            if (path.startsWith(prefix)) {
+                throw new IllegalStateException(
+                    "Root field '" + fieldName + "' cannot be " + action
+                    + " because nested include rules already target '" + path + "'");
             }
         }
     }
@@ -506,14 +561,18 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     private List<RuleTarget> allRuleTargets() {
+        return allRuleTargets(type);
+    }
+
+    private List<RuleTarget> allRuleTargets(Class<?> targetType) {
         List<RuleTarget> targets = new ArrayList<>();
-        if (type.isRecord()) {
-            for (RecordComponent component : type.getRecordComponents()) {
-                targets.add(new RuleTarget(type, component.getName(), component.getType(), null, component.getAccessor()));
+        if (targetType.isRecord()) {
+            for (RecordComponent component : targetType.getRecordComponents()) {
+                targets.add(new RuleTarget(targetType, component.getName(), component.getType(), null, component.getAccessor()));
             }
             return targets;
         }
-        for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
+        for (Class<?> current = targetType; current != Object.class; current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
                 if (!Modifier.isStatic(field.getModifiers())) {
                     targets.add(new RuleTarget(field.getDeclaringClass(), field.getName(), field.getType(), field, null));
@@ -595,6 +654,78 @@ public final class ObjectFaker<T> implements Generator<T> {
         return roots;
     }
 
+    private IncludeNode buildIncludeTree() {
+        IncludeNode root = new IncludeNode();
+        registerIncludedPaths(root, includedFields);
+        registerIncludedPaths(root, fieldRules.keySet());
+        registerIncludedPaths(root, contextualFieldRules.keySet());
+        registerIncludedPaths(root, dependentFieldRules.keySet());
+        return root;
+    }
+
+    private void registerIncludedPaths(IncludeNode root, Set<String> paths) {
+        for (String path : paths) {
+            RulePath rulePath = rulePaths.get(path);
+            IncludeNode current = root;
+            for (RuleTarget segment : rulePath.segments()) {
+                if (current.keepAll) {
+                    break;
+                }
+                IncludeNode child = current.children.computeIfAbsent(segment.fieldName(), ignored -> new IncludeNode());
+                current = child;
+            }
+            current.keepAll = true;
+            current.children.clear();
+        }
+    }
+
+    private Object pruneToIncludedPaths(Object current, IncludeNode includeNode) throws ReflectiveOperationException {
+        if (current == null || includeNode.keepAll || includeNode.children.isEmpty()) {
+            return current;
+        }
+        Object updated = current;
+        for (RuleTarget target : allRuleTargets(current.getClass())) {
+            IncludeNode child = includeNode.children.get(target.fieldName());
+            if (child == null) {
+                updated = writeTargetValue(updated, target, defaultValue(target.valueType()));
+                continue;
+            }
+            if (!child.keepAll && supportsNestedPruning(target.valueType())) {
+                Object nested = readTargetValue(updated, target);
+                Object pruned = pruneToIncludedPaths(nested, child);
+                if (pruned != nested) {
+                    updated = writeTargetValue(updated, target, pruned);
+                }
+            }
+        }
+        return updated;
+    }
+
+    private static boolean supportsNestedPruning(Class<?> valueType) {
+        if (valueType.isPrimitive() || valueType.isEnum() || valueType.isArray()) {
+            return false;
+        }
+        Package valuePackage = valueType.getPackage();
+        return valuePackage == null || !valuePackage.getName().startsWith("java.");
+    }
+
+    private static Object defaultValue(Class<?> valueType) {
+        if (!valueType.isPrimitive()) {
+            return null;
+        }
+        return switch (valueType.getName()) {
+            case "boolean" -> false;
+            case "byte" -> (byte) 0;
+            case "short" -> (short) 0;
+            case "int" -> 0;
+            case "long" -> 0L;
+            case "float" -> 0f;
+            case "double" -> 0d;
+            case "char" -> '\0';
+            default -> throw new IllegalArgumentException("Unsupported primitive type " + valueType.getName());
+        };
+    }
+
     private record RulePath(String path, List<RuleTarget> segments) {
 
         private RuleTarget leaf() {
@@ -619,5 +750,11 @@ public final class ObjectFaker<T> implements Generator<T> {
                               Class<?> valueType,
                               Field field,
                               Method accessor) {
+    }
+
+    private static final class IncludeNode {
+
+        private boolean keepAll;
+        private final Map<String, IncludeNode> children = new LinkedHashMap<>();
     }
 }
