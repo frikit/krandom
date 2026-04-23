@@ -8,11 +8,13 @@ package org.github.krandom.generator.provider;
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.GeneratorProfile;
+import org.github.krandom.generator.commerce.OrderInfoGenerator;
 import org.github.krandom.generator.commerce.ProductInfoGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.TimeGenerator;
 import org.github.krandom.generator.finance.BankInfoGenerator;
 import org.github.krandom.generator.finance.CreditCardInfoGenerator;
+import org.github.krandom.generator.finance.InvoiceInfoGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
@@ -358,10 +360,12 @@ public final class ProviderHub {
         register("internet", cfg -> new URLGenerator(cfg), ConflictPolicy.REPLACE);
 
         register("commerce.product_info", cfg -> new ProductInfoGenerator(cfg), ConflictPolicy.REPLACE);
+        register("commerce.order_info", cfg -> new OrderInfoGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance.money", cfg -> new MoneyGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance.currency", cfg -> new CurrencyGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance.bank_info", cfg -> new BankInfoGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance.credit_card_info", cfg -> new CreditCardInfoGenerator(cfg), ConflictPolicy.REPLACE);
+        register("finance.invoice_info", cfg -> new InvoiceInfoGenerator(cfg), ConflictPolicy.REPLACE);
         register("finance", cfg -> new MoneyGenerator(cfg), ConflictPolicy.REPLACE);
 
         register("datetime.date", cfg -> new DateGenerator(cfg), ConflictPolicy.REPLACE);
@@ -411,6 +415,8 @@ public final class ProviderHub {
         registerAlias("bank_info", "finance.bank_info", ConflictPolicy.REPLACE);
         registerAlias("credit_card_info", "finance.credit_card_info", ConflictPolicy.REPLACE);
         registerAlias("product_info", "commerce.product_info", ConflictPolicy.REPLACE);
+        registerAlias("order_info", "commerce.order_info", ConflictPolicy.REPLACE);
+        registerAlias("invoice_info", "finance.invoice_info", ConflictPolicy.REPLACE);
         registerAlias("date", "datetime.date", ConflictPolicy.REPLACE);
         registerAlias("time", "datetime.time", ConflictPolicy.REPLACE);
         registerAlias("word", "text.word", ConflictPolicy.REPLACE);

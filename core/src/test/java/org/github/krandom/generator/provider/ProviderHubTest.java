@@ -7,12 +7,14 @@ package org.github.krandom.generator.provider;
 
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.GeneratorProfile;
+import org.github.krandom.generator.commerce.OrderInfoGenerator;
 import org.github.krandom.generator.commerce.ProductInfoGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.TimeGenerator;
 import org.github.krandom.generator.finance.BankInfoGenerator;
 import org.github.krandom.generator.finance.CreditCardInfoGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
+import org.github.krandom.generator.finance.InvoiceInfoGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.location.AddressInfoGenerator;
@@ -74,10 +76,12 @@ class ProviderHubTest {
         assertTrue(hub.providerNames().contains("address.address_info"));
         assertTrue(hub.providerNames().contains("address.city"));
         assertTrue(hub.providerNames().contains("commerce.product_info"));
+        assertTrue(hub.providerNames().contains("commerce.order_info"));
         assertTrue(hub.providerNames().contains("internet.domain"));
         assertTrue(hub.providerNames().contains("finance.currency"));
         assertTrue(hub.providerNames().contains("finance.bank_info"));
         assertTrue(hub.providerNames().contains("finance.credit_card_info"));
+        assertTrue(hub.providerNames().contains("finance.invoice_info"));
         assertTrue(hub.providerNames().contains("datetime.time"));
         assertTrue(hub.providerNames().contains("text.sentence"));
         assertTrue(hub.providerNames().contains("text.format"));
@@ -99,6 +103,8 @@ class ProviderHubTest {
         assertEquals("internet.url", hub.aliases().get("url"));
         assertEquals("finance.bank_info", hub.aliases().get("bank_info"));
         assertEquals("finance.credit_card_info", hub.aliases().get("credit_card_info"));
+        assertEquals("commerce.order_info", hub.aliases().get("order_info"));
+        assertEquals("finance.invoice_info", hub.aliases().get("invoice_info"));
         assertEquals("company.name", hub.aliases().get("company_name"));
         assertEquals("company.email", hub.aliases().get("company_email"));
         assertEquals("company.url", hub.aliases().get("company_url"));
@@ -130,6 +136,7 @@ class ProviderHubTest {
         assertInstanceOf(CityGenerator.class, hub.get("address.city"));
         assertInstanceOf(PhoneNumberGenerator.class, hub.get("address.phone_number"));
         assertInstanceOf(ProductInfoGenerator.class, hub.get("commerce.product_info"));
+        assertInstanceOf(OrderInfoGenerator.class, hub.get("commerce.order_info"));
         assertInstanceOf(URLGenerator.class, hub.get("internet"));
         assertInstanceOf(URLGenerator.class, hub.get("url"));
         assertInstanceOf(DomainGenerator.class, hub.get("internet.domain"));
@@ -138,6 +145,7 @@ class ProviderHubTest {
         assertInstanceOf(CurrencyGenerator.class, hub.get("finance.currency"));
         assertInstanceOf(BankInfoGenerator.class, hub.get("finance.bank_info"));
         assertInstanceOf(CreditCardInfoGenerator.class, hub.get("finance.credit_card_info"));
+        assertInstanceOf(InvoiceInfoGenerator.class, hub.get("finance.invoice_info"));
         assertInstanceOf(DateGenerator.class, hub.get("datetime"));
         assertInstanceOf(TimeGenerator.class, hub.get("datetime.time"));
         assertInstanceOf(WordGenerator.class, hub.get("text"));

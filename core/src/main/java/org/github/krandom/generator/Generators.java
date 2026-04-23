@@ -27,6 +27,7 @@ import org.github.krandom.generator.base.ShortGenerator;
 import org.github.krandom.generator.base.StringGenerator;
 import org.github.krandom.generator.color.ColorGenerator;
 import org.github.krandom.generator.commerce.CommerceGenerator;
+import org.github.krandom.generator.commerce.OrderInfoGenerator;
 import org.github.krandom.generator.commerce.ProductInfoGenerator;
 import org.github.krandom.generator.database.DatabaseGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
@@ -52,6 +53,7 @@ import org.github.krandom.generator.finance.BicGenerator;
 import org.github.krandom.generator.finance.CardExpirationGenerator;
 import org.github.krandom.generator.finance.CreditCardGenerator;
 import org.github.krandom.generator.finance.CreditCardInfoGenerator;
+import org.github.krandom.generator.finance.InvoiceInfoGenerator;
 import org.github.krandom.generator.finance.CryptoAddressGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.finance.CurrencyPairGenerator;
@@ -974,6 +976,27 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces structured commerce order payloads.
+     */
+    public static OrderInfoGenerator ofOrderInfo() {
+        return new OrderInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured commerce order payloads for a specific locale.
+     */
+    public static OrderInfoGenerator ofOrderInfo(Locale locale) {
+        return new OrderInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured commerce order payloads with explicit configuration.
+     */
+    public static OrderInfoGenerator ofOrderInfo(GeneratorConfig config) {
+        return new OrderInfoGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces locale-aware profession/job-title values.
      */
     public static ProfessionGenerator ofProfession() {
@@ -1118,6 +1141,27 @@ public final class Generators {
      */
     public static CreditCardInfoGenerator ofCreditCardInfo(GeneratorConfig config) {
         return new CreditCardInfoGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces structured invoice payloads.
+     */
+    public static InvoiceInfoGenerator ofInvoiceInfo() {
+        return new InvoiceInfoGenerator();
+    }
+
+    /**
+     * Returns a generator that produces structured invoice payloads for a specific locale.
+     */
+    public static InvoiceInfoGenerator ofInvoiceInfo(Locale locale) {
+        return new InvoiceInfoGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces structured invoice payloads with explicit configuration.
+     */
+    public static InvoiceInfoGenerator ofInvoiceInfo(GeneratorConfig config) {
+        return new InvoiceInfoGenerator(config);
     }
 
     /**

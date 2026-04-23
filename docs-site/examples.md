@@ -40,15 +40,19 @@ PersonInfo person = Generators.ofPersonInfo(cfg).generate();
 CompanyInfo company = Generators.ofCompanyInfo(cfg).generate();
 JobInfo job = Generators.ofJobInfo(cfg).generate();
 ProductInfo product = Generators.ofProductInfo(cfg).generate();
+OrderInfo order = Generators.ofOrderInfo(cfg).generate();
 BankInfo bank = Generators.ofBankInfo(cfg).generate();
 CreditCardInfo card = Generators.ofCreditCardInfo(cfg).generate();
+InvoiceInfo invoice = Generators.ofInvoiceInfo(cfg).generate();
 
 assert person.username().equals(person.contact().email().split("@")[0]);
 assert company.email().endsWith(company.website().replace("https://www.", ""));
 assert job.title().contains(job.profession());
 assert product.upc().matches("\\d{12}");
+assert order.total().equals(order.subtotal().add(order.shipping()).add(order.tax()));
 assert bank.routingNumber().matches("\\d{9}");
 assert card.exp().matches("\\d{2}/\\d{2}");
+assert !invoice.dueOn().isBefore(invoice.issuedOn());
 ```
 
 ## Batch order data with schema
