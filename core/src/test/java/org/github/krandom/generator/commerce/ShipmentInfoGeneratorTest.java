@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.lang.reflect.Method;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -79,6 +80,20 @@ class ShipmentInfoGeneratorTest {
 
         assertTrue(sawDelivered);
         assertTrue(sawUndelivered);
+    }
+
+    @Test
+    @DisplayName("tracking numbers keep a stable three-letter carrier prefix when available")
+    void trackingNumberPrefixesUseUppercaseCarrierLetters() throws Exception {
+        ShipmentInfoGenerator generator = new ShipmentInfoGenerator(Locale.US);
+        Method trackingNumber = ShipmentInfoGenerator.class.getDeclaredMethod("trackingNumber", String.class);
+        trackingNumber.setAccessible(true);
+
+        assertTrue(((String) trackingNumber.invoke(generator, "UPS")).startsWith("UPS"));
+        assertTrue(((String) trackingNumber.invoke(generator, "FedEx")).startsWith("FED"));
+        assertTrue(((String) trackingNumber.invoke(generator, "USPS")).startsWith("USP"));
+        assertTrue(((String) trackingNumber.invoke(generator, "DHL")).startsWith("DHL"));
+        assertTrue(((String) trackingNumber.invoke(generator, "Royal Mail")).startsWith("ROY"));
     }
 
     @Test

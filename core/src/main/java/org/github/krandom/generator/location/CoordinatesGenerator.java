@@ -20,79 +20,10 @@ import java.util.Random;
  * supported locale. Coordinates are generated with configurable precision (1-10 decimal places),
  * with a default of 6 decimal places providing approximately 0.1 meter accuracy.
  *
- * <p>Built-in support covers 10 locales with their geographical bounding boxes:
- * <ul>
- *   <li>{@code en_US}: Continental United States
- *       <ul>
- *         <li>Latitude: 24.5° to 49.0° N</li>
- *         <li>Longitude: -125.0° to -66.0° E</li>
- *         <li>Example: "40.712776,-74.005974" (New York City area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code en_GB}: United Kingdom
- *       <ul>
- *         <li>Latitude: 49.9° to 60.8° N</li>
- *         <li>Longitude: -8.2° to 1.8° E</li>
- *         <li>Example: "51.507351,-0.127758" (London area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code en_AU}: Australia
- *       <ul>
- *         <li>Latitude: -44.0° to -10.0° S</li>
- *         <li>Longitude: 113.0° to 154.0° E</li>
- *         <li>Example: "-33.868820,151.209290" (Sydney area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code de_DE}: Germany
- *       <ul>
- *         <li>Latitude: 47.3° to 55.0° N</li>
- *         <li>Longitude: 5.9° to 15.0° E</li>
- *         <li>Example: "52.520008,13.404954" (Berlin area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code fr_FR}: France
- *       <ul>
- *         <li>Latitude: 41.3° to 51.1° N</li>
- *         <li>Longitude: -5.2° to 9.6° E</li>
- *         <li>Example: "48.856613,2.352222" (Paris area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code es_ES}: Spain
- *       <ul>
- *         <li>Latitude: 36.0° to 43.8° N</li>
- *         <li>Longitude: -9.3° to 4.3° E</li>
- *         <li>Example: "40.416775,-3.703790" (Madrid area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code it_IT}: Italy
- *       <ul>
- *         <li>Latitude: 36.6° to 47.1° N</li>
- *         <li>Longitude: 6.6° to 18.5° E</li>
- *         <li>Example: "41.902782,12.496366" (Rome area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code pt_BR}: Brazil
- *       <ul>
- *         <li>Latitude: -33.7° to 5.3° S/N</li>
- *         <li>Longitude: -74.0° to -34.8° W</li>
- *         <li>Example: "-23.550520,-46.633308" (São Paulo area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code ja_JP}: Japan
- *       <ul>
- *         <li>Latitude: 24.0° to 45.5° N</li>
- *         <li>Longitude: 122.9° to 153.9° E</li>
- *         <li>Example: "35.689487,139.691711" (Tokyo area)</li>
- *       </ul>
- *   </li>
- *   <li>{@code zh_CN}: China
- *       <ul>
- *         <li>Latitude: 18.2° to 53.6° N</li>
- *         <li>Longitude: 73.5° to 135.0° E</li>
- *         <li>Example: "39.904202,116.407394" (Beijing area)</li>
- *       </ul>
- *   </li>
- * </ul>
+ * <p>Built-in support now follows the full locale catalog used by the locale-aware data
+ * generators. Each built-in locale maps to one primary country bounding box so coordinate output
+ * stays aligned with the configured locale instead of silently falling back to the original
+ * US-only defaults for newly added locales.
  *
  * <p>Example usage:
  * <pre>{@code
@@ -156,6 +87,26 @@ public final class CoordinatesGenerator implements Generator<String> {
     private static final GeoBounds JP_BOUNDS = new GeoBounds(24.0, 45.5, 122.9, 153.9);
     // China
     private static final GeoBounds CN_BOUNDS = new GeoBounds(18.2, 53.6, 73.5, 135.0);
+    // Netherlands
+    private static final GeoBounds NL_BOUNDS = new GeoBounds(50.7, 53.7, 3.3, 7.3);
+    // Poland
+    private static final GeoBounds PL_BOUNDS = new GeoBounds(49.0, 54.9, 14.1, 24.2);
+    // Russia
+    private static final GeoBounds RU_BOUNDS = new GeoBounds(41.2, 81.9, 19.6, 179.9);
+    // South Korea
+    private static final GeoBounds KR_BOUNDS = new GeoBounds(33.1, 38.7, 124.6, 131.9);
+    // Turkey
+    private static final GeoBounds TR_BOUNDS = new GeoBounds(36.0, 42.1, 26.0, 45.0);
+    // Sweden
+    private static final GeoBounds SE_BOUNDS = new GeoBounds(55.3, 69.1, 11.1, 24.2);
+    // Norway
+    private static final GeoBounds NO_BOUNDS = new GeoBounds(57.9, 71.2, 4.5, 31.3);
+    // Czech Republic
+    private static final GeoBounds CZ_BOUNDS = new GeoBounds(48.5, 51.1, 12.1, 18.9);
+    // Saudi Arabia
+    private static final GeoBounds SA_BOUNDS = new GeoBounds(16.3, 32.2, 34.5, 55.7);
+    // India
+    private static final GeoBounds IN_BOUNDS = new GeoBounds(6.5, 35.7, 68.1, 97.4);
     private final GeneratorConfig config;
     private final Random          random;
     private final Locale          locale;
@@ -303,15 +254,33 @@ public final class CoordinatesGenerator implements Generator<String> {
 
         return switch (localeKey) {
             case "en_US" -> US_BOUNDS;
+            case "en" -> US_BOUNDS;
             case "en_GB" -> GB_BOUNDS;
             case "en_AU" -> AU_BOUNDS;
             case "de_DE" -> DE_BOUNDS;
+            case "de" -> DE_BOUNDS;
             case "fr_FR" -> FR_BOUNDS;
+            case "fr" -> FR_BOUNDS;
             case "es_ES" -> ES_BOUNDS;
+            case "es" -> ES_BOUNDS;
             case "it_IT" -> IT_BOUNDS;
+            case "it" -> IT_BOUNDS;
             case "pt_BR" -> BR_BOUNDS;
+            case "pt" -> BR_BOUNDS;
             case "ja_JP" -> JP_BOUNDS;
+            case "ja" -> JP_BOUNDS;
             case "zh_CN" -> CN_BOUNDS;
+            case "zh" -> CN_BOUNDS;
+            case "nl_NL", "nl" -> NL_BOUNDS;
+            case "pl_PL", "pl" -> PL_BOUNDS;
+            case "ru_RU", "ru" -> RU_BOUNDS;
+            case "ko_KR", "ko" -> KR_BOUNDS;
+            case "tr_TR", "tr" -> TR_BOUNDS;
+            case "sv_SE", "sv" -> SE_BOUNDS;
+            case "nb_NO", "nb", "no_NO", "no" -> NO_BOUNDS;
+            case "cs_CZ", "cs" -> CZ_BOUNDS;
+            case "ar_SA", "ar" -> SA_BOUNDS;
+            case "hi_IN", "hi" -> IN_BOUNDS;
             default -> US_BOUNDS; // Default to US bounds
         };
     }

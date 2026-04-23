@@ -437,6 +437,48 @@ class CityGeneratorTest {
     }
 
     @Test
+    @DisplayName("register rejects empty and blank city arrays")
+    void registerRejectsInvalidCityArrays() {
+        Locale locale = Locale.of("zz", "CT");
+
+        assertThrows(IllegalArgumentException.class, () -> CityDataRegistry.register(new CityDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCities() {
+                return new String[0];
+            }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> CityDataRegistry.register(new CityDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCities() {
+                return new String[] { " " };
+            }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> CityDataRegistry.register(new CityDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCities() {
+                return new String[] { null };
+            }
+        }));
+    }
+
+    @Test
     @DisplayName("isRegistered returns false for unregistered locale")
     void isRegisteredUnknownLocale() {
         assertFalse(CityDataRegistry.isRegistered(Locale.of("xx", "YY")));

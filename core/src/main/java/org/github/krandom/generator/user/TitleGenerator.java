@@ -17,8 +17,9 @@ import java.util.Random;
 /**
  * Generates locale-aware honorific titles.
  *
- * <p>Built-in support covers 10 locales (US, UK, AU, FR, DE, JA, ES, IT, PT, ZH). Additional
- * locales — and overrides of built-in ones — can be registered at runtime via
+ * <p>Built-in support follows the locale catalog in
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Additional locales — and overrides
+ * of built-in ones — can be registered at runtime via
  * {@link TitleDataRegistry#register(TitleDataProvider)}.
  */
 public final class TitleGenerator implements Generator<String> {

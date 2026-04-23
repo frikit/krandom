@@ -21,69 +21,9 @@ import java.util.Random;
  * supported locale. Phone numbers can be generated as formatted (with separators) or unformatted
  * (digits only), and where culturally relevant, as landline or mobile numbers.
  *
- * <p>Built-in support covers 10 locales:
- * <ul>
- *   <li>{@code en_US}: US phone numbers
- *       <ul>
- *         <li>Formatted: "(555) 123-4567" or "555-123-4567"</li>
- *         <li>Unformatted: "5551234567"</li>
- *       </ul>
- *   </li>
- *   <li>{@code en_GB}: UK phone numbers
- *       <ul>
- *         <li>Landline: "020 7946 0958" (London), "0161 496 0123" (Manchester)</li>
- *         <li>Mobile: "07700 900123"</li>
- *       </ul>
- *   </li>
- *   <li>{@code en_AU}: Australian phone numbers
- *       <ul>
- *         <li>Landline: "02 1234 5678" (Sydney), "03 1234 5678" (Melbourne)</li>
- *         <li>Mobile: "0412 345 678"</li>
- *       </ul>
- *   </li>
- *   <li>{@code de_DE}: German phone numbers
- *       <ul>
- *         <li>Landline: "030 12345678" or "+49 30 12345678"</li>
- *         <li>Mobile: "0151 12345678" or "+49 151 12345678"</li>
- *       </ul>
- *   </li>
- *   <li>{@code fr_FR}: French phone numbers
- *       <ul>
- *         <li>Landline: "01 23 45 67 89" (Paris)</li>
- *         <li>Mobile: "06 12 34 56 78" or "07 12 34 56 78"</li>
- *       </ul>
- *   </li>
- *   <li>{@code es_ES}: Spanish phone numbers
- *       <ul>
- *         <li>Landline: "91 123 45 67" (Madrid)</li>
- *         <li>Mobile: "612 34 56 78"</li>
- *       </ul>
- *   </li>
- *   <li>{@code it_IT}: Italian phone numbers
- *       <ul>
- *         <li>Landline: "06 1234 5678" (Rome), "02 1234 5678" (Milan)</li>
- *         <li>Mobile: "320 123 4567"</li>
- *       </ul>
- *   </li>
- *   <li>{@code pt_BR}: Brazilian phone numbers
- *       <ul>
- *         <li>Landline: "(11) 3456-7890"</li>
- *         <li>Mobile: "(11) 98765-4321" (9 digits after area code)</li>
- *       </ul>
- *   </li>
- *   <li>{@code ja_JP}: Japanese phone numbers
- *       <ul>
- *         <li>Landline: "03-1234-5678" (Tokyo), "06-1234-5678" (Osaka)</li>
- *         <li>Mobile: "090-1234-5678" or "080-1234-5678"</li>
- *       </ul>
- *   </li>
- *   <li>{@code zh_CN}: Chinese phone numbers
- *       <ul>
- *         <li>Landline: "010-12345678" (Beijing), "021-12345678" (Shanghai)</li>
- *         <li>Mobile: "138 1234 5678"</li>
- *       </ul>
- *   </li>
- * </ul>
+ * <p>Built-in support follows the full locale catalog used by the address and identity
+ * generators. Supported built-in locales no longer silently fall back to US phone formats when
+ * the locale catalog expands.
  *
  * <p>Example usage:
  * <pre>{@code
@@ -118,7 +58,17 @@ public final class PhoneNumberGenerator implements Generator<String> {
         Map.entry("IT", "+39"),
         Map.entry("BR", "+55"),
         Map.entry("JP", "+81"),
-        Map.entry("CN", "+86")
+        Map.entry("CN", "+86"),
+        Map.entry("NL", "+31"),
+        Map.entry("PL", "+48"),
+        Map.entry("RU", "+7"),
+        Map.entry("KR", "+82"),
+        Map.entry("TR", "+90"),
+        Map.entry("SE", "+46"),
+        Map.entry("NO", "+47"),
+        Map.entry("CZ", "+420"),
+        Map.entry("SA", "+966"),
+        Map.entry("IN", "+91")
     );
 
     // US area codes (realistic, avoiding 555)
@@ -271,6 +221,107 @@ public final class PhoneNumberGenerator implements Generator<String> {
         "189", "190", "191", "192", "193", "195", "196", "197", "198", "199"
     };
 
+    private static final String[] NL_LANDLINE_CODES = {
+        "010", "013", "015", "020", "023", "024", "026", "030", "035", "036",
+        "038", "040", "043", "045", "046", "050", "053", "055", "058", "070",
+        "071", "072", "073", "074", "075", "076", "077", "078", "079"
+    };
+
+    private static final String[] NL_MOBILE_PREFIXES = {
+        "061", "062", "063", "064", "065", "066", "068"
+    };
+
+    private static final String[] PL_LANDLINE_CODES = {
+        "12", "17", "22", "29", "32", "42", "52", "58", "61", "71", "81", "91"
+    };
+
+    private static final String[] PL_MOBILE_PREFIXES = {
+        "450", "500", "501", "510", "512", "515", "517", "519", "530", "531",
+        "535", "537", "570", "572", "600", "602", "606", "660", "666", "690",
+        "696", "720", "721", "722", "730", "731", "732", "780", "790", "799",
+        "880", "888"
+    };
+
+    private static final String[] RU_LANDLINE_CODES = {
+        "383", "391", "401", "423", "473", "481", "495", "499", "812", "831"
+    };
+
+    private static final String[] RU_MOBILE_PREFIXES = {
+        "901", "903", "904", "905", "906", "909", "910", "915", "916", "917",
+        "918", "919", "921", "926", "927", "928", "929", "931", "950", "951",
+        "952", "953", "960", "961", "962", "963", "964", "965", "966", "967",
+        "968", "969", "977", "978", "980", "981", "982", "983", "984", "985",
+        "986", "987", "988", "989", "991", "992", "993", "995", "996", "999"
+    };
+
+    private static final String[] KR_LANDLINE_CODES = {
+        "02", "031", "032", "033", "041", "042", "043", "044",
+        "051", "052", "053", "054", "055", "061", "062", "063", "064"
+    };
+
+    private static final String[] KR_MOBILE_PREFIXES = {
+        "010", "011", "016", "017", "018", "019"
+    };
+
+    private static final String[] TR_LANDLINE_CODES = {
+        "0212", "0216", "0224", "0232", "0242", "0258", "0312", "0322", "0352", "0388"
+    };
+
+    private static final String[] TR_MOBILE_PREFIXES = {
+        "0505", "0530", "0531", "0532", "0533", "0534", "0541", "0542", "0543", "0544",
+        "0551", "0552", "0553", "0554"
+    };
+
+    private static final String[] SE_LANDLINE_CODES = {
+        "08", "010", "011", "013", "018", "019", "021", "023", "026", "031",
+        "033", "036", "040", "042", "046", "054", "060", "063", "090"
+    };
+
+    private static final String[] SE_MOBILE_PREFIXES = {
+        "070", "072", "073", "076", "079"
+    };
+
+    private static final String[] NO_LANDLINE_CODES = {
+        "21", "22", "23", "24", "32", "33", "35", "37", "38", "51",
+        "52", "53", "55", "56", "57", "61", "62", "63", "64", "69",
+        "71", "72", "73", "74", "75", "76", "77", "78", "79"
+    };
+
+    private static final String[] NO_MOBILE_PREFIXES = {
+        "412", "413", "414", "450", "451", "452", "453", "454", "455", "456",
+        "457", "458", "459", "906", "907", "908", "909", "911", "912", "913",
+        "914", "915", "916", "917", "918", "919", "920", "921", "922", "923",
+        "924", "925", "926", "927", "928", "929", "930", "931", "932", "933",
+        "934", "935", "936", "937", "938", "939", "940", "941", "942", "943",
+        "944", "945", "946", "947", "948", "949", "950", "951", "952", "953",
+        "954", "955", "956", "957", "958", "959", "960", "961", "962", "963",
+        "964", "965", "966", "967", "968", "969", "970", "971", "972", "973",
+        "974", "975", "976", "977", "978", "979", "980", "981", "982", "983",
+        "984", "985", "986", "987", "988", "989"
+    };
+
+    private static final String[] CZ_LANDLINE_PREFIXES = {
+        "2", "3", "4", "5"
+    };
+
+    private static final String[] CZ_MOBILE_PREFIXES = {
+        "601", "602", "603", "604", "605", "606", "607", "608", "702", "720",
+        "721", "722", "723", "724", "725", "726", "727", "728", "729", "730",
+        "731", "732", "733", "734", "735", "736", "737", "739"
+    };
+
+    private static final String[] SA_LANDLINE_CODES = {
+        "011", "012", "013", "014", "016", "017"
+    };
+
+    private static final String[] SA_MOBILE_PREFIXES = {
+        "050", "053", "054", "055", "056", "057", "058", "059"
+    };
+
+    private static final String[] IN_LANDLINE_CODES = {
+        "011", "020", "022", "033", "040", "044", "0471", "0484", "079", "080"
+    };
+
     private final GeneratorConfig config;
     private final Random          random;
     private final Locale          locale;
@@ -369,15 +420,33 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
         return switch (localeKey) {
             case "en_US" -> generateUSPhone(formatted);
+            case "en" -> generateUSPhone(formatted);
             case "en_GB" -> generateUKPhone(formatted, mobile);
             case "en_AU" -> generateAustralianPhone(formatted, mobile);
             case "de_DE" -> generateGermanPhone(formatted, mobile);
+            case "de" -> generateGermanPhone(formatted, mobile);
             case "fr_FR" -> generateFrenchPhone(formatted, mobile);
+            case "fr" -> generateFrenchPhone(formatted, mobile);
             case "es_ES" -> generateSpanishPhone(formatted, mobile);
+            case "es" -> generateSpanishPhone(formatted, mobile);
             case "it_IT" -> generateItalianPhone(formatted, mobile);
+            case "it" -> generateItalianPhone(formatted, mobile);
             case "pt_BR" -> generateBrazilianPhone(formatted, mobile);
+            case "pt" -> generateBrazilianPhone(formatted, mobile);
             case "ja_JP" -> generateJapanesePhone(formatted, mobile);
+            case "ja" -> generateJapanesePhone(formatted, mobile);
             case "zh_CN" -> generateChinesePhone(formatted, mobile);
+            case "zh" -> generateChinesePhone(formatted, mobile);
+            case "nl_NL", "nl" -> generateDutchPhone(formatted, mobile);
+            case "pl_PL", "pl" -> generatePolishPhone(formatted, mobile);
+            case "ru_RU", "ru" -> generateRussianPhone(formatted, mobile);
+            case "ko_KR", "ko" -> generateKoreanPhone(formatted, mobile);
+            case "tr_TR", "tr" -> generateTurkishPhone(formatted, mobile);
+            case "sv_SE", "sv" -> generateSwedishPhone(formatted, mobile);
+            case "nb_NO", "nb", "no_NO", "no" -> generateNorwegianPhone(formatted, mobile);
+            case "cs_CZ", "cs" -> generateCzechPhone(formatted, mobile);
+            case "ar_SA", "ar" -> generateSaudiPhone(formatted, mobile);
+            case "hi_IN", "hi" -> generateIndianPhone(formatted, mobile);
             default -> generateUSPhone(formatted); // Default to US format
         };
     }
@@ -690,7 +759,142 @@ public final class PhoneNumberGenerator implements Generator<String> {
         }
     }
 
+    private String generateDutchPhone(boolean formatted, boolean mobile) {
+        if (mobile) {
+            String prefix = NL_MOBILE_PREFIXES[random.nextInt(NL_MOBILE_PREFIXES.length)];
+            String suffix = digits(7);
+            if (formatted) {
+                return prefix + " " + suffix;
+            }
+            return prefix + suffix;
+        }
+        String areaCode = NL_LANDLINE_CODES[random.nextInt(NL_LANDLINE_CODES.length)];
+        String suffix = digits(7);
+        if (formatted) {
+            return areaCode + " " + suffix;
+        }
+        return areaCode + suffix;
+    }
+
+    private String generatePolishPhone(boolean formatted, boolean mobile) {
+        if (mobile) {
+            String prefix = PL_MOBILE_PREFIXES[random.nextInt(PL_MOBILE_PREFIXES.length)];
+            String suffix = digits(6);
+            if (formatted) {
+                return prefix + " " + suffix.substring(0, 3) + " " + suffix.substring(3);
+            }
+            return prefix + suffix;
+        }
+        String areaCode = PL_LANDLINE_CODES[random.nextInt(PL_LANDLINE_CODES.length)];
+        String suffix = digits(7);
+        if (formatted) {
+            return areaCode + " " + suffix.substring(0, 3) + " " + suffix.substring(3, 5) + " " + suffix.substring(5);
+        }
+        return areaCode + suffix;
+    }
+
+    private String generateRussianPhone(boolean formatted, boolean mobile) {
+        String prefix = mobile
+                        ? RU_MOBILE_PREFIXES[random.nextInt(RU_MOBILE_PREFIXES.length)]
+                        : RU_LANDLINE_CODES[random.nextInt(RU_LANDLINE_CODES.length)];
+        String suffix = digits(7);
+        if (formatted) {
+            return prefix + " " + suffix.substring(0, 3) + "-" + suffix.substring(3, 5) + "-" + suffix.substring(5);
+        }
+        return prefix + suffix;
+    }
+
+    private String generateKoreanPhone(boolean formatted, boolean mobile) {
+        String prefix = mobile
+                        ? KR_MOBILE_PREFIXES[random.nextInt(KR_MOBILE_PREFIXES.length)]
+                        : KR_LANDLINE_CODES[random.nextInt(KR_LANDLINE_CODES.length)];
+        String suffix = digits(8);
+        if (formatted) {
+            return prefix + "-" + suffix.substring(0, 4) + "-" + suffix.substring(4);
+        }
+        return prefix + suffix;
+    }
+
+    private String generateTurkishPhone(boolean formatted, boolean mobile) {
+        String prefix = mobile
+                        ? TR_MOBILE_PREFIXES[random.nextInt(TR_MOBILE_PREFIXES.length)]
+                        : TR_LANDLINE_CODES[random.nextInt(TR_LANDLINE_CODES.length)];
+        String suffix = digits(7);
+        if (formatted) {
+            return prefix + " " + suffix.substring(0, 3) + " " + suffix.substring(3, 5) + " " + suffix.substring(5);
+        }
+        return prefix + suffix;
+    }
+
+    private String generateSwedishPhone(boolean formatted, boolean mobile) {
+        String prefix = mobile
+                        ? SE_MOBILE_PREFIXES[random.nextInt(SE_MOBILE_PREFIXES.length)]
+                        : SE_LANDLINE_CODES[random.nextInt(SE_LANDLINE_CODES.length)];
+        String suffix = digits(7);
+        if (formatted) {
+            return prefix + "-" + suffix.substring(0, 3) + " " + suffix.substring(3, 5) + " " + suffix.substring(5);
+        }
+        return prefix + suffix;
+    }
+
+    private String generateNorwegianPhone(boolean formatted, boolean mobile) {
+        String prefix = mobile
+                        ? NO_MOBILE_PREFIXES[random.nextInt(NO_MOBILE_PREFIXES.length)]
+                        : NO_LANDLINE_CODES[random.nextInt(NO_LANDLINE_CODES.length)];
+        String suffix = mobile ? digits(5) : digits(6);
+        if (formatted) {
+            if (mobile) {
+                return prefix + " " + suffix.substring(0, 2) + " " + suffix.substring(2);
+            }
+            return prefix + " " + suffix.substring(0, 2) + " " + suffix.substring(2, 4) + " " + suffix.substring(4);
+        }
+        return prefix + suffix;
+    }
+
+    private String generateCzechPhone(boolean formatted, boolean mobile) {
+        String prefix = mobile
+                        ? CZ_MOBILE_PREFIXES[random.nextInt(CZ_MOBILE_PREFIXES.length)]
+                        : CZ_LANDLINE_PREFIXES[random.nextInt(CZ_LANDLINE_PREFIXES.length)] + digits(2);
+        String suffix = digits(6);
+        if (formatted) {
+            return prefix + " " + suffix.substring(0, 3) + " " + suffix.substring(3);
+        }
+        return prefix + suffix;
+    }
+
+    private String generateSaudiPhone(boolean formatted, boolean mobile) {
+        String prefix = mobile
+                        ? SA_MOBILE_PREFIXES[random.nextInt(SA_MOBILE_PREFIXES.length)]
+                        : SA_LANDLINE_CODES[random.nextInt(SA_LANDLINE_CODES.length)];
+        String suffix = digits(7);
+        if (formatted) {
+            return prefix + " " + suffix.substring(0, 3) + " " + suffix.substring(3);
+        }
+        return prefix + suffix;
+    }
+
+    private String generateIndianPhone(boolean formatted, boolean mobile) {
+        if (mobile) {
+            String prefix = String.valueOf(6 + random.nextInt(4)) + digits(4);
+            String suffix = digits(5);
+            if (formatted) {
+                return prefix + " " + suffix;
+            }
+            return prefix + suffix;
+        }
+        String areaCode = IN_LANDLINE_CODES[random.nextInt(IN_LANDLINE_CODES.length)];
+        String suffix = digits(8);
+        if (formatted) {
+            return areaCode + " " + suffix;
+        }
+        return areaCode + suffix;
+    }
+
     // ── Helper methods ────────────────────────────────────────────────────────
+
+    private String digits(int count) {
+        return String.format("%0" + count + "d", random.nextInt((int) Math.pow(10, count)));
+    }
 
     private String getLocaleKey(Locale loc) {
         String language = loc.getLanguage();

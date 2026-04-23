@@ -315,6 +315,28 @@ class DataRegistryContextTest {
                 return new String[] { "CityOne" };
             }
         }));
+        assertThrows(IllegalArgumentException.class, () -> builder.registerCityProvider(new CityDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCities() {
+                return new String[] { " " };
+            }
+        }));
+        assertThrows(IllegalArgumentException.class, () -> builder.registerCityProvider(new CityDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCities() {
+                return new String[] { null };
+            }
+        }));
 
         assertThrows(NullPointerException.class, () -> builder.registerStateProvider(new StateDataProvider() {
             @Override
@@ -332,6 +354,54 @@ class DataRegistryContextTest {
                 return new String[] { "S1" };
             }
         }));
+        assertThrows(IllegalArgumentException.class, () -> builder.registerStateProvider(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[] { "" };
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[] { "S1" };
+            }
+        }));
+        assertThrows(IllegalArgumentException.class, () -> builder.registerStateProvider(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[] { null };
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[] { "S1" };
+            }
+        }));
+        assertThrows(IllegalArgumentException.class, () -> builder.registerStateProvider(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[] { "StateOne" };
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[] { null };
+            }
+        }));
 
         assertThrows(NullPointerException.class, () -> builder.registerCountryProvider(new CountryDataProvider() {
             @Override
@@ -342,6 +412,28 @@ class DataRegistryContextTest {
             @Override
             public String[] getCountries() {
                 return new String[] { "CountryOne" };
+            }
+        }));
+        assertThrows(IllegalArgumentException.class, () -> builder.registerCountryProvider(new CountryDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new String[] { " " };
+            }
+        }));
+        assertThrows(IllegalArgumentException.class, () -> builder.registerCountryProvider(new CountryDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new String[] { null };
             }
         }));
 

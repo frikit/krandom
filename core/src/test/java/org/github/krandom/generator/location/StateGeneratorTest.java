@@ -770,6 +770,80 @@ class StateGeneratorTest {
     }
 
     @Test
+    @DisplayName("register rejects invalid state arrays and null abbreviations")
+    void registerRejectsInvalidStateProviderData() {
+        Locale locale = Locale.of("zz", "ST");
+
+        assertThrows(IllegalArgumentException.class, () -> StateDataRegistry.register(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[0];
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[0];
+            }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> StateDataRegistry.register(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[] { " " };
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[] { "A" };
+            }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> StateDataRegistry.register(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[] { null };
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[] { "A" };
+            }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> StateDataRegistry.register(new StateDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getStates() {
+                return new String[] { "Alpha" };
+            }
+
+            @Override
+            public String[] getAbbreviations() {
+                return new String[] { null };
+            }
+        }));
+    }
+
+    @Test
     @DisplayName("isRegistered returns false for unregistered locale")
     void isRegisteredUnknownLocale() {
         assertFalse(StateDataRegistry.isRegistered(Locale.of("xx", "YY")));

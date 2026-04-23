@@ -48,6 +48,8 @@ public final class StateDataRegistry {
     public static void register(StateDataProvider provider) {
         Objects.requireNonNull(provider, "provider must not be null");
         Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
+        validateStates(provider.getStates());
+        validateAbbreviations(provider.getAbbreviations());
         RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
     }
 
@@ -78,6 +80,28 @@ public final class StateDataRegistry {
      */
     public static Set<String> registeredKeys() {
         return Set.copyOf(providers.keySet());
+    }
+
+    private static void validateStates(String[] states) {
+        Objects.requireNonNull(states, "states must not be null");
+        if (states.length == 0) {
+            throw new IllegalArgumentException("states must not be empty");
+        }
+        for (int i = 0; i < states.length; i++) {
+            String value = states[i];
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException("states at index " + i + " must not be blank");
+            }
+        }
+    }
+
+    private static void validateAbbreviations(String[] abbreviations) {
+        Objects.requireNonNull(abbreviations, "abbreviations must not be null");
+        for (int i = 0; i < abbreviations.length; i++) {
+            if (abbreviations[i] == null) {
+                throw new IllegalArgumentException("abbreviations at index " + i + " must not be null");
+            }
+        }
     }
 
 }

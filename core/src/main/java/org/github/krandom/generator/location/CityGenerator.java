@@ -20,10 +20,10 @@ import java.util.Random;
  * <p>The locale controls which cities are returned — for example, US cities for {@code en_US},
  * German cities for {@code de_DE}, Japanese cities for {@code ja_JP}, etc.
  *
- * <p>Built-in support covers 10 locales: {@code en_US}, {@code en_GB}, {@code en_AU},
- * {@code fr_FR}, {@code de_DE}, {@code ja_JP}, {@code es_ES}, {@code it_IT}, {@code pt_BR}, and
- * {@code zh_CN}. Additional locales — and overrides of built-in ones — can be registered at
- * runtime via {@link CityDataRegistry#register(CityDataProvider)}.
+ * <p>Built-in support follows the locale catalog in
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Additional locales — and overrides
+ * of built-in ones — can be registered at runtime via
+ * {@link CityDataRegistry#register(CityDataProvider)}.
  */
 public final class CityGenerator implements Generator<String> {
 

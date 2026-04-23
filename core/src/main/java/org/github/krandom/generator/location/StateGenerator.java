@@ -20,10 +20,10 @@ import java.util.Random;
  * <p>The locale controls which states are returned — for example, US states for {@code en_US},
  * UK countries for {@code en_GB}, Australian states for {@code en_AU}, etc.
  *
- * <p>Built-in support covers 10 locales: {@code en_US}, {@code en_GB}, {@code en_AU},
- * {@code de_DE}, {@code fr_FR}, {@code es_ES}, {@code it_IT}, {@code pt_BR},
- * {@code ja_JP}, and {@code zh_CN}. Additional locales — and overrides of built-in ones — can be
- * registered at runtime via {@link StateDataRegistry#register(StateDataProvider)}.
+ * <p>Built-in support follows the locale catalog in
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Additional locales — and overrides
+ * of built-in ones — can be registered at runtime via
+ * {@link StateDataRegistry#register(StateDataProvider)}.
  *
  * <p>States can be generated as full names (e.g., {@code "California"}) or abbreviations
  * (e.g., {@code "CA"}) where supported, controlled by the {@link #generate(boolean)} method.

@@ -6,6 +6,7 @@
 package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -523,6 +524,9 @@ class PostalCodeGeneratorTest {
         PostalCodeGenerator genEN = new PostalCodeGenerator(Locale.of("en"));
         PostalCodeGenerator genDE = new PostalCodeGenerator(Locale.of("de"));
         PostalCodeGenerator genFR = new PostalCodeGenerator(Locale.of("fr"));
+        PostalCodeGenerator genES = new PostalCodeGenerator(Locale.of("es"));
+        PostalCodeGenerator genIT = new PostalCodeGenerator(Locale.of("it"));
+        PostalCodeGenerator genPT = new PostalCodeGenerator(Locale.of("pt"));
         PostalCodeGenerator genJA = new PostalCodeGenerator(Locale.of("ja"));
         PostalCodeGenerator genZH = new PostalCodeGenerator(Locale.of("zh"));
 
@@ -530,6 +534,9 @@ class PostalCodeGeneratorTest {
         assertNotNull(genEN.generate());
         assertNotNull(genDE.generate());
         assertNotNull(genFR.generate());
+        assertTrue(genES.generate().matches("\\d{5}"));
+        assertTrue(genIT.generate().matches("\\d{5}"));
+        assertTrue(genPT.generate().matches("\\d{8}"));
         assertNotNull(genJA.generate());
         assertNotNull(genZH.generate());
     }
@@ -537,20 +544,29 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("all supported locales generate non-null, non-empty codes")
     void allLocalesGenerateValidCodes() {
-        Locale[] locales = {
-            Locale.US, Locale.UK, Locale.of("en", "AU"),
-            Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"),
-            Locale.ITALY, Locale.of("pt", "BR"), Locale.JAPAN,
-            Locale.CHINA
-        };
-
-        for (Locale locale : locales) {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            Locale locale = supportedLocale.locale();
             PostalCodeGenerator gen = new PostalCodeGenerator(locale);
             String code = gen.generate();
 
             assertNotNull(code, "Locale " + locale + " generated null");
             assertFalse(code.isEmpty(), "Locale " + locale + " generated empty string");
         }
+    }
+
+    @Test
+    @DisplayName("expanded built-in locales generate locale-specific postal formats")
+    void expandedBuiltInLocalesGenerateSpecificFormats() {
+        assertTrue(new PostalCodeGenerator(Locale.of("nl", "NL")).generate().matches("\\d{4} [A-Z]{2}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("pl", "PL")).generate().matches("\\d{2}-\\d{3}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("ru", "RU")).generate().matches("\\d{6}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("ko", "KR")).generate().matches("\\d{5}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("tr", "TR")).generate().matches("\\d{5}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("sv", "SE")).generate().matches("\\d{3} \\d{2}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("nb", "NO")).generate().matches("\\d{4}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("cs", "CZ")).generate().matches("\\d{3} \\d{2}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("ar", "SA")).generate().matches("\\d{5}"));
+        assertTrue(new PostalCodeGenerator(Locale.of("hi", "IN")).generate().matches("[1-9]\\d{5}"));
     }
 
     @Test

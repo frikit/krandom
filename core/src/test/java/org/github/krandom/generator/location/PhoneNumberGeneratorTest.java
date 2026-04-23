@@ -6,6 +6,7 @@
 package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -84,11 +85,38 @@ class PhoneNumberGeneratorTest {
     }
 
     @Test
+    @DisplayName("language-only locales still use locale-specific phone logic")
+    void languageOnlyLocalesUseSpecificPhoneLogic() {
+        assertTrue(new PhoneNumberGenerator(Locale.of("de")).generate(true, true).matches("01[5-7]\\d \\d{8}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("fr")).generate(true, true).matches("0[67] \\d{2} \\d{2} \\d{2} \\d{2}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("es")).generate(true, true).matches("[67]\\d{2} \\d{2} \\d{2} \\d{2}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("it")).generate(true, true).matches("3\\d{2} \\d{3} \\d{4}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("pt")).generate(true, true).matches("\\(\\d{2}\\) 9\\d{4}-\\d{4}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("ja")).generate(true, true).matches("0[789]0-\\d{4}-\\d{4}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("zh")).generate(true, true).matches("1\\d{2} \\d{4} \\d{4}"));
+    }
+
+    @Test
     @DisplayName("country calling code follows locale country")
     void countryCallingCode() {
         assertEquals("+1", new PhoneNumberGenerator(Locale.US).generateCountryCallingCode());
         assertEquals("+44", new PhoneNumberGenerator(Locale.UK).generateCountryCallingCode());
         assertEquals("+49", new PhoneNumberGenerator(Locale.GERMANY).generateCountryCallingCode());
+    }
+
+    @Test
+    @DisplayName("country calling code supports every built-in locale")
+    void countryCallingCodeSupportsEveryBuiltInLocale() {
+        assertEquals("+31", new PhoneNumberGenerator(Locale.of("nl", "NL")).generateCountryCallingCode());
+        assertEquals("+48", new PhoneNumberGenerator(Locale.of("pl", "PL")).generateCountryCallingCode());
+        assertEquals("+7", new PhoneNumberGenerator(Locale.of("ru", "RU")).generateCountryCallingCode());
+        assertEquals("+82", new PhoneNumberGenerator(Locale.of("ko", "KR")).generateCountryCallingCode());
+        assertEquals("+90", new PhoneNumberGenerator(Locale.of("tr", "TR")).generateCountryCallingCode());
+        assertEquals("+46", new PhoneNumberGenerator(Locale.of("sv", "SE")).generateCountryCallingCode());
+        assertEquals("+47", new PhoneNumberGenerator(Locale.of("nb", "NO")).generateCountryCallingCode());
+        assertEquals("+420", new PhoneNumberGenerator(Locale.of("cs", "CZ")).generateCountryCallingCode());
+        assertEquals("+966", new PhoneNumberGenerator(Locale.of("ar", "SA")).generateCountryCallingCode());
+        assertEquals("+91", new PhoneNumberGenerator(Locale.of("hi", "IN")).generateCountryCallingCode());
     }
 
     @Test
@@ -874,20 +902,50 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("all supported locales generate non-null, non-empty phones")
     void allLocalesGenerateValidPhones() {
-        Locale[] locales = {
-            Locale.US, Locale.UK, Locale.of("en", "AU"),
-            Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"),
-            Locale.ITALY, Locale.of("pt", "BR"), Locale.JAPAN,
-            Locale.CHINA
-        };
-
-        for (Locale locale : locales) {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            Locale locale = supportedLocale.locale();
             PhoneNumberGenerator gen = new PhoneNumberGenerator(locale);
             String phone = gen.generate();
 
             assertNotNull(phone, "Locale " + locale + " generated null");
             assertFalse(phone.isEmpty(), "Locale " + locale + " generated empty string");
         }
+    }
+
+    @Test
+    @DisplayName("expanded built-in locales no longer fall back to US phone formats")
+    void expandedBuiltInLocalesUseLocaleSpecificFormats() {
+        assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL")).generate(true, true).matches("06\\d \\d{7}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL")).generate(true, false).matches("\\d{2} \\d{3} \\d{2} \\d{2}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("ru", "RU")).generate(true, true).matches("9\\d{2} \\d{3}-\\d{2}-\\d{2}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("ko", "KR")).generate(true, true).matches("01\\d-\\d{4}-\\d{4}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("tr", "TR")).generate(true, true).matches("05\\d{2} \\d{3} \\d{2} \\d{2}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("sv", "SE")).generate(true, true).matches("07\\d-\\d{3} \\d{2} \\d{2}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("nb", "NO")).generate(true, false).matches("\\d{2} \\d{2} \\d{2} \\d{2}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("cs", "CZ")).generate(true, true).matches("\\d{3} \\d{3} \\d{3}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("ar", "SA")).generate(true, true).matches("05\\d \\d{3} \\d{4}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("hi", "IN")).generate(true, true).matches("[6-9]\\d{4} \\d{5}"));
+    }
+
+    @Test
+    @DisplayName("expanded built-in locales cover remaining mobile and landline branches")
+    void expandedBuiltInLocalesCoverRemainingBranches() {
+        assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL")).generate(false, true).matches("06\\d{8}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL")).generate(false, false).matches("0\\d{9}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL")).generate(true, true).matches("\\d{3} \\d{3} \\d{3}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL")).generate(false, true).matches("\\d{9}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL")).generate(false, false).matches("\\d{9}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("ru", "RU")).generate(false, false).matches("\\d{10}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("ko", "KR")).generate(false, false).matches("0\\d{9,10}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("tr", "TR")).generate(false, false).matches("0\\d{10}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("sv", "SE")).generate(false, false).matches("0\\d{8,9}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("nb", "NO")).generate(true, true).matches("\\d{3} \\d{2} \\d{3}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("nb", "NO")).generate(false, true).matches("\\d{8}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("cs", "CZ")).generate(false, false).matches("[2-5]\\d{8}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("ar", "SA")).generate(false, false).matches("0\\d{9}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("hi", "IN")).generate(false, true).matches("[6-9]\\d{9}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("hi", "IN")).generate(true, false).matches("0\\d{2,3} \\d{8}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("hi", "IN")).generate(false, false).matches("0\\d{10,11}"));
     }
 
     @Test

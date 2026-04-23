@@ -48,6 +48,7 @@ public final class CityDataRegistry {
     public static void register(CityDataProvider provider) {
         Objects.requireNonNull(provider, "provider must not be null");
         Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
+        validateArray("cities", provider.getCities());
         RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
     }
 
@@ -78,6 +79,19 @@ public final class CityDataRegistry {
      */
     public static Set<String> registeredKeys() {
         return Set.copyOf(providers.keySet());
+    }
+
+    private static void validateArray(String name, String[] values) {
+        Objects.requireNonNull(values, name + " must not be null");
+        if (values.length == 0) {
+            throw new IllegalArgumentException(name + " must not be empty");
+        }
+        for (int i = 0; i < values.length; i++) {
+            String value = values[i];
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
+            }
+        }
     }
 
 }

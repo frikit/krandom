@@ -19,8 +19,8 @@ import java.util.Set;
  * Generates locale-aware full names by combining a {@link FirstNameGenerator} and a
  * {@link LastNameGenerator}.
  *
- * <p>Built-in support covers the same 10 locales as the underlying name generators
- * (US, UK, AU, FR, DE, JA, ES, IT, PT, ZH).
+ * <p>Built-in locale coverage follows the underlying name generators and the catalog in
+ * {@link org.github.krandom.generator.locale.SupportedLocale}.
  *
  * <pre>{@code
  * FullNameGenerator gen = new FullNameGenerator();

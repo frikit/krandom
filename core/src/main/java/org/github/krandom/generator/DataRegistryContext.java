@@ -310,6 +310,12 @@ public final class DataRegistryContext {
         if (values.length == 0) {
             throw new IllegalArgumentException(name + " must not be empty");
         }
+        for (int i = 0; i < values.length; i++) {
+            String value = values[i];
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
+            }
+        }
     }
 
     private static void validateLabel(String name, String value) {
@@ -318,10 +324,12 @@ public final class DataRegistryContext {
         }
     }
 
-    private static void validateStreetArray(String name, String[] values) {
+    private static void validateNullableEntries(String name, String[] values) {
         Objects.requireNonNull(values, name);
-        if (values.length == 0) {
-            throw new IllegalArgumentException(name + " must not be empty");
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] == null) {
+                throw new IllegalArgumentException(name + " at index " + i + " must not be null");
+            }
         }
     }
 
@@ -430,6 +438,7 @@ public final class DataRegistryContext {
         public Builder registerCityProvider(CityDataProvider provider) {
             Objects.requireNonNull(provider, "provider");
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateArray("cities", provider.getCities());
             putWithLanguageFallback(cities, provider.getLocale(), provider);
             return this;
         }
@@ -437,6 +446,8 @@ public final class DataRegistryContext {
         public Builder registerStateProvider(StateDataProvider provider) {
             Objects.requireNonNull(provider, "provider");
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateArray("states", provider.getStates());
+            validateNullableEntries("abbreviations", provider.getAbbreviations());
             putWithLanguageFallback(states, provider.getLocale(), provider);
             return this;
         }
@@ -444,6 +455,7 @@ public final class DataRegistryContext {
         public Builder registerCountryProvider(CountryDataProvider provider) {
             Objects.requireNonNull(provider, "provider");
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateArray("countries", provider.getCountries());
             putWithLanguageFallback(countries, provider.getLocale(), provider);
             return this;
         }
@@ -451,9 +463,9 @@ public final class DataRegistryContext {
         public Builder registerStreetAddressProvider(StreetAddressDataProvider provider) {
             Objects.requireNonNull(provider, "provider");
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-            validateStreetArray("streetNames", provider.getStreetNames());
-            validateStreetArray("streetTypesShort", provider.getStreetTypesShort());
-            validateStreetArray("streetTypesLong", provider.getStreetTypesLong());
+            validateArray("streetNames", provider.getStreetNames());
+            validateArray("streetTypesShort", provider.getStreetTypesShort());
+            validateArray("streetTypesLong", provider.getStreetTypesLong());
             putWithLanguageFallback(streetAddresses, provider.getLocale(), provider);
             return this;
         }

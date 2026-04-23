@@ -107,7 +107,7 @@ public final class ShipmentInfoGenerator implements Generator<ShipmentInfo> {
 
     private String trackingNumber(String carrier) {
         String compact = uuidGenerator.generateV4String().replace("-", "").toUpperCase(Locale.ROOT);
-        String normalizedCarrier = carrier.replaceAll("[^A-Z]", "").toUpperCase(Locale.ROOT);
+        String normalizedCarrier = carrier.toUpperCase(Locale.ROOT).replaceAll("[^A-Z]", "");
         return normalizedCarrier.substring(0, Math.min(3, normalizedCarrier.length())) + compact.substring(0, 15);
     }
 }

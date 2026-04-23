@@ -17,8 +17,9 @@ import java.util.Random;
 /**
  * Generates locale-aware last names (family names / surnames).
  *
- * <p>Built-in support covers 10 locales (US, UK, AU, FR, DE, JA, ES, IT, PT, ZH). Additional
- * locales — and overrides of built-in ones — can be registered at runtime via
+ * <p>Built-in support follows the locale catalog in
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Additional locales — and overrides
+ * of built-in ones — can be registered at runtime via
  * {@link LastNameDataRegistry#register(LastNameDataProvider)}.
  *
  * <pre>{@code

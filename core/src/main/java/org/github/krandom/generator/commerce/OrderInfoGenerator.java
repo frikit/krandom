@@ -10,6 +10,8 @@ import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
+import org.github.krandom.generator.location.AddressInfo;
+import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.github.krandom.generator.user.PersonInfo;
 import org.github.krandom.generator.user.PersonInfoGenerator;
 
@@ -35,6 +37,7 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
     private final CurrencyGenerator    currencyGenerator;
     private final PersonInfoGenerator  personInfoGenerator;
     private final ProductInfoGenerator productInfoGenerator;
+    private final AddressInfoGenerator shippingAddressGenerator;
 
     /**
      * Creates an order-info generator using default configuration ({@link Locale#US}).
@@ -65,6 +68,27 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
         this.currencyGenerator = new CurrencyGenerator(config);
         this.personInfoGenerator = new PersonInfoGenerator(config);
         this.productInfoGenerator = new ProductInfoGenerator(config);
+        this.shippingAddressGenerator = null;
+    }
+
+    /**
+     * Creates an order-info generator using explicit configuration and an independent shipping-address generator.
+     *
+     * @param config generator configuration
+     * @param shippingAddressGenerator shipping-address generator to use instead of the customer's home address
+     */
+    public OrderInfoGenerator(GeneratorConfig config, AddressInfoGenerator shippingAddressGenerator) {
+        this.config = Objects.requireNonNull(config, "config must not be null");
+        this.random = config.createRandom();
+        this.uuidGenerator = new UUIDGenerator(config);
+        this.dateGenerator = new DateGenerator(config);
+        this.currencyGenerator = new CurrencyGenerator(config);
+        this.personInfoGenerator = new PersonInfoGenerator(config);
+        this.productInfoGenerator = new ProductInfoGenerator(config);
+        this.shippingAddressGenerator = Objects.requireNonNull(
+            shippingAddressGenerator,
+            "shippingAddressGenerator must not be null"
+        );
     }
 
     @Override
@@ -78,6 +102,9 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
         BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.05 + (random.nextDouble() * 0.15)))
                                  .setScale(2, RoundingMode.HALF_UP);
         BigDecimal total = subtotal.add(shipping).add(tax).setScale(2, RoundingMode.HALF_UP);
+        AddressInfo shippingAddress = shippingAddressGenerator == null
+                                      ? customer.address()
+                                      : shippingAddressGenerator.generate();
         return new OrderInfo(
             prefixedId("ORD"),
             ORDER_STATUSES[random.nextInt(ORDER_STATUSES.length)],
@@ -91,7 +118,7 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
             total,
             customer,
             product,
-            customer.address()
+            shippingAddress
         );
     }
 

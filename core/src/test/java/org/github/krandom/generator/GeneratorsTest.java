@@ -815,6 +815,9 @@ class GeneratorsTest {
         assertInstanceOf(OrderInfoGenerator.class, Generators.ofOrderInfo());
         assertInstanceOf(OrderInfoGenerator.class, Generators.ofOrderInfo(Locale.US));
         assertInstanceOf(OrderInfoGenerator.class, Generators.ofOrderInfo(GeneratorConfig.defaults()));
+        assertInstanceOf(OrderInfoGenerator.class,
+                         Generators.ofOrderInfo(GeneratorConfig.defaults(),
+                                                new AddressInfoGenerator(GeneratorConfig.defaults())));
         assertInstanceOf(ShipmentInfoGenerator.class, Generators.ofShipmentInfo());
         assertInstanceOf(ShipmentInfoGenerator.class, Generators.ofShipmentInfo(Locale.US));
         assertInstanceOf(ShipmentInfoGenerator.class, Generators.ofShipmentInfo(GeneratorConfig.defaults()));

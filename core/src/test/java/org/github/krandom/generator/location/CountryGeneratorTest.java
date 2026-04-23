@@ -140,6 +140,19 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("current-country helper metadata is available for every built-in locale country")
+    void currentCountryMetadataHelpersSupportAllBuiltInLocales() {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            CountryGenerator generator = new CountryGenerator(supportedLocale.locale());
+            assertNotNull(generator.currentCountryCodeNumeric(), supportedLocale + " numeric code");
+            assertFalse(generator.currentCountryCodeNumeric().isBlank(), supportedLocale + " numeric code");
+            assertTrue(generator.currentCallingCode().startsWith("+"), supportedLocale + " calling code");
+            assertFalse(generator.currentContinent().isBlank(), supportedLocale + " continent");
+            assertTrue(generator.currentTimezone().contains("/"), supportedLocale + " timezone");
+        }
+    }
+
+    @Test
     @DisplayName("US locale returns English country names")
     void usLocaleEnglish() {
         CountryGenerator gen = new CountryGenerator(Locale.US);
@@ -544,6 +557,48 @@ class CountryGeneratorTest {
     @DisplayName("register rejects null provider")
     void registerRejectsNull() {
         assertThrows(NullPointerException.class, () -> CountryDataRegistry.register(null));
+    }
+
+    @Test
+    @DisplayName("register rejects empty and blank country arrays")
+    void registerRejectsInvalidCountryArrays() {
+        Locale locale = Locale.of("zz", "CY");
+
+        assertThrows(IllegalArgumentException.class, () -> CountryDataRegistry.register(new CountryDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new String[0];
+            }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> CountryDataRegistry.register(new CountryDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new String[] { "" };
+            }
+        }));
+
+        assertThrows(IllegalArgumentException.class, () -> CountryDataRegistry.register(new CountryDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getCountries() {
+                return new String[] { null };
+            }
+        }));
     }
 
     @Test

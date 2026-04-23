@@ -999,6 +999,16 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces structured commerce order payloads with an independent shipping address.
+     */
+    public static OrderInfoGenerator ofOrderInfo(
+        GeneratorConfig config,
+        AddressInfoGenerator shippingAddressGenerator
+    ) {
+        return new OrderInfoGenerator(config, shippingAddressGenerator);
+    }
+
+    /**
      * Returns a generator that produces structured shipment payloads.
      */
     public static ShipmentInfoGenerator ofShipmentInfo() {

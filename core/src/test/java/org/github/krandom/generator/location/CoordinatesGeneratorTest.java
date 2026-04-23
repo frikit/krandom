@@ -6,6 +6,7 @@
 package org.github.krandom.generator.location;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -682,13 +683,8 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("all locales produce coordinates within global bounds")
     void allLocalesWithinGlobalBounds() {
-        Locale[] locales = {
-            Locale.US, Locale.UK, Locale.of("en", "AU"),
-            Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"),
-            Locale.ITALY, Locale.of("pt", "BR"), Locale.JAPAN, Locale.CHINA
-        };
-
-        for (Locale locale : locales) {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            Locale locale = supportedLocale.locale();
             CoordinatesGenerator gen = new CoordinatesGenerator(locale);
 
             for (int i = 0; i < 10; i++) {
@@ -701,6 +697,62 @@ class CoordinatesGeneratorTest {
                            locale + ": Longitude out of range: " + lon);
             }
         }
+    }
+
+    @Test
+    @DisplayName("expanded built-in locales use their own bounding boxes")
+    void expandedBuiltInLocalesUseOwnBounds() {
+        CoordinatesGenerator nl = new CoordinatesGenerator(Locale.of("nl", "NL"));
+        assertEquals(50.7, nl.getMinLatitude(), EPSILON);
+        assertEquals(53.7, nl.getMaxLatitude(), EPSILON);
+
+        CoordinatesGenerator pl = new CoordinatesGenerator(Locale.of("pl", "PL"));
+        assertEquals(14.1, pl.getMinLongitude(), EPSILON);
+        assertEquals(24.2, pl.getMaxLongitude(), EPSILON);
+
+        CoordinatesGenerator ru = new CoordinatesGenerator(Locale.of("ru", "RU"));
+        assertEquals(41.2, ru.getMinLatitude(), EPSILON);
+        assertEquals(179.9, ru.getMaxLongitude(), EPSILON);
+
+        CoordinatesGenerator kr = new CoordinatesGenerator(Locale.of("ko", "KR"));
+        assertEquals(33.1, kr.getMinLatitude(), EPSILON);
+        assertEquals(131.9, kr.getMaxLongitude(), EPSILON);
+
+        CoordinatesGenerator tr = new CoordinatesGenerator(Locale.of("tr", "TR"));
+        assertEquals(26.0, tr.getMinLongitude(), EPSILON);
+        assertEquals(45.0, tr.getMaxLongitude(), EPSILON);
+
+        CoordinatesGenerator se = new CoordinatesGenerator(Locale.of("sv", "SE"));
+        assertEquals(55.3, se.getMinLatitude(), EPSILON);
+        assertEquals(69.1, se.getMaxLatitude(), EPSILON);
+
+        CoordinatesGenerator no = new CoordinatesGenerator(Locale.of("nb", "NO"));
+        assertEquals(4.5, no.getMinLongitude(), EPSILON);
+        assertEquals(31.3, no.getMaxLongitude(), EPSILON);
+
+        CoordinatesGenerator cz = new CoordinatesGenerator(Locale.of("cs", "CZ"));
+        assertEquals(48.5, cz.getMinLatitude(), EPSILON);
+        assertEquals(18.9, cz.getMaxLongitude(), EPSILON);
+
+        CoordinatesGenerator sa = new CoordinatesGenerator(Locale.of("ar", "SA"));
+        assertEquals(16.3, sa.getMinLatitude(), EPSILON);
+        assertEquals(55.7, sa.getMaxLongitude(), EPSILON);
+
+        CoordinatesGenerator in = new CoordinatesGenerator(Locale.of("hi", "IN"));
+        assertEquals(6.5, in.getMinLatitude(), EPSILON);
+        assertEquals(97.4, in.getMaxLongitude(), EPSILON);
+    }
+
+    @Test
+    @DisplayName("language-only locales resolve to their matching geographic bounds")
+    void languageOnlyLocalesUseGeographicBounds() {
+        assertEquals(47.3, new CoordinatesGenerator(Locale.of("de")).getMinLatitude(), EPSILON);
+        assertEquals(41.3, new CoordinatesGenerator(Locale.of("fr")).getMinLatitude(), EPSILON);
+        assertEquals(-9.3, new CoordinatesGenerator(Locale.of("es")).getMinLongitude(), EPSILON);
+        assertEquals(6.6, new CoordinatesGenerator(Locale.of("it")).getMinLongitude(), EPSILON);
+        assertEquals(-74.0, new CoordinatesGenerator(Locale.of("pt")).getMinLongitude(), EPSILON);
+        assertEquals(24.0, new CoordinatesGenerator(Locale.of("ja")).getMinLatitude(), EPSILON);
+        assertEquals(73.5, new CoordinatesGenerator(Locale.of("zh")).getMinLongitude(), EPSILON);
     }
 
     @Test

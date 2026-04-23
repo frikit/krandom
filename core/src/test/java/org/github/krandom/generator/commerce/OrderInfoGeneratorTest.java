@@ -7,6 +7,7 @@ package org.github.krandom.generator.commerce;
 
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.Generators;
+import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -59,13 +60,35 @@ class OrderInfoGeneratorTest {
     }
 
     @Test
+    @DisplayName("independent shipping generator can override customer home address")
+    void independentShippingAddress() {
+        GeneratorConfig orderConfig = GeneratorConfig.builder()
+                                                     .locale(Locale.US)
+                                                     .seed(42L)
+                                                     .build();
+        AddressInfoGenerator shippingAddressGenerator = new AddressInfoGenerator(
+            GeneratorConfig.builder().locale(Locale.CANADA).seed(42L).build()
+        );
+
+        OrderInfo info = new OrderInfoGenerator(orderConfig, shippingAddressGenerator).generate();
+
+        assertEquals("CA", info.shippingAddress().countryAbbr());
+        assertEquals("US", info.customer().address().countryAbbr());
+        assertTrue(!info.shippingAddress().equals(info.customer().address()));
+    }
+
+    @Test
     @DisplayName("constructors and factories reject nulls and expose locale")
     void constructorValidation() {
         assertThrows(NullPointerException.class, () -> new OrderInfoGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new OrderInfoGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class,
+                     () -> new OrderInfoGenerator(GeneratorConfig.defaults(), null));
         assertEquals(Locale.US, new OrderInfoGenerator(Locale.US).getLocale());
         assertNotNull(Generators.ofOrderInfo().generate());
         assertNotNull(Generators.ofOrderInfo(Locale.US).generate());
         assertNotNull(Generators.ofOrderInfo(GeneratorConfig.defaults()).generate());
+        assertNotNull(Generators.ofOrderInfo(GeneratorConfig.defaults(),
+                                             new AddressInfoGenerator(GeneratorConfig.defaults())).generate());
     }
 }

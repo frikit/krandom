@@ -19,19 +19,8 @@ import java.util.Random;
  * <p>This generator creates realistic postal codes that match the format rules of each supported
  * locale. The formats are generated programmatically without requiring resource files.
  *
- * <p>Built-in support covers 10 locales:
- * <ul>
- *   <li>{@code en_US}: US ZIP codes (5 digits like "90210" or ZIP+4 like "90210-1234")</li>
- *   <li>{@code en_GB}: UK postcodes (formats like "SW1A 2AA", "N1 9GU", "EC1A 1BB")</li>
- *   <li>{@code en_AU}: Australian postcodes (4 digits like "2000", "3000")</li>
- *   <li>{@code de_DE}: German postal codes (5 digits like "10115", "80331")</li>
- *   <li>{@code fr_FR}: French postal codes (5 digits like "75001", "69001")</li>
- *   <li>{@code es_ES}: Spanish postal codes (5 digits like "28001", "08001")</li>
- *   <li>{@code it_IT}: Italian postal codes (5 digits like "00118", "20121")</li>
- *   <li>{@code pt_BR}: Brazilian CEP codes (format "01310-100" or "01310100")</li>
- *   <li>{@code ja_JP}: Japanese postal codes (format "100-0001" or "1000001")</li>
- *   <li>{@code zh_CN}: Chinese postal codes (6 digits like "100000", "200000")</li>
- * </ul>
+ * <p>Built-in support now follows the expanded locale catalog used across the locale-aware
+ * generators, instead of silently falling back to US ZIP codes for newer built-in locales.
  *
  * <p>Example usage:
  * <pre>{@code
@@ -121,15 +110,33 @@ public final class PostalCodeGenerator implements Generator<String> {
 
         return switch (localeKey) {
             case "en_US" -> generateUSZip(extended);
+            case "en" -> generateUSZip(extended);
             case "en_GB" -> generateUKPostcode();
             case "en_AU" -> generateAustralianPostcode();
             case "de_DE" -> generateGermanPostcode();
+            case "de" -> generateGermanPostcode();
             case "fr_FR" -> generateFrenchPostcode();
+            case "fr" -> generateFrenchPostcode();
             case "es_ES" -> generateSpanishPostcode();
+            case "es" -> generateSpanishPostcode();
             case "it_IT" -> generateItalianPostcode();
+            case "it" -> generateItalianPostcode();
             case "pt_BR" -> generateBrazilianCEP(extended);
+            case "pt" -> generateBrazilianCEP(extended);
             case "ja_JP" -> generateJapanesePostcode(extended);
+            case "ja" -> generateJapanesePostcode(extended);
             case "zh_CN" -> generateChinesePostcode();
+            case "zh" -> generateChinesePostcode();
+            case "nl_NL", "nl" -> generateDutchPostcode();
+            case "pl_PL", "pl" -> generatePolishPostcode();
+            case "ru_RU", "ru" -> generateRussianPostcode();
+            case "ko_KR", "ko" -> generateKoreanPostcode();
+            case "tr_TR", "tr" -> generateTurkishPostcode();
+            case "sv_SE", "sv" -> generateSwedishPostcode();
+            case "nb_NO", "nb", "no_NO", "no" -> generateNorwegianPostcode();
+            case "cs_CZ", "cs" -> generateCzechPostcode();
+            case "ar_SA", "ar" -> generateSaudiPostcode();
+            case "hi_IN", "hi" -> generateIndianPin();
             default -> generateUSZip(extended); // Default to US format
         };
     }
@@ -243,6 +250,47 @@ public final class PostalCodeGenerator implements Generator<String> {
     private String generateChinesePostcode() {
         // Chinese postcodes: 6 digits, 100000-999999
         return String.format("%06d", 100000 + random.nextInt(900000));
+    }
+
+    private String generateDutchPostcode() {
+        int digits = 1000 + random.nextInt(9000);
+        return String.format("%04d %s%s", digits, randomLetter(), randomLetter());
+    }
+
+    private String generatePolishPostcode() {
+        return String.format("%02d-%03d", 10 + random.nextInt(90), random.nextInt(1000));
+    }
+
+    private String generateRussianPostcode() {
+        return String.format("%06d", 100000 + random.nextInt(900000));
+    }
+
+    private String generateKoreanPostcode() {
+        return String.format("%05d", 10000 + random.nextInt(90000));
+    }
+
+    private String generateTurkishPostcode() {
+        return String.format("%05d", 1000 + random.nextInt(90000));
+    }
+
+    private String generateSwedishPostcode() {
+        return String.format("%03d %02d", 100 + random.nextInt(900), random.nextInt(100));
+    }
+
+    private String generateNorwegianPostcode() {
+        return String.format("%04d", random.nextInt(10000));
+    }
+
+    private String generateCzechPostcode() {
+        return String.format("%03d %02d", 100 + random.nextInt(900), random.nextInt(100));
+    }
+
+    private String generateSaudiPostcode() {
+        return String.format("%05d", 10000 + random.nextInt(90000));
+    }
+
+    private String generateIndianPin() {
+        return String.format("%d%05d", 1 + random.nextInt(9), random.nextInt(100000));
     }
 
     // ── Helper methods ────────────────────────────────────────────────────────

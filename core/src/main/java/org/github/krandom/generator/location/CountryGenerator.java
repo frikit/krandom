@@ -24,16 +24,16 @@ import java.util.Random;
  * <p>The locale controls the language of the returned country names — for example, Germany is
  * {@code "Germany"} in English, {@code "Deutschland"} in German, and {@code "ドイツ"} in Japanese.
  *
- * <p>Built-in support covers 10 locales: {@code en_US}, {@code en_GB}, {@code en_AU},
- * {@code fr_FR}, {@code de_DE}, {@code ja_JP}, {@code es_ES}, {@code it_IT}, {@code pt_BR}, and
- * {@code zh_CN}. Additional locales — and overrides of built-in ones — can be registered at
- * runtime via {@link CountryDataRegistry#register(CountryDataProvider)}.
+ * <p>Built-in country-name generation follows the full {@link org.github.krandom.generator.locale.SupportedLocale}
+ * catalog. Additional locales — and overrides of built-in ones — can be registered at runtime
+ * via {@link CountryDataRegistry#register(CountryDataProvider)}.
  */
 public final class CountryGenerator implements Generator<String> {
 
     private static final String[]            ISO_ALPHA2_CODES     = Locale.getISOCountries();
     private static final String[]            ISO_NUMERIC_CODES    = {
-        "036", "076", "156", "250", "276", "380", "392", "724", "826", "840"
+        "036", "076", "156", "203", "250", "276", "356", "380", "392", "410",
+        "528", "578", "616", "643", "682", "724", "752", "792", "826", "840"
     };
     private static final Map<String, String> NUMERIC_BY_COUNTRY   = Map.ofEntries(
         Map.entry("US", "840"),
@@ -45,7 +45,17 @@ public final class CountryGenerator implements Generator<String> {
         Map.entry("IT", "380"),
         Map.entry("BR", "076"),
         Map.entry("JP", "392"),
-        Map.entry("CN", "156")
+        Map.entry("CN", "156"),
+        Map.entry("NL", "528"),
+        Map.entry("PL", "616"),
+        Map.entry("RU", "643"),
+        Map.entry("KR", "410"),
+        Map.entry("TR", "792"),
+        Map.entry("SE", "752"),
+        Map.entry("NO", "578"),
+        Map.entry("CZ", "203"),
+        Map.entry("SA", "682"),
+        Map.entry("IN", "356")
     );
     private static final Map<String, String> CALLING_BY_COUNTRY   = Map.ofEntries(
         Map.entry("US", "+1"),
@@ -57,7 +67,17 @@ public final class CountryGenerator implements Generator<String> {
         Map.entry("IT", "+39"),
         Map.entry("BR", "+55"),
         Map.entry("JP", "+81"),
-        Map.entry("CN", "+86")
+        Map.entry("CN", "+86"),
+        Map.entry("NL", "+31"),
+        Map.entry("PL", "+48"),
+        Map.entry("RU", "+7"),
+        Map.entry("KR", "+82"),
+        Map.entry("TR", "+90"),
+        Map.entry("SE", "+46"),
+        Map.entry("NO", "+47"),
+        Map.entry("CZ", "+420"),
+        Map.entry("SA", "+966"),
+        Map.entry("IN", "+91")
     );
     private static final Map<String, String> CONTINENT_BY_COUNTRY = Map.ofEntries(
         Map.entry("US", "North America"),
@@ -69,7 +89,17 @@ public final class CountryGenerator implements Generator<String> {
         Map.entry("IT", "Europe"),
         Map.entry("BR", "South America"),
         Map.entry("JP", "Asia"),
-        Map.entry("CN", "Asia")
+        Map.entry("CN", "Asia"),
+        Map.entry("NL", "Europe"),
+        Map.entry("PL", "Europe"),
+        Map.entry("RU", "Europe"),
+        Map.entry("KR", "Asia"),
+        Map.entry("TR", "Asia"),
+        Map.entry("SE", "Europe"),
+        Map.entry("NO", "Europe"),
+        Map.entry("CZ", "Europe"),
+        Map.entry("SA", "Asia"),
+        Map.entry("IN", "Asia")
     );
     private static final Map<String, String> TIMEZONE_BY_COUNTRY  = Map.ofEntries(
         Map.entry("US", "America/New_York"),
@@ -81,7 +111,17 @@ public final class CountryGenerator implements Generator<String> {
         Map.entry("IT", "Europe/Rome"),
         Map.entry("BR", "America/Sao_Paulo"),
         Map.entry("JP", "Asia/Tokyo"),
-        Map.entry("CN", "Asia/Shanghai")
+        Map.entry("CN", "Asia/Shanghai"),
+        Map.entry("NL", "Europe/Amsterdam"),
+        Map.entry("PL", "Europe/Warsaw"),
+        Map.entry("RU", "Europe/Moscow"),
+        Map.entry("KR", "Asia/Seoul"),
+        Map.entry("TR", "Europe/Istanbul"),
+        Map.entry("SE", "Europe/Stockholm"),
+        Map.entry("NO", "Europe/Oslo"),
+        Map.entry("CZ", "Europe/Prague"),
+        Map.entry("SA", "Asia/Riyadh"),
+        Map.entry("IN", "Asia/Kolkata")
     );
 
     private final GeneratorConfig config;
