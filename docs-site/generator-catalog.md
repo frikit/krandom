@@ -49,12 +49,12 @@ Main entrypoint: `org.github.krandom.generator.Generators`
 ## Company and commerce
 
 - `ofCompanyName`, `ofCompanyUrl`, `ofCompanyBuzzword`, `ofCompanyCatchPhrase`
-- `ofCommerce`, `ofProductInfo`, `ofOrderInfo`
+- `ofCommerce`, `ofProductInfo`, `ofOrderInfo`, `ofShipmentInfo`
 
 ## Finance and codes
 
 - `ofCurrency`, `ofMoney`
-- `ofCreditCard`, `ofCreditCardInfo`, `ofCardExpiration`, `ofInvoiceInfo`
+- `ofCreditCard`, `ofCreditCardInfo`, `ofCardExpiration`, `ofInvoiceInfo`, `ofPaymentInfo`
 - `ofBic`, `ofBban`, `ofIban`, `ofAbaRouting`, `ofBankCountry`, `ofBankAccount`, `ofBankInfo`, `ofBankName`, `ofBankType`
 - `ofIsin`, `ofCusip`, `ofEin`, `ofCryptoAddress`
 - `ofUuid`, `ofHash`, `ofIdentifierMask`, `ofEan`, `ofUpc`, `ofIsbn`

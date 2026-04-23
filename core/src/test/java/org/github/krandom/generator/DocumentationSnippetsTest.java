@@ -10,11 +10,13 @@ import org.github.krandom.generator.base.IntGenerator;
 import org.github.krandom.generator.base.StringGenerator;
 import org.github.krandom.generator.commerce.OrderInfo;
 import org.github.krandom.generator.commerce.ProductInfo;
+import org.github.krandom.generator.commerce.ShipmentInfo;
 import org.github.krandom.generator.finance.BankInfo;
 import org.github.krandom.generator.finance.CreditCardGenerator;
 import org.github.krandom.generator.finance.CreditCardInfo;
 import org.github.krandom.generator.finance.InvoiceInfo;
 import org.github.krandom.generator.finance.MoneyGenerator;
+import org.github.krandom.generator.finance.PaymentInfo;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.location.PhoneNumberGenerator;
@@ -137,9 +139,11 @@ class DocumentationSnippetsTest {
         JobInfo job = Generators.ofJobInfo(cfg).generate();
         ProductInfo product = Generators.ofProductInfo(cfg).generate();
         OrderInfo order = Generators.ofOrderInfo(cfg).generate();
+        ShipmentInfo shipment = Generators.ofShipmentInfo(cfg).generate();
         BankInfo bank = Generators.ofBankInfo(cfg).generate();
         CreditCardInfo cardInfo = Generators.ofCreditCardInfo(cfg).generate();
         InvoiceInfo invoice = Generators.ofInvoiceInfo(cfg).generate();
+        PaymentInfo payment = Generators.ofPaymentInfo(cfg).generate();
 
         Map<String, Object> user = Map.of(
             "id", Generators.ofUuid().generate().toString(),
@@ -177,10 +181,14 @@ class DocumentationSnippetsTest {
         assertTrue(product.upc().matches("\\d{12}"));
         assertEquals(order.customer().address(), order.shippingAddress());
         assertEquals(0, order.total().compareTo(order.subtotal().add(order.shipping()).add(order.tax()).setScale(2)));
+        assertEquals(shipment.recipient().address(), shipment.destination());
+        assertTrue(shipment.deliveredOn() == null || !shipment.deliveredOn().isBefore(shipment.shippedOn()));
         assertTrue(bank.routingNumber().matches("\\d{9}"));
         assertTrue(cardInfo.exp().matches("\\d{2}/\\d{2}"));
         assertEquals(invoice.customer().address(), invoice.billingAddress());
         assertEquals(0, invoice.total().compareTo(invoice.subtotal().add(invoice.tax()).setScale(2)));
+        assertEquals(payment.payer().address(), payment.billingAddress());
+        assertTrue(payment.settledOn() == null || !payment.settledOn().isBefore(payment.authorizedOn()));
 
         int id = stableIds.generate();
         String firstEmail = uniqueEmails.generate();
