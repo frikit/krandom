@@ -70,6 +70,57 @@ String name = Generators.ofFullName().generate();
 String ipv4 = Generators.ofIPv4().generate();
 ```
 
+## One root config path
+
+`GeneratorConfig` is the main configuration entry point for the library.
+
+```java
+import org.github.krandom.generator.GeneratorConfig;
+
+GeneratorConfig cfg = GeneratorConfig.builder()
+        .locale(Locale.US)   // optional, defaults to Locale.US
+        .seed(42L)           // optional, enables deterministic replay
+        .build();
+```
+
+Use that same config for scalar generators, object generation, fluent fixtures, schemas, and providers.
+
+## Realistic object generation by default
+
+```java
+import org.github.krandom.generator.Generators;
+
+OrderDto order = Generators.ofObject(OrderDto.class, cfg).generate();
+```
+
+The object path now uses semantic field-name defaults, object-level config from `GeneratorConfig`, and coherence rules for common business fields.
+
+## Fluent fixture overrides
+
+```java
+UserFixture user = Generators.ofObjectFaker(UserFixture.class, cfg)
+        .ruleFor("email", () -> "owner@example.test")
+        .ruleFor("address.city", () -> "Berlin")
+        .generate();
+```
+
+Use `ObjectGenerator<T>` first. Move to `ObjectFaker<T>` when you need explicit fixture design.
+
+## Schema and export workflows
+
+```java
+Field field = Generators.ofField(cfg);
+LinkedHashMap<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+fields.put("orderId", field.bind("code.uuid"));
+fields.put("email", field.bind("person.email"));
+fields.put("amount", field.bind("finance.money"));
+
+Schema orders = Generators.ofSchema(cfg, fields);
+
+String jsonl = orders.toJsonLines(10);
+String csv = orders.toCsv(10);
+```
+
 ## Seeded deterministic generation
 
 ```java
@@ -87,6 +138,8 @@ EmailGenerator b = new EmailGenerator(cfg);
 String firstA = a.generate();
 String firstB = b.generate();
 ```
+
+The same root config can also drive deterministic object, fixture, template, provider, and schema generation.
 
 ## Run checks locally
 

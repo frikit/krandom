@@ -807,17 +807,6 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ObjectGeneratorConfig can project into the public object factories")
-    void objectConfigProjectsIntoPublicObjectFactories() {
-        org.github.krandom.generator.object.ObjectGeneratorConfig config =
-            org.github.krandom.generator.object.ObjectGeneratorConfig.builder().build();
-        GeneratorConfig rootConfig = config.toGeneratorConfig();
-
-        assertInstanceOf(ObjectGenerator.class, Generators.ofObject(SimplePojo.class, rootConfig));
-        assertInstanceOf(ObjectFaker.class, Generators.ofObjectFaker(SimplePojo.class, rootConfig));
-    }
-
-    @Test
     @DisplayName("finance factories return corresponding generators")
     void financeFactories() {
         assertInstanceOf(ProductInfoGenerator.class, Generators.ofProductInfo());

@@ -5,6 +5,8 @@
  */
 package org.github.krandom.generator.object.exception;
 
+import org.github.krandom.generator.GeneratorConfig;
+
 /**
  * Thrown when {@code ObjectGenerator} cannot populate a type.
  *
@@ -15,7 +17,7 @@ package org.github.krandom.generator.object.exception;
  *   <li>Constructor/setter threw an exception during population.</li>
  * </ul>
  * <p>
- * Set {@code ObjectGeneratorConfig.ignoreErrors(true)} to silently leave fields {@code null}
+ * Set {@code GeneratorConfig.objectIgnoreErrors(true)} to silently leave fields {@code null}
  * instead of propagating this exception.
  */
 public class ObjectGenerationException extends RuntimeException {

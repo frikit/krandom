@@ -34,8 +34,8 @@ OrderDto order = orders.generate();
 ```
 
 `GeneratorConfig` is the public entry point, including for advanced object overrides and exclusions.
-If you want to compose object-only settings separately, build an `ObjectGeneratorConfig` and call
-`toGeneratorConfig()` before passing it into `ObjectGenerator`, `ObjectFaker`, or `Generators`.
+There is no separate public object-only config path to learn: object defaults, overrides, exclusions,
+semantic controls, and registry wiring all live on the root `GeneratorConfig` builder.
 
 Semantic modes:
 

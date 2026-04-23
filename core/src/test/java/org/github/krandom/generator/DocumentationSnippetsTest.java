@@ -23,6 +23,7 @@ import org.github.krandom.generator.location.PhoneNumberGenerator;
 import org.github.krandom.generator.location.StreetAddressGenerator;
 import org.github.krandom.generator.locale.LocaleDataBundle;
 import org.github.krandom.generator.object.ObjectGenerator;
+import org.github.krandom.generator.object.ObjectGenerationSemanticMode;
 import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.provider.TextFormatProvider;
 import org.github.krandom.generator.schema.Field;
@@ -79,6 +80,49 @@ class DocumentationSnippetsTest {
         assertEquals(2, two.size());
         assertEquals(3, shuffled.size());
         assertEquals(Set.copyOf(colors), Set.copyOf(shuffled));
+    }
+
+    @Test
+    @DisplayName("getting started guide snippets stay runnable")
+    void gettingStartedGuideSnippetsStayRunnable() {
+        int roll = Generators.ofInt(1, 7).generate();
+        String name = Generators.ofFullName().generate();
+        String ipv4 = Generators.ofIPv4().generate();
+
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                                             .locale(Locale.US)
+                                             .seed(42L)
+                                             .build();
+
+        OrderDto order = Generators.ofObject(OrderDto.class, cfg).generate();
+        UserFixture user = Generators.ofObjectFaker(UserFixture.class, cfg)
+                                     .ruleFor("email", () -> "owner@example.test")
+                                     .ruleFor("address.city", () -> "Berlin")
+                                     .generate();
+
+        Field field = Generators.ofField(cfg);
+        LinkedHashMap<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("orderId", field.bind("code.uuid"));
+        fields.put("email", field.bind("person.email"));
+        fields.put("amount", field.bind("finance.money"));
+        Schema orders = Generators.ofSchema(cfg, fields);
+
+        EmailGenerator a = new EmailGenerator(cfg);
+        EmailGenerator b = new EmailGenerator(cfg);
+
+        String jsonl = orders.toJsonLines(10);
+        String csv = orders.toCsv(10);
+
+        assertTrue(roll >= 1 && roll < 7);
+        assertNotNull(name);
+        assertNotNull(ipv4);
+        assertNotNull(order.email());
+        assertNotNull(order.amount());
+        assertEquals("owner@example.test", user.email);
+        assertEquals("Berlin", user.address.city);
+        assertEquals(a.generate(), b.generate());
+        assertEquals(10, jsonl.lines().count());
+        assertTrue(csv.startsWith("orderId,email,amount"));
     }
 
     @Test
@@ -296,6 +340,21 @@ class DocumentationSnippetsTest {
         assertEquals("Berlin", user.address.city);
         assertEquals(10, jsonl.lines().count());
         assertTrue(csv.startsWith("orderId,email,amount"));
+    }
+
+    @Test
+    @DisplayName("performance and observability guide snippets stay runnable")
+    void performanceAndObservabilityGuideSnippetsStayRunnable() {
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                                             .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                             .seed(42L)
+                                             .build();
+
+        OrderDto order = Generators.ofObject(OrderDto.class, cfg).generate();
+
+        assertNotNull(order);
+        assertNotNull(order.email());
+        assertNotNull(order.amount());
     }
 
     private record AddressRecord(String city, String country) {

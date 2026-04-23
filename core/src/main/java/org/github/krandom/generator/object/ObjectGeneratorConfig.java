@@ -23,11 +23,11 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Immutable object-scoped configuration for {@link ObjectGenerator}.
+ * Internal object-scoped configuration for {@link ObjectGenerator}.
  *
- * <p>{@link GeneratorConfig} remains the primary root configuration surface for the library.
- * This type exists for callers that want to compose object-generation settings separately
- * and then project them back into a root config via {@link #toGeneratorConfig()}.
+ * <p>{@link GeneratorConfig} is the public root configuration surface for the library.
+ * This type exists inside the object-generation package so the runtime can compose
+ * object-specific settings and project them back into a root config via {@link #toGeneratorConfig()}.
  *
  * <p>Build via the fluent {@link Builder}:
  * <pre>{@code
@@ -42,7 +42,7 @@ import java.util.function.Predicate;
  *       .build();
  * }</pre>
  */
-public final class ObjectGeneratorConfig {
+final class ObjectGeneratorConfig {
 
     static final int DEFAULT_MAX_DEPTH        = GeneratorConfig.DEFAULT_OBJECT_MAX_DEPTH;
     static final int DEFAULT_OBJECT_POOL_SIZE = GeneratorConfig.DEFAULT_OBJECT_POOL_SIZE;
