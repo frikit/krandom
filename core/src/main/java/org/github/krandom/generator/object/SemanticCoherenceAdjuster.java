@@ -5,6 +5,9 @@
  */
 package org.github.krandom.generator.object;
 
+import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.location.AddressInfo;
+import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
 
@@ -43,10 +46,20 @@ final class SemanticCoherenceAdjuster {
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
+    private final Long generationSeed;
+    private       AddressInfo addressInfo;
+    private       boolean     addressInfoResolved;
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker) {
+        this(config, uniqueFieldTracker, null);
+    }
+
+    SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
+                              UniqueFieldTracker uniqueFieldTracker,
+                              Long generationSeed) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
+        this.generationSeed = generationSeed;
     }
 
     void adjustInstance(Class<?> ownerType, Object instance, List<Field> fields, boolean allowOverwriteExisting) {
@@ -106,7 +119,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        harmonizeAddressCountry(slotsBySemanticKey, allowOverwriteExisting);
+        harmonizeAddressCluster(slotsBySemanticKey, allowOverwriteExisting);
         String domain = harmonizeDomain(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeFullName(slotsBySemanticKey, allowOverwriteExisting);
         harmonizeEmail(slotsBySemanticKey, domain, allowOverwriteExisting);
@@ -119,12 +132,7 @@ final class SemanticCoherenceAdjuster {
         harmonizeActiveStatus(slotsBySemanticKey, allowOverwriteExisting);
     }
 
-    private void harmonizeAddressCountry(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
-        Slot countrySlot = slotsBySemanticKey.get("country");
-        if (countrySlot == null || !canAssign(countrySlot, allowOverwriteExisting)) {
-            return;
-        }
-
+    private void harmonizeAddressCluster(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
         boolean hasAddressSignals = stringValue(slotsBySemanticKey.get("streetaddress")) != null;
         hasAddressSignals |= stringValue(slotsBySemanticKey.get("city")) != null;
         hasAddressSignals |= stringValue(slotsBySemanticKey.get("state")) != null;
@@ -133,10 +141,55 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        String localeCountry = localeCurrentCountry();
-        if (localeCountry != null) {
-            countrySlot.setValue(applyUniqueness(countrySlot, "country", localeCountry));
+        AddressInfo coherentAddress = coherentAddressInfo();
+        if (coherentAddress == null) {
+            return;
         }
+
+        assignAddressField(slotsBySemanticKey.get("streetaddress"),
+                           "streetaddress",
+                           coherentAddress.street(),
+                           allowOverwriteExisting);
+        assignAddressField(slotsBySemanticKey.get("city"), "city", coherentAddress.city(), allowOverwriteExisting);
+        assignAddressField(slotsBySemanticKey.get("state"), "state", coherentAddress.state(), allowOverwriteExisting);
+        assignAddressField(slotsBySemanticKey.get("postalcode"),
+                           "postalcode",
+                           coherentAddress.zip(),
+                           allowOverwriteExisting);
+        assignAddressField(slotsBySemanticKey.get("country"),
+                           "country",
+                           coherentAddress.country(),
+                           allowOverwriteExisting);
+    }
+
+    private void assignAddressField(Slot slot,
+                                    String semanticKey,
+                                    String value,
+                                    boolean allowOverwriteExisting) {
+        if (slot == null || slot.rawType() != String.class || !canAssign(slot, allowOverwriteExisting)) {
+            return;
+        }
+        String normalized = stringValue(value);
+        if (normalized == null) {
+            return;
+        }
+        slot.setValue(applyUniqueness(slot, semanticKey, normalized));
+    }
+
+    private AddressInfo coherentAddressInfo() {
+        if (addressInfoResolved) {
+            return addressInfo;
+        }
+        addressInfoResolved = true;
+        if (localeCurrentCountry() == null) {
+            return null;
+        }
+        GeneratorConfig addressConfig = config.getGeneratorConfig();
+        if (generationSeed != null) {
+            addressConfig = addressConfig.toBuilder().seed(generationSeed.longValue()).build();
+        }
+        addressInfo = new AddressInfoGenerator(addressConfig).generate();
+        return addressInfo;
     }
 
     private String harmonizeDomain(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {

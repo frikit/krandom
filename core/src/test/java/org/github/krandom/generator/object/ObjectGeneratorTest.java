@@ -81,9 +81,10 @@ class ObjectGeneratorTest {
     }
 
     @Test
-    @DisplayName("ObjectGeneratorConfig constructor overload remains available")
-    void objectConfigConstructorRemainsAvailable() {
-        Address address = new ObjectGenerator<>(Address.class, ObjectGeneratorConfig.builder().build()).generate();
+    @DisplayName("ObjectGeneratorConfig can project into the public GeneratorConfig path")
+    void objectConfigProjectsIntoPublicGeneratorConfigPath() {
+        Address address =
+            new ObjectGenerator<>(Address.class, ObjectGeneratorConfig.builder().build().toGeneratorConfig()).generate();
         assertNotNull(address);
     }
 

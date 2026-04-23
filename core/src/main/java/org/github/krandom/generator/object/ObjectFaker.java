@@ -84,9 +84,9 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Creates a fixture authoring API using object-scoped configuration overrides.
+     * Package-private bridge for object-local config adapters.
      */
-    public ObjectFaker(Class<T> type, ObjectGeneratorConfig config) {
+    ObjectFaker(Class<T> type, ObjectGeneratorConfig config) {
         this(type, config, true);
     }
 

@@ -6,8 +6,12 @@
 package org.github.krandom.generator.object;
 
 import jakarta.validation.constraints.Size;
+import org.github.krandom.generator.DataRegistryContext;
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.LocaleDataBundle;
+import org.github.krandom.generator.location.AddressInfo;
+import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.github.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -396,8 +400,12 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("manual instances align locale country and monetary fields")
     void manualInstancesAlignLocaleCountryAndMonetaryFields() throws Exception {
+        long generationSeed = 41L;
         SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
-                                                                           new UniqueFieldTracker());
+                                                                           new UniqueFieldTracker(),
+                                                                           generationSeed);
+        AddressInfo expectedAddress = new AddressInfoGenerator(
+            GeneratorConfig.builder().seed(generationSeed).build()).generate();
 
         ManualAddressHolder address = new ManualAddressHolder();
         address.city = "Dallas";
@@ -405,7 +413,10 @@ class SemanticCoherenceAdjusterTest {
         address.postalCode = "75201";
         address.country = "France";
         adjuster.adjustInstance(ManualAddressHolder.class, address, declaredFields(ManualAddressHolder.class), true);
-        assertEquals("United States", address.country);
+        assertEquals(expectedAddress.city(), address.city);
+        assertEquals(expectedAddress.state(), address.state);
+        assertEquals(expectedAddress.zip(), address.postalCode);
+        assertEquals(expectedAddress.country(), address.country);
 
         ManualMoneyHolder money = new ManualMoneyHolder();
         money.currencyCode = "usd";
@@ -665,6 +676,50 @@ class SemanticCoherenceAdjusterTest {
                                                            declaredFields(ManualMoneyHolder.class), true);
         assertEquals(new BigDecimal("80.00"), fullyProtectedAmountBalance.amount);
         assertEquals(new BigDecimal("40.00"), fullyProtectedAmountBalance.balance);
+    }
+
+    @Test
+    @DisplayName("address coherence caches one snapshot and skips blank generated components")
+    void addressCoherenceCachesOneSnapshotAndSkipsBlankGeneratedComponents() throws Exception {
+        Locale locale = Locale.of("qa", "US");
+        DataRegistryContext context = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerLocaleData(LocaleDataBundle.builder(locale)
+                                                                                             .countries("United States")
+                                                                                             .streetAddress(new String[] { "Elm" },
+                                                                                                            new String[] { "St" },
+                                                                                                            new String[] { "Street" })
+                                                                                             .build())
+                                                         .build();
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .generatorConfig(GeneratorConfig.builder()
+                                                                                            .locale(locale)
+                                                                                            .registryContext(context)
+                                                                                            .build())
+                                                            .build();
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(config, new UniqueFieldTracker(), 77L);
+
+        ManualAddressHolder first = new ManualAddressHolder();
+        first.city = "Keep City";
+        first.state = "Keep State";
+        first.postalCode = "11111";
+        first.country = "France";
+        adjuster.adjustInstance(ManualAddressHolder.class, first, declaredFields(ManualAddressHolder.class), true);
+
+        ManualAddressHolder second = new ManualAddressHolder();
+        second.city = "Keep City Two";
+        second.state = "Keep State Two";
+        second.postalCode = "22222";
+        second.country = "Canada";
+        adjuster.adjustInstance(ManualAddressHolder.class, second, declaredFields(ManualAddressHolder.class), true);
+
+        assertEquals("Keep City", first.city);
+        assertEquals("Keep State", first.state);
+        assertEquals("Keep City Two", second.city);
+        assertEquals("Keep State Two", second.state);
+        assertEquals("United States", first.country);
+        assertEquals(first.country, second.country);
+        assertEquals(first.postalCode, second.postalCode);
     }
 
     @Test

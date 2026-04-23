@@ -7,7 +7,8 @@ package org.github.krandom.generator.object;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
-import org.github.krandom.generator.location.CountryGenerator;
+import org.github.krandom.generator.location.AddressInfo;
+import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -160,16 +161,19 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
-    @DisplayName("locale-backed address fields force country to the configured locale country")
-    void localeBackedAddressFieldsForceCountryToConfiguredLocaleCountry() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.GERMANY).build();
+    @DisplayName("locale-backed address fields align to one seeded coherent address cluster")
+    void localeBackedAddressFieldsAlignToOneSeededCoherentAddressCluster() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.GERMANY).seed(17L).build();
+        long generationSeed = new java.util.Random(17L).nextLong();
+        AddressInfo expected = new AddressInfoGenerator(
+            GeneratorConfig.builder().locale(Locale.GERMANY).seed(generationSeed).build()).generate();
 
         AddressCoherenceHolder value = new ObjectGenerator<>(AddressCoherenceHolder.class, config).generate();
 
-        assertFalse(value.city.isBlank());
-        assertFalse(value.state.isBlank());
-        assertFalse(value.postalCode.isBlank());
-        assertEquals(new CountryGenerator(Locale.GERMANY).currentCountry(), value.country);
+        assertEquals(expected.city(), value.city);
+        assertEquals(expected.state(), value.state);
+        assertEquals(expected.zip(), value.postalCode);
+        assertEquals(expected.country(), value.country);
     }
 
     @Test

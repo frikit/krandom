@@ -32,9 +32,10 @@ class ObjectFakerTest {
     }
 
     @Test
-    @DisplayName("ObjectGeneratorConfig constructor overload remains available")
-    void objectConfigConstructorRemainsAvailable() {
-        FixtureUser user = new ObjectFaker<>(FixtureUser.class, ObjectGeneratorConfig.builder().build()).generate();
+    @DisplayName("ObjectGeneratorConfig can project into the public GeneratorConfig path")
+    void objectConfigProjectsIntoPublicGeneratorConfigPath() {
+        FixtureUser user =
+            new ObjectFaker<>(FixtureUser.class, ObjectGeneratorConfig.builder().build().toGeneratorConfig()).generate();
         assertNotNull(user);
     }
 

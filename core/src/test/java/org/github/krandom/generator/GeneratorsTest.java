@@ -803,13 +803,14 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ObjectGeneratorConfig-based object factories remain available")
-    void objectConfigFactoriesRemainAvailable() {
+    @DisplayName("ObjectGeneratorConfig can project into the public object factories")
+    void objectConfigProjectsIntoPublicObjectFactories() {
         org.github.krandom.generator.object.ObjectGeneratorConfig config =
             org.github.krandom.generator.object.ObjectGeneratorConfig.builder().build();
+        GeneratorConfig rootConfig = config.toGeneratorConfig();
 
-        assertInstanceOf(ObjectGenerator.class, Generators.ofObject(SimplePojo.class, config));
-        assertInstanceOf(ObjectFaker.class, Generators.ofObjectFaker(SimplePojo.class, config));
+        assertInstanceOf(ObjectGenerator.class, Generators.ofObject(SimplePojo.class, rootConfig));
+        assertInstanceOf(ObjectFaker.class, Generators.ofObjectFaker(SimplePojo.class, rootConfig));
     }
 
     @Test

@@ -31,7 +31,7 @@ import java.util.Random;
  *   <li><b>Plain classes</b> — instantiated via a public or package-private no-arg constructor
  *       when available; when absent, Objenesis bypasses the constructor entirely so that classes
  *       with only all-args constructors can still be populated via field reflection.</li>
- *   <li><b>Nested objects</b> — resolved recursively up to {@link ObjectGeneratorConfig#getMaxDepth()}.</li>
+ *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
  *       (default 1 to 10 elements).</li>
@@ -105,9 +105,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     /**
-     * Creates a generator using object-scoped configuration overrides.
+     * Package-private bridge for object-local config adapters.
      */
-    public ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
+    ObjectGenerator(Class<T> type, ObjectGeneratorConfig config) {
         this(type, config, 0, null, null, new UniqueFieldTracker());
     }
 
@@ -201,7 +201,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
                 generationSeed);
-        SemanticCoherenceAdjuster coherenceAdjuster = new SemanticCoherenceAdjuster(config, uniqueFieldTracker);
+        SemanticCoherenceAdjuster coherenceAdjuster =
+            new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed);
         try {
             return type.isRecord() ? generateRecord(resolver, coherenceAdjuster) : generateClass(resolver, coherenceAdjuster);
         } catch (ReflectiveOperationException e) {
@@ -217,7 +218,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
                 generationSeed);
-        populateClass(instance, resolver, new SemanticCoherenceAdjuster(config, uniqueFieldTracker), config.isOverrideDefaultInitialization());
+        populateClass(instance,
+                      resolver,
+                      new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed),
+                      config.isOverrideDefaultInitialization());
         return instance;
     }
 

@@ -34,6 +34,8 @@ OrderDto order = orders.generate();
 ```
 
 `GeneratorConfig` is the public entry point, including for advanced object overrides and exclusions.
+If you want to compose object-only settings separately, build an `ObjectGeneratorConfig` and call
+`toGeneratorConfig()` before passing it into `ObjectGenerator`, `ObjectFaker`, or `Generators`.
 
 Semantic modes:
 
@@ -62,7 +64,7 @@ Examples:
 
 Configured object date ranges still apply to semantic temporal fields. If you set `objectDateRange(...)`, that range becomes the effective window for semantic fields such as `dob`, `createdAt`, and `updatedAt`.
 
-Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now also force `country` back to the configured locale when sibling fields such as `city`, `state`, or `postalCode` indicate a locale-backed address, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win.
+Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win.
 
 ## Fluent fixtures
 

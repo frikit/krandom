@@ -91,7 +91,6 @@ import org.github.krandom.generator.network.UriGenerator;
 import org.github.krandom.generator.network.UserAgentGenerator;
 import org.github.krandom.generator.object.ObjectFaker;
 import org.github.krandom.generator.object.ObjectGenerator;
-import org.github.krandom.generator.object.ObjectGeneratorConfig;
 import org.github.krandom.generator.provider.ProviderHub;
 import org.github.krandom.generator.schema.Field;
 import org.github.krandom.generator.schema.FieldLookup;
@@ -1395,13 +1394,6 @@ public final class Generators {
     }
 
     /**
-     * Returns an object generator for the given type with object-scoped configuration overrides.
-     */
-    public static <T> ObjectGenerator<T> ofObject(Class<T> type, ObjectGeneratorConfig config) {
-        return new ObjectGenerator<>(type, config);
-    }
-
-    /**
      * Returns a fluent object faker for the given type with default configuration.
      */
     public static <T> ObjectFaker<T> ofObjectFaker(Class<T> type) {
@@ -1412,13 +1404,6 @@ public final class Generators {
      * Returns a fluent object faker for the given type with shared root configuration.
      */
     public static <T> ObjectFaker<T> ofObjectFaker(Class<T> type, GeneratorConfig config) {
-        return new ObjectFaker<>(type, config);
-    }
-
-    /**
-     * Returns a fluent object faker for the given type with object-scoped configuration overrides.
-     */
-    public static <T> ObjectFaker<T> ofObjectFaker(Class<T> type, ObjectGeneratorConfig config) {
         return new ObjectFaker<>(type, config);
     }
 
