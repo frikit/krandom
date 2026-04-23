@@ -342,6 +342,14 @@ public final class DataRegistryContext {
         if (professions.length != weights.length) {
             throw new IllegalArgumentException("professions and weights length must match");
         }
+        for (int i = 0; i < professions.length; i++) {
+            if (professions[i] == null || professions[i].isBlank()) {
+                throw new IllegalArgumentException("profession at index " + i + " must not be blank");
+            }
+            if (weights[i] <= 0) {
+                throw new IllegalArgumentException("weight at index " + i + " must be > 0");
+            }
+        }
     }
 
     /**
