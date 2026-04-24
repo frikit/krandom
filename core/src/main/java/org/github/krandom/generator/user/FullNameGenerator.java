@@ -7,8 +7,10 @@ package org.github.krandom.generator.user;
 
 import org.github.krandom.generator.Generator;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -79,7 +81,7 @@ public final class FullNameGenerator implements Generator<String> {
 
     private static String normalizeNationality(String nationality) {
         Objects.requireNonNull(nationality, "nationality must not be null");
-        String normalized = nationality.trim().toLowerCase();
+        String normalized = nationality.trim().toLowerCase(Locale.ROOT).replace('-', '_');
         if (normalized.isEmpty()) {
             throw new IllegalArgumentException("nationality must not be blank");
         }
@@ -87,42 +89,23 @@ public final class FullNameGenerator implements Generator<String> {
     }
 
     private static Map<String, Locale> nationalityToLocaleMap() {
-        Map<String, Locale> map = new HashMap<>();
-        map.put("en", Locale.US);
-        map.put("us", Locale.US);
-        map.put("en_us", Locale.US);
-
-        map.put("gb", Locale.UK);
-        map.put("uk", Locale.UK);
-        map.put("en_gb", Locale.UK);
-
-        map.put("au", Locale.of("en", "AU"));
-        map.put("en_au", Locale.of("en", "AU"));
-
-        map.put("de", Locale.GERMANY);
-        map.put("de_de", Locale.GERMANY);
-
-        map.put("fr", Locale.FRANCE);
-        map.put("fr_fr", Locale.FRANCE);
-
-        map.put("es", Locale.of("es", "ES"));
-        map.put("es_es", Locale.of("es", "ES"));
-
-        map.put("it", Locale.ITALY);
-        map.put("it_it", Locale.ITALY);
-
-        map.put("pt", Locale.of("pt", "BR"));
-        map.put("br", Locale.of("pt", "BR"));
-        map.put("pt_br", Locale.of("pt", "BR"));
-
-        map.put("ja", Locale.JAPAN);
-        map.put("jp", Locale.JAPAN);
-        map.put("ja_jp", Locale.JAPAN);
-
-        map.put("zh", Locale.CHINA);
-        map.put("cn", Locale.CHINA);
-        map.put("zh_cn", Locale.CHINA);
+        Map<String, Locale> map = new LinkedHashMap<>();
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            Locale locale = supportedLocale.locale();
+            registerNationalityToken(map, locale.getLanguage(), locale);
+            registerNationalityToken(map, locale.getCountry(), locale);
+            registerNationalityToken(map, locale.toString(), locale);
+            registerNationalityToken(map, locale.toLanguageTag(), locale);
+            registerNationalityToken(map, supportedLocale.name(), locale);
+        }
+        registerNationalityToken(map, "uk", Locale.UK);
         return Map.copyOf(map);
+    }
+
+    private static void registerNationalityToken(Map<String, Locale> map, String token, Locale locale) {
+        if (token != null && !token.isBlank()) {
+            map.putIfAbsent(normalizeNationality(token), locale);
+        }
     }
 
     /**
@@ -331,7 +314,7 @@ public final class FullNameGenerator implements Generator<String> {
     }
 
     private GeneratorConfig configForLocale(Locale locale) {
-        GeneratorConfig.Builder builder = GeneratorConfig.builder().locale(locale);
+        GeneratorConfig.Builder builder = config.toBuilder().locale(locale);
         OptionalLong seed = config.getSeed();
         if (seed.isPresent()) {
             long mixed = seed.getAsLong() ^ locale.toLanguageTag().hashCode();

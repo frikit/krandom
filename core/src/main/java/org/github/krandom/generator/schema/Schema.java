@@ -528,7 +528,11 @@ public final class Schema implements Generator<Map<String, Object>> {
             appendJsonString(out, String.valueOf(ch));
             return;
         }
-        if (value instanceof Number || value instanceof Boolean) {
+        if (value instanceof Number number) {
+            appendJsonNumber(out, number);
+            return;
+        }
+        if (value instanceof Boolean) {
             out.append(String.valueOf(value));
             return;
         }
@@ -541,6 +545,25 @@ public final class Schema implements Generator<Map<String, Object>> {
             return;
         }
         appendJsonString(out, String.valueOf(value));
+    }
+
+    private static void appendJsonNumber(Appendable out, Number value) throws IOException {
+        if (value instanceof Double doubleValue) {
+            appendFiniteJsonNumber(out, Double.isFinite(doubleValue), value);
+            return;
+        }
+        if (value instanceof Float floatValue) {
+            appendFiniteJsonNumber(out, Float.isFinite(floatValue), value);
+            return;
+        }
+        out.append(String.valueOf(value));
+    }
+
+    private static void appendFiniteJsonNumber(Appendable out, boolean finite, Number value) throws IOException {
+        if (!finite) {
+            throw new IllegalArgumentException("JSON does not support non-finite numbers: " + value);
+        }
+        out.append(String.valueOf(value));
     }
 
     private static void appendJsonObject(Appendable out, Map<?, ?> value) throws IOException {

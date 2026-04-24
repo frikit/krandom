@@ -202,10 +202,15 @@ public final class FieldLookup {
                                      Function<? super T, ?> valueExtractor,
                                      Map<String, ?> jsonSchema,
                                      ConflictPolicy policy) {
+        String key = normalize(reference);
         ProviderFactory providerFactory = Objects.requireNonNull(factory, "factory must not be null");
         Class<T> expectedType = Objects.requireNonNull(providerType, "providerType must not be null");
         Function<? super T, ?> extractor = Objects.requireNonNull(valueExtractor, "valueExtractor must not be null");
         Map<String, ?> schema = Objects.requireNonNull(jsonSchema, "jsonSchema must not be null");
+        ConflictPolicy conflictPolicy = Objects.requireNonNull(policy, "policy must not be null");
+        if ((providers.containsKey(key) || aliases.containsKey(key)) && conflictPolicy == ConflictPolicy.FAIL) {
+            throw new IllegalArgumentException("Field reference already registered: " + key);
+        }
         Object provider = Objects.requireNonNull(providerFactory.create(config), "provider factory must not return null");
         if (!expectedType.isInstance(provider)) {
             throw new IllegalArgumentException(
@@ -213,7 +218,7 @@ public final class FieldLookup {
                 + provider.getClass().getName() + ", not " + expectedType.getName());
         }
         T typedProvider = expectedType.cast(provider);
-        register(reference, ctx -> extractor.apply(typedProvider), schema, policy);
+        register(key, ctx -> extractor.apply(typedProvider), schema, conflictPolicy);
     }
 
     /**

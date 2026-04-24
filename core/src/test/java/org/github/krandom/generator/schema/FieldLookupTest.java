@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -184,6 +185,33 @@ class FieldLookupTest {
                                                                                  WordGenerator::generateWord,
                                                                                  ConflictPolicy.REPLACE));
         assertTrue(ex.getMessage().contains("not " + WordGenerator.class.getName()));
+    }
+
+    @Test
+    @DisplayName("provider-backed registration checks conflicts before creating providers")
+    void providerBackedRegistrationChecksConflictsBeforeCreatingProviders() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+        AtomicInteger calls = new AtomicInteger();
+        lookup.register("custom.target", ctx -> "target");
+        lookup.registerAlias("custom.alias", "custom.target");
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> lookup.registerProvider("custom.target",
+                                                   cfg -> {
+                                                       calls.incrementAndGet();
+                                                       return new CountingProvider(cfg);
+                                                   },
+                                                   CountingProvider.class,
+                                                   CountingProvider::next));
+        assertThrows(IllegalArgumentException.class,
+                     () -> lookup.registerProvider("custom.alias",
+                                                   cfg -> {
+                                                       calls.incrementAndGet();
+                                                       return new CountingProvider(cfg);
+                                                   },
+                                                   CountingProvider.class,
+                                                   CountingProvider::next));
+        assertEquals(0, calls.get());
     }
 
     @Test

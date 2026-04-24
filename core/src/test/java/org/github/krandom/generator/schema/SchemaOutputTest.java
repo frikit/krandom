@@ -65,6 +65,26 @@ class SchemaOutputTest {
     }
 
     @Test
+    @DisplayName("toJsonLines renders finite numbers and rejects non-finite numbers")
+    void toJsonLinesRejectsNonFiniteNumbers() {
+        Schema finite = new Schema(Map.of(
+            "doubleValue", ctx -> 1.5d,
+            "floatValue", ctx -> 2.5f,
+            "intValue", ctx -> 7
+        ));
+
+        String jsonl = finite.toJsonLines(1);
+
+        assertTrue(jsonl.contains("\"doubleValue\":1.5"));
+        assertTrue(jsonl.contains("\"floatValue\":2.5"));
+        assertTrue(jsonl.contains("\"intValue\":7"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> new Schema(Map.of("value", ctx -> Double.NaN)).toJsonLines(1));
+        assertThrows(IllegalArgumentException.class,
+                     () -> new Schema(Map.of("value", ctx -> Float.POSITIVE_INFINITY)).toJsonLines(1));
+    }
+
+    @Test
     @DisplayName("toCsv renders header rows and serializes structured cells as JSON")
     void toCsvRendersHeaderRowsAndStructuredCells() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();

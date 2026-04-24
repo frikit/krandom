@@ -5,8 +5,10 @@
  */
 package org.github.krandom.generator.user;
 
+import org.github.krandom.generator.DataRegistryContext;
 import org.github.krandom.generator.GeneratorConfig;
 import org.github.krandom.generator.Generators;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -300,6 +302,50 @@ class FullNameGeneratorTest {
         }
 
         @Test
+        @DisplayName("nationality option supports every SupportedLocale token")
+        void nationalitySupportsEverySupportedLocaleToken() {
+            FullNameGenerator gen = new FullNameGenerator(GeneratorConfig.builder().seed(19L).build());
+            for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+                Locale locale = supportedLocale.locale();
+                assertNationalityTokenSupported(gen, locale.getLanguage());
+                assertNationalityTokenSupported(gen, locale.getCountry());
+                assertNationalityTokenSupported(gen, locale.toLanguageTag());
+                assertNationalityTokenSupported(gen, supportedLocale.name());
+            }
+        }
+
+        @Test
+        @DisplayName("nationality-specific generation preserves scoped registry context")
+        void nationalityPreservesScopedRegistryContext() {
+            Locale scopedLocale = Locale.of("nl", "NL");
+            DataRegistryContext registryContext = DataRegistryContext.builder()
+                                                                     .isolated()
+                                                                     .registerFirstNameProvider(
+                                                                         new StaticFirstNameProvider(Locale.US,
+                                                                                                     "RootFirst"))
+                                                                     .registerLastNameProvider(
+                                                                         new StaticLastNameProvider(Locale.US,
+                                                                                                    "RootLast"))
+                                                                     .registerFirstNameProvider(
+                                                                         new StaticFirstNameProvider(scopedLocale,
+                                                                                                     "ScopedFirst"))
+                                                                     .registerLastNameProvider(
+                                                                         new StaticLastNameProvider(scopedLocale,
+                                                                                                    "ScopedLast"))
+                                                                     .build();
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .locale(Locale.US)
+                                                    .registryContext(registryContext)
+                                                    .seed(123L)
+                                                    .build();
+            FullNameGenerator gen = new FullNameGenerator(config);
+
+            String name = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "nl"));
+
+            assertEquals("ScopedFirst ScopedLast", name);
+        }
+
+        @Test
         @DisplayName("seeded config supports nationality mapping through locale-specific config")
         void seededNationalityMapping() {
             GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
@@ -458,6 +504,32 @@ class FullNameGeneratorTest {
         @DisplayName("Generators.ofFullName() uses Locale.US")
         void ofFullNameLocale() {
             assertEquals(Locale.US, Generators.ofFullName().getLocale());
+        }
+    }
+
+    private static void assertNationalityTokenSupported(FullNameGenerator gen, String token) {
+        String name = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, token));
+        assertFalse(name.isBlank(), token);
+    }
+
+    private record StaticFirstNameProvider(Locale getLocale, String name) implements FirstNameDataProvider {
+
+        @Override
+        public String[] getMaleFirstNames() {
+            return new String[]{ name };
+        }
+
+        @Override
+        public String[] getFemaleFirstNames() {
+            return new String[]{ name };
+        }
+    }
+
+    private record StaticLastNameProvider(Locale getLocale, String name) implements LastNameDataProvider {
+
+        @Override
+        public String[] getLastNames() {
+            return new String[]{ name };
         }
     }
 }
