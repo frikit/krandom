@@ -10,6 +10,7 @@ import org.github.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.Locale;
 
@@ -85,6 +86,17 @@ class PaymentInfoGeneratorTest {
         assertTrue(sawBank);
         assertTrue(sawSettled);
         assertTrue(sawUnsettled);
+    }
+
+    @Test
+    @DisplayName("tailDigits returns all digits when input is shorter than requested count")
+    void tailDigitsShortInput() throws Exception {
+        PaymentInfoGenerator generator = new PaymentInfoGenerator(GeneratorConfig.defaults());
+        Method tailDigits = PaymentInfoGenerator.class.getDeclaredMethod("tailDigits", String.class, int.class);
+        tailDigits.setAccessible(true);
+
+        assertEquals("12", tailDigits.invoke(generator, "AB-12", 4));
+        assertEquals("3456", tailDigits.invoke(generator, "AB-123456", 4));
     }
 
     @Test

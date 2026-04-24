@@ -15,9 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Global registry mapping locales to {@link NationalIdProvider} instances.
  *
- * <p>Pre-seeded at class-load time with every built-in locale: US, GB, AU, FR, DE, JA, ES, IT,
- * BR, and CN. Custom providers can be added at any time via {@link #register(NationalIdProvider)},
- * replacing any existing provider for the same locale key.
+ * <p>Pre-seeded at class-load time with every locale in
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Custom providers can be added at
+ * any time via {@link #register(NationalIdProvider)}, replacing any existing provider for the same
+ * locale key.
  *
  * <p><b>Lookup order</b>
  * <ol>
@@ -49,7 +50,17 @@ public final class NationalIdRegistry {
             new EsNationalIdProvider(),
             new ItNationalIdProvider(),
             new BrNationalIdProvider(),
-            new CnNationalIdProvider()
+            new CnNationalIdProvider(),
+            new NlNationalIdProvider(),
+            new PlNationalIdProvider(),
+            new RuNationalIdProvider(),
+            new KoNationalIdProvider(),
+            new TrNationalIdProvider(),
+            new SvNationalIdProvider(),
+            new NbNationalIdProvider(),
+            new CsNationalIdProvider(),
+            new ArSaNationalIdProvider(),
+            new HiInNationalIdProvider()
         ).forEach(NationalIdRegistry::seedInternal);
     }
 

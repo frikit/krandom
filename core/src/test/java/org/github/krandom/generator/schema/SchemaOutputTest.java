@@ -43,13 +43,14 @@ class SchemaOutputTest {
         });
         fields.put("numbers", ctx -> new int[]{ 1, 2 });
         fields.put("custom", ctx -> new NamedValue("json"));
+        fields.put("plain", ctx -> new PlainValue("json"));
 
         Schema schema = new Schema(fields);
 
         assertEquals(
             "{\"id\":0,\"text\":\"a,\\\"b\\\"\\n\\t\",\"control\":\"\\u0001\",\"letter\":\"A\","
             + "\"flag\":true,\"tags\":[\"x\",null],\"meta\":{\"count\":2,\"ok\":false},"
-            + "\"numbers\":[1,2],\"custom\":\"NamedValue[value=json]\"}\n",
+            + "\"numbers\":[1,2],\"custom\":{\"value\":\"json\"},\"plain\":\"PlainValue[value=json]\"}\n",
             schema.toJsonLines(1));
     }
 
@@ -77,14 +78,15 @@ class SchemaOutputTest {
         });
         fields.put("tags", ctx -> List.of("x", "y"));
         fields.put("custom", ctx -> new NamedValue("csv"));
+        fields.put("plain", ctx -> new PlainValue("csv"));
         fields.put("blank", ctx -> null);
 
         Schema schema = new Schema(fields);
 
         assertEquals(
-            "name,padded,meta,tags,custom,blank\n"
+            "name,padded,meta,tags,custom,plain,blank\n"
             + "\"Ada \"\"Ace\"\"\",\" padded \",\"{\"\"id\"\":1,\"\"active\"\":true}\","
-            + "\"[\"\"x\"\",\"\"y\"\"]\",NamedValue[value=csv],\n",
+            + "\"[\"\"x\"\",\"\"y\"\"]\",\"{\"\"value\"\":\"\"csv\"\"}\",PlainValue[value=csv],\n",
             schema.toCsv(1));
     }
 
@@ -157,6 +159,7 @@ class SchemaOutputTest {
         fields.put("letter", ctx -> 'Q');
         fields.put("numbers", ctx -> new int[]{ 1, 2 });
         fields.put("1bad&<>'\"", ctx -> new NamedValue("xml"));
+        fields.put("plain", ctx -> new PlainValue("xml"));
 
         String xml = new Schema(fields).toXml(1);
 
@@ -164,7 +167,8 @@ class SchemaOutputTest {
         assertTrue(xml.contains("<enabled>false</enabled>"));
         assertTrue(xml.contains("<letter>Q</letter>"));
         assertTrue(xml.contains("<numbers>[1,2]</numbers>"));
-        assertTrue(xml.contains("<field name=\"1bad&amp;&lt;&gt;&apos;&quot;\">NamedValue[value=xml]</field>"));
+        assertTrue(xml.contains("<field name=\"1bad&amp;&lt;&gt;&apos;&quot;\">{\"value\":\"xml\"}</field>"));
+        assertTrue(xml.contains("<plain>PlainValue[value=xml]</plain>"));
     }
 
     @Test
@@ -182,12 +186,14 @@ class SchemaOutputTest {
         });
         fields.put("notes", ctx -> null);
         fields.put("custom", ctx -> new NamedValue("sql"));
+        fields.put("plain", ctx -> new PlainValue("sql"));
 
         Schema schema = new Schema(fields);
 
         assertEquals(
-            "INSERT INTO \"public\".\"orders\" (\"id\", \"full name\", \"active\", \"meta\", \"notes\", \"custom\") VALUES "
-            + "(7, 'Ada''s', TRUE, '{\"id\":1,\"tags\":[\"x\",\"y\"]}', NULL, 'NamedValue[value=sql]');\n",
+            "INSERT INTO \"public\".\"orders\" (\"id\", \"full name\", \"active\", \"meta\", \"notes\", \"custom\", \"plain\") VALUES "
+            + "(7, 'Ada''s', TRUE, '{\"id\":1,\"tags\":[\"x\",\"y\"]}', NULL, '{\"value\":\"sql\"}', "
+            + "'PlainValue[value=sql]');\n",
             schema.toSqlInserts("public.orders", 1));
     }
 
@@ -346,6 +352,20 @@ class SchemaOutputTest {
     }
 
     record NamedValue(String value) {
+    }
+
+    static final class PlainValue {
+
+        private final String value;
+
+        private PlainValue(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return "PlainValue[value=" + value + "]";
+        }
     }
 
     static final class FailingAppendable implements Appendable {

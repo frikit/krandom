@@ -32,14 +32,21 @@ class FieldLookupTest {
         FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
         Set<String> refs = lookup.supportedReferences();
         assertTrue(refs.contains("person.full_name"));
+        assertTrue(refs.contains("company.info"));
+        assertTrue(refs.contains("commerce.order_info"));
+        assertTrue(refs.contains("finance.payment_info"));
         assertTrue(refs.contains("finance.currency_iso_code"));
+        assertTrue(refs.contains("text.paragraph"));
         assertTrue(refs.contains("code.uuid4"));
+        assertTrue(lookup.has("order_info"));
+        assertTrue(lookup.has("payment_info"));
         assertTrue(lookup.has("finance.currency"));
         assertTrue(lookup.has("finance.money"));
         assertTrue(lookup.has("code.uuid"));
         assertTrue(lookup.has("address.street_address"));
         assertEquals("finance.currency_iso_code", lookup.aliases().get("finance.currency"));
         assertEquals("code.uuid4", lookup.aliases().get("code.uuid"));
+        assertEquals("commerce.order_info", lookup.aliases().get("order_info"));
     }
 
     @Test

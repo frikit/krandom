@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -205,6 +206,27 @@ class CurrencyPairGeneratorTest {
             assertEquals("USD", pair.base().code());
             assertNotEquals("USD", pair.quote().code());
         }
+    }
+
+    @Test
+    @DisplayName("generateWithInfo(Locale) retries when selected quote matches locale base")
+    void generateWithInfoLocaleRetriesMatchingQuote() {
+        Random matchingThenDifferent = new Random() {
+            private final int[] values = { Currency.USD.ordinal(), Currency.EUR.ordinal() };
+            private int index;
+
+            @Override
+            public int nextInt(int bound) {
+                return values[index++ % values.length];
+            }
+        };
+        CurrencyPairGenerator gen = new CurrencyPairGenerator(
+            GeneratorConfig.builder().randomFactory(() -> matchingThenDifferent).build());
+
+        CurrencyPair pair = gen.generateWithInfo(Locale.US);
+
+        assertEquals("USD", pair.base().code());
+        assertEquals("EUR", pair.quote().code());
     }
 
     @Test

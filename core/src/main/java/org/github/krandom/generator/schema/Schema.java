@@ -10,6 +10,8 @@ import org.github.krandom.generator.GeneratorConfig;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.lang.reflect.RecordComponent;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -386,6 +388,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static void appendXmlValue(Appendable out, Object value) throws IOException {
+        value = normalizeStructuredValue(value);
         if (value instanceof CharSequence
             || value instanceof Character
             || value instanceof Number
@@ -393,7 +396,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             appendXmlText(out, String.valueOf(value));
             return;
         }
-        if (value instanceof Map<?, ?> || value instanceof Iterable<?> || value.getClass().isArray()) {
+        if (value instanceof Map<?, ?> || value instanceof Iterable<?>) {
             StringBuilder builder = new StringBuilder();
             appendJsonValue(builder, value);
             appendXmlText(out, builder.toString());
@@ -479,6 +482,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static void appendSqlValue(Appendable out, Object value) throws IOException {
+        value = normalizeStructuredValue(value);
         if (value == null) {
             out.append("NULL");
             return;
@@ -491,7 +495,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             out.append(bool ? "TRUE" : "FALSE");
             return;
         }
-        if (value instanceof Map<?, ?> || value instanceof Iterable<?> || value.getClass().isArray()) {
+        if (value instanceof Map<?, ?> || value instanceof Iterable<?>) {
             StringBuilder builder = new StringBuilder();
             appendJsonValue(builder, value);
             appendSqlStringLiteral(out, builder.toString());
@@ -514,6 +518,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static void appendJsonValue(Appendable out, Object value) throws IOException {
+        value = normalizeStructuredValue(value);
         if (value == null) {
             out.append("null");
             return;
@@ -536,10 +541,6 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
         if (value instanceof Iterable<?> items) {
             appendJsonArray(out, items);
-            return;
-        }
-        if (value.getClass().isArray()) {
-            appendJsonArray(out, value);
             return;
         }
         appendJsonString(out, String.valueOf(value));
@@ -569,18 +570,6 @@ public final class Schema implements Generator<Map<String, Object>> {
             }
             appendJsonValue(out, value);
             first = false;
-        }
-        out.append(']');
-    }
-
-    private static void appendJsonArray(Appendable out, Object array) throws IOException {
-        out.append('[');
-        int length = Array.getLength(array);
-        for (int i = 0; i < length; i++) {
-            if (i > 0) {
-                out.append(',');
-            }
-            appendJsonValue(out, Array.get(array, i));
         }
         out.append(']');
     }
@@ -653,19 +642,20 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static String toCsvCell(Object value) {
-        if (value == null) {
+        Object normalized = normalizeStructuredValue(value);
+        if (normalized == null) {
             return "";
         }
-        if (value instanceof CharSequence
-            || value instanceof Character
-            || value instanceof Number
-            || value instanceof Boolean) {
-            return String.valueOf(value);
+        if (normalized instanceof CharSequence
+            || normalized instanceof Character
+            || normalized instanceof Number
+            || normalized instanceof Boolean) {
+            return String.valueOf(normalized);
         }
-        if (value instanceof Map<?, ?> || value instanceof Iterable<?> || value.getClass().isArray()) {
-            return buildString(builder -> appendJsonValue(builder, value));
+        if (normalized instanceof Map<?, ?> || normalized instanceof Iterable<?>) {
+            return buildString(builder -> appendJsonValue(builder, normalized));
         }
-        return String.valueOf(value);
+        return String.valueOf(normalized);
     }
 
     private static String buildString(StringBuilderWriter writer) {
@@ -678,7 +668,61 @@ public final class Schema implements Generator<Map<String, Object>> {
         return builder.toString();
     }
 
+    private static Object normalizeStructuredValue(Object value) {
+        if (value == null
+            || value instanceof CharSequence
+            || value instanceof Character
+            || value instanceof Number
+            || value instanceof Boolean) {
+            return value;
+        }
+        if (value instanceof Map<?, ?> map) {
+            Map<Object, Object> normalized = new LinkedHashMap<>(map.size());
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                normalized.put(entry.getKey(), normalizeStructuredValue(entry.getValue()));
+            }
+            return Collections.unmodifiableMap(normalized);
+        }
+        if (value instanceof Iterable<?> items) {
+            List<Object> normalized = new ArrayList<>();
+            for (Object item : items) {
+                normalized.add(normalizeStructuredValue(item));
+            }
+            return Collections.unmodifiableList(normalized);
+        }
+        if (value.getClass().isArray()) {
+            int length = Array.getLength(value);
+            List<Object> normalized = new ArrayList<>(length);
+            for (int i = 0; i < length; i++) {
+                normalized.add(normalizeStructuredValue(Array.get(value, i)));
+            }
+            return Collections.unmodifiableList(normalized);
+        }
+        if (value.getClass().isRecord()) {
+            return recordToMap(value);
+        }
+        return value;
+    }
+
+    private static Map<String, Object> recordToMap(Object record) {
+        RecordComponent[] components = record.getClass().getRecordComponents();
+        Map<String, Object> values = new LinkedHashMap<>(components.length);
+        for (RecordComponent component : components) {
+            Method accessor = component.getAccessor();
+            accessor.setAccessible(true);
+            try {
+                values.put(component.getName(), normalizeStructuredValue(accessor.invoke(record)));
+            } catch (ReflectiveOperationException ex) {
+                throw new IllegalArgumentException(
+                    "Failed to read record component '" + component.getName() + "' from "
+                    + record.getClass().getName(), ex);
+            }
+        }
+        return Collections.unmodifiableMap(values);
+    }
+
     private static Map<String, Object> inferJsonSchema(Object value) {
+        value = normalizeStructuredValue(value);
         if (value == null) {
             return Map.of("type", "null");
         }

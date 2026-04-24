@@ -64,9 +64,9 @@ class TextFormatProviderTest {
     void examplifyPreservesSeparatorsAndMatchesCharacterCategories() {
         TextFormatProvider provider = new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
 
-        String value = provider.examplify("ABc-19_ß");
+        String value = provider.examplify("ABc-19_中");
 
-        assertTrue(value.matches("[A-Z]{2}[a-z]-\\d{2}_[a-z]"));
+        assertTrue(value.matches("[A-Z]{2}[a-z]-\\d{2}_[A-Za-z]"));
         assertEquals('-', value.charAt(3));
         assertEquals('_', value.charAt(6));
     }

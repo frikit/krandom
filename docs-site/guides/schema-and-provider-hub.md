@@ -29,6 +29,27 @@ String xml = schema.toXml(10);
 String sql = schema.toSqlInserts("public.orders", 10);
 ```
 
+`Field.bind(...)` covers both scalar tokens and composite provider payloads. Composite records are
+kept as nested JSON objects in JSONL and JSON Schema, and as JSON cell/literal values in CSV, XML,
+and SQL exports:
+
+```java
+Field field = Generators.ofField(Locale.US);
+
+Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+fields.put("order", field.bind("commerce.order_info"));
+fields.put("company", field.bind("company.info"));
+fields.put("payment", field.bind("finance.payment_info"));
+
+Schema schema = Generators.ofSchema(Locale.US, fields);
+
+String jsonl = schema.toJsonLines(1);
+String csv = schema.toCsv(1);
+String xml = schema.toXml(1);
+String sql = schema.toSqlInserts("public.orders", 1);
+Map<String, Object> jsonSchema = schema.toJsonSchema();
+```
+
 Use the streaming writer methods when you want payload output without materializing the whole batch first:
 
 ```java

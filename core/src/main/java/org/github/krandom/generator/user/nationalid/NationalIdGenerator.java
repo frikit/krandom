@@ -17,9 +17,9 @@ import java.util.Random;
 /**
  * Generates locale-aware national identity numbers.
  *
- * <p>Built-in support covers 10 locales: US (SSN), GB (NI), AU (TFN), FR (NIR), DE (Steuer-ID),
- * JA (My Number), ES (DNI), IT (Codice Fiscale), BR (CPF), and CN (Resident ID). Additional
- * locales — and overrides of built-in ones — can be registered at runtime via
+ * <p>Built-in support covers every locale in
+ * {@link org.github.krandom.generator.locale.SupportedLocale}. Additional locales and overrides of
+ * built-in ones can be registered at runtime via
  * {@link NationalIdRegistry#register(NationalIdProvider)}.
  *
  * <pre>{@code

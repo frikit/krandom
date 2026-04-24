@@ -13,6 +13,7 @@ permalink: /guides/
 - [Finance and Identity](guides/finance-and-identity.md)
 - [Object Generation](guides/object-generation.md)
 - [Schema and Provider Hub](guides/schema-and-provider-hub.md)
+- [Jackson Integration](guides/jackson-integration.md)
 - [Runnable Snippets](guides/runnable-snippets.md)
 - [Migration from Faker and Chance](guides/migration-from-faker-chance.md)
 - [Performance and Observability](guides/performance-and-observability.md)

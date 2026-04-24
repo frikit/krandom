@@ -7,6 +7,7 @@ package org.github.krandom.generator.user.nationalid;
 
 import org.github.krandom.generator.DataRegistryContext;
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.locale.SupportedLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -28,6 +30,40 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("NationalIdGenerator")
 class NationalIdGeneratorTest {
+
+    @Test
+    @DisplayName("built-in providers cover every SupportedLocale")
+    void builtInProvidersCoverEverySupportedLocale() {
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            Locale locale = supportedLocale.locale();
+            assertTrue(NationalIdRegistry.isRegistered(locale), supportedLocale.name());
+            String nationalId = new NationalIdGenerator(locale, 123L).generate();
+            assertNotNull(nationalId, supportedLocale.name());
+            assertFalse(nationalId.isBlank(), supportedLocale.name());
+        }
+    }
+
+    @Test
+    @DisplayName("additional SupportedLocale national IDs use documented fake formats")
+    void additionalSupportedLocaleNationalIdFormats() {
+        Map<Locale, Pattern> patterns = Map.ofEntries(
+            Map.entry(Locale.of("nl", "NL"), Pattern.compile("^\\d{9}$")),
+            Map.entry(Locale.of("pl", "PL"), Pattern.compile("^\\d{11}$")),
+            Map.entry(Locale.of("ru", "RU"), Pattern.compile("^\\d{3}-\\d{3}-\\d{3} \\d{2}$")),
+            Map.entry(Locale.of("ko", "KR"), Pattern.compile("^\\d{6}-\\d{7}$")),
+            Map.entry(Locale.of("tr", "TR"), Pattern.compile("^[1-9]\\d{10}$")),
+            Map.entry(Locale.of("sv", "SE"), Pattern.compile("^\\d{8}-\\d{4}$")),
+            Map.entry(Locale.of("nb", "NO"), Pattern.compile("^\\d{11}$")),
+            Map.entry(Locale.of("cs", "CZ"), Pattern.compile("^\\d{6}/\\d{4}$")),
+            Map.entry(Locale.of("ar", "SA"), Pattern.compile("^1\\d{9}$")),
+            Map.entry(Locale.of("hi", "IN"), Pattern.compile("^[2-9]\\d{11}$"))
+        );
+
+        for (Map.Entry<Locale, Pattern> entry : patterns.entrySet()) {
+            String nationalId = new NationalIdGenerator(entry.getKey(), 123L).generate();
+            assertTrue(entry.getValue().matcher(nationalId).matches(), entry.getKey() + ": " + nationalId);
+        }
+    }
 
     // ── US (SSN) ──────────────────────────────────────────────────────────────
 
@@ -682,21 +718,21 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("custom provider for new locale is used by generator")
         void customLocaleRegistration() {
-            Locale korean = Locale.of("ko", "KR");
+            Locale esperanto = Locale.of("eo", "EO");
             NationalIdRegistry.register(new NationalIdProvider() {
 
                 @Override
                 public Locale getLocale() {
-                    return korean;
+                    return esperanto;
                 }
 
                 @Override
                 public String generate(Random r) {
-                    return "KR-TEST";
+                    return "EO-TEST";
                 }
             });
-            NationalIdGenerator gen = new NationalIdGenerator(korean);
-            assertEquals("KR-TEST", gen.generate());
+            NationalIdGenerator gen = new NationalIdGenerator(esperanto);
+            assertEquals("EO-TEST", gen.generate());
         }
 
         @Test
@@ -808,7 +844,7 @@ class NationalIdGeneratorTest {
         }
 
         @Test
-        @DisplayName("registeredKeys contains all 10 built-in locales")
+        @DisplayName("registeredKeys contains all built-in locales")
         void registeredKeysContainsBuiltIns() {
             Set<String> keys = NationalIdRegistry.registeredKeys();
             assertTrue(keys.contains("en_US"));
@@ -821,6 +857,16 @@ class NationalIdGeneratorTest {
             assertTrue(keys.contains("it_IT"));
             assertTrue(keys.contains("pt_BR"));
             assertTrue(keys.contains("zh_CN"));
+            assertTrue(keys.contains("nl_NL"));
+            assertTrue(keys.contains("pl_PL"));
+            assertTrue(keys.contains("ru_RU"));
+            assertTrue(keys.contains("ko_KR"));
+            assertTrue(keys.contains("tr_TR"));
+            assertTrue(keys.contains("sv_SE"));
+            assertTrue(keys.contains("nb_NO"));
+            assertTrue(keys.contains("cs_CZ"));
+            assertTrue(keys.contains("ar_SA"));
+            assertTrue(keys.contains("hi_IN"));
         }
 
         @Test

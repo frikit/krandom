@@ -327,6 +327,22 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getProfessions() {
+                return new String[] { null };
+            }
+
+            @Override
+            public int[] getWeights() {
+                return new int[] { 1 };
+            }
+        }));
+        assertThrows(IllegalArgumentException.class, () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public String[] getProfessions() {
                 return new String[] { "Engineer" };
             }
 

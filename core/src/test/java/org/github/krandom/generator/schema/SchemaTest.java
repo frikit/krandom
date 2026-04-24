@@ -206,6 +206,67 @@ class SchemaTest {
     }
 
     @Test
+    @DisplayName("records serialize as structured objects across schema exporters")
+    void recordsSerializeAsStructuredObjects() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("customer", ctx -> new CustomerRecord("Ada", new AddressRecord("London", 7)));
+        Schema schema = new Schema(fields);
+
+        String jsonl = schema.toJsonLines(1);
+        assertTrue(jsonl.contains("\"customer\":{\"name\":\"Ada\",\"address\":{\"city\":\"London\",\"houseNumber\":7}}"));
+
+        String csv = schema.toCsv(1);
+        assertTrue(csv.contains("\"{"));
+        assertTrue(csv.contains("\"\"houseNumber\"\":7"));
+
+        String xml = schema.toXml(1);
+        assertTrue(xml.contains("\"houseNumber\":7"));
+
+        String sql = schema.toSqlInserts("public.customers", 1);
+        assertTrue(sql.contains("'{\"name\":\"Ada\",\"address\":{\"city\":\"London\",\"houseNumber\":7}}'"));
+
+        Map<String, Object> jsonSchema = schema.toJsonSchema();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) jsonSchema.get("properties");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> customerType = (Map<String, Object>) properties.get("customer");
+        assertEquals("object", customerType.get("type"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> customerProperties = (Map<String, Object>) customerType.get("properties");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> addressType = (Map<String, Object>) customerProperties.get("address");
+        assertEquals("object", addressType.get("type"));
+    }
+
+    @Test
+    @DisplayName("composite provider field bindings export structured schema rows")
+    void compositeProviderFieldBindingsExportStructuredRows() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        Field field = new Field(config);
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("order", field.bind("commerce.order_info"));
+        fields.put("company", field.bind("company.info"));
+        fields.put("payment", field.bind("finance.payment_info"));
+        Schema schema = new Schema(config, fields);
+
+        String jsonl = schema.toJsonLines(1);
+        assertTrue(jsonl.contains("\"order\":{\"orderNumber\""));
+        assertTrue(jsonl.contains("\"company\":{\"name\""));
+        assertTrue(jsonl.contains("\"payment\":{\"paymentNumber\""));
+
+        assertTrue(schema.toCsv(1).contains("\"\"paymentNumber\"\""));
+        assertTrue(schema.toXml(1).contains("\"orderNumber\""));
+        assertTrue(schema.toSqlInserts("fixtures.orders", 1).contains("'{\"orderNumber\""));
+
+        Map<String, Object> jsonSchema = schema.toJsonSchema();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) jsonSchema.get("properties");
+        assertEquals("object", ((Map<?, ?>) properties.get("order")).get("type"));
+        assertEquals("object", ((Map<?, ?>) properties.get("company")).get("type"));
+        assertEquals("object", ((Map<?, ?>) properties.get("payment")).get("type"));
+    }
+
+    @Test
     @DisplayName("toJsonSchema wraps provider failure with field context")
     void toJsonSchemaWrapsFailures() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
@@ -217,5 +278,13 @@ class SchemaTest {
         SchemaGenerationException exception = assertThrows(SchemaGenerationException.class, schema::toJsonSchema);
         assertTrue(exception.getMessage().contains("boom"));
         assertFalse(exception.getMessage().isBlank());
+    }
+
+    private record CustomerRecord(String name, AddressRecord address) {
+
+    }
+
+    private record AddressRecord(String city, int houseNumber) {
+
     }
 }
