@@ -185,6 +185,48 @@ public final class Field {
     }
 
     /**
+     * Registers a provider-backed schema token with explicit JSON Schema metadata.
+     *
+     * @param reference      schema token reference
+     * @param factory        provider factory
+     * @param providerType   expected provider type
+     * @param valueExtractor extractor invoked on the provider instance
+     * @param jsonSchema     JSON Schema fragment for extracted values
+     * @param <T>            provider type
+     * @return this field resolver for fluent configuration
+     */
+    public <T> Field registerProvider(String reference,
+                                      ProviderFactory factory,
+                                      Class<T> providerType,
+                                      Function<? super T, ?> valueExtractor,
+                                      Map<String, ?> jsonSchema) {
+        lookup.registerProvider(reference, factory, providerType, valueExtractor, jsonSchema);
+        return this;
+    }
+
+    /**
+     * Registers a provider-backed schema token with explicit JSON Schema metadata.
+     *
+     * @param reference      schema token reference
+     * @param factory        provider factory
+     * @param providerType   expected provider type
+     * @param valueExtractor extractor invoked on the provider instance
+     * @param jsonSchema     JSON Schema fragment for extracted values
+     * @param policy         conflict policy
+     * @param <T>            provider type
+     * @return this field resolver for fluent configuration
+     */
+    public <T> Field registerProvider(String reference,
+                                      ProviderFactory factory,
+                                      Class<T> providerType,
+                                      Function<? super T, ?> valueExtractor,
+                                      Map<String, ?> jsonSchema,
+                                      ConflictPolicy policy) {
+        lookup.registerProvider(reference, factory, providerType, valueExtractor, jsonSchema, policy);
+        return this;
+    }
+
+    /**
      * Registers a token alias using {@link ConflictPolicy#FAIL}.
      *
      * @param alias           alias token

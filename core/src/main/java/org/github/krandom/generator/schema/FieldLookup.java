@@ -164,18 +164,56 @@ public final class FieldLookup {
                                      Class<T> providerType,
                                      Function<? super T, ?> valueExtractor,
                                      ConflictPolicy policy) {
+        registerProvider(reference, factory, providerType, valueExtractor, JsonSchemaSupport.any(), policy);
+    }
+
+    /**
+     * Registers a schema reference backed by a provider factory with explicit JSON Schema metadata.
+     *
+     * @param reference      schema token reference
+     * @param factory        provider factory
+     * @param providerType   expected provider type
+     * @param valueExtractor extractor invoked on the provider instance
+     * @param jsonSchema     JSON Schema fragment for extracted values
+     * @param <T>            provider type
+     */
+    public <T> void registerProvider(String reference,
+                                     ProviderFactory factory,
+                                     Class<T> providerType,
+                                     Function<? super T, ?> valueExtractor,
+                                     Map<String, ?> jsonSchema) {
+        registerProvider(reference, factory, providerType, valueExtractor, jsonSchema, ConflictPolicy.FAIL);
+    }
+
+    /**
+     * Registers a schema reference backed by a provider factory with explicit JSON Schema metadata.
+     *
+     * @param reference      schema token reference
+     * @param factory        provider factory
+     * @param providerType   expected provider type
+     * @param valueExtractor extractor invoked on the provider instance
+     * @param jsonSchema     JSON Schema fragment for extracted values
+     * @param policy         conflict policy
+     * @param <T>            provider type
+     */
+    public <T> void registerProvider(String reference,
+                                     ProviderFactory factory,
+                                     Class<T> providerType,
+                                     Function<? super T, ?> valueExtractor,
+                                     Map<String, ?> jsonSchema,
+                                     ConflictPolicy policy) {
         ProviderFactory providerFactory = Objects.requireNonNull(factory, "factory must not be null");
         Class<T> expectedType = Objects.requireNonNull(providerType, "providerType must not be null");
         Function<? super T, ?> extractor = Objects.requireNonNull(valueExtractor, "valueExtractor must not be null");
-        register(reference, ctx -> {
-            Object provider = providerFactory.create(config);
-            if (!expectedType.isInstance(provider)) {
-                throw new IllegalArgumentException(
-                    "Provider for reference '" + reference + "' is "
-                    + provider.getClass().getName() + ", not " + expectedType.getName());
-            }
-            return extractor.apply(expectedType.cast(provider));
-        }, policy);
+        Map<String, ?> schema = Objects.requireNonNull(jsonSchema, "jsonSchema must not be null");
+        Object provider = Objects.requireNonNull(providerFactory.create(config), "provider factory must not return null");
+        if (!expectedType.isInstance(provider)) {
+            throw new IllegalArgumentException(
+                "Provider for reference '" + reference + "' is "
+                + provider.getClass().getName() + ", not " + expectedType.getName());
+        }
+        T typedProvider = expectedType.cast(provider);
+        register(reference, ctx -> extractor.apply(typedProvider), schema, policy);
     }
 
     /**
@@ -295,6 +333,13 @@ public final class FieldLookup {
         register(reference, provider, JsonSchemaSupport.record(recordType), ConflictPolicy.REPLACE);
     }
 
+    private void registerRecord(String reference,
+                                SchemaValueProvider provider,
+                                Class<?> recordType,
+                                String... nullableComponents) {
+        register(reference, provider, JsonSchemaSupport.record(recordType, Set.of(nullableComponents)), ConflictPolicy.REPLACE);
+    }
+
     private void register(String reference,
                           SchemaValueProvider provider,
                           Map<String, ?> jsonSchema,
@@ -386,7 +431,7 @@ public final class FieldLookup {
         registerString("internet", ctx -> url.generate(), "uri");
         registerRecord("commerce.product_info", ctx -> productInfo.generate(), ProductInfo.class);
         registerRecord("commerce.order_info", ctx -> orderInfo.generate(), OrderInfo.class);
-        registerRecord("commerce.shipment_info", ctx -> shipmentInfo.generate(), ShipmentInfo.class);
+        registerRecord("commerce.shipment_info", ctx -> shipmentInfo.generate(), ShipmentInfo.class, "deliveredOn");
         registerString("finance.currency_iso_code", ctx -> currency.generateCurrencyIsoCode(locale));
         registerString("finance.price", ctx -> money.generatePrice(locale));
         registerRecord("finance.bank_info", ctx -> bankInfo.generate(), BankInfo.class);
@@ -394,7 +439,7 @@ public final class FieldLookup {
         registerRecord("finance.credit_card_info", ctx -> creditCardInfo.generate(), CreditCardInfo.class);
         registerString("finance.cvv", ctx -> card.generateCvv());
         registerRecord("finance.invoice_info", ctx -> invoiceInfo.generate(), InvoiceInfo.class);
-        registerRecord("finance.payment_info", ctx -> paymentInfo.generate(), PaymentInfo.class);
+        registerRecord("finance.payment_info", ctx -> paymentInfo.generate(), PaymentInfo.class, "settledOn");
         registerString("finance", ctx -> money.generatePrice(locale));
         registerString("datetime.date", ctx -> date.generateString(), "date");
         registerString("datetime.time", ctx -> time.generateString(), "time");

@@ -118,4 +118,5 @@ resume.txt
 .kotlin
 .idea
 
-.claude
+.claude/
+scripts/.claude/

@@ -112,12 +112,11 @@ class FieldTemplateTest {
     void providerBackedTokensCanBeInterpolatedThroughTemplates() {
         Field field = baseField();
 
-        String a = (String) field.template("{{text.word.provider}}").generate(context(0));
-        String b = (String) field.template("{{text.word.provider}}").generate(context(1));
+        String a = (String) field.template("{{custom.counter.provider}}").generate(context(0));
+        String b = (String) field.template("{{custom.counter.provider}}").generate(context(1));
 
-        assertTrue(a.matches("[a-z]+"));
-        assertTrue(b.matches("[a-z]+"));
-        assertEquals(a, b);
+        assertEquals("value-0", a);
+        assertEquals("value-1", b);
     }
 
     @Test
@@ -150,10 +149,27 @@ class FieldTemplateTest {
             .register("custom.order_id", ctx -> 1000 + ctx.recordIndex())
             .register("custom.meta", ctx -> Map.of("tier", "gold"))
             .registerAlias("custom.customer.alias", "custom.customer")
-            .registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord);
+            .registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord)
+            .registerProvider("custom.counter.provider",
+                              CountingProvider::new,
+                              CountingProvider.class,
+                              CountingProvider::next,
+                              Map.of("type", "string"));
     }
 
     private static SchemaContext context(int recordIndex) {
         return new SchemaContext(Locale.US, new Random(123L), recordIndex);
+    }
+
+    private static final class CountingProvider {
+
+        private int next;
+
+        private CountingProvider(GeneratorConfig config) {
+        }
+
+        private String next() {
+            return "value-" + next++;
+        }
     }
 }

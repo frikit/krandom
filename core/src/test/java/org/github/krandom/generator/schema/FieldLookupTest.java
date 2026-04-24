@@ -77,6 +77,18 @@ class FieldLookupTest {
                                                                           .get("properties");
         assertEquals("string", ((Map<?, ?>) orderProperties.get("orderNumber")).get("type"));
         assertEquals("object", ((Map<?, ?>) orderProperties.get("customer")).get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> paymentProperties = (Map<String, Object>) lookup.resolve("finance.payment_info")
+                                                                            .jsonSchema()
+                                                                            .get("properties");
+        assertTrue(allowsNull((Map<?, ?>) paymentProperties.get("settledOn")));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> shipmentProperties = (Map<String, Object>) lookup.resolve("commerce.shipment_info")
+                                                                             .jsonSchema()
+                                                                             .get("properties");
+        assertTrue(allowsNull((Map<?, ?>) shipmentProperties.get("deliveredOn")));
     }
 
     @Test
@@ -117,11 +129,16 @@ class FieldLookupTest {
     void providerBackedReferences() {
         FieldLookup lookup = new FieldLookup(GeneratorConfig.builder().seed(7L).locale(Locale.US).build());
 
-        lookup.registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord);
+        lookup.registerProvider("custom.counter",
+                                CountingProvider::new,
+                                CountingProvider.class,
+                                CountingProvider::next,
+                                Map.of("type", "string"));
 
-        Object value = lookup.resolve("text.word.provider").generate(new SchemaContext(Locale.US, new Random(1L), 0));
-        assertTrue(value instanceof String);
-        assertFalse(((String) value).isBlank());
+        SchemaValueProvider provider = lookup.resolve("custom.counter");
+        assertEquals("value-0", provider.generate(new SchemaContext(Locale.US, new Random(1L), 0)));
+        assertEquals("value-1", provider.generate(new SchemaContext(Locale.US, new Random(1L), 1)));
+        assertEquals("string", provider.jsonSchema().get("type"));
     }
 
     @Test
@@ -159,14 +176,13 @@ class FieldLookupTest {
     @DisplayName("provider-backed registration validates the resolved provider type")
     void providerBackedRegistrationTypeValidation() {
         FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
-        lookup.registerProvider("broken.provider", cfg -> "not-a-word-generator", WordGenerator.class,
-                                WordGenerator::generateWord, ConflictPolicy.REPLACE);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                   () -> lookup.resolve("broken.provider")
-                                                               .generate(new SchemaContext(Locale.US,
-                                                                                           new Random(1L),
-                                                                                           0)));
+                                                   () -> lookup.registerProvider("broken.provider",
+                                                                                 cfg -> "not-a-word-generator",
+                                                                                 WordGenerator.class,
+                                                                                 WordGenerator::generateWord,
+                                                                                 ConflictPolicy.REPLACE));
         assertTrue(ex.getMessage().contains("not " + WordGenerator.class.getName()));
     }
 
@@ -183,5 +199,32 @@ class FieldLookupTest {
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> lookup.resolve("broken.alias"));
         assertTrue(ex.getMessage().contains("Unknown field reference"));
+    }
+
+    private static boolean allowsNull(Map<?, ?> schema) {
+        Object type = schema.get("type");
+        return type instanceof Iterable<?> types && contains(types, "null");
+    }
+
+    private static boolean contains(Iterable<?> values, Object expected) {
+        for (Object value : values) {
+            if (expected.equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static final class CountingProvider {
+
+        private int next;
+
+        private CountingProvider(GeneratorConfig config) {
+            assertNotNull(config);
+        }
+
+        private String next() {
+            return "value-" + next++;
+        }
     }
 }

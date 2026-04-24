@@ -18,8 +18,11 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Internal helpers for building JSON Schema fragments without generating data.
@@ -78,16 +81,50 @@ final class JsonSchemaSupport {
     }
 
     static Map<String, Object> record(Class<?> recordType) {
+        return record(recordType, Set.of());
+    }
+
+    static Map<String, Object> record(Class<?> recordType, Set<String> nullableComponents) {
+        Set<String> nullable = Set.copyOf(Objects.requireNonNull(nullableComponents, "nullableComponents must not be null"));
         if (!recordType.isRecord()) {
             throw new IllegalArgumentException("recordType must be a record class: " + recordType.getName());
         }
         Map<String, Object> properties = new LinkedHashMap<>();
         List<String> required = new ArrayList<>();
         for (RecordComponent component : recordType.getRecordComponents()) {
-            required.add(component.getName());
-            properties.put(component.getName(), fromType(component.getType()));
+            String name = component.getName();
+            Map<String, Object> componentSchema = fromType(component.getType());
+            required.add(name);
+            properties.put(name, nullable.contains(name) ? nullable(componentSchema) : componentSchema);
         }
         return objectWithRequired(properties, required);
+    }
+
+    static Map<String, Object> nullable(Map<String, ?> jsonSchema) {
+        Map<String, Object> copy = copyJsonSchema(jsonSchema);
+        if (copy.isEmpty()) {
+            return any();
+        }
+
+        Object type = copy.get("type");
+        Map<String, Object> nullable = new LinkedHashMap<>(copy);
+        if (type instanceof String singleType) {
+            nullable.put("type", List.of(singleType, "null"));
+            return Collections.unmodifiableMap(nullable);
+        }
+        if (type instanceof Iterable<?> types) {
+            Set<Object> combinedTypes = new LinkedHashSet<>();
+            for (Object item : types) {
+                combinedTypes.add(item);
+            }
+            combinedTypes.add("null");
+            nullable.put("type", Collections.unmodifiableList(new ArrayList<>(combinedTypes)));
+            return Collections.unmodifiableMap(nullable);
+        }
+
+        Map<String, Object> schema = new LinkedHashMap<>();
+        schema.put("oneOf", List.of(copy, nullType()));
+        return Collections.unmodifiableMap(schema);
     }
 
     static Map<String, Object> infer(Object value) {

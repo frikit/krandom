@@ -18,6 +18,7 @@ import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -75,6 +76,31 @@ class JsonSchemaSupportTest {
     }
 
     @Test
+    @DisplayName("nullable schemas preserve metadata and record required properties")
+    void nullableSchemasPreserveMetadataAndRequiredProperties() {
+        Map<String, Object> nullableString = JsonSchemaSupport.nullable(JsonSchemaSupport.stringFormat("date"));
+        assertEquals(List.of("string", "null"), nullableString.get("type"));
+        assertEquals("date", nullableString.get("format"));
+
+        Map<String, Object> alreadyNullable = JsonSchemaSupport.nullable(Map.of("type", List.of("string", "null")));
+        assertEquals(List.of("string", "null"), alreadyNullable.get("type"));
+
+        Map<String, Object> composite = JsonSchemaSupport.nullable(Map.of("oneOf", List.of(Map.of("type", "string"))));
+        assertEquals("null", ((Map<?, ?>) ((List<?>) composite.get("oneOf")).get(1)).get("type"));
+
+        assertEquals(Map.of(), JsonSchemaSupport.nullable(Map.of()));
+        assertThrows(NullPointerException.class, () -> JsonSchemaSupport.record(NullableRecord.class, null));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) JsonSchemaSupport.record(NullableRecord.class,
+                                                                                        Set.of("settledOn"))
+                                                                                .get("properties");
+        assertEquals(List.of("string", "null"), ((Map<?, ?>) properties.get("settledOn")).get("type"));
+        assertEquals("date", ((Map<?, ?>) properties.get("settledOn")).get("format"));
+        assertEquals("string", ((Map<?, ?>) properties.get("requiredText")).get("type"));
+    }
+
+    @Test
     @DisplayName("copy and record validation reject invalid schema inputs")
     void validation() {
         assertThrows(IllegalArgumentException.class, () -> JsonSchemaSupport.record(String.class));
@@ -91,6 +117,9 @@ class JsonSchemaSupportTest {
     }
 
     private record NestedRecord(String value) {
+    }
+
+    private record NullableRecord(LocalDate settledOn, String requiredText) {
     }
 
     private record TypeRecord(

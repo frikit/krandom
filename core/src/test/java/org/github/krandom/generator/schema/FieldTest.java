@@ -62,11 +62,17 @@ class FieldTest {
         Field field = new Field();
         field.register("custom.order_id", ctx -> "ORD-" + ctx.recordIndex())
             .registerAlias("custom.order", "custom.order_id")
-            .registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord);
+            .registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord)
+            .registerProvider("custom.counter",
+                              CountingProvider::new,
+                              CountingProvider.class,
+                              CountingProvider::next,
+                              Map.of("type", "string"));
 
         SchemaContext ctx = new SchemaContext(Locale.US, new Random(1L), 9);
         assertEquals("ORD-9", field.bind("custom.order").generate(ctx));
         assertTrue(field.bind("text.word.provider").generate(ctx) instanceof String);
+        assertEquals("string", field.bind("custom.counter").jsonSchema().get("type"));
     }
 
     @Test
@@ -77,11 +83,18 @@ class FieldTest {
             .register("custom.code", ctx -> "B", ConflictPolicy.REPLACE)
             .registerProvider("text.word.policy", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord,
                               ConflictPolicy.REPLACE)
+            .registerProvider("custom.counter.policy",
+                              CountingProvider::new,
+                              CountingProvider.class,
+                              CountingProvider::next,
+                              Map.of("type", "string"),
+                              ConflictPolicy.REPLACE)
             .registerAlias("custom.code.alias", "custom.code", ConflictPolicy.REPLACE);
 
         SchemaContext ctx = new SchemaContext(Locale.US, new Random(1L), 0);
         assertEquals("B", field.bind("custom.code.alias").generate(ctx));
         assertTrue(field.bind("text.word.policy").generate(ctx) instanceof String);
+        assertEquals("value-0", field.bind("custom.counter.policy").generate(ctx));
     }
 
     @Test
@@ -146,5 +159,18 @@ class FieldTest {
         assertThrows(IllegalArgumentException.class, () -> field.register("person.full_name", ctx -> "x"));
         assertThrows(IllegalArgumentException.class,
                      () -> field.registerAlias("text.word", "person.full_name", ConflictPolicy.REPLACE));
+    }
+
+    private static final class CountingProvider {
+
+        private int next;
+
+        private CountingProvider(GeneratorConfig config) {
+            assertNotNull(config);
+        }
+
+        private String next() {
+            return "value-" + next++;
+        }
     }
 }
