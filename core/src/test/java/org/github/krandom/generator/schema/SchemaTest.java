@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -117,22 +118,23 @@ class SchemaTest {
     }
 
     @Test
-    @DisplayName("toJsonSchema infers primitive, nested and array field types")
+    @DisplayName("toJsonSchema uses provider metadata for primitive, nested and array field types")
     void toJsonSchema() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
-        fields.put("name", ctx -> "alice");
-        fields.put("age", ctx -> 42);
-        fields.put("active", ctx -> true);
-        fields.put("tags", ctx -> List.of("a", "b"));
-        fields.put("meta", ctx -> Map.of("score", 9.5, "vip", false));
-        fields.put("missing", ctx -> null);
-        fields.put("byteValue", ctx -> (byte) 7);
-        fields.put("shortValue", ctx -> (short) 8);
-        fields.put("longValue", ctx -> 9L);
-        fields.put("bigIntValue", ctx -> BigInteger.valueOf(10));
-        fields.put("nullItems", ctx -> Arrays.asList(null, null));
-        fields.put("mapWithNonStringKey", ctx -> Map.of(1, "value"));
-        fields.put("customObject", ctx -> new Object());
+        fields.put("name", SchemaValueProvider.withSample(ctx -> "alice", "alice"));
+        fields.put("age", SchemaValueProvider.withSample(ctx -> 42, 42));
+        fields.put("active", SchemaValueProvider.withSample(ctx -> true, true));
+        fields.put("tags", SchemaValueProvider.withSample(ctx -> List.of("a", "b"), List.of("a", "b")));
+        fields.put("meta", SchemaValueProvider.withSample(ctx -> Map.of("score", 9.5, "vip", false),
+                                                          Map.of("score", 9.5, "vip", false)));
+        fields.put("missing", SchemaValueProvider.withSample(ctx -> null, null));
+        fields.put("byteValue", SchemaValueProvider.withSample(ctx -> (byte) 7, (byte) 7));
+        fields.put("shortValue", SchemaValueProvider.withSample(ctx -> (short) 8, (short) 8));
+        fields.put("longValue", SchemaValueProvider.withSample(ctx -> 9L, 9L));
+        fields.put("bigIntValue", SchemaValueProvider.withSample(ctx -> BigInteger.valueOf(10), BigInteger.valueOf(10)));
+        fields.put("nullItems", SchemaValueProvider.withSample(ctx -> Arrays.asList(null, null), Arrays.asList(null, null)));
+        fields.put("mapWithNonStringKey", SchemaValueProvider.withSample(ctx -> Map.of(1, "value"), Map.of(1, "value")));
+        fields.put("customObject", SchemaValueProvider.withSample(ctx -> new Object(), new Object()));
 
         Schema schema = new Schema(fields);
         Map<String, Object> jsonSchema = schema.toJsonSchema();
@@ -209,7 +211,9 @@ class SchemaTest {
     @DisplayName("records serialize as structured objects across schema exporters")
     void recordsSerializeAsStructuredObjects() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
-        fields.put("customer", ctx -> new CustomerRecord("Ada", new AddressRecord("London", 7)));
+        fields.put("customer", SchemaValueProvider.withSample(
+            ctx -> new CustomerRecord("Ada", new AddressRecord("London", 7)),
+            new CustomerRecord("Ada", new AddressRecord("London", 7))));
         Schema schema = new Schema(fields);
 
         String jsonl = schema.toJsonLines(1);
@@ -267,12 +271,61 @@ class SchemaTest {
     }
 
     @Test
-    @DisplayName("toJsonSchema wraps provider failure with field context")
+    @DisplayName("toJsonSchema is side-effect free for built-in field bindings")
+    void toJsonSchemaDoesNotAdvanceBuiltInFieldProviders() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        Field fieldA = new Field(config);
+        Field fieldB = new Field(config);
+        Map<String, SchemaValueProvider> fieldsA = new LinkedHashMap<>();
+        fieldsA.put("order", fieldA.bind("commerce.order_info"));
+        fieldsA.put("company", fieldA.bind("company.info"));
+        fieldsA.put("payment", fieldA.bind("finance.payment_info"));
+        Map<String, SchemaValueProvider> fieldsB = new LinkedHashMap<>();
+        fieldsB.put("order", fieldB.bind("commerce.order_info"));
+        fieldsB.put("company", fieldB.bind("company.info"));
+        fieldsB.put("payment", fieldB.bind("finance.payment_info"));
+
+        Schema withSchemaExport = new Schema(config, fieldsA);
+        Schema withoutSchemaExport = new Schema(config, fieldsB);
+
+        withSchemaExport.toJsonSchema();
+
+        assertEquals(withoutSchemaExport.generate(), withSchemaExport.generate());
+    }
+
+    @Test
+    @DisplayName("toJsonSchema does not invoke untyped custom providers")
+    void toJsonSchemaDoesNotInvokeUntypedCustomProviders() {
+        AtomicInteger calls = new AtomicInteger();
+        Schema schema = new Schema(Map.of("value", ctx -> {
+            calls.incrementAndGet();
+            return 42;
+        }));
+
+        Map<String, Object> jsonSchema = schema.toJsonSchema();
+
+        assertEquals(0, calls.get());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) jsonSchema.get("properties");
+        assertEquals(Map.of(), properties.get("value"));
+    }
+
+    @Test
+    @DisplayName("toJsonSchema wraps metadata failure with field context")
     void toJsonSchemaWrapsFailures() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
         fields.put("ok", ctx -> "v");
-        fields.put("boom", ctx -> {
-            throw new IllegalStateException("explode");
+        fields.put("boom", new SchemaValueProvider() {
+
+            @Override
+            public Object generate(SchemaContext context) {
+                return "not used";
+            }
+
+            @Override
+            public Map<String, Object> jsonSchema() {
+                throw new IllegalStateException("explode");
+            }
         });
         Schema schema = new Schema(fields);
         SchemaGenerationException exception = assertThrows(SchemaGenerationException.class, schema::toJsonSchema);

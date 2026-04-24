@@ -300,6 +300,69 @@ class DocumentationSnippetsTest {
         assertTrue(token.length() == 7 && token.charAt(3) == '-');
         assertTrue(reference.matches("[A-Z]{3}\\d{4}"));
         assertTrue(invoice.matches("[A-Z]{3}-\\d{4}-[A-Z]{2}\\d{2}"));
+
+        SchemaValueProvider typedAmount = SchemaValueProvider.withSample(
+            ctx -> 1000 + ctx.recordIndex(),
+            1000
+        );
+
+        SchemaValueProvider typedPayload = SchemaValueProvider.withJsonSchema(
+            ctx -> Map.of("status", "READY"),
+            Map.of(
+                "type", "object",
+                "additionalProperties", false,
+                "properties", Map.of("status", Map.of("type", "string")),
+                "required", List.of("status")
+            )
+        );
+
+        assertEquals("integer", typedAmount.jsonSchema().get("type"));
+        assertEquals("object", typedPayload.jsonSchema().get("type"));
+    }
+
+    @Test
+    @DisplayName("testing integrations guide snippets stay runnable")
+    void testingIntegrationsGuideSnippetsStayRunnable() {
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                                             .locale(Locale.US)
+                                             .seed(20260424L)
+                                             .build();
+
+        Field field = Generators.ofField(cfg);
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("id", field.bind("code.uuid"));
+        fields.put("email", field.bind("person.email"));
+        fields.put("amount", field.bind("finance.money"));
+
+        Schema orders = Generators.ofSchema(cfg, fields);
+        Map<String, Object> row = orders.generate();
+
+        final class TestFixtureFactory {
+
+            private final GeneratorConfig config;
+
+            private TestFixtureFactory(Locale locale, long seed) {
+                this.config = GeneratorConfig.builder()
+                                             .locale(locale)
+                                             .seed(seed)
+                                             .build();
+            }
+
+            private OrderDto order() {
+                return Generators.ofObject(OrderDto.class, config).generate();
+            }
+
+            private PaymentInfo payment() {
+                return Generators.ofPaymentInfo(config).generate();
+            }
+        }
+
+        TestFixtureFactory factory = new TestFixtureFactory(Locale.US, 77L);
+        PaymentInfo payment = factory.payment();
+
+        assertTrue(row.get("email").toString().contains("@"));
+        assertNotNull(factory.order().email());
+        assertTrue(payment.instrumentReference().startsWith("****") || payment.instrumentReference().startsWith("ACCT-"));
     }
 
     @Test

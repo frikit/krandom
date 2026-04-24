@@ -35,12 +35,14 @@ final class SchemaTemplateEngine {
 
     SchemaValueProvider template(String template) {
         String value = Objects.requireNonNull(template, "template must not be null");
-        return context -> renderInterpolatedString(value, context);
+        return SchemaValueProvider.withJsonSchema(context -> renderInterpolatedString(value, context),
+                                                  JsonSchemaSupport.string());
     }
 
     SchemaValueProvider templatePayload(Object template) {
         Objects.requireNonNull(template, "template must not be null");
-        return context -> renderPayload(template, context);
+        return SchemaValueProvider.withJsonSchema(context -> renderPayload(template, context),
+                                                  inferPayloadSchema(template));
     }
 
     private Object renderPayload(Object template, SchemaContext context) {
@@ -77,6 +79,51 @@ final class SchemaTemplateEngine {
             return resolved;
         }
         return template;
+    }
+
+    private Map<String, Object> inferPayloadSchema(Object template) {
+        if (template == null) {
+            return JsonSchemaSupport.nullType();
+        }
+        if (template instanceof String text) {
+            Matcher matcher = FULL_PLACEHOLDER.matcher(text);
+            if (matcher.matches()) {
+                return lookup.resolve(matcher.group(1)).jsonSchema();
+            }
+            return JsonSchemaSupport.string();
+        }
+        if (template instanceof Map<?, ?> map) {
+            Map<String, Map<String, Object>> properties = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (entry.getKey() instanceof String key) {
+                    properties.put(key, inferPayloadSchema(entry.getValue()));
+                }
+            }
+            return JsonSchemaSupport.object(properties);
+        }
+        if (template instanceof Iterable<?> items) {
+            Object firstNonNull = null;
+            for (Object item : items) {
+                if (item != null) {
+                    firstNonNull = item;
+                    break;
+                }
+            }
+            return JsonSchemaSupport.array(firstNonNull == null
+                                           ? JsonSchemaSupport.nullType()
+                                           : inferPayloadSchema(firstNonNull));
+        }
+        if (template.getClass().isArray()) {
+            int length = Array.getLength(template);
+            for (int i = 0; i < length; i++) {
+                Object item = Array.get(template, i);
+                if (item != null) {
+                    return JsonSchemaSupport.array(inferPayloadSchema(item));
+                }
+            }
+            return JsonSchemaSupport.array(JsonSchemaSupport.nullType());
+        }
+        return JsonSchemaSupport.infer(template);
     }
 
     private String renderInterpolatedString(String template, SchemaContext context) {

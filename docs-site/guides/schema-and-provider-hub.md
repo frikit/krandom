@@ -50,6 +50,28 @@ String sql = schema.toSqlInserts("public.orders", 1);
 Map<String, Object> jsonSchema = schema.toJsonSchema();
 ```
 
+`Schema.toJsonSchema()` is metadata-driven and does not call providers. This means exporting a
+JSON Schema will not advance seeded generator sequences. Built-in `Field.bind(...)`, `Field.list(...)`,
+`Field.nested(...)`, constants, and templates carry JSON Schema metadata automatically. For custom
+lambda providers, the default JSON Schema fragment is unconstrained (`{}`) unless you attach metadata:
+
+```java
+SchemaValueProvider typedAmount = SchemaValueProvider.withSample(
+        ctx -> 1000 + ctx.recordIndex(),
+        1000
+);
+
+SchemaValueProvider typedPayload = SchemaValueProvider.withJsonSchema(
+        ctx -> Map.of("status", "READY"),
+        Map.of(
+                "type", "object",
+                "additionalProperties", false,
+                "properties", Map.of("status", Map.of("type", "string")),
+                "required", List.of("status")
+        )
+);
+```
+
 Use the streaming writer methods when you want payload output without materializing the whole batch first:
 
 ```java

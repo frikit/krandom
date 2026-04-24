@@ -82,6 +82,9 @@ JsonNode jsonSchema = mapper.valueToTree(schema);
 String type = jsonSchema.path("properties").path("order").path("type").asText(); // "object"
 ```
 
+Serializing a `Schema` is side-effect free: it reads provider JSON Schema metadata and does not
+advance seeded row generation.
+
 ## Serialize Generated Rows
 
 Generated rows are ordinary `Map<String, Object>` values. Composite provider outputs are Java

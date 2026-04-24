@@ -63,6 +63,23 @@ class FieldLookupTest {
     }
 
     @Test
+    @DisplayName("built-in references expose JSON Schema metadata without generation")
+    void builtInReferencesExposeJsonSchemaMetadata() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.builder().seed(77L).locale(Locale.US).build());
+
+        assertEquals("string", lookup.resolve("person.email").jsonSchema().get("type"));
+        assertEquals("email", lookup.resolve("person.email").jsonSchema().get("format"));
+        assertEquals("integer", lookup.resolve("datetime.timestamp").jsonSchema().get("type"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> orderProperties = (Map<String, Object>) lookup.resolve("commerce.order_info")
+                                                                          .jsonSchema()
+                                                                          .get("properties");
+        assertEquals("string", ((Map<?, ?>) orderProperties.get("orderNumber")).get("type"));
+        assertEquals("object", ((Map<?, ?>) orderProperties.get("customer")).get("type"));
+    }
+
+    @Test
     @DisplayName("validation for null, blank and unknown references")
     void validation() {
         FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());

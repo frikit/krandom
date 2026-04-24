@@ -33,6 +33,7 @@ class FieldTemplateTest {
         String value = (String) provider.generate(context(7));
 
         assertTrue(value.matches("ORD-\\d{2} for Ada ref 1007 code [a-z]{2}"));
+        assertEquals("string", provider.jsonSchema().get("type"));
     }
 
     @Test
@@ -66,6 +67,13 @@ class FieldTemplateTest {
         Object[] codes = (Object[]) payload.get("codes");
         assertEquals(1004, codes[0]);
         assertTrue(((String) codes[1]).matches("SKU-\\d{2}"));
+
+        assertEquals("object", field.template(shell).jsonSchema().get("type"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) field.template(Map.of("email", "{{person.email}}"))
+                                                                      .jsonSchema()
+                                                                      .get("properties");
+        assertEquals("email", ((Map<?, ?>) properties.get("email")).get("format"));
     }
 
     @Test
@@ -77,6 +85,9 @@ class FieldTemplateTest {
         shell.put("plainBoolean", true);
         shell.put("missing", null);
         shell.put("items", new java.util.ArrayList<>(java.util.Arrays.asList(null, 3, "{{custom.order_id}}")));
+        shell.put("emptyItems", List.of());
+        shell.put("nullArray", new Object[]{ null, null });
+        shell.put("ignoredNonStringKey", Map.of(1, "value"));
 
         @SuppressWarnings("unchecked")
         Map<String, Object> generated = (Map<String, Object>) field.template(shell).generate(context(2));
@@ -85,6 +96,15 @@ class FieldTemplateTest {
         assertEquals(true, generated.get("plainBoolean"));
         assertEquals(null, generated.get("missing"));
         assertEquals(java.util.Arrays.asList(null, 3, 1002), generated.get("items"));
+        assertEquals(List.of(), generated.get("emptyItems"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> shellSchemaProperties = (Map<String, Object>) field.template(shell)
+                                                                               .jsonSchema()
+                                                                               .get("properties");
+        assertEquals("null", ((Map<?, ?>) ((Map<?, ?>) shellSchemaProperties.get("emptyItems")).get("items")).get("type"));
+        assertEquals("null", ((Map<?, ?>) ((Map<?, ?>) shellSchemaProperties.get("nullArray")).get("items")).get("type"));
+        assertTrue(((Map<?, ?>) shellSchemaProperties.get("ignoredNonStringKey")).containsKey("properties"));
     }
 
     @Test

@@ -216,7 +216,7 @@ public final class Field {
      * @return constant provider
      */
     public SchemaValueProvider constant(Object value) {
-        return ctx -> value;
+        return SchemaValueProvider.withJsonSchema(ctx -> value, JsonSchemaSupport.infer(value));
     }
 
     /**
@@ -247,14 +247,14 @@ public final class Field {
         if (max < min) {
             throw new IllegalArgumentException("max must be >= min, got: " + max + " < " + min);
         }
-        return context -> {
+        return SchemaValueProvider.withJsonSchema(context -> {
             int size = min == max ? min : min + context.random().nextInt(max - min + 1);
             List<Object> values = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 values.add(provider.generate(context));
             }
             return values;
-        };
+        }, JsonSchemaSupport.array(provider.jsonSchema()));
     }
 
     /**
@@ -269,7 +269,14 @@ public final class Field {
             throw new IllegalArgumentException("nestedFields must not be empty");
         }
         Map<String, SchemaValueProvider> copy = new LinkedHashMap<>(nestedFields);
-        return context -> {
+        Map<String, Map<String, Object>> properties = new LinkedHashMap<>(copy.size());
+        for (Map.Entry<String, SchemaValueProvider> entry : copy.entrySet()) {
+            String name = validateFieldName(entry.getKey());
+            SchemaValueProvider provider = Objects.requireNonNull(entry.getValue(),
+                                                                  "provider for nested field '" + name + "' must not be null");
+            properties.put(name, provider.jsonSchema());
+        }
+        return SchemaValueProvider.withJsonSchema(context -> {
             Map<String, Object> nested = new LinkedHashMap<>(copy.size());
             for (Map.Entry<String, SchemaValueProvider> entry : copy.entrySet()) {
                 String name = validateFieldName(entry.getKey());
@@ -278,7 +285,7 @@ public final class Field {
                 nested.put(name, provider.generate(context));
             }
             return nested;
-        };
+        }, JsonSchemaSupport.object(properties));
     }
 
     /**

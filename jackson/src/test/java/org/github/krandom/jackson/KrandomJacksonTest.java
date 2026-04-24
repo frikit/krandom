@@ -43,9 +43,9 @@ class KrandomJacksonTest {
     @DisplayName("schema serialization uses Schema.toJsonSchema shape")
     void schemaSerialization() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
-        fields.put("name", ctx -> "alice");
-        fields.put("age", ctx -> 42);
-        fields.put("active", ctx -> true);
+        fields.put("name", SchemaValueProvider.withSample(ctx -> "alice", "alice"));
+        fields.put("age", SchemaValueProvider.withSample(ctx -> 42, 42));
+        fields.put("active", SchemaValueProvider.withSample(ctx -> true, true));
 
         Schema schema = new Schema(fields);
         ObjectMapper mapper = KrandomJackson.newObjectMapper();
@@ -80,5 +80,26 @@ class KrandomJacksonTest {
         assertTrue(rowNode.path("company").path("name").isTextual());
         assertTrue(rowNode.path("company").path("address").path("city").isTextual());
         assertTrue(rowNode.path("card").path("number").isTextual());
+    }
+
+    @Test
+    @DisplayName("schema serialization does not advance generated row sequence")
+    void schemaSerializationDoesNotAdvanceGeneratedRows() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        Field fieldA = new Field(config);
+        Field fieldB = new Field(config);
+        Map<String, SchemaValueProvider> fieldsA = new LinkedHashMap<>();
+        fieldsA.put("order", fieldA.bind("commerce.order_info"));
+        fieldsA.put("payment", fieldA.bind("finance.payment_info"));
+        Map<String, SchemaValueProvider> fieldsB = new LinkedHashMap<>();
+        fieldsB.put("order", fieldB.bind("commerce.order_info"));
+        fieldsB.put("payment", fieldB.bind("finance.payment_info"));
+
+        Schema exported = new Schema(config, fieldsA);
+        Schema untouched = new Schema(config, fieldsB);
+
+        KrandomJackson.newObjectMapper().valueToTree(exported);
+
+        assertEquals(untouched.generate(), exported.generate());
     }
 }

@@ -6,6 +6,10 @@ on:
     paths:
       - "docs-site/**"
       - ".github/workflows/github-pages.yml"
+  pull_request:
+    paths:
+      - "docs-site/**"
+      - ".github/workflows/github-pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -34,11 +38,13 @@ jobs:
           destination: ./_site
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./_site
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment_retry.outputs.page_url || steps.deployment.outputs.page_url }}

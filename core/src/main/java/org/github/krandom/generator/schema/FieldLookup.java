@@ -6,24 +6,32 @@
 package org.github.krandom.generator.schema;
 
 import org.github.krandom.generator.GeneratorConfig;
+import org.github.krandom.generator.commerce.OrderInfo;
 import org.github.krandom.generator.commerce.OrderInfoGenerator;
+import org.github.krandom.generator.commerce.ProductInfo;
 import org.github.krandom.generator.commerce.ProductInfoGenerator;
+import org.github.krandom.generator.commerce.ShipmentInfo;
 import org.github.krandom.generator.commerce.ShipmentInfoGenerator;
 import org.github.krandom.generator.datetime.DateGenerator;
 import org.github.krandom.generator.datetime.TimeGenerator;
+import org.github.krandom.generator.finance.BankInfo;
 import org.github.krandom.generator.finance.BankInfoGenerator;
+import org.github.krandom.generator.finance.CreditCardInfo;
 import org.github.krandom.generator.finance.CreditCardInfoGenerator;
 import org.github.krandom.generator.datetime.TimezoneGenerator;
 import org.github.krandom.generator.finance.CreditCardGenerator;
 import org.github.krandom.generator.finance.CurrencyGenerator;
+import org.github.krandom.generator.finance.InvoiceInfo;
 import org.github.krandom.generator.finance.InvoiceInfoGenerator;
 import org.github.krandom.generator.finance.MoneyGenerator;
+import org.github.krandom.generator.finance.PaymentInfo;
 import org.github.krandom.generator.finance.PaymentInfoGenerator;
 import org.github.krandom.generator.identifier.EanGenerator;
 import org.github.krandom.generator.identifier.HashGenerator;
 import org.github.krandom.generator.identifier.IsbnGenerator;
 import org.github.krandom.generator.identifier.UUIDGenerator;
 import org.github.krandom.generator.identifier.UpcGenerator;
+import org.github.krandom.generator.location.AddressInfo;
 import org.github.krandom.generator.location.AddressInfoGenerator;
 import org.github.krandom.generator.location.CityGenerator;
 import org.github.krandom.generator.location.CountryGenerator;
@@ -43,17 +51,21 @@ import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyBuzzwordGenerator;
 import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
+import org.github.krandom.generator.user.CompanyInfo;
 import org.github.krandom.generator.user.CompanyInfoGenerator;
 import org.github.krandom.generator.user.CompanyNameGenerator;
 import org.github.krandom.generator.user.CompanyUrlGenerator;
+import org.github.krandom.generator.user.ContactInfo;
 import org.github.krandom.generator.user.ContactInfoGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
 import org.github.krandom.generator.user.FirstNameGenerator;
 import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.IndustryGenerator;
+import org.github.krandom.generator.user.JobInfo;
 import org.github.krandom.generator.user.JobInfoGenerator;
 import org.github.krandom.generator.user.LastNameGenerator;
 import org.github.krandom.generator.user.PasswordGenerator;
+import org.github.krandom.generator.user.PersonInfo;
 import org.github.krandom.generator.user.PersonInfoGenerator;
 import org.github.krandom.generator.user.UsernameGenerator;
 
@@ -267,6 +279,29 @@ public final class FieldLookup {
         return canonical;
     }
 
+    private void registerString(String reference, SchemaValueProvider provider) {
+        register(reference, provider, JsonSchemaSupport.string(), ConflictPolicy.REPLACE);
+    }
+
+    private void registerString(String reference, SchemaValueProvider provider, String format) {
+        register(reference, provider, JsonSchemaSupport.stringFormat(format), ConflictPolicy.REPLACE);
+    }
+
+    private void registerInteger(String reference, SchemaValueProvider provider) {
+        register(reference, provider, JsonSchemaSupport.integer(), ConflictPolicy.REPLACE);
+    }
+
+    private void registerRecord(String reference, SchemaValueProvider provider, Class<?> recordType) {
+        register(reference, provider, JsonSchemaSupport.record(recordType), ConflictPolicy.REPLACE);
+    }
+
+    private void register(String reference,
+                          SchemaValueProvider provider,
+                          Map<String, ?> jsonSchema,
+                          ConflictPolicy policy) {
+        register(reference, SchemaValueProvider.withJsonSchema(provider, jsonSchema), policy);
+    }
+
     private void registerBuiltIns() {
         Locale locale = config.getLocale();
 
@@ -319,63 +354,63 @@ public final class FieldLookup {
         IsbnGenerator isbn = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_13, config);
         HashGenerator hash = new HashGenerator(config);
 
-        register("person.full_name", ctx -> fullName.generate(), ConflictPolicy.REPLACE);
-        register("person.first_name", ctx -> firstName.generate(), ConflictPolicy.REPLACE);
-        register("person.last_name", ctx -> lastName.generate(), ConflictPolicy.REPLACE);
-        register("person.email", ctx -> email.generate(), ConflictPolicy.REPLACE);
-        register("person.username", ctx -> username.generate(), ConflictPolicy.REPLACE);
-        register("person.contact_info", ctx -> contactInfo.generate(), ConflictPolicy.REPLACE);
-        register("person.person_info", ctx -> personInfo.generate(), ConflictPolicy.REPLACE);
-        register("person.job_info", ctx -> jobInfo.generate(), ConflictPolicy.REPLACE);
-        register("person", ctx -> fullName.generate(), ConflictPolicy.REPLACE);
-        register("company.name", ctx -> companyName.generate(), ConflictPolicy.REPLACE);
-        register("company.email", ctx -> companyEmail.generate(), ConflictPolicy.REPLACE);
-        register("company.url", ctx -> companyUrl.generate(), ConflictPolicy.REPLACE);
-        register("company.buzzword", ctx -> companyBuzzword.generate(), ConflictPolicy.REPLACE);
-        register("company.catch_phrase", ctx -> companyCatchPhrase.generate(), ConflictPolicy.REPLACE);
-        register("company.industry", ctx -> industry.generate(), ConflictPolicy.REPLACE);
-        register("company.info", ctx -> companyInfo.generate(), ConflictPolicy.REPLACE);
-        register("security.password", ctx -> password.generate(), ConflictPolicy.REPLACE);
-        register("address.address_info", ctx -> addressInfo.generate(), ConflictPolicy.REPLACE);
-        register("address.city", ctx -> city.generate(), ConflictPolicy.REPLACE);
-        register("address.state", ctx -> state.generate(), ConflictPolicy.REPLACE);
-        register("address.street", ctx -> street.generate(), ConflictPolicy.REPLACE);
-        register("address.street_address", ctx -> street.generate(), ConflictPolicy.REPLACE);
-        register("address.postal_code", ctx -> postalCode.generate(), ConflictPolicy.REPLACE);
-        register("address.country", ctx -> country.generate(), ConflictPolicy.REPLACE);
-        register("address.phone_number", ctx -> phoneNumber.generate(), ConflictPolicy.REPLACE);
-        register("address", ctx -> street.generate(), ConflictPolicy.REPLACE);
-        register("internet.domain", ctx -> domain.generate(), ConflictPolicy.REPLACE);
-        register("internet.hostname", ctx -> hostname.generate(), ConflictPolicy.REPLACE);
-        register("internet.url", ctx -> url.generate(), ConflictPolicy.REPLACE);
-        register("internet", ctx -> url.generate(), ConflictPolicy.REPLACE);
-        register("commerce.product_info", ctx -> productInfo.generate(), ConflictPolicy.REPLACE);
-        register("commerce.order_info", ctx -> orderInfo.generate(), ConflictPolicy.REPLACE);
-        register("commerce.shipment_info", ctx -> shipmentInfo.generate(), ConflictPolicy.REPLACE);
-        register("finance.currency_iso_code", ctx -> currency.generateCurrencyIsoCode(locale), ConflictPolicy.REPLACE);
-        register("finance.price", ctx -> money.generatePrice(locale), ConflictPolicy.REPLACE);
-        register("finance.bank_info", ctx -> bankInfo.generate(), ConflictPolicy.REPLACE);
-        register("finance.credit_card_number", ctx -> card.generateNumber(), ConflictPolicy.REPLACE);
-        register("finance.credit_card_info", ctx -> creditCardInfo.generate(), ConflictPolicy.REPLACE);
-        register("finance.cvv", ctx -> card.generateCvv(), ConflictPolicy.REPLACE);
-        register("finance.invoice_info", ctx -> invoiceInfo.generate(), ConflictPolicy.REPLACE);
-        register("finance.payment_info", ctx -> paymentInfo.generate(), ConflictPolicy.REPLACE);
-        register("finance", ctx -> money.generatePrice(locale), ConflictPolicy.REPLACE);
-        register("datetime.date", ctx -> date.generateString(), ConflictPolicy.REPLACE);
-        register("datetime.time", ctx -> time.generateString(), ConflictPolicy.REPLACE);
-        register("datetime.timestamp", ctx -> date.generateUnixTime(), ConflictPolicy.REPLACE);
-        register("datetime.timezone", ctx -> timezone.generateTimezone(), ConflictPolicy.REPLACE);
-        register("datetime", ctx -> date.generateString(), ConflictPolicy.REPLACE);
-        register("text.word", ctx -> word.generateWord(), ConflictPolicy.REPLACE);
-        register("text.sentence", ctx -> sentence.generateSentence(), ConflictPolicy.REPLACE);
-        register("text.paragraph", ctx -> paragraph.generate(), ConflictPolicy.REPLACE);
-        register("text.format", ctx -> textFormat.template("??-####"), ConflictPolicy.REPLACE);
-        register("text", ctx -> word.generateWord(), ConflictPolicy.REPLACE);
-        register("code.uuid4", ctx -> uuid.generateV4().toString(), ConflictPolicy.REPLACE);
-        register("code.ean13", ctx -> ean.generateEan13(), ConflictPolicy.REPLACE);
-        register("code.upc", ctx -> upc.generate(), ConflictPolicy.REPLACE);
-        register("code.isbn13", ctx -> isbn.generate(), ConflictPolicy.REPLACE);
-        register("code.sha256", ctx -> hash.generateSha256(), ConflictPolicy.REPLACE);
+        registerString("person.full_name", ctx -> fullName.generate());
+        registerString("person.first_name", ctx -> firstName.generate());
+        registerString("person.last_name", ctx -> lastName.generate());
+        registerString("person.email", ctx -> email.generate(), "email");
+        registerString("person.username", ctx -> username.generate());
+        registerRecord("person.contact_info", ctx -> contactInfo.generate(), ContactInfo.class);
+        registerRecord("person.person_info", ctx -> personInfo.generate(), PersonInfo.class);
+        registerRecord("person.job_info", ctx -> jobInfo.generate(), JobInfo.class);
+        registerString("person", ctx -> fullName.generate());
+        registerString("company.name", ctx -> companyName.generate());
+        registerString("company.email", ctx -> companyEmail.generate(), "email");
+        registerString("company.url", ctx -> companyUrl.generate(), "uri");
+        registerString("company.buzzword", ctx -> companyBuzzword.generate());
+        registerString("company.catch_phrase", ctx -> companyCatchPhrase.generate());
+        registerString("company.industry", ctx -> industry.generate());
+        registerRecord("company.info", ctx -> companyInfo.generate(), CompanyInfo.class);
+        registerString("security.password", ctx -> password.generate());
+        registerRecord("address.address_info", ctx -> addressInfo.generate(), AddressInfo.class);
+        registerString("address.city", ctx -> city.generate());
+        registerString("address.state", ctx -> state.generate());
+        registerString("address.street", ctx -> street.generate());
+        registerString("address.street_address", ctx -> street.generate());
+        registerString("address.postal_code", ctx -> postalCode.generate());
+        registerString("address.country", ctx -> country.generate());
+        registerString("address.phone_number", ctx -> phoneNumber.generate());
+        registerString("address", ctx -> street.generate());
+        registerString("internet.domain", ctx -> domain.generate());
+        registerString("internet.hostname", ctx -> hostname.generate(), "hostname");
+        registerString("internet.url", ctx -> url.generate(), "uri");
+        registerString("internet", ctx -> url.generate(), "uri");
+        registerRecord("commerce.product_info", ctx -> productInfo.generate(), ProductInfo.class);
+        registerRecord("commerce.order_info", ctx -> orderInfo.generate(), OrderInfo.class);
+        registerRecord("commerce.shipment_info", ctx -> shipmentInfo.generate(), ShipmentInfo.class);
+        registerString("finance.currency_iso_code", ctx -> currency.generateCurrencyIsoCode(locale));
+        registerString("finance.price", ctx -> money.generatePrice(locale));
+        registerRecord("finance.bank_info", ctx -> bankInfo.generate(), BankInfo.class);
+        registerString("finance.credit_card_number", ctx -> card.generateNumber());
+        registerRecord("finance.credit_card_info", ctx -> creditCardInfo.generate(), CreditCardInfo.class);
+        registerString("finance.cvv", ctx -> card.generateCvv());
+        registerRecord("finance.invoice_info", ctx -> invoiceInfo.generate(), InvoiceInfo.class);
+        registerRecord("finance.payment_info", ctx -> paymentInfo.generate(), PaymentInfo.class);
+        registerString("finance", ctx -> money.generatePrice(locale));
+        registerString("datetime.date", ctx -> date.generateString(), "date");
+        registerString("datetime.time", ctx -> time.generateString(), "time");
+        registerInteger("datetime.timestamp", ctx -> date.generateUnixTime());
+        registerString("datetime.timezone", ctx -> timezone.generateTimezone());
+        registerString("datetime", ctx -> date.generateString(), "date");
+        registerString("text.word", ctx -> word.generateWord());
+        registerString("text.sentence", ctx -> sentence.generateSentence());
+        registerString("text.paragraph", ctx -> paragraph.generate());
+        registerString("text.format", ctx -> textFormat.template("??-####"));
+        registerString("text", ctx -> word.generateWord());
+        registerString("code.uuid4", ctx -> uuid.generateV4().toString(), "uuid");
+        registerString("code.ean13", ctx -> ean.generateEan13());
+        registerString("code.upc", ctx -> upc.generate());
+        registerString("code.isbn13", ctx -> isbn.generate());
+        registerString("code.sha256", ctx -> hash.generateSha256());
 
         registerAlias("name", "person.full_name", ConflictPolicy.REPLACE);
         registerAlias("full_name", "person.full_name", ConflictPolicy.REPLACE);

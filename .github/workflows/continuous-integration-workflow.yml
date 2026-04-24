@@ -30,11 +30,12 @@ jobs:
         run: ./gradlew clean build check --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
       - name: Upload coverage to Codecov
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: core/build/jacoco/jacoco.xml
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   examples:
     name: Examples (Local Maven Snapshot)

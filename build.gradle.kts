@@ -23,7 +23,7 @@ apply(plugin = "com.diffplug.spotless")
 
 configure<com.diffplug.gradle.spotless.SpotlessExtension> {
     format("markdown") {
-        target("README.md", "docs/**/*.md")
+        target("README.md", "docs/**/*.md", "docs-site/**/*.md", "examples/**/*.md")
         // Remove trailing whitespace
         trimTrailingWhitespace()
         // Ensure files end with newline

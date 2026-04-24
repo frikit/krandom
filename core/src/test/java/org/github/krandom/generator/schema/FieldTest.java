@@ -53,6 +53,7 @@ class FieldTest {
         SchemaValueProvider provider = field.constant("fixed");
         Object value = provider.generate(new SchemaContext(Locale.US, new Random(1L), 0));
         assertEquals("fixed", value);
+        assertEquals("string", provider.jsonSchema().get("type"));
     }
 
     @Test
@@ -92,6 +93,7 @@ class FieldTest {
         @SuppressWarnings("unchecked")
         List<Object> fixed = (List<Object>) field.list("text.word", 2, 2).generate(ctx);
         assertEquals(2, fixed.size());
+        assertEquals("array", field.list("text.word", 2, 2).jsonSchema().get("type"));
 
         boolean sawMin = false;
         boolean sawMax = false;
@@ -118,6 +120,7 @@ class FieldTest {
         Map<String, Object> nestedMap = (Map<String, Object>) value;
         assertTrue(nestedMap.containsKey("city"));
         assertTrue(nestedMap.containsKey("zip"));
+        assertEquals("object", field.nested(nested).jsonSchema().get("type"));
     }
 
     @Test
@@ -134,13 +137,11 @@ class FieldTest {
 
         Map<String, SchemaValueProvider> blankName = new LinkedHashMap<>();
         blankName.put(" ", field.constant("x"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> field.nested(blankName).generate(new SchemaContext(Locale.US, new Random(1L), 0)));
+        assertThrows(IllegalArgumentException.class, () -> field.nested(blankName));
 
         Map<String, SchemaValueProvider> nullProvider = new LinkedHashMap<>();
         nullProvider.put("x", null);
-        assertThrows(NullPointerException.class,
-                     () -> field.nested(nullProvider).generate(new SchemaContext(Locale.US, new Random(1L), 0)));
+        assertThrows(NullPointerException.class, () -> field.nested(nullProvider));
 
         assertThrows(IllegalArgumentException.class, () -> field.register("person.full_name", ctx -> "x"));
         assertThrows(IllegalArgumentException.class,

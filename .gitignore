@@ -40,6 +40,15 @@ hs_err_pid*
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 
+# Local publishing credentials
+sonatype.user
+sonatype.password
+signing.keyId
+signing.password
+signing.secretKeyRingFile
+*.gpg
+*.asc
+
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries

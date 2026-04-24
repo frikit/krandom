@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -310,7 +308,8 @@ public final class Schema implements Generator<Map<String, Object>> {
     /**
      * Exports this schema definition to a JSON Schema-like map.
      *
-     * <p>Types are inferred from a representative provider sample for each field.
+     * <p>Types are read from provider metadata so exporting the schema does not consume
+     * generator state. Providers without metadata export as unconstrained JSON Schema fragments.
      *
      * @return JSON Schema document as a nested map
      */
@@ -322,14 +321,12 @@ public final class Schema implements Generator<Map<String, Object>> {
 
         Map<String, Object> properties = new LinkedHashMap<>();
         List<String> required = new ArrayList<>(fields.size());
-        SchemaContext sampleContext = new SchemaContext(config.getLocale(), new Random(0L), 0);
 
         for (Map.Entry<String, SchemaValueProvider> entry : fields.entrySet()) {
             String field = entry.getKey();
             required.add(field);
             try {
-                Object sample = entry.getValue().generate(sampleContext);
-                properties.put(field, inferJsonSchema(sample));
+                properties.put(field, JsonSchemaSupport.copyJsonSchema(entry.getValue().jsonSchema()));
             } catch (RuntimeException ex) {
                 throw new SchemaGenerationException(field, 0, ex);
             }
@@ -721,52 +718,4 @@ public final class Schema implements Generator<Map<String, Object>> {
         return Collections.unmodifiableMap(values);
     }
 
-    private static Map<String, Object> inferJsonSchema(Object value) {
-        value = normalizeStructuredValue(value);
-        if (value == null) {
-            return Map.of("type", "null");
-        }
-        if (value instanceof String) {
-            return Map.of("type", "string");
-        }
-        if (value instanceof Boolean) {
-            return Map.of("type", "boolean");
-        }
-        if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long || value instanceof BigInteger) {
-            return Map.of("type", "integer");
-        }
-        if (value instanceof Number) {
-            return Map.of("type", "number");
-        }
-        if (value instanceof List<?> list) {
-            Map<String, Object> schema = new LinkedHashMap<>();
-            schema.put("type", "array");
-            Object firstNonNull = null;
-            for (Object item : list) {
-                if (item != null) {
-                    firstNonNull = item;
-                    break;
-                }
-            }
-            schema.put("items", firstNonNull == null ? Map.of("type", "null") : inferJsonSchema(firstNonNull));
-            return Collections.unmodifiableMap(schema);
-        }
-        if (value instanceof Map<?, ?> nestedMap) {
-            Map<String, Object> nestedProperties = new LinkedHashMap<>();
-            List<String> required = new ArrayList<>();
-            for (Map.Entry<?, ?> nested : nestedMap.entrySet()) {
-                if (nested.getKey() instanceof String key) {
-                    required.add(key);
-                    nestedProperties.put(key, inferJsonSchema(nested.getValue()));
-                }
-            }
-            Map<String, Object> schema = new LinkedHashMap<>();
-            schema.put("type", "object");
-            schema.put("additionalProperties", false);
-            schema.put("properties", Collections.unmodifiableMap(nestedProperties));
-            schema.put("required", Collections.unmodifiableList(required));
-            return Collections.unmodifiableMap(schema);
-        }
-        return Map.of("type", "string");
-    }
 }
