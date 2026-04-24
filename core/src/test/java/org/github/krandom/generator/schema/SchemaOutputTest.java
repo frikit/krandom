@@ -235,6 +235,24 @@ class SchemaOutputTest {
     }
 
     @Test
+    @DisplayName("toSqlInserts rejects non-finite numbers")
+    void toSqlInsertsRejectsNonFiniteNumbers() {
+        Map<String, SchemaValueProvider> finiteFields = new LinkedHashMap<>();
+        finiteFields.put("doubleValue", ctx -> 1.5d);
+        finiteFields.put("floatValue", ctx -> 2.5f);
+        finiteFields.put("intValue", ctx -> 7);
+        Schema finite = new Schema(finiteFields);
+
+        String sql = finite.toSqlInserts("metrics", 1);
+
+        assertTrue(sql.contains("(1.5, 2.5, 7)"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> new Schema(Map.of("value", ctx -> Double.NaN)).toSqlInserts("metrics", 1));
+        assertThrows(IllegalArgumentException.class,
+                     () -> new Schema(Map.of("value", ctx -> Float.NEGATIVE_INFINITY)).toSqlInserts("metrics", 1));
+    }
+
+    @Test
     @DisplayName("writeXml and writeSqlInserts stream records and validation is enforced")
     void writeXmlAndWriteSqlInsertsStreamRecordsAndValidate() throws IOException {
         Schema schema = new Schema(Map.of("index", ctx -> ctx.recordIndex()));

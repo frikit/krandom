@@ -311,6 +311,21 @@ class SchemaTest {
     }
 
     @Test
+    @DisplayName("toJsonSchema returns immutable root and properties maps")
+    void toJsonSchemaReturnsImmutableRootAndPropertiesMaps() {
+        Schema schema = new Schema(Map.of(
+            "name", SchemaValueProvider.withSample(ctx -> "alice", "alice")
+        ));
+
+        Map<String, Object> jsonSchema = schema.toJsonSchema();
+
+        assertThrows(UnsupportedOperationException.class, () -> jsonSchema.put("title", "User"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) jsonSchema.get("properties");
+        assertThrows(UnsupportedOperationException.class, () -> properties.put("extra", Map.of("type", "string")));
+    }
+
+    @Test
     @DisplayName("toJsonSchema wraps metadata failure with field context")
     void toJsonSchemaWrapsFailures() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();

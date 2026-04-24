@@ -212,6 +212,24 @@ class FieldLookupTest {
                                                    CountingProvider.class,
                                                    CountingProvider::next));
         assertEquals(0, calls.get());
+
+        lookup.registerProvider("custom.target",
+                                cfg -> {
+                                    calls.incrementAndGet();
+                                    return new CountingProvider(cfg);
+                                },
+                                CountingProvider.class,
+                                CountingProvider::next,
+                                ConflictPolicy.REPLACE);
+        lookup.registerProvider("custom.alias",
+                                cfg -> {
+                                    calls.incrementAndGet();
+                                    return new CountingProvider(cfg);
+                                },
+                                CountingProvider.class,
+                                CountingProvider::next,
+                                ConflictPolicy.REPLACE);
+        assertEquals(2, calls.get());
     }
 
     @Test

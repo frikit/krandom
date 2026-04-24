@@ -617,6 +617,20 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces locale-aware full names for a specific locale.
+     */
+    public static FullNameGenerator ofFullName(Locale locale) {
+        return new FullNameGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware full names with explicit configuration.
+     */
+    public static FullNameGenerator ofFullName(GeneratorConfig config) {
+        return new FullNameGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces locale-aware middle names.
      */
     public static MiddleNameGenerator ofMiddleName() {
@@ -645,6 +659,20 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces locale-aware email addresses for a specific locale.
+     */
+    public static EmailGenerator ofEmail(Locale locale) {
+        return new EmailGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware email addresses with explicit configuration.
+     */
+    public static EmailGenerator ofEmail(GeneratorConfig config) {
+        return new EmailGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces structured contact payloads.
      */
     public static ContactInfoGenerator ofContactInfo() {
@@ -670,6 +698,20 @@ public final class Generators {
      */
     public static CompanyEmailGenerator ofCompanyEmail() {
         return new CompanyEmailGenerator();
+    }
+
+    /**
+     * Returns a generator that produces company email addresses for a specific locale.
+     */
+    public static CompanyEmailGenerator ofCompanyEmail(Locale locale) {
+        return new CompanyEmailGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces company email addresses with explicit configuration.
+     */
+    public static CompanyEmailGenerator ofCompanyEmail(GeneratorConfig config) {
+        return new CompanyEmailGenerator(config);
     }
 
     /**
@@ -703,10 +745,38 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces simple user profiles for a specific locale.
+     */
+    public static SimpleProfileGenerator ofSimpleProfile(Locale locale) {
+        return new SimpleProfileGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces simple user profiles with explicit configuration.
+     */
+    public static SimpleProfileGenerator ofSimpleProfile(GeneratorConfig config) {
+        return new SimpleProfileGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces extended user profiles.
      */
     public static ProfileGenerator ofProfile() {
         return new ProfileGenerator();
+    }
+
+    /**
+     * Returns a generator that produces extended user profiles for a specific locale.
+     */
+    public static ProfileGenerator ofProfile(Locale locale) {
+        return new ProfileGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces extended user profiles with explicit configuration.
+     */
+    public static ProfileGenerator ofProfile(GeneratorConfig config) {
+        return new ProfileGenerator(config);
     }
 
     /**
@@ -759,6 +829,20 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces social-media style handles for a specific locale.
+     */
+    public static SocialHandleGenerator ofSocialHandle(Locale locale) {
+        return new SocialHandleGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces social-media style handles with explicit configuration.
+     */
+    public static SocialHandleGenerator ofSocialHandle(GeneratorConfig config) {
+        return new SocialHandleGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces social-media style profiles.
      */
     public static SocialProfileGenerator ofSocialProfile() {
@@ -766,10 +850,38 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces social-media style profiles for a specific locale.
+     */
+    public static SocialProfileGenerator ofSocialProfile(Locale locale) {
+        return new SocialProfileGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces social-media style profiles with explicit configuration.
+     */
+    public static SocialProfileGenerator ofSocialProfile(GeneratorConfig config) {
+        return new SocialProfileGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random US-style street addresses (e.g. {@code "123 Oak Ave"}).
      */
     public static StreetAddressGenerator ofStreetAddress() {
         return new StreetAddressGenerator();
+    }
+
+    /**
+     * Returns a generator that produces street addresses for a specific locale.
+     */
+    public static StreetAddressGenerator ofStreetAddress(Locale locale) {
+        return new StreetAddressGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces street addresses with explicit configuration.
+     */
+    public static StreetAddressGenerator ofStreetAddress(GeneratorConfig config) {
+        return new StreetAddressGenerator(config);
     }
 
     /**
@@ -801,6 +913,20 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces city names for a specific locale.
+     */
+    public static CityGenerator ofCity(Locale locale) {
+        return new CityGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces city names with explicit configuration.
+     */
+    public static CityGenerator ofCity(GeneratorConfig config) {
+        return new CityGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces state/province names.
      */
     public static StateGenerator ofState() {
@@ -808,10 +934,38 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces state/province names for a specific locale.
+     */
+    public static StateGenerator ofState(Locale locale) {
+        return new StateGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces state/province names with explicit configuration.
+     */
+    public static StateGenerator ofState(GeneratorConfig config) {
+        return new StateGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces postal codes.
      */
     public static PostalCodeGenerator ofPostalCode() {
         return new PostalCodeGenerator();
+    }
+
+    /**
+     * Returns a generator that produces postal codes for a specific locale.
+     */
+    public static PostalCodeGenerator ofPostalCode(Locale locale) {
+        return new PostalCodeGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces postal codes with explicit configuration.
+     */
+    public static PostalCodeGenerator ofPostalCode(GeneratorConfig config) {
+        return new PostalCodeGenerator(config);
     }
 
     // ── Company name ──────────────────────────────────────────────────────────
@@ -824,10 +978,38 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces country names and country codes for a specific locale.
+     */
+    public static CountryGenerator ofCountry(Locale locale) {
+        return new CountryGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces country names and country codes with explicit configuration.
+     */
+    public static CountryGenerator ofCountry(GeneratorConfig config) {
+        return new CountryGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces locale-aware phone numbers.
      */
     public static PhoneNumberGenerator ofPhoneNumber() {
         return new PhoneNumberGenerator();
+    }
+
+    /**
+     * Returns a generator that produces locale-aware phone numbers for a specific locale.
+     */
+    public static PhoneNumberGenerator ofPhoneNumber(Locale locale) {
+        return new PhoneNumberGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware phone numbers with explicit configuration.
+     */
+    public static PhoneNumberGenerator ofPhoneNumber(GeneratorConfig config) {
+        return new PhoneNumberGenerator(config);
     }
 
     /**
@@ -838,10 +1020,38 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces company names for a specific locale configuration.
+     */
+    public static CompanyNameGenerator ofCompanyName(Locale locale) {
+        return new CompanyNameGenerator(GeneratorConfig.builder().locale(locale).build());
+    }
+
+    /**
+     * Returns a generator that produces company names with explicit configuration.
+     */
+    public static CompanyNameGenerator ofCompanyName(GeneratorConfig config) {
+        return new CompanyNameGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces company website URLs.
      */
     public static CompanyUrlGenerator ofCompanyUrl() {
         return new CompanyUrlGenerator();
+    }
+
+    /**
+     * Returns a generator that produces company website URLs for a specific locale.
+     */
+    public static CompanyUrlGenerator ofCompanyUrl(Locale locale) {
+        return new CompanyUrlGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces company website URLs with explicit configuration.
+     */
+    public static CompanyUrlGenerator ofCompanyUrl(GeneratorConfig config) {
+        return new CompanyUrlGenerator(config);
     }
 
     /**
@@ -1037,6 +1247,20 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces profession/job-title values for a specific locale.
+     */
+    public static ProfessionGenerator ofProfession(Locale locale) {
+        return new ProfessionGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces profession/job-title values with explicit configuration.
+     */
+    public static ProfessionGenerator ofProfession(GeneratorConfig config) {
+        return new ProfessionGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces SWIFT/BIC codes.
      */
     public static BicGenerator ofBic() {
@@ -1139,6 +1363,20 @@ public final class Generators {
      */
     public static MoneyGenerator ofMoney() {
         return new MoneyGenerator();
+    }
+
+    /**
+     * Returns a generator that produces locale-aware price-tag strings for a specific locale.
+     */
+    public static MoneyGenerator ofMoney(Locale locale) {
+        return new MoneyGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware price-tag strings with explicit configuration.
+     */
+    public static MoneyGenerator ofMoney(GeneratorConfig config) {
+        return new MoneyGenerator(config);
     }
 
     /**
@@ -1272,6 +1510,20 @@ public final class Generators {
      */
     public static UsernameGenerator ofUsername() {
         return new UsernameGenerator();
+    }
+
+    /**
+     * Returns a generator that produces locale-aware usernames for a specific locale.
+     */
+    public static UsernameGenerator ofUsername(Locale locale) {
+        return new UsernameGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware usernames with explicit configuration.
+     */
+    public static UsernameGenerator ofUsername(GeneratorConfig config) {
+        return new UsernameGenerator(config);
     }
 
     /**

@@ -916,6 +916,7 @@ class PhoneNumberGeneratorTest {
     @DisplayName("expanded built-in locales no longer fall back to US phone formats")
     void expandedBuiltInLocalesUseLocaleSpecificFormats() {
         assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL")).generate(true, true).matches("06\\d \\d{7}"));
+        assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL")).generate(true, false).matches("0\\d{2} \\d{7}"));
         assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL")).generate(true, false).matches("\\d{2} \\d{3} \\d{2} \\d{2}"));
         assertTrue(new PhoneNumberGenerator(Locale.of("ru", "RU")).generate(true, true).matches("9\\d{2} \\d{3}-\\d{2}-\\d{2}"));
         assertTrue(new PhoneNumberGenerator(Locale.of("ko", "KR")).generate(true, true).matches("01\\d-\\d{4}-\\d{4}"));

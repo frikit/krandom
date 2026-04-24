@@ -332,7 +332,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             }
         }
 
-        root.put("properties", properties);
+        root.put("properties", Collections.unmodifiableMap(properties));
         root.put("required", Collections.unmodifiableList(required));
         return Collections.unmodifiableMap(root);
     }
@@ -484,8 +484,8 @@ public final class Schema implements Generator<Map<String, Object>> {
             out.append("NULL");
             return;
         }
-        if (value instanceof Number) {
-            out.append(String.valueOf(value));
+        if (value instanceof Number number) {
+            appendSqlNumber(out, number);
             return;
         }
         if (value instanceof Boolean bool) {
@@ -559,9 +559,28 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append(String.valueOf(value));
     }
 
+    private static void appendSqlNumber(Appendable out, Number value) throws IOException {
+        if (value instanceof Double doubleValue) {
+            appendFiniteSqlNumber(out, Double.isFinite(doubleValue), value);
+            return;
+        }
+        if (value instanceof Float floatValue) {
+            appendFiniteSqlNumber(out, Float.isFinite(floatValue), value);
+            return;
+        }
+        out.append(String.valueOf(value));
+    }
+
     private static void appendFiniteJsonNumber(Appendable out, boolean finite, Number value) throws IOException {
         if (!finite) {
             throw new IllegalArgumentException("JSON does not support non-finite numbers: " + value);
+        }
+        out.append(String.valueOf(value));
+    }
+
+    private static void appendFiniteSqlNumber(Appendable out, boolean finite, Number value) throws IOException {
+        if (!finite) {
+            throw new IllegalArgumentException("SQL does not support non-finite numbers: " + value);
         }
         out.append(String.valueOf(value));
     }

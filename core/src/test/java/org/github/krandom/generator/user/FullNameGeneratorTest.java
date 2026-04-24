@@ -13,8 +13,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -505,6 +508,24 @@ class FullNameGeneratorTest {
         void ofFullNameLocale() {
             assertEquals(Locale.US, Generators.ofFullName().getLocale());
         }
+    }
+
+    @Test
+    @DisplayName("nationality token registration ignores null and blank aliases")
+    void nationalityTokenRegistrationIgnoresNullAndBlankAliases() throws Exception {
+        Method method = FullNameGenerator.class.getDeclaredMethod("registerNationalityToken",
+                                                                  Map.class,
+                                                                  String.class,
+                                                                  Locale.class);
+        method.setAccessible(true);
+        Map<String, Locale> tokens = new LinkedHashMap<>();
+
+        method.invoke(null, tokens, null, Locale.US);
+        method.invoke(null, tokens, "  ", Locale.US);
+        assertTrue(tokens.isEmpty());
+
+        method.invoke(null, tokens, "de-DE", Locale.GERMANY);
+        assertEquals(Locale.GERMANY, tokens.get("de_de"));
     }
 
     private static void assertNationalityTokenSupported(FullNameGenerator gen, String token) {

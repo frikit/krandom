@@ -104,8 +104,11 @@ import org.github.krandom.generator.text.WordGenerator;
 import org.github.krandom.generator.user.CompanyBuzzwordGenerator;
 import org.github.krandom.generator.user.CompanyCatchPhraseGenerator;
 import org.github.krandom.generator.user.CompanyEmailGenerator;
+import org.github.krandom.generator.user.CompanyNameGenerator;
+import org.github.krandom.generator.user.CompanyUrlGenerator;
 import org.github.krandom.generator.user.ContactInfoGenerator;
 import org.github.krandom.generator.user.EmailGenerator;
+import org.github.krandom.generator.user.FullNameGenerator;
 import org.github.krandom.generator.user.JobInfoGenerator;
 import org.github.krandom.generator.user.JobTypeGenerator;
 import org.github.krandom.generator.user.MiddleNameGenerator;
@@ -115,6 +118,7 @@ import org.github.krandom.generator.user.ProfileGenerator;
 import org.github.krandom.generator.user.SimpleProfileGenerator;
 import org.github.krandom.generator.user.SocialHandleGenerator;
 import org.github.krandom.generator.user.SocialProfileGenerator;
+import org.github.krandom.generator.user.UsernameGenerator;
 import org.github.krandom.generator.user.nationalid.NationalIdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -645,6 +649,50 @@ class GeneratorsTest {
     @DisplayName("ofEmail() returns EmailGenerator")
     void ofEmail() {
         assertInstanceOf(EmailGenerator.class, Generators.ofEmail());
+    }
+
+    @Test
+    @DisplayName("locale and config overloads exist for common locale-aware facade factories")
+    void localeAndConfigOverloadsForCommonFacadeFactories() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.GERMANY).seed(11L).build();
+
+        assertInstanceOf(FullNameGenerator.class, Generators.ofFullName());
+        assertInstanceOf(FullNameGenerator.class, Generators.ofFullName(Locale.GERMANY));
+        assertInstanceOf(FullNameGenerator.class, Generators.ofFullName(config));
+        assertInstanceOf(EmailGenerator.class, Generators.ofEmail(Locale.GERMANY));
+        assertInstanceOf(EmailGenerator.class, Generators.ofEmail(config));
+        assertInstanceOf(CompanyEmailGenerator.class, Generators.ofCompanyEmail(Locale.GERMANY));
+        assertInstanceOf(CompanyEmailGenerator.class, Generators.ofCompanyEmail(config));
+        assertInstanceOf(SimpleProfileGenerator.class, Generators.ofSimpleProfile(Locale.GERMANY));
+        assertInstanceOf(SimpleProfileGenerator.class, Generators.ofSimpleProfile(config));
+        assertInstanceOf(ProfileGenerator.class, Generators.ofProfile(Locale.GERMANY));
+        assertInstanceOf(ProfileGenerator.class, Generators.ofProfile(config));
+        assertInstanceOf(SocialHandleGenerator.class, Generators.ofSocialHandle(Locale.GERMANY));
+        assertInstanceOf(SocialHandleGenerator.class, Generators.ofSocialHandle(config));
+        assertInstanceOf(SocialProfileGenerator.class, Generators.ofSocialProfile(Locale.GERMANY));
+        assertInstanceOf(SocialProfileGenerator.class, Generators.ofSocialProfile(config));
+        assertInstanceOf(StreetAddressGenerator.class, Generators.ofStreetAddress(Locale.GERMANY));
+        assertInstanceOf(StreetAddressGenerator.class, Generators.ofStreetAddress(config));
+        assertInstanceOf(CityGenerator.class, Generators.ofCity(Locale.GERMANY));
+        assertInstanceOf(CityGenerator.class, Generators.ofCity(config));
+        assertInstanceOf(StateGenerator.class, Generators.ofState(Locale.GERMANY));
+        assertInstanceOf(StateGenerator.class, Generators.ofState(config));
+        assertInstanceOf(PostalCodeGenerator.class, Generators.ofPostalCode(Locale.GERMANY));
+        assertInstanceOf(PostalCodeGenerator.class, Generators.ofPostalCode(config));
+        assertInstanceOf(CountryGenerator.class, Generators.ofCountry(Locale.GERMANY));
+        assertInstanceOf(CountryGenerator.class, Generators.ofCountry(config));
+        assertInstanceOf(PhoneNumberGenerator.class, Generators.ofPhoneNumber(Locale.GERMANY));
+        assertInstanceOf(PhoneNumberGenerator.class, Generators.ofPhoneNumber(config));
+        assertInstanceOf(CompanyNameGenerator.class, Generators.ofCompanyName(Locale.GERMANY));
+        assertInstanceOf(CompanyNameGenerator.class, Generators.ofCompanyName(config));
+        assertInstanceOf(CompanyUrlGenerator.class, Generators.ofCompanyUrl(Locale.GERMANY));
+        assertInstanceOf(CompanyUrlGenerator.class, Generators.ofCompanyUrl(config));
+        assertInstanceOf(ProfessionGenerator.class, Generators.ofProfession(Locale.GERMANY));
+        assertInstanceOf(ProfessionGenerator.class, Generators.ofProfession(config));
+        assertInstanceOf(MoneyGenerator.class, Generators.ofMoney(Locale.GERMANY));
+        assertInstanceOf(MoneyGenerator.class, Generators.ofMoney(config));
+        assertInstanceOf(UsernameGenerator.class, Generators.ofUsername(Locale.GERMANY));
+        assertInstanceOf(UsernameGenerator.class, Generators.ofUsername(config));
     }
 
     @Test
