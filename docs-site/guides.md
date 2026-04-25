@@ -14,6 +14,7 @@ permalink: /guides/
 - [Object Generation](guides/object-generation.md)
 - [Schema and Provider Hub](guides/schema-and-provider-hub.md)
 - [Jackson Integration](guides/jackson-integration.md)
+- [Spring Boot Starter](guides/spring-boot-starter.md)
 - [Testing Integrations](guides/testing-integrations.md)
 - [Runnable Snippets](guides/runnable-snippets.md)
 - [Migration from Faker and Chance](guides/migration-from-faker-chance.md)

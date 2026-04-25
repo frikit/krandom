@@ -88,7 +88,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 `pre_commit_check.sh` runs formatting, markdown checks, compilation, tests, Javadoc validation, coverage verification, and now fails fast when Java 21+ is not active.
 
-`verify_examples_local.sh` publishes the current `krandom-core` artifact to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set.
+`verify_examples_local.sh` publishes the current `krandom-core`, `krandom-jackson`, and `krandom-spring-boot-starter` artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set.
 
 ## Install
 
@@ -147,11 +147,14 @@ dependencies {
 
 GitHub Packages requires credentials through `GITHUB_ACTOR` / `GITHUB_TOKEN`, Gradle properties (`gpr.user`, `gpr.key`), or Maven `settings.xml`.
 
+Maven Central release work is intentionally deferred. Once it is complete, the default installation path should become `mavenCentral()` plus the required `io.github.frikit:*` dependency without GitHub Packages credentials.
+
 ## Examples
 
 Consumer examples live in [`examples/`](examples/). They are test-based examples rather than runnable demo apps, and they all depend directly on `io.github.frikit:krandom-core`.
 
 - Java + Gradle
+- Java + Gradle integration modules
 - Java + Maven
 - Kotlin + Gradle
 - Kotlin + Maven

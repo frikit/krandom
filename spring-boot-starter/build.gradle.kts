@@ -1,5 +1,5 @@
 plugins {
-    java
+    `java-library`
 }
 
 java {
@@ -9,8 +9,8 @@ java {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(libs.spring.boot.autoconfigure)
+    api(project(":core"))
+    api(libs.spring.boot.autoconfigure)
     annotationProcessor(libs.spring.boot.configuration.processor)
 
     testImplementation(libs.spring.boot.starter.test)

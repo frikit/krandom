@@ -1,5 +1,5 @@
 plugins {
-    java
+    `java-library`
 }
 
 java {
@@ -9,8 +9,8 @@ java {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(libs.jackson.databind)
+    api(project(":core"))
+    api(libs.jackson.databind)
 
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)

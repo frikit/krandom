@@ -73,10 +73,12 @@ jobs:
           files: |
             core/build/libs/*.jar
             jackson/build/libs/*.jar
+            spring-boot-starter/build/libs/*.jar
           body: |
             Published modules to GitHub Packages from this release:
             - io.github.frikit:krandom-core:${{ env.VERSION }}
             - io.github.frikit:krandom-jackson:${{ env.VERSION }}
+            - io.github.frikit:krandom-spring-boot-starter:${{ env.VERSION }}
 
             Maven repository:
             https://maven.pkg.github.com/${{ github.repository }}

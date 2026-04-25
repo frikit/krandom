@@ -1,5 +1,5 @@
 #!/bin/bash
-# Publish the local core artifact and run the consumer examples against it.
+# Publish local artifacts and run the consumer examples against them.
 
 set -euo pipefail
 
@@ -26,8 +26,14 @@ cd "${REPO_ROOT}"
 
 "${REPO_ROOT}/scripts/require_java21.sh"
 
-step "Publish krandom-core ${VERSION} to Maven local"
-"${GRADLEW}" :core:publishToMavenLocal -PreleaseVersion="${VERSION}" --no-daemon --console=plain
+step "Publish krandom modules ${VERSION} to Maven local"
+"${GRADLEW}" \
+    :core:publishToMavenLocal \
+    :jackson:publishToMavenLocal \
+    :spring-boot-starter:publishToMavenLocal \
+    -PreleaseVersion="${VERSION}" \
+    --no-daemon \
+    --console=plain
 
 step "Verify Java + Gradle example"
 (
@@ -40,6 +46,9 @@ step "Verify Java + Maven example"
     cd "${REPO_ROOT}/examples/java-maven"
     mvn -q -Dkrandom.version="${VERSION}" test
 )
+
+step "Verify Java + Gradle integration modules example"
+"${GRADLEW}" -p "${REPO_ROOT}/examples/java-gradle-integrations" -PkrandomVersion="${VERSION}" test --no-daemon --console=plain
 
 step "Verify Kotlin + Gradle example"
 (

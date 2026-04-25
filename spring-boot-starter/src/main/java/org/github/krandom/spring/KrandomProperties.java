@@ -15,7 +15,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * <pre>{@code
  *   krandom.seed=42
- *   krandom.locale=de_DE
+     *   krandom.locale=de-DE
  *   krandom.object-max-depth=3
  * }</pre>
  */
@@ -29,7 +29,7 @@ public class KrandomProperties {
     private Long seed;
 
     /**
-     * Locale tag (e.g. {@code en_US}, {@code de_DE}). Defaults to {@code en_US}.
+     * Locale tag (e.g. {@code en-US}, {@code en_US}, {@code de-DE}). Defaults to {@code en_US}.
      */
     private String locale;
 

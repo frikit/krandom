@@ -14,10 +14,13 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Locale;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KrandomAutoConfigurationTest {
 
@@ -56,6 +59,16 @@ class KrandomAutoConfigurationTest {
                   GeneratorConfig config = context.getBean(GeneratorConfig.class);
                   assertEquals("de", config.getLocale().getLanguage());
                   assertEquals("DE", config.getLocale().getCountry());
+              });
+    }
+
+    @Test
+    @DisplayName("BCP 47 hyphenated locale tag is propagated to GeneratorConfig")
+    void hyphenatedLocaleProperty() {
+        runner.withPropertyValues("krandom.locale=en-US")
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(Locale.US, config.getLocale());
               });
     }
 
@@ -111,6 +124,27 @@ class KrandomAutoConfigurationTest {
               });
     }
 
+    @Test
+    @DisplayName("blank locale property keeps the default locale")
+    void blankLocalePropertyKeepsDefault() {
+        runner.withPropertyValues("krandom.locale=")
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(Locale.US, config.getLocale());
+              });
+    }
+
+    @Test
+    @DisplayName("invalid locale property fails fast")
+    void invalidLocalePropertyFailsFast() {
+        runner.withPropertyValues("krandom.locale=en--US")
+              .run(context -> {
+                  Throwable failure = context.getStartupFailure();
+                  assertNotNull(failure);
+                  assertTrue(hasMessage(failure, "Invalid krandom.locale"));
+              });
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     public static final class SampleUser {
@@ -126,5 +160,16 @@ class KrandomAutoConfigurationTest {
         GeneratorConfig customConfig() {
             return GeneratorConfig.builder().seed(99L).build();
         }
+    }
+
+    private static boolean hasMessage(Throwable failure, String expected) {
+        Throwable current = failure;
+        while (current != null) {
+            if (current.getMessage() != null && current.getMessage().contains(expected)) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

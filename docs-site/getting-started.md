@@ -17,6 +17,7 @@ Published coordinates:
 
 - `io.github.frikit:krandom-core:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
+- `io.github.frikit:krandom-spring-boot-starter:<version>`
 
 Gradle:
 
@@ -38,6 +39,9 @@ repositories {
 
 dependencies {
     implementation("io.github.frikit:krandom-core:<version>")
+    // Optional integrations:
+    implementation("io.github.frikit:krandom-jackson:<version>")
+    implementation("io.github.frikit:krandom-spring-boot-starter:<version>")
 }
 ```
 
@@ -59,6 +63,8 @@ Maven:
 ```
 
 GitHub Packages requires credentials.
+
+After Maven Central release work is completed, the default install path will be `mavenCentral()` without GitHub Packages credentials.
 
 ## First usage
 
@@ -148,3 +154,8 @@ The same root config can also drive deterministic object, fixture, template, pro
 ```
 
 This runs formatting, compile, tests, and coverage checks.
+
+See also:
+
+- [Jackson Integration](guides/jackson-integration.md)
+- [Spring Boot Starter](guides/spring-boot-starter.md)

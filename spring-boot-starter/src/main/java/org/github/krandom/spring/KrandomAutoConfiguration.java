@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.IllformedLocaleException;
 import java.util.Locale;
 
 /**
@@ -24,7 +25,7 @@ import java.util.Locale;
  * <p>Usage in {@code application.properties}:
  * <pre>
  *   krandom.seed=42
- *   krandom.locale=de_DE
+ *   krandom.locale=de-DE
  *   krandom.object-max-depth=3
  *   krandom.object-null-probability=0.1
  * </pre>
@@ -42,13 +43,8 @@ public class KrandomAutoConfiguration {
             builder.seed(properties.getSeed());
         }
 
-        if (properties.getLocale() != null) {
-            String tag = properties.getLocale();
-            String[] parts = tag.contains("_") ? tag.split("_", 2) : new String[] {tag};
-            Locale locale = parts.length == 2
-                ? Locale.of(parts[0], parts[1])
-                : Locale.of(parts[0]);
-            builder.locale(locale);
+        if (properties.getLocale() != null && !properties.getLocale().isBlank()) {
+            builder.locale(parseLocale(properties.getLocale()));
         }
 
         if (properties.getObjectMaxDepth() != null) {
@@ -68,6 +64,19 @@ public class KrandomAutoConfiguration {
         }
 
         return builder.build();
+    }
+
+    private static Locale parseLocale(String tag) {
+        String normalized = tag.trim().replace('_', '-');
+        try {
+            Locale locale = new Locale.Builder().setLanguageTag(normalized).build();
+            if (locale.getLanguage().isBlank()) {
+                throw new IllformedLocaleException("Locale language is required");
+            }
+            return locale;
+        } catch (IllformedLocaleException e) {
+            throw new IllegalArgumentException("Invalid krandom.locale: " + tag, e);
+        }
     }
 
     @Bean
