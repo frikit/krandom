@@ -11,16 +11,17 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 |:---|:---|
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
 | `jackson` | Jackson integration on top of `core` |
-| `benchmarks` | JMH and macro-profile workloads for performance measurement |
+| `spring-boot-starter` | Spring Boot 3.x auto-configuration for `core` |
+| `benchmarks` | JMH and macro-profile workloads, including competitor comparisons |
 | `examples/` | Consumer examples for Java, Kotlin, and Scala build-tool combinations using `core` directly |
 | `docs-site/` | Public documentation site source |
-| `docs/` | Internal notes, parity tracking, and implementation plans |
+| `docs/` | Internal notes, parity tracking, benchmark reports, and implementation plans |
 
 ## Current status
 
 - Java-first architecture.
 - `core` is the only behavior source of truth.
-- `jackson` is the only additional published module in this repository.
+- `jackson` and `spring-boot-starter` are published integration modules.
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs tests and coverage on Java 21.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
@@ -59,6 +60,22 @@ String email = Generators.ofEmail().generate();
 
 The public docs now also include a dedicated guide: [Choosing an API](docs-site/guides/choosing-an-api.md).
 
+## Performance
+
+krandom's scalar generators are significantly faster than comparable JVM libraries. Full benchmark reports are run monthly and stored in [`docs/benchmarks/`](docs/benchmarks/).
+
+**Scalar generation throughput** (single value per call, ops/s — higher is better):
+
+| Benchmark | krandom | DataFaker | JavaFaker | krandom vs DataFaker |
+|:---|---:|---:|---:|:---|
+| firstName | **62,097,588** | 3,340,974 | 471,587 | 18.6x faster |
+| email | **7,041,044** | 868,973 | 270,552 | 8.1x faster |
+| streetAddress | **13,305,613** | 951,856 | 85,805 | 14.0x faster |
+
+> JDK 21.0.10, JMH 1.37, aarch64. See the [latest full report](docs/benchmarks/competitor-report-2026-04-25.md) for object-population and bulk-generation numbers, methodology notes, and raw JMH output.
+
+krandom's `ObjectGenerator` trades throughput for semantic realism — every field is populated with a domain-appropriate value (real names, valid emails, real cities) rather than arbitrary random bytes.
+
 ## Build and verify locally
 
 Ensure `java -version` reports Java 21+ before running the local checks.
@@ -84,6 +101,7 @@ Published artifacts:
 
 - `io.github.frikit:krandom-core:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
+- `io.github.frikit:krandom-spring-boot-starter:<version>`
 
 ### Gradle (Kotlin DSL)
 
@@ -156,6 +174,6 @@ The workflow:
 
 - validates a semver input
 - builds and tests the repository
-- publishes `krandom-core` and `krandom-jackson`
+- publishes `krandom-core`, `krandom-jackson`, and `krandom-spring-boot-starter`
 - creates a Git tag `v<version>`
 - creates a GitHub Release with built JARs attached

@@ -12,6 +12,15 @@ dependencies {
     implementation(project(":core"))
     implementation("org.openjdk.jmh:jmh-core:1.37")
     annotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
+
+    // Competitor libraries for comparative benchmarks
+    implementation("net.datafaker:datafaker:2.4.2")
+    implementation("org.jeasy:easy-random-core:5.0.0")
+    implementation("org.instancio:instancio-core:5.2.0")
+    implementation("com.github.javafaker:javafaker:1.0.2") {
+        exclude(group = "org.yaml", module = "snakeyaml")
+    }
+    implementation("org.yaml:snakeyaml:2.3")
 }
 
 tasks.register<JavaExec>("jmh") {

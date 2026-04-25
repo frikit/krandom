@@ -13,4 +13,5 @@ rootProject.name = "krandom"
 
 include(":core")
 include(":jackson")
+include(":spring-boot-starter")
 include(":benchmarks")

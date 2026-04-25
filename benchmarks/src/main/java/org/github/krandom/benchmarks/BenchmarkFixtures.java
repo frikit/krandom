@@ -133,4 +133,17 @@ public final class BenchmarkFixtures {
         public BigDecimal latitude;
         public BigDecimal longitude;
     }
+
+    /**
+     * Minimal POJO that all competitor libraries can populate via public fields.
+     * Kept intentionally simple so the benchmark measures library overhead, not model complexity.
+     */
+    public static final class ComparableUser {
+        public String  firstName;
+        public String  lastName;
+        public String  email;
+        public int     age;
+        public String  city;
+        public String  country;
+    }
 }

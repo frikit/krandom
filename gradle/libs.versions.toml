@@ -11,6 +11,7 @@ junit-platform = "6.0.3"
 objenesis = "3.5"
 jakarta-validation = "3.1.1"
 jackson = "2.21.2"
+spring-boot = "3.4.5"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -26,6 +27,9 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 objenesis = { module = "org.objenesis:objenesis", version.ref = "objenesis" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

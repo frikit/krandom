@@ -61,7 +61,7 @@ subprojects {
             else -> null
         }
 
-        if (componentName != null && project.name in setOf("core", "jackson")) {
+        if (componentName != null && project.name in setOf("core", "jackson", "spring-boot-starter")) {
             configure<PublishingExtension> {
                 publications {
                     if (findByName("mavenJava") == null) {
