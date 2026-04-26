@@ -11,9 +11,9 @@ The snippets below are copy/paste-ready and target high-usage generator areas.
 ## Object generation
 
 ```java
-import org.github.krandom.generator.Generators;
-import org.github.krandom.generator.GeneratorConfig;
-import org.github.krandom.generator.object.ObjectGenerator;
+import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.object.ObjectGenerator;
 
 record Address(String city, String country) {}
 record User(String name, Address address) {}
@@ -30,9 +30,9 @@ System.out.println(user);
 ## User data
 
 ```java
-import org.github.krandom.generator.GeneratorConfig;
-import org.github.krandom.generator.user.EmailGenerator;
-import org.github.krandom.generator.user.FullNameGenerator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.user.EmailGenerator;
+import io.github.frikit.krandom.generator.user.FullNameGenerator;
 
 GeneratorConfig config = GeneratorConfig.builder()
         .seed(42L)
@@ -46,9 +46,9 @@ System.out.println(name + " <" + email + ">");
 ## Location data
 
 ```java
-import org.github.krandom.generator.GeneratorConfig;
-import org.github.krandom.generator.location.CityGenerator;
-import org.github.krandom.generator.location.CountryGenerator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.location.CityGenerator;
+import io.github.frikit.krandom.generator.location.CountryGenerator;
 
 GeneratorConfig config = GeneratorConfig.builder()
         .locale(java.util.Locale.of("de", "DE"))
@@ -62,8 +62,8 @@ System.out.println(new CountryGenerator(config).generate());
 ## Finance data
 
 ```java
-import org.github.krandom.generator.finance.CreditCardGenerator;
-import org.github.krandom.generator.finance.MoneyGenerator;
+import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
+import io.github.frikit.krandom.generator.finance.MoneyGenerator;
 
 String amount = new MoneyGenerator().generate();
 String card = new CreditCardGenerator().generate();

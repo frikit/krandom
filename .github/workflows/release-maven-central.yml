@@ -1,0 +1,104 @@
+name: release-maven-central
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "SemVer release version (example: 1.0.0)"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Publish to Maven Central + GitHub Packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate semver input
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          SEMVER_REGEX='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'
+          if [[ ! "$VERSION" =~ $SEMVER_REGEX ]]; then
+            echo "Invalid semver version: $VERSION"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "TAG=v$VERSION" >> "$GITHUB_ENV"
+
+      - name: Fail if tag already exists
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "Tag already exists: ${TAG}"
+            exit 1
+          fi
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
+
+      - name: Remove local Java home override
+        run: sed -i '/org.gradle.java.home/d' gradle.properties
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build and test
+        run: ./gradlew clean test -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
+
+      - name: Publish to Maven Central (OSSRH)
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
+        run: ./gradlew publishMavenJavaPublicationToOSSRHRepository -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
+
+      - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Release ${{ env.TAG }}
+          generate_release_notes: true
+          target_commitish: ${{ github.sha }}
+          files: |
+            core/build/libs/*.jar
+            jackson/build/libs/*.jar
+            spring-boot-starter/build/libs/*.jar
+          body: |
+            Published modules:
+            - io.github.frikit:krandom-core:${{ env.VERSION }}
+            - io.github.frikit:krandom-jackson:${{ env.VERSION }}
+            - io.github.frikit:krandom-spring-boot-starter:${{ env.VERSION }}
+
+            ### Maven Central
+            ```kotlin
+            implementation("io.github.frikit:krandom-core:${{ env.VERSION }}")
+            ```
+
+            ### GitHub Packages
+            https://maven.pkg.github.com/${{ github.repository }}
+
+            ### Required secrets
+            - `OSSRH_USERNAME` / `OSSRH_PASSWORD` — Sonatype OSSRH credentials
+            - `GPG_SIGNING_KEY` / `GPG_SIGNING_PASSWORD` — ASCII-armored GPG private key

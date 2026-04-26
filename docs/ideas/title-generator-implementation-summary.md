@@ -10,7 +10,7 @@
 
 ### 1. LocaleTitleData Enum
 
-**File:** `core/src/main/java/org/github/krandom/generator/user/LocaleTitleData.java`
+**File:** `core/src/main/java/io/github/frikit/krandom/generator/user/LocaleTitleData.java`
 
 A comprehensive enum containing locale-specific honorific titles embedded directly in code (no external files).
 
@@ -57,7 +57,7 @@ A comprehensive enum containing locale-specific honorific titles embedded direct
 
 ### 2. TitleGenerator Class
 
-**File:** `core/src/main/java/org/github/krandom/generator/user/TitleGenerator.java`
+**File:** `core/src/main/java/io/github/frikit/krandom/generator/user/TitleGenerator.java`
 
 Implements `Generator<String>` interface with full locale support.
 
@@ -153,7 +153,7 @@ println("Locale fully supported!");
 
 ### Test Coverage
 
-**File:** `core/src/test/java/org/github/krandom/generator/user/TitleGeneratorTest.java`
+**File:** `core/src/test/java/io/github/frikit/krandom/generator/user/TitleGeneratorTest.java`
 
 **21 comprehensive tests:**
 
@@ -176,7 +176,7 @@ println("Locale fully supported!");
 17. ✅ Null locale rejected
 18. ✅ getTitleCount positive for all locales
 
-**File:** `core/src/test/java/org/github/krandom/generator/user/TitleGeneratorUsageExamples.java`
+**File:** `core/src/test/java/io/github/frikit/krandom/generator/user/TitleGeneratorUsageExamples.java`
 
 **11 usage examples** demonstrating:
 
@@ -309,15 +309,15 @@ TitleGenerator gen = new TitleGenerator(config);
 ### Production Code
 
 ```
-✅ core/src/main/java/org/github/krandom/generator/user/LocaleTitleData.java (284 lines)
-✅ core/src/main/java/org/github/krandom/generator/user/TitleGenerator.java (138 lines)
+✅ core/src/main/java/io/github/frikit/krandom/generator/user/LocaleTitleData.java (284 lines)
+✅ core/src/main/java/io/github/frikit/krandom/generator/user/TitleGenerator.java (138 lines)
 ```
 
 ### Test Code
 
 ```
-✅ core/src/test/java/org/github/krandom/generator/user/TitleGeneratorTest.java (245 lines)
-✅ core/src/test/java/org/github/krandom/generator/user/TitleGeneratorUsageExamples.java (171 lines)
+✅ core/src/test/java/io/github/frikit/krandom/generator/user/TitleGeneratorTest.java (245 lines)
+✅ core/src/test/java/io/github/frikit/krandom/generator/user/TitleGeneratorUsageExamples.java (171 lines)
 ```
 
 **Total:** 838 lines of code (422 production + 416 tests)

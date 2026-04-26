@@ -9,7 +9,7 @@
 
 ### 1. Added Locale Field to GeneratorConfig
 
-**File:** `core/src/main/java/org/github/krandom/generator/GeneratorConfig.java`
+**File:** `core/src/main/java/io/github/frikit/krandom/generator/GeneratorConfig.java`
 
 #### Changes Made:
 
@@ -91,7 +91,7 @@ GeneratorConfig config = GeneratorConfig.builder()
 
 ### Test Coverage
 
-**File:** `core/src/test/java/org/github/krandom/generator/GeneratorConfigTest.java`
+**File:** `core/src/test/java/io/github/frikit/krandom/generator/GeneratorConfigTest.java`
 
 Added tests:
 
@@ -100,7 +100,7 @@ Added tests:
 - ✅ Null locale throws `NullPointerException`
 - ✅ Various locales work (GERMANY, JAPAN, custom)
 
-**File:** `core/src/test/java/org/github/krandom/generator/LocaleUsageExample.java`
+**File:** `core/src/test/java/io/github/frikit/krandom/generator/LocaleUsageExample.java`
 
 Created comprehensive examples:
 
@@ -231,9 +231,9 @@ ObjectGenerator<Person> gen = new ObjectGenerator<>(
 ## Files Modified
 
 ```
-✅ core/src/main/java/org/github/krandom/generator/GeneratorConfig.java
-✅ core/src/test/java/org/github/krandom/generator/GeneratorConfigTest.java
-✅ core/src/test/java/org/github/krandom/generator/LocaleUsageExample.java (new)
+✅ core/src/main/java/io/github/frikit/krandom/generator/GeneratorConfig.java
+✅ core/src/test/java/io/github/frikit/krandom/generator/GeneratorConfigTest.java
+✅ core/src/test/java/io/github/frikit/krandom/generator/LocaleUsageExample.java (new)
 ```
 
 ---

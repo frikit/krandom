@@ -38,7 +38,7 @@ dependencies {
 
 ```java
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.github.krandom.jackson.KrandomJackson;
+import io.github.frikit.krandom.jackson.KrandomJackson;
 
 ObjectMapper mapper = KrandomJackson.configure(new ObjectMapper());
 ```
@@ -54,11 +54,11 @@ ObjectMapper mapper = KrandomJackson.newObjectMapper();
 ```java
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.github.krandom.generator.GeneratorConfig;
-import org.github.krandom.generator.schema.Field;
-import org.github.krandom.generator.schema.Schema;
-import org.github.krandom.generator.schema.SchemaValueProvider;
-import org.github.krandom.jackson.KrandomJackson;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.schema.Field;
+import io.github.frikit.krandom.generator.schema.Schema;
+import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
+import io.github.frikit.krandom.jackson.KrandomJackson;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;

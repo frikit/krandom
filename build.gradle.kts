@@ -1,10 +1,12 @@
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.plugins.signing.SigningExtension
 
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.spotless) apply false
+    signing
 }
 
 allprojects {
@@ -36,6 +38,7 @@ configure<com.diffplug.gradle.spotless.SpotlessExtension> {
 subprojects {
     apply(plugin = "com.diffplug.spotless")
     apply(plugin = "maven-publish")
+    apply(plugin = "signing")
 
     afterEvaluate {
         configure<com.diffplug.gradle.spotless.SpotlessExtension> {
@@ -61,7 +64,7 @@ subprojects {
             else -> null
         }
 
-        if (componentName != null && project.name in setOf("core", "jackson", "spring-boot-starter")) {
+        if (componentName != null && project.name in setOf("core", "jackson", "spring-boot-starter", "kotest-extensions", "jqwik-extensions", "kotlin-dsl")) {
             configure<PublishingExtension> {
                 publications {
                     if (findByName("mavenJava") == null) {
@@ -77,6 +80,13 @@ subprojects {
                                     license {
                                         name.set("MIT License")
                                         url.set("https://opensource.org/license/mit/")
+                                    }
+                                }
+                                developers {
+                                    developer {
+                                        id.set("frikit")
+                                        name.set("Victor Osipov")
+                                        email.set("ofrikit94@gmail.com")
                                     }
                                 }
                                 scm {
@@ -104,7 +114,32 @@ subprojects {
                                 .orNull
                         }
                     }
+                    maven {
+                        name = "OSSRH"
+                        url = if (version.toString().endsWith("-SNAPSHOT")) {
+                            uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                        } else {
+                            uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                        }
+                        credentials {
+                            username = providers.environmentVariable("OSSRH_USERNAME")
+                                .orElse(providers.gradleProperty("ossrh.username"))
+                                .orNull
+                            password = providers.environmentVariable("OSSRH_PASSWORD")
+                                .orElse(providers.gradleProperty("ossrh.password"))
+                                .orNull
+                        }
+                    }
                 }
+            }
+
+            configure<SigningExtension> {
+                val signingKey = providers.environmentVariable("GPG_SIGNING_KEY").orNull
+                val signingPassword = providers.environmentVariable("GPG_SIGNING_PASSWORD").orNull
+                if (signingKey != null && signingPassword != null) {
+                    useInMemoryPgpKeys(signingKey, signingPassword)
+                }
+                sign(the<PublishingExtension>().publications["mavenJava"])
             }
         }
     }

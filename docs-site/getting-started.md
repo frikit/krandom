@@ -69,7 +69,7 @@ After Maven Central release work is completed, the default install path will be 
 ## First usage
 
 ```java
-import org.github.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Generators;
 
 int roll = Generators.ofInt(1, 7).generate();
 String name = Generators.ofFullName().generate();
@@ -81,7 +81,7 @@ String ipv4 = Generators.ofIPv4().generate();
 `GeneratorConfig` is the main configuration entry point for the library.
 
 ```java
-import org.github.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 GeneratorConfig cfg = GeneratorConfig.builder()
         .locale(Locale.US)   // optional, defaults to Locale.US
@@ -94,7 +94,7 @@ Use that same config for scalar generators, object generation, fluent fixtures, 
 ## Realistic object generation by default
 
 ```java
-import org.github.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Generators;
 
 OrderDto order = Generators.ofObject(OrderDto.class, cfg).generate();
 ```
@@ -130,8 +130,8 @@ String csv = orders.toCsv(10);
 ## Seeded deterministic generation
 
 ```java
-import org.github.krandom.generator.GeneratorConfig;
-import org.github.krandom.generator.user.EmailGenerator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.user.EmailGenerator;
 
 GeneratorConfig cfg = GeneratorConfig.builder()
         .seed(42L)

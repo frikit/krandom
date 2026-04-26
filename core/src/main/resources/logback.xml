@@ -27,7 +27,7 @@
     </root>
 
     <!-- Specific package loggers - all at DEBUG or TRACE -->
-    <logger name="org.github.krandom" level="DEBUG"/>
+    <logger name="io.github.frikit.krandom" level="DEBUG"/>
 
     <!-- Suppress verbose third-party libraries -->
     <logger name="org.apache" level="WARN"/>

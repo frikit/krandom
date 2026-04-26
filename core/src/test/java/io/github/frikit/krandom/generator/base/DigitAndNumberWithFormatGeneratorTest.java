@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+package io.github.frikit.krandom.generator.base;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@DisplayName("Digit and NumberWithFormat generators")
+class DigitAndNumberWithFormatGeneratorTest {
+
+    @Test
+    void digitGenerator() {
+        DigitGenerator gen = new DigitGenerator(GeneratorConfig.builder().seed(42L).build());
+        for (int i = 0; i < 100; i++) {
+            assertTrue(gen.generate().matches("\\d"));
+            assertTrue(gen.generateNonZero().matches("[1-9]"));
+        }
+        assertThrows(NullPointerException.class, () -> new DigitGenerator(null));
+    }
+
+    @Test
+    void numberWithFormatGenerator() {
+        NumberWithFormatGenerator gen = new NumberWithFormatGenerator("##-##", GeneratorConfig.builder().seed(7L).build());
+        assertTrue(gen.generate().matches("\\d\\d-\\d\\d"));
+        assertTrue(gen.generate("###/##").matches("\\d\\d\\d/\\d\\d"));
+        assertTrue(new NumberWithFormatGenerator("##-##").generate().matches("\\d\\d-\\d\\d"));
+        assertTrue(new NumberWithFormatGenerator().generate().matches("\\d{3}-\\d{3}-\\d{4}"));
+        assertTrue(new NumberWithFormatGenerator(GeneratorConfig.builder().seed(12L).build())
+                       .generate().matches("\\d{3}-\\d{3}-\\d{4}"));
+
+        assertThrows(NullPointerException.class, () -> new NumberWithFormatGenerator((String) null));
+        assertThrows(IllegalArgumentException.class, () -> new NumberWithFormatGenerator(""));
+        assertThrows(IllegalArgumentException.class, () -> new NumberWithFormatGenerator("abcd"));
+        assertThrows(NullPointerException.class, () -> new NumberWithFormatGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> gen.generate(null));
+        assertThrows(IllegalArgumentException.class, () -> gen.generate("____"));
+    }
+}

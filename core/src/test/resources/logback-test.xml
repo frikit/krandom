@@ -13,7 +13,7 @@
     </root>
 
     <!-- Project logger at TRACE level for detailed test debugging -->
-    <logger name="org.github.krandom" level="TRACE"/>
+    <logger name="io.github.frikit.krandom" level="TRACE"/>
 
     <!-- Suppress test framework noise -->
     <logger name="org.junit" level="WARN"/>

@@ -713,28 +713,28 @@ let fr_name: String = fake::faker::name::fr_FR::Name().fake();  // "Jean Dupont"
 
 | fake-rs type                     | krandom equivalent                                       | Status          |
 |----------------------------------|----------------------------------------------------------|-----------------|
-| `faker::name::en::FirstName`     | `org.github.krandom.user.FirstName` (Kotlin)             | Has it          |
-| `faker::name::en::LastName`      | `org.github.krandom.user.SurName` (Kotlin)               | Has it          |
+| `faker::name::en::FirstName`     | `io.github.frikit.krandom.user.FirstName` (Kotlin)             | Has it          |
+| `faker::name::en::LastName`      | `io.github.frikit.krandom.user.SurName` (Kotlin)               | Has it          |
 | `faker::name::en::Name`          | `GenericUserGenerator.fullName()` (Kotlin)               | Has it          |
 | `faker::name::en::NameWithTitle` | `Title`/`TitleResult` exists but no combined single call | Partial         |
-| `faker::name::en::Title`         | `org.github.krandom.user.Title` / `TitleResult` enum     | Has it          |
+| `faker::name::en::Title`         | `io.github.frikit.krandom.user.Title` / `TitleResult` enum     | Has it          |
 | `faker::name::en::Suffix`        | —                                                        | Gap             |
-| Age                              | `org.github.krandom.user.Age` + `AgeGroup` enum          | Has it (unique) |
-| Gender                           | `org.github.krandom.user.Gender`                         | Has it (unique) |
-| SSN                              | `org.github.krandom.user.SocialSecurityNumber`           | Has it (unique) |
-| Birthday                         | `org.github.krandom.user.BirthDay`                       | Has it (unique) |
-| Username                         | `org.github.krandom.user.Username`                       | Has it (unique) |
+| Age                              | `io.github.frikit.krandom.user.Age` + `AgeGroup` enum          | Has it (unique) |
+| Gender                           | `io.github.frikit.krandom.user.Gender`                         | Has it (unique) |
+| SSN                              | `io.github.frikit.krandom.user.SocialSecurityNumber`           | Has it (unique) |
+| Birthday                         | `io.github.frikit.krandom.user.BirthDay`                       | Has it (unique) |
+| Username                         | `io.github.frikit.krandom.user.Username`                       | Has it (unique) |
 
 ### Internet / Network
 
 | fake-rs type                      | krandom equivalent                                   | Status  |
 |-----------------------------------|------------------------------------------------------|---------|
-| `faker::internet::en::FreeEmail`  | `org.github.krandom.user.Email`                      | Has it  |
+| `faker::internet::en::FreeEmail`  | `io.github.frikit.krandom.user.Email`                      | Has it  |
 | `faker::internet::en::SafeEmail`  | —                                                    | Gap     |
-| `faker::internet::en::Username`   | `org.github.krandom.user.Username`                   | Has it  |
+| `faker::internet::en::Username`   | `io.github.frikit.krandom.user.Username`                   | Has it  |
 | `faker::internet::en::Password`   | `StringGenerator` (no dedicated password API)        | Partial |
-| `faker::internet::en::IPv4`       | `org.github.krandom.generator.network.IPv4Generator` | Has it  |
-| `faker::internet::en::IPv6`       | `org.github.krandom.generator.network.IPv6Generator` | Has it  |
+| `faker::internet::en::IPv4`       | `io.github.frikit.krandom.generator.network.IPv4Generator` | Has it  |
+| `faker::internet::en::IPv6`       | `io.github.frikit.krandom.generator.network.IPv6Generator` | Has it  |
 | `faker::internet::en::IP`         | — (no "either v4 or v6" selector)                    | Gap     |
 | `faker::internet::en::MACAddress` | —                                                    | Gap     |
 | `faker::internet::en::UserAgent`  | —                                                    | Gap     |
@@ -772,13 +772,13 @@ let fr_name: String = fake::faker::name::fr_FR::Name().fake();  // "Jean Dupont"
 | `faker::barcode::en::Isbn10`        | —                                                       | Gap             |
 | `faker::barcode::en::Isbn13`        | —                                                       | Gap             |
 | `faker::currency::en::CurrencyCode` | —                                                       | Gap             |
-| Luhn                                | `org.github.krandom.generator.algorithms.LuhnGenerator` | Has it (unique) |
+| Luhn                                | `io.github.frikit.krandom.generator.algorithms.LuhnGenerator` | Has it (unique) |
 
 ### Date / Time
 
 | fake-rs type                  | krandom equivalent                                    | Status  |
 |-------------------------------|-------------------------------------------------------|---------|
-| `faker::chrono::en::Date`     | `org.github.krandom.user.BirthDay` (birth dates only) | Partial |
+| `faker::chrono::en::Date`     | `io.github.frikit.krandom.user.BirthDay` (birth dates only) | Partial |
 | `faker::chrono::en::DateTime` | —                                                     | Gap     |
 | `faker::chrono::en::Time`     | —                                                     | Gap     |
 | `faker::chrono::en::Duration` | —                                                     | Gap     |

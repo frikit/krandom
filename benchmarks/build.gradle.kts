@@ -28,12 +28,12 @@ tasks.register<JavaExec>("jmh") {
     description = "Run JMH microbenchmarks."
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("org.openjdk.jmh.Main")
-    args("org.github.krandom.benchmarks.*")
+    args("io.github.frikit.krandom.benchmarks.*")
 }
 
 tasks.register<JavaExec>("profileGeneration") {
     group = "benchmark"
     description = "Run macro profiling for large-scale generation workloads."
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("org.github.krandom.benchmarks.GenerationProfileRunner")
+    mainClass.set("io.github.frikit.krandom.benchmarks.GenerationProfileRunner")
 }

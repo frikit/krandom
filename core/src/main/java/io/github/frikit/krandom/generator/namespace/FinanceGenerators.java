@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+package io.github.frikit.krandom.generator.namespace;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.finance.*;
+
+import java.util.Locale;
+
+/**
+ * Fluent namespace for finance-related generators.
+ *
+ * <p>Usage: {@code Generators.finance().creditCard().generate()}
+ */
+public final class FinanceGenerators {
+
+    private final GeneratorConfig config;
+
+    public FinanceGenerators() {
+        this(GeneratorConfig.builder().build());
+    }
+
+    public FinanceGenerators(GeneratorConfig config) {
+        this.config = config;
+    }
+
+    public CreditCardGenerator creditCard() { return new CreditCardGenerator(); }
+
+    public CreditCardInfoGenerator creditCardInfo() { return new CreditCardInfoGenerator(config); }
+
+    public CardExpirationGenerator cardExpiration() { return new CardExpirationGenerator(); }
+
+    public CurrencyGenerator currency() { return new CurrencyGenerator(); }
+
+    public CurrencyPairGenerator currencyPair() { return new CurrencyPairGenerator(config); }
+
+    public MoneyGenerator money() { return new MoneyGenerator(config); }
+    public MoneyGenerator money(Locale locale) { return new MoneyGenerator(locale); }
+
+    public BankAccountGenerator bankAccount() { return new BankAccountGenerator(); }
+
+    public BankNameGenerator bankName() { return new BankNameGenerator(); }
+
+    public BankTypeGenerator bankType() { return new BankTypeGenerator(); }
+
+    public BankInfoGenerator bankInfo() { return new BankInfoGenerator(config); }
+
+    public BankCountryGenerator bankCountry() { return new BankCountryGenerator(); }
+
+    public BicGenerator bic() { return new BicGenerator(); }
+
+    public BbanGenerator bban() { return new BbanGenerator(); }
+
+    public IbanGenerator iban() { return new IbanGenerator(); }
+
+    public AbaRoutingGenerator abaRouting() { return new AbaRoutingGenerator(); }
+
+    public IsinGenerator isin() { return new IsinGenerator(); }
+
+    public CusipGenerator cusip() { return new CusipGenerator(); }
+
+    public EinGenerator ein() { return new EinGenerator(); }
+
+    public CryptoAddressGenerator cryptoAddress() { return new CryptoAddressGenerator(); }
+
+    public InvoiceInfoGenerator invoiceInfo() { return new InvoiceInfoGenerator(config); }
+
+    public PaymentInfoGenerator paymentInfo() { return new PaymentInfoGenerator(config); }
+}

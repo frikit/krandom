@@ -6,7 +6,7 @@ permalink: /generator-catalog/
 
 # Generator Catalog (Java)
 
-Main entrypoint: `org.github.krandom.generator.Generators`
+Main entrypoint: `io.github.frikit.krandom.generator.Generators`
 
 ## Base and numeric
 

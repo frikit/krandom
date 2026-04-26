@@ -1216,7 +1216,7 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 - ✅ Random subset pick — `PickSetGenerator<T>` via `Generators.pickSetFrom(source, count)`
 - ✅ Collection shuffle — `ShuffleGenerator<T>` via `Generators.shuffleOf(source)`
 - ✅ Weighted random selection — `WeightedGenerator<T>` via `Generators.weighted(values, weights)`
-- ✅ Coverage quality: `org.github.krandom.generator.selection` at 100% line + 100% branch in pre-commit coverage report
+- ✅ Coverage quality: `io.github.frikit.krandom.generator.selection` at 100% line + 100% branch in pre-commit coverage report
 
 **Implementation Details**:
 

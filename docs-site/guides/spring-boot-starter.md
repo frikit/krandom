@@ -63,9 +63,9 @@ The starter registers these beans only when the application has not already prov
 ## Usage
 
 ```java
-import org.github.krandom.generator.GeneratorConfig;
-import org.github.krandom.generator.provider.ProviderHub;
-import org.github.krandom.spring.KrandomObjectFakerFactory;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.provider.ProviderHub;
+import io.github.frikit.krandom.spring.KrandomObjectFakerFactory;
 import org.springframework.stereotype.Service;
 
 @Service

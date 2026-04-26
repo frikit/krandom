@@ -25,7 +25,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs tests and coverage on Java 21.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
-- Current release channel is GitHub Packages under `io.github.frikit`.
+- Published to Maven Central and GitHub Packages under `io.github.frikit`.
 
 ## What the core currently covers
 
@@ -44,7 +44,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 ## Quick usage
 
 ```java
-import org.github.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Generators;
 
 int roll = Generators.ofInt(1, 7).generate();
 String name = Generators.ofFullName().generate();
@@ -92,12 +92,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 ## Install
 
-Current published namespace:
-
-- Group: `io.github.frikit`
-- Repository: `https://maven.pkg.github.com/frikit/krandom`
-
-Published artifacts:
+Published artifacts (group `io.github.frikit`):
 
 - `io.github.frikit:krandom-core:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
@@ -106,48 +101,30 @@ Published artifacts:
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.github.com/frikit/krandom")
-        credentials {
-            username = providers.gradleProperty("gpr.user")
-                .orElse(providers.environmentVariable("GITHUB_ACTOR"))
-                .orNull
-            password = providers.gradleProperty("gpr.key")
-                .orElse(providers.environmentVariable("GITHUB_TOKEN"))
-                .orNull
-        }
-    }
-}
-
 dependencies {
-    implementation("io.github.frikit:krandom-core:<version>")
+    implementation("io.github.frikit:krandom-core:1.0.0")
+}
+```
+
+### Gradle (Groovy DSL)
+
+```groovy
+dependencies {
+    implementation 'io.github.frikit:krandom-core:1.0.0'
 }
 ```
 
 ### Maven
 
 ```xml
-<repositories>
-  <repository>
-    <id>github</id>
-    <url>https://maven.pkg.github.com/frikit/krandom</url>
-  </repository>
-</repositories>
-
-<dependencies>
-  <dependency>
-    <groupId>io.github.frikit</groupId>
-    <artifactId>krandom-core</artifactId>
-    <version><!-- your version --></version>
-  </dependency>
-</dependencies>
+<dependency>
+  <groupId>io.github.frikit</groupId>
+  <artifactId>krandom-core</artifactId>
+  <version>1.0.0</version>
+</dependency>
 ```
 
-GitHub Packages requires credentials through `GITHUB_ACTOR` / `GITHUB_TOKEN`, Gradle properties (`gpr.user`, `gpr.key`), or Maven `settings.xml`.
-
-Maven Central release work is intentionally deferred. Once it is complete, the default installation path should become `mavenCentral()` plus the required `io.github.frikit:*` dependency without GitHub Packages credentials.
+No special repository configuration is needed — artifacts are published to Maven Central.
 
 ## Examples
 
@@ -171,12 +148,9 @@ GitHub Pages deployment is wired through [`.github/workflows/github-pages.yml`](
 
 ## Releases
 
-Manual release to GitHub Packages and GitHub Releases is handled by [`.github/workflows/release-github-packages.yml`](.github/workflows/release-github-packages.yml).
+Releases are published to **Maven Central** and **GitHub Packages** via two workflows:
 
-The workflow:
+- [`.github/workflows/release-maven-central.yml`](.github/workflows/release-maven-central.yml) — primary release to Maven Central (OSSRH) + GitHub Packages + GitHub Release
+- [`.github/workflows/release-github-packages.yml`](.github/workflows/release-github-packages.yml) — GitHub Packages only
 
-- validates a semver input
-- builds and tests the repository
-- publishes `krandom-core`, `krandom-jackson`, and `krandom-spring-boot-starter`
-- creates a Git tag `v<version>`
-- creates a GitHub Release with built JARs attached
+Both workflows validate a semver input, build and test the repository, publish `krandom-core`, `krandom-jackson`, and `krandom-spring-boot-starter`, create a Git tag, and create a GitHub Release with built JARs attached.
