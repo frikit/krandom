@@ -20,6 +20,7 @@ public final class TextFormatProvider {
     private static final int PRINTABLE_ASCII_MIN = 33;
     private static final int PRINTABLE_ASCII_MAX = 126;
     private static final int LOWER_ALPHA_SIZE    = 26;
+    private static final char[] HEX_DIGITS        = "0123456789abcdef".toCharArray();
 
     private final TemplateStringGenerator templateGenerator;
     private final Random                  random;
@@ -78,6 +79,19 @@ public final class TextFormatProvider {
     public String bothify(String input) {
         Objects.requireNonNull(input, "input must not be null");
         return templateGenerator.bothify(input);
+    }
+
+    /**
+     * Replaces {@code ^} placeholders with lowercase hexadecimal digits.
+     */
+    public String hexify(String input) {
+        Objects.requireNonNull(input, "input must not be null");
+        StringBuilder out = new StringBuilder(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            out.append(c == '^' ? HEX_DIGITS[random.nextInt(HEX_DIGITS.length)] : c);
+        }
+        return out.toString();
     }
 
     /**

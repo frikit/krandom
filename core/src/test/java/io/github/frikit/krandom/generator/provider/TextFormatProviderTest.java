@@ -30,6 +30,7 @@ class TextFormatProviderTest {
         assertEquals(first.asciify("___", '_'), second.asciify("___", '_'));
         assertEquals(first.regexify("[A-Z]{2}\\d{3}"), second.regexify("[A-Z]{2}\\d{3}"));
         assertEquals(first.examplify("ABc-123"), second.examplify("ABc-123"));
+        assertEquals(first.hexify("^^-^^"), second.hexify("^^-^^"));
     }
 
     @Test
@@ -41,6 +42,7 @@ class TextFormatProviderTest {
         assertTrue(provider.lexify("??").matches("[a-z]{2}"));
         assertTrue(provider.lexify("??", true).matches("[A-Z]{2}"));
         assertTrue(provider.bothify("??-##").matches("[a-z]{2}-\\d{2}"));
+        assertTrue(provider.hexify("^^-^^").matches("[0-9a-f]{2}-[0-9a-f]{2}"));
         assertTrue(provider.asciify("***").chars().noneMatch(ch -> ch == '*'));
         assertTrue(provider.asciify("___", '_').chars().noneMatch(ch -> ch == '_'));
         assertTrue(provider.regexify("(foo|bar)\\d{2}").matches("(foo|bar)\\d{2}"));
@@ -57,6 +59,18 @@ class TextFormatProviderTest {
         assertEquals('a', value.charAt(0));
         assertEquals('b', value.charAt(2));
         assertTrue(value.charAt(1) >= 33 && value.charAt(1) <= 126);
+    }
+
+    @Test
+    @DisplayName("hexify leaves non-placeholder characters unchanged")
+    void hexifyLeavesNonPlaceholderCharactersUnchanged() {
+        TextFormatProvider provider = new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
+
+        String value = provider.hexify("a^b");
+
+        assertEquals('a', value.charAt(0));
+        assertEquals('b', value.charAt(2));
+        assertTrue(value.substring(1, 2).matches("[0-9a-f]"));
     }
 
     @Test
@@ -81,6 +95,7 @@ class TextFormatProviderTest {
         assertThrows(NullPointerException.class, () -> provider.lexify(null));
         assertThrows(NullPointerException.class, () -> provider.lexify(null, true));
         assertThrows(NullPointerException.class, () -> provider.bothify(null));
+        assertThrows(NullPointerException.class, () -> provider.hexify(null));
         assertThrows(NullPointerException.class, () -> provider.asciify(null));
         assertThrows(NullPointerException.class, () -> provider.asciify(null, '_'));
         assertThrows(NullPointerException.class, () -> provider.regexify(null));

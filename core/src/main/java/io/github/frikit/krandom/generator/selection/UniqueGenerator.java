@@ -84,6 +84,16 @@ public final class UniqueGenerator<T> implements Generator<T> {
         throw new IllegalStateException("Unable to generate a unique value after " + maxAttempts + " attempts");
     }
 
+    /**
+     * Clears values already emitted by this generator.
+     *
+     * <p>The wrapped source generator is not reset; only this uniqueness
+     * filter's remembered values are cleared.
+     */
+    public void reset() {
+        seen.clear();
+    }
+
     private boolean isSeen(T candidate) {
         for (T existing : seen) {
             if (comparator.test(existing, candidate)) {
@@ -93,4 +103,3 @@ public final class UniqueGenerator<T> implements Generator<T> {
         return false;
     }
 }
-

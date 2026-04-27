@@ -31,7 +31,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Feature                     | DataFaker Support                            | krandom Status | Implementation Priority | Notes                                                  |
 |-----------------------------|----------------------------------------------|----------------|-------------------------|--------------------------------------------------------|
 | **Name Generation**         |
-| Full name                   | ✅ `name()`, `fullName()`, `nameWithMiddle()` | ✅ Partial      | HIGH                    | krandom has basic name, needs middle name              |
+| Full name                   | ✅ `name()`, `fullName()`, `nameWithMiddle()` | ✅ Partial      | Explicit gap            | `FullNameGenerator` exists; middle-name convenience differs |
 | First name                  | ✅ `firstName()`                              | ✅ Yes          | ✓ DONE                  |                                                        |
 | Last name                   | ✅ `lastName()`                               | ✅ Yes          | ✓ DONE                  |                                                        |
 | Gender-specific first names | ✅ `femaleFirstName()`, `maleFirstName()`     | ✅ Yes          | ✓ DONE                  | `gen.generate(Gender.MALE/FEMALE)` — 10 locales        |
@@ -55,8 +55,8 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Direct relationships        | ✅ `direct()` (mother, father)                | ❌ No (intentional) | SKIP                | Niche vocabulary — low fixture value                                |
 | Extended family             | ✅ `extended()`, `inLaw()`                    | ❌ No (intentional) | SKIP                | Niche vocabulary — low fixture value                                |
 | **Other Personal**          |
-| Passport number             | ✅ `valid()`                                  | ❌ No           | MEDIUM                  | Travel documents                                       |
-| Driver's license            | ✅ `drivingLicense()`                         | ❌ No           | MEDIUM                  | ID documents                                           |
+| Passport number             | ✅ `valid()`                                  | ❌ No (intentional) | SKIP                | Travel-document datasets deferred until requested      |
+| Driver's license            | ✅ `drivingLicense()`                         | ❌ No (intentional) | SKIP                | Locale-specific licensing data deferred until requested |
 
 ### 2. ADDRESS & LOCATION
 
@@ -76,26 +76,26 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | **Postal Codes**         |
 | ZIP code                 | ✅ `zipCode()`                                         | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator` — 10 locales                             |
 | ZIP+4                    | ✅ `zipCodePlus4()`                                    | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator.generate(true)` → "90210-1234"            |
-| ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No           | MEDIUM                  | State-specific mapping not implemented                         |
+| ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No (intentional) | SKIP                | State-specific ZIP mapping is curated geo data, not core generation |
 | County by ZIP            | ✅ `countyByZipCode()`                                 | ❌ No           | LOW                     | Geographic mapping                                             |
 | Postcode (generic)       | ✅ `postcode()`                                        | ✅ Yes          | ✓ DONE                  | 10 locale-specific formats (JP: "100-0001", DE: "10115")       |
 | Eircode (Ireland)        | ✅ `eircode()`                                         | ❌ No (intentional) | SKIP                | Niche locale postal format — add via community PR if requested              |
 | Mailbox                  | ✅ `mailBox()` (PO Box)                                | ❌ No (intentional) | SKIP                | Niche format — low fixture value                                            |
 | **Country & Nation**     |
 | Country name             | ✅ `country()`                                         | ✅ Yes          | ✓ DONE                  | `CountryGenerator` — 195 countries, 10 locales                 |
-| Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ❌ No           | MEDIUM                  | CountryGenerator returns names, not ISO codes                  |
-| Capital city             | ✅ `capital()`                                         | ❌ No           | MEDIUM                  | Geographic data                                                |
+| Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ✅ Yes          | ✓ DONE                  | `CountryGenerator.generateCode(...)`                           |
+| Capital city             | ✅ `capital()`                                         | ❌ No (intentional) | SKIP                | Curated geographic facts deferred until requested              |
 | Currency                 | ✅ `currency()`, `currencyCode()`                      | ✅ Yes          | ✓ DONE                  | Already in Money generator                                     |
 | Flag emoji               | ✅ `flag()`                                            | ❌ No (intentional) | SKIP                | Novelty Unicode rendering — low fixture value                               |
-| Nationality              | ✅ `nationality()`                                     | ❌ No           | MEDIUM                  | Citizen of...                                                  |
-| Language                 | ✅ `language()`, `isoLanguage()`                       | ❌ No           | MEDIUM                  | Spoken languages                                               |
+| Nationality              | ✅ `nationality()`                                     | ❌ No (intentional) | SKIP                | Demonym vocabulary is long-tail locale data                    |
+| Language                 | ✅ `language()`, `isoLanguage()`                       | ❌ No (intentional) | SKIP                | Language-name vocabulary deferred until requested              |
 | **Coordinates**          |
 | Latitude                 | ✅ `latitude()`                                        | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` — locale-bounded     |
 | Longitude                | ✅ `longitude()`                                       | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLongitude()` — locale-bounded    |
 | Lat/Lon pair             | ✅ `latLon()`, `lonLat()`                              | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generate()` → "35.12,-80.12"             |
 | **Direction & Location** |
 | Compass direction        | ✅ `word()`, `abbreviation()`, `azimuth()`             | ❌ No           | LOW                     | N, NE, NNE                                                     |
-| Time zone                | ✅ `timeZone()`                                        | ❌ No           | MEDIUM                  | America/New_York                                               |
+| Time zone                | ✅ `timeZone()`                                        | ✅ Yes          | ✓ DONE                  | `CountryGenerator.generateTimezone()` / `TimezoneGenerator`    |
 | Full address             | ✅ `fullAddress()`                                     | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateFullAddress()`                 |
 
 ### 3. INTERNET & NETWORKING
@@ -144,9 +144,9 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Card expiry           | ✅ `creditCardExpiry()`                                                                        | ✅ Yes          | ✓ DONE                  | `CardExpirationGenerator` — MM/YY, future-only, locale-aware |
 | Security code         | ✅ `securityCode()` (CVV)                                                                      | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.getCvv()` — 3 or 4 digits               |
 | **Banking**           |
-| BIC/SWIFT             | ✅ `bic()`                                                                                     | ❌ No           | MEDIUM                  | Bank identifier                                              |
-| IBAN                  | ✅ `iban()`                                                                                    | ❌ No           | MEDIUM                  | International account                                        |
-| US routing number     | ✅ `usRoutingNumber()`                                                                         | ❌ No           | MEDIUM                  | ACH routing                                                  |
+| BIC/SWIFT             | ✅ `bic()`                                                                                     | ✅ Yes          | ✓ DONE                  | `BicGenerator`                                               |
+| IBAN                  | ✅ `iban()`                                                                                    | ✅ Yes          | ✓ DONE                  | `IbanGenerator`                                              |
+| US routing number     | ✅ `usRoutingNumber()`                                                                         | ✅ Yes          | ✓ DONE                  | `AbaRoutingGenerator`                                        |
 | **Money & Currency**  |
 | Currency name         | ✅ `currency()`                                                                                | ✅ Yes          | ✓ DONE                  |                                                              |
 | Currency code         | ✅ `currencyCode()` (USD, EUR)                                                                 | ✅ Yes          | ✓ DONE                  |                                                              |
@@ -161,9 +161,9 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Exchange names        | ✅ `exchanges()`                                                                               | ❌ No           | LOW                     |                                                              |
 | **Commerce**          |
 | Department            | ✅ `department()`                                                                              | ❌ No           | LOW                     | Store departments                                            |
-| Product name          | ✅ `productName()`                                                                             | ❌ No           | MEDIUM                  | E-commerce                                                   |
+| Product name          | ✅ `productName()`                                                                             | ✅ Yes          | ✓ DONE                  | `CommerceGenerator.productName()` / `ProductInfoGenerator`   |
 | Material              | ✅ `material()`                                                                                | ❌ No           | LOW                     | Product materials                                            |
-| Brand                 | ✅ `brand()`, `sport()`, `car()`, `watch()`                                                    | ❌ No           | MEDIUM                  | Brand names                                                  |
+| Brand                 | ✅ `brand()`, `sport()`, `car()`, `watch()`                                                    | ❌ No (intentional) | SKIP                | Generic brand/novelty datasets deferred until requested      |
 | Vendor                | ✅ `vendor()`                                                                                  | ❌ No           | LOW                     | Suppliers                                                    |
 | Promotion code        | ✅ `promotionCode()`                                                                           | ❌ No           | LOW                     | Discount codes                                               |
 | **Subscriptions**     |
@@ -201,16 +201,16 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Feature              | DataFaker Support                                     | krandom Status | Implementation Priority | Notes               |
 |----------------------|-------------------------------------------------------|----------------|-------------------------|---------------------|
 | **Lorem Ipsum**      |
-| Character            | ✅ `character()`                                       | ❌ No           | MEDIUM                  | Single char         |
-| Characters           | ✅ `characters(n)`                                     | ❌ No           | MEDIUM                  | N characters        |
-| Word                 | ✅ `word()`                                            | ❌ No           | HIGH                    | Single word         |
-| Words                | ✅ `words(n)`                                          | ❌ No           | HIGH                    | Multiple words      |
-| Sentence             | ✅ `sentence()`                                        | ❌ No           | HIGH                    | Full sentence       |
-| Sentences            | ✅ `sentences(n)`                                      | ❌ No           | HIGH                    | Multiple sentences  |
-| Paragraph            | ✅ `paragraph()`                                       | ❌ No           | HIGH                    | Full paragraph      |
-| Paragraphs           | ✅ `paragraphs(n)`                                     | ❌ No           | HIGH                    | Multiple paragraphs |
-| Fixed string         | ✅ `fixedString(n)`                                    | ❌ No           | MEDIUM                  | Exact length        |
-| Max length sentence  | ✅ `maxLengthSentence(n)`                              | ❌ No           | MEDIUM                  | Length-limited      |
+| Character            | ✅ `character()`                                       | ✅ Yes          | ✓ DONE                  | `CharGenerator`      |
+| Characters           | ✅ `characters(n)`                                     | ✅ Yes          | ✓ DONE                  | `StringGenerator` / `CharGenerator.generateList(n)` |
+| Word                 | ✅ `word()`                                            | ✅ Yes          | ✓ DONE                  | `WordGenerator`     |
+| Words                | ✅ `words(n)`                                          | ✅ Yes          | ✓ DONE                  | `WordGenerator.generateList(n)` |
+| Sentence             | ✅ `sentence()`                                        | ✅ Yes          | ✓ DONE                  | `SentenceGenerator` |
+| Sentences            | ✅ `sentences(n)`                                      | ✅ Yes          | ✓ DONE                  | `SentenceGenerator.generateList(n)` |
+| Paragraph            | ✅ `paragraph()`                                       | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator` |
+| Paragraphs           | ✅ `paragraphs(n)`                                     | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generateList(n)` |
+| Fixed string         | ✅ `fixedString(n)`                                    | ✅ Yes          | ✓ DONE                  | `StringGenerator.builder().minLength(n).maxLength(n)` |
+| Max length sentence  | ✅ `maxLengthSentence(n)`                              | ✅ Partial      | Explicit gap            | `SentenceGenerator` exists; max-character sentence helper differs |
 | **Specialized Text** |
 | Hacker speak         | ✅ `abbreviation()`, `adjective()`, `noun()`, `verb()` | ❌ No           | LOW                     | Tech jargon         |
 | Hipster words        | ✅ `word()`                                            | ❌ No           | LOW                     | Trendy vocabulary   |
@@ -226,8 +226,8 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Past date    | ✅ `past()`                            | ✅ Yes          | ✓ DONE                  | `DateGenerator.past()` / `past(int)`                         |
 | Date between | ✅ `between()`                         | ✅ Yes          | ✓ DONE                  | `DateGenerator.between(LocalDate, LocalDate)`                |
 | Birthday     | ✅ `birthday()`, `birthdayLocalDate()` | ✅ Yes          | ✓ DONE                  | `BirthdayGenerator` — type-based, locale-aware string format |
-| Duration     | ✅ `duration()`                        | ❌ No           | MEDIUM                  | Time spans                                                   |
-| Period       | ✅ `period()`                          | ❌ No           | MEDIUM                  | Date periods                                                 |
+| Duration     | ✅ `duration()`                        | ✅ Yes          | ✓ DONE                  | `DurationGenerator`                                          |
+| Period       | ✅ `period()`                          | ✅ Partial      | Explicit gap            | Date ranges are available via `DateGenerator`; no `Period` object generator |
 
 ### 9. PHONE NUMBERS
 
@@ -237,7 +237,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | National format      | ✅ `phoneNumberNational()`      | ✅ Yes          | ✓ DONE                  | `generate(true)` → "(555) 123-4567", "020 7946 0958"       |
 | International format | ✅ `phoneNumberInternational()` | ❌ No           | LOW                     | No +country prefix implemented yet                         |
 | Cell phone           | ✅ `cellPhone()`                | ✅ Yes          | ✓ DONE                  | `generate(true, true)` → mobile numbers per locale         |
-| Cell international   | ✅ `cellPhoneInternational()`   | ❌ No           | MEDIUM                  |                                                            |
+| Cell international   | ✅ `cellPhoneInternational()`   | ✅ Partial      | Explicit gap            | Mobile numbers and calling codes exist; no one-call international cell helper |
 | Extension            | ✅ `extension()`                | ❌ No           | LOW                     | x1234                                                      |
 | Subscriber number    | ✅ `subscriberNumber()`         | ❌ No           | LOW                     |                                                            |
 
@@ -248,19 +248,19 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | **Basic Numbers** |
 | Random digit      | ✅ `randomDigit()`                                | ✅ Yes          | ✓ DONE                  | 0-9            |
 | Digit not zero    | ✅ `randomDigitNotZero()`                         | ❌ No           | LOW                     | 1-9            |
-| Positive number   | ✅ `positive()`                                   | ❌ No           | MEDIUM                  | > 0            |
-| Negative number   | ✅ `negative()`                                   | ❌ No           | MEDIUM                  | < 0            |
+| Positive number   | ✅ `positive()`                                   | ✅ Yes          | ✓ DONE                  | Positive ranges via numeric generators |
+| Negative number   | ✅ `negative()`                                   | ✅ Yes          | ✓ DONE                  | Negative ranges via numeric generators |
 | Number between    | ✅ `numberBetween()`                              | ✅ Yes          | ✓ DONE                  | Range          |
 | Random double     | ✅ `randomDouble()`                               | ✅ Yes          | ✓ DONE                  |                |
 | **Book Codes**    |
-| ISBN-10           | ✅ `isbn10()`                                     | ❌ No           | MEDIUM                  | With checksum  |
-| ISBN-13           | ✅ `isbn13()`                                     | ❌ No           | MEDIUM                  | With checksum  |
+| ISBN-10           | ✅ `isbn10()`                                     | ✅ Yes          | ✓ DONE                  | `IsbnGenerator` |
+| ISBN-13           | ✅ `isbn13()`                                     | ✅ Yes          | ✓ DONE                  | `IsbnGenerator` |
 | ISBN components   | ✅ `isbnGs1()`, `isbnGroup()`, `isbnRegistrant()` | ❌ No           | LOW                     | Parts          |
 | **Product Codes** |
 | ASIN              | ✅ `asin()`                                       | ❌ No           | LOW                     | Amazon IDs     |
 | IMEI              | ✅ `imei()`                                       | ❌ No           | LOW                     | Mobile devices |
-| EAN-8/13          | ✅ `ean8()`, `ean13()`                            | ❌ No           | MEDIUM                  | Barcodes       |
-| GTIN              | ✅ `gtin8/12/13/14()`                             | ❌ No           | MEDIUM                  | Product IDs    |
+| EAN-8/13          | ✅ `ean8()`, `ean13()`                            | ✅ Yes          | ✓ DONE                  | `EanGenerator` |
+| GTIN              | ✅ `gtin8/12/13/14()`                             | ✅ Partial      | Explicit gap            | EAN/UPC exist; full GTIN-14 helper differs |
 | Barcode type      | ✅ `type()`                                       | ❌ No           | LOW                     |                |
 | **Hashing**       |
 | MD2/MD5           | ✅ `md2()`, `md5()`                               | ❌ No           | LOW                     | Crypto hashes  |
@@ -270,7 +270,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 | Feature    | DataFaker Support | krandom Status | Implementation Priority | Notes                                           |
 |------------|-------------------|----------------|-------------------------|-------------------------------------------------|
-| Color name | ✅ `name()`        | ❌ No           | MEDIUM                  | "Red", "Blue"                                   |
+| Color name | ✅ `name()`        | ✅ Yes          | ✓ DONE                  | `ColorGenerator.generateColorName()`            |
 | Hex color  | ✅ `hex()`         | ✅ Yes          | ✓ DONE                  | `ColorGenerator` — HEX/SHORT_HEX/RGB/0x formats |
 
 ### 12. ANIMALS
@@ -306,9 +306,9 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Science tool          | ✅ `tool()`                                     | ❌ No           | LOW                     | Microscope, etc.  |
 | Particles             | ✅ `quark()`, `leptons()`, `bosons()`           | ❌ No           | LOW                     | Physics           |
 | **Education**         |
-| University            | ✅ `university()`, `name()`                     | ❌ No           | MEDIUM                  | School names      |
+| University            | ✅ `university()`, `name()`                     | ❌ No (intentional) | SKIP                | Long-tail education dataset deferred until requested |
 | Course                | ✅ `course()`, `subjectWithNumber()`            | ❌ No           | LOW                     | CS 101            |
-| Degree                | ✅ `degree()`                                   | ❌ No           | MEDIUM                  | BS, MS, PhD       |
+| Degree                | ✅ `degree()`                                   | ❌ No (intentional) | SKIP                | Long-tail education dataset deferred until requested |
 | Secondary school      | ✅ `secondarySchool()`                          | ❌ No           | LOW                     | High schools      |
 | Campus                | ✅ `campus()`                                   | ❌ No           | LOW                     |                   |
 | **Ancient/Mythology** |
@@ -334,13 +334,13 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Feature        | DataFaker Support                                     | krandom Status | Implementation Priority | Notes             |
 |----------------|-------------------------------------------------------|----------------|-------------------------|-------------------|
 | **Vehicles**   |
-| VIN            | ✅ `vin()`                                             | ❌ No           | MEDIUM                  | Vehicle ID number |
-| Manufacturer   | ✅ `manufacturer()`                                    | ❌ No           | MEDIUM                  | Ford, Toyota      |
-| Make           | ✅ `make()`                                            | ❌ No           | MEDIUM                  |                   |
-| Model          | ✅ `model()`                                           | ❌ No           | MEDIUM                  | Civic, Camry      |
-| Make and model | ✅ `makeAndModel()`                                    | ❌ No           | MEDIUM                  | Combined          |
+| VIN            | ✅ `vin()`                                             | ❌ No (intentional) | SKIP                | Automotive identifiers are long-tail domain data |
+| Manufacturer   | ✅ `manufacturer()`                                    | ❌ No (intentional) | SKIP                | Automotive datasets deferred until requested |
+| Make           | ✅ `make()`                                            | ❌ No (intentional) | SKIP                | Automotive datasets deferred until requested |
+| Model          | ✅ `model()`                                           | ❌ No (intentional) | SKIP                | Automotive datasets deferred until requested |
+| Make and model | ✅ `makeAndModel()`                                    | ❌ No (intentional) | SKIP                | Automotive datasets deferred until requested |
 | Style          | ✅ `style()`                                           | ❌ No           | LOW                     | Sedan, SUV        |
-| Color          | ✅ `color()`                                           | ❌ No           | MEDIUM                  | Car colors        |
+| Color          | ✅ `color()`                                           | ❌ No (intentional) | SKIP                | Automotive-specific color vocabulary deferred |
 | Upholstery     | ✅ `upholsteryColor()`, `upholsteryFabric()`           | ❌ No           | LOW                     | Interior          |
 | Transmission   | ✅ `transmission()`                                    | ❌ No           | LOW                     | Manual, Auto      |
 | Drive type     | ✅ `driveType()`                                       | ❌ No           | LOW                     | FWD, RWD, AWD     |
@@ -350,14 +350,14 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Options        | ✅ `carOptions()`                                      | ❌ No           | LOW                     | Features          |
 | Specs          | ✅ `standardSpecs()`                                   | ❌ No           | LOW                     |                   |
 | Doors          | ✅ `doors()`                                           | ❌ No           | LOW                     | 2, 4              |
-| License plate  | ✅ `licensePlate()`                                    | ❌ No           | MEDIUM                  | Plate numbers     |
+| License plate  | ✅ `licensePlate()`                                    | ❌ No (intentional) | SKIP                | Automotive identifiers are long-tail domain data |
 | **Aviation**   |
 | Aircraft       | ✅ `aircraft()`, `airplane()`, `warplane()`, `cargo()` | ❌ No           | LOW                     | Plane types       |
 | Helicopter     | ✅ `armyHelicopter()`, `civilHelicopter()`             | ❌ No           | LOW                     |                   |
-| Airport        | ✅ `airport()`, `airportName()`                        | ❌ No           | MEDIUM                  | Airports          |
+| Airport        | ✅ `airport()`, `airportName()`                        | ❌ No (intentional) | SKIP                | Aviation datasets deferred until requested |
 | METAR          | ✅ `METAR()`                                           | ❌ No           | LOW                     | Weather report    |
 | Flight         | ✅ `flight()`, `flightStatus()`, `gate()`              | ❌ No           | LOW                     | Flight info       |
-| Airline        | ✅ `airline()`                                         | ❌ No           | MEDIUM                  | Carriers          |
+| Airline        | ✅ `airline()`                                         | ❌ No (intentional) | SKIP                | Aviation datasets deferred until requested |
 
 ### 16. HEALTHCARE
 
@@ -487,7 +487,7 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 
 | Feature   | DataFaker Support                                       | krandom Status | Implementation Priority | Notes          |
 |-----------|---------------------------------------------------------|----------------|-------------------------|----------------|
-| Boolean   | ✅ `bool()`                                              | ❌ No           | MEDIUM                  | true/false     |
+| Boolean   | ✅ `bool()`                                              | ✅ Yes          | ✓ DONE                  | `BooleanGenerator` |
 | Emoji     | ✅ Smiley, cat, vehicle                                  | ❌ No           | LOW                     | Unicode emoji  |
 | Space     | ✅ Planets, moons, galaxies, stars, agencies, spacecraft | ❌ No           | LOW                     | Astronomy      |
 | Superhero | ✅ Name, prefix, suffix, power, descriptor               | ❌ No           | LOW                     | Comic data     |
@@ -511,26 +511,26 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Numerify                 | ✅ `numerify("###-####")`           | ✅ Yes   | ✓ DONE   | `TemplateStringGenerator.numerify(...)`                                |
 | Letterify                | ✅ `letterify("???-???")`           | ✅ Yes   | ✓ DONE   | `TemplateStringGenerator.letterify(...)`                               |
 | Bothify                  | ✅ `bothify("???-###")`             | ✅ Yes   | ✓ DONE   | `TemplateStringGenerator.bothify(...)`                                 |
-| Regexify                 | ✅ `regexify("[A-Z]{3}\\d{4}")`     | ❌ No    | HIGH     | Regex-based generation                                                 |
-| Examplify                | ✅ `examplify("ABC-1234")`          | ❌ No    | MEDIUM   | Match pattern                                                          |
-| Templatify               | ✅ Custom templates                 | ❌ No    | MEDIUM   |                                                                        |
+| Regexify                 | ✅ `regexify("[A-Z]{3}\\d{4}")`     | ✅ Yes   | ✓ DONE   | `TextFormatProvider.regexify(...)` / `RegexGenerator`                  |
+| Examplify                | ✅ `examplify("ABC-1234")`          | ✅ Yes   | ✓ DONE   | `TextFormatProvider.examplify(...)`                                    |
+| Templatify               | ✅ Custom templates                 | ✅ Partial | Explicit gap | `TemplateStringGenerator` handles `#`/`?`; provider-token registry remains open |
 | **Data Sources**         |
-| Custom YAML              | ✅ `addPath()`, `addUrl()`          | ❌ No    | MEDIUM   | Extensibility                                                          |
+| Custom YAML              | ✅ `addPath()`, `addUrl()`          | ❌ No (intentional) | SKIP | Runtime YAML data-source loading is deferred; Java registries are code-first |
 | YAML key resolution      | ✅ `resolve(key)`                   | ❌ No    | LOW      |                                                                        |
 | **Collections**          |
 | Generate lists           | ✅ `collection().len(n).generate()` | ✅ Yes   | ✓ DONE   | `gen.generateList(n)` on every generator                               |
 | Variable length          | ✅ `minLen()`, `maxLen()`           | ✅ Yes   | ✓ DONE   | `generateList(n)` with any n                                           |
-| Nullable values          | ✅ `nullRate(0.1)`                  | ❌ No    | MEDIUM   | Realistic nulls                                                        |
+| Nullable values          | ✅ `nullRate(0.1)`                  | ✅ Partial | Explicit gap | Nullable booleans and object config exist; no universal generator null-rate wrapper |
 | Stream API               | ✅ `stream().limit(n)`              | ✅ Yes   | ✓ DONE   | `gen.stream().limit(n)` on every generator                             |
 | **Unique Values**        |
 | Unique enforcement       | ✅ `faker.unique()`                 | ✅ Yes   | ✓ DONE   | `Generators.unique(...)` and `Generators.uniqueValues(...)`            |
 | **Output Formats**       |
-| CSV generation           | ✅ Schema-based                     | ❌ No    | MEDIUM   | Structured output                                                      |
-| JSON generation          | ✅ Schema-based                     | ❌ No    | MEDIUM   |                                                                        |
+| CSV generation           | ✅ Schema-based                     | ✅ Yes   | ✓ DONE   | `Schema.toCsv()`                                                       |
+| JSON generation          | ✅ Schema-based                     | ✅ Yes   | ✓ DONE   | `Schema.toJsonLines()`                                                 |
 | YAML generation          | ✅ Schema-based                     | ❌ No    | LOW      |                                                                        |
 | XML generation           | ✅ Schema-based                     | ❌ No    | LOW      |                                                                        |
 | **Expressions**          |
-| YAML expressions         | ✅ `#{Provider.method}`             | ❌ No    | MEDIUM   | Composable generators                                                  |
+| YAML expressions         | ✅ `#{Provider.method}`             | ✅ Partial | Explicit gap | `SchemaTemplateEngine` supports schema templates; DataFaker YAML expression syntax is not mirrored |
 | **Custom Providers**     |
 | Extend with custom       | ✅ `AbstractProvider<T>`            | ❌ No    | LOW      | Plugin system                                                          |
 | **Object Population**    |

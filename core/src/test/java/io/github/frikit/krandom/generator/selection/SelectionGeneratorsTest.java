@@ -154,6 +154,29 @@ class SelectionGeneratorsTest {
     }
 
     @Test
+    @DisplayName("UniqueGenerator reset allows values to be reused")
+    void uniqueResetAllowsValuesToBeReused() {
+        UniqueGenerator<String> unique = new UniqueGenerator<>(() -> "repeat", 1);
+
+        assertEquals("repeat", unique.generate());
+        assertThrows(IllegalStateException.class, unique::generate);
+
+        unique.reset();
+
+        assertEquals("repeat", unique.generate());
+    }
+
+    @Test
+    @DisplayName("UniqueGenerator reset is a no-op before generation")
+    void uniqueResetBeforeGenerationIsNoOp() {
+        UniqueGenerator<String> unique = new UniqueGenerator<>(() -> "first", 1);
+
+        assertDoesNotThrow(unique::reset);
+
+        assertEquals("first", unique.generate());
+    }
+
+    @Test
     @DisplayName("Generators.uniqueValues alias wraps source generator")
     void generatorsUniqueValuesAliasWorks() {
         Generator<Integer> bounded = new Generator<>() {
