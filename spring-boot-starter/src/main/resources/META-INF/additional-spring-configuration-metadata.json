@@ -1,0 +1,51 @@
+{
+  "properties": [
+    {
+      "name": "krandom.seed",
+      "type": "java.lang.Long",
+      "description": "Optional numeric PRNG seed for reproducible generated data."
+    },
+    {
+      "name": "krandom.locale",
+      "type": "java.lang.String",
+      "description": "Locale tag used by locale-aware generators. Accepts BCP 47 tags such as en-US and underscore tags such as en_US.",
+      "defaultValue": "en-US"
+    },
+    {
+      "name": "krandom.object-max-depth",
+      "type": "java.lang.Integer",
+      "description": "Maximum nesting depth for reflection-based object generation.",
+      "defaultValue": 5
+    },
+    {
+      "name": "krandom.object-null-probability",
+      "type": "java.lang.Double",
+      "description": "Probability from 0.0 to 1.0 that a nullable reference field is generated as null during object generation.",
+      "defaultValue": 0.0
+    },
+    {
+      "name": "krandom.min-string-length",
+      "type": "java.lang.Integer",
+      "description": "Minimum length for generated strings.",
+      "defaultValue": 5
+    },
+    {
+      "name": "krandom.max-string-length",
+      "type": "java.lang.Integer",
+      "description": "Maximum length for generated strings.",
+      "defaultValue": 20
+    },
+    {
+      "name": "krandom.min-collection-size",
+      "type": "java.lang.Integer",
+      "description": "Minimum size for generated collections and arrays.",
+      "defaultValue": 1
+    },
+    {
+      "name": "krandom.max-collection-size",
+      "type": "java.lang.Integer",
+      "description": "Maximum size for generated collections and arrays.",
+      "defaultValue": 10
+    }
+  ]
+}

@@ -5,10 +5,12 @@ on:
     branches: [ master ]
     paths:
       - "docs-site/**"
+      - "scripts/verify_docs_site_links.sh"
       - ".github/workflows/github-pages.yml"
   pull_request:
     paths:
       - "docs-site/**"
+      - "scripts/verify_docs_site_links.sh"
       - ".github/workflows/github-pages.yml"
   workflow_dispatch:
 
@@ -28,6 +30,9 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
+      - name: Verify docs-site links
+        run: bash scripts/verify_docs_site_links.sh
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1

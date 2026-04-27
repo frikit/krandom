@@ -53,6 +53,12 @@ step "Verify Java + Maven example"
 step "Verify Java + Gradle integration modules example"
 "${GRADLEW}" -p "${REPO_ROOT}/examples/java-gradle-integrations" -PkrandomVersion="${VERSION}" test --no-daemon --console=plain
 
+step "Verify Java + Maven integration modules example"
+(
+    cd "${REPO_ROOT}/examples/java-maven-integrations"
+    mvn -q -Dkrandom.version="${VERSION}" test
+)
+
 step "Verify Kotlin + Gradle example"
 (
     cd "${REPO_ROOT}/examples/kotlin-gradle"
@@ -62,6 +68,12 @@ step "Verify Kotlin + Gradle example"
 step "Verify Kotlin + Maven example"
 (
     cd "${REPO_ROOT}/examples/kotlin-maven"
+    mvn -q -Dkrandom.version="${VERSION}" test
+)
+
+step "Verify Kotlin + Maven integration modules example"
+(
+    cd "${REPO_ROOT}/examples/kotlin-maven-integrations"
     mvn -q -Dkrandom.version="${VERSION}" test
 )
 

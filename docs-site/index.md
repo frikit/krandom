@@ -20,14 +20,15 @@ This site is focused on the Java side only.
 
 ## Quick links
 
-- [Getting Started](getting-started.md)
-- [Generator Catalog](generator-catalog.md)
-- [Examples](examples.md)
-- [Guides](guides.md)
-- [FAQ](faq.md)
+- [Getting Started]({{ '/getting-started/' | relative_url }})
+- [Generator Catalog]({{ '/generator-catalog/' | relative_url }})
+- [Examples]({{ '/examples/' | relative_url }})
+- [Guides]({{ '/guides/' | relative_url }})
+- [FAQ]({{ '/faq/' | relative_url }})
 
 ## Design direction (current)
 
 - Java is the source-of-truth implementation.
 - Consumer integrations build directly on `core`.
-- `jackson` is the only additional published integration module in this repository.
+- Published integrations include Jackson, Spring Boot, Kotest, jqwik, and the Kotlin DSL.
+- Java remains the primary API, with Kotlin and property-testing modules focused on consumer ergonomics.

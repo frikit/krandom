@@ -12,7 +12,7 @@ objenesis = "3.5"
 jakarta-validation = "3.1.1"
 jackson = "2.21.2"
 jqwik = "1.9.3"
-spring-boot = "4.0.6"
+spring-boot = "3.4.5"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }

@@ -29,8 +29,9 @@ fun <T> Generator<T>.toArb(): Arb<T> = arbitrary { generate() }
 /**
  * Creates a Kotest [Arb] from a krandom [Generator] supplier.
  *
- * Each property test iteration gets a fresh generator instance,
- * which is useful for generators with mutable internal state.
+ * The supplier is called once when the [Arb] is created, and the returned
+ * generator is reused for subsequent samples. This preserves the generator's
+ * normal sequence progression for seeded and stateful generators.
  *
  * Usage:
  * ```kotlin

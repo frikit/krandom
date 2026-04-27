@@ -1,6 +1,6 @@
-# Java Gradle Integration Modules Example
+# Java Maven Integration Modules Example
 
-This example verifies that the locally published integration artifacts are consumable from a clean Gradle build:
+This example verifies that published integration artifacts are consumable from a clean Maven build:
 
 - `io.github.frikit:krandom-jackson`
 - `io.github.frikit:krandom-spring-boot-starter`
@@ -9,5 +9,5 @@ This example verifies that the locally published integration artifacts are consu
 It is executed by `../../scripts/verify_examples_local.sh` after the repository modules are published to Maven local.
 
 ```bash
-../../gradlew -p . -PkrandomVersion=0.1.0-SNAPSHOT test
+mvn -Dkrandom.version=0.1.0-SNAPSHOT test
 ```

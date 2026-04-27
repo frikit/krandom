@@ -4,13 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.frikit.krandom.examples</groupId>
-    <artifactId>krandom-kotlin-maven-example</artifactId>
+    <artifactId>krandom-kotlin-maven-integrations-example</artifactId>
     <version>0.1.0</version>
 
     <properties>
         <krandom.version>0.1.0-SNAPSHOT</krandom.version>
-        <kotlin.version>2.3.10</kotlin.version>
+        <kotlin.version>2.3.21</kotlin.version>
         <kotlin.compiler.daemon>false</kotlin.compiler.daemon>
+        <junit.version>6.0.3</junit.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -27,15 +28,25 @@
             <version>${krandom.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.github.frikit</groupId>
+            <artifactId>krandom-kotest-extensions</artifactId>
+            <version>${krandom.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.frikit</groupId>
+            <artifactId>krandom-kotlin-dsl</artifactId>
+            <version>${krandom.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>6.0.3</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>6.0.3</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

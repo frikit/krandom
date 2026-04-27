@@ -2,7 +2,7 @@
 
 This folder contains test-based examples for each supported language/build-tool combination.
 
-Most examples depend directly on `io.github.frikit:krandom-core`. The Java Gradle integration example also verifies `krandom-jackson`, `krandom-spring-boot-starter`, and `krandom-jqwik-extensions`; the Kotlin Gradle example verifies `krandom-kotest-extensions` and `krandom-kotlin-dsl`.
+Core examples verify direct `io.github.frikit:krandom-core` consumption. Integration examples verify the published Jackson, Spring Boot, jqwik, Kotest, and Kotlin DSL artifacts from clean consumer builds.
 
 Default example version: `0.1.0-SNAPSHOT`
 
@@ -35,8 +35,10 @@ To point the examples at a different artifact version, set `KRANDOM_VERSION` or 
 - Java + Gradle: `examples/java-gradle`
 - Java + Gradle integration modules: `examples/java-gradle-integrations`
 - Java + Maven: `examples/java-maven`
+- Java + Maven integration modules: `examples/java-maven-integrations`
 - Kotlin + Gradle: `examples/kotlin-gradle`
 - Kotlin + Maven: `examples/kotlin-maven`
+- Kotlin + Maven integration modules: `examples/kotlin-maven-integrations`
 - Scala + sbt: `examples/scala-sbt`
 - Scala + Mill: `examples/scala-mill`
 

@@ -15,7 +15,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * <pre>{@code
  *   krandom.seed=42
-     *   krandom.locale=de-DE
+ *   krandom.locale=de-DE
  *   krandom.object-max-depth=3
  * }</pre>
  */
@@ -45,7 +45,7 @@ public class KrandomProperties {
     private Double objectNullProbability;
 
     /**
-     * Minimum length of generated strings. Defaults to the krandom built-in (1).
+     * Minimum length of generated strings. Defaults to the krandom built-in (5).
      */
     private Integer minStringLength;
 
@@ -60,7 +60,7 @@ public class KrandomProperties {
     private Integer minCollectionSize;
 
     /**
-     * Maximum size of generated collections and arrays. Defaults to the krandom built-in (5).
+     * Maximum size of generated collections and arrays. Defaults to the krandom built-in (10).
      */
     private Integer maxCollectionSize;
 

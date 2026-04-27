@@ -143,7 +143,7 @@ This runs formatting, compile, tests, and coverage checks.
 
 See also:
 
-- [Jackson Integration](guides/jackson-integration.md)
-- [Spring Boot Starter](guides/spring-boot-starter.md)
-- [Property Testing Integrations](guides/property-testing-integrations.md)
-- [Kotlin DSL](guides/kotlin-dsl.md)
+- [Jackson Integration]({{ '/guides/jackson-integration/' | relative_url }})
+- [Spring Boot Starter]({{ '/guides/spring-boot-starter/' | relative_url }})
+- [Property Testing Integrations]({{ '/guides/property-testing-integrations/' | relative_url }})
+- [Kotlin DSL]({{ '/guides/kotlin-dsl/' | relative_url }})

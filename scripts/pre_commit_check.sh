@@ -66,6 +66,14 @@ else
     exit 1
 fi
 
+step "Verify docs-site internal links"
+if bash "${REPO_ROOT}/scripts/verify_docs_site_links.sh"; then
+    ok "Docs-site links OK"
+else
+    fail "Docs-site link verification failed"
+    exit 1
+fi
+
 step "Compile all modules"
 if "${GRADLEW}" classes testClasses --quiet; then
     ok "Compilation OK"
