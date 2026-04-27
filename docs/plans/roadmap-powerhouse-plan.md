@@ -61,4 +61,4 @@ Goal: differentiate krandom with capabilities no competitor offers.
 - [x] **4.3 Kotlin DSL module** — new module `kotlin-dsl` providing `krandom { person { firstName = fixed("Ada") } }` builder syntax.
 - [x] **4.4 Expand locale coverage** — grow from 20 to 50+ locales via community PRs. Leverage the existing quality-tier system and `locale-contribution-guide.md`.
 - [ ] ~~**4.5 Database seeding module**~~ — skipped per user decision.
-- [ ] **4.6 Published benchmark dashboard** — add benchmark result tables to the docs-site. Automate monthly runs via scheduled GitHub Action.
+- [x] **4.6 Published benchmark dashboard** — add benchmark result tables to the docs-site. Automate monthly runs via scheduled GitHub Action.

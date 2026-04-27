@@ -1,0 +1,546 @@
+Configuration on demand is an incubating feature.
+> Task :core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :benchmarks:processResources NO-SOURCE
+> Task :core:compileKotlin NO-SOURCE
+> Task :core:compileJava UP-TO-DATE
+> Task :core:processResources UP-TO-DATE
+> Task :core:classes UP-TO-DATE
+> Task :core:jar UP-TO-DATE
+> Task :benchmarks:compileJava UP-TO-DATE
+> Task :benchmarks:classes UP-TO-DATE
+
+> Task :benchmarks:jmh
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.dataFakerBulk
+# Parameters: (batchSize = 100)
+
+# Run progress: 0.00% complete, ETA 00:01:03
+# Fork: 1 of 1
+# Warmup Iteration   1: 453.429 ops/s
+Iteration   1: 2385.321 ops/s
+Iteration   2: 2413.279 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.dataFakerBulk":
+  2399.300 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.dataFakerBulk
+# Parameters: (batchSize = 1000)
+
+# Run progress: 4.76% complete, ETA 00:01:05
+# Fork: 1 of 1
+# Warmup Iteration   1: 82.358 ops/s
+Iteration   1: 188.116 ops/s
+Iteration   2: 236.579 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.dataFakerBulk":
+  212.347 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.easyRandomBulk
+# Parameters: (batchSize = 100)
+
+# Run progress: 9.52% complete, ETA 00:01:02
+# Fork: 1 of 1
+# Warmup Iteration   1: 685.372 ops/s
+Iteration   1: 1048.478 ops/s
+Iteration   2: 1027.168 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.easyRandomBulk":
+  1037.823 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.easyRandomBulk
+# Parameters: (batchSize = 1000)
+
+# Run progress: 14.29% complete, ETA 00:00:58
+# Fork: 1 of 1
+# Warmup Iteration   1: 75.244 ops/s
+Iteration   1: 105.277 ops/s
+Iteration   2: 103.829 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.easyRandomBulk":
+  104.553 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.instancioBulk
+# Parameters: (batchSize = 100)
+
+# Run progress: 19.05% complete, ETA 00:00:55
+# Fork: 1 of 1
+# Warmup Iteration   1: 09:07:23.281 [io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.instancioBulk-jmh-worker-1] DEBUG o.i.i.context.PropertiesLoader - No custom 'instancio.properties' found on classpath. Using default settings.
+3025.403 ops/s
+Iteration   1: 5854.458 ops/s
+Iteration   2: 6593.744 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.instancioBulk":
+  6224.101 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.instancioBulk
+# Parameters: (batchSize = 1000)
+
+# Run progress: 23.81% complete, ETA 00:00:52
+# Fork: 1 of 1
+# Warmup Iteration   1: 09:07:26.480 [io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.instancioBulk-jmh-worker-1] DEBUG o.i.i.context.PropertiesLoader - No custom 'instancio.properties' found on classpath. Using default settings.
+481.118 ops/s
+Iteration   1: 799.373 ops/s
+Iteration   2: 826.286 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.instancioBulk":
+  812.830 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.krandomBulk
+# Parameters: (batchSize = 100)
+
+# Run progress: 28.57% complete, ETA 00:00:48
+# Fork: 1 of 1
+# Warmup Iteration   1: 15.938 ops/s
+Iteration   1: 36.578 ops/s
+Iteration   2: 45.506 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.krandomBulk":
+  41.042 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.krandomBulk
+# Parameters: (batchSize = 1000)
+
+# Run progress: 33.33% complete, ETA 00:00:45
+# Fork: 1 of 1
+# Warmup Iteration   1: 1.977 ops/s
+Iteration   1: 4.178 ops/s
+Iteration   2: 4.679 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.krandomBulk":
+  4.428 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.dataFakerObject
+
+# Run progress: 38.10% complete, ETA 00:00:42
+# Fork: 1 of 1
+# Warmup Iteration   1: 125650.763 ops/s
+Iteration   1: 241095.917 ops/s
+Iteration   2: 271408.361 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.dataFakerObject":
+  256252.139 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.easyRandomObject
+
+# Run progress: 42.86% complete, ETA 00:00:39
+# Fork: 1 of 1
+# Warmup Iteration   1: 98885.563 ops/s
+Iteration   1: 124099.608 ops/s
+Iteration   2: 124126.888 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.easyRandomObject":
+  124113.248 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.instancioObject
+
+# Run progress: 47.62% complete, ETA 00:00:36
+# Fork: 1 of 1
+# Warmup Iteration   1: 09:07:42.917 [io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.instancioObject-jmh-worker-1] DEBUG o.i.i.context.PropertiesLoader - No custom 'instancio.properties' found on classpath. Using default settings.
+42176.614 ops/s
+Iteration   1: 103203.612 ops/s
+Iteration   2: 106182.231 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.instancioObject":
+  104692.922 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.krandomObject
+
+# Run progress: 52.38% complete, ETA 00:00:32
+# Fork: 1 of 1
+# Warmup Iteration   1: 1710.765 ops/s
+Iteration   1: 3132.051 ops/s
+Iteration   2: 3008.918 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.krandomObject":
+  3070.485 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerEmail
+
+# Run progress: 57.14% complete, ETA 00:00:29
+# Fork: 1 of 1
+# Warmup Iteration   1: 124596.788 ops/s
+Iteration   1: 390965.378 ops/s
+Iteration   2: 367660.796 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerEmail":
+  379313.087 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerFirstName
+
+# Run progress: 61.90% complete, ETA 00:00:26
+# Fork: 1 of 1
+# Warmup Iteration   1: 1215017.913 ops/s
+Iteration   1: 2493885.522 ops/s
+Iteration   2: 2947293.066 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerFirstName":
+  2720589.294 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerStreetAddress
+
+# Run progress: 66.67% complete, ETA 00:00:22
+# Fork: 1 of 1
+# Warmup Iteration   1: 347909.796 ops/s
+Iteration   1: 726677.445 ops/s
+Iteration   2: 860971.434 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerStreetAddress":
+  793824.439 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerEmail
+
+# Run progress: 71.43% complete, ETA 00:00:19
+# Fork: 1 of 1
+# Warmup Iteration   1: 116045.377 ops/s
+Iteration   1: 213460.873 ops/s
+Iteration   2: 229632.768 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerEmail":
+  221546.820 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerFirstName
+
+# Run progress: 76.19% complete, ETA 00:00:16
+# Fork: 1 of 1
+# Warmup Iteration   1: 218892.368 ops/s
+Iteration   1: 313864.360 ops/s
+Iteration   2: 346072.417 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerFirstName":
+  329968.389 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerStreetAddress
+
+# Run progress: 80.95% complete, ETA 00:00:13
+# Fork: 1 of 1
+# Warmup Iteration   1: 62127.980 ops/s
+Iteration   1: 83472.679 ops/s
+Iteration   2: 82954.895 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerStreetAddress":
+  83213.787 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomEmail
+
+# Run progress: 85.71% complete, ETA 00:00:09
+# Fork: 1 of 1
+# Warmup Iteration   1: 7327785.528 ops/s
+Iteration   1: 7369019.557 ops/s
+Iteration   2: 7410156.062 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomEmail":
+  7389587.809 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomFirstName
+
+# Run progress: 90.48% complete, ETA 00:00:06
+# Fork: 1 of 1
+# Warmup Iteration   1: 61362531.827 ops/s
+Iteration   1: 61682847.616 ops/s
+Iteration   2: 58682063.877 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomFirstName":
+  60182455.747 ops/s
+
+
+# JMH version: 1.37
+# VM version: JDK 21.0.10, OpenJDK 64-Bit Server VM, 21.0.10+7-LTS
+# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 1 iterations, 1 s each
+# Measurement: 2 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomStreetAddress
+
+# Run progress: 95.24% complete, ETA 00:00:03
+# Fork: 1 of 1
+# Warmup Iteration   1: 14180122.694 ops/s
+Iteration   1: 12311611.608 ops/s
+Iteration   2: 11944851.510 ops/s
+
+
+Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomStreetAddress":
+  12128231.559 ops/s
+
+
+# Run complete. Total time: 00:01:08
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+NOTE: Current JVM experimentally supports Compiler Blackholes, and they are in use. Please exercise
+extra caution when trusting the results, look into the generated code to check the benchmark still
+works, and factor in a small probability of new VM bugs. Additionally, while comparisons between
+different JVMs are already problematic, the performance difference caused by different Blackhole
+modes can be very significant. Please make sure you use the consistent Blackhole mode for comparisons.
+
+Benchmark                                         (batchSize)   Mode  Cnt         Score   Error  Units
+CompetitorBulkBenchmark.dataFakerBulk                     100  thrpt    2      2399.300          ops/s
+CompetitorBulkBenchmark.dataFakerBulk                    1000  thrpt    2       212.347          ops/s
+CompetitorBulkBenchmark.easyRandomBulk                    100  thrpt    2      1037.823          ops/s
+CompetitorBulkBenchmark.easyRandomBulk                   1000  thrpt    2       104.553          ops/s
+CompetitorBulkBenchmark.instancioBulk                     100  thrpt    2      6224.101          ops/s
+CompetitorBulkBenchmark.instancioBulk                    1000  thrpt    2       812.830          ops/s
+CompetitorBulkBenchmark.krandomBulk                       100  thrpt    2        41.042          ops/s
+CompetitorBulkBenchmark.krandomBulk                      1000  thrpt    2         4.428          ops/s
+CompetitorObjectBenchmark.dataFakerObject                 N/A  thrpt    2    256252.139          ops/s
+CompetitorObjectBenchmark.easyRandomObject                N/A  thrpt    2    124113.248          ops/s
+CompetitorObjectBenchmark.instancioObject                 N/A  thrpt    2    104692.922          ops/s
+CompetitorObjectBenchmark.krandomObject                   N/A  thrpt    2      3070.485          ops/s
+CompetitorScalarBenchmark.dataFakerEmail                  N/A  thrpt    2    379313.087          ops/s
+CompetitorScalarBenchmark.dataFakerFirstName              N/A  thrpt    2   2720589.294          ops/s
+CompetitorScalarBenchmark.dataFakerStreetAddress          N/A  thrpt    2    793824.439          ops/s
+CompetitorScalarBenchmark.javaFakerEmail                  N/A  thrpt    2    221546.820          ops/s
+CompetitorScalarBenchmark.javaFakerFirstName              N/A  thrpt    2    329968.389          ops/s
+CompetitorScalarBenchmark.javaFakerStreetAddress          N/A  thrpt    2     83213.787          ops/s
+CompetitorScalarBenchmark.krandomEmail                    N/A  thrpt    2   7389587.809          ops/s
+CompetitorScalarBenchmark.krandomFirstName                N/A  thrpt    2  60182455.747          ops/s
+CompetitorScalarBenchmark.krandomStreetAddress            N/A  thrpt    2  12128231.559          ops/s
+
+BUILD SUCCESSFUL in 1m 9s
+5 actionable tasks: 1 executed, 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

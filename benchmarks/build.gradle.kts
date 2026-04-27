@@ -28,7 +28,11 @@ tasks.register<JavaExec>("jmh") {
     description = "Run JMH microbenchmarks."
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("org.openjdk.jmh.Main")
-    args("io.github.frikit.krandom.benchmarks.*")
+    if (project.hasProperty("jmhArgs")) {
+        args(project.property("jmhArgs").toString().split(" "))
+    } else {
+        args("io.github.frikit.krandom.benchmarks.*")
+    }
 }
 
 tasks.register<JavaExec>("profileGeneration") {
