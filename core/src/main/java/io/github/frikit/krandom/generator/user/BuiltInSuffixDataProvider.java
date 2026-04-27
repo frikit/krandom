@@ -41,6 +41,20 @@ final class BuiltInSuffixDataProvider implements SuffixDataProvider {
             case "cs" -> new String[] { "ml.", "st.", "Ing.", "PhDr." };
             case "ar" -> new String[] { "الابن", "الأب", "د.", "م." };
             case "hi" -> new String[] { "जूनियर", "सीनियर", "पीएचडी", "एमडी" };
+            case "da" -> new String[] { "jr.", "sr.", "PhD", "dr.med." };
+            case "fi" -> new String[] { "nuor.", "vanh.", "FT", "TkT" };
+            case "hu" -> new String[] { "ifj.", "id.", "PhD", "Dr." };
+            case "ro" -> new String[] { "Jr.", "Sr.", "PhD", "Dr." };
+            case "sk" -> new String[] { "ml.", "st.", "Ing.", "PhDr." };
+            case "uk" -> new String[] { "мол.", "ст.", "канд. наук", "д-р" };
+            case "bg" -> new String[] { "мл.", "ст.", "д-р", "проф." };
+            case "hr" -> new String[] { "ml.", "st.", "dr.", "prof." };
+            case "el" -> new String[] { "Νεώτ.", "Πρεσβ.", "Δρ.", "PhD" };
+            case "th" -> new String[] { "จูเนียร์", "ซีเนียร์", "ปริญญาเอก", "นพ." };
+            case "vi" -> new String[] { "Con", "Cha", "TS.", "PGS." };
+            case "id", "ms" -> new String[] { "Jr.", "Sr.", "S.T.", "Dr." };
+            case "he" -> new String[] { "ג'וניור", "סניור", "דוקטור", "פרופ'" };
+            case "ca" -> new String[] { "Jr.", "Sr.", "PhD", "Dr." };
             default -> new String[] { "Jr.", "Sr.", "II", "III", "IV", "Esq.", "PhD", "MD", "JD", "DO", "DDS", "RN", "CPA" };
         };
     }

@@ -1,0 +1,12 @@
+utca
+út
+körút
+tér
+köz
+sor
+sugárút
+dűlő
+fasor
+liget
+sétány
+lakótelep

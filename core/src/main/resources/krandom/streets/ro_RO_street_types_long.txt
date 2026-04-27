@@ -1,0 +1,12 @@
+Strada
+Bulevardul
+Calea
+Splaidul
+Aleea
+Piața
+Șoseaua
+Intrarea
+Fundătura
+Drumul
+Prelungirea
+Pasajul

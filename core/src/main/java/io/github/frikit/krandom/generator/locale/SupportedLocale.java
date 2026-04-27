@@ -19,6 +19,7 @@ import java.util.Optional;
  */
 public enum SupportedLocale {
 
+    // ── Tier 1: Native datasets (20 original locales) ───────────────────
     EN_US("en", "US"),
     EN_GB("en", "GB"),
     EN_AU("en", "AU"),
@@ -38,7 +39,56 @@ public enum SupportedLocale {
     NB_NO("nb", "NO"),
     CS_CZ("cs", "CZ"),
     AR_SA("ar", "SA"),
-    HI_IN("hi", "IN");
+    HI_IN("hi", "IN"),
+
+    // ── Tier 2: Native datasets (15 new languages) ───────────────────
+    DA_DK("da", "DK"),
+    FI_FI("fi", "FI"),
+    HU_HU("hu", "HU"),
+    RO_RO("ro", "RO"),
+    SK_SK("sk", "SK"),
+    UK_UA("uk", "UA"),
+    BG_BG("bg", "BG"),
+    HR_HR("hr", "HR"),
+    EL_GR("el", "GR"),
+    TH_TH("th", "TH"),
+    VI_VN("vi", "VN"),
+    ID_ID("id", "ID"),
+    MS_MY("ms", "MY"),
+    HE_IL("he", "IL"),
+    CA_ES("ca", "ES"),
+
+    // ── Tier 3: Curated fallback datasets (15 regional variants) ─────
+    EN_CA("en", "CA", "en_US", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "en_US", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    EN_NZ("en", "NZ", "en_AU", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "en_AU", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    EN_IE("en", "IE", "en_GB", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "en_GB", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    EN_IN("en", "IN", "en_US", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "en_US", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    EN_ZA("en", "ZA", "en_GB", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "en_GB", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    FR_CA("fr", "CA", "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    FR_BE("fr", "BE", "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    FR_CH("fr", "CH", "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    DE_AT("de", "AT", "de_DE", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "de_DE", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    DE_CH("de", "CH", "de_DE", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "de_DE", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    ES_MX("es", "MX", "es_ES", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "es_ES", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    ES_AR("es", "AR", "es_ES", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "es_ES", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    PT_PT("pt", "PT", "pt_BR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "pt_BR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    NL_BE("nl", "BE", "nl_NL", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "nl_NL", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    ZH_TW("zh", "TW", "zh_CN", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+          "zh_CN", LocaleDataQualityTier.CURATED_FALLBACK_DATASET);
 
     private final Locale locale;
     private final String canonicalResourcePrefix;

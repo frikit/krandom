@@ -1,0 +1,12 @@
+Vej
+Gade
+Allé
+Plads
+Stræde
+Boulevard
+Torv
+Drivvej
+Sving
+Sti
+Parkvej
+Have

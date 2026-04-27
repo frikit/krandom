@@ -378,7 +378,7 @@ class FullNameGeneratorTest {
             FullNameGenerator gen = new FullNameGenerator();
             assertThrows(
                 UnsupportedOperationException.class,
-                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "hu"))
+                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "sw"))
             );
         }
 

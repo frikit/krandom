@@ -1,0 +1,12 @@
+ulica
+trg
+cesta
+put
+aleja
+obala
+stube
+park
+šetalište
+prilaz
+odvojak
+prolaz

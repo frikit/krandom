@@ -56,9 +56,9 @@ Goal: make krandom the natural choice for JVM test infrastructure.
 
 Goal: differentiate krandom with capabilities no competitor offers.
 
-- [ ] **4.1 OpenAPI/JSON Schema input** — new module or core feature: parse an OpenAPI spec or JSON Schema and produce `Schema` instances with field-appropriate generators. No competitor does this well.
+- [x] **4.1 OpenAPI/JSON Schema input** — new module or core feature: parse an OpenAPI spec or JSON Schema and produce `Schema` instances with field-appropriate generators. No competitor does this well.
 - [x] **4.2 Streaming bulk export** — add `Schema.writeTo(OutputStream, format, count)` variants that write directly to output streams with bounded memory. Enable million-row dataset generation without OOM.
 - [x] **4.3 Kotlin DSL module** — new module `kotlin-dsl` providing `krandom { person { firstName = fixed("Ada") } }` builder syntax.
-- [ ] **4.4 Expand locale coverage** — grow from 20 to 50+ locales via community PRs. Leverage the existing quality-tier system and `locale-contribution-guide.md`.
-- [ ] **4.5 Database seeding module** — JDBC integration extending `toSqlInserts()` to execute inserts directly against a `DataSource`. Natural extension for test database setup.
+- [x] **4.4 Expand locale coverage** — grow from 20 to 50+ locales via community PRs. Leverage the existing quality-tier system and `locale-contribution-guide.md`.
+- [ ] ~~**4.5 Database seeding module**~~ — skipped per user decision.
 - [ ] **4.6 Published benchmark dashboard** — add benchmark result tables to the docs-site. Automate monthly runs via scheduled GitHub Action.

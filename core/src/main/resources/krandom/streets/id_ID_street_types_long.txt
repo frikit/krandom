@@ -1,0 +1,12 @@
+Jalan
+Gang
+Kampung
+Desa
+Kelurahan
+Kecamatan
+Kavling
+Blok
+Komplek
+Pasar
+Taman
+Industri

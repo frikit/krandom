@@ -1,0 +1,12 @@
+Vej
+Gade
+Allé
+Pl.
+Stræde
+Blvd.
+Torv
+Dr.
+Sving
+Sti
+Parkvej
+Boul.

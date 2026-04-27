@@ -47,6 +47,20 @@ final class BuiltInTitleDataProvider implements TitleDataProvider {
             case "cs" -> new String[] { "Pan", "Paní", "Dr.", "Prof." };
             case "ar" -> new String[] { "السيد", "السيدة", "د.", "أ." };
             case "hi" -> new String[] { "श्री", "श्रीमती", "डॉ.", "प्रो." };
+            case "da" -> new String[] { "Hr.", "Fru", "Frk.", "Dr.", "Prof." };
+            case "fi" -> new String[] { "Herra", "Rouva", "Neiti", "Tri", "Prof." };
+            case "hu" -> new String[] { "Úr", "Asszony", "Dr.", "Prof." };
+            case "ro" -> new String[] { "Dl.", "Dna.", "Dra.", "Dr.", "Prof." };
+            case "sk" -> new String[] { "Pán", "Pani", "Dr.", "Prof." };
+            case "uk" -> new String[] { "Пан", "Пані", "Д-р", "Проф." };
+            case "bg" -> new String[] { "Г-н", "Г-жа", "Д-р", "Проф." };
+            case "hr" -> new String[] { "G.", "Gđa.", "Dr.", "Prof." };
+            case "el" -> new String[] { "Κος", "Κα", "Δρ.", "Καθ." };
+            case "th" -> new String[] { "คุณ", "นาย", "นาง", "นางสาว", "ดร." };
+            case "vi" -> new String[] { "Ông", "Bà", "Anh", "Chị", "TS." };
+            case "id", "ms" -> new String[] { "Bapak", "Ibu", "Saudara", "Dr." };
+            case "he" -> new String[] { "מר", "גברת", "ד\"ר", "פרופ'" };
+            case "ca" -> new String[] { "Sr.", "Sra.", "Srta.", "Dr.", "Prof." };
             default -> new String[] { "Mr.", "Mrs.", "Ms.", "Miss", "Dr.", "Prof.", "Rev.", "Hon.", "Mx." };
         };
     }

@@ -1,0 +1,5 @@
+Apartament
+Etaj
+Cameră
+Birou
+Bloc

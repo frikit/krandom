@@ -1,0 +1,12 @@
+katu
+tie
+kuja
+polku
+puistikko
+raitti
+tori
+kaari
+rinne
+portti
+silta
+väylä

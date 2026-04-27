@@ -1,0 +1,5 @@
+Lakás
+Emelet
+Szoba
+Iroda
+Lépcsőház

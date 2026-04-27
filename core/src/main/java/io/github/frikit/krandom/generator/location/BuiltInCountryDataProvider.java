@@ -7,12 +7,17 @@ package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 
+import java.io.InputStream;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
 
 /**
  * Built-in country provider backed by classpath country resources.
+ *
+ * <p>Uses a resource file when one exists for the locale's resource prefix;
+ * otherwise falls back to JDK-translated country names via
+ * {@link Locale#getDisplayCountry(Locale)}.
  */
 final class BuiltInCountryDataProvider implements CountryDataProvider {
 
@@ -21,20 +26,13 @@ final class BuiltInCountryDataProvider implements CountryDataProvider {
 
     BuiltInCountryDataProvider(SupportedLocale supportedLocale) {
         this.locale = supportedLocale.locale();
-        if (supportedLocale == SupportedLocale.NL_NL
-            || supportedLocale == SupportedLocale.PL_PL
-            || supportedLocale == SupportedLocale.CS_CZ
-            || supportedLocale == SupportedLocale.KO_KR
-            || supportedLocale == SupportedLocale.RU_RU
-            || supportedLocale == SupportedLocale.TR_TR
-            || supportedLocale == SupportedLocale.SV_SE
-            || supportedLocale == SupportedLocale.NB_NO
-            || supportedLocale == SupportedLocale.AR_SA
-            || supportedLocale == SupportedLocale.HI_IN) {
-            this.countries = localizedCountryNames(locale);
+        String resourcePrefix = supportedLocale.resourcePrefix();
+        String path = "krandom/countries/" + resourcePrefix + "_countries.txt";
+        InputStream is = BuiltInCountryDataProvider.class.getClassLoader().getResourceAsStream(path);
+        if (is != null) {
+            this.countries = CountryResourceLoader.load(is, path);
         } else {
-            String resourcePrefix = supportedLocale.resourcePrefix();
-            this.countries = CountryResourceLoader.load("krandom/countries/" + resourcePrefix + "_countries.txt");
+            this.countries = localizedCountryNames(locale);
         }
     }
 

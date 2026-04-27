@@ -60,7 +60,22 @@ public final class NationalIdRegistry {
             new NbNationalIdProvider(),
             new CsNationalIdProvider(),
             new ArSaNationalIdProvider(),
-            new HiInNationalIdProvider()
+            new HiInNationalIdProvider(),
+            new DaDkNationalIdProvider(),
+            new FiFiNationalIdProvider(),
+            new HuHuNationalIdProvider(),
+            new RoRoNationalIdProvider(),
+            new SkSkNationalIdProvider(),
+            new UkUaNationalIdProvider(),
+            new BgBgNationalIdProvider(),
+            new HrHrNationalIdProvider(),
+            new ElGrNationalIdProvider(),
+            new ThThNationalIdProvider(),
+            new ViVnNationalIdProvider(),
+            new IdIdNationalIdProvider(),
+            new MsMyNationalIdProvider(),
+            new HeIlNationalIdProvider(),
+            new CaEsNationalIdProvider()
         ).forEach(NationalIdRegistry::seedInternal);
     }
 

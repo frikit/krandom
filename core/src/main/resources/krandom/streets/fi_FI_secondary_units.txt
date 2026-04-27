@@ -1,0 +1,5 @@
+Asunto
+Kerros
+Huone
+Toimisto
+Rappu

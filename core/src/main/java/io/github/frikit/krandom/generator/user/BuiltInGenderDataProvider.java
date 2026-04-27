@@ -44,6 +44,20 @@ final class BuiltInGenderDataProvider implements GenderDataProvider {
             case "cs" -> new String[] { "Muž", "Žena" };
             case "ar" -> new String[] { "ذكر", "أنثى" };
             case "hi" -> new String[] { "पुरुष", "महिला" };
+            case "da" -> new String[] { "Mand", "Kvinde" };
+            case "fi" -> new String[] { "Mies", "Nainen" };
+            case "hu" -> new String[] { "Férfi", "Nő" };
+            case "ro" -> new String[] { "Bărbat", "Femeie" };
+            case "sk" -> new String[] { "Muž", "Žena" };
+            case "uk" -> new String[] { "Чоловік", "Жінка" };
+            case "bg" -> new String[] { "Мъж", "Жена" };
+            case "hr" -> new String[] { "Muškarac", "Žena" };
+            case "el" -> new String[] { "Άνδρας", "Γυναίκα" };
+            case "th" -> new String[] { "ชาย", "หญิง" };
+            case "vi" -> new String[] { "Nam", "Nữ" };
+            case "id", "ms" -> new String[] { "Laki-laki", "Perempuan" };
+            case "he" -> new String[] { "זכר", "נקבה" };
+            case "ca" -> new String[] { "Home", "Dona" };
             default -> new String[] { "Male", "Female" };
         };
     }

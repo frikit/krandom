@@ -39,7 +39,7 @@ class SupportedLocaleCoverageTest {
     void localeHelpersExposeDeclaredLocalesAndRejectUnknownLocales() {
         assertEquals(Arrays.stream(SupportedLocale.values()).map(SupportedLocale::locale).toList(),
                      SupportedLocale.locales());
-        assertTrue(SupportedLocale.fromLocale(Locale.CANADA_FRENCH).isEmpty());
+        assertTrue(SupportedLocale.fromLocale(Locale.of("xx", "YY")).isEmpty());
     }
 
     @Test
@@ -272,8 +272,11 @@ class SupportedLocaleCoverageTest {
                                 Character.UnicodeScript.HIRAGANA,
                                 Character.UnicodeScript.KATAKANA);
             case "ko" -> Set.of(Character.UnicodeScript.HANGUL);
-            case "ru" -> Set.of(Character.UnicodeScript.CYRILLIC);
+            case "ru", "uk", "bg" -> Set.of(Character.UnicodeScript.CYRILLIC);
             case "zh" -> Set.of(Character.UnicodeScript.HAN);
+            case "el" -> Set.of(Character.UnicodeScript.GREEK);
+            case "th" -> Set.of(Character.UnicodeScript.THAI);
+            case "he" -> Set.of(Character.UnicodeScript.HEBREW);
             default -> Set.of(Character.UnicodeScript.LATIN);
         };
     }

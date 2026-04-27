@@ -203,9 +203,9 @@ class ProfessionGeneratorTest {
         void unsupportedLocaleThrows() {
             UnsupportedOperationException ex = assertThrows(
                 UnsupportedOperationException.class,
-                () -> new ProfessionGenerator(Locale.of("hu", "HU"))
+                () -> new ProfessionGenerator(Locale.of("am", "ET"))
             );
-            assertTrue(ex.getMessage().contains("hu_HU"));
+            assertTrue(ex.getMessage().contains("am_ET"));
         }
 
         @Test
@@ -441,8 +441,8 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("append uniform overload works")
         void appendUniformWorks() {
-            Locale testLocale = Locale.of("fi", "FI");
-            ProfessionDataRegistry.append(testLocale, new String[] { "Kehittäjä", "Opettaja" });
+            Locale testLocale = Locale.of("zu", "ZA");
+            ProfessionDataRegistry.append(testLocale, new String[] { "Umakhi", "Uthisha" });
             ProfessionGenerator generator = new ProfessionGenerator(testLocale);
             assertEquals(2, generator.getProfessionCount());
         }
@@ -520,7 +520,7 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("isLocaleExplicitlySupported distinguishes fallback")
         void explicitSupportCheck() {
-            ProfessionGenerator fallbackGenerator = new ProfessionGenerator(Locale.of("en", "NZ"));
+            ProfessionGenerator fallbackGenerator = new ProfessionGenerator(Locale.of("en", "SG"));
             assertFalse(fallbackGenerator.isLocaleExplicitlySupported());
 
             ProfessionGenerator exactGenerator = new ProfessionGenerator(Locale.US);

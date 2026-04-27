@@ -1,0 +1,5 @@
+Lejlighed
+Etage
+Værelse
+Kontor
+Afdeling

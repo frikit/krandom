@@ -1,0 +1,12 @@
+Carrer
+Avinguda
+Passeig
+Plaça
+Rambla
+Carretera
+Passatge
+Travessera
+Costa
+Camí
+Gran Via
+Baixada

@@ -1,0 +1,12 @@
+Đường
+Ngõ
+Phố
+Khu phố
+Hẻm
+Kiệt
+Đại lộ
+Quốc lộ
+Tỉnh lộ
+Công trường
+Bến
+Bờ kè

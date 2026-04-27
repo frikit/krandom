@@ -1,0 +1,12 @@
+ulica
+námestie
+cesta
+trieda
+nábrežie
+rad
+sídlisko
+park
+alej
+most
+pasáž
+dvor
