@@ -60,6 +60,15 @@ class GeneratorTest {
     }
 
     @Test
+    @DisplayName("reseed default delegates to Seedable.reseed when implemented")
+    void reseedDelegatesToSeedable() {
+        SeedableGenerator generator = new SeedableGenerator();
+        generator.invokeGeneratorDefault(987654321L);
+        assertEquals(987654321L, generator.lastSeed);
+        assertEquals(1, generator.reseedCalls);
+    }
+
+    @Test
     @DisplayName("reseed wraps reflective field-access failures")
     void reseedWrapsReflectiveAccessFailure() {
         IllegalStateException ex = assertThrows(
@@ -90,6 +99,26 @@ class GeneratorTest {
 
         int nextInherited() {
             return inheritedRandom.nextInt();
+        }
+    }
+
+    private static final class SeedableGenerator implements Generator<Integer>, Seedable {
+        long lastSeed;
+        int reseedCalls;
+
+        @Override
+        public Integer generate() {
+            return 0;
+        }
+
+        @Override
+        public void reseed(long seed) {
+            lastSeed = seed;
+            reseedCalls++;
+        }
+
+        void invokeGeneratorDefault(long seed) {
+            Generator.super.reseed(seed);
         }
     }
 

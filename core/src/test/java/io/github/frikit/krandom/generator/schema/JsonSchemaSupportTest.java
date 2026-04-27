@@ -22,6 +22,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("JsonSchemaSupport")
 class JsonSchemaSupportTest {
@@ -101,6 +102,16 @@ class JsonSchemaSupportTest {
     }
 
     @Test
+    @DisplayName("infer wraps reflective failures from record accessors")
+    void inferWrapsRecordAccessorFailure() {
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> JsonSchemaSupport.infer(new ThrowingRecord("payload")));
+        assertTrue(ex.getMessage().contains("Failed to read record component 'value'"));
+        assertTrue(ex.getCause() instanceof ReflectiveOperationException);
+    }
+
+    @Test
     @DisplayName("copy and record validation reject invalid schema inputs")
     void validation() {
         assertThrows(IllegalArgumentException.class, () -> JsonSchemaSupport.record(String.class));
@@ -114,6 +125,13 @@ class JsonSchemaSupportTest {
     }
 
     private record SampleRecord(String name, int count) {
+    }
+
+    private record ThrowingRecord(String value) {
+        @Override
+        public String value() {
+            throw new IllegalStateException("accessor failure");
+        }
     }
 
     private record NestedRecord(String value) {

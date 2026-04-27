@@ -117,4 +117,24 @@ class SchemaWriteToTest {
         assertThrows(NullPointerException.class,
             () -> schema.writeTo(new ByteArrayOutputStream(), null, 1));
     }
+
+    @Test
+    @DisplayName("writeTo wraps reflective failures from record accessors")
+    void writeToWrapsRecordAccessorFailure() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("payload", ctx -> new ThrowingRecord("data"));
+        Schema throwingSchema = new Schema(fields);
+
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> throwingSchema.writeTo(new ByteArrayOutputStream(), OutputFormat.JSONL, 1));
+        assertTrue(ex.getMessage().contains("Failed to read record component 'value'"));
+    }
+
+    private record ThrowingRecord(String value) {
+        @Override
+        public String value() {
+            throw new IllegalStateException("accessor failure");
+        }
+    }
 }

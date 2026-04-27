@@ -340,11 +340,14 @@ public final class Schema implements Generator<Map<String, Object>> {
     public void writeTo(Writer writer, OutputFormat format, int count, String tableName) throws IOException {
         Objects.requireNonNull(writer, "writer must not be null");
         Objects.requireNonNull(format, "format must not be null");
-        switch (format) {
-            case JSONL -> writeJsonLines(writer, count);
-            case CSV -> writeCsv(writer, count);
-            case XML -> writeXml(writer, count);
-            case SQL -> writeSqlInserts(writer, tableName, count);
+        if (format == OutputFormat.JSONL) {
+            writeJsonLines(writer, count);
+        } else if (format == OutputFormat.CSV) {
+            writeCsv(writer, count);
+        } else if (format == OutputFormat.XML) {
+            writeXml(writer, count);
+        } else {
+            writeSqlInserts(writer, tableName, count);
         }
     }
 
