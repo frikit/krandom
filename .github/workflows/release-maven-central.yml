@@ -56,8 +56,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build and test
-        run: ./gradlew clean test -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
+      - name: Build, test, and check
+        run: ./gradlew clean build check -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
       - name: Publish to Maven Central (OSSRH)
         env:
@@ -85,11 +85,17 @@ jobs:
             core/build/libs/*.jar
             jackson/build/libs/*.jar
             spring-boot-starter/build/libs/*.jar
+            kotest-extensions/build/libs/*.jar
+            jqwik-extensions/build/libs/*.jar
+            kotlin-dsl/build/libs/*.jar
           body: |
             Published modules:
             - io.github.frikit:krandom-core:${{ env.VERSION }}
             - io.github.frikit:krandom-jackson:${{ env.VERSION }}
             - io.github.frikit:krandom-spring-boot-starter:${{ env.VERSION }}
+            - io.github.frikit:krandom-kotest-extensions:${{ env.VERSION }}
+            - io.github.frikit:krandom-jqwik-extensions:${{ env.VERSION }}
+            - io.github.frikit:krandom-kotlin-dsl:${{ env.VERSION }}
 
             ### Maven Central
             ```kotlin

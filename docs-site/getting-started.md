@@ -18,23 +18,15 @@ Published coordinates:
 - `io.github.frikit:krandom-core:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
 - `io.github.frikit:krandom-spring-boot-starter:<version>`
+- `io.github.frikit:krandom-kotest-extensions:<version>`
+- `io.github.frikit:krandom-jqwik-extensions:<version>`
+- `io.github.frikit:krandom-kotlin-dsl:<version>`
 
 Gradle:
 
 ```kotlin
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.github.com/frikit/krandom")
-        credentials {
-            username = providers.gradleProperty("gpr.user")
-                .orElse(providers.environmentVariable("GITHUB_ACTOR"))
-                .orNull
-            password = providers.gradleProperty("gpr.key")
-                .orElse(providers.environmentVariable("GITHUB_TOKEN"))
-                .orNull
-        }
-    }
 }
 
 dependencies {
@@ -42,19 +34,15 @@ dependencies {
     // Optional integrations:
     implementation("io.github.frikit:krandom-jackson:<version>")
     implementation("io.github.frikit:krandom-spring-boot-starter:<version>")
+    testImplementation("io.github.frikit:krandom-kotest-extensions:<version>")
+    testImplementation("io.github.frikit:krandom-jqwik-extensions:<version>")
+    testImplementation("io.github.frikit:krandom-kotlin-dsl:<version>")
 }
 ```
 
 Maven:
 
 ```xml
-<repositories>
-  <repository>
-    <id>github</id>
-    <url>https://maven.pkg.github.com/frikit/krandom</url>
-  </repository>
-</repositories>
-
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
@@ -62,9 +50,7 @@ Maven:
 </dependency>
 ```
 
-GitHub Packages requires credentials.
-
-After Maven Central release work is completed, the default install path will be `mavenCentral()` without GitHub Packages credentials.
+No GitHub Packages credentials are required for Maven Central. GitHub Packages remains available as a secondary release channel for repository-local workflows.
 
 ## First usage
 
@@ -159,3 +145,5 @@ See also:
 
 - [Jackson Integration](guides/jackson-integration.md)
 - [Spring Boot Starter](guides/spring-boot-starter.md)
+- [Property Testing Integrations](guides/property-testing-integrations.md)
+- [Kotlin DSL](guides/kotlin-dsl.md)

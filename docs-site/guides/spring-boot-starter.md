@@ -10,22 +10,11 @@ Use `krandom-spring-boot-starter` when a Spring Boot 3.x application should get 
 
 ## Dependency
 
-The current release channel is GitHub Packages:
+Use Maven Central:
 
 ```kotlin
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.github.com/frikit/krandom")
-        credentials {
-            username = providers.gradleProperty("gpr.user")
-                .orElse(providers.environmentVariable("GITHUB_ACTOR"))
-                .orNull
-            password = providers.gradleProperty("gpr.key")
-                .orElse(providers.environmentVariable("GITHUB_TOKEN"))
-                .orNull
-        }
-    }
 }
 
 dependencies {
@@ -33,7 +22,7 @@ dependencies {
 }
 ```
 
-GitHub Packages requires credentials. Maven Central will become the default install path when release work is completed.
+GitHub Packages remains available as a secondary release channel for repository-local workflows.
 
 ## Application Properties
 
@@ -63,6 +52,7 @@ The starter registers these beans only when the application has not already prov
 ## Usage
 
 ```java
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import io.github.frikit.krandom.spring.KrandomObjectFakerFactory;
@@ -79,7 +69,7 @@ class DemoDataService {
     }
 
     String email() {
-        return providers.lookup("person.email").generate().toString();
+        return providers.get("person.email", Generator.class).generate().toString();
     }
 
     UserDto user() {

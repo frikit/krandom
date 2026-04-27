@@ -138,8 +138,8 @@ subprojects {
                 val signingPassword = providers.environmentVariable("GPG_SIGNING_PASSWORD").orNull
                 if (signingKey != null && signingPassword != null) {
                     useInMemoryPgpKeys(signingKey, signingPassword)
+                    sign(the<PublishingExtension>().publications["mavenJava"])
                 }
-                sign(the<PublishingExtension>().publications["mavenJava"])
             }
         }
     }

@@ -2,7 +2,7 @@
 
 This folder contains test-based examples for each supported language/build-tool combination.
 
-Most examples depend directly on `io.github.frikit:krandom-core`. The Java Gradle integration example also verifies `krandom-jackson` and `krandom-spring-boot-starter`.
+Most examples depend directly on `io.github.frikit:krandom-core`. The Java Gradle integration example also verifies `krandom-jackson`, `krandom-spring-boot-starter`, and `krandom-jqwik-extensions`; the Kotlin Gradle example verifies `krandom-kotest-extensions` and `krandom-kotlin-dsl`.
 
 Default example version: `0.1.0-SNAPSHOT`
 
@@ -21,7 +21,7 @@ For repo-local verification, publish the current workspace artifact to Maven loc
 That script:
 
 - verifies Java 21+
-- publishes `krandom-core`, `krandom-jackson`, and `krandom-spring-boot-starter` to Maven local
+- publishes all current `krandom-*` consumer artifacts to Maven local
 - runs the example test suites against the local artifact
 
 To point the examples at a different artifact version, set `KRANDOM_VERSION` or the build-tool-specific property:

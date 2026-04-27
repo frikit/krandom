@@ -10,13 +10,16 @@ import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
 import io.github.frikit.krandom.jackson.KrandomJackson;
+import io.github.frikit.krandom.jqwik.KrandomArbitraries;
 import io.github.frikit.krandom.spring.KrandomAutoConfiguration;
 import io.github.frikit.krandom.spring.KrandomObjectFakerFactory;
+import net.jqwik.api.Arbitrary;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -63,6 +66,15 @@ class JavaGradleIntegrationUsageTest {
             assertFalse(hub.get("person.email", Generator.class).generate().toString().isBlank());
             assertNotNull(factory.generator(SpringExampleUser.class).generate());
         });
+    }
+
+    @Test
+    void jqwikExtensionIsConsumableFromPublishedArtifact() {
+        Arbitrary<String> emails = KrandomArbitraries.fromGenerator(Generators.ofEmail());
+        List<String> samples = emails.sampleStream().limit(10).toList();
+
+        assertEquals(10, samples.size());
+        samples.forEach(email -> assertFalse(email.isBlank()));
     }
 
     public static final class SpringExampleUser {

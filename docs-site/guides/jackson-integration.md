@@ -10,22 +10,11 @@ Use `krandom-jackson` when you want Jackson to understand kRandom schema definit
 
 ## Dependency
 
-The current release channel is GitHub Packages:
+Use Maven Central:
 
 ```kotlin
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.github.com/frikit/krandom")
-        credentials {
-            username = providers.gradleProperty("gpr.user")
-                .orElse(providers.environmentVariable("GITHUB_ACTOR"))
-                .orNull
-            password = providers.gradleProperty("gpr.key")
-                .orElse(providers.environmentVariable("GITHUB_TOKEN"))
-                .orNull
-        }
-    }
 }
 
 dependencies {

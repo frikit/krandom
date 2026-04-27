@@ -15,6 +15,8 @@ permalink: /guides/
 - [Schema and Provider Hub](guides/schema-and-provider-hub.md)
 - [Jackson Integration](guides/jackson-integration.md)
 - [Spring Boot Starter](guides/spring-boot-starter.md)
+- [Property Testing Integrations](guides/property-testing-integrations.md)
+- [Kotlin DSL](guides/kotlin-dsl.md)
 - [Testing Integrations](guides/testing-integrations.md)
 - [Runnable Snippets](guides/runnable-snippets.md)
 - [Migration from Faker and Chance](guides/migration-from-faker-chance.md)

@@ -3,7 +3,7 @@
 [![tests + coverage](https://github.com/frikit/krandom/actions/workflows/continuous-integration-workflow.yml/badge.svg)](https://github.com/frikit/krandom/actions/workflows/continuous-integration-workflow.yml)
 [![codecov](https://codecov.io/github/frikit/krandom/graph/badge.svg?token=CpcHkmbzo7)](https://codecov.io/github/frikit/krandom)
 
-kRandom is a Java 21 random and fake-data generation toolkit. The repository is centered on the Java core plus a Jackson integration module. Kotlin and Scala wrapper modules have been removed so the implementation surface stays focused and maintainable.
+kRandom is a Java 21 random and fake-data generation toolkit. The repository is centered on the Java core plus focused integration modules for Jackson, Spring Boot, property-based testing, and Kotlin DSL usage.
 
 ## Modules
 
@@ -12,6 +12,9 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
 | `jackson` | Jackson integration on top of `core` |
 | `spring-boot-starter` | Spring Boot 3.x auto-configuration for `core` |
+| `kotest-extensions` | Kotest `Arb` adapters for property-based tests |
+| `jqwik-extensions` | jqwik `Arbitrary` adapters for property-based tests |
+| `kotlin-dsl` | Kotlin DSL for object generation rules |
 | `benchmarks` | JMH and macro-profile workloads, including competitor comparisons |
 | `examples/` | Consumer examples for Java, Kotlin, and Scala build-tool combinations using `core` directly |
 | `docs-site/` | Public documentation site source |
@@ -21,7 +24,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 
 - Java-first architecture.
 - `core` is the only behavior source of truth.
-- `jackson` and `spring-boot-starter` are published integration modules.
+- `jackson`, `spring-boot-starter`, `kotest-extensions`, `jqwik-extensions`, and `kotlin-dsl` are published integration modules.
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs tests and coverage on Java 21.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
@@ -88,7 +91,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 `pre_commit_check.sh` runs formatting, markdown checks, compilation, tests, Javadoc validation, coverage verification, and now fails fast when Java 21+ is not active.
 
-`verify_examples_local.sh` publishes the current `krandom-core`, `krandom-jackson`, and `krandom-spring-boot-starter` artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set.
+`verify_examples_local.sh` publishes all current `krandom-*` consumer artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set.
 
 ## Install
 
@@ -97,6 +100,9 @@ Published artifacts (group `io.github.frikit`):
 - `io.github.frikit:krandom-core:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
 - `io.github.frikit:krandom-spring-boot-starter:<version>`
+- `io.github.frikit:krandom-kotest-extensions:<version>`
+- `io.github.frikit:krandom-jqwik-extensions:<version>`
+- `io.github.frikit:krandom-kotlin-dsl:<version>`
 
 ### Gradle (Kotlin DSL)
 
@@ -128,7 +134,7 @@ No special repository configuration is needed — artifacts are published to Mav
 
 ## Examples
 
-Consumer examples live in [`examples/`](examples/). They are test-based examples rather than runnable demo apps, and they all depend directly on `io.github.frikit:krandom-core`.
+Consumer examples live in [`examples/`](examples/). They are test-based examples rather than runnable demo apps, and they verify Maven-local consumption of core plus the published integration artifacts.
 
 - Java + Gradle
 - Java + Gradle integration modules
@@ -153,4 +159,4 @@ Releases are published to **Maven Central** and **GitHub Packages** via two work
 - [`.github/workflows/release-maven-central.yml`](.github/workflows/release-maven-central.yml) — primary release to Maven Central (OSSRH) + GitHub Packages + GitHub Release
 - [`.github/workflows/release-github-packages.yml`](.github/workflows/release-github-packages.yml) — GitHub Packages only
 
-Both workflows validate a semver input, build and test the repository, publish `krandom-core`, `krandom-jackson`, and `krandom-spring-boot-starter`, create a Git tag, and create a GitHub Release with built JARs attached.
+Both workflows validate a semver input, build and test the repository, publish every `krandom-*` consumer artifact, create a Git tag, and create a GitHub Release with built JARs attached.
