@@ -33,6 +33,7 @@ import io.github.frikit.krandom.generator.commerce.ShipmentInfoGenerator;
 import io.github.frikit.krandom.generator.database.DatabaseGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.DurationGenerator;
+import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.InstantGenerator;
 import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.TimezoneGenerator;
@@ -613,6 +614,13 @@ public final class Generators {
      */
     public static DurationGenerator ofDuration() {
         return new DurationGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link java.time.OffsetDateTime} values.
+     */
+    public static OffsetDateTimeGenerator ofOffsetDateTime() {
+        return new OffsetDateTimeGenerator();
     }
 
     /**

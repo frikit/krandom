@@ -45,12 +45,12 @@ Acceptance:
 
 Goal: close Bogus’s biggest architectural gap: fluent, rule-based object faker configuration.
 
-- [ ] Add `Faker<T>`-style fluent builder API (Java idiomatic mapping).
-- [ ] Add `ruleFor`-style property rules (single property and dependent-property variants).
-- [ ] Add strict-mode equivalent (missing rules detection / validation pass).
-- [ ] Add `ignore` / include filtering for object fields.
-- [ ] Add configuration validation API (Bogus-like `AssertConfigurationIsValid()` equivalent).
-- [ ] Add post-generation hook (`finishWith` style).
+- [x] Add `Faker<T>`-style fluent builder API (Java idiomatic mapping). — `ObjectFaker<T>`
+- [x] Add `ruleFor`-style property rules (single property and dependent-property variants). — `ObjectFaker.ruleFor` and `ruleForContext`
+- [x] Add strict-mode equivalent (missing rules detection / validation pass). — `ObjectFaker.assertConfigurationIsValid`
+- [x] Add `ignore` / include filtering for object fields. — `ObjectFaker.ignore` / `include`
+- [x] Add configuration validation API (Bogus-like `AssertConfigurationIsValid()` equivalent). — `ObjectFaker.assertConfigurationIsValid`
+- [x] Add post-generation hook (`finishWith` style). — `ObjectFaker.postProcess` / `afterGenerate`
 
 Acceptance:
 

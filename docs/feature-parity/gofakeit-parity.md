@@ -23,18 +23,18 @@ This baseline replaces the earlier stale matrix and normalizes parity into `Yes`
 | Finance/payments                                            | Partial | Locale used where meaningful                  | Credit-card suite, ACH routing, currency, IBAN/BIC/ISIN, crypto address exist; ACH account/bank-type/EIN/CUSIP/object-shape differences remain. |
 | Company/job/commerce                                        | Partial | Commerce has locale-aware vocabulary          | Company/job providers exist; GoFakeit job/composite object and some convenience aliases are still missing.                                      |
 | Date/time                                                   | Partial | Locale-aware formatting in relevant providers | Date/time/timezone support is broad; GoFakeit helper naming and some component conveniences are not 1:1.                                        |
-| Text/lorem/patterns                                         | Partial | Locale-aware text generators exist            | Word/sentence/paragraph/lorem are implemented; numerify/lexify/bothify/asciify and GoFakeit generate/template compatibility remain incomplete.  |
+| Text/lorem/patterns                                         | Yes     | Locale-aware text generators exist            | Word/sentence/paragraph/lorem implemented; numerify/lexify/bothify/asciify wired via `TextFormatProvider` and `TemplateStringGenerator`. GoFakeit `Generate("{function}")` template-registry parity still pending Step 4.  |
 | Object/struct generation                                    | Partial | Locale not central                            | Reflection object generation exists; GoFakeit-style `fake:` tag semantics and `fakesize` directives are not implemented.                        |
 | Structured output (CSV/JSON/XML/SQL)                        | No      | Locale not central                            | Dedicated formatted-output providers are not implemented.                                                                                       |
 | System/database                                             | Partial | Locale not central                            | Version/platform/exception payload plus database `column`/`type` subset now exist.                                                              |
-| Long-tail novelty datasets (minecraft/emoji/celebrity/etc.) | No      | Locale not central                            | Out of current core scope; defer to intentional skip unless explicitly requested.                                                               |
+| Long-tail novelty datasets (minecraft/emoji/celebrity/etc.) | No (intentional) | Locale not central                   | SKIP — novelty data with low enterprise fixture value; bloats jar size. Includes Minecraft, celebrity, emoji, animal, food, image-byte generators.       |
 
 ## Open Gaps Tagged for Execution
 
 | Gap                                                                                     | Current Status | Priority Tag        | Notes                                                                                   |
 |-----------------------------------------------------------------------------------------|----------------|---------------------|-----------------------------------------------------------------------------------------|
 | Reconcile GoFakeit alias names for core providers (identity/address/network/date/text)  | Partial        | P0                  | Most behavior exists but API names differ; add compatibility aliases where practical.   |
-| Pattern APIs (`numerify`, `lexify`, `bothify`, `asciify`)                               | Partial        | P0                  | Can be layered over existing template/format generators.                                |
+| Pattern APIs (`numerify`, `lexify`, `bothify`, `asciify`)                               | Yes            | Done                | Implemented in `TextFormatProvider` and `TemplateStringGenerator`.                      |
 | Address/contact composite objects (`Address`, `Contact`, `Person`)                      | Partial        | P0                  | Core generators exist; convenience object payloads still missing.                       |
 | Finance object/convenience parity (`CreditCardInfo`, ACH account, bank type, EIN/CUSIP) | Partial        | P1                  | Several primitives exist; missing convenience APIs and some identifiers.                |
 | Company/job object parity (`Job` object + descriptor/level mapping)                     | Partial        | P1                  | Current generators cover many pieces but not GoFakeit object shape.                     |
@@ -42,7 +42,7 @@ This baseline replaces the earlier stale matrix and normalizes parity into `Yes`
 | Template compatibility (`Generate("{function}")` + function lookup registry)            | Partial        | P1                  | Existing template/string generators provide base but not full GoFakeit syntax/registry. |
 | Structured output providers (CSV/JSON/XML/SQL/Markdown/fixed-width)                     | No             | P1                  | Not implemented in current Java generators.                                             |
 | Locale breadth expansion for text/company/address datasets                              | Partial        | P2                  | Core locales exist; depth and breadth below GoFakeit’s broad catalog.                   |
-| Novelty/long-tail families (minecraft/emoji/celebrity/food/media/animals)               | No             | P2 (skip candidate) | Low ROI for core fixture parity unless explicitly requested.                            |
+| Novelty/long-tail families (minecraft/emoji/celebrity/food/media/animals/image bytes)   | No (intentional) | SKIP              | Novelty data with low enterprise fixture value; bloats jar size. Add via community PR if a concrete use case appears. |
 
 ## Alias Candidates Identified in Phase 0
 

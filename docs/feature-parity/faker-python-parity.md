@@ -383,16 +383,16 @@ This section is the current Java parity baseline for execution planning. Some le
 | **Seeding**              |
 | Class-level seed         | ✅ `Faker.seed(n)`                         | ❌ No      | MEDIUM   | All instances                 |
 | Instance-level seed      | ✅ `faker.seed_instance(n)`                | ✅ Yes     | ✓ DONE   | Most generators support       |
-| Custom random            | ✅ `generator` param                       | ❌ No      | LOW      | External Random               |
+| Custom random            | ✅ `generator` param                       | ✅ Yes     | ✓ DONE   | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)` |
 | **String Utilities**     |
-| Numerify                 | ✅ `numerify("###-####")`                  | ❌ No      | HIGH     | Template-based                |
-| Letterify                | ✅ `lexify("???-???")`                     | ❌ No      | HIGH     | Letter templates              |
-| Bothify                  | ✅ `bothify("???-###")`                    | ❌ No      | HIGH     | Combined                      |
+| Numerify                 | ✅ `numerify("###-####")`                  | ✅ Yes     | ✓ DONE   | `TextFormatProvider.numerify` |
+| Letterify                | ✅ `lexify("???-???")`                     | ✅ Yes     | ✓ DONE   | `TextFormatProvider.lexify`   |
+| Bothify                  | ✅ `bothify("???-###")`                    | ✅ Yes     | ✓ DONE   | `TextFormatProvider.bothify`  |
 | Hexify                   | ✅ `hexify("^^^^")`                        | ❌ No      | MEDIUM   | Hex templates                 |
 | **Uniqueness**           |
-| Unique values            | ✅ `faker.unique.method()`                 | ❌ No      | HIGH     | No duplicates                 |
-| Uniqueness clear         | ✅ `faker.unique.clear()`                  | ❌ No      | MEDIUM   | Reset seen set                |
-| Uniqueness exception     | ✅ `UniquenessException`                   | ❌ No      | MEDIUM   | After max attempts            |
+| Unique values            | ✅ `faker.unique.method()`                 | ✅ Yes     | ✓ DONE   | `Generators.unique(source)`   |
+| Uniqueness clear         | ✅ `faker.unique.clear()`                  | ❌ No      | MEDIUM   | No `reset()` on `UniqueGenerator` |
+| Uniqueness exception     | ✅ `UniquenessException`                   | ✅ Yes     | ✓ DONE   | Throws `IllegalStateException` after `maxAttempts` |
 | **Custom Providers**     |
 | Add provider             | ✅ `add_provider(MyProvider)`              | ❌ No      | MEDIUM   | Plugin system                 |
 | BaseProvider utilities   | ✅ `random_element`, `random_elements`     | ❌ No      | MEDIUM   | Helper methods                |

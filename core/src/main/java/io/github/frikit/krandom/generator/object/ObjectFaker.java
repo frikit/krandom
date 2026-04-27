@@ -263,6 +263,44 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
+     * Asserts that every settable root field or record component has an explicit rule, ignore,
+     * or include directive — Bogus's {@code AssertConfigurationIsValid()} equivalent.
+     *
+     * <p>When {@link #include(String)} has been used, only the included root fields are required
+     * to have rules; unincluded fields are treated as implicitly excluded. Otherwise, every
+     * non-static, non-final field (and every record component) must either have a rule registered
+     * or appear in {@link #ignore(String)}.
+     */
+    public ObjectFaker<T> assertConfigurationIsValid() {
+        Set<String> rootFieldNames = new LinkedHashSet<>();
+        for (RuleTarget target : allRuleTargets()) {
+            if (target.field() != null && Modifier.isFinal(target.field().getModifiers())) {
+                continue;
+            }
+            rootFieldNames.add(target.fieldName());
+        }
+
+        Set<String> ruleRoots = new LinkedHashSet<>();
+        ruleRoots.addAll(rootFieldNames(fieldRules.keySet()));
+        ruleRoots.addAll(rootFieldNames(contextualFieldRules.keySet()));
+        ruleRoots.addAll(rootFieldNames(dependentFieldRules.keySet()));
+
+        Set<String> required = new LinkedHashSet<>(rootFieldNames);
+        if (!includedFields.isEmpty()) {
+            required.retainAll(rootFieldNames(includedFields));
+        } else {
+            required.removeAll(rootFieldNames(ignoredFields));
+        }
+        required.removeAll(ruleRoots);
+
+        if (!required.isEmpty()) {
+            throw new IllegalStateException(
+                "ObjectFaker for " + type.getName() + " has no rules for: " + required);
+        }
+        return this;
+    }
+
+    /**
      * Populates an existing mutable instance using the configured fixture rules.
      */
     public T populate(T instance) {

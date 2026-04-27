@@ -117,7 +117,7 @@ Goal: expand parity depth where ROI is high.
 
 - [ ] Choice/weighted selection and unique-pick semantics (where missing/different).
 - [ ] Additional locale datasets for names/address/text/finance.
-- [ ] Advanced datetime helpers (intervals, durations, offsets) and cryptographic/token helpers.
+- [x] Advanced datetime helpers (intervals, durations, offsets) — `DurationGenerator.between(Duration,Duration)`, `OffsetDateTimeGenerator.between(start,end)` + `Generators.ofOffsetDateTime()`; existing `LocalDateTimeGenerator/InstantGenerator/ZonedDateTimeGenerator.between(start,end)` cover interval semantics. Cryptographic/token helpers still pending.
 - [ ] Network/http convenience depth (headers/content type/user-agent options).
 
 Acceptance:

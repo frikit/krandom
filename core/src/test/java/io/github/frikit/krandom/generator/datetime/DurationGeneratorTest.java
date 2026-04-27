@@ -62,4 +62,38 @@ class DurationGeneratorTest {
     void nullConfig() {
         assertThrows(NullPointerException.class, () -> new DurationGenerator(null));
     }
+
+    @Test
+    @DisplayName("between(Duration,Duration) respects inclusive range")
+    void betweenDuration() {
+        DurationGenerator gen = new DurationGenerator(GeneratorConfig.builder().seed(7L).build());
+        Duration min = Duration.ofMinutes(5);
+        Duration max = Duration.ofMinutes(15);
+        for (int i = 0; i < 30; i++) {
+            Duration d = gen.between(min, max);
+            assertTrue(d.compareTo(min) >= 0 && d.compareTo(max) <= 0);
+        }
+        assertEquals(Duration.ofMinutes(10), gen.between(Duration.ofMinutes(10), Duration.ofMinutes(10)));
+    }
+
+    @Test
+    @DisplayName("between(Duration,Duration) truncates sub-second components")
+    void betweenDurationTruncatesNanos() {
+        DurationGenerator gen = new DurationGenerator();
+        Duration min = Duration.ofSeconds(5).plusNanos(900_000_000);
+        Duration max = Duration.ofSeconds(6).plusNanos(100_000_000);
+        Duration result = gen.between(min, max);
+        assertEquals(Duration.ofSeconds(result.toSeconds()), result);
+        assertTrue(result.toSeconds() >= 5 && result.toSeconds() <= 6);
+    }
+
+    @Test
+    @DisplayName("between(Duration,Duration) validates arguments")
+    void betweenDurationValidates() {
+        DurationGenerator gen = new DurationGenerator();
+        assertThrows(NullPointerException.class, () -> gen.between(null, Duration.ofSeconds(1)));
+        assertThrows(NullPointerException.class, () -> gen.between(Duration.ofSeconds(1), null));
+        assertThrows(IllegalArgumentException.class, () -> gen.between(Duration.ofSeconds(-1), Duration.ofSeconds(1)));
+        assertThrows(IllegalArgumentException.class, () -> gen.between(Duration.ofSeconds(5), Duration.ofSeconds(1)));
+    }
 }

@@ -870,6 +870,105 @@ class ObjectFakerTest {
         assertTrue(ex.getMessage().contains("already being applied"));
     }
 
+    @Test
+    @DisplayName("assertConfigurationIsValid passes when every root field has a rule")
+    void assertConfigurationIsValidPassesWhenAllFieldsRuled() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .ruleFor("firstName", () -> "Ada")
+            .ruleFor("lastName", () -> "Lovelace")
+            .ruleFor("email", () -> "ada@example.com");
+
+        assertSame(faker, faker.assertConfigurationIsValid());
+    }
+
+    @Test
+    @DisplayName("assertConfigurationIsValid accepts ignored fields")
+    void assertConfigurationIsValidAcceptsIgnoredFields() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .ruleFor("firstName", () -> "Ada")
+            .ignore("lastName", "email");
+
+        assertSame(faker, faker.assertConfigurationIsValid());
+    }
+
+    @Test
+    @DisplayName("assertConfigurationIsValid throws listing missing root fields")
+    void assertConfigurationIsValidThrowsForMissingRules() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .ruleFor("firstName", () -> "Ada");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            faker::assertConfigurationIsValid);
+        assertTrue(ex.getMessage().contains(FixtureUser.class.getName()));
+        assertTrue(ex.getMessage().contains("lastName"));
+        assertTrue(ex.getMessage().contains("email"));
+    }
+
+    @Test
+    @DisplayName("assertConfigurationIsValid only requires rules for included fields")
+    void assertConfigurationIsValidOnlyRequiresIncludedFields() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .include("firstName")
+            .ruleFor("firstName", () -> "Ada");
+
+        assertSame(faker, faker.assertConfigurationIsValid());
+    }
+
+    @Test
+    @DisplayName("assertConfigurationIsValid still throws for unruled included fields")
+    void assertConfigurationIsValidThrowsForUnruledIncludedFields() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
+            .include("firstName", "lastName")
+            .ruleFor("firstName", () -> "Ada");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            faker::assertConfigurationIsValid);
+        assertTrue(ex.getMessage().contains("lastName"));
+    }
+
+    @Test
+    @DisplayName("assertConfigurationIsValid treats nested rules as covering the root")
+    void assertConfigurationIsValidTreatsNestedRulesAsCoveringRoot() {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class)
+            .ruleFor("firstName", () -> "Ada")
+            .ruleFor("lastName", () -> "Lovelace")
+            .ruleFor("address.city", () -> "London");
+
+        assertSame(faker, faker.assertConfigurationIsValid());
+    }
+
+    @Test
+    @DisplayName("assertConfigurationIsValid validates record components")
+    void assertConfigurationIsValidValidatesRecordComponents() {
+        ObjectFaker<FixtureRecord> faker = new ObjectFaker<>(FixtureRecord.class)
+            .ruleFor("firstName", () -> "Ada");
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            faker::assertConfigurationIsValid);
+        assertTrue(ex.getMessage().contains("email"));
+    }
+
+    @Test
+    @DisplayName("assertConfigurationIsValid passes for fully ruled records")
+    void assertConfigurationIsValidPassesForFullyRuledRecords() {
+        ObjectFaker<FixtureRecord> faker = new ObjectFaker<>(FixtureRecord.class)
+            .ruleFor("firstName", () -> "Ada")
+            .ruleFor("email", () -> "ada@example.com");
+
+        assertSame(faker, faker.assertConfigurationIsValid());
+    }
+
+    @Test
+    @DisplayName("assertConfigurationIsValid skips final fields automatically")
+    void assertConfigurationIsValidSkipsFinalFields() {
+        ObjectFaker<FinalFieldFixture> faker = new ObjectFaker<>(FinalFieldFixture.class);
+
+        assertSame(faker, faker.assertConfigurationIsValid());
+    }
+
     static final class FixtureUser {
         String firstName;
         String lastName;

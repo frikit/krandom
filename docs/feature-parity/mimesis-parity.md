@@ -26,7 +26,7 @@ This baseline replaces stale row-level statuses and normalizes parity into `Yes`
 | Identifiers/codes                             | Yes    | Locale not central                            | UUID, hash, EAN, ISBN, UPC, national-id families and Luhn-style support are robust.                                                                   |
 | Structured/bulk generation (Schema/Field DSL) | Yes    | Locale propagated through schema field config | Added Java `Field` + `Schema` DSL with binding lookup, seeded deterministic batches, nested/list field composition, and contextual validation errors. |
 | Generic provider hub/extensibility            | Yes    | Locale propagated through provider hub config | Added a unified `ProviderHub` with canonical providers, alias lookup, runtime provider registration hooks, and conflict-policy controls.              |
-| Binary/hardware/science niche providers       | No     | Locale not central                            | Out of current core scope; candidate intentional skip unless explicitly requested.                                                                    |
+| Binary/hardware/science niche providers       | No (intentional) | Locale not central                  | SKIP — outside fixture-data domain; covers binary blobs, CPU/GPU specs, scientific notation generators. Add via community PR if a concrete use case appears. |
 
 ## Open Gaps Tagged for Execution
 
@@ -40,7 +40,7 @@ This baseline replaces stale row-level statuses and normalizes parity into `Yes`
 | Schema/Field bulk generation DSL                                  | Implemented    | P1 ✅                | Added `schema` package (`FieldLookup`, `Field`, `Schema`, context + exception) with list/nested composition and seeded batch generation.                |
 | Generic provider hub and runtime provider registration            | Implemented    | P1 ✅                | Added `provider` package hub (`ProviderHub`, `ProviderFactory`, `ConflictPolicy`) with alias compatibility and runtime registration/override semantics. |
 | Locale breadth expansion (~Mimesis scale)                         | Partial        | P2                  | Existing locale support is strong but narrower in breadth/depth.                                                                                        |
-| Binary/hardware/science provider families                         | No             | P2 (skip candidate) | Low ROI for core fixture workflows unless requested.                                                                                                    |
+| Binary/hardware/science provider families                         | No (intentional) | SKIP              | Outside fixture-data domain; binary blobs, CPU/GPU specs, scientific notation. Add via community PR if a concrete use case appears.                     |
 
 ## Alias Candidates Identified in Phase 0
 

@@ -16,7 +16,7 @@ This baseline replaces older stale status claims and normalizes parity into `Yes
 | Category               | Status  | Locale Notes                                   | Comments                                                                                                                                           |
 |------------------------|---------|------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 | Primitive random APIs  | Yes     | Locale not required                            | Numeric/string/enum/random/hash coverage is strong.                                                                                                |
-| Object generation core | Partial | Locale not central                             | Reflection/object generation is strong, but no Bogus-style fluent `Faker<T>` rule engine yet.                                                      |
+| Object generation core | Yes     | Locale not central                             | `ObjectFaker<T>` provides the fluent `Faker<T>` rule engine: `ruleFor`, dependent `ruleFor`, `ignore`, `include`, `profile/useProfile`, `postProcess`, `populate`, `assertConfigurationIsValid`. |
 | Person/identity        | Partial | Locale-aware in multiple providers             | Names/titles/gender/profiles are covered; some Bogus composites and convenience APIs remain different.                                             |
 | Network/internet       | Partial | Locale usually not central                     | IPv4/IPv6/MAC/port/domain/url/uri/user-agent are present; Bogus-specific .NET object forms are not relevant in Java.                               |
 | Finance                | Yes     | Locale used where meaningful                   | Credit-card suite, IBAN/BIC/ABA, currency, money, EAN plus account-number/name/transaction type and crypto address generators are implemented.     |
@@ -38,9 +38,9 @@ This baseline replaces older stale status claims and normalizes parity into `Yes
 
 | Gap                                                 | Current Status | Priority Tag | Notes                                                             |
 |-----------------------------------------------------|----------------|--------------|-------------------------------------------------------------------|
-| Fluent `Faker<T>` + `ruleFor` model                 | No             | P0           | Main architectural parity gap versus Bogus UX.                    |
-| Strict-mode/config validation for rule-based fakers | No             | P0           | Needed once fluent faker is introduced.                           |
-| Populate existing instance / finish hook parity     | No             | P1           | Useful for migration ergonomics.                                  |
+| Fluent `Faker<T>` + `ruleFor` model                 | Yes            | Done         | `ObjectFaker<T>` (`ruleFor`, dependent `ruleFor`, `ignore`, `include`, `profile/useProfile`). |
+| Strict-mode/config validation for rule-based fakers | Yes            | Done         | `ObjectFaker.assertConfigurationIsValid()` validates all root fields/components have rules, ignores, or are excluded by `include`. |
+| Populate existing instance / finish hook parity     | Yes            | Done         | `ObjectFaker.populate(existing)` + `postProcess` + `afterGenerate`. |
 | Address/phone Bogus-style format helpers            | Partial        | P1           | Core data exists; API shape differs.                              |
 | Finance account/transaction/crypto provider set     | Yes            | Done         | Implemented via bank-account and crypto-address generators.       |
 | Database provider family                            | Partial        | P2           | `column`/`type` subset implemented; wider catalog still optional. |

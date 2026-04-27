@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Random;
@@ -35,6 +34,23 @@ public final class DurationGenerator implements Generator<Duration> {
     @Override
     public Duration generate() {
         return betweenSeconds(DEFAULT_MIN_SECONDS, DEFAULT_MAX_SECONDS);
+    }
+
+    /**
+     * Generates a duration sampled from an inclusive range bounded by two {@link Duration} values.
+     *
+     * <p>Sampling is at second precision; sub-second components of the bounds are truncated.
+     */
+    public Duration between(Duration min, Duration max) {
+        Objects.requireNonNull(min, "min must not be null");
+        Objects.requireNonNull(max, "max must not be null");
+        if (min.isNegative()) {
+            throw new IllegalArgumentException("min must be >= 0, got: " + min);
+        }
+        if (max.compareTo(min) < 0) {
+            throw new IllegalArgumentException("max must be >= min, got: " + max + " < " + min);
+        }
+        return betweenSeconds(min.toSeconds(), max.toSeconds());
     }
 
     /**

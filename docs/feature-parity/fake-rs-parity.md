@@ -441,16 +441,16 @@ testing.
 | Feature                   | Fake-rs Support          | krandom Status | Implementation Priority | Notes                         |
 |---------------------------|--------------------------|----------------|-------------------------|-------------------------------|
 | **Core Traits**           |
-| `Fake` trait              | ✅ Primary API            | ❌ No           | HIGH                    | User-facing generation trait  |
-| `Dummy` trait             | ✅ Extensibility API      | ❌ No           | HIGH                    | Custom type integration       |
-| Generic over `Rng`        | ✅ All methods            | ❌ No           | MEDIUM                  | Accepts any rand::Rng         |
+| `Fake` trait              | ✅ Primary API            | ❌ No (intentional) | SKIP                | Rust trait — Java equivalent is `Generator<T>` (`generate()` method)  |
+| `Dummy` trait             | ✅ Extensibility API      | ❌ No (intentional) | SKIP                | Rust trait — Java equivalent is `ObjectFaker.ruleFor` + `@Fake`       |
+| Generic over `Rng`        | ✅ All methods            | ✅ Yes              | ✓ DONE              | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)`   |
 | **Procedural Macros**     |
-| `#[derive(Dummy)]`        | ✅ Auto-implementation    | ❌ No           | HIGH                    | Automatic fake generation     |
-| `#[dummy(faker = "...")]` | ✅ Field-level config     | ❌ No           | HIGH                    | Per-field faker specification |
-| `#[dummy(default)]`       | ✅ Use Default::default() | ❌ No           | MEDIUM                  | Skip fake generation          |
-| `#[dummy(fixed = "...")]` | ✅ Fixed value            | ❌ No           | MEDIUM                  | Same value per instance       |
+| `#[derive(Dummy)]`        | ✅ Auto-implementation    | ❌ No (intentional) | SKIP                | Rust proc-macro — Java reflection-based `ObjectGenerator` is the equivalent |
+| `#[dummy(faker = "...")]` | ✅ Field-level config     | ❌ No (intentional) | SKIP                | Rust attribute — Java equivalent is `@Fake("name")` annotation        |
+| `#[dummy(default)]`       | ✅ Use Default::default() | ❌ No (intentional) | SKIP                | Rust attribute — Java equivalent is `ObjectFaker.ignore`              |
+| `#[dummy(fixed = "...")]` | ✅ Fixed value            | ❌ No (intentional) | SKIP                | Rust attribute — Java equivalent is `ObjectFaker.ruleFor(name, () -> value)` |
 | **Macros**                |
-| `fake!` macro             | ✅ Concise syntax         | ❌ No           | MEDIUM                  | `fake!(Name in en)`           |
+| `fake!` macro             | ✅ Concise syntax         | ❌ No (intentional) | SKIP                | Rust macro — no Java equivalent; use `Generators.ofX()` factories     |
 | **Type Safety**           |
 | Compile-time checking     | ✅ All types              | Partial        | MEDIUM                  | Rust vs Java type systems     |
 | Zero-cost abstractions    | ✅ Trait monomorphization | N/A            | N/A                     | Rust-specific                 |
@@ -509,7 +509,7 @@ let fr_name: String = name::fr_fr::Name().fake();
 
 | Feature Flag   | Purpose                   | krandom Equivalent | Implementation Priority | Notes              |
 |----------------|---------------------------|--------------------|-------------------------|--------------------|
-| `derive`       | Enable `#[derive(Dummy)]` | ❌ No               | HIGH                    | Core extensibility |
+| `derive`       | Enable `#[derive(Dummy)]` | ❌ No (intentional) | SKIP                    | Rust proc-macro feature flag — Java equivalent is `ObjectFaker.ruleFor` and `@Fake` annotation |
 | `chrono`       | Date/time types           | ❌ No               | HIGH                    | chrono integration |
 | `uuid`         | UUID generation           | ❌ No               | HIGH                    | uuid crate support |
 | `http`         | HTTP status codes         | ❌ No               | MEDIUM                  | http crate support |
@@ -529,7 +529,7 @@ philosophy. This is a key differentiator from monolithic faker libraries.
 | Thread-local RNG   | ✅ `.fake()`                  | ❌ No           | MEDIUM                  | Uses rand::thread_rng() |
 | Seeded RNG         | ✅ `.fake_with_rng(&mut rng)` | Partial        | HIGH                    | Deterministic testing   |
 | Reproducible tests | ✅ Via StdRng::seed_from_u64  | Partial        | HIGH                    | Critical for testing    |
-| Custom Rng impl    | ✅ Any rand::Rng              | ❌ No           | LOW                     | Flexible RNG choice     |
+| Custom Rng impl    | ✅ Any rand::Rng              | ✅ Yes          | ✓ DONE                  | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)` |
 
 **Analysis**: All fake-rs generators accept any `rand::Rng` implementation, enabling deterministic testing with seeded RNGs. This is critical for reproducible tests and property-based testing
 integration.
@@ -548,10 +548,10 @@ let name: String = Name().fake_with_rng(&mut rng);  // Deterministic
 
 | Feature               | Fake-rs Support         | krandom Status | Implementation Priority | Notes                    |
 |-----------------------|-------------------------|----------------|-------------------------|--------------------------|
-| Custom `Dummy` impl   | ✅ Manual implementation | ❌ No           | HIGH                    | Custom types participate |
-| Custom config types   | ✅ `Dummy<T>` for any T  | ❌ No           | MEDIUM                  | Parameterized generation |
-| Enum support          | ✅ `#[derive(Dummy)]`    | ❌ No           | MEDIUM                  | Variant random selection |
-| Nested struct support | ✅ Recursive derivation  | ❌ No           | HIGH                    | Automatic composition    |
+| Custom `Dummy` impl   | ✅ Manual implementation | ❌ No (intentional) | SKIP                | Rust trait — Java equivalent is `ObjectFaker.ruleFor(field, Generator)` |
+| Custom config types   | ✅ `Dummy<T>` for any T  | ❌ No (intentional) | SKIP                | Rust trait — Java equivalent is per-field generator wiring             |
+| Enum support          | ✅ `#[derive(Dummy)]`    | ✅ Yes              | ✓ DONE              | `EnumGenerator` selects random enum constants                          |
+| Nested struct support | ✅ Recursive derivation  | ✅ Yes              | ✓ DONE              | `ObjectGenerator` recursively populates nested types                   |
 
 **Analysis**: The `Dummy` trait allows custom types to integrate seamlessly with fake-rs. This is more powerful than callback-based customization in other libraries—types themselves define how to be
 faked, enabling composition and reuse.

@@ -40,20 +40,20 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Title                       | ✅ `title()` (professional titles)            | ✅ Yes          | ✓ DONE                  | `TitleGenerator` for honorifics                        |
 | **ID Numbers**              |
 | SSN (US)                    | ✅ `ssnValid()`                               | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.US)` — area 666 excluded   |
-| Singapore FIN/UIN           | ✅ `singaporeanFin()`, `singaporeanUin()`     | ❌ No           | LOW                     | Locale-specific                                        |
-| Poland PESEL                | ✅ `peselNumber()`                            | ❌ No           | LOW                     | Locale-specific                                        |
+| Singapore FIN/UIN           | ✅ `singaporeanFin()`, `singaporeanUin()`     | ❌ No (intentional) | SKIP                | Niche locale ID outside 10-locale `NationalIdGenerator` scope; add via community PR if requested |
+| Poland PESEL                | ✅ `peselNumber()`                            | ❌ No (intentional) | SKIP                | Niche locale ID outside `NationalIdGenerator` scope; add via community PR if requested |
 | China SSN                   | ✅ `validZhCNSsn()`                           | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.CHINA)` — 18-char ISO 7064 |
-| Portugal NIF                | ✅ `validPtNif()`                             | ❌ No           | LOW                     | Locale-specific                                        |
-| Mexico SSN                  | ✅ `validEsMXSsn()`                           | ❌ No           | LOW                     | Locale-specific                                        |
-| South Africa SSN            | ✅ `validEnZaSsn()`                           | ❌ No           | LOW                     | Locale-specific                                        |
+| Portugal NIF                | ✅ `validPtNif()`                             | ❌ No (intentional) | SKIP                | Niche locale ID outside `NationalIdGenerator` scope; add via community PR if requested |
+| Mexico SSN                  | ✅ `validEsMXSsn()`                           | ❌ No (intentional) | SKIP                | Niche locale ID outside `NationalIdGenerator` scope; add via community PR if requested |
+| South Africa SSN            | ✅ `validEnZaSsn()`                           | ❌ No (intentional) | SKIP                | Niche locale ID outside `NationalIdGenerator` scope; add via community PR if requested |
 | **Gender & Demographics**   |
 | Gender types                | ✅ `types()`, `binaryTypes()`                 | ✅ Yes          | ✓ DONE                  | `GenderGenerator` — 10 locales, locale-aware labels    |
-| Race                        | ✅ `race()`                                   | ❌ No           | LOW                     | Sensitive data                                         |
+| Race                        | ✅ `race()`                                   | ❌ No (intentional) | SKIP                | Sensitive demographic data — outside scope                          |
 | Education level             | ✅ `educationalAttainment()`                  | ✅ Yes          | ✓ DONE                  | `EducationalAttainmentGenerator`                       |
 | Marital status              | ✅ `maritalStatus()`                          | ✅ Yes          | ✓ DONE                  | `MaritalStatusGenerator`                               |
 | **Relationships**           |
-| Direct relationships        | ✅ `direct()` (mother, father)                | ❌ No           | LOW                     | Nice-to-have                                           |
-| Extended family             | ✅ `extended()`, `inLaw()`                    | ❌ No           | LOW                     |                                                        |
+| Direct relationships        | ✅ `direct()` (mother, father)                | ❌ No (intentional) | SKIP                | Niche vocabulary — low fixture value                                |
+| Extended family             | ✅ `extended()`, `inLaw()`                    | ❌ No (intentional) | SKIP                | Niche vocabulary — low fixture value                                |
 | **Other Personal**          |
 | Passport number             | ✅ `valid()`                                  | ❌ No           | MEDIUM                  | Travel documents                                       |
 | Driver's license            | ✅ `drivingLicense()`                         | ❌ No           | MEDIUM                  | ID documents                                           |
@@ -67,10 +67,10 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | Street address           | ✅ `streetAddress()`                                   | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generate()`                            |
 | Street number            | ✅ `streetAddressNumber()`, `buildingNumber()`         | ✅ Yes          | ✓ DONE                  | `generateStreetAddressNumber()` and `generateBuildingNumber()` |
 | Secondary address        | ✅ `secondaryAddress()` (Apt, Suite)                   | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateSecondaryAddress()`            |
-| Street suffix/prefix     | ✅ `streetSuffix()`, `streetPrefix()`                  | ❌ No           | MEDIUM                  | St, Ave, Blvd                                                  |
+| Street suffix/prefix     | ✅ `streetSuffix()`, `streetPrefix()`                  | ❌ No (intentional) | SKIP                | Internal building blocks — `StreetAddressGenerator` already emits full addresses |
 | **City & State**         |
 | City name                | ✅ `city()`, `cityName()`                              | ✅ Yes          | ✓ DONE                  | `CityGenerator` — 10 locales, locale-specific cities           |
-| City prefix/suffix       | ✅ `cityPrefix()`, `citySuffix()`                      | ❌ No           | LOW                     | Building blocks                                                |
+| City prefix/suffix       | ✅ `cityPrefix()`, `citySuffix()`                      | ❌ No (intentional) | SKIP                | Internal building blocks — `CityGenerator` already produces full city names |
 | State                    | ✅ `state()`                                           | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate()` — 10 locales                       |
 | State abbreviation       | ✅ `stateAbbr()`                                       | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate(true)` — CA, TX, NSW, etc.            |
 | **Postal Codes**         |
@@ -79,14 +79,14 @@ and GraalVM native image support. It's a fork of JavaFaker with significant enha
 | ZIP by state             | ✅ `zipCodeByState()`                                  | ❌ No           | MEDIUM                  | State-specific mapping not implemented                         |
 | County by ZIP            | ✅ `countyByZipCode()`                                 | ❌ No           | LOW                     | Geographic mapping                                             |
 | Postcode (generic)       | ✅ `postcode()`                                        | ✅ Yes          | ✓ DONE                  | 10 locale-specific formats (JP: "100-0001", DE: "10115")       |
-| Eircode (Ireland)        | ✅ `eircode()`                                         | ❌ No           | LOW                     | Locale-specific                                                |
-| Mailbox                  | ✅ `mailBox()` (PO Box)                                | ❌ No           | LOW                     |                                                                |
+| Eircode (Ireland)        | ✅ `eircode()`                                         | ❌ No (intentional) | SKIP                | Niche locale postal format — add via community PR if requested              |
+| Mailbox                  | ✅ `mailBox()` (PO Box)                                | ❌ No (intentional) | SKIP                | Niche format — low fixture value                                            |
 | **Country & Nation**     |
 | Country name             | ✅ `country()`                                         | ✅ Yes          | ✓ DONE                  | `CountryGenerator` — 195 countries, 10 locales                 |
 | Country code             | ✅ `countryCode()`, `countryCode2()`, `countryCode3()` | ❌ No           | MEDIUM                  | CountryGenerator returns names, not ISO codes                  |
 | Capital city             | ✅ `capital()`                                         | ❌ No           | MEDIUM                  | Geographic data                                                |
 | Currency                 | ✅ `currency()`, `currencyCode()`                      | ✅ Yes          | ✓ DONE                  | Already in Money generator                                     |
-| Flag emoji               | ✅ `flag()`                                            | ❌ No           | LOW                     | Unicode flags                                                  |
+| Flag emoji               | ✅ `flag()`                                            | ❌ No (intentional) | SKIP                | Novelty Unicode rendering — low fixture value                               |
 | Nationality              | ✅ `nationality()`                                     | ❌ No           | MEDIUM                  | Citizen of...                                                  |
 | Language                 | ✅ `language()`, `isoLanguage()`                       | ❌ No           | MEDIUM                  | Spoken languages                                               |
 | **Coordinates**          |

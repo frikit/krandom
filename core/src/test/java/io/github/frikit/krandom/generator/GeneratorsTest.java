@@ -31,6 +31,7 @@ import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.DurationGenerator;
 import io.github.frikit.krandom.generator.datetime.InstantGenerator;
 import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
+import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.TimezoneGenerator;
 import io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator;
 import io.github.frikit.krandom.generator.file.DirPathGenerator;
@@ -560,6 +561,7 @@ class GeneratorsTest {
         assertInstanceOf(InstantGenerator.class, Generators.ofInstant());
         assertInstanceOf(ZonedDateTimeGenerator.class, Generators.ofZonedDateTime());
         assertInstanceOf(DurationGenerator.class, Generators.ofDuration());
+        assertInstanceOf(OffsetDateTimeGenerator.class, Generators.ofOffsetDateTime());
         assertInstanceOf(TimezoneGenerator.class, Generators.ofTimezone());
     }
 
