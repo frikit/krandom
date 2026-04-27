@@ -25,15 +25,15 @@ public final class DateTimeGenerators {
         this.config = config;
     }
 
-    public DateGenerator localDate() { return new DateGenerator(); }
+    public DateGenerator localDate() { return new DateGenerator(config); }
 
-    public LocalDateTimeGenerator localDateTime() { return new LocalDateTimeGenerator(); }
+    public LocalDateTimeGenerator localDateTime() { return new LocalDateTimeGenerator(config); }
 
-    public InstantGenerator instant() { return new InstantGenerator(); }
+    public InstantGenerator instant() { return new InstantGenerator(config); }
 
-    public ZonedDateTimeGenerator zonedDateTime() { return new ZonedDateTimeGenerator(); }
+    public ZonedDateTimeGenerator zonedDateTime() { return new ZonedDateTimeGenerator(config); }
 
-    public DurationGenerator duration() { return new DurationGenerator(); }
+    public DurationGenerator duration() { return new DurationGenerator(config); }
 
-    public TimezoneGenerator timezone() { return new TimezoneGenerator(); }
+    public TimezoneGenerator timezone() { return new TimezoneGenerator(config); }
 }

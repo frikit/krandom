@@ -48,5 +48,5 @@ public final class LocationGenerators {
     public AddressInfoGenerator addressInfo() { return new AddressInfoGenerator(config); }
     public AddressInfoGenerator addressInfo(Locale locale) { return new AddressInfoGenerator(locale); }
 
-    public CoordinatesGenerator coordinates() { return new CoordinatesGenerator(); }
+    public CoordinatesGenerator coordinates() { return new CoordinatesGenerator(config); }
 }

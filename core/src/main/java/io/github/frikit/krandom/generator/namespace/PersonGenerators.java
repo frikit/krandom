@@ -46,7 +46,7 @@ public final class PersonGenerators {
     public UsernameGenerator username() { return new UsernameGenerator(config); }
     public UsernameGenerator username(Locale locale) { return new UsernameGenerator(locale); }
 
-    public PasswordGenerator password() { return new PasswordGenerator(); }
+    public PasswordGenerator password() { return new PasswordGenerator(config); }
 
     public AgeGenerator age() { return new AgeGenerator(); }
     public AgeGenerator age(AgeType type) { return new AgeGenerator(type); }
@@ -60,7 +60,7 @@ public final class PersonGenerators {
 
     public NationalIdGenerator nationalId(Locale locale) { return new NationalIdGenerator(locale); }
 
-    public AvatarUrlGenerator avatarUrl() { return new AvatarUrlGenerator(); }
+    public AvatarUrlGenerator avatarUrl() { return new AvatarUrlGenerator(config); }
 
     public SocialHandleGenerator socialHandle() { return new SocialHandleGenerator(config); }
 
@@ -74,9 +74,9 @@ public final class PersonGenerators {
 
     public ProfileGenerator profile() { return new ProfileGenerator(config); }
 
-    public MaritalStatusGenerator maritalStatus() { return new MaritalStatusGenerator(); }
+    public MaritalStatusGenerator maritalStatus() { return new MaritalStatusGenerator(config); }
 
-    public EducationalAttainmentGenerator educationalAttainment() { return new EducationalAttainmentGenerator(); }
+    public EducationalAttainmentGenerator educationalAttainment() { return new EducationalAttainmentGenerator(config); }
 
     public CompanyNameGenerator companyName() { return new CompanyNameGenerator(config); }
     public CompanyNameGenerator companyName(Locale locale) { return new CompanyNameGenerator(GeneratorConfig.builder().locale(locale).build()); }
@@ -87,19 +87,19 @@ public final class PersonGenerators {
 
     public CompanyUrlGenerator companyUrl() { return new CompanyUrlGenerator(config); }
 
-    public CompanyBuzzwordGenerator companyBuzzword() { return new CompanyBuzzwordGenerator(); }
+    public CompanyBuzzwordGenerator companyBuzzword() { return new CompanyBuzzwordGenerator(config); }
 
-    public CompanyCatchPhraseGenerator companyCatchPhrase() { return new CompanyCatchPhraseGenerator(); }
+    public CompanyCatchPhraseGenerator companyCatchPhrase() { return new CompanyCatchPhraseGenerator(config); }
 
     public JobInfoGenerator jobInfo() { return new JobInfoGenerator(config); }
 
-    public JobTypeGenerator jobType() { return new JobTypeGenerator(); }
+    public JobTypeGenerator jobType() { return new JobTypeGenerator(config); }
 
-    public JobFieldGenerator jobField() { return new JobFieldGenerator(); }
+    public JobFieldGenerator jobField() { return new JobFieldGenerator(config); }
 
-    public SeniorityGenerator seniority() { return new SeniorityGenerator(); }
+    public SeniorityGenerator seniority() { return new SeniorityGenerator(config); }
 
-    public PositionGenerator position() { return new PositionGenerator(); }
+    public PositionGenerator position() { return new PositionGenerator(config); }
 
-    public IndustryGenerator industry() { return new IndustryGenerator(); }
+    public IndustryGenerator industry() { return new IndustryGenerator(config); }
 }

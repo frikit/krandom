@@ -25,21 +25,21 @@ public final class TextGenerators {
         this.config = config;
     }
 
-    public LoremIpsumGenerator loremIpsum() { return new LoremIpsumGenerator(); }
+    public LoremIpsumGenerator loremIpsum() { return new LoremIpsumGenerator(config); }
 
-    public LoremIpsumGenerator loremIpsum(LoremIpsumGenerator.Mode mode) { return new LoremIpsumGenerator(mode); }
+    public LoremIpsumGenerator loremIpsum(LoremIpsumGenerator.Mode mode) { return new LoremIpsumGenerator(mode, config); }
 
-    public WordGenerator word() { return new WordGenerator(); }
+    public WordGenerator word() { return new WordGenerator(config); }
 
-    public SyllableGenerator syllable() { return new SyllableGenerator(); }
+    public SyllableGenerator syllable() { return new SyllableGenerator(config); }
 
-    public SentenceGenerator sentence() { return new SentenceGenerator(); }
+    public SentenceGenerator sentence() { return new SentenceGenerator(config); }
 
-    public ParagraphGenerator paragraph() { return new ParagraphGenerator(); }
+    public ParagraphGenerator paragraph() { return new ParagraphGenerator(config); }
 
-    public TextGenerator text() { return new TextGenerator(); }
+    public TextGenerator text() { return new TextGenerator(config); }
 
-    public TemplateStringGenerator template(String template) { return new TemplateStringGenerator(template); }
+    public TemplateStringGenerator template(String template) { return new TemplateStringGenerator(template, config); }
 
     public TemplateStringGenerator template(String template, long seed) { return new TemplateStringGenerator(template, seed); }
 }

@@ -27,7 +27,7 @@ public final class CommerceGenerators {
         this.config = config;
     }
 
-    public CommerceGenerator commerce() { return new CommerceGenerator(); }
+    public CommerceGenerator commerce() { return new CommerceGenerator(config); }
 
     public ProductInfoGenerator product() { return new ProductInfoGenerator(config); }
     public ProductInfoGenerator product(Locale locale) { return new ProductInfoGenerator(locale); }

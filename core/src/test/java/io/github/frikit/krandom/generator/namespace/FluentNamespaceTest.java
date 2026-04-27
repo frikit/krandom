@@ -5,16 +5,76 @@
  */
 package io.github.frikit.krandom.generator.namespace;
 
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
+import io.github.frikit.krandom.generator.datetime.DateGenerator;
+import io.github.frikit.krandom.generator.datetime.DurationGenerator;
+import io.github.frikit.krandom.generator.datetime.InstantGenerator;
+import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
+import io.github.frikit.krandom.generator.datetime.TimezoneGenerator;
+import io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator;
+import io.github.frikit.krandom.generator.finance.AbaRoutingGenerator;
+import io.github.frikit.krandom.generator.finance.BankAccountGenerator;
+import io.github.frikit.krandom.generator.finance.BankCountryGenerator;
+import io.github.frikit.krandom.generator.finance.BankNameGenerator;
+import io.github.frikit.krandom.generator.finance.BankTypeGenerator;
+import io.github.frikit.krandom.generator.finance.BbanGenerator;
+import io.github.frikit.krandom.generator.finance.BicGenerator;
+import io.github.frikit.krandom.generator.finance.CardExpirationGenerator;
+import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
+import io.github.frikit.krandom.generator.finance.CryptoAddressGenerator;
+import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
+import io.github.frikit.krandom.generator.finance.CusipGenerator;
+import io.github.frikit.krandom.generator.finance.EinGenerator;
+import io.github.frikit.krandom.generator.finance.IbanGenerator;
+import io.github.frikit.krandom.generator.finance.IsinGenerator;
+import io.github.frikit.krandom.generator.identifier.EanGenerator;
+import io.github.frikit.krandom.generator.identifier.HashGenerator;
+import io.github.frikit.krandom.generator.identifier.IdentifierMaskGenerator;
 import io.github.frikit.krandom.generator.identifier.IsbnGenerator;
+import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
+import io.github.frikit.krandom.generator.identifier.UpcGenerator;
+import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
+import io.github.frikit.krandom.generator.network.DomainGenerator;
+import io.github.frikit.krandom.generator.network.HostnameGenerator;
+import io.github.frikit.krandom.generator.network.HttpMethodGenerator;
+import io.github.frikit.krandom.generator.network.HttpStatusCodeGenerator;
+import io.github.frikit.krandom.generator.network.IPGenerator;
+import io.github.frikit.krandom.generator.network.IPv4Generator;
+import io.github.frikit.krandom.generator.network.IPv6Generator;
+import io.github.frikit.krandom.generator.network.MacAddressGenerator;
+import io.github.frikit.krandom.generator.network.PortGenerator;
+import io.github.frikit.krandom.generator.network.SlugGenerator;
+import io.github.frikit.krandom.generator.network.URLGenerator;
+import io.github.frikit.krandom.generator.network.UriGenerator;
+import io.github.frikit.krandom.generator.network.UserAgentGenerator;
 import io.github.frikit.krandom.generator.text.LoremIpsumGenerator;
+import io.github.frikit.krandom.generator.text.ParagraphGenerator;
+import io.github.frikit.krandom.generator.text.SentenceGenerator;
+import io.github.frikit.krandom.generator.text.SyllableGenerator;
+import io.github.frikit.krandom.generator.text.TemplateStringGenerator;
+import io.github.frikit.krandom.generator.text.TextGenerator;
+import io.github.frikit.krandom.generator.text.WordGenerator;
 import io.github.frikit.krandom.generator.user.AgeType;
+import io.github.frikit.krandom.generator.user.AvatarUrlGenerator;
+import io.github.frikit.krandom.generator.user.CompanyBuzzwordGenerator;
+import io.github.frikit.krandom.generator.user.CompanyCatchPhraseGenerator;
+import io.github.frikit.krandom.generator.user.EducationalAttainmentGenerator;
+import io.github.frikit.krandom.generator.user.IndustryGenerator;
+import io.github.frikit.krandom.generator.user.JobFieldGenerator;
+import io.github.frikit.krandom.generator.user.JobTypeGenerator;
+import io.github.frikit.krandom.generator.user.MaritalStatusGenerator;
+import io.github.frikit.krandom.generator.user.PasswordGenerator;
+import io.github.frikit.krandom.generator.user.PositionGenerator;
+import io.github.frikit.krandom.generator.user.SeniorityGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class FluentNamespaceTest {
@@ -236,6 +296,92 @@ class FluentNamespaceTest {
         assertNotNull(Generators.datetime(config).localDate().generate());
     }
 
+    @Test
+    @DisplayName("config namespaces propagate seeded config to config-aware generators")
+    void configNamespacesPropagateSeededConfig() {
+        GeneratorConfig seeded = GeneratorConfig.builder()
+            .locale(Locale.GERMANY)
+            .seed(987654321L)
+            .build();
+
+        DateTimeGenerators datetime = Generators.datetime(seeded);
+        assertSameFirstValue(new DateGenerator(seeded), datetime.localDate());
+        assertSameFirstValue(new LocalDateTimeGenerator(seeded), datetime.localDateTime());
+        assertSameFirstValue(new InstantGenerator(seeded), datetime.instant());
+        assertSameFirstValue(new ZonedDateTimeGenerator(seeded), datetime.zonedDateTime());
+        assertSameFirstValue(new DurationGenerator(seeded), datetime.duration());
+        assertSameFirstValue(new TimezoneGenerator(seeded), datetime.timezone());
+
+        TextGenerators text = Generators.text(seeded);
+        assertSameFirstValue(new LoremIpsumGenerator(seeded), text.loremIpsum());
+        assertSameFirstValue(new LoremIpsumGenerator(LoremIpsumGenerator.Mode.PARAGRAPH, seeded),
+                             text.loremIpsum(LoremIpsumGenerator.Mode.PARAGRAPH));
+        assertSameFirstValue(new WordGenerator(seeded), text.word());
+        assertSameFirstValue(new SyllableGenerator(seeded), text.syllable());
+        assertSameFirstValue(new SentenceGenerator(seeded), text.sentence());
+        assertSameFirstValue(new ParagraphGenerator(seeded), text.paragraph());
+        assertSameFirstValue(new TextGenerator(seeded), text.text());
+        assertSameFirstValue(new TemplateStringGenerator("??-####", seeded), text.template("??-####"));
+
+        NetworkGenerators network = Generators.network(seeded);
+        assertSameFirstValue(new IPv4Generator(seeded), network.ipv4());
+        assertSameFirstValue(new IPv6Generator(seeded), network.ipv6());
+        assertSameFirstValue(new IPGenerator(seeded), network.ip());
+        assertSameFirstValue(new MacAddressGenerator(seeded), network.macAddress());
+        assertSameFirstValue(new DomainGenerator(seeded), network.domain());
+        assertSameFirstValue(new HostnameGenerator(seeded), network.hostname());
+        assertSameFirstValue(new URLGenerator(seeded), network.url());
+        assertSameFirstValue(new UriGenerator(seeded), network.uri());
+        assertSameFirstValue(new PortGenerator(seeded), network.port());
+        assertSameFirstValue(new SlugGenerator(seeded), network.slug());
+        assertSameFirstValue(new UserAgentGenerator(seeded), network.userAgent());
+        assertSameFirstValue(new HttpStatusCodeGenerator(seeded), network.httpStatusCode());
+        assertSameFirstValue(new HttpMethodGenerator(seeded), network.httpMethod());
+
+        IdentifierGenerators identifier = Generators.identifier(seeded);
+        assertSameFirstValue(new UUIDGenerator(seeded), identifier.uuid());
+        assertSameFirstValue(new HashGenerator(seeded), identifier.hash());
+        assertSameFirstValue(new IsbnGenerator(seeded), identifier.isbn());
+        assertSameFirstValue(new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, seeded),
+                             identifier.isbn(IsbnGenerator.IsbnType.ISBN_10));
+        assertSameFirstValue(new EanGenerator(seeded), identifier.ean());
+        assertSameFirstValue(new UpcGenerator(seeded), identifier.upc());
+        assertSameFirstValue(new IdentifierMaskGenerator(seeded), identifier.mask());
+
+        assertSameFirstValue(new CommerceGenerator(seeded), Generators.commerce(seeded).commerce());
+        assertSameFirstValue(new CoordinatesGenerator(seeded), Generators.location(seeded).coordinates());
+
+        FinanceGenerators finance = Generators.finance(seeded);
+        assertSameFirstValue(new CreditCardGenerator(seeded), finance.creditCard());
+        assertSameFirstValue(new CardExpirationGenerator(seeded), finance.cardExpiration());
+        assertSameFirstValue(new CurrencyGenerator(seeded), finance.currency());
+        assertSameFirstValue(new BankAccountGenerator(seeded), finance.bankAccount());
+        assertSameFirstValue(new BankNameGenerator(seeded), finance.bankName());
+        assertSameFirstValue(new BankTypeGenerator(seeded), finance.bankType());
+        assertSameFirstValue(new BankCountryGenerator(seeded), finance.bankCountry());
+        assertSameFirstValue(new BicGenerator(seeded), finance.bic());
+        assertSameFirstValue(new BbanGenerator(seeded), finance.bban());
+        assertSameFirstValue(new IbanGenerator(seeded), finance.iban());
+        assertSameFirstValue(new AbaRoutingGenerator(seeded), finance.abaRouting());
+        assertSameFirstValue(new IsinGenerator(seeded), finance.isin());
+        assertSameFirstValue(new CusipGenerator(seeded), finance.cusip());
+        assertSameFirstValue(new EinGenerator(seeded), finance.ein());
+        assertSameFirstValue(new CryptoAddressGenerator(seeded), finance.cryptoAddress());
+
+        PersonGenerators person = Generators.person(seeded);
+        assertSameFirstValue(new PasswordGenerator(seeded), person.password());
+        assertSameFirstValue(new AvatarUrlGenerator(seeded), person.avatarUrl());
+        assertSameFirstValue(new MaritalStatusGenerator(seeded), person.maritalStatus());
+        assertSameFirstValue(new EducationalAttainmentGenerator(seeded), person.educationalAttainment());
+        assertSameFirstValue(new CompanyBuzzwordGenerator(seeded), person.companyBuzzword());
+        assertSameFirstValue(new CompanyCatchPhraseGenerator(seeded), person.companyCatchPhrase());
+        assertSameFirstValue(new JobTypeGenerator(seeded), person.jobType());
+        assertSameFirstValue(new JobFieldGenerator(seeded), person.jobField());
+        assertSameFirstValue(new SeniorityGenerator(seeded), person.seniority());
+        assertSameFirstValue(new PositionGenerator(seeded), person.position());
+        assertSameFirstValue(new IndustryGenerator(seeded), person.industry());
+    }
+
     // ── Default constructors ─────────────────────────────────────────────────
 
     @Test
@@ -249,5 +395,9 @@ class FluentNamespaceTest {
         assertNotNull(new CommerceGenerators().product().generate());
         assertNotNull(new IdentifierGenerators().uuid().generate());
         assertNotNull(new DateTimeGenerators().localDate().generate());
+    }
+
+    private static <T> void assertSameFirstValue(Generator<T> expected, Generator<T> actual) {
+        assertEquals(expected.generate(), actual.generate());
     }
 }

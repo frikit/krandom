@@ -25,29 +25,29 @@ public final class NetworkGenerators {
         this.config = config;
     }
 
-    public IPv4Generator ipv4() { return new IPv4Generator(); }
+    public IPv4Generator ipv4() { return new IPv4Generator(config); }
 
-    public IPv6Generator ipv6() { return new IPv6Generator(); }
+    public IPv6Generator ipv6() { return new IPv6Generator(config); }
 
-    public IPGenerator ip() { return new IPGenerator(); }
+    public IPGenerator ip() { return new IPGenerator(config); }
 
-    public MacAddressGenerator macAddress() { return new MacAddressGenerator(); }
+    public MacAddressGenerator macAddress() { return new MacAddressGenerator(config); }
 
-    public DomainGenerator domain() { return new DomainGenerator(); }
+    public DomainGenerator domain() { return new DomainGenerator(config); }
 
-    public HostnameGenerator hostname() { return new HostnameGenerator(); }
+    public HostnameGenerator hostname() { return new HostnameGenerator(config); }
 
-    public URLGenerator url() { return new URLGenerator(); }
+    public URLGenerator url() { return new URLGenerator(config); }
 
-    public UriGenerator uri() { return new UriGenerator(); }
+    public UriGenerator uri() { return new UriGenerator(config); }
 
-    public PortGenerator port() { return new PortGenerator(); }
+    public PortGenerator port() { return new PortGenerator(config); }
 
-    public SlugGenerator slug() { return new SlugGenerator(); }
+    public SlugGenerator slug() { return new SlugGenerator(config); }
 
-    public UserAgentGenerator userAgent() { return new UserAgentGenerator(); }
+    public UserAgentGenerator userAgent() { return new UserAgentGenerator(config); }
 
-    public HttpStatusCodeGenerator httpStatusCode() { return new HttpStatusCodeGenerator(); }
+    public HttpStatusCodeGenerator httpStatusCode() { return new HttpStatusCodeGenerator(config); }
 
-    public HttpMethodGenerator httpMethod() { return new HttpMethodGenerator(); }
+    public HttpMethodGenerator httpMethod() { return new HttpMethodGenerator(config); }
 }

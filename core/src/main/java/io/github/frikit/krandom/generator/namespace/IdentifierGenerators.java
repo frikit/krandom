@@ -25,17 +25,17 @@ public final class IdentifierGenerators {
         this.config = config;
     }
 
-    public UUIDGenerator uuid() { return new UUIDGenerator(); }
+    public UUIDGenerator uuid() { return new UUIDGenerator(config); }
 
-    public HashGenerator hash() { return new HashGenerator(); }
+    public HashGenerator hash() { return new HashGenerator(config); }
 
-    public IsbnGenerator isbn() { return new IsbnGenerator(); }
+    public IsbnGenerator isbn() { return new IsbnGenerator(config); }
 
-    public IsbnGenerator isbn(IsbnGenerator.IsbnType type) { return new IsbnGenerator(type); }
+    public IsbnGenerator isbn(IsbnGenerator.IsbnType type) { return new IsbnGenerator(type, config); }
 
-    public EanGenerator ean() { return new EanGenerator(); }
+    public EanGenerator ean() { return new EanGenerator(config); }
 
-    public UpcGenerator upc() { return new UpcGenerator(); }
+    public UpcGenerator upc() { return new UpcGenerator(config); }
 
-    public IdentifierMaskGenerator mask() { return new IdentifierMaskGenerator(); }
+    public IdentifierMaskGenerator mask() { return new IdentifierMaskGenerator(config); }
 }

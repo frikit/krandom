@@ -27,44 +27,44 @@ public final class FinanceGenerators {
         this.config = config;
     }
 
-    public CreditCardGenerator creditCard() { return new CreditCardGenerator(); }
+    public CreditCardGenerator creditCard() { return new CreditCardGenerator(config); }
 
     public CreditCardInfoGenerator creditCardInfo() { return new CreditCardInfoGenerator(config); }
 
-    public CardExpirationGenerator cardExpiration() { return new CardExpirationGenerator(); }
+    public CardExpirationGenerator cardExpiration() { return new CardExpirationGenerator(config); }
 
-    public CurrencyGenerator currency() { return new CurrencyGenerator(); }
+    public CurrencyGenerator currency() { return new CurrencyGenerator(config); }
 
     public CurrencyPairGenerator currencyPair() { return new CurrencyPairGenerator(config); }
 
     public MoneyGenerator money() { return new MoneyGenerator(config); }
     public MoneyGenerator money(Locale locale) { return new MoneyGenerator(locale); }
 
-    public BankAccountGenerator bankAccount() { return new BankAccountGenerator(); }
+    public BankAccountGenerator bankAccount() { return new BankAccountGenerator(config); }
 
-    public BankNameGenerator bankName() { return new BankNameGenerator(); }
+    public BankNameGenerator bankName() { return new BankNameGenerator(config); }
 
-    public BankTypeGenerator bankType() { return new BankTypeGenerator(); }
+    public BankTypeGenerator bankType() { return new BankTypeGenerator(config); }
 
     public BankInfoGenerator bankInfo() { return new BankInfoGenerator(config); }
 
-    public BankCountryGenerator bankCountry() { return new BankCountryGenerator(); }
+    public BankCountryGenerator bankCountry() { return new BankCountryGenerator(config); }
 
-    public BicGenerator bic() { return new BicGenerator(); }
+    public BicGenerator bic() { return new BicGenerator(config); }
 
-    public BbanGenerator bban() { return new BbanGenerator(); }
+    public BbanGenerator bban() { return new BbanGenerator(config); }
 
-    public IbanGenerator iban() { return new IbanGenerator(); }
+    public IbanGenerator iban() { return new IbanGenerator(config); }
 
-    public AbaRoutingGenerator abaRouting() { return new AbaRoutingGenerator(); }
+    public AbaRoutingGenerator abaRouting() { return new AbaRoutingGenerator(config); }
 
-    public IsinGenerator isin() { return new IsinGenerator(); }
+    public IsinGenerator isin() { return new IsinGenerator(config); }
 
-    public CusipGenerator cusip() { return new CusipGenerator(); }
+    public CusipGenerator cusip() { return new CusipGenerator(config); }
 
-    public EinGenerator ein() { return new EinGenerator(); }
+    public EinGenerator ein() { return new EinGenerator(config); }
 
-    public CryptoAddressGenerator cryptoAddress() { return new CryptoAddressGenerator(); }
+    public CryptoAddressGenerator cryptoAddress() { return new CryptoAddressGenerator(config); }
 
     public InvoiceInfoGenerator invoiceInfo() { return new InvoiceInfoGenerator(config); }
 
