@@ -25,12 +25,14 @@ Typical cases:
 int roll = Generators.ofInt(1, 7).generate();
 String email = Generators.ofEmail().generate();
 String city = Generators.ofCity().generate();
+String label = Generators.ofProviderTemplate("{firstname}-##").generate();
 ```
 
 Choose this path when:
 
 - you are filling a few individual fields manually
 - you want the most direct API
+- you want lightweight provider-token strings without building a schema
 - you do not need object-graph population
 
 ## 2. Semantic object generation

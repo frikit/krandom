@@ -12,6 +12,7 @@ import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
 import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ShipmentInfoGenerator;
+import io.github.frikit.krandom.generator.datetime.CalendarGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.DurationGenerator;
 import io.github.frikit.krandom.generator.datetime.InstantGenerator;
@@ -44,6 +45,7 @@ import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
+import io.github.frikit.krandom.generator.location.GeohashGenerator;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
 import io.github.frikit.krandom.generator.location.PostalCodeGenerator;
 import io.github.frikit.krandom.generator.location.StateGenerator;
@@ -63,6 +65,7 @@ import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.network.UserAgentGenerator;
 import io.github.frikit.krandom.generator.text.LoremIpsumGenerator;
 import io.github.frikit.krandom.generator.text.ParagraphGenerator;
+import io.github.frikit.krandom.generator.text.ProviderTemplateGenerator;
 import io.github.frikit.krandom.generator.text.SentenceGenerator;
 import io.github.frikit.krandom.generator.text.SyllableGenerator;
 import io.github.frikit.krandom.generator.text.TemplateStringGenerator;
@@ -315,6 +318,7 @@ class FluentNamespaceTest {
         assertNotNull(dt.zonedDateTime().generate());
         assertNotNull(dt.duration().generate());
         assertNotNull(dt.timezone().generate());
+        assertNotNull(dt.calendar().generate());
         assertNotNull(Generators.datetime(config).localDate().generate());
     }
 
@@ -333,6 +337,7 @@ class FluentNamespaceTest {
         assertSameFirstValue(new ZonedDateTimeGenerator(seeded), datetime.zonedDateTime());
         assertSameFirstValue(new DurationGenerator(seeded), datetime.duration());
         assertSameFirstValue(new TimezoneGenerator(seeded), datetime.timezone());
+        assertSameFirstValue(new CalendarGenerator(seeded), datetime.calendar());
 
         TextGenerators text = Generators.text(seeded);
         assertSameFirstValue(new LoremIpsumGenerator(seeded), text.loremIpsum());
@@ -344,6 +349,8 @@ class FluentNamespaceTest {
         assertSameFirstValue(new ParagraphGenerator(seeded), text.paragraph());
         assertSameFirstValue(new TextGenerator(seeded), text.text());
         assertSameFirstValue(new TemplateStringGenerator("??-####", seeded), text.template("??-####"));
+        assertSameFirstValue(new ProviderTemplateGenerator("{firstname}-##", seeded),
+                             text.providerTemplate("{firstname}-##"));
 
         NetworkGenerators network = Generators.network(seeded);
         assertSameFirstValue(new IPv4Generator(seeded), network.ipv4());
@@ -372,6 +379,8 @@ class FluentNamespaceTest {
 
         assertSameFirstValue(new CommerceGenerator(seeded), Generators.commerce(seeded).commerce());
         assertSameFirstValue(new CoordinatesGenerator(seeded), Generators.location(seeded).coordinates());
+        assertSameFirstValue(new GeohashGenerator(seeded), Generators.location(seeded).geohash());
+        assertSameFirstValue(new GeohashGenerator(8, seeded), Generators.location(seeded).geohash(8));
 
         FinanceGenerators finance = Generators.finance(seeded);
         assertSameFirstValue(new CreditCardGenerator(seeded), finance.creditCard());
@@ -473,6 +482,9 @@ class FluentNamespaceTest {
         assertNotNull(new CommerceGenerators().product().generate());
         assertNotNull(new IdentifierGenerators().uuid().generate());
         assertNotNull(new DateTimeGenerators().localDate().generate());
+        assertNotNull(new LocationGenerators().geohash().generate());
+        assertNotNull(new DateTimeGenerators().calendar().generate());
+        assertNotNull(new TextGenerators().providerTemplate("{firstname}").generate());
     }
 
     private static <T> void assertSameFirstValue(Generator<T> expected, Generator<T> actual) {

@@ -36,4 +36,6 @@ public final class DateTimeGenerators {
     public DurationGenerator duration() { return new DurationGenerator(config); }
 
     public TimezoneGenerator timezone() { return new TimezoneGenerator(config); }
+
+    public CalendarGenerator calendar() { return new CalendarGenerator(config); }
 }

@@ -33,11 +33,12 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 ## What the core currently covers
 
 - Primitive and numeric generators
-- Text and lorem-style content
-- Date/time and timezone values
+- Text, lorem-style content, and provider-token templates
+- Date/time, timezone, and legacy `Calendar` values
 - Network and internet generators
-- Locale-aware user and address data
+- Locale-aware user/address data plus random supported `Locale` values
 - Finance and identifier formats
+- Geohash and coordinate-adjacent location data
 - File/system/version values
 - Selection combinators such as `pick`, `shuffle`, `weighted`, `repeat`, and `unique`
 - Reflection-based object graph generation
@@ -52,6 +53,7 @@ import io.github.frikit.krandom.generator.Generators;
 int roll = Generators.ofInt(1, 7).generate();
 String name = Generators.ofFullName().generate();
 String email = Generators.ofEmail().generate();
+String label = Generators.ofProviderTemplate("{firstname}-##").generate();
 ```
 
 ## Choosing an API

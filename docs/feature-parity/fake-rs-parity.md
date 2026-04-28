@@ -60,7 +60,7 @@ This section is the current source of truth for Java-core parity status. Some le
 | CountryName                                         | ✅ Exists    | `CountryGenerator`.                                                                    |
 | CountryCode                                         | ✅ Exists    | `CountryGenerator.generateCode()` returns ISO alpha-2 codes.                           |
 | Latitude / Longitude                                | ✅ Exists    | `CoordinatesGenerator` provides both.                                                  |
-| Geohash                                             | ❌ Missing   | Not implemented.                                                                       |
+| Geohash                                             | ✅ Exists    | `GeohashGenerator` with precision 1-12 plus static encode helpers.                    |
 | FreeEmail / SafeEmail / FreeEmailProvider           | ✅ Exists    | `EmailGenerator.generateFreeEmail()`, `generateSafeEmail()`, `getFreeEmailProvider()`. |
 | DomainSuffix                                        | ✅ Exists    | `DomainGenerator.getTLD()`.                                                            |
 | Slug                                                | ✅ Exists    | `SlugGenerator`.                                                                       |
@@ -92,7 +92,7 @@ This section is the current source of truth for Java-core parity status. Some le
 | ISBN / ISBN10 / ISBN13                              | ✅ Exists    | `IsbnGenerator` supports both formats.                                                 |
 | Hex/RGB color                                       | ✅ Exists    | `ColorGenerator` supports multiple color formats.                                      |
 | RGBA/HSL/HSLA strings                               | ✅ Exists    | Added in `ColorFormat` + `ColorGenerator`.                                             |
-| License plate                                       | ❌ Missing   | Not implemented.                                                                       |
+| License plate                                       | Missing   | Not implemented.                                                                       |
 | FileName / FileExtension                            | ✅ Exists    | Implemented in `file` package.                                                         |
 | FilePath / DirPath / MimeType / Semver              | ✅ Exists    | `FilePathGenerator`, `DirPathGenerator`, `MimeTypeGenerator`, `SemverGenerator`.       |
 
@@ -117,14 +117,14 @@ This section is the current source of truth for Java-core parity status. Some le
 | Title/Prefix              | ✅ `Title()` (Mr., Mrs., Dr.) | ✅ Yes          | ✓ DONE                  | `TitleGenerator`                      |
 | Suffix                    | ✅ `Suffix()` (Jr., Sr., III) | ✅ Yes          | ✓ DONE                  | `SuffixGenerator`                     |
 | **Gender & Demographics** |
-| Gender-specific names     | ❌ No                         | ❌ No           | LOW                     | Not in fake-rs design                 |
-| Race/Ethnicity            | ❌ No                         | ❌ No           | LOW                     | Not available                         |
-| Education level           | ❌ No                         | ❌ No           | LOW                     | Not available                         |
-| Marital status            | ❌ No                         | ❌ No           | LOW                     | Not available                         |
+| Gender-specific names     | No                         | No           | LOW                     | Not in fake-rs design                 |
+| Race/Ethnicity            | No                         | No           | LOW                     | Not available                         |
+| Education level           | No                         | No           | LOW                     | Not available                         |
+| Marital status            | No                         | No           | LOW                     | Not available                         |
 | **ID Numbers**            |
-| SSN/National ID           | ❌ No                         | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator` supports configured locales |
-| Passport number           | ❌ No                         | ❌ No           | LOW                     | Not available                         |
-| Driver's license          | ❌ No                         | ❌ No           | LOW                     | Not available                         |
+| SSN/National ID           | No                         | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator` supports configured locales |
+| Passport number           | No                         | No           | LOW                     | Not available                         |
+| Driver's license          | No                         | No           | LOW                     | Not available                         |
 
 **Analysis**: Fake-rs focuses on basic name generation with strong locale support (28 locales). It lacks advanced identity features like ID validation, gender-specific names, or demographic data. The
 emphasis is on simple, locale-aware name generation rather than comprehensive identity simulation.
@@ -135,31 +135,31 @@ emphasis is on simple, locale-aware name generation rather than comprehensive id
 |----------------------|---------------------------------------|----------------|-------------------------|---------------------------|
 | **City & State**     |
 | City name            | ✅ `CityName()`                        | ✅ Yes          | ✓ DONE                  | `CityGenerator`           |
-| City prefix          | ✅ `CityPrefix()`                      | ❌ No (intentional) | SKIP                | Internal vocabulary; full city names are generated |
-| City suffix          | ✅ `CitySuffix()`                      | ❌ No (intentional) | SKIP                | Internal vocabulary; full city names are generated |
+| City prefix          | ✅ `CityPrefix()`                      | No (intentional) | SKIP                | Internal vocabulary; full city names are generated |
+| City suffix          | ✅ `CitySuffix()`                      | No (intentional) | SKIP                | Internal vocabulary; full city names are generated |
 | State name           | ✅ `StateName()` (US only)             | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate()` |
 | State abbreviation   | ✅ `StateAbbr()` (US only)             | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate(true)` |
 | **Street Address**   |
 | Street name          | ✅ `StreetName()`                      | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateStreetName()` |
-| Street suffix        | ✅ `StreetSuffix()`                    | ❌ No (intentional) | SKIP                | Internal vocabulary; full street names are generated |
+| Street suffix        | ✅ `StreetSuffix()`                    | No (intentional) | SKIP                | Internal vocabulary; full street names are generated |
 | Building number      | ✅ `BuildingNumber()`                  | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateBuildingNumber()` |
-| Full street address  | ❌ No (compose manually)               | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateFullAddress()` |
-| Secondary address    | ❌ No                                  | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateSecondaryAddress()` |
+| Full street address  | No (compose manually)               | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateFullAddress()` |
+| Secondary address    | No                                  | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generateSecondaryAddress()` |
 | **Postal Codes**     |
 | Post code            | ✅ `PostCode()`                        | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator`     |
 | ZIP code             | ✅ `PostCode()` (US)                   | ✅ Yes          | ✓ DONE                  | `PostalCodeGenerator(Locale.US)` |
-| ZIP+4                | ❌ No                                  | ❌ No           | LOW                     | Not available             |
+| ZIP+4                | No                                  | No           | LOW                     | Not available             |
 | **Country & Region** |
 | Country name         | ✅ `CountryName()`                     | ✅ Yes          | ✓ DONE                  | `CountryGenerator`        |
 | Country code         | ✅ `CountryCode()`                     | ✅ Yes          | ✓ DONE                  | `CountryGenerator.generateCode()` |
 | Time zone            | ✅ `TimeZone()`                        | ✅ Yes          | ✓ DONE                  | `TimezoneGenerator`       |
-| Capital city         | ❌ No                                  | ❌ No           | LOW                     | Not available             |
-| Nationality          | ❌ No                                  | ❌ No           | LOW                     | Not available             |
-| Language             | ❌ No                                  | ❌ No           | LOW                     | Not available             |
+| Capital city         | No                                  | No           | LOW                     | Not available             |
+| Nationality          | No                                  | No           | LOW                     | Not available             |
+| Language             | No                                  | No           | LOW                     | Not available             |
 | **Coordinates**      |
 | Latitude             | ✅ `Latitude()`                        | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` |
 | Longitude            | ✅ `Longitude()`                       | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLongitude()` |
-| Geohash              | ✅ `Geohash(u8)` (requires `geo` flag) | ❌ No           | LOW                     | Precision 1-12            |
+| Geohash              | ✅ `Geohash(u8)` (requires `geo` flag) | ✅ Yes          | ✓ DONE                  | `GeohashGenerator` precision 1-12 |
 
 **Analysis**: Fake-rs provides solid address fundamentals with locale support but requires manual composition for full addresses. The geohash feature is unique and useful for geographic testing.
 Missing secondary addresses and advanced geographic features.
@@ -172,30 +172,30 @@ Missing secondary addresses and advanced geographic features.
 | Free email          | ✅ `FreeEmail()`                                                 | ✅ Yes          | ✓ DONE                  | `EmailGenerator.generateFreeEmail()` |
 | Safe email          | ✅ `SafeEmail()`                                                 | ✅ Yes          | ✓ DONE                  | `EmailGenerator.generateSafeEmail()` |
 | Free email provider | ✅ `FreeEmailProvider()`                                         | ✅ Yes          | ✓ DONE                  | `EmailGenerator.getFreeEmailProvider()` |
-| Email subject       | ❌ No                                                            | ❌ No           | LOW                     | Not available              |
+| Email subject       | No                                                            | No           | LOW                     | Not available              |
 | **Domain & URLs**   |
 | Domain suffix       | ✅ `DomainSuffix()`                                              | ✅ Yes          | ✓ DONE                  | `DomainGenerator.getTLD()` |
 | Username            | ✅ `Username()`                                                  | ✅ Yes          | ✓ DONE                  | `UsernameGenerator`        |
 | Password            | ✅ `Password(Range)`                                             | ✅ Yes          | ✓ DONE                  | `PasswordGenerator.generate(min,max)` |
 | Slug                | ✅ `Slug()` (requires `email` flag)                              | ✅ Yes          | ✓ DONE                  | `SlugGenerator`            |
-| Domain name         | ❌ No (compose manually)                                         | ✅ Yes          | ✓ DONE                  | `DomainGenerator`          |
-| URL                 | ❌ No                                                            | ✅ Yes          | ✓ DONE                  | `URLGenerator`             |
+| Domain name         | No (compose manually)                                         | ✅ Yes          | ✓ DONE                  | `DomainGenerator`          |
+| URL                 | No                                                            | ✅ Yes          | ✓ DONE                  | `URLGenerator`             |
 | **IP Addresses**    |
 | IPv4                | ✅ `IPv4()`                                                      | ✅ Yes          | ✓ DONE                  | Already implemented        |
 | IPv6                | ✅ `IPv6()`                                                      | ✅ Yes          | ✓ DONE                  | Already implemented        |
 | IP (v4 or v6)       | ✅ `IP()`                                                        | ✅ Yes          | ✓ DONE                  | `IPGenerator`              |
-| IPv4 private        | ❌ No                                                            | ❌ No           | LOW                     | RFC1918 addresses          |
-| IPv4 CIDR           | ❌ No                                                            | ❌ No           | LOW                     | Not available              |
-| IPv6 CIDR           | ❌ No                                                            | ❌ No           | LOW                     | Not available              |
+| IPv4 private        | No                                                            | No           | LOW                     | RFC1918 addresses          |
+| IPv4 CIDR           | No                                                            | No           | LOW                     | Not available              |
+| IPv6 CIDR           | No                                                            | No           | LOW                     | Not available              |
 | **Network**         |
 | MAC address         | ✅ `MACAddress()`                                                | ✅ Yes          | ✓ DONE                  | `MacAddressGenerator`      |
-| Port                | ❌ No                                                            | ❌ No           | LOW                     | Not available              |
-| HTTP method         | ❌ No                                                            | ❌ No           | LOW                     | Not available              |
+| Port                | No                                                            | No           | LOW                     | Not available              |
+| HTTP method         | No                                                            | No           | LOW                     | Not available              |
 | HTTP status code    | ✅ `RfcStatusCode()`, `ValidStatusCode()` (requires `http` flag) | ✅ Yes          | ✓ DONE                  | `HttpStatusCodeGenerator`  |
 | **Identifiers**     |
 | UUID                | ✅ `uuid::Uuid` support (requires `uuid` flag)                   | ✅ Yes          | ✓ DONE                  | `UUIDGenerator`            |
 | User agent          | ✅ `UserAgent()`                                                 | ✅ Yes          | ✓ DONE                  | `UserAgentGenerator`       |
-| Color (hex)         | ✅ `Color()`                                                     | ❌ No           | LOW                     | Hex color codes            |
+| Color (hex)         | ✅ `Color()`                                                     | No           | LOW                     | Hex color codes            |
 
 **Analysis**: Fake-rs has strong fundamentals for internet data with good feature flag integration (http, uuid). The Password generator is configurable by length. Missing URL composition and CIDR
 notation. The Color generator is in the internet module, which is unusual.
@@ -206,22 +206,22 @@ notation. The Color generator is in the internet module, which is unusual.
 |-----------------------|----------------------|----------------|-------------------------|-----------------------------|
 | **Banking & Finance** |
 | BIC/SWIFT             | ✅ `Bic()`            | ✅ Yes          | ✓ DONE                  | `BicGenerator`              |
-| ISIN                  | ✅ `Isin()`           | ❌ No           | LOW                     | International Securities ID |
+| ISIN                  | ✅ `Isin()`           | No           | LOW                     | International Securities ID |
 | **Currency**          |
 | Currency code         | ✅ `CurrencyCode()`   | ✅ Yes          | ✓ DONE                  | ISO 4217 codes              |
 | Currency name         | ✅ `CurrencyName()`   | ✅ Yes          | ✓ DONE                  | Full currency names         |
 | Currency symbol       | ✅ `CurrencySymbol()` | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.generateCurrencySymbol()` |
 | **Credit Cards**      |
-| Credit card number    | ❌ No                 | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator`       |
-| Card expiry           | ❌ No                 | ✅ Yes          | ✓ DONE                  | `CardExpirationGenerator`   |
-| CVV/Security code     | ❌ No                 | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.generateSecurityCode()` |
+| Credit card number    | No                 | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator`       |
+| Card expiry           | No                 | ✅ Yes          | ✓ DONE                  | `CardExpirationGenerator`   |
+| CVV/Security code     | No                 | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.generateSecurityCode()` |
 | **Commerce**          |
-| Product name          | ❌ No                 | ❌ No           | LOW                     | Not available               |
-| Price                 | ❌ No                 | ❌ No           | LOW                     | Not available               |
-| Department            | ❌ No                 | ❌ No           | LOW                     | Not available               |
-| Brand                 | ❌ No                 | ❌ No           | LOW                     | Not available               |
+| Product name          | No                 | No           | LOW                     | Not available               |
+| Price                 | No                 | No           | LOW                     | Not available               |
+| Department            | No                 | No           | LOW                     | Not available               |
+| Brand                 | No                 | No           | LOW                     | Not available               |
 | **Stock Market**      |
-| Stock symbols         | ❌ No                 | ❌ No           | LOW                     | Not available               |
+| Stock symbols         | No                 | No           | LOW                     | Not available               |
 
 **Analysis**: Fake-rs provides minimal finance features focused on identifiers (BIC, ISIN) and currency data. Notably missing credit card generation, which is common in testing libraries. The finance
 module is very lightweight compared to other libraries.
@@ -232,12 +232,12 @@ module is very lightweight compared to other libraries.
 |-----------------|------------------------------------------------------|----------------|-------------------------|--------------------------|
 | Company name    | ✅ `CompanyName()`                                    | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator`   |
 | Company suffix  | ✅ `CompanySuffix()`                                  | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate(true)` |
-| Business jargon | ✅ `Bs()`, `BsAdj()`, `BsNoun()`, `BsVerb()`          | ❌ No           | LOW                     | Corporate BS phrases     |
-| Buzzword        | ✅ `Buzzword()`, `BuzzwordMiddle()`, `BuzzwordTail()` | ❌ No           | LOW                     | Marketing buzzwords      |
-| Catch phrase    | ✅ `CatchPhase()` (sic)                               | ❌ No           | LOW                     | Company slogans          |
+| Business jargon | ✅ `Bs()`, `BsAdj()`, `BsNoun()`, `BsVerb()`          | No           | LOW                     | Corporate BS phrases     |
+| Buzzword        | ✅ `Buzzword()`, `BuzzwordMiddle()`, `BuzzwordTail()` | No           | LOW                     | Marketing buzzwords      |
+| Catch phrase    | ✅ `CatchPhase()` (sic)                               | No           | LOW                     | Company slogans          |
 | Industry        | ✅ `Industry()`                                       | ✅ Yes          | ✓ DONE                  | `IndustryGenerator`      |
 | Profession      | ✅ `Profession()`                                     | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator`    |
-| Logo URL        | ❌ No                                                 | ❌ No           | LOW                     | Not available            |
+| Logo URL        | No                                                 | No           | LOW                     | Not available            |
 
 **Analysis**: Fake-rs has a well-rounded company module with corporate jargon generators. The BS (business speak) generators are useful for generating realistic-sounding corporate content. Profession
 overlaps with the job module.
@@ -250,8 +250,8 @@ overlaps with the job module.
 | Job seniority | ✅ `JobSeniority()` | ✅ Yes          | ✓ DONE                  | `SeniorityGenerator`      |
 | Job title     | ✅ `JobTitle()`     | ✅ Yes          | ✓ DONE                  | Combined job titles       |
 | Job type      | ✅ `JobType()`      | ✅ Yes          | ✓ DONE                  | `JobTypeGenerator`        |
-| Position      | ❌ No               | ❌ No           | LOW                     | Overlaps with title       |
-| Key skills    | ❌ No               | ❌ No           | LOW                     | Not available             |
+| Position      | No               | No           | LOW                     | Overlaps with title       |
+| Key skills    | No               | No           | LOW                     | Not available             |
 
 **Analysis**: Fake-rs has a focused job module with seniority, field, type, and title. Good for generating employment data. krandom already has job title support.
 
@@ -266,8 +266,8 @@ overlaps with the job module.
 | Sentences       | ✅ `Sentences(Range)`   | ✅ Yes          | ✓ DONE                  | `SentenceGenerator.generateList(n)` |
 | Paragraph       | ✅ `Paragraph(Range)`   | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator`            |
 | Paragraphs      | ✅ `Paragraphs(Range)`  | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generateList(n)` |
-| Character       | ❌ No (use `char` type) | ❌ No           | LOW                     | Use `Faker.fake::<char>()`      |
-| Characters      | ❌ No                   | ❌ No           | LOW                     | Not a dedicated method          |
+| Character       | No (use `char` type) | No           | LOW                     | Use `Faker.fake::<char>()`      |
+| Characters      | No                   | No           | LOW                     | Not a dedicated method          |
 
 **Analysis**: Fake-rs has an excellent lorem module with Range-configurable generators. The ability to specify exact ranges (e.g., `Words(3..10)`) provides fine-grained control. This is more flexible
 than fixed-count generators.
@@ -285,9 +285,9 @@ than fixed-count generators.
 | Time                                              | ✅ `Time()`                      | ✅ Yes          | ✓ DONE                  | `TimeGenerator`          |
 | Duration                                          | ✅ `Duration()`                  | ✅ Yes          | ✓ DONE                  | `DurationGenerator`      |
 | **Date Formatting**                               |
-| Formatted dates                                   | ❌ No (use chrono format)        | ❌ No           | LOW                     | Not pre-formatted        |
-| ISO 8601                                          | ❌ No (use chrono format)        | ❌ No           | LOW                     | Use chrono's to_rfc3339  |
-| Unix timestamp                                    | ❌ No (use chrono convert)       | ❌ No           | LOW                     | Use chrono's timestamp   |
+| Formatted dates                                   | No (use chrono format)        | No           | LOW                     | Not pre-formatted        |
+| ISO 8601                                          | No (use chrono format)        | No           | LOW                     | Use chrono's to_rfc3339  |
+| Unix timestamp                                    | No (use chrono convert)       | No           | LOW                     | Use chrono's timestamp   |
 
 **Analysis**: Fake-rs integrates with the chrono crate for type-safe date/time generation. The before/after/between variants are powerful for generating temporal sequences. No pre-formatted string
 output; relies on chrono's formatting capabilities.
@@ -298,8 +298,8 @@ output; relies on chrono's formatting capabilities.
 |--------------|-------------------|----------------|-------------------------|----------------------------|
 | Phone number | ✅ `PhoneNumber()` | ✅ Yes          | ✓ DONE                  | `PhoneNumberGenerator`     |
 | Cell number  | ✅ `CellNumber()`  | ✅ Yes          | ✓ DONE                  | `PhoneNumberGenerator.generate(..., true)` |
-| E.164 format | ❌ No              | ❌ No           | LOW                     | International format       |
-| Country code | ❌ No              | ❌ No           | LOW                     | Not separate               |
+| E.164 format | No              | No           | LOW                     | International format       |
+| Country code | No              | No           | LOW                     | Not separate               |
 
 **Analysis**: Fake-rs provides basic phone number generation with locale support across 28 locales. No explicit international formatting (E.164), but locale support handles regional formats.
 
@@ -313,17 +313,17 @@ output; relies on chrono's formatting capabilities.
 | Float (f32, f64)      | ✅ `Faker.fake::<f64>()`                   | ✅ Yes          | ✓ DONE                  | Via Dummy<Faker>       |
 | Boolean               | ✅ `Faker.fake::<bool>()`                  | ✅ Yes          | ✓ DONE                  | Via Dummy<Faker>       |
 | **Formatted Numbers** |
-| Digit string          | ✅ `Digit()`                               | ❌ No           | LOW                     | Single digit as string |
+| Digit string          | ✅ `Digit()`                               | No           | LOW                     | Single digit as string |
 | Number with format    | ✅ `NumberWithFormat(&str)`                | ✅ Yes          | ✓ DONE                  | `NumberWithFormatGenerator` |
 | **Barcodes**          |
 | ISBN                  | ✅ `Isbn()`                                | ✅ Yes          | ✓ DONE                  | `IsbnGenerator`        |
 | ISBN-10               | ✅ `Isbn10()`                              | ✅ Yes          | ✓ DONE                  | `IsbnGenerator`        |
 | ISBN-13               | ✅ `Isbn13()`                              | ✅ Yes          | ✓ DONE                  | `IsbnGenerator`        |
-| EAN                   | ❌ No                                      | ❌ No           | LOW                     | Not available          |
-| UPC                   | ❌ No                                      | ❌ No           | LOW                     | Not available          |
+| EAN                   | No                                      | No           | LOW                     | Not available          |
+| UPC                   | No                                      | No           | LOW                     | Not available          |
 | **Other Numbers**     |
-| Decimal               | ✅ Dummy impl (requires `decimal` flag)    | ❌ No           | LOW                     | rust_decimal::Decimal  |
-| BigDecimal            | ✅ Dummy impl (requires `bigdecimal` flag) | ❌ No           | LOW                     | bigdecimal::BigDecimal |
+| Decimal               | ✅ Dummy impl (requires `decimal` flag)    | No           | LOW                     | rust_decimal::Decimal  |
+| BigDecimal            | ✅ Dummy impl (requires `bigdecimal` flag) | No           | LOW                     | bigdecimal::BigDecimal |
 
 **Analysis**: Fake-rs leverages Rust's type system for numeric generation via the `Dummy<Faker>` trait. The NumberWithFormat is powerful for custom formats. ISBN generators are useful for book/product
 testing. Feature flags for decimal types show modular design.
@@ -337,8 +337,8 @@ testing. Feature flags for decimal types show modular design.
 | RGBA color | ✅ `RgbaColor()`                            | ✅ Yes          | ✓ DONE                  | `ColorGenerator`        |
 | HSL color  | ✅ `HslColor()`                             | ✅ Yes          | ✓ DONE                  | `ColorGenerator`        |
 | HSLA color | ✅ `HslaColor()`                            | ✅ Yes          | ✓ DONE                  | `ColorGenerator`        |
-| Color name | ✅ `Color()` (requires `random_color` flag) | ❌ No           | LOW                     | CSS color names         |
-| Safe color | ❌ No                                       | ❌ No           | LOW                     | Not available           |
+| Color name | ✅ `Color()` (requires `random_color` flag) | No           | LOW                     | CSS color names         |
+| Safe color | No                                       | No           | LOW                     | Not available           |
 
 **Analysis**: Fake-rs has comprehensive color generation with multiple format support (hex, RGB, HSL). The color name feature requires the `random_color` flag. Good coverage for UI testing and design
 work.
@@ -347,9 +347,9 @@ work.
 
 | Feature       | Fake-rs Support                       | krandom Status | Implementation Priority | Notes                  |
 |---------------|---------------------------------------|----------------|-------------------------|------------------------|
-| License plate | ✅ `LicencePlate()` (British spelling) | ❌ No           | LOW                     | Vehicle plates         |
-| VIN           | ❌ No                                  | ❌ No           | LOW                     | Vehicle identification |
-| Make/Model    | ❌ No                                  | ❌ No           | LOW                     | Not available          |
+| License plate | ✅ `LicencePlate()` (British spelling) | No           | LOW                     | Vehicle plates         |
+| VIN           | No                                  | No           | LOW                     | Vehicle identification |
+| Make/Model    | No                                  | No           | LOW                     | Not available          |
 
 **Analysis**: Minimal automotive support with just license plates. Much lighter than comprehensive auto libraries.
 
@@ -371,9 +371,9 @@ testing.
 
 | Feature          | Fake-rs Support | krandom Status | Implementation Priority | Notes         |
 |------------------|-----------------|----------------|-------------------------|---------------|
-| Chemical element | ❌ No            | ❌ No           | LOW                     | Not available |
-| Unit             | ❌ No            | ❌ No           | LOW                     | Not available |
-| Scientific term  | ❌ No            | ❌ No           | LOW                     | Not available |
+| Chemical element | No            | No           | LOW                     | Not available |
+| Unit             | No            | No           | LOW                     | Not available |
+| Scientific term  | No            | No           | LOW                     | Not available |
 
 **Analysis**: No science/education domain support in fake-rs.
 
@@ -381,8 +381,8 @@ testing.
 
 | Feature        | Fake-rs Support | krandom Status | Implementation Priority | Notes         |
 |----------------|-----------------|----------------|-------------------------|---------------|
-| Animal name    | ❌ No            | ❌ No           | LOW                     | Not available |
-| Dog/Cat breeds | ❌ No            | ❌ No           | LOW                     | Not available |
+| Animal name    | No            | No           | LOW                     | Not available |
+| Dog/Cat breeds | No            | No           | LOW                     | Not available |
 
 **Analysis**: No animal domain support in fake-rs.
 
@@ -390,8 +390,8 @@ testing.
 
 | Feature    | Fake-rs Support | krandom Status | Implementation Priority | Notes         |
 |------------|-----------------|----------------|-------------------------|---------------|
-| Food/Dish  | ❌ No            | ❌ No           | LOW                     | Not available |
-| Ingredient | ❌ No            | ❌ No           | LOW                     | Not available |
+| Food/Dish  | No            | No           | LOW                     | Not available |
+| Ingredient | No            | No           | LOW                     | Not available |
 
 **Analysis**: No food domain support in fake-rs.
 
@@ -399,8 +399,8 @@ testing.
 
 | Feature    | Fake-rs Support | krandom Status | Implementation Priority | Notes         |
 |------------|-----------------|----------------|-------------------------|---------------|
-| Sport name | ❌ No            | ❌ No           | LOW                     | Not available |
-| Team name  | ❌ No            | ❌ No           | LOW                     | Not available |
+| Sport name | No            | No           | LOW                     | Not available |
+| Team name  | No            | No           | LOW                     | Not available |
 
 **Analysis**: No sports domain support in fake-rs.
 
@@ -408,9 +408,9 @@ testing.
 
 | Feature         | Fake-rs Support | krandom Status | Implementation Priority | Notes         |
 |-----------------|-----------------|----------------|-------------------------|---------------|
-| Movie/TV data   | ❌ No            | ❌ No           | LOW                     | Not available |
-| Video game data | ❌ No            | ❌ No           | LOW                     | Not available |
-| Anime/Manga     | ❌ No            | ❌ No           | LOW                     | Not available |
+| Movie/TV data   | No            | No           | LOW                     | Not available |
+| Video game data | No            | No           | LOW                     | Not available |
+| Anime/Manga     | No            | No           | LOW                     | Not available |
 
 **Analysis**: No entertainment domain support in fake-rs.
 
@@ -418,8 +418,8 @@ testing.
 
 | Feature       | Fake-rs Support | krandom Status | Implementation Priority | Notes         |
 |---------------|-----------------|----------------|-------------------------|---------------|
-| Medical terms | ❌ No            | ❌ No           | LOW                     | Not available |
-| Blood type    | ❌ No            | ❌ No           | LOW                     | Not available |
+| Medical terms | No            | No           | LOW                     | Not available |
+| Blood type    | No            | No           | LOW                     | Not available |
 
 **Analysis**: No healthcare domain support in fake-rs.
 
@@ -427,8 +427,8 @@ testing.
 
 | Feature       | Fake-rs Support | krandom Status | Implementation Priority | Notes         |
 |---------------|-----------------|----------------|-------------------------|---------------|
-| Military rank | ❌ No            | ❌ No           | LOW                     | Not available |
-| Equipment     | ❌ No            | ❌ No           | LOW                     | Not available |
+| Military rank | No            | No           | LOW                     | Not available |
+| Equipment     | No            | No           | LOW                     | Not available |
 
 **Analysis**: No military domain support in fake-rs.
 
@@ -441,18 +441,18 @@ testing.
 | Feature                   | Fake-rs Support          | krandom Status | Implementation Priority | Notes                         |
 |---------------------------|--------------------------|----------------|-------------------------|-------------------------------|
 | **Core Traits**           |
-| `Fake` trait              | ✅ Primary API            | ❌ No (intentional) | SKIP                | Rust trait — Java equivalent is `Generator<T>` (`generate()` method)  |
-| `Dummy` trait             | ✅ Extensibility API      | ❌ No (intentional) | SKIP                | Rust trait — Java equivalent is `ObjectFaker.ruleFor` + `@Fake`       |
+| `Fake` trait              | ✅ Primary API            | No (intentional) | SKIP                | Rust trait — Java equivalent is `Generator<T>` (`generate()` method)  |
+| `Dummy` trait             | ✅ Extensibility API      | No (intentional) | SKIP                | Rust trait — Java equivalent is `ObjectFaker.ruleFor` + `@Fake`       |
 | Generic over `Rng`        | ✅ All methods            | ✅ Yes              | ✓ DONE              | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)`   |
 | **Procedural Macros**     |
-| `#[derive(Dummy)]`        | ✅ Auto-implementation    | ❌ No (intentional) | SKIP                | Rust proc-macro — Java reflection-based `ObjectGenerator` is the equivalent |
-| `#[dummy(faker = "...")]` | ✅ Field-level config     | ❌ No (intentional) | SKIP                | Rust attribute — Java equivalent is `@Fake("name")` annotation        |
-| `#[dummy(default)]`       | ✅ Use Default::default() | ❌ No (intentional) | SKIP                | Rust attribute — Java equivalent is `ObjectFaker.ignore`              |
-| `#[dummy(fixed = "...")]` | ✅ Fixed value            | ❌ No (intentional) | SKIP                | Rust attribute — Java equivalent is `ObjectFaker.ruleFor(name, () -> value)` |
+| `#[derive(Dummy)]`        | ✅ Auto-implementation    | No (intentional) | SKIP                | Rust proc-macro — Java reflection-based `ObjectGenerator` is the equivalent |
+| `#[dummy(faker = "...")]` | ✅ Field-level config     | No (intentional) | SKIP                | Rust attribute — Java equivalent is `@Fake("name")` annotation        |
+| `#[dummy(default)]`       | ✅ Use Default::default() | No (intentional) | SKIP                | Rust attribute — Java equivalent is `ObjectFaker.ignore`              |
+| `#[dummy(fixed = "...")]` | ✅ Fixed value            | No (intentional) | SKIP                | Rust attribute — Java equivalent is `ObjectFaker.ruleFor(name, () -> value)` |
 | **Macros**                |
-| `fake!` macro             | ✅ Concise syntax         | ❌ No (intentional) | SKIP                | Rust macro — no Java equivalent; use `Generators.ofX()` factories     |
+| `fake!` macro             | ✅ Concise syntax         | No (intentional) | SKIP                | Rust macro — no Java equivalent; use `Generators.ofX()` factories     |
 | **Type Safety**           |
-| Compile-time checking     | ✅ All types              | ✅ Partial     | Explicit gap            | Java keeps runtime reflection for object graphs; generator APIs remain statically typed |
+| Compile-time checking     | ✅ All types              | ✅ Partial     | Open item            | Java keeps runtime reflection for object graphs; generator APIs remain statically typed |
 | Zero-cost abstractions    | ✅ Trait monomorphization | N/A            | N/A                     | Rust-specific                 |
 
 **Analysis**: Fake-rs's trait-based architecture is its crown jewel. The `#[derive(Dummy)]` macro enables declarative fake data generation for complex nested structures without boilerplate. This is a
@@ -488,8 +488,8 @@ let user: User = Faker.fake();
 | Middle Eastern          | ✅ ar_SA, he_IL, fa_IR                                                                                     | Unknown        | LOW                     | 3 Middle Eastern locales    |
 | Eastern European        | ✅ ru_RU, uk_UA, tr_TR                                                                                     | Unknown        | LOW                     | 3 Eastern European locales  |
 | **Locale Architecture** |
-| Path-based              | ✅ `fake::faker::name::<locale>`                                                                           | ❌ No (intentional) | SKIP                | Rust module-path locale API does not map to Java runtime config |
-| Compile-time selection  | ✅ Type system                                                                                             | ❌ No (intentional) | SKIP                | Java intentionally uses runtime `Locale` / `GeneratorConfig` |
+| Path-based              | ✅ `fake::faker::name::<locale>`                                                                           | No (intentional) | SKIP                | Rust module-path locale API does not map to Java runtime config |
+| Compile-time selection  | ✅ Type system                                                                                             | No (intentional) | SKIP                | Java intentionally uses runtime `Locale` / `GeneratorConfig` |
 | Per-faker locale        | ✅ Yes                                                                                                     | ✅ Yes          | ✓ DONE                  | Each generator can take `Locale` / `GeneratorConfig` |
 
 **Analysis**: Fake-rs's locale architecture is unique—locales are compile-time module paths, not runtime configuration. This provides type safety and eliminates runtime locale lookup overhead.
@@ -509,14 +509,14 @@ let fr_name: String = name::fr_fr::Name().fake();
 
 | Feature Flag   | Purpose                   | krandom Equivalent | Implementation Priority | Notes              |
 |----------------|---------------------------|--------------------|-------------------------|--------------------|
-| `derive`       | Enable `#[derive(Dummy)]` | ❌ No (intentional) | SKIP                    | Rust proc-macro feature flag — Java equivalent is `ObjectFaker.ruleFor` and `@Fake` annotation |
+| `derive`       | Enable `#[derive(Dummy)]` | No (intentional) | SKIP                    | Rust proc-macro feature flag — Java equivalent is `ObjectFaker.ruleFor` and `@Fake` annotation |
 | `chrono`       | Date/time types           | ✅ Yes              | ✓ DONE                  | Java time generators cover date/time types |
 | `uuid`         | UUID generation           | ✅ Yes              | ✓ DONE                  | `UUIDGenerator` |
 | `http`         | HTTP status codes         | ✅ Yes              | ✓ DONE                  | `HttpStatusCodeGenerator` |
-| `bigdecimal`   | BigDecimal support        | ❌ No               | LOW                     | bigdecimal crate   |
-| `decimal`      | Decimal support           | ❌ No               | LOW                     | rust_decimal crate |
-| `random_color` | CSS color names           | ❌ No               | LOW                     | color_name crate   |
-| `geo`          | Geohash support           | ❌ No               | LOW                     | geohash crate      |
+| `bigdecimal`   | BigDecimal support        | No               | LOW                     | bigdecimal crate   |
+| `decimal`      | Decimal support           | No               | LOW                     | rust_decimal crate |
+| `random_color` | CSS color names           | No               | LOW                     | color_name crate   |
+| `geo`          | Geohash support           | ✅ Yes              | ✓ DONE                  | `GeohashGenerator` |
 | `semver`       | Semantic versions         | ✅ Yes              | ✓ DONE                  | `SemverGenerator` |
 
 **Analysis**: Fake-rs's modular feature flags minimize dependencies and compilation time. Each flag enables integration with a specific ecosystem crate, following Rust's "pay for what you use"
@@ -526,7 +526,7 @@ philosophy. This is a key differentiator from monolithic faker libraries.
 
 | Feature            | Fake-rs Support              | krandom Status | Implementation Priority | Notes                   |
 |--------------------|------------------------------|----------------|-------------------------|-------------------------|
-| Thread-local RNG   | ✅ `.fake()`                  | ❌ No (intentional) | SKIP                | Java generators are explicit instances, not global thread-local faker calls |
+| Thread-local RNG   | ✅ `.fake()`                  | No (intentional) | SKIP                | Java generators are explicit instances, not global thread-local faker calls |
 | Seeded RNG         | ✅ `.fake_with_rng(&mut rng)` | ✅ Yes          | ✓ DONE                  | `GeneratorConfig.seed(...)` |
 | Reproducible tests | ✅ Via StdRng::seed_from_u64  | ✅ Yes          | ✓ DONE                  | Seeded configs are deterministic |
 | Custom Rng impl    | ✅ Any rand::Rng              | ✅ Yes          | ✓ DONE                  | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)` |
@@ -548,8 +548,8 @@ let name: String = Name().fake_with_rng(&mut rng);  // Deterministic
 
 | Feature               | Fake-rs Support         | krandom Status | Implementation Priority | Notes                    |
 |-----------------------|-------------------------|----------------|-------------------------|--------------------------|
-| Custom `Dummy` impl   | ✅ Manual implementation | ❌ No (intentional) | SKIP                | Rust trait — Java equivalent is `ObjectFaker.ruleFor(field, Generator)` |
-| Custom config types   | ✅ `Dummy<T>` for any T  | ❌ No (intentional) | SKIP                | Rust trait — Java equivalent is per-field generator wiring             |
+| Custom `Dummy` impl   | ✅ Manual implementation | No (intentional) | SKIP                | Rust trait — Java equivalent is `ObjectFaker.ruleFor(field, Generator)` |
+| Custom config types   | ✅ `Dummy<T>` for any T  | No (intentional) | SKIP                | Rust trait — Java equivalent is per-field generator wiring             |
 | Enum support          | ✅ `#[derive(Dummy)]`    | ✅ Yes              | ✓ DONE              | `EnumGenerator` selects random enum constants                          |
 | Nested struct support | ✅ Recursive derivation  | ✅ Yes              | ✓ DONE              | `ObjectGenerator` recursively populates nested types                   |
 
@@ -582,9 +582,9 @@ let point: Point = Faker.fake();
 | bool                          | ✅ 50/50 probability  | ✅ Yes          |                       |
 | char                          | ✅ Any valid Unicode  | ✅ Partial      |                       |
 | String                        | ✅ Random chars       | ✅ Partial      |                       |
-| Option\<T\>                   | ✅ 50% None           | ❌ No           | Automatic             |
-| Vec\<T\>                      | ✅ Random length      | ❌ No           | Automatic             |
-| Tuples (up to 10)             | ✅ Each element faked | ❌ No           | Automatic composition |
+| Option\<T\>                   | ✅ 50% None           | No           | Automatic             |
+| Vec\<T\>                      | ✅ Random length      | No           | Automatic             |
+| Tuples (up to 10)             | ✅ Each element faked | No           | Automatic composition |
 
 **Analysis**: Fake-rs provides `Dummy<Faker>` for Rust's standard types, enabling generic fake generation. The Option and Vec support is particularly powerful for complex data structures.
 
@@ -695,9 +695,9 @@ let point: Point = Faker.fake();
 
 - [ ] Color name generator (CSS color names)
 
-**3.4 Geohash (Estimated: 1-2 days)**
+**3.4 Geohash (Completed)**
 
-- [ ] Geohash generator with precision control
+- [x] Geohash generator with precision control
 
 **3.5 Semver (Estimated: 1-2 days)**
 

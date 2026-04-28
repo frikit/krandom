@@ -707,16 +707,16 @@ _None - awaiting next feature selection_
 | Last 4 SSN                                                     | ✅ `ssn({ssnFour: true})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().lastFourOnly().generate(random)`                                       |
 | SSN format control                                             | ✅ `ssn({dashes: false})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().withoutDashes().generate(random)`                                      |
 | **National IDs (krandom extension — no Chance.js equivalent)** |                                                                         |                |                         |                                                                                                    |
-| UK NI number                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.UK)` → `"AB 12 34 56 C"`                                           |
-| AU TFN                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("en","AU"))` → `"123 456 782"`                                  |
-| FR NIR                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.FRANCE)` → 15-digit                                                |
-| DE Steuer-ID                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.GERMANY)` → 11 digits                                              |
-| JP My Number                                                   | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.JAPAN)` → 12 digits                                                |
-| ES DNI                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("es","ES"))` → `"12345678Z"`                                    |
-| IT Codice Fiscale                                              | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.ITALY)` → 16 chars                                                 |
-| BR CPF                                                         | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("pt","BR"))` → `"123.456.789-09"`                               |
-| CN Resident ID                                                 | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.CHINA)` → 18 chars                                                 |
-| Custom locale ID                                               | ❌ Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `NationalIdRegistry.register(provider)` at runtime                                                 |
+| UK NI number                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.UK)` → `"AB 12 34 56 C"`                                           |
+| AU TFN                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("en","AU"))` → `"123 456 782"`                                  |
+| FR NIR                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.FRANCE)` → 15-digit                                                |
+| DE Steuer-ID                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.GERMANY)` → 11 digits                                              |
+| JP My Number                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.JAPAN)` → 12 digits                                                |
+| ES DNI                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("es","ES"))` → `"12345678Z"`                                    |
+| IT Codice Fiscale                                              | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.ITALY)` → 16 chars                                                 |
+| BR CPF                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("pt","BR"))` → `"123.456.789-09"`                               |
+| CN Resident ID                                                 | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.CHINA)` → 18 chars                                                 |
+| Custom locale ID                                               | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `NationalIdRegistry.register(provider)` at runtime                                                 |
 
 ### 4. LOCATION & ADDRESS
 
@@ -810,8 +810,8 @@ _None - awaiting next feature selection_
 | Grayscale         | ✅ `color({grayscale: true})`                                 | ✅ Yes          | ✓ DONE                  | generateGrayscale()                                       |
 | Case control      | ✅ `color({casing: 'upper'})`                                 | ✅ Yes          | ✓ DONE                  | generateUppercase()                                       |
 | **Social**        |
-| Twitter handle    | ✅ `twitter()`                                                | ❌ No           | INTENTIONAL SKIP        | Out of Java parity scope by project decision              |
-| Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | ❌ No           | INTENTIONAL SKIP        | Out of Java parity scope by project decision              |
+| Twitter handle    | ✅ `twitter()`                                                | No           | INTENTIONAL SKIP        | Out of Java parity scope by project decision              |
+| Avatar URL        | ✅ `avatar({type, fileExtension, protocol, email})`           | No           | INTENTIONAL SKIP        | Out of Java parity scope by project decision              |
 | **Business**      |
 | Company name      | ✅ `company()`                                                | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate()`                         |
 | Profession        | ✅ `profession({ranked})`                                     | ✅ Yes          | ✓ DONE                  | `ProfessionGenerator.generate()`                          |
@@ -832,7 +832,7 @@ _None - awaiting next feature selection_
 | **Date Components** |
 | Year                | ✅ `year({min, max})`                           | ✅ Yes          | ✓ DONE                  | generateYear() / (min,max)                                                          |
 | Month name          | ✅ `month()`                                    | ✅ Yes          | ✓ DONE                  | generateMonthName()                                                                 |
-| Month object        | ✅ `month({raw: true})`                         | ❌ No           | INTENTIONAL SKIP        | Java-native equivalent is `java.time.Month` enum; JS raw month object is not needed |
+| Month object        | ✅ `month({raw: true})`                         | No           | INTENTIONAL SKIP        | Java-native equivalent is `java.time.Month` enum; JS raw month object is not needed |
 | Hour (12-hour)      | ✅ `hour()`                                     | ✅ Yes          | ✓ DONE                  | generateHour()                                                                      |
 | Hour (24-hour)      | ✅ `hour({twentyfour: true})`                   | ✅ Yes          | ✓ DONE                  | generateHour24()                                                                    |
 | Minute              | ✅ `minute()`                                   | ✅ Yes          | ✓ DONE                  | generateMinute()                                                                    |
@@ -928,7 +928,7 @@ _None - awaiting next feature selection_
 | **Rich Options**       |
 | Extensive parameters   | ✅ Every method has options       | ✅ Partial | MEDIUM   | `FullNameGenerator` now supports Chance-style composite options; broader API-wide option parity still incomplete |
 | Default values         | ✅ Sensible defaults              | ✅ Yes     | ✓ DONE   | Works without options                                                                                            |
-| Option combinations    | ✅ Multiple options work together | ❌ No      | MEDIUM   | Composable parameters                                                                                            |
+| Option combinations    | ✅ Multiple options work together | No      | MEDIUM   | Composable parameters                                                                                            |
 | **Likelihood Control** |
 | Boolean likelihood     | ✅ `bool({likelihood: 80})`       | ✅ Yes     | ✓ DONE   | `ofBoolean().withLikelihood(80)` — UNIQUE                                                                        |
 | **Format Control**     |

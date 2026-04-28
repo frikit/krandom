@@ -50,6 +50,9 @@ public final class LocationGenerators {
 
     public CoordinatesGenerator coordinates() { return new CoordinatesGenerator(config); }
 
+    public GeohashGenerator geohash() { return new GeohashGenerator(config); }
+    public GeohashGenerator geohash(int precision) { return new GeohashGenerator(precision, config); }
+
     private GeneratorConfig withLocale(Locale locale) {
         return config.toBuilder().locale(locale).build();
     }

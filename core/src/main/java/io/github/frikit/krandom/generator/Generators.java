@@ -12,6 +12,7 @@ import io.github.frikit.krandom.generator.base.BigIntegerGenerator;
 import io.github.frikit.krandom.generator.base.BooleanGenerator;
 import io.github.frikit.krandom.generator.base.ByteGenerator;
 import io.github.frikit.krandom.generator.base.CharGenerator;
+import io.github.frikit.krandom.generator.base.ConstantGenerator;
 import io.github.frikit.krandom.generator.base.DigitGenerator;
 import io.github.frikit.krandom.generator.base.DoubleGenerator;
 import io.github.frikit.krandom.generator.base.FloatGenerator;
@@ -31,6 +32,7 @@ import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ShipmentInfoGenerator;
 import io.github.frikit.krandom.generator.database.DatabaseGenerator;
+import io.github.frikit.krandom.generator.datetime.CalendarGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.DurationGenerator;
 import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
@@ -77,10 +79,12 @@ import io.github.frikit.krandom.generator.identifier.UpcGenerator;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
+import io.github.frikit.krandom.generator.location.GeohashGenerator;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
 import io.github.frikit.krandom.generator.location.PostalCodeGenerator;
 import io.github.frikit.krandom.generator.location.StateGenerator;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
+import io.github.frikit.krandom.generator.locale.RandomLocaleGenerator;
 import io.github.frikit.krandom.generator.namespace.CommerceGenerators;
 import io.github.frikit.krandom.generator.namespace.DateTimeGenerators;
 import io.github.frikit.krandom.generator.namespace.FinanceGenerators;
@@ -120,6 +124,7 @@ import io.github.frikit.krandom.generator.system.PlatformIdGenerator;
 import io.github.frikit.krandom.generator.system.VersionGenerator;
 import io.github.frikit.krandom.generator.text.LoremIpsumGenerator;
 import io.github.frikit.krandom.generator.text.ParagraphGenerator;
+import io.github.frikit.krandom.generator.text.ProviderTemplateGenerator;
 import io.github.frikit.krandom.generator.text.SentenceGenerator;
 import io.github.frikit.krandom.generator.text.SyllableGenerator;
 import io.github.frikit.krandom.generator.text.TemplateStringGenerator;
@@ -156,6 +161,9 @@ import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -216,9 +224,34 @@ public final class Generators {
         REGISTRY.put(Boolean.class, BooleanGenerator::new);
         REGISTRY.put(boolean.class, BooleanGenerator::new);
         REGISTRY.put(String.class, StringGenerator::letters);
+        REGISTRY.put(Calendar.class, CalendarGenerator::new);
+        REGISTRY.put(GregorianCalendar.class, CalendarGenerator::new);
+        REGISTRY.put(Locale.class, RandomLocaleGenerator::new);
     }
 
     private Generators() { /* static utility */ }
+
+    /**
+     * Returns a generator that always returns the same value.
+     *
+     * @param value value returned by every generated call; may be {@code null}
+     * @param <T> generated value type
+     * @return constant generator
+     */
+    public static <T> ConstantGenerator<T> constant(T value) {
+        return new ConstantGenerator<>(value);
+    }
+
+    /**
+     * Returns a generator that always returns the same value.
+     *
+     * @param value value returned by every generated call; may be {@code null}
+     * @param <T> generated value type
+     * @return constant generator
+     */
+    public static <T> ConstantGenerator<T> ofConstant(T value) {
+        return new ConstantGenerator<>(value);
+    }
 
     public static ByteGenerator ofByte() {
         return new ByteGenerator();
@@ -631,6 +664,62 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces legacy {@link Calendar} values.
+     */
+    public static CalendarGenerator ofCalendar() {
+        return new CalendarGenerator();
+    }
+
+    /**
+     * Returns a deterministic generator that produces legacy {@link Calendar} values.
+     */
+    public static CalendarGenerator ofCalendar(long seed) {
+        return new CalendarGenerator(seed);
+    }
+
+    /**
+     * Returns a generator that produces legacy {@link Calendar} values using explicit configuration.
+     */
+    public static CalendarGenerator ofCalendar(GeneratorConfig config) {
+        return new CalendarGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces legacy {@link Calendar} values in the provided date range.
+     */
+    public static CalendarGenerator ofCalendar(LocalDate min, LocalDate max) {
+        return new CalendarGenerator(min, max);
+    }
+
+    /**
+     * Returns a generator that produces legacy {@link Calendar} values in the provided date range.
+     */
+    public static CalendarGenerator ofCalendar(LocalDate min, LocalDate max, GeneratorConfig config) {
+        return new CalendarGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a generator that produces locales from the built-in supported locale catalog.
+     */
+    public static RandomLocaleGenerator ofLocale() {
+        return new RandomLocaleGenerator();
+    }
+
+    /**
+     * Returns a deterministic generator that produces locales from the built-in supported locale catalog.
+     */
+    public static RandomLocaleGenerator ofLocale(long seed) {
+        return new RandomLocaleGenerator(seed);
+    }
+
+    /**
+     * Returns a generator that produces locales from the built-in supported locale catalog.
+     */
+    public static RandomLocaleGenerator ofLocale(GeneratorConfig config) {
+        return new RandomLocaleGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random full names (first + last) in {@link java.util.Locale#US}.
      */
     public static FullNameGenerator ofFullName() {
@@ -1031,6 +1120,48 @@ public final class Generators {
      */
     public static PhoneNumberGenerator ofPhoneNumber(GeneratorConfig config) {
         return new PhoneNumberGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces geohashes from locale-aware coordinates.
+     */
+    public static GeohashGenerator ofGeohash() {
+        return new GeohashGenerator();
+    }
+
+    /**
+     * Returns a generator that produces geohashes with explicit precision.
+     */
+    public static GeohashGenerator ofGeohash(int precision) {
+        return new GeohashGenerator(precision);
+    }
+
+    /**
+     * Returns a deterministic generator that produces geohashes with default precision.
+     */
+    public static GeohashGenerator ofGeohash(long seed) {
+        return new GeohashGenerator(seed);
+    }
+
+    /**
+     * Returns a deterministic generator that produces geohashes with explicit precision.
+     */
+    public static GeohashGenerator ofGeohash(int precision, long seed) {
+        return new GeohashGenerator(precision, seed);
+    }
+
+    /**
+     * Returns a generator that produces geohashes using explicit configuration.
+     */
+    public static GeohashGenerator ofGeohash(GeneratorConfig config) {
+        return new GeohashGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces geohashes with explicit precision and configuration.
+     */
+    public static GeohashGenerator ofGeohash(int precision, GeneratorConfig config) {
+        return new GeohashGenerator(precision, config);
     }
 
     /**
@@ -1662,6 +1793,34 @@ public final class Generators {
     }
 
     /**
+     * Returns a provider-template generator resolving tokens such as {@code "{firstname}"}.
+     */
+    public static ProviderTemplateGenerator ofProviderTemplate(String template) {
+        return new ProviderTemplateGenerator(template);
+    }
+
+    /**
+     * Returns a deterministic provider-template generator resolving tokens such as {@code "{firstname}"}.
+     */
+    public static ProviderTemplateGenerator ofProviderTemplate(String template, long seed) {
+        return new ProviderTemplateGenerator(template, seed);
+    }
+
+    /**
+     * Returns a provider-template generator resolving tokens using explicit configuration.
+     */
+    public static ProviderTemplateGenerator ofProviderTemplate(String template, GeneratorConfig config) {
+        return new ProviderTemplateGenerator(template, config);
+    }
+
+    /**
+     * Returns a provider-template generator resolving tokens through an existing field lookup.
+     */
+    public static ProviderTemplateGenerator ofProviderTemplate(String template, FieldLookup lookup) {
+        return new ProviderTemplateGenerator(template, lookup);
+    }
+
+    /**
      * Returns a generator that produces random MAC addresses ({@code "XX:XX:XX:XX:XX:XX"}).
      */
     public static MacAddressGenerator ofMacAddress() {
@@ -1937,7 +2096,8 @@ public final class Generators {
      * Return a default {@link Generator} for the given Java primitive wrapper class.
      *
      * <p>Supported types: {@code Byte}, {@code Short}, {@code Integer}, {@code Long},
-     * {@code Float}, {@code Double}, {@code Character}, {@code Boolean}, {@code String}.
+     * {@code Float}, {@code Double}, {@code Character}, {@code Boolean}, {@code String},
+     * {@code Calendar}, {@code GregorianCalendar}, and {@code Locale}.
      *
      * @param type the wrapper class; must not be {@code null}
      * @throws IllegalArgumentException if the type has no built-in generator

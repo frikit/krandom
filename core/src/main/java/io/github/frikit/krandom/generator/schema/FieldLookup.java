@@ -464,8 +464,11 @@ public final class FieldLookup {
 
         registerAlias("name", "person.full_name", ConflictPolicy.REPLACE);
         registerAlias("full_name", "person.full_name", ConflictPolicy.REPLACE);
+        registerAlias("fullname", "person.full_name", ConflictPolicy.REPLACE);
         registerAlias("first_name", "person.first_name", ConflictPolicy.REPLACE);
+        registerAlias("firstname", "person.first_name", ConflictPolicy.REPLACE);
         registerAlias("last_name", "person.last_name", ConflictPolicy.REPLACE);
+        registerAlias("lastname", "person.last_name", ConflictPolicy.REPLACE);
         registerAlias("email", "person.email", ConflictPolicy.REPLACE);
         registerAlias("username", "person.username", ConflictPolicy.REPLACE);
         registerAlias("contact_info", "person.contact_info", ConflictPolicy.REPLACE);

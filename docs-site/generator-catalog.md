@@ -15,7 +15,8 @@ Main entrypoint: `io.github.frikit.krandom.generator.Generators`
 - `ofBigDecimal`, `ofBigInteger`
 - `ofBoolean`, `ofNullableBoolean`
 - `ofDigit`, `ofNumberWithFormat`, `ofPyDecimal`
-- `ofChar`, `ofString`, `ofTemplate`
+- `ofChar`, `ofString`, `ofTemplate`, `ofProviderTemplate`
+- `constant`, `ofConstant`
 
 ## Algorithms and games
 
@@ -31,11 +32,12 @@ Main entrypoint: `io.github.frikit.krandom.generator.Generators`
 ## Date and time
 
 - `ofLocalDate`, `ofLocalDateTime`, `ofInstant`, `ofZonedDateTime`
-- `ofDuration`, `ofTimezone`
+- `ofDuration`, `ofTimezone`, `ofCalendar`
+- `ofLocale`
 
 ## Location
 
-- `ofStreetAddress`, `ofAddressInfo`, `ofCity`, `ofState`, `ofPostalCode`, `ofCountry`, `ofPhoneNumber`
+- `ofStreetAddress`, `ofAddressInfo`, `ofCity`, `ofState`, `ofPostalCode`, `ofCountry`, `ofPhoneNumber`, `ofGeohash`
 
 ## User and identity
 
@@ -67,6 +69,7 @@ Main entrypoint: `io.github.frikit.krandom.generator.Generators`
 ## Text
 
 - `ofLoremIpsum`, `ofWord`, `ofSyllable`, `ofSentence`, `ofParagraph`, `ofText`
+- `ofTemplate`, `ofProviderTemplate`
 
 ## Structured generation
 
@@ -82,4 +85,5 @@ Main entrypoint: `io.github.frikit.krandom.generator.Generators`
 
 - `forType(Class<T>)`
 
-Supported built-ins include boxed and primitive Java scalar types, plus `String`.
+Supported built-ins include boxed and primitive Java scalar types, plus `String`, `Calendar`,
+`GregorianCalendar`, and `Locale`.

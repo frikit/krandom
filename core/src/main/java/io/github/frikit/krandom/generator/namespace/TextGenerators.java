@@ -42,4 +42,8 @@ public final class TextGenerators {
     public TemplateStringGenerator template(String template) { return new TemplateStringGenerator(template, config); }
 
     public TemplateStringGenerator template(String template, long seed) { return new TemplateStringGenerator(template, seed); }
+
+    public ProviderTemplateGenerator providerTemplate(String template) {
+        return new ProviderTemplateGenerator(template, config);
+    }
 }

@@ -58,7 +58,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | `country_calling_code()`, `msisdn()`                                     | Missing             | P1           | Phone generator exists.                                            |
 | `pydecimal()`, `null_boolean()`                                          | Missing/Partial     | P1           | Weighted boolean exists (`withLikelihood`).                        |
 | EAN family (`ean8/ean13/ean/localized`)                                  | Missing             | P1           | ISBN exists; barcode family missing.                               |
-| Real hash algorithms (`md5/sha1/sha256`)                                 | Partial             | Explicit gap | Random hex hash exists; algorithmic message digesting is deferred. |
+| Real hash algorithms (`md5/sha1/sha256`)                                 | Partial             | Open item | Random hex hash exists; algorithmic message digesting is deferred. |
 | Color names (`color_name`, `safe_color_name`)                            | Missing             | P1           | Color formats exist.                                               |
 
 ### Intentional Skip Candidates (Phase 4 Review)
@@ -80,7 +80,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | First name                  | ✅ `first_name()`                                                       | ✅ Yes          | ✓ DONE                  | Already implemented                        |
 | Last name                   | ✅ `last_name()`                                                        | ✅ Yes          | ✓ DONE                  | Already implemented                        |
 | Gender-specific first names | ✅ `first_name_female()`, `first_name_male()`, `first_name_nonbinary()` | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator.generate(Gender)`      |
-| Gender-specific last names  | ✅ `last_name_female()`, `last_name_male()`, `last_name_nonbinary()`    | ✅ Partial      | Explicit gap            | Last names exist; gendered surname morphology intentionally not modeled yet |
+| Gender-specific last names  | ✅ `last_name_female()`, `last_name_male()`, `last_name_nonbinary()`    | ✅ Partial      | Open item            | Last names exist; gendered surname morphology intentionally not modeled yet |
 | Name prefix                 | ✅ `prefix()` (Mr., Mrs., Dr., Prof.)                                   | ✅ Yes          | ✓ DONE                  | `TitleGenerator` and full-name prefix option |
 | Name suffix                 | ✅ `suffix()` (Jr., Sr., PhD, III, IV)                                  | ✅ Yes          | ✓ DONE                  | `SuffixGenerator`                         |
 | Full name by gender         | ✅ `name_female()`, `name_male()`                                       | ✅ Yes          | ✓ DONE                  | `FullNameGenerator.NameOptions.gender(...)` |
@@ -88,15 +88,15 @@ This section is the current Java parity baseline for execution planning. Some le
 | Title/prefix                | ✅ `prefix()`                                                           | ✅ Yes          | ✓ DONE                  | TitleGenerator implemented                 |
 | **SSN & IDs**               |
 | SSN (US)                    | ✅ `ssn()`                                                              | ✅ Yes          | ✓ DONE                  | SocialSecurityNumber implemented           |
-| Invalid SSN                 | ✅ `invalid_ssn()`                                                      | ❌ No           | LOW                     | Testing edge cases                         |
+| Invalid SSN                 | ✅ `invalid_ssn()`                                                      | No           | LOW                     | Testing edge cases                         |
 | EIN (Employer ID)           | ✅ `ein()`                                                              | ✅ Yes          | ✓ DONE                  | `EinGenerator`                             |
-| ITIN (Tax ID)               | ✅ `itin()`                                                             | ❌ No           | LOW                     | Individual taxpayer ID                     |
+| ITIN (Tax ID)               | ✅ `itin()`                                                             | No           | LOW                     | Individual taxpayer ID                     |
 | **Passport**                |
-| Passport number             | ✅ `passport_number()`                                                  | ❌ No (intentional) | SKIP                | Travel-document datasets deferred until requested |
-| Passport gender             | ✅ `passport_gender()`                                                  | ❌ No           | LOW                     | M/F/X designation                          |
-| Passport MRZ                | ✅ `passport_mrz()`                                                     | ❌ No           | LOW                     | Machine-readable zone                      |
-| Full passport               | ✅ `passport_full()`                                                    | ❌ No           | LOW                     | Complete document                          |
-| Passport owner              | ✅ `passport_owner()`                                                   | ❌ No           | LOW                     | Owner details dict                         |
+| Passport number             | ✅ `passport_number()`                                                  | No (intentional) | SKIP                | Travel-document datasets deferred until requested |
+| Passport gender             | ✅ `passport_gender()`                                                  | No           | LOW                     | M/F/X designation                          |
+| Passport MRZ                | ✅ `passport_mrz()`                                                     | No           | LOW                     | Machine-readable zone                      |
+| Full passport               | ✅ `passport_full()`                                                    | No           | LOW                     | Complete document                          |
+| Passport owner              | ✅ `passport_owner()`                                                   | No           | LOW                     | Owner details dict                         |
 | **Profile**                 |
 | Simple profile              | ✅ `simple_profile()`                                                   | ✅ Yes          | ✓ DONE                  | `SimpleProfileGenerator`                   |
 | Full profile                | ✅ `profile()`                                                          | ✅ Yes          | ✓ DONE                  | `ProfileGenerator` / `UserProfile`         |
@@ -111,11 +111,11 @@ This section is the current Java parity baseline for execution planning. Some le
 | Street address       | ✅ `street_address()`                       | ✅ Yes          | ✓ DONE                  | `StreetAddressGenerator.generate()` |
 | Building number      | ✅ `building_number()`                      | ✅ Yes          | ✓ DONE                  | `generateBuildingNumber()` / `generateStreetAddressNumber()` |
 | Secondary address    | ✅ `secondary_address()`                    | ✅ Yes          | ✓ DONE                  | `generateSecondaryAddress()` |
-| Street suffix        | ✅ `street_suffix()`                        | ❌ No (intentional) | SKIP                | Internal building block; full street names are generated |
+| Street suffix        | ✅ `street_suffix()`                        | No (intentional) | SKIP                | Internal building block; full street names are generated |
 | **City & State**     |
 | City name            | ✅ `city()`                                 | ✅ Yes          | ✓ DONE                  | `CityGenerator`              |
-| City prefix          | ✅ `city_prefix()`                          | ❌ No           | LOW                     | Lake, North, East            |
-| City suffix          | ✅ `city_suffix()`                          | ❌ No           | LOW                     | ville, town, burg            |
+| City prefix          | ✅ `city_prefix()`                          | No           | LOW                     | Lake, North, East            |
+| City suffix          | ✅ `city_suffix()`                          | No           | LOW                     | ville, town, burg            |
 | State                | ✅ `state()`                                | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate()`  |
 | State abbreviation   | ✅ `state_abbr()`                           | ✅ Yes          | ✓ DONE                  | `StateGenerator.generate(true)` |
 | **Postal Codes**     |
@@ -130,9 +130,9 @@ This section is the current Java parity baseline for execution planning. Some le
 | Latitude             | ✅ `latitude()`                             | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` |
 | Longitude            | ✅ `longitude()`                            | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLongitude()` |
 | Lat/Lng tuple        | ✅ `latlng()`                               | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generate()` |
-| Single coordinate    | ✅ `coordinate()`                           | ✅ Partial      | Explicit gap            | Latitude/longitude APIs exist; center/radius option not modeled |
-| Local lat/lng        | ✅ `local_latlng()`                         | ✅ Partial      | Explicit gap            | Locale-bounded coordinates exist; real populated-place lookup deferred |
-| Location on land     | ✅ `location_on_land()`                     | ❌ No           | LOW                     | Curated land-only dataset    |
+| Single coordinate    | ✅ `coordinate()`                           | ✅ Partial      | Open item            | Latitude/longitude APIs exist; center/radius option not modeled |
+| Local lat/lng        | ✅ `local_latlng()`                         | ✅ Partial      | Open item            | Locale-bounded coordinates exist; real populated-place lookup deferred |
+| Location on land     | ✅ `location_on_land()`                     | No           | LOW                     | Curated land-only dataset    |
 
 ### 3. INTERNET & NETWORKING
 
@@ -143,7 +143,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | Safe email        | ✅ `safe_email()`                 | ✅ Yes          | ✓ DONE                  | `EmailGenerator.generateSafeEmail()` |
 | Free email        | ✅ `free_email()`                 | ✅ Yes          | ✓ DONE                  | `EmailGenerator.generateFreeEmail()` |
 | Company email     | ✅ `company_email()`              | ✅ Yes          | ✓ DONE                  | `CompanyEmailGenerator` / `EmailGenerator.generateCompanyEmail()` |
-| Free email domain | ✅ `free_email_domain()`          | ❌ No           | LOW                     | gmail.com, yahoo.com        |
+| Free email domain | ✅ `free_email_domain()`          | No           | LOW                     | gmail.com, yahoo.com        |
 | **Domain & URLs** |
 | Domain name       | ✅ `domain_name()`                | ✅ Yes          | ✓ DONE                  | `DomainGenerator`           |
 | Hostname          | ✅ `hostname()`                   | ✅ Yes          | ✓ DONE                  | `HostnameGenerator`         |
@@ -155,17 +155,17 @@ This section is the current Java parity baseline for execution planning. Some le
 | IPv4              | ✅ `ipv4()`                       | ✅ Yes          | ✓ DONE                  | Already implemented         |
 | IPv4 private      | ✅ `ipv4_private()`               | ✅ Yes          | ✓ DONE                  | `IPv4Generator.generatePrivate()` |
 | IPv4 public       | ✅ `ipv4_public()`                | ✅ Yes          | ✓ DONE                  | `IPv4Generator.generatePublic()` |
-| IPv4 by class     | ✅ `ipv4(address_class='a/b/c')`  | ❌ No           | LOW                     | Classful addressing         |
+| IPv4 by class     | ✅ `ipv4(address_class='a/b/c')`  | No           | LOW                     | Classful addressing         |
 | IPv4 network      | ✅ `ipv4(network=True)`           | ✅ Yes          | ✓ DONE                  | `IPv4Generator.generateCidr()` |
 | IPv6              | ✅ `ipv6()`                       | ✅ Yes          | ✓ DONE                  | Already implemented         |
 | IPv6 network      | ✅ `ipv6(network=True)`           | ✅ Yes          | ✓ DONE                  | `IPv6Generator.generateCidr()` |
 | **Network**       |
 | MAC address       | ✅ `mac_address()`                | ✅ Yes          | ✓ DONE                  | `MacAddressGenerator`       |
-| MAC multicast     | ✅ `mac_address(multicast=True)`  | ❌ No           | LOW                     | Multicast MACs              |
+| MAC multicast     | ✅ `mac_address(multicast=True)`  | No           | LOW                     | Multicast MACs              |
 | Port number       | ✅ `port_number()`                | ✅ Yes          | ✓ DONE                  | `PortGenerator`             |
-| System port       | ✅ `port_number(is_system=True)`  | ❌ No           | LOW                     | 0-1023                      |
-| User port         | ✅ `port_number(is_user=True)`    | ❌ No           | LOW                     | 1024-49151                  |
-| Dynamic port      | ✅ `port_number(is_dynamic=True)` | ❌ No           | LOW                     | 49152-65535                 |
+| System port       | ✅ `port_number(is_system=True)`  | No           | LOW                     | 0-1023                      |
+| User port         | ✅ `port_number(is_user=True)`    | No           | LOW                     | 1024-49151                  |
+| Dynamic port      | ✅ `port_number(is_dynamic=True)` | No           | LOW                     | 49152-65535                 |
 | HTTP method       | ✅ `http_method()`                | ✅ Yes          | ✓ DONE                  | `HttpMethodGenerator`       |
 | HTTP status code  | ✅ `http_status_code()`           | ✅ Yes          | ✓ DONE                  | `HttpStatusCodeGenerator`   |
 | **Identifiers**   |
@@ -174,12 +174,12 @@ This section is the current Java parity baseline for execution planning. Some le
 | Username          | ✅ `user_name()`                  | ✅ Yes          | ✓ DONE                  | Username generator exists   |
 | **User Agents**   |
 | User agent        | ✅ `user_agent()`                 | ✅ Yes          | ✓ DONE                  | `UserAgentGenerator`        |
-| Chrome            | ✅ `chrome()`                     | ❌ No           | LOW                     | Chrome UA                   |
-| Firefox           | ✅ `firefox()`                    | ❌ No           | LOW                     | Firefox UA                  |
-| Safari            | ✅ `safari()`                     | ❌ No           | LOW                     | Safari UA                   |
-| Opera             | ✅ `opera()`                      | ❌ No           | LOW                     | Opera UA                    |
-| Android           | ✅ `android()`                    | ❌ No           | LOW                     | Android UA                  |
-| iOS               | ✅ `ios()`                        | ❌ No           | LOW                     | iOS UA                      |
+| Chrome            | ✅ `chrome()`                     | No           | LOW                     | Chrome UA                   |
+| Firefox           | ✅ `firefox()`                    | No           | LOW                     | Firefox UA                  |
+| Safari            | ✅ `safari()`                     | No           | LOW                     | Safari UA                   |
+| Opera             | ✅ `opera()`                      | No           | LOW                     | Opera UA                    |
+| Android           | ✅ `android()`                    | No           | LOW                     | Android UA                  |
+| iOS               | ✅ `ios()`                        | No           | LOW                     | iOS UA                      |
 
 ### 4. FINANCE & COMMERCE
 
@@ -187,7 +187,7 @@ This section is the current Java parity baseline for execution planning. Some le
 |--------------------|-------------------------------------------------------------------------|----------------|-------------------------|-------------------------------|
 | **Credit Cards**   |
 | Credit card number | ✅ Luhn-valid, 9 types                                                   | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator` with Luhn-valid card numbers |
-| Card types         | ✅ visa, mastercard, amex, diners, discover, jcb, visa13, visa16, visa19 | ✅ Partial      | Explicit gap            | `CardType` covers major networks; some Faker-specific variants omitted |
+| Card types         | ✅ visa, mastercard, amex, diners, discover, jcb, visa13, visa16, visa19 | ✅ Partial      | Open item            | `CardType` covers major networks; some Faker-specific variants omitted |
 | Card expiry        | ✅ `credit_card_expire()`                                                | ✅ Yes          | ✓ DONE                  | `CardExpirationGenerator` / `CreditCardGenerator.generateExpiry()` |
 | Security code      | ✅ `credit_card_security_code()`                                         | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.generateSecurityCode()` |
 | Card provider      | ✅ `credit_card_provider()`                                              | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.generateProvider()` |
@@ -196,8 +196,8 @@ This section is the current Java parity baseline for execution planning. Some le
 | IBAN               | ✅ `iban()`                                                              | ✅ Yes          | ✓ DONE                  | `IbanGenerator`               |
 | SWIFT/BIC          | ✅ `swift()`, `swift8()`, `swift11()`                                    | ✅ Yes          | ✓ DONE                  | `BicGenerator`                |
 | ABA routing        | ✅ `aba()`                                                               | ✅ Yes          | ✓ DONE                  | `AbaRoutingGenerator`         |
-| BBAN               | ✅ `bban()`                                                              | ❌ No           | LOW                     | Basic bank account            |
-| Bank country       | ✅ `bank_country()`                                                      | ❌ No           | LOW                     | ISO country code              |
+| BBAN               | ✅ `bban()`                                                              | No           | LOW                     | Basic bank account            |
+| Bank country       | ✅ `bank_country()`                                                      | No           | LOW                     | ISO country code              |
 | **Currency**       |
 | Currency dict      | ✅ `currency()`                                                          | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.generateAsMap()` / `CurrencyInfo` |
 | Currency code      | ✅ `currency_code()`                                                     | ✅ Yes          | ✓ DONE                  | `CurrencyGenerator.generateCurrencyCode()` |
@@ -211,8 +211,8 @@ This section is the current Java parity baseline for execution planning. Some le
 |-----------------|----------------------|----------------|-------------------------|---------------------|
 | Company name    | ✅ `company()`        | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator` |
 | Company suffix  | ✅ `company_suffix()` | ✅ Yes          | ✓ DONE                  | `CompanyNameGenerator.generate(true)` |
-| Buzzword phrase | ✅ `bs()`             | ❌ No           | LOW                     | Business-speak      |
-| Catch phrase    | ✅ `catch_phrase()`   | ❌ No           | LOW                     | Corporate slogans   |
+| Buzzword phrase | ✅ `bs()`             | No           | LOW                     | Business-speak      |
+| Catch phrase    | ✅ `catch_phrase()`   | No           | LOW                     | Corporate slogans   |
 
 ### 6. JOB & CAREER
 
@@ -233,9 +233,9 @@ This section is the current Java parity baseline for execution planning. Some le
 | Paragraphs       | ✅ `paragraphs(nb=3)`                           | ✅ Yes          | ✓ DONE                  | `ParagraphGenerator.generateList(n)` |
 | Text             | ✅ `text(max_nb_chars=200)`                     | ✅ Yes          | ✓ DONE                  | `TextGenerator`        |
 | Texts            | ✅ `texts(nb_texts=3)`                          | ✅ Yes          | ✓ DONE                  | `TextGenerator.generateList(n)` |
-| Custom word list | ✅ `ext_word_list` parameter                    | ❌ No           | LOW                     | Custom vocabulary      |
+| Custom word list | ✅ `ext_word_list` parameter                    | No           | LOW                     | Custom vocabulary      |
 | Variable length  | ✅ `variable_nb_words`, `variable_nb_sentences` | ✅ Yes          | ✓ DONE                  | Range-style APIs on text generators |
-| Unique words     | ✅ `words(unique=True)`                         | ✅ Partial      | Explicit gap            | `UniqueGenerator` can wrap `WordGenerator`; no Faker-style flag |
+| Unique words     | ✅ `words(unique=True)`                         | ✅ Partial      | Open item            | `UniqueGenerator` can wrap `WordGenerator`; no Faker-style flag |
 
 ### 8. DATE & TIME
 
@@ -256,19 +256,19 @@ This section is the current Java parity baseline for execution planning. Some le
 | Unix time                 | ✅ `unix_time()`         | ✅ Yes          | ✓ DONE                  | `DateGenerator.generateTimestamp()` |
 | Time                      | ✅ `time()`              | ✅ Yes          | ✓ DONE                  | `TimeGenerator`                 |
 | Time delta                | ✅ `time_delta()`        | ✅ Yes          | ✓ DONE                  | `DurationGenerator`             |
-| Time series               | ✅ `time_series()`       | ❌ No           | LOW                     | Lazy generator                 |
+| Time series               | ✅ `time_series()`       | No           | LOW                     | Lazy generator                 |
 | **Date Components**       |
-| Day of month              | ✅ `day_of_month()`      | ✅ Partial      | Explicit gap            | `DateGenerator.generateWithDay(...)` exists; no direct formatted-string helper |
-| Day of week               | ✅ `day_of_week()`       | ✅ Partial      | Explicit gap            | Java `LocalDate` exposes day-of-week; no dedicated string generator |
-| Month                     | ✅ `month()`             | ✅ Partial      | Explicit gap            | `DateGenerator.generateWithMonth(...)` exists; no direct formatted-string helper |
-| Month name                | ✅ `month_name()`        | ✅ Partial      | Explicit gap            | Java `LocalDate` can format month names; no dedicated string generator |
-| Year                      | ✅ `year()`              | ✅ Partial      | Explicit gap            | `DateGenerator.generateWithYear(...)` exists; no direct formatted-string helper |
-| Century                   | ✅ `century()`           | ❌ No           | LOW                     | Roman numerals                 |
-| AM/PM                     | ✅ `am_pm()`             | ❌ No           | LOW                     | AM or PM                       |
+| Day of month              | ✅ `day_of_month()`      | ✅ Partial      | Open item            | `DateGenerator.generateWithDay(...)` exists; no direct formatted-string helper |
+| Day of week               | ✅ `day_of_week()`       | ✅ Partial      | Open item            | Java `LocalDate` exposes day-of-week; no dedicated string generator |
+| Month                     | ✅ `month()`             | ✅ Partial      | Open item            | `DateGenerator.generateWithMonth(...)` exists; no direct formatted-string helper |
+| Month name                | ✅ `month_name()`        | ✅ Partial      | Open item            | Java `LocalDate` can format month names; no dedicated string generator |
+| Year                      | ✅ `year()`              | ✅ Partial      | Open item            | `DateGenerator.generateWithYear(...)` exists; no direct formatted-string helper |
+| Century                   | ✅ `century()`           | No           | LOW                     | Roman numerals                 |
+| AM/PM                     | ✅ `am_pm()`             | No           | LOW                     | AM or PM                       |
 | **Timezone**              |
 | Timezone                  | ✅ `timezone()`          | ✅ Yes          | ✓ DONE                  | `TimezoneGenerator`             |
 | **Date Offset Shorthand** |
-| Support for '+10d', '-2y' | ✅ Yes                   | ❌ No (intentional) | SKIP                | Python-style relative-date parser deferred; Java range APIs are explicit |
+| Support for '+10d', '-2y' | ✅ Yes                   | No (intentional) | SKIP                | Python-style relative-date parser deferred; Java range APIs are explicit |
 
 ### 9. PHONE NUMBERS
 
@@ -288,7 +288,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | Random decimal    | ✅ `pydecimal()`                                              | ✅ Yes          | ✓ DONE                  | `PyDecimalGenerator`             |
 | Boolean           | ✅ `pybool()` / `boolean()`                                   | ✅ Yes          | ✓ DONE                  | BooleanGenerator            |
 | Weighted boolean  | ✅ `boolean(chance_of_getting_true=50)`                       | ✅ Yes          | ✓ DONE                  | `BooleanGenerator.withLikelihood(...)` |
-| Null boolean      | ✅ `null_boolean()`                                           | ❌ No           | LOW                     | True/False/None             |
+| Null boolean      | ✅ `null_boolean()`                                           | No           | LOW                     | True/False/None             |
 | **Book Codes**    |
 | ISBN-10           | ✅ `isbn10()`                                                 | ✅ Yes          | ✓ DONE                  | `IsbnGenerator`             |
 | ISBN-13           | ✅ `isbn13()`                                                 | ✅ Yes          | ✓ DONE                  | `IsbnGenerator`             |
@@ -296,12 +296,12 @@ This section is the current Java parity baseline for execution planning. Some le
 | EAN-8             | ✅ `ean8()`                                                   | ✅ Yes          | ✓ DONE                  | `EanGenerator`              |
 | EAN-13            | ✅ `ean13()`                                                  | ✅ Yes          | ✓ DONE                  | `EanGenerator`              |
 | EAN (generic)     | ✅ `ean()`                                                    | ✅ Yes          | ✓ DONE                  | `EanGenerator`              |
-| Localized EAN     | ✅ `localized_ean()`, `localized_ean8()`, `localized_ean13()` | ❌ No           | LOW                     | With country prefix         |
+| Localized EAN     | ✅ `localized_ean()`, `localized_ean8()`, `localized_ean13()` | No           | LOW                     | With country prefix         |
 | **Hashing**       |
-| MD5               | ✅ `md5()`                                                    | ✅ Partial      | Explicit gap            | `HashGenerator` emits digest-shaped hex; not a real message digest |
-| SHA1              | ✅ `sha1()`                                                   | ✅ Partial      | Explicit gap            | `HashGenerator` supports SHA-length output; not algorithmic digesting |
-| SHA256            | ✅ `sha256()`                                                 | ✅ Partial      | Explicit gap            | `HashGenerator` supports SHA-length output; not algorithmic digesting |
-| Binary            | ✅ `binary()`                                                 | ❌ No           | LOW                     | Random bytes                |
+| MD5               | ✅ `md5()`                                                    | ✅ Partial      | Open item            | `HashGenerator` emits digest-shaped hex; not a real message digest |
+| SHA1              | ✅ `sha1()`                                                   | ✅ Partial      | Open item            | `HashGenerator` supports SHA-length output; not algorithmic digesting |
+| SHA256            | ✅ `sha256()`                                                 | ✅ Partial      | Open item            | `HashGenerator` supports SHA-length output; not algorithmic digesting |
+| Binary            | ✅ `binary()`                                                 | No           | LOW                     | Random bytes                |
 
 ### 11. COLOR
 
@@ -310,20 +310,20 @@ This section is the current Java parity baseline for execution planning. Some le
 | Color name      | ✅ `color_name()`      | ✅ Yes          | ✓ DONE                  | `ColorGenerator.generateColorName()` |
 | Safe color name | ✅ `safe_color_name()` | ✅ Yes          | ✓ DONE                  | `ColorGenerator.generateSafeColorName()` |
 | Hex color       | ✅ `hex_color()`       | ✅ Yes          | ✓ DONE                  | `ColorGenerator`     |
-| Safe hex color  | ✅ `safe_hex_color()`  | ❌ No           | LOW                     | Short hex #ff0     |
+| Safe hex color  | ✅ `safe_hex_color()`  | No           | LOW                     | Short hex #ff0     |
 | RGB color       | ✅ `rgb_color()`       | ✅ Yes          | ✓ DONE                  | `ColorGenerator`     |
 | RGB CSS         | ✅ `rgb_css_color()`   | ✅ Yes          | ✓ DONE                  | `ColorGenerator`     |
-| HSL color       | ✅ `hsl_color()`       | ❌ No           | LOW                     | hsl(120, 50%, 50%) |
-| RGB tuple       | ✅ `color_rgb()`       | ✅ Partial      | Explicit gap            | RGB values exist as formatted strings; tuple return shape is Python-specific |
-| RGB float tuple | ✅ `color_rgb_float()` | ❌ No           | LOW                     | (r, g, b) 0..1     |
-| HSL tuple       | ✅ `color_hsl()`       | ❌ No           | LOW                     | (H, S%, L%)        |
+| HSL color       | ✅ `hsl_color()`       | No           | LOW                     | hsl(120, 50%, 50%) |
+| RGB tuple       | ✅ `color_rgb()`       | ✅ Partial      | Open item            | RGB values exist as formatted strings; tuple return shape is Python-specific |
+| RGB float tuple | ✅ `color_rgb_float()` | No           | LOW                     | (r, g, b) 0..1     |
+| HSL tuple       | ✅ `color_hsl()`       | No           | LOW                     | (H, S%, L%)        |
 
 ### 12. AUTOMOTIVE
 
 | Feature       | faker Support       | krandom Status | Implementation Priority | Notes              |
 |---------------|---------------------|----------------|-------------------------|--------------------|
-| VIN           | ✅ `vin()`           | ❌ No (intentional) | SKIP                | Automotive identifiers are long-tail domain data |
-| License plate | ✅ `license_plate()` | ❌ No (intentional) | SKIP                | Automotive identifiers are long-tail domain data |
+| VIN           | ✅ `vin()`           | No (intentional) | SKIP                | Automotive identifiers are long-tail domain data |
+| License plate | ✅ `license_plate()` | No (intentional) | SKIP                | Automotive identifiers are long-tail domain data |
 
 ### 13. FILE & UNIX
 
@@ -333,9 +333,9 @@ This section is the current Java parity baseline for execution planning. Some le
 | File name      | ✅ `file_name()`                     | ✅ Yes          | ✓ DONE                  | `FileNameGenerator` |
 | File path      | ✅ `file_path()`                     | ✅ Yes          | ✓ DONE                  | `FilePathGenerator` |
 | MIME type      | ✅ `mime_type()`                     | ✅ Yes          | ✓ DONE                  | `MimeTypeGenerator` |
-| Unix device    | ✅ `unix_device()`                   | ❌ No           | LOW                     | /dev/sda           |
-| Unix partition | ✅ `unix_partition()`                | ❌ No           | LOW                     | /dev/sda1          |
-| File category  | ✅ audio, image, office, text, video | ❌ No           | LOW                     | Category filtering |
+| Unix device    | ✅ `unix_device()`                   | No           | LOW                     | /dev/sda           |
+| Unix partition | ✅ `unix_partition()`                | No           | LOW                     | /dev/sda1          |
+| File category  | ✅ audio, image, office, text, video | No           | LOW                     | Category filtering |
 
 ### 14. PYTHON NATIVE TYPES
 
@@ -346,10 +346,10 @@ This section is the current Java parity baseline for execution planning. Some le
 | pydecimal    | ✅ `pydecimal()`    | ✅ Yes          | ✓ DONE                  | `PyDecimalGenerator` |
 | pybool       | ✅ `pybool()`       | ✅ Yes          | ✓ DONE                  | BooleanGenerator |
 | pystr        | ✅ `pystr()`        | ✅ Yes          | ✓ DONE                  | StringGenerator  |
-| pystr_format | ✅ `pystr_format()` | ✅ Partial      | Explicit gap            | `TemplateStringGenerator` handles `#`/`?`; `{provider}` registry remains open |
-| pylist       | ✅ `pylist()`       | ❌ No (intentional) | SKIP                | Python-native return type; Java callers use `Generator.generateList(n)` |
-| pydict       | ✅ `pydict()`       | ❌ No (intentional) | SKIP                | Python-native return type; Java callers use schema/map generation |
-| pytuple      | ✅ `pytuple()`      | ❌ No (intentional) | SKIP                | Python-native return type; no Java tuple equivalent |
+| pystr_format | ✅ `pystr_format()` | ✅ Yes          | ✓ DONE                  | `ProviderTemplateGenerator` resolves `{provider}` tokens and keeps `#`/`?`/`^` formatting |
+| pylist       | ✅ `pylist()`       | No (intentional) | SKIP                | Python-native return type; Java callers use `Generator.generateList(n)` |
+| pydict       | ✅ `pydict()`       | No (intentional) | SKIP                | Python-native return type; Java callers use schema/map generation |
+| pytuple      | ✅ `pytuple()`      | No (intentional) | SKIP                | Python-native return type; no Java tuple equivalent |
 
 ### 15. STRUCTURED OUTPUT
 
@@ -375,13 +375,13 @@ This section is the current Java parity baseline for execution planning. Some le
 | Feature                  | faker                                     | krandom   | Priority | Implementation Notes          |
 |--------------------------|-------------------------------------------|-----------|----------|-------------------------------|
 | **Locale Support**       |
-| Multiple locales         | ✅ 80+ locales                             | ✅ Partial | Explicit gap | `SupportedLocale` covers the project-supported locale set, not Faker's full 80+ |
+| Multiple locales         | ✅ 80+ locales                             | ✅ Partial | Open item | `SupportedLocale` covers the project-supported locale set, not Faker's full 80+ |
 | Locale-aware data        | ✅ Names, addresses, phones                | ✅ Yes     | ✓ DONE   | Names, addresses, phones, IDs, and text are locale-aware |
 | Runtime locale switching | ✅ Constructor param                       | ✅ Yes     | ✓ DONE   | Pass `Locale` or `GeneratorConfig` per generator |
-| Multi-locale mixing      | ✅ `Faker(['en_US', 'de_DE'])`             | ❌ No / Deferred | DESIGN | Single-locale `GeneratorConfig` is intentional until a concrete use case defines the contract |
-| Weighted locale          | ✅ `weights=[0.7, 0.3]`                    | ❌ No      | LOW      | Probability distribution      |
+| Multi-locale mixing      | ✅ `Faker(['en_US', 'de_DE'])`             | No / Deferred | DESIGN | Single-locale `GeneratorConfig` is intentional until a concrete use case defines the contract |
+| Weighted locale          | ✅ `weights=[0.7, 0.3]`                    | No      | LOW      | Probability distribution      |
 | **Seeding**              |
-| Class-level seed         | ✅ `Faker.seed(n)`                         | ❌ No (intentional) | SKIP | Global mutable seed conflicts with instance-scoped `GeneratorConfig.seed(...)` |
+| Class-level seed         | ✅ `Faker.seed(n)`                         | No (intentional) | SKIP | Global mutable seed conflicts with instance-scoped `GeneratorConfig.seed(...)` |
 | Instance-level seed      | ✅ `faker.seed_instance(n)`                | ✅ Yes     | ✓ DONE   | Most generators support       |
 | Custom random            | ✅ `generator` param                       | ✅ Yes     | ✓ DONE   | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)` |
 | **String Utilities**     |
