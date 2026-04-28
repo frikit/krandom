@@ -26,7 +26,7 @@ Goal: remove all adoption blockers. Nothing else matters until users can `implem
 - [x] **1.2 Publish to Maven Central** — register `io.github.frikit` on Sonatype OSSRH, add GPG signing to the build, create a `release-maven-central.yml` workflow. (Build config + workflow ready; user must register on OSSRH and configure secrets.)
 - [x] **1.3 CHANGELOG.md** — create changelog covering all notable changes since project inception. Adopt keep-a-changelog format.
 - [ ] **1.4 Community files** — add `CONTRIBUTING.md` (fork/PR workflow, 99.9% coverage gate, pre-commit usage, Java 21 requirement), `CODE_OF_CONDUCT.md` (Contributor Covenant), `SECURITY.md` (vulnerability reporting via GitHub security advisories).
-- [x] **1.5 Release v1.0.0** — tag, build, publish to Maven Central and GitHub Packages. Update README install instructions to remove GitHub Packages credentials requirement. (README updated; user triggers the release workflow after configuring OSSRH secrets.)
+- [x] **1.5 Release v1.0.0** — tag, build, and publish to Maven Central. Update README install instructions to remove GitHub Packages credentials requirement. (README updated; user triggers the Maven Central workflow after configuring OSSRH secrets.)
 
 ---
 

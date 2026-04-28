@@ -1,5 +1,7 @@
 # Codex Java Library Parity 100 Plan — 2026-04-28
 
+> This document covers the earlier **scoped** Java-library parity contract. It is not a literal 1:1 parity claim for every DataFaker, JavaFaker, Easy Random, and Instancio API. For the stricter full-parity roadmap, see `docs/plans/codex-full-java-library-parity-plan-2026-04-28.md`.
+
 ## Goal
 
 Make krandom defensibly **100% complete for its scoped Java generator-library parity contract**.

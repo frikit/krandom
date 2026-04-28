@@ -100,21 +100,6 @@ subprojects {
                 }
                 repositories {
                     maven {
-                        name = "GitHubPackages"
-                        val repo = providers.environmentVariable("GITHUB_REPOSITORY")
-                            .orElse("frikit/krandom")
-                            .get()
-                        url = uri("https://maven.pkg.github.com/$repo")
-                        credentials {
-                            username = providers.environmentVariable("GITHUB_ACTOR")
-                                .orElse(providers.gradleProperty("gpr.user"))
-                                .orNull
-                            password = providers.environmentVariable("GITHUB_TOKEN")
-                                .orElse(providers.gradleProperty("gpr.key"))
-                                .orNull
-                        }
-                    }
-                    maven {
                         name = "OSSRH"
                         url = if (version.toString().endsWith("-SNAPSHOT")) {
                             uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")

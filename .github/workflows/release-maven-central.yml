@@ -10,11 +10,10 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   release:
-    name: Publish to Maven Central + GitHub Packages
+    name: Publish to Maven Central
     runs-on: ubuntu-latest
 
     steps:
@@ -67,13 +66,6 @@ jobs:
           GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
         run: ./gradlew publishMavenJavaPublicationToOSSRHRepository -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
 
-      - name: Publish to GitHub Packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -101,9 +93,6 @@ jobs:
             ```kotlin
             implementation("io.github.frikit:krandom-core:${{ env.VERSION }}")
             ```
-
-            ### GitHub Packages
-            https://maven.pkg.github.com/${{ github.repository }}
 
             ### Required secrets
             - `OSSRH_USERNAME` / `OSSRH_PASSWORD` — Sonatype OSSRH credentials
