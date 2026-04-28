@@ -15,7 +15,7 @@ This v3 was produced by:
 3. **Grepping `core/src/main/java`** to confirm each remaining claim is a real
    gap, not stale doc text.
 
-## Open-row census (after recent doc cleanups)
+## Historical open-row census (before the 2026-04-28 Java parity sweep)
 
 | Doc                       | Total `❌ No` | `(intentional)` | HIGH genuine | MEDIUM genuine | LOW genuine |
 | ------------------------- | ------------- | --------------- | ------------ | -------------- | ----------- |
@@ -29,9 +29,11 @@ This v3 was produced by:
 | `mimesis-parity.md`       | 0             | 0               | 0            | 0              | 0           |
 
 **Bogus / GoFakeit / Mimesis are fully closed.** Chancejs has one MEDIUM row.
-Datafaker has zero HIGH/MEDIUM but a 161-row LOW long-tail. Easy-random has
-13 MEDIUM rows (all SPI/registry — pre-declined). Fake-rs and faker-python
-audited sections show very narrow real gaps.
+Datafaker had zero HIGH/MEDIUM but a 161-row LOW long-tail. Easy-random had
+13 MEDIUM rows (all SPI/registry — pre-declined). The 2026-04-28 Java sweep
+closed the Java-library ambiguity by marking stale rows as implemented and
+collapsing DataFaker long-tail catalogs into explicit intentional-skip
+families.
 
 ## Source-verified real code gaps (the entire actionable list)
 
@@ -52,8 +54,8 @@ audited sections show very narrow real gaps.
 ### S1. License plate (cross-doc consistency)
 
 faker-python already marks `license_plate()` intentional skip ("Automotive
-identifiers are long-tail domain data"). fake-rs audit row 95 still says
-`❌ Missing`. → Flip fake-rs row to `❌ No (intentional)` with the same
+identifiers are long-tail domain data"). fake-rs audit row 95 used to be an
+active gap. → Flip fake-rs row to `❌ No (intentional)` with the same
 rationale.
 
 ### S2. Datafaker LOW long-tail (161 rows)
@@ -104,7 +106,7 @@ prefix/suffix (already done elsewhere), localized EAN, century, AM/PM.
 
 | Step | Tier | Effort | Code? | Closes                                                 |
 | ---- | ---- | ------ | ----- | ------------------------------------------------------ |
-| 1    | A    | S      | No    | S1 license-plate consistency + flip stale buzzword/catchphrase/http-method/Password rows |
+| 1    | A    | S      | No    | Done — S1 license-plate consistency + stale buzzword/catchphrase/http-method/Password rows |
 | 2    | B1   | S      | Yes   | `UniqueGenerator.reset()`                              |
 | 3    | B3   | S      | Yes   | `hexify` provider method                               |
 | 4    | B4   | S      | Yes   | `GeohashGenerator`                                     |
@@ -112,9 +114,9 @@ prefix/suffix (already done elsewhere), localized EAN, century, AM/PM.
 | 6    | B6   | S      | Yes   | `CalendarGenerator`                                    |
 | 7    | B7   | S      | Yes   | `RandomLocaleGenerator`                                |
 | 8    | B2   | M      | Yes   | Template registry with `{name}` lookup                 |
-| 9    | S2   | S      | No    | Datafaker 161 LOW intentional-skip sweep               |
-| 10   | S3   | S      | No    | Easy-random SPI/registry intentional-skip sweep        |
-| 11   | S4   | S      | No    | faker-python LOW intentional-skip sweep                |
+| 9    | S2   | S      | No    | Done — Datafaker LOW intentional-skip sweep            |
+| 10   | S3   | S      | No    | Done — Easy-random SPI/registry intentional-skip sweep |
+| 11   | S4   | S      | No    | Done — faker-python LOW intentional-skip sweep         |
 | —    | C1   | —      | —     | Multi-locale mixing — already deferred-with-rationale  |
 | —    | D1   | —      | —     | Locale breadth — continuous, no milestone              |
 
@@ -152,7 +154,7 @@ After each Tier B step:
 
 ## Status tracker
 
-- [ ] Step 1 — Tier A: license-plate consistency + flip stale rows (buzzword/catchphrase/http-method/easy-random Password)
+- [x] Step 1 — Tier A: license-plate consistency + flip stale rows (buzzword/catchphrase/http-method/easy-random Password)
 - [x] Step 2 — `UniqueGenerator.reset()`
 - [x] Step 3 — `hexify` provider method
 - [x] Step 4 — `GeohashGenerator`
@@ -160,9 +162,9 @@ After each Tier B step:
 - [x] Step 6 — `CalendarGenerator`
 - [x] Step 7 — `RandomLocaleGenerator`
 - [x] Step 8 — Template registry with `{name}` lookup
-- [ ] Step 9 — Datafaker LOW intentional-skip sweep
-- [ ] Step 10 — Easy-random SPI/registry intentional-skip sweep
-- [ ] Step 11 — faker-python LOW intentional-skip sweep
+- [x] Step 9 — Datafaker LOW intentional-skip sweep
+- [x] Step 10 — Easy-random SPI/registry intentional-skip sweep
+- [x] Step 11 — faker-python LOW intentional-skip sweep
 - [—] C1 — multi-locale mixing: already deferred
 - [—] D1/D2/D3 — continuous community work, no milestone
 

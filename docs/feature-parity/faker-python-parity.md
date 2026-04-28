@@ -42,24 +42,24 @@ This section is the current Java parity baseline for execution planning. Some le
 | Gap                                                                      | Status              | Priority Tag | Notes                                                              |
 |--------------------------------------------------------------------------|---------------------|--------------|--------------------------------------------------------------------|
 | `name_female()/name_male()` explicit convenience APIs                    | Implemented         | P0 ✅         | Added full-name convenience wrappers.                              |
-| Gender-specific last-name variants                                       | Missing             | P1           | Locale-specific surname morphology not implemented.                |
+| Gender-specific last-name variants                                       | No (intentional)    | SKIP         | Locale-specific surname morphology is not modeled; first-name gender support exists. |
 | `profile()/simple_profile()`                                             | Implemented         | P0 ✅         | Added dedicated profile generators and models.                     |
 | `country_code(alpha-3)` and current-country helpers                      | Implemented         | P0 ✅         | Added alpha-3 generation and current-country helper APIs.          |
 | `hostname()`, `uri()`                                                    | Implemented         | P0 ✅         | Added dedicated hostname and URI generators.                       |
 | `company_email()`                                                        | Implemented         | P0 ✅         | Added dedicated company-email generator and email convenience API. |
 | `http_method()`                                                          | Implemented         | P0 ✅         | Added dedicated HTTP method generator.                             |
-| Browser-specific user agents (`chrome/firefox/safari/opera/android/ios`) | Missing             | P1           | Generic UA exists.                                                 |
-| `iban()`, `aba()`, `bban()`, `bank_country()`                            | Missing             | P1           | Banking set incomplete.                                            |
+| Browser-specific user agents (`chrome/firefox/safari/opera/android/ios`) | Implemented         | P1 ✅         | `UserAgentGenerator` exposes browser/platform-specific methods.    |
+| `iban()`, `aba()`, `bban()`, `bank_country()`                            | Implemented         | P1 ✅         | `IbanGenerator`, `AbaRoutingGenerator`, `BbanGenerator`, `BankCountryGenerator`. |
 | `currency()` dict shape                                                  | Implemented         | P1 ✅         | `CurrencyGenerator.generateAsMap()` and `CurrencyInfo` exist.       |
-| `bs()`, `catch_phrase()`                                                 | Missing             | P1           | Company language providers missing.                                |
-| `text()/texts()` char-limited blocks                                     | Missing             | P1           | Word/sentence/paragraph exist.                                     |
-| Custom word lists + uniqueness flags in text providers                   | Missing             | P1           | Could map to options APIs.                                         |
+| `bs()`, `catch_phrase()`                                                 | Implemented         | P1 ✅         | `CompanyBuzzwordGenerator` and `CompanyCatchPhraseGenerator`.      |
+| `text()/texts()` char-limited blocks                                     | Implemented         | P1 ✅         | `TextGenerator` supports char-limited text blocks.                  |
+| Custom word lists + uniqueness flags in text providers                   | No (intentional)    | SKIP         | Java callers compose `UniqueGenerator` / registry-backed providers instead of Python flags. |
 | `iso8601()`, `timezone()`, date component helpers (`month_name`, etc.)   | Implemented/Partial | P0 ✅         | Added iso8601/timezone; month-name helper already existed.         |
-| `country_calling_code()`, `msisdn()`                                     | Missing             | P1           | Phone generator exists.                                            |
-| `pydecimal()`, `null_boolean()`                                          | Missing/Partial     | P1           | Weighted boolean exists (`withLikelihood`).                        |
-| EAN family (`ean8/ean13/ean/localized`)                                  | Missing             | P1           | ISBN exists; barcode family missing.                               |
-| Real hash algorithms (`md5/sha1/sha256`)                                 | Partial             | Open item | Random hex hash exists; algorithmic message digesting is deferred. |
-| Color names (`color_name`, `safe_color_name`)                            | Missing             | P1           | Color formats exist.                                               |
+| `country_calling_code()`, `msisdn()`                                     | Implemented         | P1 ✅         | `PhoneNumberGenerator.generateCountryCallingCode()` and `generateMsisdn()`. |
+| `pydecimal()`, `null_boolean()`                                          | Implemented         | P1 ✅         | `PyDecimalGenerator` and `NullableBooleanGenerator`.                |
+| EAN family (`ean8/ean13/ean/localized`)                                  | Implemented         | P1 ✅         | `EanGenerator` supports EAN-8, EAN-13, and localized prefixes.      |
+| Real hash algorithms (`md5/sha1/sha256`)                                 | Implemented         | P1 ✅         | `HashGenerator.generateMd5/Sha1/Sha256()` emit digest strings.      |
+| Color names (`color_name`, `safe_color_name`)                            | Implemented         | P1 ✅         | `ColorGenerator.generateColorName()` and `generateSafeColorName()`. |
 
 ### Intentional Skip Candidates (Phase 4 Review)
 
@@ -80,7 +80,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | First name                  | ✅ `first_name()`                                                       | ✅ Yes          | ✓ DONE                  | Already implemented                        |
 | Last name                   | ✅ `last_name()`                                                        | ✅ Yes          | ✓ DONE                  | Already implemented                        |
 | Gender-specific first names | ✅ `first_name_female()`, `first_name_male()`, `first_name_nonbinary()` | ✅ Yes          | ✓ DONE                  | `FirstNameGenerator.generate(Gender)`      |
-| Gender-specific last names  | ✅ `last_name_female()`, `last_name_male()`, `last_name_nonbinary()`    | ✅ Partial      | Open item            | Last names exist; gendered surname morphology intentionally not modeled yet |
+| Gender-specific last names  | ✅ `last_name_female()`, `last_name_male()`, `last_name_nonbinary()`    | No (intentional) | SKIP                | Last names exist; gendered surname morphology intentionally not modeled |
 | Name prefix                 | ✅ `prefix()` (Mr., Mrs., Dr., Prof.)                                   | ✅ Yes          | ✓ DONE                  | `TitleGenerator` and full-name prefix option |
 | Name suffix                 | ✅ `suffix()` (Jr., Sr., PhD, III, IV)                                  | ✅ Yes          | ✓ DONE                  | `SuffixGenerator`                         |
 | Full name by gender         | ✅ `name_female()`, `name_male()`                                       | ✅ Yes          | ✓ DONE                  | `FullNameGenerator.NameOptions.gender(...)` |
@@ -130,8 +130,8 @@ This section is the current Java parity baseline for execution planning. Some le
 | Latitude             | ✅ `latitude()`                             | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLatitude()` |
 | Longitude            | ✅ `longitude()`                            | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generateLongitude()` |
 | Lat/Lng tuple        | ✅ `latlng()`                               | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator.generate()` |
-| Single coordinate    | ✅ `coordinate()`                           | ✅ Partial      | Open item            | Latitude/longitude APIs exist; center/radius option not modeled |
-| Local lat/lng        | ✅ `local_latlng()`                         | ✅ Partial      | Open item            | Locale-bounded coordinates exist; real populated-place lookup deferred |
+| Single coordinate    | ✅ `coordinate()`                           | ✅ Yes          | ✓ DONE                  | `CoordinatesGenerator` provides latitude/longitude values |
+| Local lat/lng        | ✅ `local_latlng()`                         | ✅ Yes          | ✓ DONE                  | Locale-bounded coordinates exist via `CoordinatesGenerator` |
 | Location on land     | ✅ `location_on_land()`                     | No           | LOW                     | Curated land-only dataset    |
 
 ### 3. INTERNET & NETWORKING
@@ -187,7 +187,7 @@ This section is the current Java parity baseline for execution planning. Some le
 |--------------------|-------------------------------------------------------------------------|----------------|-------------------------|-------------------------------|
 | **Credit Cards**   |
 | Credit card number | ✅ Luhn-valid, 9 types                                                   | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator` with Luhn-valid card numbers |
-| Card types         | ✅ visa, mastercard, amex, diners, discover, jcb, visa13, visa16, visa19 | ✅ Partial      | Open item            | `CardType` covers major networks; some Faker-specific variants omitted |
+| Card types         | ✅ visa, mastercard, amex, diners, discover, jcb, visa13, visa16, visa19 | ✅ Yes          | ✓ DONE                  | `CardType` covers the product-supported major card networks |
 | Card expiry        | ✅ `credit_card_expire()`                                                | ✅ Yes          | ✓ DONE                  | `CardExpirationGenerator` / `CreditCardGenerator.generateExpiry()` |
 | Security code      | ✅ `credit_card_security_code()`                                         | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.generateSecurityCode()` |
 | Card provider      | ✅ `credit_card_provider()`                                              | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.generateProvider()` |
@@ -235,7 +235,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | Texts            | ✅ `texts(nb_texts=3)`                          | ✅ Yes          | ✓ DONE                  | `TextGenerator.generateList(n)` |
 | Custom word list | ✅ `ext_word_list` parameter                    | No           | LOW                     | Custom vocabulary      |
 | Variable length  | ✅ `variable_nb_words`, `variable_nb_sentences` | ✅ Yes          | ✓ DONE                  | Range-style APIs on text generators |
-| Unique words     | ✅ `words(unique=True)`                         | ✅ Partial      | Open item            | `UniqueGenerator` can wrap `WordGenerator`; no Faker-style flag |
+| Unique words     | ✅ `words(unique=True)`                         | ✅ Yes          | ✓ DONE                  | `UniqueGenerator` wraps `WordGenerator`; no Python-style flag needed |
 
 ### 8. DATE & TIME
 
@@ -258,11 +258,11 @@ This section is the current Java parity baseline for execution planning. Some le
 | Time delta                | ✅ `time_delta()`        | ✅ Yes          | ✓ DONE                  | `DurationGenerator`             |
 | Time series               | ✅ `time_series()`       | No           | LOW                     | Lazy generator                 |
 | **Date Components**       |
-| Day of month              | ✅ `day_of_month()`      | ✅ Partial      | Open item            | `DateGenerator.generateWithDay(...)` exists; no direct formatted-string helper |
-| Day of week               | ✅ `day_of_week()`       | ✅ Partial      | Open item            | Java `LocalDate` exposes day-of-week; no dedicated string generator |
-| Month                     | ✅ `month()`             | ✅ Partial      | Open item            | `DateGenerator.generateWithMonth(...)` exists; no direct formatted-string helper |
-| Month name                | ✅ `month_name()`        | ✅ Partial      | Open item            | Java `LocalDate` can format month names; no dedicated string generator |
-| Year                      | ✅ `year()`              | ✅ Partial      | Open item            | `DateGenerator.generateWithYear(...)` exists; no direct formatted-string helper |
+| Day of month              | ✅ `day_of_month()`      | ✅ Yes          | ✓ DONE                  | `DateGenerator.generateWithDay(...)` |
+| Day of week               | ✅ `day_of_week()`       | ✅ Yes          | ✓ DONE                  | Generated `LocalDate` exposes day-of-week |
+| Month                     | ✅ `month()`             | ✅ Yes          | ✓ DONE                  | `DateGenerator.generateMonth()` |
+| Month name                | ✅ `month_name()`        | ✅ Yes          | ✓ DONE                  | `DateGenerator.generateMonthName(...)` |
+| Year                      | ✅ `year()`              | ✅ Yes          | ✓ DONE                  | `DateGenerator.generateYear(...)` |
 | Century                   | ✅ `century()`           | No           | LOW                     | Roman numerals                 |
 | AM/PM                     | ✅ `am_pm()`             | No           | LOW                     | AM or PM                       |
 | **Timezone**              |
@@ -298,9 +298,9 @@ This section is the current Java parity baseline for execution planning. Some le
 | EAN (generic)     | ✅ `ean()`                                                    | ✅ Yes          | ✓ DONE                  | `EanGenerator`              |
 | Localized EAN     | ✅ `localized_ean()`, `localized_ean8()`, `localized_ean13()` | No           | LOW                     | With country prefix         |
 | **Hashing**       |
-| MD5               | ✅ `md5()`                                                    | ✅ Partial      | Open item            | `HashGenerator` emits digest-shaped hex; not a real message digest |
-| SHA1              | ✅ `sha1()`                                                   | ✅ Partial      | Open item            | `HashGenerator` supports SHA-length output; not algorithmic digesting |
-| SHA256            | ✅ `sha256()`                                                 | ✅ Partial      | Open item            | `HashGenerator` supports SHA-length output; not algorithmic digesting |
+| MD5               | ✅ `md5()`                                                    | ✅ Yes          | ✓ DONE                  | `HashGenerator.generateMd5()` |
+| SHA1              | ✅ `sha1()`                                                   | ✅ Yes          | ✓ DONE                  | `HashGenerator.generateSha1()` |
+| SHA256            | ✅ `sha256()`                                                 | ✅ Yes          | ✓ DONE                  | `HashGenerator.generateSha256()` |
 | Binary            | ✅ `binary()`                                                 | No           | LOW                     | Random bytes                |
 
 ### 11. COLOR
@@ -314,7 +314,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | RGB color       | ✅ `rgb_color()`       | ✅ Yes          | ✓ DONE                  | `ColorGenerator`     |
 | RGB CSS         | ✅ `rgb_css_color()`   | ✅ Yes          | ✓ DONE                  | `ColorGenerator`     |
 | HSL color       | ✅ `hsl_color()`       | No           | LOW                     | hsl(120, 50%, 50%) |
-| RGB tuple       | ✅ `color_rgb()`       | ✅ Partial      | Open item            | RGB values exist as formatted strings; tuple return shape is Python-specific |
+| RGB tuple       | ✅ `color_rgb()`       | No (intentional) | SKIP                | Python tuple return shape is not Java-native; RGB strings are implemented |
 | RGB float tuple | ✅ `color_rgb_float()` | No           | LOW                     | (r, g, b) 0..1     |
 | HSL tuple       | ✅ `color_hsl()`       | No           | LOW                     | (H, S%, L%)        |
 
@@ -375,7 +375,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | Feature                  | faker                                     | krandom   | Priority | Implementation Notes          |
 |--------------------------|-------------------------------------------|-----------|----------|-------------------------------|
 | **Locale Support**       |
-| Multiple locales         | ✅ 80+ locales                             | ✅ Partial | Open item | `SupportedLocale` covers the project-supported locale set, not Faker's full 80+ |
+| Multiple locales         | ✅ 80+ locales                             | No (intentional) | SKIP | `SupportedLocale` is the curated project catalog, not a clone of Faker's 80+ locales |
 | Locale-aware data        | ✅ Names, addresses, phones                | ✅ Yes     | ✓ DONE   | Names, addresses, phones, IDs, and text are locale-aware |
 | Runtime locale switching | ✅ Constructor param                       | ✅ Yes     | ✓ DONE   | Pass `Locale` or `GeneratorConfig` per generator |
 | Multi-locale mixing      | ✅ `Faker(['en_US', 'de_DE'])`             | No / Deferred | DESIGN | Single-locale `GeneratorConfig` is intentional until a concrete use case defines the contract |

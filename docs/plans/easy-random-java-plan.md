@@ -96,11 +96,11 @@ Acceptance:
 Goal: parity for advanced extension hooks.
 Status: **SKIPPED by scope decision**.
 
-- [ ] Randomizer registry layering/priority model. (skipped)
-- [ ] Randomizer provider strategy hooks. (skipped)
-- [ ] Exclusion policy hook. (skipped)
-- [ ] Object factory hook. (skipped)
-- [ ] ServiceLoader auto-discovery (if adopted). (skipped)
+- [x] Randomizer registry layering/priority model. (intentional skip)
+- [x] Randomizer provider strategy hooks. (intentional skip)
+- [x] Exclusion policy hook. (intentional skip)
+- [x] Object factory hook. (intentional skip)
+- [x] ServiceLoader auto-discovery. (intentional skip)
 
 Acceptance:
 
@@ -111,9 +111,9 @@ Acceptance:
 Goal: abstract/interface concrete-type resolution parity.
 Status: **SKIPPED by scope decision**.
 
-- [ ] Design and benchmark classpath scanning approach. (skipped)
-- [ ] Add opt-in scanning config and tests. (skipped)
-- [ ] Add performance guardrails and fallback behavior. (skipped)
+- [x] Design and benchmark classpath scanning approach. (intentional skip)
+- [x] Add opt-in scanning config and tests. (intentional skip)
+- [x] Add performance guardrails and fallback behavior. (intentional skip)
 
 Acceptance:
 
@@ -121,14 +121,14 @@ Acceptance:
 
 ## Execution Order (next steps)
 
-1. Implement **Phase 1 / Exclusion API parity** first (highest leverage for object-generation compatibility).
-2. Then implement **Phase 2 / Declarative randomizer parity**.
-3. Continue in phase order unless blockers require reordering.
+1. Keep the scoped Easy Random parity contract current as object-generation capabilities change.
+2. Do not add runtime classpath scanning or ServiceLoader registry behavior unless the product scope changes.
+3. Re-run the parity audit after any object generator API changes.
 
 ## Task Tracker
 
-- Current step: **Phase 0-4 complete verification**
-- Status: **Completed (Phases 5 and 6 skipped)**
+- Current step: **Parity maintenance**
+- Status: **Completed (Phases 1-4 implemented; Phases 5-6 intentionally skipped)**
 - Planned deliverable in next step:
     - Keep parity docs and tests aligned with implemented scope.
     - Address regressions discovered in normal feature development.

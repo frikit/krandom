@@ -110,11 +110,11 @@ Acceptance:
 
 Goal: explicitly close planning scope for low-ROI provider explosion.
 
-- [ ] Mark low-value/niche providers as intentional skips with rationale:
-    - [ ] entertainment/pop-culture providers
-    - [ ] niche market-specific IDs not in current locale strategy
-    - [ ] schema output formats (CSV/JSON/YAML/XML) unless promoted to roadmap
-- [ ] Publish final parity summary with implemented vs skipped totals.
+- [x] Mark low-value/niche providers as intentional skips with rationale:
+    - [x] entertainment/pop-culture providers
+    - [x] niche market-specific IDs not in current locale strategy
+    - [x] schema output formats classified as implemented or intentional skips
+- [x] Publish final parity summary with implemented vs skipped totals.
 
 Acceptance:
 
@@ -122,13 +122,13 @@ Acceptance:
 
 ## Execution Order (next steps)
 
-1. Finalize **Phase 5 / Intentional Scope Decisions**.
+1. Keep the 100% scoped Java parity contract current as new providers land.
 
 ## Task Tracker
 
-- Current step: **Phase 5 planning ready**
-- Status: **P1 complete (Phases 1-4 completed)**
+- Current step: **Parity maintenance**
+- Status: **Completed (Phases 1-5 completed)**
 - Next deliverable:
-    - Mark intentional skips for low-ROI providers and publish final parity summary.
-    - Run `./scripts/pre_commit_check.sh`.
-    - Update parity rows and this checklist.
+    - Re-run parity review when adopting a new Java competitor surface or adding provider families.
+    - Run `./scripts/pre_commit_check.sh` before finishing any parity change.
+    - Update parity rows and this checklist when scope changes.

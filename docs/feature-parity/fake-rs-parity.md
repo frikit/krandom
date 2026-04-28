@@ -92,7 +92,7 @@ This section is the current source of truth for Java-core parity status. Some le
 | ISBN / ISBN10 / ISBN13                              | ✅ Exists    | `IsbnGenerator` supports both formats.                                                 |
 | Hex/RGB color                                       | ✅ Exists    | `ColorGenerator` supports multiple color formats.                                      |
 | RGBA/HSL/HSLA strings                               | ✅ Exists    | Added in `ColorFormat` + `ColorGenerator`.                                             |
-| License plate                                       | Missing   | Not implemented.                                                                       |
+| License plate                                       | No (intentional) | Automotive identifiers are long-tail domain data; add via community PR if requested. |
 | FileName / FileExtension                            | ✅ Exists    | Implemented in `file` package.                                                         |
 | FilePath / DirPath / MimeType / Semver              | ✅ Exists    | `FilePathGenerator`, `DirPathGenerator`, `MimeTypeGenerator`, `SemverGenerator`.       |
 
@@ -452,7 +452,7 @@ testing.
 | **Macros**                |
 | `fake!` macro             | ✅ Concise syntax         | No (intentional) | SKIP                | Rust macro — no Java equivalent; use `Generators.ofX()` factories     |
 | **Type Safety**           |
-| Compile-time checking     | ✅ All types              | ✅ Partial     | Open item            | Java keeps runtime reflection for object graphs; generator APIs remain statically typed |
+| Compile-time checking     | ✅ All types              | No (intentional) | SKIP                | Java keeps runtime reflection for object graphs; generator APIs remain statically typed |
 | Zero-cost abstractions    | ✅ Trait monomorphization | N/A            | N/A                     | Rust-specific                 |
 
 **Analysis**: Fake-rs's trait-based architecture is its crown jewel. The `#[derive(Dummy)]` macro enables declarative fake data generation for complex nested structures without boilerplate. This is a
