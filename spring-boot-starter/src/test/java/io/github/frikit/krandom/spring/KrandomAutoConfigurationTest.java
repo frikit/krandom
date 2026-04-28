@@ -83,6 +83,62 @@ class KrandomAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("string length bounds can be configured independently")
+    void stringLengthBoundsCanBeConfiguredIndependently() {
+        GeneratorConfig defaults = GeneratorConfig.defaults();
+
+        runner.withPropertyValues("krandom.max-string-length=17")
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(defaults.getMinStringLength(), config.getMinStringLength());
+                  assertEquals(17, config.getMaxStringLength());
+              });
+
+        runner.withPropertyValues("krandom.min-string-length=7")
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(7, config.getMinStringLength());
+                  assertEquals(defaults.getMaxStringLength(), config.getMaxStringLength());
+              });
+    }
+
+    @Test
+    @DisplayName("collection size bounds can be configured independently")
+    void collectionSizeBoundsCanBeConfiguredIndependently() {
+        GeneratorConfig defaults = GeneratorConfig.defaults();
+
+        runner.withPropertyValues("krandom.max-collection-size=4")
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(defaults.getMinCollectionSize(), config.getMinCollectionSize());
+                  assertEquals(4, config.getMaxCollectionSize());
+              });
+
+        runner.withPropertyValues("krandom.min-collection-size=3")
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(3, config.getMinCollectionSize());
+                  assertEquals(defaults.getMaxCollectionSize(), config.getMaxCollectionSize());
+              });
+    }
+
+    @Test
+    @DisplayName("string and collection bounds are propagated when both sides are configured")
+    void completeBoundsArePropagated() {
+        runner.withPropertyValues("krandom.min-string-length=2",
+                                  "krandom.max-string-length=9",
+                                  "krandom.min-collection-size=0",
+                                  "krandom.max-collection-size=3")
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(2, config.getMinStringLength());
+                  assertEquals(9, config.getMaxStringLength());
+                  assertEquals(0, config.getMinCollectionSize());
+                  assertEquals(3, config.getMaxCollectionSize());
+              });
+    }
+
+    @Test
     @DisplayName("factory produces independent ObjectFaker and ObjectGenerator instances")
     void factoryProducesInstances() {
         runner.run(context -> {

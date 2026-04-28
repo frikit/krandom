@@ -5,10 +5,12 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -106,6 +108,28 @@ class AgeGeneratorTest {
     }
 
     @Test
+    @DisplayName("config constructor produces reproducible output")
+    void configConstructorReproducibility() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(12345L).build();
+        AgeGenerator gen1 = new AgeGenerator(config);
+        AgeGenerator gen2 = new AgeGenerator(config);
+
+        assertEquals(gen1.generateList(50), gen2.generateList(50));
+    }
+
+    @Test
+    @DisplayName("config constructor supports custom random factory")
+    void configConstructorSupportsRandomFactory() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .randomFactory(() -> new Random(7L))
+                                                .build();
+        AgeGenerator gen1 = new AgeGenerator(AgeType.TEEN, config);
+        AgeGenerator gen2 = new AgeGenerator(AgeType.TEEN, config);
+
+        assertEquals(gen1.generateList(20), gen2.generateList(20));
+    }
+
+    @Test
     @DisplayName("null AgeType throws NullPointerException")
     void nullAgeTypeThrows() {
         assertThrows(NullPointerException.class, () -> new AgeGenerator((AgeType) null));
@@ -115,6 +139,14 @@ class AgeGeneratorTest {
     @DisplayName("null AgeType with seed throws NullPointerException")
     void nullAgeTypeWithSeedThrows() {
         assertThrows(NullPointerException.class, () -> new AgeGenerator(null, 42L));
+    }
+
+    @Test
+    @DisplayName("null config throws NullPointerException")
+    void nullConfigThrows() {
+        assertThrows(NullPointerException.class, () -> new AgeGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new AgeGenerator(AgeType.ADULT, null));
+        assertThrows(NullPointerException.class, () -> new AgeGenerator(18, 65, null));
     }
 
     // ── Custom range constructor ──────────────────────────────────────────────

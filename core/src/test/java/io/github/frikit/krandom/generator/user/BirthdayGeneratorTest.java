@@ -5,12 +5,14 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,6 +66,33 @@ class BirthdayGeneratorTest {
         BirthdayGenerator gen1 = new BirthdayGenerator(42L);
         BirthdayGenerator gen2 = new BirthdayGenerator(42L);
         assertEquals(gen1.generate(), gen2.generate());
+    }
+
+    @Test
+    @DisplayName("config constructor produces reproducible output")
+    void configConstructorReproducibility() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .locale(Locale.GERMANY)
+                                                .seed(42L)
+                                                .build();
+        BirthdayGenerator gen1 = new BirthdayGenerator(config);
+        BirthdayGenerator gen2 = new BirthdayGenerator(config);
+
+        assertEquals(gen1.generateList(20), gen2.generateList(20));
+        assertEquals(Locale.GERMANY, gen1.getLocale());
+    }
+
+    @Test
+    @DisplayName("config constructor supports custom random factory")
+    void configConstructorSupportsRandomFactory() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .locale(Locale.US)
+                                                .randomFactory(() -> new Random(7L))
+                                                .build();
+        BirthdayGenerator gen1 = new BirthdayGenerator(AgeType.ADULT, config);
+        BirthdayGenerator gen2 = new BirthdayGenerator(AgeType.ADULT, config);
+
+        assertEquals(gen1.generateList(20), gen2.generateList(20));
     }
 
     @Test
@@ -141,6 +170,17 @@ class BirthdayGeneratorTest {
     @DisplayName("null AgeType with seed throws NullPointerException")
     void nullAgeTypeWithSeedThrows() {
         assertThrows(NullPointerException.class, () -> new BirthdayGenerator((Locale) null, 1L));
+    }
+
+    @Test
+    @DisplayName("null config throws NullPointerException")
+    void nullConfigThrows() {
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(AgeType.ADULT,
+                                                                             (GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(18,
+                                                                             65,
+                                                                             (GeneratorConfig) null));
     }
 
     // ── Custom range constructor ──────────────────────────────────────────────

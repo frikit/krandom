@@ -13,7 +13,7 @@ permalink: /getting-started/
 
 ## Dependency
 
-Published coordinates:
+Planned public coordinates:
 
 - `io.github.frikit:krandom-core:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
@@ -50,7 +50,7 @@ Maven:
 </dependency>
 ```
 
-No GitHub Packages credentials are required for Maven Central. GitHub Packages remains available as a secondary release channel for repository-local workflows.
+No special repository configuration will be needed after the Maven Central release is cut. Until then, verify consumers with the Maven-local workflow from the repository.
 
 ## First usage
 

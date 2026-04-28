@@ -66,7 +66,7 @@ public final class FullNameGenerator implements Generator<String> {
         this.lastNameGenerator = new LastNameGenerator(config);
         this.generatorsByLocale = new HashMap<>();
         this.generatorsByLocale.put(config.getLocale(),
-                                    new NameGenerators(config.getLocale(), firstNameGenerator, lastNameGenerator));
+                                    new NameGenerators(config, firstNameGenerator, lastNameGenerator));
     }
 
     private static Locale resolveNationalityLocale(String nationality) {
@@ -305,7 +305,7 @@ public final class FullNameGenerator implements Generator<String> {
 
         GeneratorConfig localeConfig = configForLocale(locale);
         NameGenerators created = new NameGenerators(
-            locale,
+            localeConfig,
             new FirstNameGenerator(localeConfig),
             new LastNameGenerator(localeConfig)
         );
@@ -363,17 +363,17 @@ public final class FullNameGenerator implements Generator<String> {
 
     private static final class NameGenerators {
 
-        private final Locale              locale;
+        private final GeneratorConfig     config;
         private final FirstNameGenerator  firstNameGenerator;
         private final LastNameGenerator   lastNameGenerator;
         private       TitleGenerator      titleGenerator;
         private       SuffixGenerator     suffixGenerator;
         private       MiddleNameGenerator middleNameGenerator;
 
-        private NameGenerators(Locale locale,
+        private NameGenerators(GeneratorConfig config,
                                FirstNameGenerator firstNameGenerator,
                                LastNameGenerator lastNameGenerator) {
-            this.locale = locale;
+            this.config = config;
             this.firstNameGenerator = firstNameGenerator;
             this.lastNameGenerator = lastNameGenerator;
         }
@@ -388,21 +388,21 @@ public final class FullNameGenerator implements Generator<String> {
 
         private TitleGenerator titleGenerator() {
             if (titleGenerator == null) {
-                titleGenerator = new TitleGenerator(locale);
+                titleGenerator = new TitleGenerator(config);
             }
             return titleGenerator;
         }
 
         private SuffixGenerator suffixGenerator() {
             if (suffixGenerator == null) {
-                suffixGenerator = new SuffixGenerator(locale);
+                suffixGenerator = new SuffixGenerator(config);
             }
             return suffixGenerator;
         }
 
         private MiddleNameGenerator middleNameGenerator() {
             if (middleNameGenerator == null) {
-                middleNameGenerator = new MiddleNameGenerator(locale);
+                middleNameGenerator = new MiddleNameGenerator(config);
             }
             return middleNameGenerator;
         }

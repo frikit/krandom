@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -90,6 +91,15 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
     }
 
     /**
+     * Generates birthdays for ages [1, 100] using the provided root config.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public BirthdayGenerator(GeneratorConfig config) {
+        this(DEFAULT_MIN, DEFAULT_MAX, config);
+    }
+
+    /**
      * Generates birthdays appropriate for the given {@link AgeType}.
      *
      * @param type the age category; must not be {@code null}
@@ -115,6 +125,18 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
     }
 
     /**
+     * Generates birthdays appropriate for the given {@link AgeType}, using the provided root config.
+     *
+     * @param type   the age category; must not be {@code null}
+     * @param config generator configuration; must not be {@code null}
+     */
+    public BirthdayGenerator(AgeType type, GeneratorConfig config) {
+        this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
+             type.getMaxAge(),
+             config);
+    }
+
+    /**
      * Generates birthdays for the given inclusive age range.
      *
      * @param minAge minimum age in years (inclusive, must be ≥ 0)
@@ -122,6 +144,20 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     public BirthdayGenerator(int minAge, int maxAge) {
         this(minAge, maxAge, OptionalLong.empty(), null);
+    }
+
+    /**
+     * Generates birthdays for the given inclusive age range using the provided root config.
+     *
+     * @param minAge minimum age in years (inclusive, must be ≥ 0)
+     * @param maxAge maximum age in years (inclusive, must be ≥ {@code minAge})
+     * @param config generator configuration; must not be {@code null}
+     */
+    public BirthdayGenerator(int minAge, int maxAge, GeneratorConfig config) {
+        this(minAge,
+             maxAge,
+             Objects.requireNonNull(config, "config must not be null").createRandom(),
+             config.getLocale());
     }
 
     // ── Locale-aware constructors ─────────────────────────────────────────────
@@ -208,6 +244,13 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
     // ── Canonical private constructor ─────────────────────────────────────────
 
     private BirthdayGenerator(int minAge, int maxAge, OptionalLong seed, Locale locale) {
+        this(minAge,
+             maxAge,
+             seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom(),
+             locale);
+    }
+
+    private BirthdayGenerator(int minAge, int maxAge, Random random, Locale locale) {
         if (minAge < 0) {
             throw new IllegalArgumentException("minAge must be >= 0, got: " + minAge);
         }
@@ -218,7 +261,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
         this.minAge = minAge;
         this.maxAge = maxAge;
         this.locale = locale;
-        this.random = seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom();
+        this.random = Objects.requireNonNull(random, "random must not be null");
     }
 
     // ── Generation ────────────────────────────────────────────────────────────

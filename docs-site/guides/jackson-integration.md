@@ -10,7 +10,7 @@ Use `krandom-jackson` when you want Jackson to understand kRandom schema definit
 
 ## Dependency
 
-Use Maven Central:
+After the public release is cut, use Maven Central:
 
 ```kotlin
 repositories {

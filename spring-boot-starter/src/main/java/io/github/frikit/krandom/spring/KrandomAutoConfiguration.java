@@ -38,6 +38,7 @@ public class KrandomAutoConfiguration {
     @ConditionalOnMissingBean
     public GeneratorConfig generatorConfig(KrandomProperties properties) {
         GeneratorConfig.Builder builder = GeneratorConfig.builder();
+        GeneratorConfig defaults = GeneratorConfig.defaults();
 
         if (properties.getSeed() != null) {
             builder.seed(properties.getSeed());
@@ -55,12 +56,24 @@ public class KrandomAutoConfiguration {
             builder.objectNullProbability(properties.getObjectNullProbability());
         }
 
-        if (properties.getMinStringLength() != null && properties.getMaxStringLength() != null) {
-            builder.stringLength(properties.getMinStringLength(), properties.getMaxStringLength());
+        if (properties.getMinStringLength() != null || properties.getMaxStringLength() != null) {
+            int min = properties.getMinStringLength() != null
+                      ? properties.getMinStringLength()
+                      : defaults.getMinStringLength();
+            int max = properties.getMaxStringLength() != null
+                      ? properties.getMaxStringLength()
+                      : defaults.getMaxStringLength();
+            builder.stringLength(min, max);
         }
 
-        if (properties.getMinCollectionSize() != null && properties.getMaxCollectionSize() != null) {
-            builder.collectionSize(properties.getMinCollectionSize(), properties.getMaxCollectionSize());
+        if (properties.getMinCollectionSize() != null || properties.getMaxCollectionSize() != null) {
+            int min = properties.getMinCollectionSize() != null
+                      ? properties.getMinCollectionSize()
+                      : defaults.getMinCollectionSize();
+            int max = properties.getMaxCollectionSize() != null
+                      ? properties.getMaxCollectionSize()
+                      : defaults.getMaxCollectionSize();
+            builder.collectionSize(min, max);
         }
 
         return builder.build();

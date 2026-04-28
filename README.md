@@ -28,7 +28,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs tests and coverage on Java 21.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
-- Published to Maven Central and GitHub Packages under `io.github.frikit`.
+- Maven Central release automation is being prepared under `io.github.frikit`; the local development version is currently `0.1.0-SNAPSHOT`.
 
 ## What the core currently covers
 
@@ -95,7 +95,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 ## Install
 
-Published artifacts (group `io.github.frikit`):
+Planned public artifacts (group `io.github.frikit`):
 
 - `io.github.frikit:krandom-core:<version>`
 - `io.github.frikit:krandom-jackson:<version>`
@@ -108,7 +108,7 @@ Published artifacts (group `io.github.frikit`):
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.0.0")
+    implementation("io.github.frikit:krandom-core:<version>")
 }
 ```
 
@@ -116,7 +116,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:1.0.0'
+    implementation 'io.github.frikit:krandom-core:<version>'
 }
 ```
 
@@ -126,11 +126,11 @@ dependencies {
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>1.0.0</version>
+  <version>${krandom.version}</version>
 </dependency>
 ```
 
-No special repository configuration is needed — artifacts are published to Maven Central.
+No special repository configuration will be needed after the Maven Central release is cut. Until then, use `./scripts/verify_examples_local.sh` or `./gradlew publishToMavenLocal -PreleaseVersion=<version>` for local consumer verification.
 
 ## Examples
 
@@ -154,9 +154,4 @@ GitHub Pages deployment is wired through [`.github/workflows/github-pages.yml`](
 
 ## Releases
 
-Releases are published to **Maven Central** and **GitHub Packages** via two workflows:
-
-- [`.github/workflows/release-maven-central.yml`](.github/workflows/release-maven-central.yml) — primary release to Maven Central (OSSRH) + GitHub Packages + GitHub Release
-- [`.github/workflows/release-github-packages.yml`](.github/workflows/release-github-packages.yml) — GitHub Packages only
-
-Both workflows validate a semver input, build and test the repository, publish every `krandom-*` consumer artifact, create a Git tag, and create a GitHub Release with built JARs attached.
+Release work is not finalized yet. The intended public distribution path is Maven Central-first under `io.github.frikit`; release workflows and docs must be reconciled before the first public Maven Central release is cut.

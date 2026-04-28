@@ -38,7 +38,7 @@ public final class FinanceGenerators {
     public CurrencyPairGenerator currencyPair() { return new CurrencyPairGenerator(config); }
 
     public MoneyGenerator money() { return new MoneyGenerator(config); }
-    public MoneyGenerator money(Locale locale) { return new MoneyGenerator(locale); }
+    public MoneyGenerator money(Locale locale) { return new MoneyGenerator(withLocale(locale)); }
 
     public BankAccountGenerator bankAccount() { return new BankAccountGenerator(config); }
 
@@ -69,4 +69,8 @@ public final class FinanceGenerators {
     public InvoiceInfoGenerator invoiceInfo() { return new InvoiceInfoGenerator(config); }
 
     public PaymentInfoGenerator paymentInfo() { return new PaymentInfoGenerator(config); }
+
+    private GeneratorConfig withLocale(Locale locale) {
+        return config.toBuilder().locale(locale).build();
+    }
 }

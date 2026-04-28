@@ -29,36 +29,36 @@ public final class PersonGenerators {
     }
 
     public FullNameGenerator fullName() { return new FullNameGenerator(config); }
-    public FullNameGenerator fullName(Locale locale) { return new FullNameGenerator(locale); }
+    public FullNameGenerator fullName(Locale locale) { return new FullNameGenerator(withLocale(locale)); }
 
     public FirstNameGenerator firstName() { return new FirstNameGenerator(config); }
-    public FirstNameGenerator firstName(Locale locale) { return new FirstNameGenerator(locale); }
+    public FirstNameGenerator firstName(Locale locale) { return new FirstNameGenerator(withLocale(locale)); }
 
     public LastNameGenerator lastName() { return new LastNameGenerator(config); }
-    public LastNameGenerator lastName(Locale locale) { return new LastNameGenerator(locale); }
+    public LastNameGenerator lastName(Locale locale) { return new LastNameGenerator(withLocale(locale)); }
 
     public MiddleNameGenerator middleName() { return new MiddleNameGenerator(config); }
-    public MiddleNameGenerator middleName(Locale locale) { return new MiddleNameGenerator(locale); }
+    public MiddleNameGenerator middleName(Locale locale) { return new MiddleNameGenerator(withLocale(locale)); }
 
     public EmailGenerator email() { return new EmailGenerator(config); }
-    public EmailGenerator email(Locale locale) { return new EmailGenerator(locale); }
+    public EmailGenerator email(Locale locale) { return new EmailGenerator(withLocale(locale)); }
 
     public UsernameGenerator username() { return new UsernameGenerator(config); }
-    public UsernameGenerator username(Locale locale) { return new UsernameGenerator(locale); }
+    public UsernameGenerator username(Locale locale) { return new UsernameGenerator(withLocale(locale)); }
 
     public PasswordGenerator password() { return new PasswordGenerator(config); }
 
-    public AgeGenerator age() { return new AgeGenerator(); }
-    public AgeGenerator age(AgeType type) { return new AgeGenerator(type); }
+    public AgeGenerator age() { return new AgeGenerator(config); }
+    public AgeGenerator age(AgeType type) { return new AgeGenerator(type, config); }
 
-    public BirthdayGenerator birthday() { return new BirthdayGenerator(config.getLocale()); }
+    public BirthdayGenerator birthday() { return new BirthdayGenerator(config); }
 
     public GenderGenerator gender() { return new GenderGenerator(config); }
 
     public ProfessionGenerator profession() { return new ProfessionGenerator(config); }
-    public ProfessionGenerator profession(Locale locale) { return new ProfessionGenerator(locale); }
+    public ProfessionGenerator profession(Locale locale) { return new ProfessionGenerator(withLocale(locale)); }
 
-    public NationalIdGenerator nationalId(Locale locale) { return new NationalIdGenerator(locale); }
+    public NationalIdGenerator nationalId(Locale locale) { return new NationalIdGenerator(withLocale(locale)); }
 
     public AvatarUrlGenerator avatarUrl() { return new AvatarUrlGenerator(config); }
 
@@ -79,7 +79,7 @@ public final class PersonGenerators {
     public EducationalAttainmentGenerator educationalAttainment() { return new EducationalAttainmentGenerator(config); }
 
     public CompanyNameGenerator companyName() { return new CompanyNameGenerator(config); }
-    public CompanyNameGenerator companyName(Locale locale) { return new CompanyNameGenerator(GeneratorConfig.builder().locale(locale).build()); }
+    public CompanyNameGenerator companyName(Locale locale) { return new CompanyNameGenerator(withLocale(locale)); }
 
     public CompanyEmailGenerator companyEmail() { return new CompanyEmailGenerator(config); }
 
@@ -102,4 +102,8 @@ public final class PersonGenerators {
     public PositionGenerator position() { return new PositionGenerator(config); }
 
     public IndustryGenerator industry() { return new IndustryGenerator(config); }
+
+    private GeneratorConfig withLocale(Locale locale) {
+        return config.toBuilder().locale(locale).build();
+    }
 }

@@ -9,6 +9,9 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
+import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
+import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
+import io.github.frikit.krandom.generator.commerce.ShipmentInfoGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.DurationGenerator;
 import io.github.frikit.krandom.generator.datetime.InstantGenerator;
@@ -30,13 +33,21 @@ import io.github.frikit.krandom.generator.finance.CusipGenerator;
 import io.github.frikit.krandom.generator.finance.EinGenerator;
 import io.github.frikit.krandom.generator.finance.IbanGenerator;
 import io.github.frikit.krandom.generator.finance.IsinGenerator;
+import io.github.frikit.krandom.generator.finance.MoneyGenerator;
 import io.github.frikit.krandom.generator.identifier.EanGenerator;
 import io.github.frikit.krandom.generator.identifier.HashGenerator;
 import io.github.frikit.krandom.generator.identifier.IdentifierMaskGenerator;
 import io.github.frikit.krandom.generator.identifier.IsbnGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.identifier.UpcGenerator;
+import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
+import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
+import io.github.frikit.krandom.generator.location.CountryGenerator;
+import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
+import io.github.frikit.krandom.generator.location.PostalCodeGenerator;
+import io.github.frikit.krandom.generator.location.StateGenerator;
+import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
 import io.github.frikit.krandom.generator.network.DomainGenerator;
 import io.github.frikit.krandom.generator.network.HostnameGenerator;
 import io.github.frikit.krandom.generator.network.HttpMethodGenerator;
@@ -57,18 +68,29 @@ import io.github.frikit.krandom.generator.text.SyllableGenerator;
 import io.github.frikit.krandom.generator.text.TemplateStringGenerator;
 import io.github.frikit.krandom.generator.text.TextGenerator;
 import io.github.frikit.krandom.generator.text.WordGenerator;
+import io.github.frikit.krandom.generator.user.AgeGenerator;
 import io.github.frikit.krandom.generator.user.AgeType;
 import io.github.frikit.krandom.generator.user.AvatarUrlGenerator;
 import io.github.frikit.krandom.generator.user.CompanyBuzzwordGenerator;
 import io.github.frikit.krandom.generator.user.CompanyCatchPhraseGenerator;
+import io.github.frikit.krandom.generator.user.CompanyNameGenerator;
 import io.github.frikit.krandom.generator.user.EducationalAttainmentGenerator;
+import io.github.frikit.krandom.generator.user.EmailGenerator;
+import io.github.frikit.krandom.generator.user.FirstNameGenerator;
+import io.github.frikit.krandom.generator.user.FullNameGenerator;
 import io.github.frikit.krandom.generator.user.IndustryGenerator;
 import io.github.frikit.krandom.generator.user.JobFieldGenerator;
 import io.github.frikit.krandom.generator.user.JobTypeGenerator;
+import io.github.frikit.krandom.generator.user.LastNameGenerator;
 import io.github.frikit.krandom.generator.user.MaritalStatusGenerator;
+import io.github.frikit.krandom.generator.user.MiddleNameGenerator;
 import io.github.frikit.krandom.generator.user.PasswordGenerator;
 import io.github.frikit.krandom.generator.user.PositionGenerator;
+import io.github.frikit.krandom.generator.user.ProfessionGenerator;
 import io.github.frikit.krandom.generator.user.SeniorityGenerator;
+import io.github.frikit.krandom.generator.user.UsernameGenerator;
+import io.github.frikit.krandom.generator.user.BirthdayGenerator;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -380,6 +402,62 @@ class FluentNamespaceTest {
         assertSameFirstValue(new SeniorityGenerator(seeded), person.seniority());
         assertSameFirstValue(new PositionGenerator(seeded), person.position());
         assertSameFirstValue(new IndustryGenerator(seeded), person.industry());
+    }
+
+    @Test
+    @DisplayName("locale namespace overloads preserve seeded config")
+    void localeNamespaceOverloadsPreserveSeededConfig() {
+        GeneratorConfig seeded = GeneratorConfig.builder()
+            .locale(Locale.US)
+            .seed(2468L)
+            .build();
+        GeneratorConfig german = seeded.toBuilder().locale(Locale.GERMANY).build();
+        GeneratorConfig french = seeded.toBuilder().locale(Locale.FRANCE).build();
+        GeneratorConfig uk = seeded.toBuilder().locale(Locale.UK).build();
+        GeneratorConfig japan = seeded.toBuilder().locale(Locale.JAPAN).build();
+        GeneratorConfig italy = seeded.toBuilder().locale(Locale.ITALY).build();
+        GeneratorConfig canada = seeded.toBuilder().locale(Locale.CANADA).build();
+
+        PersonGenerators person = Generators.person(seeded);
+        assertSameFirstValue(new FullNameGenerator(german), person.fullName(Locale.GERMANY));
+        assertSameFirstValue(new FirstNameGenerator(french), person.firstName(Locale.FRANCE));
+        assertSameFirstValue(new LastNameGenerator(japan), person.lastName(Locale.JAPAN));
+        assertSameFirstValue(new MiddleNameGenerator(german), person.middleName(Locale.GERMANY));
+        assertSameFirstValue(new EmailGenerator(uk), person.email(Locale.UK));
+        assertSameFirstValue(new UsernameGenerator(canada), person.username(Locale.CANADA));
+        assertSameFirstValue(new ProfessionGenerator(italy), person.profession(Locale.ITALY));
+        assertSameFirstValue(new NationalIdGenerator(german), person.nationalId(Locale.GERMANY));
+        assertSameFirstValue(new CompanyNameGenerator(german), person.companyName(Locale.GERMANY));
+
+        LocationGenerators location = Generators.location(seeded);
+        assertSameFirstValue(new CityGenerator(french), location.city(Locale.FRANCE));
+        assertSameFirstValue(new StateGenerator(seeded), location.state(Locale.US));
+        assertSameFirstValue(new CountryGenerator(german), location.country(Locale.GERMANY));
+        assertSameFirstValue(new PostalCodeGenerator(uk), location.postalCode(Locale.UK));
+        assertSameFirstValue(new PhoneNumberGenerator(japan), location.phoneNumber(Locale.JAPAN));
+        assertSameFirstValue(new StreetAddressGenerator(italy), location.streetAddress(Locale.ITALY));
+        assertSameFirstValue(new AddressInfoGenerator(canada), location.addressInfo(Locale.CANADA));
+
+        CommerceGenerators commerce = Generators.commerce(seeded);
+        assertSameFirstValue(new ProductInfoGenerator(german), commerce.product(Locale.GERMANY));
+        assertSameFirstValue(new OrderInfoGenerator(french), commerce.order(Locale.FRANCE));
+        assertSameFirstValue(new ShipmentInfoGenerator(japan), commerce.shipment(Locale.JAPAN));
+
+        assertSameFirstValue(new MoneyGenerator(japan), Generators.finance(seeded).money(Locale.JAPAN));
+    }
+
+    @Test
+    @DisplayName("person namespace age and birthday preserve seeded config")
+    void personNamespaceAgeAndBirthdayPreserveSeededConfig() {
+        GeneratorConfig seeded = GeneratorConfig.builder()
+            .locale(Locale.GERMANY)
+            .seed(13579L)
+            .build();
+        PersonGenerators person = Generators.person(seeded);
+
+        assertSameFirstValue(new AgeGenerator(seeded), person.age());
+        assertSameFirstValue(new AgeGenerator(AgeType.ADULT, seeded), person.age(AgeType.ADULT));
+        assertSameFirstValue(new BirthdayGenerator(seeded), person.birthday());
     }
 
     // ── Default constructors ─────────────────────────────────────────────────

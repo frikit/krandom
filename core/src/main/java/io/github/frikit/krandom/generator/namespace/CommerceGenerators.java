@@ -30,11 +30,15 @@ public final class CommerceGenerators {
     public CommerceGenerator commerce() { return new CommerceGenerator(config); }
 
     public ProductInfoGenerator product() { return new ProductInfoGenerator(config); }
-    public ProductInfoGenerator product(Locale locale) { return new ProductInfoGenerator(locale); }
+    public ProductInfoGenerator product(Locale locale) { return new ProductInfoGenerator(withLocale(locale)); }
 
     public OrderInfoGenerator order() { return new OrderInfoGenerator(config); }
-    public OrderInfoGenerator order(Locale locale) { return new OrderInfoGenerator(locale); }
+    public OrderInfoGenerator order(Locale locale) { return new OrderInfoGenerator(withLocale(locale)); }
 
     public ShipmentInfoGenerator shipment() { return new ShipmentInfoGenerator(config); }
-    public ShipmentInfoGenerator shipment(Locale locale) { return new ShipmentInfoGenerator(locale); }
+    public ShipmentInfoGenerator shipment(Locale locale) { return new ShipmentInfoGenerator(withLocale(locale)); }
+
+    private GeneratorConfig withLocale(Locale locale) {
+        return config.toBuilder().locale(locale).build();
+    }
 }

@@ -10,7 +10,7 @@ Use `krandom-spring-boot-starter` when a Spring Boot 3.x application should get 
 
 ## Dependency
 
-Use Maven Central:
+After the public release is cut, use Maven Central:
 
 ```kotlin
 repositories {
@@ -22,7 +22,7 @@ dependencies {
 }
 ```
 
-GitHub Packages remains available as a secondary release channel for repository-local workflows.
+Until then, verify starter consumers with the Maven-local workflow from the repository.
 
 ## Application Properties
 

@@ -349,6 +349,48 @@ class FullNameGeneratorTest {
         }
 
         @Test
+        @DisplayName("nationality option helpers preserve scoped registry context")
+        void nationalityOptionHelpersPreserveScopedRegistryContext() {
+            Locale scopedLocale = Locale.GERMANY;
+            DataRegistryContext registryContext = DataRegistryContext.builder()
+                                                                     .isolated()
+                                                                     .registerFirstNameProvider(
+                                                                         new StaticFirstNameProvider(Locale.US,
+                                                                                                     "RootFirst"))
+                                                                     .registerLastNameProvider(
+                                                                         new StaticLastNameProvider(Locale.US,
+                                                                                                    "RootLast"))
+                                                                     .registerFirstNameProvider(
+                                                                         new StaticFirstNameProvider(scopedLocale,
+                                                                                                     "ScopedFirst"))
+                                                                     .registerLastNameProvider(
+                                                                         new StaticLastNameProvider(scopedLocale,
+                                                                                                    "ScopedLast"))
+                                                                     .registerTitleProvider(
+                                                                         new StaticTitleProvider(scopedLocale,
+                                                                                                 "ScopedTitle"))
+                                                                     .registerSuffixProvider(
+                                                                         new StaticSuffixProvider(scopedLocale,
+                                                                                                  "ScopedSuffix"))
+                                                                     .build();
+            GeneratorConfig config = GeneratorConfig.builder()
+                                                    .locale(Locale.US)
+                                                    .registryContext(registryContext)
+                                                    .seed(123L)
+                                                    .build();
+            FullNameGenerator gen = new FullNameGenerator(config);
+
+            String name = gen.generate(new FullNameGenerator.NameOptions(true,
+                                                                         false,
+                                                                         true,
+                                                                         true,
+                                                                         null,
+                                                                         "de"));
+
+            assertEquals("ScopedTitle ScopedFirst ScopedFirst ScopedLast ScopedSuffix", name);
+        }
+
+        @Test
         @DisplayName("seeded config supports nationality mapping through locale-specific config")
         void seededNationalityMapping() {
             GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
@@ -551,6 +593,22 @@ class FullNameGeneratorTest {
         @Override
         public String[] getLastNames() {
             return new String[]{ name };
+        }
+    }
+
+    private record StaticTitleProvider(Locale getLocale, String title) implements TitleDataProvider {
+
+        @Override
+        public String[] getTitles() {
+            return new String[]{ title };
+        }
+    }
+
+    private record StaticSuffixProvider(Locale getLocale, String suffix) implements SuffixDataProvider {
+
+        @Override
+        public String[] getSuffixes() {
+            return new String[]{ suffix };
         }
     }
 }
