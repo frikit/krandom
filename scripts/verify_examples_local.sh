@@ -92,7 +92,8 @@ if require_tool mill; then
     step "Verify Scala + Mill example"
     (
         cd "${REPO_ROOT}/examples/scala-mill"
-        mill -Dkrandom.version="${VERSION}" -i app.test
+        # Mill requires -i (interactive / no-server) to be the first argument.
+        mill -i -Dkrandom.version="${VERSION}" app.test
     )
 else
     step "Skip Scala + Mill example"
