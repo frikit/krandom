@@ -10,7 +10,9 @@ object app extends ScalaModule {
     ivy"io.github.frikit:krandom-core:$krandomVersion"
   )
 
-  override def repositoriesTask = T {
+  // repositoriesTask must be an anonymous Task (T.task), not a cached Target (T { }),
+  // because Seq[coursier.Repository] has no upickle ReadWriter.
+  override def repositoriesTask = T.task {
     super.repositoriesTask() ++ Seq(
       coursier.MavenRepository(s"file://${sys.props("user.home")}/.m2/repository")
     )
@@ -23,7 +25,7 @@ object app extends ScalaModule {
       ivy"org.scalatest::scalatest:3.2.19"
     )
 
-    override def repositoriesTask = T {
+    override def repositoriesTask = T.task {
       super.repositoriesTask() ++ Seq(
         coursier.MavenRepository(s"file://${sys.props("user.home")}/.m2/repository")
       )
