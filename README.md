@@ -11,7 +11,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 |:---|:---|
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
 | `jackson` | Jackson integration on top of `core` |
-| `spring-boot-starter` | Spring Boot 3.x auto-configuration for `core` |
+| `spring-boot-starter` | Spring Boot 4.x auto-configuration for `core` (requires Spring Boot 4.x on the consumer) |
 | `kotest-extensions` | Kotest `Arb` adapters for property-based tests |
 | `jqwik-extensions` | jqwik `Arbitrary` adapters for property-based tests |
 | `kotlin-dsl` | Kotlin DSL for object generation rules |
@@ -28,7 +28,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs tests and coverage on Java 21.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
-- Maven Central release automation is being prepared under `io.github.frikit`; the local development version is currently `0.1.0-SNAPSHOT`.
+- Published to Maven Central under `io.github.frikit`. See [`docs/release-runbook.md`](docs/release-runbook.md) for the release process.
 
 ## What the core currently covers
 
@@ -97,20 +97,24 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 ## Install
 
-Planned public artifacts (group `io.github.frikit`):
+Public artifacts on Maven Central (group `io.github.frikit`):
 
-- `io.github.frikit:krandom-core:<version>`
-- `io.github.frikit:krandom-jackson:<version>`
-- `io.github.frikit:krandom-spring-boot-starter:<version>`
-- `io.github.frikit:krandom-kotest-extensions:<version>`
-- `io.github.frikit:krandom-jqwik-extensions:<version>`
-- `io.github.frikit:krandom-kotlin-dsl:<version>`
+- `io.github.frikit:krandom-core`
+- `io.github.frikit:krandom-jackson`
+- `io.github.frikit:krandom-spring-boot-starter`
+- `io.github.frikit:krandom-kotest-extensions`
+- `io.github.frikit:krandom-jqwik-extensions`
+- `io.github.frikit:krandom-kotlin-dsl`
+
+The current version is `1.0.0`. Latest version is always shown on
+[GitHub Releases](https://github.com/frikit/krandom/releases) and
+[Maven Central](https://central.sonatype.com/artifact/io.github.frikit/krandom-core).
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:<version>")
+    implementation("io.github.frikit:krandom-core:1.0.0")
 }
 ```
 
@@ -118,7 +122,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:<version>'
+    implementation 'io.github.frikit:krandom-core:1.0.0'
 }
 ```
 
@@ -128,11 +132,13 @@ dependencies {
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>${krandom.version}</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
-No special repository configuration will be needed after the Maven Central release is cut. Until then, use `./scripts/verify_examples_local.sh` or `./gradlew publishToMavenLocal -PreleaseVersion=<version>` for local consumer verification.
+For local consumer verification against an unpublished snapshot, use
+`./scripts/verify_examples_local.sh` or
+`./gradlew publishToMavenLocal -PreleaseVersion=<version>`.
 
 ## Examples
 
@@ -156,4 +162,9 @@ GitHub Pages deployment is wired through [`.github/workflows/github-pages.yml`](
 
 ## Releases
 
-Release work is not finalized yet. The intended public distribution path is Maven Central-first under `io.github.frikit`; release workflows and docs must be reconciled before the first public Maven Central release is cut.
+Releases are published to Maven Central via the Central Portal
+(<https://central.sonatype.com>). The release workflow lives at
+[`.github/workflows/release-maven-central.yml`](.github/workflows/release-maven-central.yml)
+and is documented in [`docs/release-runbook.md`](docs/release-runbook.md).
+See the latest version on [Maven Central](https://central.sonatype.com/artifact/io.github.frikit/krandom-core)
+or the [GitHub Releases](https://github.com/frikit/krandom/releases) page.

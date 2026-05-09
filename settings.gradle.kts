@@ -1,3 +1,14 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id("com.gradleup.nmcp.settings") version "1.5.0"
+}
+
 val currentJava = org.gradle.api.JavaVersion.current()
 if (!currentJava.isCompatibleWith(org.gradle.api.JavaVersion.VERSION_21)) {
     throw org.gradle.api.GradleException(
@@ -18,3 +29,13 @@ include(":kotest-extensions")
 include(":jqwik-extensions")
 include(":kotlin-dsl")
 include(":benchmarks")
+
+nmcpSettings {
+    centralPortal {
+        username = System.getenv("CENTRAL_PORTAL_USERNAME") ?: ""
+        password = System.getenv("CENTRAL_PORTAL_PASSWORD") ?: ""
+        // USER_MANAGED: upload appears in the Central Portal UI for manual "Publish".
+        // Flip to AUTOMATIC for hands-off subsequent releases.
+        publishingType = System.getenv("CENTRAL_PORTAL_PUBLISHING_TYPE") ?: "USER_MANAGED"
+    }
+}

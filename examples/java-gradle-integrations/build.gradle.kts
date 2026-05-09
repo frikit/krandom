@@ -17,7 +17,7 @@ dependencies {
     implementation("io.github.frikit:krandom-spring-boot-starter:${krandomVersion.get()}")
     testImplementation("io.github.frikit:krandom-jqwik-extensions:${krandomVersion.get()}")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.4.5")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:4.0.6")
     testImplementation("org.junit.jupiter:junit-jupiter-api:6.0.3")
     testRuntimeOnly("net.jqwik:jqwik:1.9.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.0.3")

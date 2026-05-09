@@ -6,11 +6,11 @@ permalink: /guides/spring-boot-starter/
 
 # Spring Boot Starter
 
-Use `krandom-spring-boot-starter` when a Spring Boot 3.x application should get a shared kRandom configuration and ready-to-inject generators from application properties.
+Use `krandom-spring-boot-starter` when a Spring Boot 4.x application should get a shared kRandom configuration and ready-to-inject generators from application properties.
+
+The starter is built against Spring Boot 4.x and exposes `spring-boot-autoconfigure` transitively, so consumer applications must be on Spring Boot 4.x as well.
 
 ## Dependency
-
-After the public release is cut, use Maven Central:
 
 ```kotlin
 repositories {
@@ -18,11 +18,11 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-spring-boot-starter:<version>")
+    implementation("io.github.frikit:krandom-spring-boot-starter:1.0.0")
 }
 ```
 
-Until then, verify starter consumers with the Maven-local workflow from the repository.
+Latest version: see [GitHub Releases](https://github.com/frikit/krandom/releases).
 
 ## Application Properties
 

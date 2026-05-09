@@ -64,7 +64,16 @@ subprojects {
             else -> null
         }
 
-        if (componentName != null && project.name in setOf("core", "jackson", "spring-boot-starter", "kotest-extensions", "jqwik-extensions", "kotlin-dsl")) {
+        val moduleDescriptions = mapOf(
+            "core" to "kRandom core: Java 21 random and fake-data generation toolkit with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
+            "jackson" to "Jackson serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
+            "spring-boot-starter" to "Spring Boot 4.x auto-configuration for kRandom — registers GeneratorConfig, ProviderHub, and KrandomObjectFakerFactory beans driven by krandom.* application properties.",
+            "kotest-extensions" to "Kotest Arb adapters for kRandom generators, enabling property-based testing on top of krandom-core.",
+            "jqwik-extensions" to "jqwik Arbitrary adapters for kRandom generators, enabling property-based testing on top of krandom-core.",
+            "kotlin-dsl" to "Kotlin DSL builder for kRandom object-generation rules — fluent fixture configuration on top of krandom-core."
+        )
+
+        if (componentName != null && project.name in moduleDescriptions.keys) {
             configure<PublishingExtension> {
                 publications {
                     if (findByName("mavenJava") == null) {
@@ -74,7 +83,7 @@ subprojects {
                             from(components[componentName])
                             pom {
                                 name.set(publishedArtifactId)
-                                description.set("kRandom ${project.name} module")
+                                description.set(moduleDescriptions.getValue(project.name))
                                 url.set("https://github.com/frikit/krandom")
                                 licenses {
                                     license {
@@ -98,24 +107,10 @@ subprojects {
                         }
                     }
                 }
-                repositories {
-                    maven {
-                        name = "OSSRH"
-                        url = if (version.toString().endsWith("-SNAPSHOT")) {
-                            uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-                        } else {
-                            uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                        }
-                        credentials {
-                            username = providers.environmentVariable("OSSRH_USERNAME")
-                                .orElse(providers.gradleProperty("ossrh.username"))
-                                .orNull
-                            password = providers.environmentVariable("OSSRH_PASSWORD")
-                                .orElse(providers.gradleProperty("ossrh.password"))
-                                .orNull
-                        }
-                    }
-                }
+                // Maven Central uploads are aggregated by the com.gradleup.nmcp.settings
+                // plugin (configured in settings.gradle.kts). Run
+                // `./gradlew publishAggregationToCentralPortal` to push the signed bundle
+                // to https://central.sonatype.com.
             }
 
             configure<SigningExtension> {

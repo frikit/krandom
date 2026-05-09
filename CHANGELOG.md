@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-08
+
+First public release on Maven Central under `io.github.frikit`.
+
 ### Added
 - **Spring Boot starter module** (`spring-boot-starter`) with auto-configuration, externalized `krandom.*` properties, and `KrandomObjectFakerFactory` bean.
 - **Comparative JMH benchmarks** against DataFaker, JavaFaker, EasyRandom, and Instancio for scalar, object, and bulk generation.
@@ -14,11 +18,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Schema export is now side-effect free (no internal state mutation).
 - Locale facade overloads for schema providers.
 - Nationality and identity edge-case handling in schema exports.
+- `SECURITY.md` (vulnerability reporting via GitHub Security Advisories), `.github/ISSUE_TEMPLATE/` (bug + feature), and `.github/PULL_REQUEST_TEMPLATE.md`.
+- Release runbook at `docs/release-runbook.md`.
 
 ### Changed
 - Spring Boot starter uses `java-library` plugin with `api` scope for transitive dependency exposure.
+- Spring Boot starter is now built against Spring Boot 4.x (`spring-boot-autoconfigure 4.0.6`); consumer applications must be on Spring Boot 4.x.
 - Benchmark README restructured to lead with competitor comparison results.
 - README updated with performance section, Spring Boot starter in modules table, and published artifact list.
+- POM `<description>` is now distinct per published module (Central Portal validation friendliness).
+- Maven Central publishing migrated from legacy OSSRH (`s01.oss.sonatype.org`) to the Central Portal (`central.sonatype.com`) via the `com.gradleup.nmcp.settings` plugin. The release workflow now invokes `./gradlew publishAggregationToCentralPortal`.
+
+### Deferred to a future patch
+- `FieldGeneratorResolver` falls back to `ArrayList`/`HashMap` for unknown concrete `List`/`Queue`/`Map` subtypes; the declared concrete type's no-arg constructor should be tried first.
+- Registry input validation is inconsistent across user data registries (`FirstName`/`LastName`/`Gender`/`Title`/`Suffix` accept content that downstream generators reject; `Profession`/`StreetAddress` validate at registration). Standardize on register-time validation.
+- Locale fallback policy differs by registry: `CountryDataRegistry` does language fallback; `CityDataRegistry`/`StateDataRegistry`/`StreetAddressDataRegistry` are exact-match only. Pick one policy and codify it.
+
+See [`docs/reviews/project-review-codex.md`](docs/reviews/project-review-codex.md) for full context.
 
 ---
 
@@ -195,4 +211,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Travis CI and GitHub Actions CI.
 - Gradle wrapper management.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/frikit/krandom/releases/tag/v1.0.0

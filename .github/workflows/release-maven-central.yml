@@ -7,6 +7,14 @@ on:
         description: "SemVer release version (example: 1.0.0)"
         required: true
         default: "1.0.0"
+      publishingType:
+        description: "Central Portal publishing type"
+        required: true
+        type: choice
+        options:
+          - USER_MANAGED
+          - AUTOMATIC
+        default: USER_MANAGED
 
 permissions:
   contents: write
@@ -58,13 +66,22 @@ jobs:
       - name: Build, test, and check
         run: ./gradlew clean build check -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
-      - name: Publish to Maven Central (OSSRH)
+      # Aggregates every published module's signed artifacts (jar, sources, javadoc, POM,
+      # module metadata, .asc signatures) into a single zip and uploads it via the
+      # Central Portal API at https://central.sonatype.com.
+      #
+      # publishingType=USER_MANAGED: artifacts arrive in the portal "Pending"
+      # state; you must click "Publish" in the Central Portal UI to release them.
+      # publishingType=AUTOMATIC: artifacts release as soon as Sonatype validation
+      # passes, no UI step needed.
+      - name: Publish to Maven Central (Central Portal)
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          CENTRAL_PORTAL_USERNAME: ${{ secrets.CENTRAL_PORTAL_USERNAME }}
+          CENTRAL_PORTAL_PASSWORD: ${{ secrets.CENTRAL_PORTAL_PASSWORD }}
+          CENTRAL_PORTAL_PUBLISHING_TYPE: ${{ github.event.inputs.publishingType }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
-        run: ./gradlew publishMavenJavaPublicationToOSSRHRepository -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
+        run: ./gradlew publishAggregationToCentralPortal -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -95,5 +112,5 @@ jobs:
             ```
 
             ### Required secrets
-            - `OSSRH_USERNAME` / `OSSRH_PASSWORD` — Sonatype OSSRH credentials
-            - `GPG_SIGNING_KEY` / `GPG_SIGNING_PASSWORD` — ASCII-armored GPG private key
+            - `CENTRAL_PORTAL_USERNAME` / `CENTRAL_PORTAL_PASSWORD` — Central Portal user token (generate at https://central.sonatype.com → Account → Generate User Token)
+            - `GPG_SIGNING_KEY` / `GPG_SIGNING_PASSWORD` — ASCII-armored GPG private key + passphrase
