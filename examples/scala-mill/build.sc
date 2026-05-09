@@ -18,7 +18,7 @@ object app extends ScalaModule {
     )
   }
 
-  object test extends ScalaTests {
+  object test extends ScalaTests with TestModule.ScalaTest {
     def moduleDeps = Seq(app)
 
     def ivyDeps = Agg(
