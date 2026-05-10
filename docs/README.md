@@ -5,6 +5,7 @@
 Comparison of krandom capabilities vs similar libraries:
 
 - [feature-parity-bogus.md](feature-parity/feature-parity-bogus.md) - Detailed comparison with Bogus (.NET)
+- [k-random-reference-parity.md](feature-parity/k-random-reference-parity.md) - Audit against the k-random/k-random Easy Random fork
 
 ## Similar Libraries Reference
 
