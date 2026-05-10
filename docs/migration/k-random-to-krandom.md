@@ -324,11 +324,50 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | k-random randomizer | krandom replacement |
 | --- | --- |
 | `StringRandomizer` | `Generators.ofString()` / `StringGenerator` |
+| `CharacterRandomizer` | `Generators.ofChar()` / `CharGenerator` |
+| `CharSequenceRandomizer` | `Generators.ofString()` / generated `String` |
+| `StringDelegatingRandomizer` | Wrap or map any `Generator<String>` with `map(...)` |
+| `ByteRandomizer` | `Generators.ofByte()` / `ByteGenerator` |
+| `ShortRandomizer` | `Generators.ofShort()` / `ShortGenerator` |
 | `IntegerRandomizer` | `Generators.ofInt()` / `IntGenerator` |
 | `LongRandomizer` | `Generators.ofLong()` / `LongGenerator` |
+| `FloatRandomizer` | `Generators.ofFloat()` / `FloatGenerator` |
+| `DoubleRandomizer` | `Generators.ofDouble()` / `DoubleGenerator` |
+| `NumberRandomizer` | `Generators.ofNumber()` / `NumberGenerator` |
+| `BigIntegerRandomizer` | `Generators.ofBigInteger()` / `BigIntegerGenerator` |
+| `BigDecimalRandomizer` | `Generators.ofBigDecimal()` / `BigDecimalGenerator` |
+| `AtomicIntegerRandomizer` | `Generators.ofAtomicInteger()` / `AtomicIntegerGenerator` |
+| `AtomicLongRandomizer` | `Generators.ofAtomicLong()` / `AtomicLongGenerator` |
 | `BooleanRandomizer` | `Generators.ofBoolean()` / `BooleanGenerator` |
+| `ConstantRandomizer` | `Generators.constant(value)` |
+| `NullRandomizer` | `Generators.constant(null)` |
+| `SkipRandomizer` | `objectExclude(...)`, `objectExcludeField(...)`, or omit the target field |
+| `EnumRandomizer` | `new EnumGenerator<>(EnumType.class)` |
+| `OptionalRandomizer` | Object optional field handling or wrap a generator with `Optional.ofNullable(...)` |
+| `LocaleRandomizer` | `Generators.ofLocale()` / `RandomLocaleGenerator` |
 | `UUIDRandomizer` | `Generators.ofUuid()` / `Generators.identifier().uuid()` / `UUIDGenerator` |
-| `UrlRandomizer` | `Generators.ofUrl()` / URL generator |
+| `UriRandomizer` | `Generators.ofURI()` for `URI`, or `Generators.ofUri()` for URI strings |
+| `UrlRandomizer` | `Generators.ofURL()` for `URL`, or `Generators.ofUrl()` for URL strings |
+| `DateRandomizer` | `Generators.ofUtilDate()` / `UtilDateGenerator` |
+| `SqlDateRandomizer` | `Generators.ofSqlDate()` / `SqlDateGenerator` |
+| `SqlTimeRandomizer` | `Generators.ofSqlTime()` / `SqlTimeGenerator` |
+| `SqlTimestampRandomizer` | `Generators.ofSqlTimestamp()` / `SqlTimestampGenerator` |
+| `CalendarRandomizer` / `GregorianCalendarRandomizer` | `Generators.ofCalendar()` / `CalendarGenerator` |
+| `LocalDateRandomizer` | `Generators.ofLocalDate()` / `Generators.datetime().localDate()` |
+| `LocalTimeRandomizer` | `Generators.ofLocalTime()` / `Generators.datetime().localTime()` |
+| `LocalDateTimeRandomizer` | `Generators.ofLocalDateTime()` / `Generators.datetime().localDateTime()` |
+| `InstantRandomizer` | `Generators.ofInstant()` / `Generators.datetime().instant()` |
+| `OffsetDateTimeRandomizer` | `Generators.ofOffsetDateTime()` / `Generators.datetime().offsetDateTime()` |
+| `OffsetTimeRandomizer` | `Generators.ofOffsetTime()` / `Generators.datetime().offsetTime()` |
+| `ZonedDateTimeRandomizer` | `Generators.ofZonedDateTime()` / `Generators.datetime().zonedDateTime()` |
+| `YearRandomizer` | `Generators.ofYear()` / `Generators.datetime().year()` |
+| `YearMonthRandomizer` | `Generators.ofYearMonth()` / `Generators.datetime().yearMonth()` |
+| `MonthDayRandomizer` | `Generators.ofMonthDay()` / `Generators.datetime().monthDay()` |
+| `DurationRandomizer` / `JavaDurationRandomizer` | `Generators.ofDuration()` / `Generators.datetime().duration()` |
+| `PeriodRandomizer` | `Generators.ofPeriod()` / `Generators.datetime().period()` |
+| `ZoneIdRandomizer` | `Generators.ofZoneId()` / `Generators.datetime().zoneId()` |
+| `ZoneOffsetRandomizer` | `Generators.ofZoneOffset()` / `Generators.datetime().zoneOffset()` |
+| `TimeZoneRandomizer` | `Generators.ofTimeZone()` / `Generators.datetime().timeZone()` |
 | `EmailRandomizer` | `Generators.ofEmail()` / `EmailGenerator` |
 | `FirstNameRandomizer` | `Generators.person().firstName()` / `FirstNameGenerator` |
 | `LastNameRandomizer` | `Generators.person().lastName()` / `LastNameGenerator` |
@@ -348,8 +387,10 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `WordRandomizer` | `Generators.ofWord()` / `Generators.text().word()` |
 | `SentenceRandomizer` | `Generators.ofSentence()` / `Generators.text().sentence()` |
 | `ParagraphRandomizer` | `Generators.ofParagraph()` / `Generators.text().paragraph()` |
-| `RegularExpressionRandomizer` | No direct `Generators` facade method; use `RegexGenerator` directly |
+| `RegularExpressionRandomizer` | `Generators.ofRegex(pattern)` / `RegexGenerator` |
 | `LatitudeRandomizer` / `LongitudeRandomizer` | `new CoordinatesGenerator(...).generateLatitude()` / `.generateLongitude()` |
+| `CollectionRandomizer`, `ListRandomizer`, `SetRandomizer`, `QueueRandomizer` | Use `generator.generateList(size)`, `Generators.repeat(...)`, selection helpers, or object field generation |
+| `MapRandomizer`, `EnumMapRandomizer`, `EnumSetRandomizer` | Use typed object fields, generator composition, or explicit object overrides |
 
 The full mapping baseline lives in `docs/feature-parity/k-random-reference-feature-inventory.md`.
 

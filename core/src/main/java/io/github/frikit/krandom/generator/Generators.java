@@ -7,6 +7,8 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.algorithms.FibonacciGenerator;
 import io.github.frikit.krandom.generator.algorithms.LuhnGenerator;
+import io.github.frikit.krandom.generator.base.AtomicIntegerGenerator;
+import io.github.frikit.krandom.generator.base.AtomicLongGenerator;
 import io.github.frikit.krandom.generator.base.BigDecimalGenerator;
 import io.github.frikit.krandom.generator.base.BigIntegerGenerator;
 import io.github.frikit.krandom.generator.base.BooleanGenerator;
@@ -21,9 +23,11 @@ import io.github.frikit.krandom.generator.base.LongGenerator;
 import io.github.frikit.krandom.generator.base.NaturalNumberGenerator;
 import io.github.frikit.krandom.generator.base.NormalDistributionGenerator;
 import io.github.frikit.krandom.generator.base.NullableBooleanGenerator;
+import io.github.frikit.krandom.generator.base.NumberGenerator;
 import io.github.frikit.krandom.generator.base.NumberWithFormatGenerator;
 import io.github.frikit.krandom.generator.base.PrimeGenerator;
 import io.github.frikit.krandom.generator.base.PyDecimalGenerator;
+import io.github.frikit.krandom.generator.base.RegexGenerator;
 import io.github.frikit.krandom.generator.base.ShortGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
 import io.github.frikit.krandom.generator.color.ColorGenerator;
@@ -37,8 +41,21 @@ import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.DurationGenerator;
 import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.InstantGenerator;
+import io.github.frikit.krandom.generator.datetime.LegacyTimeZoneGenerator;
 import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
+import io.github.frikit.krandom.generator.datetime.MonthDayGenerator;
+import io.github.frikit.krandom.generator.datetime.OffsetTimeGenerator;
+import io.github.frikit.krandom.generator.datetime.PeriodGenerator;
+import io.github.frikit.krandom.generator.datetime.SqlDateGenerator;
+import io.github.frikit.krandom.generator.datetime.SqlTimeGenerator;
+import io.github.frikit.krandom.generator.datetime.SqlTimestampGenerator;
+import io.github.frikit.krandom.generator.datetime.TimeGenerator;
 import io.github.frikit.krandom.generator.datetime.TimezoneGenerator;
+import io.github.frikit.krandom.generator.datetime.UtilDateGenerator;
+import io.github.frikit.krandom.generator.datetime.YearGenerator;
+import io.github.frikit.krandom.generator.datetime.YearMonthGenerator;
+import io.github.frikit.krandom.generator.datetime.ZoneIdGenerator;
+import io.github.frikit.krandom.generator.datetime.ZoneOffsetGenerator;
 import io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator;
 import io.github.frikit.krandom.generator.file.DirPathGenerator;
 import io.github.frikit.krandom.generator.file.FileExtensionGenerator;
@@ -161,7 +178,22 @@ import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Instant;
+import java.time.MonthDay;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.Duration;
+import java.time.Period;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -169,6 +201,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
@@ -219,6 +255,11 @@ public final class Generators {
         REGISTRY.put(float.class, FloatGenerator::new);
         REGISTRY.put(Double.class, DoubleGenerator::new);
         REGISTRY.put(double.class, DoubleGenerator::new);
+        REGISTRY.put(Number.class, NumberGenerator::new);
+        REGISTRY.put(BigDecimal.class, BigDecimalGenerator::new);
+        REGISTRY.put(BigInteger.class, BigIntegerGenerator::new);
+        REGISTRY.put(AtomicInteger.class, AtomicIntegerGenerator::new);
+        REGISTRY.put(AtomicLong.class, AtomicLongGenerator::new);
         REGISTRY.put(Character.class, CharGenerator::letters);
         REGISTRY.put(char.class, CharGenerator::letters);
         REGISTRY.put(Boolean.class, BooleanGenerator::new);
@@ -227,6 +268,28 @@ public final class Generators {
         REGISTRY.put(Calendar.class, CalendarGenerator::new);
         REGISTRY.put(GregorianCalendar.class, CalendarGenerator::new);
         REGISTRY.put(Locale.class, RandomLocaleGenerator::new);
+        REGISTRY.put(UUID.class, UUIDGenerator::new);
+        REGISTRY.put(URI.class, Generators::ofURI);
+        REGISTRY.put(java.net.URL.class, Generators::ofURL);
+        REGISTRY.put(java.util.Date.class, UtilDateGenerator::new);
+        REGISTRY.put(java.sql.Date.class, SqlDateGenerator::new);
+        REGISTRY.put(java.sql.Time.class, SqlTimeGenerator::new);
+        REGISTRY.put(java.sql.Timestamp.class, SqlTimestampGenerator::new);
+        REGISTRY.put(LocalDate.class, DateGenerator::new);
+        REGISTRY.put(LocalTime.class, TimeGenerator::new);
+        REGISTRY.put(LocalDateTime.class, LocalDateTimeGenerator::new);
+        REGISTRY.put(Instant.class, InstantGenerator::new);
+        REGISTRY.put(OffsetDateTime.class, OffsetDateTimeGenerator::new);
+        REGISTRY.put(OffsetTime.class, OffsetTimeGenerator::new);
+        REGISTRY.put(ZonedDateTime.class, ZonedDateTimeGenerator::new);
+        REGISTRY.put(Year.class, YearGenerator::new);
+        REGISTRY.put(YearMonth.class, YearMonthGenerator::new);
+        REGISTRY.put(MonthDay.class, MonthDayGenerator::new);
+        REGISTRY.put(Duration.class, DurationGenerator::new);
+        REGISTRY.put(Period.class, PeriodGenerator::new);
+        REGISTRY.put(ZoneId.class, ZoneIdGenerator::new);
+        REGISTRY.put(ZoneOffset.class, ZoneOffsetGenerator::new);
+        REGISTRY.put(TimeZone.class, LegacyTimeZoneGenerator::new);
     }
 
     private Generators() { /* static utility */ }
@@ -309,6 +372,14 @@ public final class Generators {
         return new NaturalNumberGenerator(min, max, seed);
     }
 
+    public static NumberGenerator ofNumber() {
+        return new NumberGenerator();
+    }
+
+    public static NumberGenerator ofNumber(long seed) {
+        return new NumberGenerator(seed);
+    }
+
     public static LongGenerator ofLong() {
         return new LongGenerator();
     }
@@ -321,6 +392,30 @@ public final class Generators {
 
     public static LongGenerator ofLong(long min, long max, long seed) {
         return new LongGenerator(min, max, seed);
+    }
+
+    public static AtomicIntegerGenerator ofAtomicInteger() {
+        return new AtomicIntegerGenerator();
+    }
+
+    public static AtomicIntegerGenerator ofAtomicInteger(int min, int max) {
+        return new AtomicIntegerGenerator(min, max);
+    }
+
+    public static AtomicIntegerGenerator ofAtomicInteger(int min, int max, long seed) {
+        return new AtomicIntegerGenerator(min, max, seed);
+    }
+
+    public static AtomicLongGenerator ofAtomicLong() {
+        return new AtomicLongGenerator();
+    }
+
+    public static AtomicLongGenerator ofAtomicLong(long min, long max) {
+        return new AtomicLongGenerator(min, max);
+    }
+
+    public static AtomicLongGenerator ofAtomicLong(long min, long max, long seed) {
+        return new AtomicLongGenerator(min, max, seed);
     }
 
     public static FloatGenerator ofFloat() {
@@ -431,6 +526,20 @@ public final class Generators {
      */
     public static NumberWithFormatGenerator ofNumberWithFormat() {
         return new NumberWithFormatGenerator();
+    }
+
+    /**
+     * Returns a generator that produces strings matching the supported subset of regular expressions.
+     */
+    public static RegexGenerator ofRegex(String pattern) {
+        return new RegexGenerator(pattern);
+    }
+
+    /**
+     * Returns a deterministic generator that produces strings matching the supported subset of regular expressions.
+     */
+    public static RegexGenerator ofRegex(String pattern, long seed) {
+        return new RegexGenerator(pattern, seed);
     }
 
     // ── Algorithms ────────────────────────────────────────────────────────────
@@ -567,6 +676,38 @@ public final class Generators {
         return new UriGenerator();
     }
 
+    /**
+     * Returns a generator that produces {@link URI} values.
+     */
+    public static Generator<URI> ofURI() {
+        UriGenerator generator = new UriGenerator();
+        return () -> URI.create(generator.generate());
+    }
+
+    /**
+     * Returns a generator that produces {@link URI} values using explicit configuration.
+     */
+    public static Generator<URI> ofURI(GeneratorConfig config) {
+        UriGenerator generator = new UriGenerator(config);
+        return () -> URI.create(generator.generate());
+    }
+
+    /**
+     * Returns a generator that produces {@link java.net.URL} values.
+     */
+    public static Generator<java.net.URL> ofURL() {
+        URLGenerator generator = new URLGenerator();
+        return () -> toUrl(URI.create(generator.generate("https")));
+    }
+
+    /**
+     * Returns a generator that produces {@link java.net.URL} values using explicit configuration.
+     */
+    public static Generator<java.net.URL> ofURL(GeneratorConfig config) {
+        URLGenerator generator = new URLGenerator(config);
+        return () -> toUrl(URI.create(generator.generate("https")));
+    }
+
     // ── BigInteger ────────────────────────────────────────────────────────────
 
     /**
@@ -620,6 +761,41 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces random {@link java.util.Date} values.
+     */
+    public static UtilDateGenerator ofUtilDate() {
+        return new UtilDateGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link java.sql.Date} values.
+     */
+    public static SqlDateGenerator ofSqlDate() {
+        return new SqlDateGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link java.sql.Time} values.
+     */
+    public static SqlTimeGenerator ofSqlTime() {
+        return new SqlTimeGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link java.sql.Timestamp} values.
+     */
+    public static SqlTimestampGenerator ofSqlTimestamp() {
+        return new SqlTimestampGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link LocalTime} values.
+     */
+    public static TimeGenerator ofLocalTime() {
+        return new TimeGenerator();
+    }
+
+    /**
      * Returns a generator that produces random {@link java.time.LocalDateTime} values (1970–2100).
      */
     public static LocalDateTimeGenerator ofLocalDateTime() {
@@ -654,6 +830,62 @@ public final class Generators {
      */
     public static OffsetDateTimeGenerator ofOffsetDateTime() {
         return new OffsetDateTimeGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link OffsetTime} values.
+     */
+    public static OffsetTimeGenerator ofOffsetTime() {
+        return new OffsetTimeGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link Year} values.
+     */
+    public static YearGenerator ofYear() {
+        return new YearGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link YearMonth} values.
+     */
+    public static YearMonthGenerator ofYearMonth() {
+        return new YearMonthGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link MonthDay} values.
+     */
+    public static MonthDayGenerator ofMonthDay() {
+        return new MonthDayGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link Period} values.
+     */
+    public static PeriodGenerator ofPeriod() {
+        return new PeriodGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link ZoneId} values.
+     */
+    public static ZoneIdGenerator ofZoneId() {
+        return new ZoneIdGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random {@link ZoneOffset} values.
+     */
+    public static ZoneOffsetGenerator ofZoneOffset() {
+        return new ZoneOffsetGenerator();
+    }
+
+    /**
+     * Returns a generator that produces random legacy {@link TimeZone} values.
+     */
+    public static LegacyTimeZoneGenerator ofTimeZone() {
+        return new LegacyTimeZoneGenerator();
     }
 
     /**
@@ -2085,6 +2317,14 @@ public final class Generators {
 
     // ── Internal registry ─────────────────────────────────────────────────────
 
+    private static java.net.URL toUrl(URI uri) {
+        try {
+            return uri.toURL();
+        } catch (MalformedURLException | IllegalArgumentException e) {
+            throw new IllegalStateException("Generated URI could not be converted to URL: " + uri, e);
+        }
+    }
+
     /**
      * Returns a generator that invokes the given source generator {@code count} times per call.
      */
@@ -2093,11 +2333,11 @@ public final class Generators {
     }
 
     /**
-     * Return a default {@link Generator} for the given Java primitive wrapper class.
+     * Return a default {@link Generator} for the given Java primitive wrapper or common Java type.
      *
-     * <p>Supported types: {@code Byte}, {@code Short}, {@code Integer}, {@code Long},
-     * {@code Float}, {@code Double}, {@code Character}, {@code Boolean}, {@code String},
-     * {@code Calendar}, {@code GregorianCalendar}, and {@code Locale}.
+     * <p>Supported types include primitives/wrappers, {@code String}, {@code Number}, big
+     * numbers, atomics, UUID, locale, URI/URL, legacy date/time types, and common
+     * {@code java.time} values.
      *
      * @param type the wrapper class; must not be {@code null}
      * @throws IllegalArgumentException if the type has no built-in generator

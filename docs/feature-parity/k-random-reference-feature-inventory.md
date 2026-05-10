@@ -106,12 +106,12 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 
 | Reference family | Classes inventoried | Native status |
 | --- | --- | --- |
-| Primitive and number | `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `Number`, `BigInteger`, `BigDecimal`, `AtomicInteger`, `AtomicLong` randomizers and range variants | Scalar factories cover primitives and big numbers. Object generation covers atomics. `NumberRandomizer` and standalone atomic factories are migration gaps if users instantiated those classes directly. |
-| Text | `Character`, `CharSequence`, `String`, `StringDelegating`, `RegularExpression` | `CharGenerator`, `StringGenerator`, and `RegexGenerator` cover core behavior. `CharSequence` maps to generated `String`. |
-| Collections | `Collection`, `List`, `Set`, `Queue`, `Map`, `EnumSet`, `EnumMap` | Object fields are covered. Standalone collection randomizer classes should migrate to generator composition, `generateList`, or explicit object overrides. |
-| Misc | `Boolean`, `Constant`, `Enum`, `Locale`, `Null`, `Optional`, `Skip`, `UUID` | Mostly covered by `Generators.ofBoolean`, `Generators.constant`, `EnumGenerator`, `Generators.ofLocale`, `Generators.constant(null)`, object optional handling, exclusions, and `Generators.ofUuid`. |
-| Network | `UriRandomizer`, `UrlRandomizer`, `Ipv4AddressRandomizer`, `Ipv6AddressRandomizer`, `MacAddressRandomizer` | Covered by `Generators.ofUri`, `Generators.ofUrl`, `Generators.network().ipv4()`, `.ipv6()`, and `.macAddress()`. |
-| Time | `Date`, `SqlDate`, `SqlTime`, `SqlTimestamp`, `Calendar`, `GregorianCalendar`, `LocalDate`, `LocalTime`, `LocalDateTime`, `Instant`, `OffsetDateTime`, `OffsetTime`, `ZonedDateTime`, `Year`, `YearMonth`, `MonthDay`, `Duration`, `JavaDuration`, `Period`, `ZoneId`, `ZoneOffset`, `TimeZone`, plus day/hour/minute/nanosecond helpers | Object generation covers the reference target Java time types. Public facade coverage is partial for standalone instantiation of `OffsetTime`, `Year`, `YearMonth`, `MonthDay`, `Period`, `ZoneId`, and `ZoneOffset`. |
+| Primitive and number | `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `Number`, `BigInteger`, `BigDecimal`, `AtomicInteger`, `AtomicLong` randomizers and range variants | Covered by scalar factories, `NumberGenerator`, `AtomicIntegerGenerator`, `AtomicLongGenerator`, big-number generators, object field resolution, and `Generators.forType(...)` for standalone Java type lookup. |
+| Text | `Character`, `CharSequence`, `String`, `StringDelegating`, `RegularExpression` | Covered by `CharGenerator`, `StringGenerator`, `RegexGenerator`, `Generators.ofRegex(...)`, and text namespace methods. `CharSequence` maps to generated `String`. |
+| Collections | `Collection`, `List`, `Set`, `Queue`, `Map`, `EnumSet`, `EnumMap` | Covered for object fields. Standalone collection randomizer classes migrate to generator composition, `generateList`, `repeat`, `pick`, `shuffle`, or explicit object overrides. |
+| Misc | `Boolean`, `Constant`, `Enum`, `Locale`, `Null`, `Optional`, `Skip`, `UUID` | Covered by `Generators.ofBoolean`, `Generators.constant`, `EnumGenerator`, `Generators.ofLocale`, `Generators.constant(null)`, object optional handling, exclusions, and `Generators.ofUuid`. |
+| Network | `UriRandomizer`, `UrlRandomizer`, `Ipv4AddressRandomizer`, `Ipv6AddressRandomizer`, `MacAddressRandomizer` | Covered by typed `Generators.ofURI()`/`ofURL()` when Java objects are needed, string `Generators.ofUri()`/`ofUrl()`, and `Generators.network().ipv4()`, `.ipv6()`, and `.macAddress()`. |
+| Time | `Date`, `SqlDate`, `SqlTime`, `SqlTimestamp`, `Calendar`, `GregorianCalendar`, `LocalDate`, `LocalTime`, `LocalDateTime`, `Instant`, `OffsetDateTime`, `OffsetTime`, `ZonedDateTime`, `Year`, `YearMonth`, `MonthDay`, `Duration`, `JavaDuration`, `Period`, `ZoneId`, `ZoneOffset`, `TimeZone`, plus day/hour/minute/nanosecond helpers | Covered by date/time generators, `Generators.datetime()`, `Generators.forType(...)`, and object field resolution. `LegacyTimeZoneGenerator` covers `java.util.TimeZone`; `TimezoneGenerator` remains the string timezone-id generator. |
 | Faker/domain | `City`, `Company`, `Country`, `CreditCardNumber`, `Email`, `FirstName`, `FullName`, `GenericString`, `Ipv4Address`, `Ipv6Address`, `Isbn`, `LastName`, `Latitude`, `Longitude`, `MacAddress`, `Paragraph`, `Password`, `PhoneNumber`, `RegularExpression`, `Sentence`, `State`, `Street`, `Word`, `ZipCode` | Covered or exceeded by native person, location, finance, network, identifier, text, and base generators. Migration should use namespaces rather than old class names. |
 
 ## Bean Validation Inventory
@@ -137,7 +137,7 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 ## Backlog Derived From Inventory
 
 1. Add migration parity tests for native object generation before changing behavior.
-2. Continue parity tests for Bean Validation and standalone randomizer coverage.
+2. Continue parity tests for Bean Validation.
 3. Add missing Bean Validation constraints and container `@Size`.
 4. Add missing TypePredicates helpers and regex/varargs FieldPredicates helpers if migration ergonomics matter.
 5. Add standalone facade methods only where migration docs become awkward; prefer namespaces for domain data.

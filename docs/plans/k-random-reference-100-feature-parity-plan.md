@@ -188,47 +188,58 @@ Acceptance:
 
 ## Phase 5: Built-In Randomizer Capability Parity
 
+Status: **Completed**.
+
 Goal: ensure every reference built-in randomizer family has a native generator equivalent.
 
-- [ ] Primitive and wrapper types.
-- [ ] Numbers and ranges.
-- [ ] BigInteger and BigDecimal.
-- [ ] AtomicInteger and AtomicLong.
-- [ ] Collections and maps.
-- [ ] Optional.
-- [ ] UUID and locale.
-- [ ] URI and URL.
-- [ ] Time and date types:
-  - [ ] `java.util.Date`
-  - [ ] `java.sql.Date`
-  - [ ] `java.sql.Time`
-  - [ ] `java.sql.Timestamp`
-  - [ ] `LocalDate`
-  - [ ] `LocalTime`
-  - [ ] `LocalDateTime`
-  - [ ] `Instant`
-  - [ ] `OffsetDateTime`
-  - [ ] `OffsetTime`
-  - [ ] `ZonedDateTime`
-  - [ ] `Year`
-  - [ ] `YearMonth`
-  - [ ] `MonthDay`
-  - [ ] `Duration`
-  - [ ] `Period`
-  - [ ] `ZoneId`
-  - [ ] `ZoneOffset`
-  - [ ] `TimeZone`
-- [ ] Text/string/regex generation.
-- [ ] Faker-style domain data:
-  - [ ] names
-  - [ ] email/password/phone
-  - [ ] city/state/country/street/postal code
-  - [ ] company
-  - [ ] credit card
-  - [ ] ISBN
-  - [ ] IPv4/IPv6/MAC
-  - [ ] latitude/longitude
-  - [ ] word/sentence/paragraph
+- [x] Primitive and wrapper types.
+- [x] Numbers and ranges.
+- [x] BigInteger and BigDecimal.
+- [x] AtomicInteger and AtomicLong.
+- [x] Collections and maps.
+- [x] Optional.
+- [x] UUID and locale.
+- [x] URI and URL.
+- [x] Time and date types:
+  - [x] `java.util.Date`
+  - [x] `java.sql.Date`
+  - [x] `java.sql.Time`
+  - [x] `java.sql.Timestamp`
+  - [x] `LocalDate`
+  - [x] `LocalTime`
+  - [x] `LocalDateTime`
+  - [x] `Instant`
+  - [x] `OffsetDateTime`
+  - [x] `OffsetTime`
+  - [x] `ZonedDateTime`
+  - [x] `Year`
+  - [x] `YearMonth`
+  - [x] `MonthDay`
+  - [x] `Duration`
+  - [x] `Period`
+  - [x] `ZoneId`
+  - [x] `ZoneOffset`
+  - [x] `TimeZone`
+- [x] Text/string/regex generation.
+- [x] Faker-style domain data:
+  - [x] names
+  - [x] email/password/phone
+  - [x] city/state/country/street/postal code
+  - [x] company
+  - [x] credit card
+  - [x] ISBN
+  - [x] IPv4/IPv6/MAC
+  - [x] latitude/longitude
+  - [x] word/sentence/paragraph
+
+Decision:
+
+- Standalone atomic and `Number` randomizers now map to native `AtomicIntegerGenerator`, `AtomicLongGenerator`, and `NumberGenerator`.
+- Standalone missing time randomizers now map to native `OffsetTimeGenerator`, `YearGenerator`, `YearMonthGenerator`, `MonthDayGenerator`, `PeriodGenerator`, `ZoneIdGenerator`, `ZoneOffsetGenerator`, and `LegacyTimeZoneGenerator`.
+- Existing `TimezoneGenerator` remains the string timezone-id generator. The legacy `java.util.TimeZone` generator intentionally uses a distinct class name to avoid case-insensitive filesystem collisions.
+- Reference `URI` and `URL` randomizers map to typed `Generators.ofURI()` and `Generators.ofURL()` when Java objects are needed, or to existing string `ofUri()` and `ofUrl()` generators for URL-form strings.
+- Standalone collection/map/optional randomizer classes migrate to native generator composition: `generateList`, `repeat`, `pick`, object field population, and `objectOptionalEmptyProbability(...)`.
+- Exact reference/DataFaker seeded output strings remain out of scope; local deterministic behavior is covered by native seeds.
 
 Acceptance:
 

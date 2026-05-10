@@ -18,10 +18,12 @@ import io.github.frikit.krandom.generator.base.EnumGenerator;
 import io.github.frikit.krandom.generator.base.FloatGenerator;
 import io.github.frikit.krandom.generator.base.IntGenerator;
 import io.github.frikit.krandom.generator.base.LongGenerator;
+import io.github.frikit.krandom.generator.base.NumberGenerator;
 import io.github.frikit.krandom.generator.base.ShortGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.InstantGenerator;
+import io.github.frikit.krandom.generator.datetime.LegacyTimeZoneGenerator;
 import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.SqlDateGenerator;
 import io.github.frikit.krandom.generator.datetime.SqlTimeGenerator;
@@ -32,6 +34,8 @@ import io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator;
 import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
+import io.github.frikit.krandom.generator.network.URLGenerator;
+import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 
@@ -42,6 +46,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -78,6 +84,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -224,6 +231,7 @@ final class FieldGeneratorResolver {
         Generator<String> stringGenerator = buildStringGenerator(generatorConfig, nextDeterministicSeed(generatorConfig, seedSource));
         Generator<BigDecimal> bigDecimalGenerator = buildBigDecimalGenerator(nextDeterministicSeed(generatorConfig, seedSource));
         Generator<BigInteger> bigIntegerGenerator = buildBigIntegerGenerator(nextDeterministicSeed(generatorConfig, seedSource));
+        Generator<Number> numberGenerator = new NumberGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
         Generator<AtomicInteger> atomicIntegerGenerator = () -> new AtomicInteger(intGenerator.generate());
         Generator<AtomicLong> atomicLongGenerator = () -> new AtomicLong(longGenerator.generate());
 
@@ -244,6 +252,7 @@ final class FieldGeneratorResolver {
         m.put(boolean.class, booleanGenerator);
         m.put(Boolean.class, booleanGenerator);
         m.put(String.class, stringGenerator);
+        m.put(Number.class, numberGenerator);
         m.put(BigDecimal.class, bigDecimalGenerator);
         m.put(BigInteger.class, bigIntegerGenerator);
         m.put(AtomicInteger.class, atomicIntegerGenerator);
@@ -282,6 +291,11 @@ final class FieldGeneratorResolver {
         Generator<java.sql.Time> sqlTimeGenerator = new SqlTimeGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
         Generator<java.sql.Timestamp> sqlTimestampGenerator = buildSqlTimestampGenerator(generatorConfig, seedSource, lo, hi);
         Generator<UUID> uuidGenerator = new UUIDGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        Generator<TimeZone> timeZoneGenerator = new LegacyTimeZoneGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        UriGenerator uriStringGenerator = new UriGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        URLGenerator urlStringGenerator = new URLGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        Generator<URI> uriGenerator = () -> URI.create(uriStringGenerator.generate());
+        Generator<java.net.URL> urlGenerator = () -> toUrl(URI.create(urlStringGenerator.generate("https")));
 
         m.put(LocalDate.class, localDateGenerator);
         m.put(LocalTime.class, localTimeGenerator);
@@ -302,7 +316,18 @@ final class FieldGeneratorResolver {
         m.put(java.sql.Time.class, sqlTimeGenerator);
         m.put(java.sql.Timestamp.class, sqlTimestampGenerator);
         m.put(UUID.class, uuidGenerator);
+        m.put(TimeZone.class, timeZoneGenerator);
+        m.put(URI.class, uriGenerator);
+        m.put(java.net.URL.class, urlGenerator);
         return Collections.unmodifiableMap(m);
+    }
+
+    private static java.net.URL toUrl(URI uri) {
+        try {
+            return uri.toURL();
+        } catch (MalformedURLException | IllegalArgumentException e) {
+            throw new ObjectGenerationException("Generated URI could not be converted to URL: " + uri, e);
+        }
     }
 
     private static Long nextDeterministicSeed(GeneratorConfig config, Random seedSource) {

@@ -30,7 +30,7 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Config object | High | Covered for mapped settings | `GeneratorConfig` covers the main `KRandomParameters` behaviors through native names. Migration docs note default differences and replacement decisions. |
 | POJO and record generation | High | Partial | Local supports POJOs, records, constructors, Objenesis fallback, nested graphs, inherited fields, and circular guards. Gaps: setter-first assignment, `bypassSetters`, final-field behavior, exact generic hierarchy behavior, and classpath subtype scanning. |
 | Arrays, collections, maps, optionals | High | Partial | Local supports common typed containers. Reference has dedicated populator/randomizer classes and more exact concrete collection behavior. |
-| Built-in Java type randomizers | High | Partial | Local covers or exceeds most scalar/date/network/identifier types. Migration docs must map reference randomizer classes to local generator factories/classes. |
+| Built-in Java type randomizers | High | Covered | Scalar, number, atomic, Java time, legacy date/time, URI/URL, locale, UUID, text/regex, collection/object-field, and faker/domain randomizer families now have native generators or documented generator-composition replacements. |
 | Faker/DataFaker randomizers | High functional | Partial | Local has richer native providers. Reference exposes DataFaker-backed classes such as `FirstNameRandomizer`, `ZipCodeRandomizer`, `PasswordRandomizer`, `RegularExpressionRandomizer`; map those to native generators. |
 | Bean Validation | Partial | Partial | Local supports `@Size` on String, `@Email`, `@Pattern`, int/long min/max, decimal min/max, positive/negative. Reference adds `@AssertTrue`, `@AssertFalse`, `@Null`, `@NotBlank`, `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent`, collection/map/array `@Size`, method/getter annotations, and registry/service loading. |
 | Extension SPI | Medium | Covered through native APIs and migration docs | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local maps these to `Generator<T>`, `ContextualGenerator<T>`, predicate/object overrides, `ProviderHub`, and explicit native construction decisions. |
@@ -83,6 +83,17 @@ Native extension mapping is now covered by tests in `KRandomReferenceExtensionMo
 - Object factory customization maps to native constructor/Objenesis creation plus explicit type or field overrides for special cases.
 - ServiceLoader registry discovery and registry priority annotations remain out of scope for the native API.
 
+## Phase 5 Built-In Randomizer Baseline
+
+Native built-in randomizer capability parity is now covered by tests in `KRandomReferenceBuiltInRandomizerParityTest`.
+
+- Primitive/wrapper, big-number, `Number`, `AtomicInteger`, and `AtomicLong` reference randomizers map to native scalar factories and standalone generator classes.
+- Java time and legacy date/time randomizers map to native facade methods, `Generators.datetime()`, `Generators.forType(...)`, and object field resolution. `LegacyTimeZoneGenerator` covers `java.util.TimeZone`; `TimezoneGenerator` remains the string timezone-id generator.
+- Reference `UriRandomizer` and `UrlRandomizer` map to typed `Generators.ofURI()` and `Generators.ofURL()` when Java objects are needed, or existing string `ofUri()` and `ofUrl()` generators for URL-form strings.
+- Text and regex randomizers map to `CharGenerator`, `StringGenerator`, text namespace generators, and `Generators.ofRegex(...)`.
+- Collection, map, enum collection, optional, null, and skip randomizers map to object field population, `generateList`, `repeat`, selection helpers, constants, and exclusions.
+- Faker/DataFaker randomizers map to native person, location, finance, network, identifier, text, and base generators.
+
 ## Reference Feature Surface
 
 The reference codebase is an Easy Random fork, not primarily a fake-data catalog. Its core surface is:
@@ -123,8 +134,8 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
    - Keep behavior native to existing krandom modules unless a first-party optional module is justified.
 
 5. Reference randomizer capability coverage:
-   - Ensure every reference randomizer class has a native generator equivalent or documented migration replacement.
-   - Prefer existing local generators and provider namespaces over class-name facades.
+   - Covered by Phase 5 native generators, facade methods, `forType(...)` lookup, object field resolution, and migration-table replacements.
+   - Prefer existing local generators and provider namespaces over class-name facades for future randomizer-family additions.
 
 ## Proposed Implementation Plan
 
@@ -153,16 +164,16 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
 
 - Completed: `Randomizer` -> `Generator`, `ContextAwareRandomizer` -> `ContextualGenerator`, predicate field randomizers, registry/provider replacements, and factory/policy decisions are documented and tested.
 
-### Phase 5: Bean Validation feature parity
+### Phase 5: Native randomizer capability parity
+
+- Map every reference randomizer class to an existing local generator or a new native generator.
+- Document exact-output non-goals and deterministic local behavior.
+
+### Phase 6: Bean Validation feature parity
 
 - Build the missing constraint handlers.
 - Cover both field annotations and method/getter annotations.
 - Add collection/map/array `@Size` support and validator integration tests.
-
-### Phase 6: Native randomizer capability parity
-
-- Map every reference randomizer class to an existing local generator or a new native generator.
-- Document exact-output non-goals and deterministic local behavior.
 
 ### Phase 7: Migration documentation
 
