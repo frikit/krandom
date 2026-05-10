@@ -68,7 +68,8 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should generate values around mean=0")
         void shouldGenerateAroundZero() {
-            NormalDistributionGenerator generator = new NormalDistributionGenerator();
+            // Seeded so the tolerance check is deterministic instead of failing ~0.27% of runs by chance.
+            NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0, 42L);
             List<Double> values = new ArrayList<>();
 
             for (int i = 0; i < 1000; i++) {
@@ -86,7 +87,7 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should follow 68-95-99.7 rule (empirical rule)")
         void shouldFollowEmpiricalRule() {
-            NormalDistributionGenerator generator = new NormalDistributionGenerator();
+            NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0, 42L);
             int total = 10000;
             int within1Sigma = 0;
             int within2Sigma = 0;
@@ -131,7 +132,7 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should generate IQ-like distribution (mean=100, stdDev=15)")
         void shouldGenerateIQDistribution() {
-            NormalDistributionGenerator generator = new NormalDistributionGenerator(100.0, 15.0);
+            NormalDistributionGenerator generator = new NormalDistributionGenerator(100.0, 15.0, 42L);
             List<Double> values = new ArrayList<>();
 
             for (int i = 0; i < 1000; i++) {
@@ -155,7 +156,7 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should generate heights distribution (mean=170, stdDev=10)")
         void shouldGenerateHeightsDistribution() {
-            NormalDistributionGenerator generator = new NormalDistributionGenerator(170.0, 10.0);
+            NormalDistributionGenerator generator = new NormalDistributionGenerator(170.0, 10.0, 42L);
             int total = 1000;
             int count = 0;
 
