@@ -73,23 +73,25 @@ Acceptance:
 
 ## Phase 1: Native Object Generation Parity
 
+Status: **Completed**.
+
 Goal: match k-random's object-generation capabilities through krandom's `ObjectGenerator`, `ObjectFaker`, and `GeneratorConfig`.
 
-- [ ] Add tests covering migration equivalents for:
-  - [ ] `new KRandom().nextObject(MyType.class)` -> `Generators.ofObject(MyType.class).generate()`
-  - [ ] `objects(type, size)` -> `generateList(size)` / stream equivalents
-  - [ ] seeded object generation
-  - [ ] records
-  - [ ] nested objects
-  - [ ] arrays
-  - [ ] collections
-  - [ ] maps
-  - [ ] optionals
-  - [ ] circular references
-  - [ ] object pool behavior
-  - [ ] max depth behavior
-- [ ] Fill any missing behavior in native object generation.
-- [ ] Document migration examples for basic object generation.
+- [x] Add tests covering migration equivalents for:
+  - [x] `new KRandom().nextObject(MyType.class)` -> `Generators.ofObject(MyType.class).generate()`
+  - [x] `objects(type, size)` -> `generateList(size)` / stream equivalents
+  - [x] seeded object generation
+  - [x] records
+  - [x] nested objects
+  - [x] arrays
+  - [x] collections
+  - [x] maps
+  - [x] optionals
+  - [x] circular references
+  - [x] object pool behavior
+  - [x] max depth behavior
+- [x] Fill any missing behavior in native object generation. No code gaps were exposed by the Phase 1 parity tests.
+- [x] Document migration examples for basic object generation.
 
 Acceptance:
 

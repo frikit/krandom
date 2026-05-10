@@ -28,6 +28,82 @@ User user = users.generate();
 List<User> batch = users.generateList(10);
 ```
 
+For stream-style bulk generation:
+
+```java
+List<User> batch = Generators.ofObject(User.class)
+    .stream()
+    .limit(10)
+    .toList();
+```
+
+## Seeded Object Generation
+
+k-random:
+
+```java
+KRandomParameters parameters = new KRandomParameters().seed(42L);
+User user = new KRandom(parameters).nextObject(User.class);
+```
+
+krandom:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .seed(42L)
+    .build();
+
+User user = Generators.ofObject(User.class, config).generate();
+```
+
+The same krandom seed and config produce repeatable krandom output. The generated values are not expected to match k-random's exact strings.
+
+## Records And Nested Objects
+
+Records are generated through their canonical constructor:
+
+```java
+UserRecord user = Generators.ofObject(UserRecord.class).generate();
+```
+
+Nested object fields are populated recursively until `objectMaxDepth(...)` is reached:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectMaxDepth(3)
+    .build();
+
+Order order = Generators.ofObject(Order.class, config).generate();
+```
+
+## Arrays, Collections, Maps, And Optionals
+
+Array, collection, map, and `Optional<T>` fields are populated from their declared types:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .collectionSize(2, 5)
+    .objectOptionalEmptyProbability(0.25)
+    .build();
+
+UserProfile profile = Generators.ofObject(UserProfile.class, config).generate();
+```
+
+Use `collectionSize(min, max)` to replace k-random's `collectionSizeRange(min, max)`. Use `objectOptionalEmptyProbability(...)` when you want some optional fields to become `Optional.empty()`.
+
+## Circular References And Object Depth
+
+krandom detects recursive object graphs and bounds traversal with an object pool and max-depth setting:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectPoolSize(10)
+    .objectMaxDepth(4)
+    .build();
+
+TreeNode node = Generators.ofObject(TreeNode.class, config).generate();
+```
+
 ## Configuration Mapping
 
 | k-random | krandom |
