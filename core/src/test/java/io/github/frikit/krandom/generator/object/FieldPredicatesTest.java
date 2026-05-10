@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.object;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,9 +27,18 @@ class FieldPredicatesTest {
     @DisplayName("null guards throw for required parameters")
     void nullGuardsThrow() {
         assertThrows(NullPointerException.class, () -> FieldPredicates.named(null));
+        assertThrows(NullPointerException.class, () -> FieldPredicates.nameMatches(null));
         assertThrows(NullPointerException.class, () -> FieldPredicates.ofType(null));
         assertThrows(NullPointerException.class, () -> FieldPredicates.inClass(null));
-        assertThrows(NullPointerException.class, () -> FieldPredicates.isAnnotatedWith(null));
+        assertThrows(NullPointerException.class,
+                     () -> FieldPredicates.isAnnotatedWith((Class<? extends Annotation>[]) null));
+        assertThrows(NullPointerException.class, () -> FieldPredicates.isAnnotatedWith(Marker.class, null));
+    }
+
+    @Test
+    @DisplayName("isAnnotatedWith() requires at least one annotation")
+    void isAnnotatedWithEmptyThrows() {
+        assertThrows(IllegalArgumentException.class, FieldPredicates::isAnnotatedWith);
     }
 
     @Test
@@ -44,10 +54,13 @@ class FieldPredicatesTest {
         Field visible = Sample.class.getDeclaredField("visible");
 
         assertTrue(FieldPredicates.named("hidden").test(hidden));
+        assertTrue(FieldPredicates.nameMatches("hidd.*").test(hidden));
         assertTrue(FieldPredicates.ofType(String.class).test(hidden));
         assertTrue(FieldPredicates.inClass(Sample.class).test(hidden));
         assertTrue(FieldPredicates.isAnnotatedWith(Marker.class).test(hidden));
+        assertTrue(FieldPredicates.isAnnotatedWith(OtherMarker.class, Marker.class).test(hidden));
         assertTrue(FieldPredicates.hasModifiers(Modifier.PRIVATE).test(hidden));
+        assertFalse(FieldPredicates.nameMatches("vis.*").test(hidden));
         assertFalse(FieldPredicates.hasModifiers(Modifier.PRIVATE).test(visible));
     }
 
@@ -62,5 +75,10 @@ class FieldPredicatesTest {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     @interface Marker {
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    @interface OtherMarker {
     }
 }

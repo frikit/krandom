@@ -9,6 +9,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * Factory methods for common {@link Field}-based predicates used with
@@ -42,6 +43,22 @@ public final class FieldPredicates {
     }
 
     /**
+     * Returns a predicate that matches fields whose name matches {@code regex}.
+     *
+     * <p>This is the migration equivalent for k-random's regex-based
+     * {@code FieldPredicates.named(...)} behavior while preserving this library's
+     * existing exact-match {@link #named(String)} contract.
+     *
+     * @param regex regular expression matched against the full field name; must not be {@code null}
+     * @return a predicate testing regular-expression field name matching
+     */
+    public static Predicate<Field> nameMatches(String regex) {
+        Objects.requireNonNull(regex, "regex must not be null");
+        Pattern pattern = Pattern.compile(regex);
+        return f -> pattern.matcher(f.getName()).matches();
+    }
+
+    /**
      * Returns a predicate that matches fields whose declared type is exactly {@code type}.
      *
      * @param type the exact type to match; must not be {@code null}
@@ -64,14 +81,28 @@ public final class FieldPredicates {
     }
 
     /**
-     * Returns a predicate that matches fields annotated with {@code annotationType}.
+     * Returns a predicate that matches fields annotated with any of {@code annotationTypes}.
      *
-     * @param annotationType the annotation to check for; must not be {@code null}
+     * @param annotationTypes annotations to test; at least one is required
      * @return a predicate testing annotation presence on the field
      */
-    public static Predicate<Field> isAnnotatedWith(Class<? extends Annotation> annotationType) {
-        Objects.requireNonNull(annotationType, "annotationType must not be null");
-        return f -> f.isAnnotationPresent(annotationType);
+    @SafeVarargs
+    public static Predicate<Field> isAnnotatedWith(Class<? extends Annotation>... annotationTypes) {
+        Objects.requireNonNull(annotationTypes, "annotationTypes must not be null");
+        if (annotationTypes.length == 0) {
+            throw new IllegalArgumentException("at least one annotation type is required");
+        }
+        for (Class<? extends Annotation> annotationType : annotationTypes) {
+            Objects.requireNonNull(annotationType, "annotationTypes must not contain null");
+        }
+        return f -> {
+            for (Class<? extends Annotation> annotationType : annotationTypes) {
+                if (f.isAnnotationPresent(annotationType)) {
+                    return true;
+                }
+            }
+            return false;
+        };
     }
 
     /**

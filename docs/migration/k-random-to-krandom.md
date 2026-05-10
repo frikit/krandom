@@ -207,6 +207,57 @@ GeneratorConfig config = GeneratorConfig.builder()
 
 For annotations, replace k-random's `io.github.krandom.annotation.Exclude` with krandom's object-generation exclusion annotation.
 
+Field predicate mapping:
+
+| k-random | krandom |
+| --- | --- |
+| `FieldPredicates.named("pass.*")` | `FieldPredicates.nameMatches("pass.*")` |
+| `FieldPredicates.ofType(String.class)` | `FieldPredicates.ofType(String.class)` |
+| `FieldPredicates.inClass(User.class)` | `FieldPredicates.inClass(User.class)` |
+| `FieldPredicates.isAnnotatedWith(A.class, B.class)` | `FieldPredicates.isAnnotatedWith(A.class, B.class)` |
+| `FieldPredicates.hasModifiers(Modifier.PRIVATE)` | `FieldPredicates.hasModifiers(Modifier.PRIVATE)` |
+
+Type predicate mapping:
+
+| k-random | krandom |
+| --- | --- |
+| `TypePredicates.named("java.time.LocalDate")` | `TypePredicates.named("java.time.LocalDate")` |
+| `TypePredicates.ofType(LocalDate.class)` | `TypePredicates.ofType(LocalDate.class)` |
+| `TypePredicates.inPackage("java.time")` | `TypePredicates.inPackage("java.time")` |
+| `TypePredicates.isAnnotatedWith(A.class, B.class)` | `TypePredicates.isAnnotatedWith(A.class, B.class)` |
+| `TypePredicates.isInterface()` | `TypePredicates.isInterface()` |
+| `TypePredicates.isAbstract()` | `TypePredicates.isAbstract()` |
+| `TypePredicates.hasModifiers(Modifier.ABSTRACT)` | `TypePredicates.hasModifiers(Modifier.ABSTRACT)` |
+| `TypePredicates.isEnum()` | `TypePredicates.isEnum()` |
+| `TypePredicates.isArray()` | `TypePredicates.isArray()` |
+| `TypePredicates.isAssignableFrom(Concrete.class)` | `TypePredicates.isAssignableFrom(Concrete.class)` |
+
+Predicates are regular Java `Predicate` instances, so `.and(...)`, `.or(...)`, and `.negate()` work for composition.
+
+## Declarative Randomizers
+
+k-random:
+
+```java
+class User {
+    @io.github.krandom.annotation.Randomizer(MyRandomizer.class)
+    @io.github.krandom.annotation.RandomizerArgument(type = int.class, value = "7")
+    private String token;
+}
+```
+
+krandom:
+
+```java
+class User {
+    @io.github.frikit.krandom.generator.object.Randomizer(MyGenerator.class)
+    @io.github.frikit.krandom.generator.object.RandomizerArgument(type = int.class, value = "7")
+    private String token;
+}
+```
+
+The native `@Randomizer` expects a `Generator<?>` implementation. Constructor arguments support common primitive/wrapper values, enums, big numbers, Java/SQL date-time values, Java time values, and arrays.
+
 ## Randomizer Classes
 
 k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer`, and `LocalDateRandomizer`. krandom uses generator classes and the `Generators` facade:

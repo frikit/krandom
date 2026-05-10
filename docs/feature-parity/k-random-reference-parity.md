@@ -34,7 +34,7 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Faker/DataFaker randomizers | High functional | Partial | Local has richer native providers. Reference exposes DataFaker-backed classes such as `FirstNameRandomizer`, `ZipCodeRandomizer`, `PasswordRandomizer`, `RegularExpressionRandomizer`; map those to native generators. |
 | Bean Validation | Partial | Partial | Local supports `@Size` on String, `@Email`, `@Pattern`, int/long min/max, decimal min/max, positive/negative. Reference adds `@AssertTrue`, `@AssertFalse`, `@Null`, `@NotBlank`, `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent`, collection/map/array `@Size`, method/getter annotations, and registry/service loading. |
 | Extension SPI | Medium | Migration mapping needed | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local has generator/contextual APIs, `ProviderHub`, and overrides; document equivalents and add native hooks only if needed. |
-| Annotations | Medium | Partial | Local has analogous `@Exclude`, `@Randomizer`, `@RandomizerArgument`, plus `@Fake` and `@FakeRange`. Constructor-argument behavior may need native test coverage. |
+| Annotations | High | Covered for reference-style field rules | Local has analogous `@Exclude`, `@Randomizer`, `@RandomizerArgument`, plus `@Fake` and `@FakeRange`. Constructor arguments cover common reference-style value types. |
 | Classpath scanning | Missing by design | Migration-doc-only replacement | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local migration uses explicit `objectOverride(...)` registrations instead of scanning. |
 | Setter semantics | Direct-field native behavior | Migration-doc-only replacement | Reference calls setters by default and only direct-fields with `bypassSetters(true)`. Local object generation sets fields directly; setter-first mode is not copied in the native parity plan. |
 | Kotlin/source compatibility | Partial | Migration mapping needed | Reference implementation is Kotlin but exposes Java-friendly APIs in `io.github.krandom`. Local has a Kotlin DSL under this project's package surface. |
@@ -60,6 +60,17 @@ Native configuration mapping is now covered by tests in `KRandomReferenceConfigu
 - `bypassSetters(true)` maps to krandom's existing direct-field object population; no setter-first mode is added.
 - `scanClasspathForConcreteTypes(true)` maps to explicit type or field overrides for abstract/interface fields; no ClassGraph-style scanning is added.
 - Defaults differ intentionally: k-random has seed `123`, string size `1..32`, collection size `1..100`, and effectively unlimited depth; krandom keeps its native defaults unless users configure them explicitly.
+
+## Phase 3 Exclusion And Declarative Rule Baseline
+
+Native exclusion and annotation mapping is now covered by tests in `KRandomReferenceExclusionAndAnnotationParityTest`.
+
+- `FieldPredicates` covers exact names, regex name matching, field type, declaring class, varargs annotation matching, modifiers, and normal Java predicate composition.
+- `TypePredicates` covers exact names, exact type, package prefixes, varargs annotation matching, interface, abstract, modifiers, enum, array, and assignability checks.
+- Programmatic exclusions apply through nested object graphs and inherited fields.
+- `@Exclude` maps to `io.github.frikit.krandom.generator.object.Exclude`.
+- `@Randomizer` maps to native `Generator<?>` implementations.
+- `@RandomizerArgument` now converts common reference-style constructor argument types, including arrays and date/time values.
 
 ## Reference Feature Surface
 

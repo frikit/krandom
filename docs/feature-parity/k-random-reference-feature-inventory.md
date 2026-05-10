@@ -69,24 +69,24 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 
 | Reference feature | Native mapping | Status |
 | --- | --- | --- |
-| `FieldPredicates.named(regex)` | `FieldPredicates.named(exactName)` or custom predicate | Partial; regex helper missing |
+| `FieldPredicates.named(regex)` | `FieldPredicates.nameMatches(regex)` | Covered |
 | `FieldPredicates.ofType(type)` | `FieldPredicates.ofType(type)` | Covered |
 | `FieldPredicates.inClass(type)` | `FieldPredicates.inClass(type)` | Covered |
-| `FieldPredicates.isAnnotatedWith(varargs)` | `FieldPredicates.isAnnotatedWith(annotation)` or custom predicate | Partial; varargs helper missing |
+| `FieldPredicates.isAnnotatedWith(varargs)` | `FieldPredicates.isAnnotatedWith(varargs)` | Covered |
 | `FieldPredicates.hasModifiers(mask)` | `FieldPredicates.hasModifiers(mask)` | Covered |
 | `TypePredicates.inPackage(prefix)` | `TypePredicates.inPackage(prefix)` | Covered |
-| `TypePredicates.named(name)` | Custom predicate | Missing helper |
-| `TypePredicates.ofType(type)` | `objectExcludeType(type)` for exclusions, or custom predicate | Partial |
-| `TypePredicates.isAnnotatedWith(varargs)` | Custom predicate | Missing helper |
-| `TypePredicates.isInterface()` | Custom predicate | Missing helper |
-| `TypePredicates.isAbstract()` | Custom predicate | Missing helper |
-| `TypePredicates.hasModifiers(mask)` | Custom predicate | Missing helper |
-| `TypePredicates.isEnum()` | Custom predicate | Missing helper |
-| `TypePredicates.isArray()` | Custom predicate | Missing helper |
-| `TypePredicates.isAssignableFrom(type)` | Custom predicate | Missing helper |
+| `TypePredicates.named(name)` | `TypePredicates.named(name)` | Covered |
+| `TypePredicates.ofType(type)` | `TypePredicates.ofType(type)` | Covered |
+| `TypePredicates.isAnnotatedWith(varargs)` | `TypePredicates.isAnnotatedWith(varargs)` | Covered |
+| `TypePredicates.isInterface()` | `TypePredicates.isInterface()` | Covered |
+| `TypePredicates.isAbstract()` | `TypePredicates.isAbstract()` | Covered |
+| `TypePredicates.hasModifiers(mask)` | `TypePredicates.hasModifiers(mask)` | Covered |
+| `TypePredicates.isEnum()` | `TypePredicates.isEnum()` | Covered |
+| `TypePredicates.isArray()` | `TypePredicates.isArray()` | Covered |
+| `TypePredicates.isAssignableFrom(type)` | `TypePredicates.isAssignableFrom(type)` | Covered |
 | `@Exclude` | `io.github.frikit.krandom.generator.object.Exclude` | Covered for fields |
 | `@Randomizer` | `io.github.frikit.krandom.generator.object.Randomizer` | Covered for fields and record components |
-| `@RandomizerArgument` | `io.github.frikit.krandom.generator.object.RandomizerArgument` | Covered; constructor conversion needs parity tests |
+| `@RandomizerArgument` | `io.github.frikit.krandom.generator.object.RandomizerArgument` | Covered for primitive/wrapper values, enums, big numbers, Java/SQL date-time values, Java time values, and arrays |
 | `@Priority` | No native registry priority annotation | Migration-doc-only replacement unless registry discovery is added |
 
 ## Extension SPI Mapping

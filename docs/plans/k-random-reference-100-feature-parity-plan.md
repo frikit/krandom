@@ -128,20 +128,28 @@ Acceptance:
 
 ## Phase 3: Exclusions And Declarative Rules
 
+Status: **Completed**.
+
 Goal: provide native equivalents for reference field/type exclusion and annotation-driven randomization.
 
-- [ ] Verify current `FieldPredicates` and `TypePredicates` local APIs cover:
-  - [ ] name matching
-  - [ ] type matching
-  - [ ] declaring class matching
-  - [ ] annotation matching
-  - [ ] modifier matching
-  - [ ] predicate composition
-- [ ] Verify or add local exclusion tests for nested paths and inherited fields.
-- [ ] Map reference `@Exclude` to local `io.github.frikit.krandom.generator.object.Exclude`.
-- [ ] Map reference `@Randomizer` and `@RandomizerArgument` to local annotations.
-- [ ] Ensure constructor argument conversion coverage matches reference behavior where useful.
-- [ ] Document migration examples for excludes, custom randomizers, and field/type overrides.
+- [x] Verify current `FieldPredicates` and `TypePredicates` local APIs cover:
+  - [x] name matching
+  - [x] type matching
+  - [x] declaring class matching
+  - [x] annotation matching
+  - [x] modifier matching
+  - [x] predicate composition
+- [x] Verify or add local exclusion tests for nested paths and inherited fields.
+- [x] Map reference `@Exclude` to local `io.github.frikit.krandom.generator.object.Exclude`.
+- [x] Map reference `@Randomizer` and `@RandomizerArgument` to local annotations.
+- [x] Ensure constructor argument conversion coverage matches reference behavior where useful.
+- [x] Document migration examples for excludes, custom randomizers, and field/type overrides.
+
+Decision:
+
+- `FieldPredicates.named(...)` remains exact-match in krandom; regex migration uses `FieldPredicates.nameMatches(...)`.
+- `TypePredicates` now includes native helpers for named, exact type, package, annotation, modifier, interface, abstract, enum, array, and assignability checks.
+- `@RandomizerArgument` conversion supports common primitive/wrapper values, enums, big numbers, Java/SQL date-time values, Java time values, and arrays.
 
 Acceptance:
 

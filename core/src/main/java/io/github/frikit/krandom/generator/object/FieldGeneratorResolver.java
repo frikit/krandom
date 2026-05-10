@@ -56,6 +56,7 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -156,6 +157,15 @@ final class FieldGeneratorResolver {
         ARGUMENT_PARSERS.put(Byte.class, Byte::valueOf);
         ARGUMENT_PARSERS.put(char.class, FieldGeneratorResolver::parseChar);
         ARGUMENT_PARSERS.put(Character.class, FieldGeneratorResolver::parseChar);
+        ARGUMENT_PARSERS.put(BigInteger.class, BigInteger::new);
+        ARGUMENT_PARSERS.put(BigDecimal.class, BigDecimal::new);
+        ARGUMENT_PARSERS.put(java.util.Date.class, FieldGeneratorResolver::parseUtilDate);
+        ARGUMENT_PARSERS.put(java.sql.Date.class, java.sql.Date::valueOf);
+        ARGUMENT_PARSERS.put(java.sql.Time.class, java.sql.Time::valueOf);
+        ARGUMENT_PARSERS.put(java.sql.Timestamp.class, java.sql.Timestamp::valueOf);
+        ARGUMENT_PARSERS.put(LocalDate.class, LocalDate::parse);
+        ARGUMENT_PARSERS.put(LocalTime.class, LocalTime::parse);
+        ARGUMENT_PARSERS.put(LocalDateTime.class, LocalDateTime::parse);
     }
 
     private final ObjectGeneratorConfig config;
@@ -1120,6 +1130,9 @@ final class FieldGeneratorResolver {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private static Object convertArgumentValue(String rawValue, Class<?> type) {
+        if (type.isArray()) {
+            return convertArrayArgument(rawValue, type);
+        }
         Function<String, Object> parser = ARGUMENT_PARSERS.get(type);
         if (parser != null) return parser.apply(rawValue);
         if (type.isEnum()) {
@@ -1127,6 +1140,26 @@ final class FieldGeneratorResolver {
         }
         throw new IllegalArgumentException("Unsupported @" + RandomizerArgument.class.getSimpleName()
                                            + " type: " + type.getName());
+    }
+
+    private static Object convertArrayArgument(String rawValue, Class<?> arrayType) {
+        Class<?> componentType = arrayType.getComponentType();
+        String[] parts = rawValue.split(",", -1);
+        int length = parts.length;
+        while (length > 0 && parts[length - 1].isEmpty()) {
+            length--;
+        }
+
+        Object array = Array.newInstance(componentType, length);
+        for (int i = 0; i < length; i++) {
+            Array.set(array, i, convertArgumentValue(parts[i].trim(), componentType));
+        }
+        return array;
+    }
+
+    private static java.util.Date parseUtilDate(String rawValue) {
+        LocalDateTime dateTime = LocalDateTime.parse(rawValue, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return java.util.Date.from(dateTime.toInstant(ZoneOffset.UTC));
     }
 
     private static Character parseChar(String rawValue) {
