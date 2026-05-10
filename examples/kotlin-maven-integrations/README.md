@@ -8,5 +8,5 @@ This example verifies that published Kotlin-facing integration artifacts are con
 It is executed by `../../scripts/verify_examples_local.sh` after the repository modules are published to Maven local.
 
 ```bash
-mvn -Dkrandom.version=0.1.0-SNAPSHOT test
+mvn -Dkrandom.version=1.1.0-SNAPSHOT test
 ```

@@ -2,7 +2,7 @@ import mill._
 import mill.scalalib._
 
 object app extends ScalaModule {
-  def krandomVersion = sys.props.getOrElse("krandom.version", sys.env.getOrElse("KRANDOM_VERSION", "0.1.0-SNAPSHOT"))
+  def krandomVersion = sys.props.getOrElse("krandom.version", sys.env.getOrElse("KRANDOM_VERSION", "1.1.0-SNAPSHOT"))
 
   def scalaVersion = "3.3.7"
 

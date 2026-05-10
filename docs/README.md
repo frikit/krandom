@@ -29,6 +29,7 @@ kRandom.
 
 Architecture and implementation details:
 
+- [k-random-reference-100-feature-parity-plan.md](plans/k-random-reference-100-feature-parity-plan.md) - Strict 100% feature-parity execution plan for the k-random/k-random reference
 - [code-based-locale-architecture.md](ideas/code-based-locale-architecture.md) - Design for embedded locale support
 - [generatorconfig-locale-integration.md](ideas/generatorconfig-locale-integration.md) - Locale integration in GeneratorConfig
 - [locale-support-investigation.md](ideas/locale-support-investigation.md) - Research on locale implementation patterns
