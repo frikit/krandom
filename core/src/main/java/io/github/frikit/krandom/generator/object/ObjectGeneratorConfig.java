@@ -79,6 +79,11 @@ final class ObjectGeneratorConfig {
     private final Map<String, Generator<?>> fieldOverrides;
 
     /**
+     * Predicate field overrides. First matching predicate wins.
+     */
+    private final List<FieldGeneratorOverride> predicateFieldOverrides;
+
+    /**
      * Context-aware type-level overrides.  Checked before plain type overrides.
      */
     private final Map<Class<?>, ContextualGenerator<?>> contextualTypeOverrides;
@@ -88,6 +93,11 @@ final class ObjectGeneratorConfig {
      * Checked before plain field overrides.
      */
     private final Map<String, ContextualGenerator<?>> contextualFieldOverrides;
+
+    /**
+     * Context-aware predicate field overrides. First matching predicate wins.
+     */
+    private final List<ContextualFieldGeneratorOverride> contextualPredicateFieldOverrides;
 
     /**
      * Predicates that identify fields to skip during population.
@@ -114,8 +124,11 @@ final class ObjectGeneratorConfig {
         this.dateMax = b.dateMax;
         this.typeOverrides = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
         this.fieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.fieldOverrides));
+        this.predicateFieldOverrides = Collections.unmodifiableList(new ArrayList<>(b.predicateFieldOverrides));
         this.contextualTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.contextualTypeOverrides));
         this.contextualFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.contextualFieldOverrides));
+        this.contextualPredicateFieldOverrides =
+            Collections.unmodifiableList(new ArrayList<>(b.contextualPredicateFieldOverrides));
         this.exclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.exclusionPredicates));
         this.typeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.typeExclusionPredicates));
     }
@@ -266,6 +279,19 @@ final class ObjectGeneratorConfig {
     }
 
     /**
+     * Return the first predicate field override matching {@code field}, if any.
+     */
+    public Optional<Generator<?>> getFieldPredicateOverride(Field field) {
+        Objects.requireNonNull(field, "field must not be null");
+        for (FieldGeneratorOverride override : predicateFieldOverrides) {
+            if (override.predicate().test(field)) {
+                return Optional.of(override.generator());
+            }
+        }
+        return generatorConfig.getObjectFieldPredicateOverride(field);
+    }
+
+    /**
      * Return the contextual type-level override for {@code type}, if any.
      */
     public Optional<ContextualGenerator<?>> getContextualTypeOverride(Class<?> type) {
@@ -294,6 +320,19 @@ final class ObjectGeneratorConfig {
             return Optional.of(legacy);
         }
         return generatorConfig.getObjectContextualFieldOverride(ownerType, fieldName);
+    }
+
+    /**
+     * Return the first contextual predicate field override matching {@code field}, if any.
+     */
+    public Optional<ContextualGenerator<?>> getContextualFieldPredicateOverride(Field field) {
+        Objects.requireNonNull(field, "field must not be null");
+        for (ContextualFieldGeneratorOverride override : contextualPredicateFieldOverrides) {
+            if (override.predicate().test(field)) {
+                return Optional.of(override.generator());
+            }
+        }
+        return generatorConfig.getObjectContextualFieldPredicateOverride(field);
     }
 
     /**
@@ -342,8 +381,10 @@ final class ObjectGeneratorConfig {
 
         typeOverrides.forEach((type, generator) -> applyTypeOverride(builder, type, generator));
         fieldOverrides.forEach((key, generator) -> applyFieldOverride(builder, key, generator));
+        predicateFieldOverrides.forEach(override -> applyPredicateFieldOverride(builder, override));
         contextualTypeOverrides.forEach((type, generator) -> applyContextualTypeOverride(builder, type, generator));
         contextualFieldOverrides.forEach((key, generator) -> applyContextualFieldOverride(builder, key, generator));
+        contextualPredicateFieldOverrides.forEach(override -> applyContextualPredicateFieldOverride(builder, override));
         exclusionPredicates.forEach(builder::objectExclude);
         typeExclusionPredicates.forEach(builder::objectExcludeType);
         return builder.build();
@@ -382,11 +423,23 @@ final class ObjectGeneratorConfig {
     }
 
     @SuppressWarnings("unchecked")
+    private static <T> void applyPredicateFieldOverride(GeneratorConfig.Builder builder,
+                                                        FieldGeneratorOverride override) {
+        builder.objectOverride(override.predicate(), (Generator<T>) override.generator());
+    }
+
+    @SuppressWarnings("unchecked")
     private static <T> void applyContextualFieldOverride(GeneratorConfig.Builder builder,
                                                          Class<?> ownerType,
                                                          String fieldName,
                                                          ContextualGenerator<?> generator) {
         builder.objectOverride(ownerType, fieldName, (ContextualGenerator<T>) generator);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void applyContextualPredicateFieldOverride(GeneratorConfig.Builder builder,
+                                                                  ContextualFieldGeneratorOverride override) {
+        builder.objectOverride(override.predicate(), (ContextualGenerator<T>) override.generator());
     }
 
     private static ParsedFieldKey parseFieldKey(String key) {
@@ -408,6 +461,12 @@ final class ObjectGeneratorConfig {
     private record ParsedFieldKey(Class<?> ownerType, String fieldName) {
     }
 
+    private record FieldGeneratorOverride(Predicate<Field> predicate, Generator<?> generator) {
+    }
+
+    private record ContextualFieldGeneratorOverride(Predicate<Field> predicate, ContextualGenerator<?> generator) {
+    }
+
     // ── Builder ───────────────────────────────────────────────────────────────
 
 
@@ -418,8 +477,11 @@ final class ObjectGeneratorConfig {
 
         private final Map<Class<?>, Generator<?>>           typeOverrides                 = new HashMap<>();
         private final Map<String, Generator<?>>             fieldOverrides                = new HashMap<>();
+        private final List<FieldGeneratorOverride>          predicateFieldOverrides       = new ArrayList<>();
         private final Map<Class<?>, ContextualGenerator<?>> contextualTypeOverrides       = new HashMap<>();
         private final Map<String, ContextualGenerator<?>>   contextualFieldOverrides      = new HashMap<>();
+        private final List<ContextualFieldGeneratorOverride> contextualPredicateFieldOverrides =
+            new ArrayList<>();
         private final List<Predicate<Field>>                exclusionPredicates           = new ArrayList<>();
         private final List<Predicate<Class<?>>>             typeExclusionPredicates       = new ArrayList<>();
         private       GeneratorConfig                       generatorConfig               = GeneratorConfig.defaults();
@@ -475,8 +537,10 @@ final class ObjectGeneratorConfig {
             this.dateRangeExplicit = source.dateMin != null || source.dateMax != null;
             this.typeOverrides.putAll(source.typeOverrides);
             this.fieldOverrides.putAll(source.fieldOverrides);
+            this.predicateFieldOverrides.addAll(source.predicateFieldOverrides);
             this.contextualTypeOverrides.putAll(source.contextualTypeOverrides);
             this.contextualFieldOverrides.putAll(source.contextualFieldOverrides);
+            this.contextualPredicateFieldOverrides.addAll(source.contextualPredicateFieldOverrides);
             this.exclusionPredicates.addAll(source.exclusionPredicates);
             this.typeExclusionPredicates.addAll(source.typeExclusionPredicates);
         }
@@ -631,6 +695,17 @@ final class ObjectGeneratorConfig {
         }
 
         /**
+         * Register a {@link Generator} for all fields matching {@code predicate}.
+         * <pre>{@code .override(FieldPredicates.nameMatches(".*Token"), () -> "fixed") }</pre>
+         */
+        public <T> Builder override(Predicate<Field> predicate, Generator<T> generator) {
+            Objects.requireNonNull(predicate, "predicate must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            predicateFieldOverrides.add(new FieldGeneratorOverride(predicate, generator));
+            return this;
+        }
+
+        /**
          * Register a context-aware {@link ContextualGenerator} for all fields of the given type.
          * The generator receives a {@link io.github.frikit.krandom.generator.GenerationContext}
          * describing the field being populated.
@@ -653,6 +728,17 @@ final class ObjectGeneratorConfig {
             Objects.requireNonNull(fieldName, "fieldName must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
             contextualFieldOverrides.put(fieldKey(ownerType, fieldName), generator);
+            return this;
+        }
+
+        /**
+         * Register a context-aware {@link ContextualGenerator} for all fields matching {@code predicate}.
+         * <pre>{@code .override(FieldPredicates.ofType(String.class), ctx -> ctx.getFieldName()) }</pre>
+         */
+        public <T> Builder override(Predicate<Field> predicate, ContextualGenerator<T> generator) {
+            Objects.requireNonNull(predicate, "predicate must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            contextualPredicateFieldOverrides.add(new ContextualFieldGeneratorOverride(predicate, generator));
             return this;
         }
 

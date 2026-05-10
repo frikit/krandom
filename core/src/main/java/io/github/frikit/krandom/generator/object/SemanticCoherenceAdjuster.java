@@ -489,8 +489,14 @@ final class SemanticCoherenceAdjuster {
             return true;
         }
 
+        AnnotatedElement annotatedElement = slot.annotatedElement();
+        if (annotatedElement instanceof Field field
+            && (config.getContextualFieldPredicateOverride(field).isPresent()
+                || config.getFieldPredicateOverride(field).isPresent())) {
+            return true;
+        }
+
         if (config.getSemanticMode() == ObjectGenerationSemanticMode.RELAXED) {
-            AnnotatedElement annotatedElement = slot.annotatedElement();
             if (annotatedElement.isAnnotationPresent(Randomizer.class)) {
                 return true;
             }

@@ -33,7 +33,7 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Built-in Java type randomizers | High | Partial | Local covers or exceeds most scalar/date/network/identifier types. Migration docs must map reference randomizer classes to local generator factories/classes. |
 | Faker/DataFaker randomizers | High functional | Partial | Local has richer native providers. Reference exposes DataFaker-backed classes such as `FirstNameRandomizer`, `ZipCodeRandomizer`, `PasswordRandomizer`, `RegularExpressionRandomizer`; map those to native generators. |
 | Bean Validation | Partial | Partial | Local supports `@Size` on String, `@Email`, `@Pattern`, int/long min/max, decimal min/max, positive/negative. Reference adds `@AssertTrue`, `@AssertFalse`, `@Null`, `@NotBlank`, `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent`, collection/map/array `@Size`, method/getter annotations, and registry/service loading. |
-| Extension SPI | Medium | Migration mapping needed | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local has generator/contextual APIs, `ProviderHub`, and overrides; document equivalents and add native hooks only if needed. |
+| Extension SPI | Medium | Covered through native APIs and migration docs | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local maps these to `Generator<T>`, `ContextualGenerator<T>`, predicate/object overrides, `ProviderHub`, and explicit native construction decisions. |
 | Annotations | High | Covered for reference-style field rules | Local has analogous `@Exclude`, `@Randomizer`, `@RandomizerArgument`, plus `@Fake` and `@FakeRange`. Constructor arguments cover common reference-style value types. |
 | Classpath scanning | Missing by design | Migration-doc-only replacement | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local migration uses explicit `objectOverride(...)` registrations instead of scanning. |
 | Setter semantics | Direct-field native behavior | Migration-doc-only replacement | Reference calls setters by default and only direct-fields with `bypassSetters(true)`. Local object generation sets fields directly; setter-first mode is not copied in the native parity plan. |
@@ -45,7 +45,7 @@ Recommended path: implement missing behavior natively in the existing `io.github
 The detailed inventory is now captured in `docs/feature-parity/k-random-reference-feature-inventory.md`. The important Phase 0 conclusions are:
 
 - Entry-point parity is covered natively by `Generators.ofObject(Type.class)`, `ObjectGenerator<T>`, and `generateList(size)`.
-- Configuration parity is mostly covered by `GeneratorConfig`; the known gaps are setter-first mode, classpath concrete subtype scanning, object factory hooks, arbitrary registry/provider replacement, and a root-level object time range.
+- Configuration parity is mostly covered by `GeneratorConfig`; the remaining native deviations are setter-first mode, classpath concrete subtype scanning, reference registry ServiceLoader discovery, and a root-level object time range.
 - Object graph generation already covers the major reference behaviors: records, classes, nested objects, inherited fields, arrays, collections, maps, optionals, object pool behavior, max depth, circular references, Objenesis fallback, and seed propagation.
 - Predicate and annotation parity is partial: local field predicates cover common cases, but reference regex name matching, varargs annotation matching, and most `TypePredicates` helpers need native additions or documented custom predicates.
 - Built-in randomizer capability parity is broad. Most reference randomizers map to scalar factories, object field support, or domain namespaces. The main public-facade gaps are standalone atomics, some standalone time types, and collection randomizer classes.
@@ -71,6 +71,17 @@ Native exclusion and annotation mapping is now covered by tests in `KRandomRefer
 - `@Exclude` maps to `io.github.frikit.krandom.generator.object.Exclude`.
 - `@Randomizer` maps to native `Generator<?>` implementations.
 - `@RandomizerArgument` now converts common reference-style constructor argument types, including arrays and date/time values.
+
+## Phase 4 Extension Model Baseline
+
+Native extension mapping is now covered by tests in `KRandomReferenceExtensionModelParityTest`.
+
+- k-random `Randomizer<T>` maps to native `Generator<T>`.
+- k-random `ContextAwareRandomizer<T>` maps to native `ContextualGenerator<T>`, with context for field name, owner type, and depth.
+- Type, exact field, predicate field, and contextual predicate field randomizer registration are covered through `GeneratorConfig.objectOverride(...)`.
+- Custom registry/provider use cases map to explicit generator composition and `ProviderHub.register(...)` with aliases and `ConflictPolicy`.
+- Object factory customization maps to native constructor/Objenesis creation plus explicit type or field overrides for special cases.
+- ServiceLoader registry discovery and registry priority annotations remain out of scope for the native API.
 
 ## Reference Feature Surface
 
@@ -105,9 +116,7 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
    - Align default seed, default depth, default string/collection sizes, date/time reference ranges, and exception wrapping.
 
 3. Native extension equivalents:
-   - Map reference `Randomizer` to local `Generator`.
-   - Map reference `ContextAwareRandomizer` to local `ContextualGenerator`.
-   - Map registry/provider/factory/policy patterns to local overrides, `ProviderHub`, and generator composition.
+   - Covered by `Generator`, `ContextualGenerator`, field/type/predicate overrides, `ProviderHub`, and explicit construction decisions.
 
 4. Bean Validation:
    - Add missing constraints: assert true/false, null, not blank, past/future variants, collection/map/array size, and method/getter annotation lookup.
@@ -142,8 +151,7 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
 
 ### Phase 4: Native extension equivalents
 
-- Document `Randomizer` -> `Generator`, `ContextAwareRandomizer` -> `ContextualGenerator`, and registry/provider replacements.
-- Add missing native extension hooks only when documented alternatives are not sufficient.
+- Completed: `Randomizer` -> `Generator`, `ContextAwareRandomizer` -> `ContextualGenerator`, predicate field randomizers, registry/provider replacements, and factory/policy decisions are documented and tested.
 
 ### Phase 5: Bean Validation feature parity
 

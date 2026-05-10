@@ -77,6 +77,8 @@ public final class GeneratorConfig {
     private final Map<String, Generator<?>>             objectFieldOverrides;
     private final Map<Class<?>, ContextualGenerator<?>> objectContextualTypeOverrides;
     private final Map<String, ContextualGenerator<?>>   objectContextualFieldOverrides;
+    private final List<FieldGeneratorOverride>          objectPredicateFieldOverrides;
+    private final List<ContextualFieldGeneratorOverride> objectContextualPredicateFieldOverrides;
     private final List<Predicate<Field>>                objectExclusionPredicates;
     private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates;
     private final Locale       locale;
@@ -106,6 +108,9 @@ public final class GeneratorConfig {
         this.objectFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectFieldOverrides));
         this.objectContextualTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectContextualTypeOverrides));
         this.objectContextualFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectContextualFieldOverrides));
+        this.objectPredicateFieldOverrides = Collections.unmodifiableList(new ArrayList<>(b.objectPredicateFieldOverrides));
+        this.objectContextualPredicateFieldOverrides =
+            Collections.unmodifiableList(new ArrayList<>(b.objectContextualPredicateFieldOverrides));
         this.objectExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectExclusionPredicates));
         this.objectTypeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectTypeExclusionPredicates));
         this.locale = b.locale;
@@ -293,6 +298,32 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Return the first root-configured predicate field override matching {@code field}, if any.
+     */
+    public Optional<Generator<?>> getObjectFieldPredicateOverride(Field field) {
+        Objects.requireNonNull(field, "field must not be null");
+        for (FieldGeneratorOverride override : objectPredicateFieldOverrides) {
+            if (override.predicate().test(field)) {
+                return Optional.of(override.generator());
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Return the first root-configured contextual predicate field override matching {@code field}, if any.
+     */
+    public Optional<ContextualGenerator<?>> getObjectContextualFieldPredicateOverride(Field field) {
+        Objects.requireNonNull(field, "field must not be null");
+        for (ContextualFieldGeneratorOverride override : objectContextualPredicateFieldOverrides) {
+            if (override.predicate().test(field)) {
+                return Optional.of(override.generator());
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Returns {@code true} if the root config excludes the given field from object generation.
      */
     public boolean shouldObjectExclude(Field field) {
@@ -391,6 +422,12 @@ public final class GeneratorConfig {
         return ownerType.getSimpleName() + "." + fieldName;
     }
 
+    private record FieldGeneratorOverride(Predicate<Field> predicate, Generator<?> generator) {
+    }
+
+    private record ContextualFieldGeneratorOverride(Predicate<Field> predicate, ContextualGenerator<?> generator) {
+    }
+
     // ── Builder ───────────────────────────────────────────────────────────────
 
 
@@ -419,6 +456,9 @@ public final class GeneratorConfig {
         private final Map<String, Generator<?>>             objectFieldOverrides          = new HashMap<>();
         private final Map<Class<?>, ContextualGenerator<?>> objectContextualTypeOverrides = new HashMap<>();
         private final Map<String, ContextualGenerator<?>>   objectContextualFieldOverrides = new HashMap<>();
+        private final List<FieldGeneratorOverride>          objectPredicateFieldOverrides = new ArrayList<>();
+        private final List<ContextualFieldGeneratorOverride> objectContextualPredicateFieldOverrides =
+            new ArrayList<>();
         private final List<Predicate<Field>>                objectExclusionPredicates     = new ArrayList<>();
         private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates = new ArrayList<>();
         private Locale            locale            = Locale.US;
@@ -451,6 +491,8 @@ public final class GeneratorConfig {
             this.objectFieldOverrides.putAll(source.objectFieldOverrides);
             this.objectContextualTypeOverrides.putAll(source.objectContextualTypeOverrides);
             this.objectContextualFieldOverrides.putAll(source.objectContextualFieldOverrides);
+            this.objectPredicateFieldOverrides.addAll(source.objectPredicateFieldOverrides);
+            this.objectContextualPredicateFieldOverrides.addAll(source.objectContextualPredicateFieldOverrides);
             this.objectExclusionPredicates.addAll(source.objectExclusionPredicates);
             this.objectTypeExclusionPredicates.addAll(source.objectTypeExclusionPredicates);
             this.locale = source.locale;
@@ -667,6 +709,26 @@ public final class GeneratorConfig {
             Objects.requireNonNull(fieldName, "fieldName must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
             objectContextualFieldOverrides.put(objectFieldKey(ownerType, fieldName), generator);
+            return this;
+        }
+
+        /**
+         * Register a predicate field override for object generation.
+         */
+        public <T> Builder objectOverride(Predicate<Field> predicate, Generator<T> generator) {
+            Objects.requireNonNull(predicate, "predicate must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            objectPredicateFieldOverrides.add(new FieldGeneratorOverride(predicate, generator));
+            return this;
+        }
+
+        /**
+         * Register a context-aware predicate field override for object generation.
+         */
+        public <T> Builder objectOverride(Predicate<Field> predicate, ContextualGenerator<T> generator) {
+            Objects.requireNonNull(predicate, "predicate must not be null");
+            Objects.requireNonNull(generator, "generator must not be null");
+            objectContextualPredicateFieldOverrides.add(new ContextualFieldGeneratorOverride(predicate, generator));
             return this;
         }
 

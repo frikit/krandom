@@ -1192,6 +1192,14 @@ final class FieldGeneratorResolver {
             return ctxField.get().generate(new GenerationContext(fieldName, ownerType, currentDepth));
         }
 
+        // ── 0aa. Contextual predicate field override ─────────────────────────
+        if (element instanceof java.lang.reflect.Field field) {
+            var ctxPredicateField = config.getContextualFieldPredicateOverride(field);
+            if (ctxPredicateField.isPresent()) {
+                return ctxPredicateField.get().generate(new GenerationContext(fieldName, ownerType, currentDepth));
+            }
+        }
+
         // ── 0b. Contextual type-level override ────────────────────────────────
         var ctxType = config.getContextualTypeOverride(rawType);
         if (ctxType.isPresent()) {
@@ -1202,6 +1210,14 @@ final class FieldGeneratorResolver {
         var fieldOverride = config.getFieldOverride(ownerType, fieldName);
         if (fieldOverride.isPresent()) {
             return fieldOverride.get().generate();
+        }
+
+        // ── 1a. Predicate field-level override ───────────────────────────────
+        if (element instanceof java.lang.reflect.Field field) {
+            var predicateFieldOverride = config.getFieldPredicateOverride(field);
+            if (predicateFieldOverride.isPresent()) {
+                return predicateFieldOverride.get().generate();
+            }
         }
 
         // ── 2. Type-level override ────────────────────────────────────────────

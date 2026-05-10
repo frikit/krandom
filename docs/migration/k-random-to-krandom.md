@@ -258,6 +258,65 @@ class User {
 
 The native `@Randomizer` expects a `Generator<?>` implementation. Constructor arguments support common primitive/wrapper values, enums, big numbers, Java/SQL date-time values, Java time values, and arrays.
 
+## Custom Randomizers And Registries
+
+k-random `Randomizer<T>` maps to krandom `Generator<T>`:
+
+```java
+Generator<String> tokenGenerator = () -> "fixed-token";
+
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(String.class, tokenGenerator)
+    .build();
+```
+
+k-random `ContextAwareRandomizer<T>` maps to `ContextualGenerator<T>`:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(String.class, ctx -> ctx.getOwnerType().getSimpleName()
+        + "_" + ctx.getFieldName()
+        + "_" + ctx.getDepth())
+    .build();
+```
+
+For k-random `randomize(predicate, randomizer)`, use native predicate field overrides:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(FieldPredicates.nameMatches(".*Token"), () -> "redacted")
+    .objectOverride(FieldPredicates.ofType(String.class), ctx -> ctx.getFieldName() + "_value")
+    .build();
+```
+
+For registry or provider patterns, prefer explicit registration and generator composition:
+
+```java
+ProviderHub hub = new ProviderHub(GeneratorConfig.builder()
+    .locale(Locale.UK)
+    .build());
+
+hub.register("tokens.session", cfg -> (Generator<String>) () ->
+    "session-" + cfg.getLocale().getCountry());
+hub.registerAlias("session_token", "tokens.session");
+
+Generator<String> sessionToken = hub.get("session_token", Generator.class);
+
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(User.class, "sessionToken", sessionToken)
+    .build();
+```
+
+`ObjectFactory` migrations usually do not need a hook. krandom uses constructors when available and Objenesis fallback when needed. For a special construction rule, use a type or field override:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(ExternalId.class, () -> new ExternalId("fixed-id"))
+    .build();
+```
+
+`ExclusionPolicy` maps to `objectExclude(...)`, `objectExcludeType(...)`, predicate helpers, and `@Exclude`. ServiceLoader registry discovery and `@Priority` registry ordering are not copied into krandom; use explicit registration order, aliases, and `ConflictPolicy` instead.
+
 ## Randomizer Classes
 
 k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer`, and `LocalDateRandomizer`. krandom uses generator classes and the `Generators` facade:

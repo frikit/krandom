@@ -296,7 +296,7 @@ class ObjectGeneratorConfigTest {
     @DisplayName("override(null type) throws NullPointerException")
     void typeOverrideNullTypeThrows() {
         assertThrows(NullPointerException.class,
-                     () -> ObjectGeneratorConfig.builder().override(null, () -> "x"));
+                     () -> ObjectGeneratorConfig.builder().override((Class<String>) null, () -> "x"));
     }
 
     @Test

@@ -157,18 +157,29 @@ Acceptance:
 
 ## Phase 4: Extension Model Equivalents
 
+Status: **Completed**.
+
 Goal: provide equivalent extension points without cloning the reference SPI.
 
-- [ ] Map reference `Randomizer<T>` to local `Generator<T>`.
-- [ ] Map reference `ContextAwareRandomizer<T>` to local `ContextualGenerator<T>`.
-- [ ] Map reference field/type randomizer registration to `GeneratorConfig.objectOverride(...)`.
-- [ ] Map reference custom registries/providers to native `ProviderHub`, object overrides, and generator composition.
-- [ ] Decide whether any missing extension hook needs a native feature:
-  - [ ] object factory hook
-  - [ ] exclusion policy hook
-  - [ ] registry priority model
-  - [ ] ServiceLoader discovery
-- [ ] Prefer explicit native extension APIs over ServiceLoader unless product demand requires dynamic plugin discovery.
+- [x] Map reference `Randomizer<T>` to local `Generator<T>`.
+- [x] Map reference `ContextAwareRandomizer<T>` to local `ContextualGenerator<T>`.
+- [x] Map reference field/type randomizer registration to `GeneratorConfig.objectOverride(...)`.
+- [x] Map reference custom registries/providers to native `ProviderHub`, object overrides, and generator composition.
+- [x] Decide whether any missing extension hook needs a native feature:
+  - [x] object factory hook
+  - [x] exclusion policy hook
+  - [x] registry priority model
+  - [x] ServiceLoader discovery
+- [x] Prefer explicit native extension APIs over ServiceLoader unless product demand requires dynamic plugin discovery.
+
+Decision:
+
+- k-random `Randomizer<T>.getRandomValue()` maps to native `Generator<T>.generate()`.
+- k-random `ContextAwareRandomizer<T>` maps to native `ContextualGenerator<T>`, with `GenerationContext` exposing field name, owner type, and depth. Full root-object/current-object/path context is not copied into the native API.
+- Predicate-based field randomizers are now supported natively through `GeneratorConfig.builder().objectOverride(Predicate<Field>, Generator<T>)` and the contextual overload.
+- Registry/provider patterns map to explicit object overrides, direct generator composition, `ProviderHub.register(...)`, aliases, and `ConflictPolicy`.
+- A public `ObjectFactory` hook is not added. Native construction uses constructors plus Objenesis fallback; factory-like special cases should use explicit type/field overrides.
+- Registry priority annotations and ServiceLoader discovery remain intentional non-goals for the native API. Use explicit registration order and `ConflictPolicy` instead.
 
 Acceptance:
 

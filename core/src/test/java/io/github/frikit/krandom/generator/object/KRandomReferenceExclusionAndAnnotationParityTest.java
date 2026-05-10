@@ -107,6 +107,14 @@ class KRandomReferenceExclusionAndAnnotationParityTest {
             target.summary);
     }
 
+    @Test
+    @DisplayName("@RandomizerArgument converts empty array constructor arguments")
+    void randomizerArgumentConvertsEmptyArrayArguments() {
+        EmptyArrayArgumentTarget target = Generators.ofObject(EmptyArrayArgumentTarget.class).generate();
+
+        assertEquals("[]", target.summary);
+    }
+
     static class SecretRoot {
 
         String      rootSecret;
@@ -176,6 +184,13 @@ class KRandomReferenceExclusionAndAnnotationParityTest {
         String summary;
     }
 
+    static class EmptyArrayArgumentTarget {
+
+        @Randomizer(EmptyArraySummaryGenerator.class)
+        @RandomizerArgument(type = int[].class, value = "")
+        String summary;
+    }
+
     public static class ArgumentSummaryGenerator implements Generator<String> {
 
         private final String summary;
@@ -209,6 +224,20 @@ class KRandomReferenceExclusionAndAnnotationParityTest {
                            + "|localDateTime=" + localDateTime
                            + "|numbers=" + Arrays.toString(numbers)
                            + "|words=" + Arrays.toString(words);
+        }
+
+        @Override
+        public String generate() {
+            return summary;
+        }
+    }
+
+    public static class EmptyArraySummaryGenerator implements Generator<String> {
+
+        private final String summary;
+
+        public EmptyArraySummaryGenerator(int[] numbers) {
+            this.summary = Arrays.toString(numbers);
         }
 
         @Override

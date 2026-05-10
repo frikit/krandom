@@ -56,13 +56,13 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | `bypassSetters(boolean)` | Direct fields are current native behavior | Migration-doc-only replacement |
 | `scanClasspathForConcreteTypes(boolean)` | Explicit type/field overrides | Migration-doc-only replacement |
 | `randomize(Class<T>, Randomizer<T>)` | `objectOverride(Class<T>, Generator<? extends T>)` | Mapped |
-| `randomize(Predicate<Field>, Randomizer<T>)` | Owner/field overrides or contextual generators; arbitrary predicate randomizer registration is not one-to-one | Partial |
+| `randomize(Predicate<Field>, Randomizer<T>)` | `objectOverride(Predicate<Field>, Generator<T>)` or contextual predicate overrides | Covered |
 | `excludeField(Predicate<Field>)` | `objectExclude(Predicate<Field>)` or `objectExcludeField(name)` | Mapped |
 | `excludeType(Predicate<Class<?>>)` | `objectExcludeType(Predicate<Class<?>>)` or `objectExcludeType(Class<?>)` | Mapped |
-| `objectFactory(ObjectFactory)` | No public object factory hook | Missing native feature or non-goal |
-| `exclusionPolicy(ExclusionPolicy)` | Exclusion predicates and annotations | Partial |
-| `randomizerProvider(RandomizerProvider)` | `ProviderHub`, generator composition, and overrides | Migration-doc-only replacement |
-| `randomizerRegistry(RandomizerRegistry)` | No ServiceLoader registry model | Migration-doc-only replacement unless dynamic plugin discovery becomes a goal |
+| `objectFactory(ObjectFactory)` | Constructor/Objenesis fallback plus explicit type or field overrides | Intentional native replacement |
+| `exclusionPolicy(ExclusionPolicy)` | `objectExclude`, `objectExcludeType`, predicate helpers, and annotations | Mapped |
+| `randomizerProvider(RandomizerProvider)` | `ProviderHub`, direct generator composition, and overrides | Native replacement |
+| `randomizerRegistry(RandomizerRegistry)` | Explicit object overrides, `ProviderHub.register(...)`, aliases, and conflict policies | Native replacement; ServiceLoader discovery is a non-goal |
 | `copy()` | `GeneratorConfig.toBuilder().build()` | Mapped conceptually |
 
 ## Predicates And Annotations
@@ -87,7 +87,7 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | `@Exclude` | `io.github.frikit.krandom.generator.object.Exclude` | Covered for fields |
 | `@Randomizer` | `io.github.frikit.krandom.generator.object.Randomizer` | Covered for fields and record components |
 | `@RandomizerArgument` | `io.github.frikit.krandom.generator.object.RandomizerArgument` | Covered for primitive/wrapper values, enums, big numbers, Java/SQL date-time values, Java time values, and arrays |
-| `@Priority` | No native registry priority annotation | Migration-doc-only replacement unless registry discovery is added |
+| `@Priority` | Explicit registration order and `ConflictPolicy`; no ServiceLoader registry priority model | Intentional non-goal |
 
 ## Extension SPI Mapping
 
@@ -95,11 +95,11 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | --- | --- | --- |
 | `Randomizer<T>` | `Generator<T>` | Mapped |
 | `ContextAwareRandomizer<T>` | `ContextualGenerator<T>` | Mapped |
-| `RandomizerContext` | `GenerationContext` / contextual generator context in object generation | Partial |
-| `RandomizerRegistry` | Explicit object overrides, `ProviderHub`, generator composition | Migration-doc-only replacement |
-| `RandomizerProvider` | `ProviderHub` and direct generator factories | Migration-doc-only replacement |
-| `ObjectFactory` | Current object instantiation strategy uses constructor then Objenesis fallback | Missing hook |
-| `ExclusionPolicy` | `objectExclude`, `objectExcludeType`, `@Exclude` | Partial |
+| `RandomizerContext` | `GenerationContext` / contextual generator context in object generation | Native subset; root/current object and full path are not copied |
+| `RandomizerRegistry` | Explicit object overrides, `ProviderHub`, generator composition | Native replacement; dynamic discovery is a non-goal |
+| `RandomizerProvider` | `ProviderHub` and direct generator factories | Native replacement |
+| `ObjectFactory` | Current object instantiation strategy uses constructors then Objenesis fallback; special cases use explicit overrides | Intentional native replacement |
+| `ExclusionPolicy` | `objectExclude`, `objectExcludeType`, `@Exclude` | Mapped |
 | ServiceLoader registry discovery | No native model | Intentional non-goal unless plugin-style extension is requested |
 
 ## Built-In Randomizer Families
@@ -137,7 +137,7 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 ## Backlog Derived From Inventory
 
 1. Add migration parity tests for native object generation before changing behavior.
-2. Continue parity tests for exclusions, declarative randomizers, extension hooks, Bean Validation, and standalone randomizer coverage.
+2. Continue parity tests for Bean Validation and standalone randomizer coverage.
 3. Add missing Bean Validation constraints and container `@Size`.
 4. Add missing TypePredicates helpers and regex/varargs FieldPredicates helpers if migration ergonomics matter.
 5. Add standalone facade methods only where migration docs become awkward; prefer namespaces for domain data.
