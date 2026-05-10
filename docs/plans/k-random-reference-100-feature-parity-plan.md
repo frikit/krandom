@@ -100,23 +100,26 @@ Acceptance:
 
 ## Phase 2: Native Configuration Mapping
 
+Status: **Completed**.
+
 Goal: provide native equivalents for `KRandomParameters`.
 
-- [ ] Map `seed(long)` to `GeneratorConfig.builder().seed(long)`.
-- [ ] Map `charset(...)` to `GeneratorConfig.builder().charset(...)`.
-- [ ] Map `stringLengthRange(min, max)` to `stringLength(min, max)`.
-- [ ] Map `collectionSizeRange(min, max)` to `collectionSize(min, max)`.
-- [ ] Map `objectPoolSize(...)` to `objectPoolSize(...)`.
-- [ ] Map `randomizationDepth(...)` to `objectMaxDepth(...)`.
-- [ ] Map `dateRange(...)` to object/date generator ranges.
-- [ ] Map `ignoreRandomizationErrors(...)` to `objectIgnoreErrors(...)`.
-- [ ] Map `overrideDefaultInitialization(...)` to `objectOverrideDefaultInitialization(...)`.
-- [ ] Decide native handling for `bypassSetters(...)`:
-  - [ ] document direct-field default if no setter mode is added
-  - [ ] or add native setter-first mode if parity requires it
-- [ ] Decide native handling for `scanClasspathForConcreteTypes(...)`:
-  - [ ] add opt-in native classpath scanning
-  - [ ] or document explicit override/provider replacement
+- [x] Map `seed(long)` to `GeneratorConfig.builder().seed(long)`.
+- [x] Map `charset(...)` to `GeneratorConfig.builder().charset(...)`.
+- [x] Map `stringLengthRange(min, max)` to `stringLength(min, max)`.
+- [x] Map `collectionSizeRange(min, max)` to `collectionSize(min, max)`.
+- [x] Map `objectPoolSize(...)` to `objectPoolSize(...)`.
+- [x] Map `randomizationDepth(...)` to `objectMaxDepth(...)`.
+- [x] Map `dateRange(...)` to object/date generator ranges.
+- [x] Map `ignoreRandomizationErrors(...)` to `objectIgnoreErrors(...)`.
+- [x] Map `overrideDefaultInitialization(...)` to `objectOverrideDefaultInitialization(...)`.
+- [x] Decide native handling for `bypassSetters(...)`: document direct-field population as the native replacement.
+- [x] Decide native handling for `scanClasspathForConcreteTypes(...)`: document explicit override/provider replacement.
+
+Decision:
+
+- `bypassSetters(true)` maps to krandom's existing direct-field object population. k-random's setter-first default is not copied as a native mode in this phase.
+- `scanClasspathForConcreteTypes(true)` maps to explicit `objectOverride(...)` registrations for abstract/interface fields. Native classpath scanning is not added in this phase.
 
 Acceptance:
 

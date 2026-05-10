@@ -26,8 +26,8 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Area | Local Status | Native Feature Parity | Notes |
 | --- | --- | --- | --- |
 | Modules and coordinates | N/A | Migration mapping needed | Local has `core`, integrations, DSLs, examples, and benchmarks. Reference has `core`, `randomizers`, `bean-validation`; do not recreate those modules. |
-| Entry point | Partial | Migration mapping needed | Local uses `ObjectGenerator<T>` and `Generators.ofObject`. Migration docs should map `new KRandom().nextObject(...)` and `objects(type, size)` to local generation APIs. |
-| Config object | Partial | Partial | Local `GeneratorConfig` overlaps but does not expose `KRandomParameters` names/defaults/copy behavior. Migration docs must map settings and note default differences. |
+| Entry point | High | Covered through native APIs | Local uses `ObjectGenerator<T>` and `Generators.ofObject`. Migration docs map `new KRandom().nextObject(...)` and `objects(type, size)` to local generation APIs. |
+| Config object | High | Covered for mapped settings | `GeneratorConfig` covers the main `KRandomParameters` behaviors through native names. Migration docs note default differences and replacement decisions. |
 | POJO and record generation | High | Partial | Local supports POJOs, records, constructors, Objenesis fallback, nested graphs, inherited fields, and circular guards. Gaps: setter-first assignment, `bypassSetters`, final-field behavior, exact generic hierarchy behavior, and classpath subtype scanning. |
 | Arrays, collections, maps, optionals | High | Partial | Local supports common typed containers. Reference has dedicated populator/randomizer classes and more exact concrete collection behavior. |
 | Built-in Java type randomizers | High | Partial | Local covers or exceeds most scalar/date/network/identifier types. Migration docs must map reference randomizer classes to local generator factories/classes. |
@@ -35,8 +35,8 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Bean Validation | Partial | Partial | Local supports `@Size` on String, `@Email`, `@Pattern`, int/long min/max, decimal min/max, positive/negative. Reference adds `@AssertTrue`, `@AssertFalse`, `@Null`, `@NotBlank`, `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent`, collection/map/array `@Size`, method/getter annotations, and registry/service loading. |
 | Extension SPI | Medium | Migration mapping needed | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local has generator/contextual APIs, `ProviderHub`, and overrides; document equivalents and add native hooks only if needed. |
 | Annotations | Medium | Partial | Local has analogous `@Exclude`, `@Randomizer`, `@RandomizerArgument`, plus `@Fake` and `@FakeRange`. Constructor-argument behavior may need native test coverage. |
-| Classpath scanning | Missing | Product decision needed | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local intentionally avoids this today; either add native opt-in scanning or document explicit overrides. |
-| Setter semantics | Missing | Product decision needed | Reference calls setters by default and only direct-fields with `bypassSetters(true)`. Local object generation sets fields directly; decide whether native setter-first mode is worth adding. |
+| Classpath scanning | Missing by design | Migration-doc-only replacement | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local migration uses explicit `objectOverride(...)` registrations instead of scanning. |
+| Setter semantics | Direct-field native behavior | Migration-doc-only replacement | Reference calls setters by default and only direct-fields with `bypassSetters(true)`. Local object generation sets fields directly; setter-first mode is not copied in the native parity plan. |
 | Kotlin/source compatibility | Partial | Migration mapping needed | Reference implementation is Kotlin but exposes Java-friendly APIs in `io.github.krandom`. Local has a Kotlin DSL under this project's package surface. |
 | Docs/examples | Strong local | Partial | Local docs are broader. Native parity needs migration examples that compile against krandom APIs. |
 
@@ -50,6 +50,16 @@ The detailed inventory is now captured in `docs/feature-parity/k-random-referenc
 - Predicate and annotation parity is partial: local field predicates cover common cases, but reference regex name matching, varargs annotation matching, and most `TypePredicates` helpers need native additions or documented custom predicates.
 - Built-in randomizer capability parity is broad. Most reference randomizers map to scalar factories, object field support, or domain namespaces. The main public-facade gaps are standalone atomics, some standalone time types, and collection randomizer classes.
 - Bean Validation parity is incomplete. Local support covers common string and numeric constraints; missing areas are assert true/false, null/not-blank, past/future variants, container `@Size`, getter/method annotations, and broader numeric coverage.
+
+## Phase 2 Configuration Baseline
+
+Native configuration mapping is now covered by tests in `KRandomReferenceConfigurationMappingTest`.
+
+- `seed(long)`, `charset(...)`, `stringLengthRange(...)`, `collectionSizeRange(...)`, `objectPoolSize(...)`, `randomizationDepth(...)`, `dateRange(...)`, `ignoreRandomizationErrors(...)`, and `overrideDefaultInitialization(...)` all have tested `GeneratorConfig` equivalents.
+- `timeRange(...)` migrates to direct `TimeGenerator` usage or an explicit `LocalTime` object override.
+- `bypassSetters(true)` maps to krandom's existing direct-field object population; no setter-first mode is added.
+- `scanClasspathForConcreteTypes(true)` maps to explicit type or field overrides for abstract/interface fields; no ClassGraph-style scanning is added.
+- Defaults differ intentionally: k-random has seed `123`, string size `1..32`, collection size `1..100`, and effectively unlimited depth; krandom keeps its native defaults unless users configure them explicitly.
 
 ## Reference Feature Surface
 

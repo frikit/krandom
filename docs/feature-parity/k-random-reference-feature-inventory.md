@@ -34,8 +34,8 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | Max depth | `GeneratorConfig.builder().objectMaxDepth(depth)` | Covered; default differs from reference's unlimited depth |
 | Inherited fields | `ObjectGenerator` walks superclass fields | Covered |
 | Generic collection element resolution | `FieldGeneratorResolver` resolves common generic elements | Covered, but needs migration parity tests |
-| Setter-first population | No native setter-first mode today | Missing native feature or documented non-goal |
-| `bypassSetters(true)` | Current native behavior is direct-field population | Migration note; inverse setter mode is missing |
+| Setter-first population | No native setter-first mode today | Documented non-goal for native migration |
+| `bypassSetters(true)` | Current native behavior is direct-field population | Migration-doc-only replacement |
 | Final-field population attempts | Local skips final fields | Product decision if strict parity requires reference-like attempts |
 | Classpath scanning for concrete subtypes | No native scanning today | Missing native feature or explicit-override replacement |
 
@@ -48,13 +48,13 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | `stringLengthRange(min, max)` | `GeneratorConfig.builder().stringLength(min, max)` | Mapped |
 | `collectionSizeRange(min, max)` | `GeneratorConfig.builder().collectionSize(min, max)` | Mapped |
 | `dateRange(min, max)` | `GeneratorConfig.builder().objectDateRange(min, max)` for object generation; date generators also expose bounded constructors | Mapped with defaults caveat |
-| `timeRange(min, max)` | `TimeGenerator` direct use or object override for `LocalTime` until root config gains object time range | Partial |
+| `timeRange(min, max)` | `TimeGenerator` direct use or object override for `LocalTime` | Migration-doc-only replacement |
 | `objectPoolSize(size)` | `GeneratorConfig.builder().objectPoolSize(size)` | Mapped |
 | `randomizationDepth(depth)` | `GeneratorConfig.builder().objectMaxDepth(depth)` | Mapped |
 | `ignoreRandomizationErrors(true)` | `GeneratorConfig.builder().objectIgnoreErrors(true)` | Mapped |
 | `overrideDefaultInitialization(true)` | `GeneratorConfig.builder().objectOverrideDefaultInitialization(true)` | Mapped |
-| `bypassSetters(boolean)` | Direct fields are current native behavior | Partial |
-| `scanClasspathForConcreteTypes(boolean)` | Explicit type/field overrides | Partial; scanning missing |
+| `bypassSetters(boolean)` | Direct fields are current native behavior | Migration-doc-only replacement |
+| `scanClasspathForConcreteTypes(boolean)` | Explicit type/field overrides | Migration-doc-only replacement |
 | `randomize(Class<T>, Randomizer<T>)` | `objectOverride(Class<T>, Generator<? extends T>)` | Mapped |
 | `randomize(Predicate<Field>, Randomizer<T>)` | Owner/field overrides or contextual generators; arbitrary predicate randomizer registration is not one-to-one | Partial |
 | `excludeField(Predicate<Field>)` | `objectExclude(Predicate<Field>)` or `objectExcludeField(name)` | Mapped |
@@ -137,7 +137,7 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 ## Backlog Derived From Inventory
 
 1. Add migration parity tests for native object generation before changing behavior.
-2. Decide setter-first and classpath-scanning strategy; implement native features only if explicit overrides are insufficient.
+2. Continue parity tests for exclusions, declarative randomizers, extension hooks, Bean Validation, and standalone randomizer coverage.
 3. Add missing Bean Validation constraints and container `@Size`.
 4. Add missing TypePredicates helpers and regex/varargs FieldPredicates helpers if migration ergonomics matter.
 5. Add standalone facade methods only where migration docs become awkward; prefer namespaces for domain data.

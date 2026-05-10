@@ -119,7 +119,7 @@ TreeNode node = Generators.ofObject(TreeNode.class, config).generate();
 | `dateRange(min, max)` | `objectDateRange(min, max)` where object generation is the target |
 | `timeRange(min, max)` | Use `TimeGenerator` directly or an object override for `LocalTime` fields |
 | `bypassSetters(true)` | krandom currently uses direct field population for object generation |
-| `scanClasspathForConcreteTypes(true)` | use explicit type/field overrides; native scanning is tracked as a parity decision |
+| `scanClasspathForConcreteTypes(true)` | use explicit type/field overrides for abstract/interface fields |
 
 Example:
 
@@ -132,6 +132,26 @@ GeneratorConfig config = GeneratorConfig.builder()
     .build();
 
 User user = Generators.ofObject(User.class, config).generate();
+```
+
+Default values are not identical. k-random defaults to seed `123`, string length `1..32`, collection size `1..100`, and effectively unlimited object depth. krandom defaults to an unseeded random source, string length `5..20`, collection size `1..10`, and bounded object depth. Set the values explicitly during migration when those defaults matter.
+
+krandom object generation writes fields directly. That is the native replacement for `bypassSetters(true)`. k-random's setter-first default is not copied as a separate mode.
+
+For interface or abstract fields, replace `scanClasspathForConcreteTypes(true)` with an explicit override:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(PaymentMethod.class, CardPayment::new)
+    .build();
+```
+
+For `timeRange(min, max)`, prefer the dedicated time generator when generating values directly, or override `LocalTime` fields during object generation:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(LocalTime.class, () -> LocalTime.of(9, 30))
+    .build();
 ```
 
 ## Custom Values
