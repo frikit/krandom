@@ -6,6 +6,7 @@ Comparison of krandom capabilities vs similar libraries:
 
 - [feature-parity-bogus.md](feature-parity/feature-parity-bogus.md) - Detailed comparison with Bogus (.NET)
 - [k-random-reference-parity.md](feature-parity/k-random-reference-parity.md) - Audit against the k-random/k-random Easy Random fork
+- [k-random-reference-feature-inventory.md](feature-parity/k-random-reference-feature-inventory.md) - Native parity inventory and mapping baseline for the k-random/k-random reference
 
 ## Similar Libraries Reference
 
@@ -29,7 +30,8 @@ kRandom.
 
 Architecture and implementation details:
 
-- [k-random-reference-100-feature-parity-plan.md](plans/k-random-reference-100-feature-parity-plan.md) - Strict 100% feature-parity execution plan for the k-random/k-random reference
+- [k-random-reference-100-feature-parity-plan.md](plans/k-random-reference-100-feature-parity-plan.md) - Native 100% feature-parity and migration plan for the k-random/k-random reference
+- [k-random-to-krandom.md](migration/k-random-to-krandom.md) - Migration guide from k-random/k-random APIs to native krandom APIs
 - [code-based-locale-architecture.md](ideas/code-based-locale-architecture.md) - Design for embedded locale support
 - [generatorconfig-locale-integration.md](ideas/generatorconfig-locale-integration.md) - Locale integration in GeneratorConfig
 - [locale-support-investigation.md](ideas/locale-support-investigation.md) - Research on locale implementation patterns

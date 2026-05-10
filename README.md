@@ -157,6 +157,7 @@ Consumer examples live in [`examples/`](examples/). They are test-based examples
 - Public docs source: [`docs-site/`](docs-site/)
 - Docs URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
 - Internal docs: [`docs/`](docs/)
+- k-random migration guide: [`docs/migration/k-random-to-krandom.md`](docs/migration/k-random-to-krandom.md)
 
 GitHub Pages deployment is wired through [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml).
 

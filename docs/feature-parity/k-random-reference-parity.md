@@ -9,35 +9,47 @@
 - Upstream modules: `core`, `randomizers`, `bean-validation`
 - Upstream group/artifacts: `io.github.k-random:k-random-core`, `k-random-randomizers`, `k-random-bean-validation`
 - Local project reviewed from: `/Users/frikit/IdeaProjects/krandom`
+- Native inventory and mapping baseline: `docs/feature-parity/k-random-reference-feature-inventory.md`
 
 ## Executive Summary
 
 100% feature parity is achievable, but the answer depends on what "100%" means.
 
 - Functional parity for the useful workflows is mostly reachable with the current architecture. The local project already covers object generation, semantic fake data, records, Objenesis, nested graphs, collections, maps, optionals, exclusions, declarative randomizers, seedable generators, and many more domain providers than the reference.
-- Strict source/API parity is not present today. The reference exposes `io.github.krandom.*` packages, `KRandom`, `KRandomParameters`, `RandomizerRegistry`, `RandomizerProvider`, `ExclusionPolicy`, `ObjectFactory`, annotation packages, module names, ServiceLoader entries, and default semantics that differ from the local `io.github.frikit.krandom.*` API.
+- Source/API parity is intentionally not the target. The reference exposes `io.github.krandom.*` packages, `KRandom`, `KRandomParameters`, `RandomizerRegistry`, `RandomizerProvider`, `ExclusionPolicy`, `ObjectFactory`, annotation packages, module names, ServiceLoader entries, and default semantics that differ from the local `io.github.frikit.krandom.*` API. These should be mapped in migration docs or represented by native krandom features.
 - Exact deterministic output parity is a separate decision. Several reference tests approve exact seeded DataFaker outputs. Matching feature behavior is practical; matching every approved seeded string requires reusing the same dependencies, seeding, locale paths, and algorithms.
 
-Recommended path: add a compatibility layer rather than reshape the main API. Keep the existing richer `GeneratorConfig`/`ObjectGenerator` model, then introduce source-compatible `io.github.krandom` facade modules that delegate into local internals and fill the missing semantics.
+Recommended path: implement missing behavior natively in the existing `io.github.frikit.krandom.*` API and provide a migration guide from k-random APIs to krandom APIs. Do not add `io.github.krandom` facade packages or `k-random-*` compatibility modules unless the product goal changes to drop-in source compatibility.
 
 ## Current Parity Matrix
 
-| Area | Local Status | Strict Reference Parity | Notes |
+| Area | Local Status | Native Feature Parity | Notes |
 | --- | --- | --- | --- |
-| Modules and coordinates | Partial | Missing | Local has `core`, integrations, DSLs, examples, and benchmarks. Reference has `core`, `randomizers`, `bean-validation` under `io.github.k-random`. |
-| Entry point | Partial | Missing | Local uses `ObjectGenerator<T>` and `Generators.ofObject`. Reference users expect `new KRandom().nextObject(MyType.class)` and `objects(type, size)`. |
-| Config object | Partial | Missing | Local `GeneratorConfig` overlaps but does not expose `KRandomParameters` names/defaults/copy behavior. Reference defaults include seed `123L`, string length `1..32`, collection size `1..100`, unlimited depth. |
+| Modules and coordinates | N/A | Migration mapping needed | Local has `core`, integrations, DSLs, examples, and benchmarks. Reference has `core`, `randomizers`, `bean-validation`; do not recreate those modules. |
+| Entry point | Partial | Migration mapping needed | Local uses `ObjectGenerator<T>` and `Generators.ofObject`. Migration docs should map `new KRandom().nextObject(...)` and `objects(type, size)` to local generation APIs. |
+| Config object | Partial | Partial | Local `GeneratorConfig` overlaps but does not expose `KRandomParameters` names/defaults/copy behavior. Migration docs must map settings and note default differences. |
 | POJO and record generation | High | Partial | Local supports POJOs, records, constructors, Objenesis fallback, nested graphs, inherited fields, and circular guards. Gaps: setter-first assignment, `bypassSetters`, final-field behavior, exact generic hierarchy behavior, and classpath subtype scanning. |
 | Arrays, collections, maps, optionals | High | Partial | Local supports common typed containers. Reference has dedicated populator/randomizer classes and more exact concrete collection behavior. |
-| Built-in Java type randomizers | High | Partial | Local covers or exceeds most scalar/date/network/identifier types. Strict parity needs reference class names under `io.github.krandom.randomizers.*` and range randomizer APIs. |
-| Faker/DataFaker randomizers | High functional | Partial | Local has richer native providers. Reference exposes DataFaker-backed classes such as `FirstNameRandomizer`, `ZipCodeRandomizer`, `PasswordRandomizer`, `RegularExpressionRandomizer`, with seed/locale approval behavior. |
+| Built-in Java type randomizers | High | Partial | Local covers or exceeds most scalar/date/network/identifier types. Migration docs must map reference randomizer classes to local generator factories/classes. |
+| Faker/DataFaker randomizers | High functional | Partial | Local has richer native providers. Reference exposes DataFaker-backed classes such as `FirstNameRandomizer`, `ZipCodeRandomizer`, `PasswordRandomizer`, `RegularExpressionRandomizer`; map those to native generators. |
 | Bean Validation | Partial | Partial | Local supports `@Size` on String, `@Email`, `@Pattern`, int/long min/max, decimal min/max, positive/negative. Reference adds `@AssertTrue`, `@AssertFalse`, `@Null`, `@NotBlank`, `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent`, collection/map/array `@Size`, method/getter annotations, and registry/service loading. |
-| Extension SPI | Low | Missing | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, `RandomizerContext`, `RandomizerRegistry`, `RandomizerProvider`, `ExclusionPolicy`, `ObjectFactory`, `@Priority`, and ServiceLoader discovery. Local has generator/contextual APIs but not the same SPI. |
-| Annotations | Medium | Partial | Local has analogous `@Exclude`, `@Randomizer`, `@RandomizerArgument`, plus `@Fake` and `@FakeRange`. Strict package names and constructor-argument conversion behavior need alignment. |
-| Classpath scanning | Missing | Missing | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local intentionally avoids this today. |
-| Setter semantics | Missing | Missing | Reference calls setters by default and only direct-fields with `bypassSetters(true)`. Local object generation sets fields directly. |
-| Kotlin/source compatibility | Partial | Missing | Reference implementation is Kotlin but exposes Java-friendly APIs in `io.github.krandom`. Local has a Kotlin DSL but not the same Kotlin package/API surface. |
-| Docs/examples | Strong local | Partial | Local docs are broader. Strict parity needs examples that compile against the compatibility API. |
+| Extension SPI | Medium | Migration mapping needed | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local has generator/contextual APIs, `ProviderHub`, and overrides; document equivalents and add native hooks only if needed. |
+| Annotations | Medium | Partial | Local has analogous `@Exclude`, `@Randomizer`, `@RandomizerArgument`, plus `@Fake` and `@FakeRange`. Constructor-argument behavior may need native test coverage. |
+| Classpath scanning | Missing | Product decision needed | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local intentionally avoids this today; either add native opt-in scanning or document explicit overrides. |
+| Setter semantics | Missing | Product decision needed | Reference calls setters by default and only direct-fields with `bypassSetters(true)`. Local object generation sets fields directly; decide whether native setter-first mode is worth adding. |
+| Kotlin/source compatibility | Partial | Migration mapping needed | Reference implementation is Kotlin but exposes Java-friendly APIs in `io.github.krandom`. Local has a Kotlin DSL under this project's package surface. |
+| Docs/examples | Strong local | Partial | Local docs are broader. Native parity needs migration examples that compile against krandom APIs. |
+
+## Phase 0 Mapping Baseline
+
+The detailed inventory is now captured in `docs/feature-parity/k-random-reference-feature-inventory.md`. The important Phase 0 conclusions are:
+
+- Entry-point parity is covered natively by `Generators.ofObject(Type.class)`, `ObjectGenerator<T>`, and `generateList(size)`.
+- Configuration parity is mostly covered by `GeneratorConfig`; the known gaps are setter-first mode, classpath concrete subtype scanning, object factory hooks, arbitrary registry/provider replacement, and a root-level object time range.
+- Object graph generation already covers the major reference behaviors: records, classes, nested objects, inherited fields, arrays, collections, maps, optionals, object pool behavior, max depth, circular references, Objenesis fallback, and seed propagation.
+- Predicate and annotation parity is partial: local field predicates cover common cases, but reference regex name matching, varargs annotation matching, and most `TypePredicates` helpers need native additions or documented custom predicates.
+- Built-in randomizer capability parity is broad. Most reference randomizers map to scalar factories, object field support, or domain namespaces. The main public-facade gaps are standalone atomics, some standalone time types, and collection randomizer classes.
+- Bean Validation parity is incomplete. Local support covers common string and numeric constraints; missing areas are assert true/false, null/not-blank, past/future variants, container `@Size`, getter/method annotations, and broader numeric coverage.
 
 ## Reference Feature Surface
 
@@ -59,15 +71,11 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
 
 ## Main Gaps To Close
 
-1. Source-compatible facade packages:
-   - Add `io.github.krandom.KRandom`, `KRandomParameters`, `FieldPredicates`, `TypePredicates`, `ObjectCreationException`, annotations, and `api` interfaces.
-   - Preserve upstream names, method signatures, default constants, and Java/Kotlin interop behavior.
+1. Native migration mapping:
+   - Map each reference feature to an existing krandom API, a missing native feature, a migration-doc-only replacement, or an intentional non-goal.
+   - Keep package names and artifact coordinates under this project's existing API surface.
 
-2. Compatibility module layout:
-   - Add modules that publish or at least build as `k-random-core`, `k-random-randomizers`, and `k-random-bean-validation` equivalents under local control.
-   - Include `META-INF/services/io.github.krandom.api.RandomizerRegistry` entries.
-
-3. Object-generation semantic differences:
+2. Object-generation semantic differences:
    - Implement setter-first assignment with `bypassSetters(false)` default.
    - Add `bypassSetters(true)` direct-field mode.
    - Revisit final-field behavior if strict parity requires attempting reflective population.
@@ -75,67 +83,69 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
    - Add reference-compatible generic superclass resolution tests.
    - Align default seed, default depth, default string/collection sizes, date/time reference ranges, and exception wrapping.
 
-4. Extension SPI:
-   - Implement adapters for `Randomizer`, `ContextAwareRandomizer`, `RandomizerContext`, `RandomizerRegistry`, `RandomizerProvider`, `ExclusionPolicy`, and `ObjectFactory`.
-   - Preserve reference priority ordering: custom/exclusion/user/service registries, then annotation, bean validation, time, internal registries.
+3. Native extension equivalents:
+   - Map reference `Randomizer` to local `Generator`.
+   - Map reference `ContextAwareRandomizer` to local `ContextualGenerator`.
+   - Map registry/provider/factory/policy patterns to local overrides, `ProviderHub`, and generator composition.
 
-5. Bean Validation:
+4. Bean Validation:
    - Add missing constraints: assert true/false, null, not blank, past/future variants, collection/map/array size, and method/getter annotation lookup.
-   - Decide whether this remains inline in `core` or becomes a dedicated compatibility module.
+   - Keep behavior native to existing krandom modules unless a first-party optional module is justified.
 
-6. Reference randomizer class facades:
-   - Provide `io.github.krandom.randomizers.*` class names and constructor overloads.
-   - Where local generators are equivalent, delegate.
-   - Where deterministic approval output matters, use the same DataFaker dependency and seeding path as the reference.
+5. Reference randomizer capability coverage:
+   - Ensure every reference randomizer class has a native generator equivalent or documented migration replacement.
+   - Prefer existing local generators and provider namespaces over class-name facades.
 
 ## Proposed Implementation Plan
 
-### Phase 0: Define parity contract
+### Phase 0: Define native parity contract
 
-- Decide whether "100%" includes source compatibility, behavioral compatibility, exact seeded outputs, and Maven coordinate compatibility.
-- Import a focused subset of upstream tests as compatibility tests before implementation.
+- Confirm that "100%" means native feature parity, not source/import compatibility.
+- Build a reference feature inventory and map each item to local APIs or missing native work.
+- Create a migration guide shell.
 
-### Phase 1: Core facade
+### Phase 1: Native object generation parity
 
-- Add a compatibility source set or module with `io.github.krandom` packages.
-- Implement `KRandom` and `KRandomParameters` on top of existing `ObjectGenerator`/`GeneratorConfig`.
-- Add tests for `nextObject`, `objects`, defaults, seed behavior, config copying, errors, records, arrays, collections, maps, optionals, and cycles.
+- Cover `KRandom.nextObject(...)` and `objects(...)` workflows with local `Generators.ofObject(...)`, `ObjectGenerator`, and list/stream generation examples.
+- Add native tests for records, arrays, collections, maps, optionals, cycles, depth, and object pool behavior.
 
-### Phase 2: Object semantics
+### Phase 2: Native configuration mapping
 
-- Add setter-first assignment mode and `bypassSetters`.
-- Add classpath scanning behind `scanClasspathForConcreteTypes(true)`.
-- Align depth, pool, default initialization, generic hierarchy, final field, static field, and inner-class exclusion behavior.
+- Map `KRandomParameters` settings to `GeneratorConfig` settings and document default differences.
+- Decide whether setter-first and classpath-scanning behavior should be added natively or documented as explicit override/provider replacements.
 
-### Phase 3: SPI and registry model
+### Phase 3: Exclusions and declarative rules
 
-- Implement reference SPI interfaces and adapters.
-- Add ServiceLoader discovery and priority ordering.
-- Test custom field/type randomizers, context-aware randomizers, custom providers, custom factories, custom exclusion policy, and registry precedence.
+- Verify or add local tests for field/type exclusions, local annotations, constructor arguments, precedence, and inherited/nested cases.
+- Document migration examples.
 
-### Phase 4: Bean Validation compatibility
+### Phase 4: Native extension equivalents
+
+- Document `Randomizer` -> `Generator`, `ContextAwareRandomizer` -> `ContextualGenerator`, and registry/provider replacements.
+- Add missing native extension hooks only when documented alternatives are not sufficient.
+
+### Phase 5: Bean Validation feature parity
 
 - Build the missing constraint handlers.
 - Cover both field annotations and method/getter annotations.
-- Add collection/map/array `@Size` support and full validator integration tests.
+- Add collection/map/array `@Size` support and validator integration tests.
 
-### Phase 5: Randomizer facade modules
+### Phase 6: Native randomizer capability parity
 
-- Add class-compatible wrappers for primitive, number, range, collection, text, net, misc, time, and faker randomizers.
-- Decide whether exact DataFaker output parity is required for seeded approval tests.
+- Map every reference randomizer class to an existing local generator or a new native generator.
+- Document exact-output non-goals and deterministic local behavior.
 
-### Phase 6: Documentation and release surface
+### Phase 7: Migration documentation
 
-- Add migration/compatibility docs.
-- Add examples that compile against the compatibility API.
-- Document any intentional deviations if exact drop-in parity is not selected.
+- Create `docs/migration/k-random-to-krandom.md`.
+- Add before/after examples for object generation, configuration, exclusions, custom generators, Bean Validation, and faker/domain generators.
 
 ## Effort Estimate
 
-For behavioral/source parity without exact seeded DataFaker approval outputs: roughly 3-5 focused engineering weeks.
+For native feature parity plus migration docs: roughly 3-5 focused engineering weeks.
 
-For strict drop-in parity including package names, module names, ServiceLoader behavior, all upstream tests, and deterministic seeded approvals: closer to 5-8 weeks, mostly because the compatibility SPI, Bean Validation module, and exact reference defaults need careful test-driven alignment.
+For strict drop-in parity including package names, module names, ServiceLoader behavior, all upstream tests, and deterministic seeded approvals: out of scope under the current direction.
 
 ## Recommendation
 
-Do not rewrite the main library around the reference API. The local project is already broader and more cohesive as a first-party generator toolkit. Implement source-compatible facades and semantic adapters only if drop-in compatibility is a product goal. If the goal is "feature parity" rather than "API replacement", close the Bean Validation and object-semantics gaps first, then document registry/classpath scanning as optional compatibility features.
+Do not rewrite the main library around the reference API. The local project is already broader and more cohesive as a first-party generator toolkit. Close native behavior gaps first, then document migration mappings from k-random to krandom.

@@ -1,249 +1,220 @@
-# k-random Reference 100% Feature Parity Plan
+# k-random Reference 100% Native Feature Parity Plan
 
 ## Goal
 
-Achieve defensible 100% feature parity with the reference project:
+Achieve 100% practical feature parity with the reference project without bringing the reference API, package names, modules, or artifacts into this codebase.
 
-- Repository: https://github.com/k-random/k-random
+- Reference repository: https://github.com/k-random/k-random
 - Reviewed commit: `43d5b6f4ea38b59ce73c90d9f47e3b25e9c57f32`
-- Modules: `core`, `randomizers`, `bean-validation`
-- Package surface: `io.github.krandom.*`
+- Reference modules: `core`, `randomizers`, `bean-validation`
+- Reference package surface: `io.github.krandom.*`
+- Local target surface: existing `io.github.frikit.krandom.*` APIs
 
-This plan targets strict parity, not only "similar capability". A user should be able to port representative reference code and tests to this project with minimal or no source changes once the compatibility modules are enabled.
+This is **not** a drop-in compatibility plan. We will not add `io.github.krandom` packages, `k-random-*` modules, or reference artifact coordinates. The outcome should be:
+
+- This library has equivalent or better capabilities for every reference feature.
+- Users can migrate from k-random to this library using documented API mappings and examples.
+- Any reference feature that is intentionally not copied as an API is represented by a native krandom alternative.
 
 ## Parity Definition
 
-100% parity means all of the following are either implemented and tested, or explicitly documented as intentionally out of scope with a product decision:
+100% native feature parity means:
 
-- Source/API compatibility for public reference classes, annotations, interfaces, and constructor/method overloads.
-- Behavioral compatibility for object generation, randomizer lookup, exclusions, extension hooks, collection handling, Bean Validation, and error behavior.
-- Module/build compatibility for reference-equivalent artifacts or compatibility modules.
-- Deterministic seeding compatibility where the reference documents or tests seeded behavior.
-- Documentation and examples that compile against the compatibility API.
+- Every reference capability has a tested local equivalent or a documented intentional non-goal.
+- Behavioral guarantees are covered with local APIs, not reference packages.
+- Migration docs explain how to translate common reference usage into this library.
+- Deterministic seeding and validity guarantees are documented where the reference relies on them.
+- No compatibility/facade modules are added solely to compile old imports.
 
-Exact byte-for-byte generated fake data is a separate decision. If exact seeded approval output parity is required, the plan must pin DataFaker behavior and copy the reference seeding path in compatibility randomizers.
+Exact byte-for-byte generated fake data is out of scope unless promoted by a separate product decision. The target is equivalent capability and deterministic local behavior, not cloning upstream output strings.
 
 ## Source Of Truth
 
 - Audit: `docs/feature-parity/k-random-reference-parity.md`
 - Reference source: `/private/tmp/k-random-reference`
-- Local object-generation core:
+- Local implementation areas:
+  - `core/src/main/java/io/github/frikit/krandom/generator`
   - `core/src/main/java/io/github/frikit/krandom/generator/object`
-  - `core/src/main/java/io/github/frikit/krandom/generator/GeneratorConfig.java`
-- Compatibility tests should import reference fixtures and representative upstream tests before implementation work starts.
+  - `core/src/main/java/io/github/frikit/krandom/generator/provider`
+  - integration modules under `jackson`, `spring-boot-starter`, `jqwik-extensions`, `kotest-extensions`, and `kotlin-dsl`
 
 ## Delivery Rules
 
 For every phase:
 
-1. Add compatibility tests first using `io.github.krandom.*` imports.
-2. Implement the smallest vertical slice that makes those tests pass.
-3. Preserve current first-party APIs unless a breaking change is explicitly approved.
-4. Update the audit and this plan checklist.
-5. Run the narrow relevant Gradle tests, then `./scripts/pre_commit_check.sh` before a phase is considered complete.
+1. Add local tests first using `io.github.frikit.krandom.*` APIs.
+2. Use reference tests as behavioral inspiration, not as source-compatible compile targets.
+3. Implement capabilities in existing modules unless a native optional module is justified.
+4. Preserve current public APIs unless a breaking change is explicitly approved.
+5. Update the audit, this plan, and migration guide together.
+6. Run narrow relevant tests, then `./scripts/pre_commit_check.sh` before a phase is considered complete.
 
-## Phase 0: Contract Freeze And Test Harness
+## Phase 0: Scope Correction And Mapping Baseline
 
-Goal: prevent vague parity claims by locking the target surface.
+Status: **Completed**.
 
-- [ ] Record the reference commit, latest release tag, Gradle modules, and Maven coordinates in the audit.
-- [ ] Generate a public API inventory from the reference packages:
-  - [ ] `io.github.krandom`
-  - [ ] `io.github.krandom.api`
-  - [ ] `io.github.krandom.annotation`
-  - [ ] `io.github.krandom.randomizers.*`
-  - [ ] `io.github.krandom.validation`
-- [ ] Import a minimal reference fixture set under compatibility tests.
-- [ ] Add a `k-random-compat` test suite or module that compiles only against `io.github.krandom.*`.
-- [ ] Decide whether exact seeded approval outputs are in scope.
+Goal: lock the non-drop-in strategy before more code is added.
 
-Acceptance:
-
-- There is a generated API checklist committed to docs or tests.
-- At least one failing compatibility test proves the new harness catches missing `KRandom` API.
-
-## Phase 1: Compatibility Module Skeleton
-
-Goal: establish the package and artifact shape without changing existing APIs.
-
-- [ ] Add compatibility modules or source sets:
-  - [ ] `k-random-core` equivalent
-  - [ ] `k-random-randomizers` equivalent
-  - [ ] `k-random-bean-validation` equivalent
-- [ ] Add package roots for `io.github.krandom.*`.
-- [ ] Wire publication metadata or internal project names so coordinates can be mapped cleanly.
-- [ ] Add `META-INF/services/io.github.krandom.api.RandomizerRegistry` resource locations.
-- [ ] Ensure no package collision with existing `io.github.frikit.krandom.*` APIs.
+- [x] Confirm no `io.github.krandom.*` compatibility packages will be added.
+- [x] Confirm no `k-random-core`, `k-random-randomizers`, or `k-random-bean-validation` modules will be added.
+- [x] Keep local APIs as the target surface.
+- [x] Generate a reference feature inventory from the cloned repo in `docs/feature-parity/k-random-reference-feature-inventory.md`.
+- [x] Map each reference feature to:
+  - [x] existing krandom API
+  - [x] missing krandom feature
+  - [x] migration-doc-only replacement
+  - [x] intentional non-goal
+- [x] Create the migration guide shell at `docs/migration/k-random-to-krandom.md`.
 
 Acceptance:
 
-- Compatibility modules compile with empty or placeholder public types.
-- Existing modules and examples still compile.
+- The plan no longer asks for reference packages/modules.
+- The first migration guide draft exists and lists top-level API mappings.
 
-## Phase 2: Core Entry Point And Parameters
+## Phase 1: Native Object Generation Parity
 
-Goal: make basic reference usage compile and run.
+Goal: match k-random's object-generation capabilities through krandom's `ObjectGenerator`, `ObjectFaker`, and `GeneratorConfig`.
 
-- [ ] Implement `KRandom extends java.util.Random`.
-- [ ] Implement constructors:
-  - [ ] `KRandom()`
-  - [ ] `KRandom(KRandomParameters)`
-- [ ] Implement `nextObject(Class<T>)`.
-- [ ] Implement `objects(Class<T>, int)`.
-- [ ] Implement `ObjectCreationException`.
-- [ ] Implement `KRandomParameters` defaults and fluent methods:
-  - [ ] seed `123L`
-  - [ ] charset `US_ASCII`
-  - [ ] string length range `1..32`
-  - [ ] collection size range `1..100`
-  - [ ] object pool size `10`
-  - [ ] randomization depth `Integer.MAX_VALUE`
-  - [ ] date range around `2020-01-01 UTC` plus/minus 10 years
-  - [ ] time range `LocalTime.MIN..LocalTime.MAX`
-  - [ ] `copy()`
-- [ ] Bridge `KRandomParameters` into local `GeneratorConfig` and object-generation config.
+- [ ] Add tests covering migration equivalents for:
+  - [ ] `new KRandom().nextObject(MyType.class)` -> `Generators.ofObject(MyType.class).generate()`
+  - [ ] `objects(type, size)` -> `generateList(size)` / stream equivalents
+  - [ ] seeded object generation
+  - [ ] records
+  - [ ] nested objects
+  - [ ] arrays
+  - [ ] collections
+  - [ ] maps
+  - [ ] optionals
+  - [ ] circular references
+  - [ ] object pool behavior
+  - [ ] max depth behavior
+- [ ] Fill any missing behavior in native object generation.
+- [ ] Document migration examples for basic object generation.
 
 Acceptance:
 
-- Reference README sample compiles and passes.
-- Default-value tests prove compatibility defaults differ from first-party `GeneratorConfig` only inside the compatibility layer.
+- A k-random user can generate equivalent object graphs using documented krandom APIs.
+- Object-generation migration examples compile in existing examples or tests.
 
-## Phase 3: Object Generation Semantics
+## Phase 2: Native Configuration Mapping
 
-Goal: match the reference object-population contract.
+Goal: provide native equivalents for `KRandomParameters`.
 
-- [ ] Preserve existing local `ObjectGenerator` behavior for first-party users.
-- [ ] Add compatibility population mode for `KRandom`:
-  - [ ] setter-first assignment by default
-  - [ ] direct field assignment when `bypassSetters(true)`
-  - [ ] preserve initialized non-default values unless `overrideDefaultInitialization(true)`
-  - [ ] skip static fields
-  - [ ] handle inner-class synthetic `this$0`
-  - [ ] match reference exception wrapping
-- [ ] Align records:
-  - [ ] canonical constructor population
-  - [ ] record component annotations
-  - [ ] primitive defaults for excluded components
-- [ ] Align cycle handling and object pool size.
-- [ ] Align depth behavior with unlimited default and explicit truncation.
-- [ ] Add generic hierarchy support for reference fixtures:
-  - [ ] type variables in generic base classes
-  - [ ] multiple type variables
-  - [ ] bounded generic cases
-  - [ ] documented unsupported complex cases
-- [ ] Add opt-in ClassGraph concrete subtype scanning for `scanClasspathForConcreteTypes(true)`.
+- [ ] Map `seed(long)` to `GeneratorConfig.builder().seed(long)`.
+- [ ] Map `charset(...)` to `GeneratorConfig.builder().charset(...)`.
+- [ ] Map `stringLengthRange(min, max)` to `stringLength(min, max)`.
+- [ ] Map `collectionSizeRange(min, max)` to `collectionSize(min, max)`.
+- [ ] Map `objectPoolSize(...)` to `objectPoolSize(...)`.
+- [ ] Map `randomizationDepth(...)` to `objectMaxDepth(...)`.
+- [ ] Map `dateRange(...)` to object/date generator ranges.
+- [ ] Map `ignoreRandomizationErrors(...)` to `objectIgnoreErrors(...)`.
+- [ ] Map `overrideDefaultInitialization(...)` to `objectOverrideDefaultInitialization(...)`.
+- [ ] Decide native handling for `bypassSetters(...)`:
+  - [ ] document direct-field default if no setter mode is added
+  - [ ] or add native setter-first mode if parity requires it
+- [ ] Decide native handling for `scanClasspathForConcreteTypes(...)`:
+  - [ ] add opt-in native classpath scanning
+  - [ ] or document explicit override/provider replacement
 
 Acceptance:
 
-- Imported reference tests for `KRandomTest`, records, field exclusion depth, parameters, and generic hierarchy pass or have documented accepted deviations.
+- Migration guide includes a `KRandomParameters` mapping table.
+- Tests prove native config behavior for every mapped setting.
 
-## Phase 4: Public Predicate And Annotation API
+## Phase 3: Exclusions And Declarative Rules
 
-Goal: support reference exclusion and declarative randomizer ergonomics.
+Goal: provide native equivalents for reference field/type exclusion and annotation-driven randomization.
 
-- [ ] Implement `io.github.krandom.FieldPredicates`:
-  - [ ] `named(String)` using regex matching
-  - [ ] `ofType(Class<?>)`
-  - [ ] `inClass(Class<?>)`
-  - [ ] `isAnnotatedWith(Class<? extends Annotation>...)`
-  - [ ] `hasModifiers(int)`
-- [ ] Implement `io.github.krandom.TypePredicates`.
-- [ ] Implement annotations:
-  - [ ] `io.github.krandom.annotation.Exclude`
-  - [ ] `io.github.krandom.annotation.Randomizer`
-  - [ ] `io.github.krandom.annotation.RandomizerArgument`
-  - [ ] `io.github.krandom.annotation.Priority`
-- [ ] Support repeatable/randomizer argument conversion for primitive, wrapper, enum, string, date/time, and arrays as covered by reference tests.
-- [ ] Preserve reference precedence:
-  - [ ] field override
-  - [ ] type override
-  - [ ] annotation randomizer
-  - [ ] Bean Validation
-  - [ ] built-in randomizer
+- [ ] Verify current `FieldPredicates` and `TypePredicates` local APIs cover:
+  - [ ] name matching
+  - [ ] type matching
+  - [ ] declaring class matching
+  - [ ] annotation matching
+  - [ ] modifier matching
+  - [ ] predicate composition
+- [ ] Verify or add local exclusion tests for nested paths and inherited fields.
+- [ ] Map reference `@Exclude` to local `io.github.frikit.krandom.generator.object.Exclude`.
+- [ ] Map reference `@Randomizer` and `@RandomizerArgument` to local annotations.
+- [ ] Ensure constructor argument conversion coverage matches reference behavior where useful.
+- [ ] Document migration examples for excludes, custom randomizers, and field/type overrides.
 
 Acceptance:
 
-- Imported `FieldExclusionTest`, `TypeExclusionTest`, `RandomizerAnnotationTest`, and `RandomizerProxyTest` pass.
+- Exclusion and annotation features have local tests and migration examples.
 
-## Phase 5: Extension SPI And Registry Model
+## Phase 4: Extension Model Equivalents
 
-Goal: support drop-in custom extensions written for the reference library.
+Goal: provide equivalent extension points without cloning the reference SPI.
 
-- [ ] Implement `io.github.krandom.api.Randomizer<T>`.
-- [ ] Implement `ContextAwareRandomizer<T>`.
-- [ ] Implement `RandomizerContext`.
-- [ ] Implement `RandomizerRegistry`.
-- [ ] Implement `RandomizerProvider`.
-- [ ] Implement `ExclusionPolicy`.
-- [ ] Implement `ObjectFactory`.
-- [ ] Implement `RandomizationContext` and stack item accessors needed by context-aware randomizers.
-- [ ] Implement default registries:
-  - [ ] custom randomizer registry
-  - [ ] exclusion randomizer registry
-  - [ ] annotation randomizer registry
-  - [ ] internal Java type registry
-  - [ ] time registry
-  - [ ] Bean Validation registry when module is present
-- [ ] Implement priority ordering with `@Priority`.
-- [ ] Implement safe ServiceLoader discovery.
+- [ ] Map reference `Randomizer<T>` to local `Generator<T>`.
+- [ ] Map reference `ContextAwareRandomizer<T>` to local `ContextualGenerator<T>`.
+- [ ] Map reference field/type randomizer registration to `GeneratorConfig.objectOverride(...)`.
+- [ ] Map reference custom registries/providers to native `ProviderHub`, object overrides, and generator composition.
+- [ ] Decide whether any missing extension hook needs a native feature:
+  - [ ] object factory hook
+  - [ ] exclusion policy hook
+  - [ ] registry priority model
+  - [ ] ServiceLoader discovery
+- [ ] Prefer explicit native extension APIs over ServiceLoader unless product demand requires dynamic plugin discovery.
 
 Acceptance:
 
-- Custom registry/provider/factory/policy tests pass.
-- ServiceLoader test can discover a test registry from `META-INF/services`.
+- Migration guide has "Custom Randomizers And Registries" replacements.
+- Any intentionally omitted SPI has a documented native alternative.
 
-## Phase 6: Built-In Randomizer Facades
+## Phase 5: Built-In Randomizer Capability Parity
 
-Goal: expose reference randomizer classes and behavior.
+Goal: ensure every reference built-in randomizer family has a native generator equivalent.
 
-- [ ] Add `io.github.krandom.randomizers.AbstractRandomizer`.
-- [ ] Add collection randomizers:
-  - [ ] collection, list, set, queue, map, enum set, enum map
-- [ ] Add misc randomizers:
-  - [ ] boolean, constant, enum, locale, null, optional, skip, UUID
-- [ ] Add number randomizers:
-  - [ ] byte, short, int, long, float, double, number, BigInteger, BigDecimal, atomic integer, atomic long
-- [ ] Add range randomizers:
-  - [ ] numeric ranges
-  - [ ] legacy date/sql date ranges
-  - [ ] JSR-310 date/time ranges
-- [ ] Add text randomizers:
-  - [ ] character
-  - [ ] char sequence
-  - [ ] string
-  - [ ] string delegating
-- [ ] Add net randomizers:
-  - [ ] URI
-  - [ ] URL
-- [ ] Add time randomizers:
-  - [ ] calendar/date/sql
-  - [ ] local/offset/zoned types
-  - [ ] duration/period/year/year-month/month-day
-  - [ ] zone/timezone types
-- [ ] Add faker randomizers:
-  - [ ] first/last/full name
+- [ ] Primitive and wrapper types.
+- [ ] Numbers and ranges.
+- [ ] BigInteger and BigDecimal.
+- [ ] AtomicInteger and AtomicLong.
+- [ ] Collections and maps.
+- [ ] Optional.
+- [ ] UUID and locale.
+- [ ] URI and URL.
+- [ ] Time and date types:
+  - [ ] `java.util.Date`
+  - [ ] `java.sql.Date`
+  - [ ] `java.sql.Time`
+  - [ ] `java.sql.Timestamp`
+  - [ ] `LocalDate`
+  - [ ] `LocalTime`
+  - [ ] `LocalDateTime`
+  - [ ] `Instant`
+  - [ ] `OffsetDateTime`
+  - [ ] `OffsetTime`
+  - [ ] `ZonedDateTime`
+  - [ ] `Year`
+  - [ ] `YearMonth`
+  - [ ] `MonthDay`
+  - [ ] `Duration`
+  - [ ] `Period`
+  - [ ] `ZoneId`
+  - [ ] `ZoneOffset`
+  - [ ] `TimeZone`
+- [ ] Text/string/regex generation.
+- [ ] Faker-style domain data:
+  - [ ] names
   - [ ] email/password/phone
-  - [ ] city/state/country/street/zip
+  - [ ] city/state/country/street/postal code
   - [ ] company
   - [ ] credit card
   - [ ] ISBN
   - [ ] IPv4/IPv6/MAC
   - [ ] latitude/longitude
-  - [ ] word/sentence/paragraph/generic string
-  - [ ] regular expression
+  - [ ] word/sentence/paragraph
 
 Acceptance:
 
-- Constructor signatures and public methods match the API inventory.
-- Seeded same-instance determinism tests pass.
-- If exact output parity is in scope, imported approval tests pass.
+- The audit matrix shows a native generator for each reference randomizer class or a documented migration replacement.
 
-## Phase 7: Bean Validation Compatibility
+## Phase 6: Bean Validation Feature Parity
 
-Goal: match the reference `bean-validation` module.
+Goal: match reference Bean Validation behavior in native object generation.
 
-- [ ] Add `io.github.krandom.validation.BeanValidationRandomizerRegistry`.
-- [ ] Add annotation handlers:
+- [ ] Support or verify:
   - [ ] `AssertFalse`
   - [ ] `AssertTrue`
   - [ ] `DecimalMin`
@@ -264,83 +235,73 @@ Goal: match the reference `bean-validation` module.
   - [ ] `PositiveOrZero`
   - [ ] `Size`
 - [ ] Support `@Size` for strings, collections, lists, sets, maps, and arrays.
-- [ ] Support field annotations and getter/method annotations.
-- [ ] Preserve custom Bean Validation registry override behavior.
+- [ ] Support field annotations and getter/method annotations where the reference does.
 - [ ] Add validator integration tests with Hibernate Validator.
+- [ ] Document migration from `k-random-bean-validation` to native krandom core behavior.
 
 Acceptance:
 
-- Imported `bean-validation` tests pass, including "generated bean should be valid using bean validation api".
+- Generated objects satisfy supported Bean Validation constraints through native APIs.
 
-## Phase 8: Determinism And Output Compatibility
+## Phase 7: Determinism And Compatibility Guarantees
 
-Goal: make seeded behavior explicit and testable.
+Goal: make the migration promise precise.
 
-- [ ] Decide exact-output parity scope for DataFaker-backed randomizers.
-- [ ] If exact parity is required:
-  - [ ] pin DataFaker version to the reference-compatible behavior
-  - [ ] mirror locale and safe-mode constructors
-  - [ ] mirror seed-to-random wiring
-  - [ ] import approval files or convert them to deterministic assertions
-- [ ] If exact parity is not required:
-  - [ ] document deterministic-within-library compatibility only
-  - [ ] assert repeatability, validity, and format constraints instead of exact strings
+- [ ] Document that krandom guarantees deterministic local output for seeded generators.
+- [ ] Document that exact k-random/DataFaker output strings are not guaranteed unless explicitly added.
+- [ ] Add repeatability tests for migrated examples.
+- [ ] Add seed migration notes where default seeds differ.
 
 Acceptance:
 
-- Determinism policy is documented in the audit and compatibility README.
-- Seeded tests reflect the selected policy.
+- Migration guide has a determinism section and examples show seeded repeatability.
 
-## Phase 9: Documentation, Examples, And Release Readiness
+## Phase 8: Migration Guide And Examples
 
-Goal: make the compatibility surface usable and maintainable.
+Goal: make k-random users successful without source-compatible imports.
 
-- [ ] Add a compatibility README with installation, module mapping, and migration examples.
-- [ ] Add examples for:
-  - [ ] `new KRandom().nextObject(...)`
+- [ ] Create `docs/migration/k-random-to-krandom.md`.
+- [ ] Include install coordinates for this library.
+- [ ] Add mapping tables:
+  - [ ] `KRandom`
   - [ ] `KRandomParameters`
-  - [ ] custom randomizer by field and type
-  - [ ] custom registry
-  - [ ] Bean Validation module
-  - [ ] classpath subtype scanning
-- [ ] Add javadocs/KDoc for public compatibility APIs.
-- [ ] Add release notes describing compatibility scope.
-- [ ] Run full `./scripts/pre_commit_check.sh`.
+  - [ ] randomizer classes
+  - [ ] annotations
+  - [ ] extension points
+  - [ ] Bean Validation
+- [ ] Add before/after examples:
+  - [ ] basic object generation
+  - [ ] seeded generation
+  - [ ] field override
+  - [ ] type override
+  - [ ] exclusion
+  - [ ] Bean Validation
+  - [ ] faker/domain generators
+- [ ] Link migration guide from `README.md`, docs site, and docs index.
 
 Acceptance:
 
-- A user can follow docs without referencing the upstream repository.
-- All compatibility examples compile in CI or local verification scripts.
+- A user can migrate representative k-random usage by following the guide.
+- Examples compile in a local verification task.
 
-## Risk Register
+## Initial Implementation Order
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| Package/API duplication creates confusion | Medium | Put compatibility types in dedicated modules and document first-party vs compatibility APIs clearly. |
-| Exact DataFaker output parity is brittle | High | Prefer deterministic-validity parity unless exact approval outputs are required by product. |
-| Classpath scanning adds startup cost and nondeterminism | Medium | Make it opt-in and scoped to compatibility `KRandomParameters.scanClasspathForConcreteTypes(true)`. |
-| Setter-first semantics conflict with current direct-field object generation | Medium | Keep setter-first behavior inside compatibility mode only. |
-| Full SPI support increases maintenance burden | High | Build adapters over existing internals where possible; keep compatibility tests close to upstream behavior. |
-
-## Initial Task Order
-
-1. Phase 0 API inventory and compatibility test harness.
-2. Phase 1 module skeleton.
-3. Phase 2 `KRandom`/`KRandomParameters` with core object generation.
-4. Phase 4 predicate/annotation API, because many imported tests depend on it.
-5. Phase 3 object semantics refinements.
-6. Phase 5 SPI and registry model.
-7. Phase 7 Bean Validation.
-8. Phase 6 randomizer facades, split by package family.
-9. Phase 8 determinism policy.
-10. Phase 9 docs and release readiness.
+1. Phase 0 mapping baseline and migration guide shell.
+2. Phase 1 object-generation parity tests using native APIs.
+3. Phase 2 configuration mapping.
+4. Phase 6 Bean Validation gaps.
+5. Phase 5 randomizer capability matrix.
+6. Phase 3 exclusions and declarative rules.
+7. Phase 4 extension model equivalents.
+8. Phase 7 determinism documentation.
+9. Phase 8 final migration guide and examples.
 
 ## Completion Gate
 
 The plan is complete when:
 
-- Compatibility modules compile.
-- The selected upstream test subset passes.
-- Every reference public API item is implemented, intentionally excluded, or mapped to a documented replacement.
-- Audit status rows in `docs/feature-parity/k-random-reference-parity.md` are updated to complete.
+- No reference compatibility modules/packages have been added.
+- Every reference feature is implemented natively, mapped to an existing local API, or explicitly rejected with rationale.
+- Migration guide covers the main source-level changes a k-random user must make.
+- Native tests cover the parity behavior.
 - `./scripts/pre_commit_check.sh` passes.
