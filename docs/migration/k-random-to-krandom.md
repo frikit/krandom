@@ -10,6 +10,44 @@ This guide maps k-random reference APIs to native krandom APIs. It is not a drop
 | `io.github.k-random:k-random-randomizers` | `io.github.frikit:krandom-core` | Native generators live in provider packages instead of a randomizer facade module. |
 | `io.github.k-random:k-random-bean-validation` | `io.github.frikit:krandom-core` | Bean Validation support is native to object generation where supported. |
 
+Current documented krandom install coordinate:
+
+Gradle Kotlin:
+
+```kotlin
+dependencies {
+    implementation("io.github.frikit:krandom-core:1.0.0")
+}
+```
+
+Gradle Groovy:
+
+```groovy
+dependencies {
+    implementation 'io.github.frikit:krandom-core:1.0.0'
+}
+```
+
+Maven:
+
+```xml
+<dependency>
+  <groupId>io.github.frikit</groupId>
+  <artifactId>krandom-core</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+## `KRandom` Entry Point Mapping
+
+| k-random `KRandom` usage | krandom replacement |
+| --- | --- |
+| `new KRandom()` | `Generators.ofObject(Type.class)` when generating objects, or a specific `Generators.of*()` factory for scalar/domain values |
+| `new KRandom(parameters)` | `Generators.ofObject(Type.class, config)` with `GeneratorConfig` |
+| `random.nextObject(User.class)` | `Generators.ofObject(User.class).generate()` |
+| `random.objects(User.class, 10)` | `Generators.ofObject(User.class).generateList(10)` or `.stream().limit(10).toList()` |
+| `random.nextInt(...)`, `nextLong(...)`, and other `Random` inherited calls | Dedicated scalar factories such as `Generators.ofInt(...)`, `Generators.ofLong(...)`, or a caller-owned `java.util.Random` |
+
 ## Basic Object Generation
 
 k-random:
@@ -175,10 +213,23 @@ GeneratorConfig config = GeneratorConfig.builder()
 
 k-random field-predicate randomizers map to owner/field overrides where possible:
 
+k-random:
+
+```java
+KRandomParameters parameters = new KRandomParameters()
+    .randomize(FieldPredicates.named("email"), () -> "user@example.com");
+
+User user = new KRandom(parameters).nextObject(User.class);
+```
+
+krandom:
+
 ```java
 GeneratorConfig config = GeneratorConfig.builder()
     .objectOverride(User.class, "email", () -> "user@example.com")
     .build();
+
+User user = Generators.ofObject(User.class, config).generate();
 ```
 
 For field-aware generation, use `ContextualGenerator`:
@@ -187,6 +238,29 @@ For field-aware generation, use `ContextualGenerator`:
 GeneratorConfig config = GeneratorConfig.builder()
     .objectOverride(String.class, ctx -> ctx.getFieldName() + "_value")
     .build();
+```
+
+## Type Overrides
+
+Use type overrides when a k-random type randomizer supplied a concrete value for an abstract class, interface, or common value type.
+
+k-random:
+
+```java
+KRandomParameters parameters = new KRandomParameters()
+    .randomize(PaymentMethod.class, CardPayment::new);
+
+Checkout checkout = new KRandom(parameters).nextObject(Checkout.class);
+```
+
+krandom:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(PaymentMethod.class, CardPayment::new)
+    .build();
+
+Checkout checkout = Generators.ofObject(Checkout.class, config).generate();
 ```
 
 ## Exclusions
@@ -236,6 +310,14 @@ Predicates are regular Java `Predicate` instances, so `.and(...)`, `.or(...)`, a
 
 ## Declarative Randomizers
 
+Annotation mapping:
+
+| k-random annotation | krandom replacement |
+| --- | --- |
+| `@io.github.krandom.annotation.Exclude` | `@io.github.frikit.krandom.generator.object.Exclude` |
+| `@io.github.krandom.annotation.Randomizer` | `@io.github.frikit.krandom.generator.object.Randomizer` |
+| `@io.github.krandom.annotation.RandomizerArgument` | `@io.github.frikit.krandom.generator.object.RandomizerArgument` |
+
 k-random:
 
 ```java
@@ -259,6 +341,18 @@ class User {
 The native `@Randomizer` expects a `Generator<?>` implementation. Constructor arguments support common primitive/wrapper values, enums, big numbers, Java/SQL date-time values, Java time values, and arrays.
 
 ## Custom Randomizers And Registries
+
+Extension point mapping:
+
+| k-random extension point | krandom replacement |
+| --- | --- |
+| `Randomizer<T>` | `Generator<T>` |
+| `ContextAwareRandomizer<T>` | `ContextualGenerator<T>` |
+| `RandomizerRegistry` | explicit `GeneratorConfig.objectOverride(...)` registrations or `ProviderHub` registrations |
+| `RandomizerProvider` | `ProviderHub` or a generator factory method |
+| `ObjectFactory` | constructor/Objenesis object creation plus explicit type or field overrides for special construction |
+| `ExclusionPolicy` | `objectExclude(...)`, `objectExcludeType(...)`, predicate helpers, or `@Exclude` |
+| ServiceLoader registry discovery / `@Priority` | explicit registration order and `ConflictPolicy`; no source-compatible ServiceLoader surface is added |
 
 k-random `Randomizer<T>` maps to krandom `Generator<T>`:
 
@@ -394,6 +488,30 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 
 The full mapping baseline lives in `docs/feature-parity/k-random-reference-feature-inventory.md`.
 
+## Faker And Domain Generators
+
+Most k-random faker/DataFaker randomizers migrate to krandom facade factories or fluent namespaces.
+
+k-random:
+
+```java
+String firstName = new FirstNameRandomizer().getRandomValue();
+String email = new EmailRandomizer().getRandomValue();
+String city = new CityRandomizer().getRandomValue();
+```
+
+krandom:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .seed(20260511L)
+    .build();
+
+String firstName = Generators.person(config).firstName().generate();
+String email = Generators.ofEmail(config).generate();
+String city = Generators.location(config).city().generate();
+```
+
 ## Bean Validation
 
 k-random loads Bean Validation support through `k-random-bean-validation`. krandom handles the equivalent behavior natively during object generation; keep using `krandom-core`.
@@ -433,6 +551,16 @@ class Account {
     private Instant expiresAt;
 }
 
+k-random:
+
+```java
+KRandom random = new KRandom(new KRandomParameters());
+Account account = random.nextObject(Account.class);
+```
+
+krandom:
+
+```java
 Account account = Generators.ofObject(Account.class).generate();
 ```
 

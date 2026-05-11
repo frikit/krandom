@@ -310,26 +310,34 @@ Acceptance:
 
 ## Phase 8: Migration Guide And Examples
 
+Status: **Completed**.
+
 Goal: make k-random users successful without source-compatible imports.
 
-- [ ] Create `docs/migration/k-random-to-krandom.md`.
-- [ ] Include install coordinates for this library.
-- [ ] Add mapping tables:
-  - [ ] `KRandom`
-  - [ ] `KRandomParameters`
-  - [ ] randomizer classes
-  - [ ] annotations
-  - [ ] extension points
-  - [ ] Bean Validation
-- [ ] Add before/after examples:
-  - [ ] basic object generation
-  - [ ] seeded generation
-  - [ ] field override
-  - [ ] type override
-  - [ ] exclusion
-  - [ ] Bean Validation
-  - [ ] faker/domain generators
-- [ ] Link migration guide from `README.md`, docs site, and docs index.
+- [x] Create `docs/migration/k-random-to-krandom.md`.
+- [x] Include install coordinates for this library.
+- [x] Add mapping tables:
+  - [x] `KRandom`
+  - [x] `KRandomParameters`
+  - [x] randomizer classes
+  - [x] annotations
+  - [x] extension points
+  - [x] Bean Validation
+- [x] Add before/after examples:
+  - [x] basic object generation
+  - [x] seeded generation
+  - [x] field override
+  - [x] type override
+  - [x] exclusion
+  - [x] Bean Validation
+  - [x] faker/domain generators
+- [x] Link migration guide from `README.md`, docs site, and docs index.
+
+Decision:
+
+- The migration guide stays native-only: no `io.github.krandom.*` source-compatibility packages, no `k-random-*` artifacts, and no reference dependency are introduced.
+- The docs site now includes a public migration entry that points readers to the full repository guide.
+- Required after-migration examples are covered by `KRandomReferenceMigrationGuideExamplesTest`.
 
 Acceptance:
 

@@ -136,9 +136,9 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 
 ## Backlog Derived From Inventory
 
-1. Add migration parity tests for native object generation before changing behavior.
-2. Add final migration examples that compile against native krandom APIs.
-3. Link the migration guide from the README, docs site, and docs index.
+1. Add migration parity tests for native object generation before changing behavior. Completed across the phase-specific parity tests.
+2. Add final migration examples that compile against native krandom APIs. Completed in `KRandomReferenceMigrationGuideExamplesTest`.
+3. Link the migration guide from the README, docs site, and docs index. Completed.
 4. Add missing TypePredicates helpers and regex/varargs FieldPredicates helpers if migration ergonomics matter.
 5. Add standalone facade methods only where migration docs become awkward; prefer namespaces for domain data.
 6. Keep deterministic behavior local to krandom seeds; exact k-random/DataFaker output strings remain a documented non-goal.

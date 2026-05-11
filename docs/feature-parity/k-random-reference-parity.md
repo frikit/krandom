@@ -38,7 +38,7 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Classpath scanning | Missing by design | Migration-doc-only replacement | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local migration uses explicit `objectOverride(...)` registrations instead of scanning. |
 | Setter semantics | Direct-field native behavior | Migration-doc-only replacement | Reference calls setters by default and only direct-fields with `bypassSetters(true)`. Local object generation sets fields directly; setter-first mode is not copied in the native parity plan. |
 | Kotlin/source compatibility | Partial | Migration mapping needed | Reference implementation is Kotlin but exposes Java-friendly APIs in `io.github.krandom`. Local has a Kotlin DSL under this project's package surface. |
-| Docs/examples | Strong local | Partial | Local docs are broader. Native parity needs migration examples that compile against krandom APIs. |
+| Docs/examples | Strong local | Covered | Migration guide, docs-site entry, docs index link, README link, and native compile-backed examples are in place. |
 
 ## Phase 0 Mapping Baseline
 
@@ -103,6 +103,15 @@ Native determinism and migration guarantees are now covered by tests in `KRandom
 - Field and type override examples remain repeatable when the override generators are deterministic.
 - Faker/domain generator examples are repeatable under the same krandom seed, locale, version, and call order.
 - Exact k-random/DataFaker output strings remain out of scope. Migration preserves explicit seed intent, not upstream approved-output snapshots.
+
+## Phase 8 Migration Documentation Baseline
+
+Native migration documentation is now covered by `docs/migration/k-random-to-krandom.md`, the docs-site migration page, and tests in `KRandomReferenceMigrationGuideExamplesTest`.
+
+- Install coordinates map `io.github.k-random:k-random-*` artifacts to `io.github.frikit:krandom-core`.
+- `KRandom`, `KRandomParameters`, randomizer classes, annotations, extension points, and Bean Validation have explicit mapping tables.
+- Required before/after examples cover basic object generation, seeded generation, field overrides, type overrides, exclusions, Bean Validation, and faker/domain generators.
+- README, docs index, and the public docs-site guides index all link to migration material.
 
 ## Reference Feature Surface
 
@@ -193,8 +202,9 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
 
 ### Phase 8: Migration documentation
 
-- Create `docs/migration/k-random-to-krandom.md`.
-- Add before/after examples for object generation, configuration, exclusions, custom generators, Bean Validation, and faker/domain generators.
+- Completed: `docs/migration/k-random-to-krandom.md` now covers native migration from k-random without source-compatible imports.
+- Completed: before/after examples cover object generation, configuration, exclusions, custom generators, Bean Validation, and faker/domain generators.
+- Completed: compile-backed examples prove the migrated krandom snippets stay runnable.
 
 ## Effort Estimate
 
