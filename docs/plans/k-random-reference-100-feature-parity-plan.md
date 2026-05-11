@@ -289,12 +289,20 @@ Acceptance:
 
 ## Phase 7: Determinism And Compatibility Guarantees
 
+Status: **Completed**.
+
 Goal: make the migration promise precise.
 
-- [ ] Document that krandom guarantees deterministic local output for seeded generators.
-- [ ] Document that exact k-random/DataFaker output strings are not guaranteed unless explicitly added.
-- [ ] Add repeatability tests for migrated examples.
-- [ ] Add seed migration notes where default seeds differ.
+- [x] Document that krandom guarantees deterministic local output for seeded generators.
+- [x] Document that exact k-random/DataFaker output strings are not guaranteed unless explicitly added.
+- [x] Add repeatability tests for migrated examples.
+- [x] Add seed migration notes where default seeds differ.
+
+Decision:
+
+- A krandom seed is a krandom repeatability contract: the same krandom version, config, locale, and generator path should repeat the same local sequence.
+- A k-random seed is not an output compatibility contract. Migrating `seed(123L)` to `GeneratorConfig.builder().seed(123L)` preserves explicit seeding as a concept, not exact strings or object snapshots from k-random/DataFaker.
+- k-random's default seed `123`, string range `1..32`, collection range `1..100`, and effectively unlimited object depth should be set explicitly in krandom only when users relied on those defaults.
 
 Acceptance:
 

@@ -438,7 +438,53 @@ Account account = Generators.ofObject(Account.class).generate();
 
 ## Determinism
 
-Both libraries support seeded generation, but identical seed values are not guaranteed to produce identical strings across libraries. Use krandom seeds to get deterministic krandom output after migration.
+Both libraries support seeded generation, but a seed is scoped to the library that interprets it.
+
+krandom guarantees repeatable krandom output when these inputs stay the same:
+
+- krandom version
+- `GeneratorConfig`, including seed, locale, string length, collection size, date ranges, semantic mode, and overrides
+- generator entry point and call order
+- your custom generators and providers
+
+k-random seed values do not guarantee identical krandom strings or object snapshots. In particular, k-random/DataFaker approved-output strings are not copied unless a krandom generator explicitly documents that behavior.
+
+k-random:
+
+```java
+KRandomParameters parameters = new KRandomParameters().seed(123L);
+User first = new KRandom(parameters).nextObject(User.class);
+User second = new KRandom(parameters).nextObject(User.class);
+```
+
+krandom:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .seed(123L)
+    .stringLength(3, 16)
+    .collectionSize(1, 5)
+    .objectMaxDepth(3)
+    .build();
+
+User first = Generators.ofObject(User.class, config).generate();
+User second = Generators.ofObject(User.class, config).generate();
+```
+
+`first` and `second` are repeatable krandom outputs for the same krandom version and config. They are not expected to equal k-random's `seed(123L)` output.
+
+If your old tests relied on k-random defaults, set the equivalent knobs explicitly:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .seed(123L)          // k-random's default seed
+    .stringLength(1, 32) // k-random default string range
+    .collectionSize(1, 100)
+    .objectMaxDepth(10)  // choose an explicit practical depth for your model
+    .build();
+```
+
+krandom's native defaults remain different: unseeded random source, string length `5..20`, collection size `1..10`, and bounded object depth.
 
 ## Tracked Gaps
 

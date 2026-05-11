@@ -94,6 +94,16 @@ Native built-in randomizer capability parity is now covered by tests in `KRandom
 - Collection, map, enum collection, optional, null, and skip randomizers map to object field population, `generateList`, `repeat`, selection helpers, constants, and exclusions.
 - Faker/DataFaker randomizers map to native person, location, finance, network, identifier, text, and base generators.
 
+## Phase 7 Determinism Baseline
+
+Native determinism and migration guarantees are now covered by tests in `KRandomReferenceDeterminismParityTest`.
+
+- Migrated `nextObject(Class)` examples are repeatable when the same krandom seed and config are used.
+- Migrated `objects(Class, size)` examples are repeatable when the same krandom seed and config are used.
+- Field and type override examples remain repeatable when the override generators are deterministic.
+- Faker/domain generator examples are repeatable under the same krandom seed, locale, version, and call order.
+- Exact k-random/DataFaker output strings remain out of scope. Migration preserves explicit seed intent, not upstream approved-output snapshots.
+
 ## Reference Feature Surface
 
 The reference codebase is an Easy Random fork, not primarily a fake-data catalog. Its core surface is:
@@ -175,7 +185,13 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
 - Field annotations, record/accessor annotations, JavaBean getters, boolean getters, and interface accessor declarations are covered.
 - Hibernate Validator integration tests prove generated objects satisfy supported constraints.
 
-### Phase 7: Migration documentation
+### Phase 7: Determinism and compatibility guarantees
+
+- Completed: document the krandom-local seeded repeatability contract.
+- Completed: document exact k-random/DataFaker output strings as a non-goal.
+- Completed: add migrated-example repeatability tests.
+
+### Phase 8: Migration documentation
 
 - Create `docs/migration/k-random-to-krandom.md`.
 - Add before/after examples for object generation, configuration, exclusions, custom generators, Bean Validation, and faker/domain generators.
