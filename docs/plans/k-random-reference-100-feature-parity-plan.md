@@ -337,7 +337,7 @@ Decision:
 
 - The migration guide stays native-only: no `io.github.krandom.*` source-compatibility packages, no `k-random-*` artifacts, and no reference dependency are introduced.
 - The docs site now includes a public migration entry that points readers to the full repository guide.
-- Required after-migration examples are covered by `KRandomReferenceMigrationGuideExamplesTest`.
+- Required after-migration examples are covered by `ObjectGenerationDocumentationExamplesTest`.
 
 Acceptance:
 

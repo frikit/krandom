@@ -23,8 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@DisplayName("k-random reference parity — exclusions and declarative rules")
-class KRandomReferenceExclusionAndAnnotationParityTest {
+@DisplayName("object generator exclusions and declarative rules")
+class ObjectGeneratorRuleMappingTest {
 
     @Test
     @DisplayName("FieldPredicates.nameMatches(...) excludes matching fields in nested object graphs")
@@ -86,8 +86,8 @@ class KRandomReferenceExclusionAndAnnotationParityTest {
     }
 
     @Test
-    @DisplayName("@Exclude maps to the native object exclusion annotation")
-    void excludeAnnotationMapsToNativeAnnotation() {
+    @DisplayName("@Exclude excludes annotated fields")
+    void excludeAnnotationExcludesAnnotatedFields() {
         AnnotatedExcludeTarget target = Generators.ofObject(AnnotatedExcludeTarget.class).generate();
 
         assertNull(target.password);
@@ -95,8 +95,8 @@ class KRandomReferenceExclusionAndAnnotationParityTest {
     }
 
     @Test
-    @DisplayName("@RandomizerArgument converts reference-style constructor argument types")
-    void randomizerArgumentConvertsReferenceStyleTypes() {
+    @DisplayName("@RandomizerArgument converts constructor argument types")
+    void randomizerArgumentConvertsConstructorArgumentTypes() {
         ArgumentConversionTarget target = Generators.ofObject(ArgumentConversionTarget.class).generate();
 
         assertEquals(

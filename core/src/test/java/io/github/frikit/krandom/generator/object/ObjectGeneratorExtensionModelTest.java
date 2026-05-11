@@ -23,12 +23,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("k-random reference parity — extension model")
-class KRandomReferenceExtensionModelParityTest {
+@DisplayName("object generator extension model")
+class ObjectGeneratorExtensionModelTest {
 
     @Test
-    @DisplayName("reference Randomizer maps to native Generator type override")
-    void randomizerMapsToGeneratorTypeOverride() {
+    @DisplayName("type override accepts Generator implementations")
+    void typeOverrideAcceptsGeneratorImplementation() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
                                                 .objectOverride(String.class, new FixedStringGenerator("type-randomizer"))
@@ -42,8 +42,8 @@ class KRandomReferenceExtensionModelParityTest {
     }
 
     @Test
-    @DisplayName("reference ContextAwareRandomizer maps to native ContextualGenerator")
-    void contextAwareRandomizerMapsToContextualGenerator() {
+    @DisplayName("contextual override receives field metadata")
+    void contextualOverrideReceivesFieldMetadata() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
                                                 .objectOverride(String.class,
@@ -59,8 +59,8 @@ class KRandomReferenceExtensionModelParityTest {
     }
 
     @Test
-    @DisplayName("predicate field randomizer registration maps to native predicate object override")
-    void predicateFieldRandomizerMapsToNativePredicateOverride() {
+    @DisplayName("predicate field override applies to matching fields")
+    void predicateFieldOverrideAppliesToMatchingFields() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
                                                 .objectOverride(FieldPredicates.nameMatches(".*Token"),
@@ -128,9 +128,9 @@ class KRandomReferenceExtensionModelParityTest {
     }
 
     @Test
-    @DisplayName("custom registry and provider patterns map to ProviderHub plus overrides")
+    @DisplayName("ProviderHub registrations can supply object overrides")
     @SuppressWarnings("unchecked")
-    void registryAndProviderPatternsMapToProviderHubAndOverrides() {
+    void providerHubRegistrationsCanSupplyObjectOverrides() {
         ProviderHub hub = new ProviderHub(GeneratorConfig.builder().locale(Locale.UK).build());
         hub.register("tokens.session", cfg -> (Generator<String>) () -> "session-" + cfg.getLocale().getCountry());
         hub.registerAlias("session_token", "tokens.session");
@@ -150,8 +150,8 @@ class KRandomReferenceExtensionModelParityTest {
     }
 
     @Test
-    @DisplayName("object factory cases map to constructor fallback or explicit object overrides")
-    void objectFactoryCasesMapToNativeConstructionAndOverrides() {
+    @DisplayName("special construction uses explicit object overrides")
+    void specialConstructionUsesExplicitObjectOverrides() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
                                                 .objectOverride(ExternalId.class,
@@ -165,8 +165,8 @@ class KRandomReferenceExtensionModelParityTest {
     }
 
     @Test
-    @DisplayName("object-scoped predicate overrides migrate to root GeneratorConfig")
-    void objectScopedPredicateOverridesMigrateToGeneratorConfig() {
+    @DisplayName("object config predicate overrides can be exported to GeneratorConfig")
+    void objectConfigPredicateOverridesExportToGeneratorConfig() {
         ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
                                                                   .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
                                                                   .override(FieldPredicates.named("accessToken"),
@@ -176,16 +176,16 @@ class KRandomReferenceExtensionModelParityTest {
                                                                                 "ctx-" + ctx.getFieldName())
                                                                   .build();
 
-        GeneratorConfig migrated = objectConfig.toGeneratorConfig();
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, migrated).generate();
+        GeneratorConfig rootConfig = objectConfig.toGeneratorConfig();
+        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, rootConfig).generate();
 
         assertEquals("local", fixture.accessToken);
         assertEquals("ctx-rootCode", fixture.rootCode);
     }
 
     @Test
-    @DisplayName("object-scoped predicate overrides apply without root config migration")
-    void objectScopedPredicateOverridesApplyWithoutMigration() {
+    @DisplayName("object-scoped predicate overrides apply without exporting to GeneratorConfig")
+    void objectConfigPredicateOverridesApplyLocally() {
         ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
                                                                   .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
                                                                   .override(FieldPredicates.named("accessToken"),

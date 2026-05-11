@@ -29,12 +29,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("k-random reference parity — native configuration mapping")
-class KRandomReferenceConfigurationMappingTest {
+@DisplayName("object generator configuration mapping")
+class ObjectGeneratorConfigurationMappingTest {
 
     @Test
-    @DisplayName("KRandomParameters.seed(long) maps to GeneratorConfig.seed(long)")
-    void seedMapsToRepeatableNativeObjectGeneration() {
+    @DisplayName("seed(long) configures repeatable object generation")
+    void seedConfiguresRepeatableObjectGeneration() {
         GeneratorConfig firstConfig = GeneratorConfig.builder().seed(42L).build();
         GeneratorConfig secondConfig = GeneratorConfig.builder().seed(42L).build();
         GeneratorConfig differentConfig = GeneratorConfig.builder().seed(43L).build();
@@ -48,8 +48,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("charset(...) and stringLengthRange(...) map to charset(...) and stringLength(...)")
-    void charsetAndStringLengthMapToNativeStringFields() {
+    @DisplayName("charset and string length constrain generated strings")
+    void charsetAndStringLengthConstrainStringFields() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .charset(StandardCharsets.US_ASCII)
                                                 .stringLength(8, 8)
@@ -66,8 +66,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("collectionSizeRange(...) maps to collectionSize(...) for arrays, collections, and maps")
-    void collectionSizeMapsToNativeContainerFields() {
+    @DisplayName("collection size controls arrays, collections, and maps")
+    void collectionSizeControlsContainerFields() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .collectionSize(1, 1)
                                                 .stringLength(4, 4)
@@ -87,8 +87,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("objectPoolSize(...) and randomizationDepth(...) map to objectPoolSize(...) and objectMaxDepth(...)")
-    void objectPoolAndDepthMapToNativeObjectSettings() {
+    @DisplayName("object pool and max depth control recursive object graphs")
+    void objectPoolAndDepthControlObjectGraphs() {
         GeneratorConfig poolConfig = GeneratorConfig.builder()
                                                     .objectPoolSize(0)
                                                     .build();
@@ -104,8 +104,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("dateRange(...) maps to objectDateRange(...) for object-generated date fields")
-    void dateRangeMapsToNativeObjectDateRange() {
+    @DisplayName("object date range constrains generated date fields")
+    void objectDateRangeConstrainsDateFields() {
         LocalDate exactDate = LocalDate.of(2024, 5, 10);
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .objectDateRange(exactDate, exactDate)
@@ -118,8 +118,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("timeRange(...) migrates to an explicit LocalTime override")
-    void timeRangeMigratesToExplicitNativeOverride() {
+    @DisplayName("LocalTime fields can use explicit overrides")
+    void localTimeFieldUsesExplicitOverride() {
         LocalTime exactTime = LocalTime.of(9, 30);
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .objectOverride(LocalTime.class, () -> exactTime)
@@ -131,8 +131,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("ignoreRandomizationErrors(...) maps to objectIgnoreErrors(...)")
-    void ignoreRandomizationErrorsMapsToNativeFlag() {
+    @DisplayName("ignore errors flag suppresses generation failures")
+    void ignoreErrorsFlagSuppressesGenerationFailures() {
         GeneratorConfig ignoreConfig = GeneratorConfig.builder()
                                                       .objectIgnoreErrors(true)
                                                       .stringLength(5, 5)
@@ -150,8 +150,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("overrideDefaultInitialization(...) maps to objectOverrideDefaultInitialization(...)")
-    void overrideDefaultInitializationMapsToNativeFlag() {
+    @DisplayName("default initialization setting controls existing field values")
+    void defaultInitializationSettingControlsExistingFieldValues() {
         GeneratorConfig preserveConfig = GeneratorConfig.builder()
                                                         .stringLength(4, 4)
                                                         .objectOverrideDefaultInitialization(false)
@@ -170,8 +170,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("bypassSetters(true) maps to krandom's direct-field object population")
-    void bypassSettersMapsToDirectFieldPopulation() {
+    @DisplayName("direct-field object population bypasses setters")
+    void directFieldObjectPopulationBypassesSetters() {
         SetterTrap.setterCalled = false;
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .stringLength(3, 3)
@@ -185,8 +185,8 @@ class KRandomReferenceConfigurationMappingTest {
     }
 
     @Test
-    @DisplayName("scanClasspathForConcreteTypes(true) migrates to explicit type overrides")
-    void classpathScanningMigratesToExplicitTypeOverride() {
+    @DisplayName("abstract fields use explicit type overrides")
+    void abstractFieldsUseExplicitTypeOverride() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .objectOverride(PaymentMethod.class, CardPayment::new)
                                                 .build();

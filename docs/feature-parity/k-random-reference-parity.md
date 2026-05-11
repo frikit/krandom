@@ -40,6 +40,15 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Kotlin/source compatibility | Partial | Migration mapping needed | Reference implementation is Kotlin but exposes Java-friendly APIs in `io.github.krandom`. Local has a Kotlin DSL under this project's package surface. |
 | Docs/examples | Strong local | Covered | Migration guide, docs-site entry, docs index link, README link, and native compile-backed examples are in place. |
 
+## Recheck Conclusion
+
+Rechecked against upstream `k-random/k-random` `v2.2.20` (`43d5b6f4ea38b59ce73c90d9f47e3b25e9c57f32`):
+
+- Native migration parity is complete under the agreed contract: every reference feature is implemented natively, mapped to a native replacement, or documented as an intentional non-goal.
+- Drop-in source/API parity is not complete and remains out of scope: no `io.github.krandom.*` packages, no `k-random-*` compatibility artifacts, no `KRandom` facade, no reference `RandomizerRegistry`/ServiceLoader surface, and no exact seeded output cloning.
+- The migration guide now names every reference public randomizer class, including range randomizers and time component randomizers.
+- Remaining differences are product decisions, not untracked implementation phases: setter-first population, classpath subtype scanning, full `RandomizerContext`, `ObjectFactory` hook, final-field population attempts, registry priority/ServiceLoader discovery, and exact upstream DataFaker strings.
+
 ## Phase 0 Mapping Baseline
 
 The detailed inventory is now captured in `docs/feature-parity/k-random-reference-feature-inventory.md`. The important Phase 0 conclusions are:
@@ -53,7 +62,7 @@ The detailed inventory is now captured in `docs/feature-parity/k-random-referenc
 
 ## Phase 2 Configuration Baseline
 
-Native configuration mapping is now covered by tests in `KRandomReferenceConfigurationMappingTest`.
+Native configuration mapping is now covered by tests in `ObjectGeneratorConfigurationMappingTest`.
 
 - `seed(long)`, `charset(...)`, `stringLengthRange(...)`, `collectionSizeRange(...)`, `objectPoolSize(...)`, `randomizationDepth(...)`, `dateRange(...)`, `ignoreRandomizationErrors(...)`, and `overrideDefaultInitialization(...)` all have tested `GeneratorConfig` equivalents.
 - `timeRange(...)` migrates to direct `TimeGenerator` usage or an explicit `LocalTime` object override.
@@ -63,7 +72,7 @@ Native configuration mapping is now covered by tests in `KRandomReferenceConfigu
 
 ## Phase 3 Exclusion And Declarative Rule Baseline
 
-Native exclusion and annotation mapping is now covered by tests in `KRandomReferenceExclusionAndAnnotationParityTest`.
+Native exclusion and annotation mapping is now covered by tests in `ObjectGeneratorRuleMappingTest`.
 
 - `FieldPredicates` covers exact names, regex name matching, field type, declaring class, varargs annotation matching, modifiers, and normal Java predicate composition.
 - `TypePredicates` covers exact names, exact type, package prefixes, varargs annotation matching, interface, abstract, modifiers, enum, array, and assignability checks.
@@ -74,7 +83,7 @@ Native exclusion and annotation mapping is now covered by tests in `KRandomRefer
 
 ## Phase 4 Extension Model Baseline
 
-Native extension mapping is now covered by tests in `KRandomReferenceExtensionModelParityTest`.
+Native extension mapping is now covered by tests in `ObjectGeneratorExtensionModelTest`.
 
 - k-random `Randomizer<T>` maps to native `Generator<T>`.
 - k-random `ContextAwareRandomizer<T>` maps to native `ContextualGenerator<T>`, with context for field name, owner type, and depth.
@@ -85,7 +94,7 @@ Native extension mapping is now covered by tests in `KRandomReferenceExtensionMo
 
 ## Phase 5 Built-In Randomizer Baseline
 
-Native built-in randomizer capability parity is now covered by tests in `KRandomReferenceBuiltInRandomizerParityTest`.
+Native built-in randomizer capability parity is now covered by tests in `BuiltInGeneratorCatalogTest`.
 
 - Primitive/wrapper, big-number, `Number`, `AtomicInteger`, and `AtomicLong` reference randomizers map to native scalar factories and standalone generator classes.
 - Java time and legacy date/time randomizers map to native facade methods, `Generators.datetime()`, `Generators.forType(...)`, and object field resolution. `LegacyTimeZoneGenerator` covers `java.util.TimeZone`; `TimezoneGenerator` remains the string timezone-id generator.
@@ -96,7 +105,7 @@ Native built-in randomizer capability parity is now covered by tests in `KRandom
 
 ## Phase 7 Determinism Baseline
 
-Native determinism and migration guarantees are now covered by tests in `KRandomReferenceDeterminismParityTest`.
+Native determinism and migration guarantees are now covered by tests in `ObjectGeneratorDeterminismTest`.
 
 - Migrated `nextObject(Class)` examples are repeatable when the same krandom seed and config are used.
 - Migrated `objects(Class, size)` examples are repeatable when the same krandom seed and config are used.
@@ -106,7 +115,7 @@ Native determinism and migration guarantees are now covered by tests in `KRandom
 
 ## Phase 8 Migration Documentation Baseline
 
-Native migration documentation is now covered by `docs/migration/k-random-to-krandom.md`, the docs-site migration page, and tests in `KRandomReferenceMigrationGuideExamplesTest`.
+Native migration documentation is now covered by `docs/migration/k-random-to-krandom.md`, the docs-site migration page, and tests in `ObjectGenerationDocumentationExamplesTest`.
 
 - Install coordinates map `io.github.k-random:k-random-*` artifacts to `io.github.frikit:krandom-core`.
 - `KRandom`, `KRandomParameters`, randomizer classes, annotations, extension points, and Bean Validation have explicit mapping tables.

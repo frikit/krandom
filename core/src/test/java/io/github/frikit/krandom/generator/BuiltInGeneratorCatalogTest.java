@@ -51,12 +51,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("k-random reference parity — built-in randomizers")
-class KRandomReferenceBuiltInRandomizerParityTest {
+@DisplayName("built-in generator catalog")
+class BuiltInGeneratorCatalogTest {
 
     @Test
-    @DisplayName("number randomizers map to native scalar generators")
-    void numberRandomizersMapToNativeScalarGenerators() {
+    @DisplayName("scalar generator factories produce numeric values")
+    void scalarGeneratorFactoriesProduceNumericValues() {
         assertInstanceOf(Number.class, Generators.ofNumber().generate());
         assertInstanceOf(AtomicInteger.class, Generators.ofAtomicInteger().generate());
         assertInstanceOf(AtomicLong.class, Generators.ofAtomicLong().generate());
@@ -105,8 +105,8 @@ class KRandomReferenceBuiltInRandomizerParityTest {
     }
 
     @Test
-    @DisplayName("text and regex randomizers map to native text generators")
-    void textAndRegexRandomizersMapToNativeGenerators() {
+    @DisplayName("text and regex generators produce strings")
+    void textAndRegexGeneratorsProduceStrings() {
         assertNotNull(Generators.ofString().generate());
         assertNotNull(Generators.ofChar().generate());
         assertNotNull(Generators.ofWord().generate());
@@ -119,8 +119,8 @@ class KRandomReferenceBuiltInRandomizerParityTest {
     }
 
     @Test
-    @DisplayName("time randomizers map to native standalone date-time generators")
-    void timeRandomizersMapToNativeGenerators() {
+    @DisplayName("date-time generator factories produce temporal values")
+    void dateTimeGeneratorFactoriesProduceTemporalValues() {
         assertInstanceOf(java.util.Date.class, Generators.ofUtilDate().generate());
         assertInstanceOf(java.sql.Date.class, Generators.ofSqlDate().generate());
         assertInstanceOf(java.sql.Time.class, Generators.ofSqlTime().generate());
@@ -283,8 +283,8 @@ class KRandomReferenceBuiltInRandomizerParityTest {
     }
 
     @Test
-    @DisplayName("generic forType lookup includes built-in randomizer migration targets")
-    void forTypeIncludesBuiltInMigrationTargets() {
+    @DisplayName("generic forType lookup includes built-in generator targets")
+    void forTypeIncludesBuiltInGeneratorTargets() {
         assertInstanceOf(Number.class, Generators.forType(Number.class).generate());
         assertInstanceOf(AtomicInteger.class, Generators.forType(AtomicInteger.class).generate());
         assertInstanceOf(AtomicLong.class, Generators.forType(AtomicLong.class).generate());

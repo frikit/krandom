@@ -348,10 +348,12 @@ Extension point mapping:
 | --- | --- |
 | `Randomizer<T>` | `Generator<T>` |
 | `ContextAwareRandomizer<T>` | `ContextualGenerator<T>` |
+| `RandomizationContext` / `RandomizerContext` | `GenerationContext` for contextual object-generation overrides; full root/current object path state is not copied |
 | `RandomizerRegistry` | explicit `GeneratorConfig.objectOverride(...)` registrations or `ProviderHub` registrations |
 | `RandomizerProvider` | `ProviderHub` or a generator factory method |
-| `ObjectFactory` | constructor/Objenesis object creation plus explicit type or field overrides for special construction |
+| `ObjectFactory` / `ObjenesisObjectFactory` | native constructor/Objenesis object creation plus explicit type or field overrides for special construction |
 | `ExclusionPolicy` | `objectExclude(...)`, `objectExcludeType(...)`, predicate helpers, or `@Exclude` |
+| `BeanValidationRandomizerRegistry` | native Bean Validation support in `krandom-core`; no registry module is required |
 | ServiceLoader registry discovery / `@Priority` | explicit registration order and `ConflictPolicy`; no source-compatible ServiceLoader surface is added |
 
 k-random `Randomizer<T>` maps to krandom `Generator<T>`:
@@ -417,19 +419,29 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 
 | k-random randomizer | krandom replacement |
 | --- | --- |
+| `AbstractRandomizer` / `FakerBasedRandomizer` | Implement `Generator<T>` directly or wrap an existing krandom generator; no base class is required |
+| `AbstractRangeRandomizer` | Use bounded generator constructors, facade methods, `between(...)` methods, or a small `Generator<T>` lambda for uncommon ranges |
 | `StringRandomizer` | `Generators.ofString()` / `StringGenerator` |
 | `CharacterRandomizer` | `Generators.ofChar()` / `CharGenerator` |
 | `CharSequenceRandomizer` | `Generators.ofString()` / generated `String` |
 | `StringDelegatingRandomizer` | Wrap or map any `Generator<String>` with `map(...)` |
 | `ByteRandomizer` | `Generators.ofByte()` / `ByteGenerator` |
+| `ByteRangeRandomizer` | `Generators.ofByte(min, max)` / `ByteGenerator` |
 | `ShortRandomizer` | `Generators.ofShort()` / `ShortGenerator` |
+| `ShortRangeRandomizer` | `Generators.ofShort(min, max)` / `ShortGenerator` |
 | `IntegerRandomizer` | `Generators.ofInt()` / `IntGenerator` |
+| `IntRangeRandomizer` | `Generators.ofInt(min, max)` / `IntGenerator` |
 | `LongRandomizer` | `Generators.ofLong()` / `LongGenerator` |
+| `LongRangeRandomizer` | `Generators.ofLong(min, max)` / `LongGenerator` |
 | `FloatRandomizer` | `Generators.ofFloat()` / `FloatGenerator` |
+| `FloatRangeRandomizer` | `Generators.ofFloat(min, max)` / `FloatGenerator` |
 | `DoubleRandomizer` | `Generators.ofDouble()` / `DoubleGenerator` |
+| `DoubleRangeRandomizer` | `Generators.ofDouble(min, max)` / `DoubleGenerator` |
 | `NumberRandomizer` | `Generators.ofNumber()` / `NumberGenerator` |
 | `BigIntegerRandomizer` | `Generators.ofBigInteger()` / `BigIntegerGenerator` |
+| `BigIntegerRangeRandomizer` | `Generators.ofBigInteger(min, max)` / `BigIntegerGenerator` |
 | `BigDecimalRandomizer` | `Generators.ofBigDecimal()` / `BigDecimalGenerator` |
+| `BigDecimalRangeRandomizer` | `Generators.ofBigDecimal(min, max)` / `BigDecimalGenerator` |
 | `AtomicIntegerRandomizer` | `Generators.ofAtomicInteger()` / `AtomicIntegerGenerator` |
 | `AtomicLongRandomizer` | `Generators.ofAtomicLong()` / `AtomicLongGenerator` |
 | `BooleanRandomizer` | `Generators.ofBoolean()` / `BooleanGenerator` |
@@ -443,25 +455,41 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `UriRandomizer` | `Generators.ofURI()` for `URI`, or `Generators.ofUri()` for URI strings |
 | `UrlRandomizer` | `Generators.ofURL()` for `URL`, or `Generators.ofUrl()` for URL strings |
 | `DateRandomizer` | `Generators.ofUtilDate()` / `UtilDateGenerator` |
+| `DateRangeRandomizer` | `new UtilDateGenerator(minDate, maxDate)` after converting bounds to `LocalDate`, or `objectDateRange(...)` for object fields |
 | `SqlDateRandomizer` | `Generators.ofSqlDate()` / `SqlDateGenerator` |
+| `SqlDateRangeRandomizer` | `new SqlDateGenerator(minDate, maxDate)` |
 | `SqlTimeRandomizer` | `Generators.ofSqlTime()` / `SqlTimeGenerator` |
 | `SqlTimestampRandomizer` | `Generators.ofSqlTimestamp()` / `SqlTimestampGenerator` |
 | `CalendarRandomizer` / `GregorianCalendarRandomizer` | `Generators.ofCalendar()` / `CalendarGenerator` |
 | `LocalDateRandomizer` | `Generators.ofLocalDate()` / `Generators.datetime().localDate()` |
+| `LocalDateRangeRandomizer` | `new DateGenerator(minDate, maxDate)` or `new DateGenerator().between(minDate, maxDate)` |
 | `LocalTimeRandomizer` | `Generators.ofLocalTime()` / `Generators.datetime().localTime()` |
+| `LocalTimeRangeRandomizer` | Use a custom `Generator<LocalTime>` over `toNanoOfDay()` bounds, or a field/type override for the target field |
 | `LocalDateTimeRandomizer` | `Generators.ofLocalDateTime()` / `Generators.datetime().localDateTime()` |
+| `LocalDateTimeRangeRandomizer` | `new LocalDateTimeGenerator().between(minDateTime, maxDateTime)` |
 | `InstantRandomizer` | `Generators.ofInstant()` / `Generators.datetime().instant()` |
+| `InstantRangeRandomizer` | `new InstantGenerator(minDate, maxDate)` for date-bounded instants, or a custom `Generator<Instant>` for exact instant bounds |
 | `OffsetDateTimeRandomizer` | `Generators.ofOffsetDateTime()` / `Generators.datetime().offsetDateTime()` |
+| `OffsetDateTimeRangeRandomizer` | `new OffsetDateTimeGenerator().between(minOffsetDateTime, maxOffsetDateTime)` |
 | `OffsetTimeRandomizer` | `Generators.ofOffsetTime()` / `Generators.datetime().offsetTime()` |
+| `OffsetTimeRangeRandomizer` | Use a custom `Generator<OffsetTime>` over second/nano-of-day bounds, or a field/type override for the target field |
 | `ZonedDateTimeRandomizer` | `Generators.ofZonedDateTime()` / `Generators.datetime().zonedDateTime()` |
+| `ZonedDateTimeRangeRandomizer` | `new ZonedDateTimeGenerator(minDate, maxDate)` for date-bounded values, or a custom `Generator<ZonedDateTime>` for exact zoned bounds |
 | `YearRandomizer` | `Generators.ofYear()` / `Generators.datetime().year()` |
+| `YearRangeRandomizer` | `new YearGenerator(minYear, maxYear)` |
 | `YearMonthRandomizer` | `Generators.ofYearMonth()` / `Generators.datetime().yearMonth()` |
+| `YearMonthRangeRandomizer` | `new YearMonthGenerator(minYear, maxYear)`; use a custom generator if exact month bounds matter |
 | `MonthDayRandomizer` | `Generators.ofMonthDay()` / `Generators.datetime().monthDay()` |
+| `MonthDayRangeRandomizer` | Use a custom `Generator<MonthDay>` or a field/type override for exact month-day bounds |
 | `DurationRandomizer` / `JavaDurationRandomizer` | `Generators.ofDuration()` / `Generators.datetime().duration()` |
 | `PeriodRandomizer` | `Generators.ofPeriod()` / `Generators.datetime().period()` |
 | `ZoneIdRandomizer` | `Generators.ofZoneId()` / `Generators.datetime().zoneId()` |
 | `ZoneOffsetRandomizer` | `Generators.ofZoneOffset()` / `Generators.datetime().zoneOffset()` |
 | `TimeZoneRandomizer` | `Generators.ofTimeZone()` / `Generators.datetime().timeZone()` |
+| `DayRandomizer` | `Generators.ofInt(1, 29)` |
+| `HourRandomizer` | `Generators.ofInt(0, 24)` or `new TimeGenerator().generateHour24()` |
+| `MinuteRandomizer` | `Generators.ofInt(0, 60)` or `new TimeGenerator().generateMinute()` |
+| `NanoSecondRandomizer` | `Generators.ofInt(0, 1_000_000_000)` |
 | `EmailRandomizer` | `Generators.ofEmail()` / `EmailGenerator` |
 | `FirstNameRandomizer` | `Generators.person().firstName()` / `FirstNameGenerator` |
 | `LastNameRandomizer` | `Generators.person().lastName()` / `LastNameGenerator` |
@@ -469,6 +497,7 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `PasswordRandomizer` | `Generators.ofPassword()` / `Generators.person().password()` |
 | `PhoneNumberRandomizer` | `Generators.ofPhoneNumber()` / `Generators.location().phoneNumber()` |
 | `CityRandomizer` | `Generators.ofCity()` / `Generators.location().city()` |
+| `CompanyRandomizer` | `Generators.ofCompanyName()` / `Generators.person().companyName()` |
 | `StateRandomizer` | `Generators.ofState()` / `Generators.location().state()` |
 | `CountryRandomizer` | `Generators.ofCountry()` / `Generators.location().country()` |
 | `StreetRandomizer` | `Generators.ofStreetAddress()` / `Generators.location().streetAddress()` |
@@ -482,6 +511,7 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `SentenceRandomizer` | `Generators.ofSentence()` / `Generators.text().sentence()` |
 | `ParagraphRandomizer` | `Generators.ofParagraph()` / `Generators.text().paragraph()` |
 | `RegularExpressionRandomizer` | `Generators.ofRegex(pattern)` / `RegexGenerator` |
+| `GenericStringRandomizer` | `Generators.pickFrom(List.of(words))` or any `Generator<String>` backed by your word list |
 | `LatitudeRandomizer` / `LongitudeRandomizer` | `new CoordinatesGenerator(...).generateLatitude()` / `.generateLongitude()` |
 | `CollectionRandomizer`, `ListRandomizer`, `SetRandomizer`, `QueueRandomizer` | Use `generator.generateList(size)`, `Generators.repeat(...)`, selection helpers, or object field generation |
 | `MapRandomizer`, `EnumMapRandomizer`, `EnumSetRandomizer` | Use typed object fields, generator composition, or explicit object overrides |

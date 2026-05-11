@@ -18,56 +18,56 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-@DisplayName("k-random reference parity — determinism guarantees")
-class KRandomReferenceDeterminismParityTest {
+@DisplayName("object generator determinism guarantees")
+class ObjectGeneratorDeterminismTest {
 
     @Test
-    @DisplayName("migrated nextObject examples are repeatable with the same krandom seed")
-    void migratedNextObjectExamplesAreRepeatableWithSameSeed() {
-        GeneratorConfig config = migrationConfig(42L);
+    @DisplayName("single object generation repeats with the same configured seed")
+    void singleObjectGenerationRepeatsWithSameSeed() {
+        GeneratorConfig config = deterministicConfig(42L);
 
-        MigratedOrder first = Generators.ofObject(MigratedOrder.class, config).generate();
-        MigratedOrder second = Generators.ofObject(MigratedOrder.class, config).generate();
-        MigratedOrder different = Generators.ofObject(MigratedOrder.class, migrationConfig(43L)).generate();
+        OrderFixture first = Generators.ofObject(OrderFixture.class, config).generate();
+        OrderFixture second = Generators.ofObject(OrderFixture.class, config).generate();
+        OrderFixture different = Generators.ofObject(OrderFixture.class, deterministicConfig(43L)).generate();
 
         assertEquals(first, second);
         assertNotEquals(first, different);
     }
 
     @Test
-    @DisplayName("migrated objects(Class, size) examples are repeatable with the same krandom seed")
-    void migratedBulkObjectExamplesAreRepeatableWithSameSeed() {
-        List<MigratedOrder> first = Generators.ofObject(MigratedOrder.class, migrationConfig(100L)).generateList(4);
-        List<MigratedOrder> second = Generators.ofObject(MigratedOrder.class, migrationConfig(100L)).generateList(4);
+    @DisplayName("bulk object generation repeats with the same configured seed")
+    void bulkObjectGenerationRepeatsWithSameSeed() {
+        List<OrderFixture> first = Generators.ofObject(OrderFixture.class, deterministicConfig(100L)).generateList(4);
+        List<OrderFixture> second = Generators.ofObject(OrderFixture.class, deterministicConfig(100L)).generateList(4);
 
         assertEquals(first, second);
     }
 
     @Test
-    @DisplayName("migrated field and type override examples remain repeatable")
-    void migratedOverrideExamplesRemainRepeatable() {
-        GeneratorConfig firstConfig = migrationConfig(77L).toBuilder()
-                                                          .objectOverride(MigratedOrder.class,
+    @DisplayName("field and type overrides remain repeatable")
+    void overrideExamplesRemainRepeatable() {
+        GeneratorConfig firstConfig = deterministicConfig(77L).toBuilder()
+                                                          .objectOverride(OrderFixture.class,
                                                                           "trackingCode",
                                                                           () -> "TRACK-42")
                                                           .objectOverride(ExternalId.class,
                                                                           () -> new ExternalId("external-42"))
                                                           .build();
-        GeneratorConfig secondConfig = migrationConfig(77L).toBuilder()
-                                                           .objectOverride(MigratedOrder.class,
+        GeneratorConfig secondConfig = deterministicConfig(77L).toBuilder()
+                                                           .objectOverride(OrderFixture.class,
                                                                            "trackingCode",
                                                                            () -> "TRACK-42")
                                                            .objectOverride(ExternalId.class,
                                                                            () -> new ExternalId("external-42"))
                                                            .build();
 
-        assertEquals(Generators.ofObject(MigratedOrder.class, firstConfig).generate(),
-                     Generators.ofObject(MigratedOrder.class, secondConfig).generate());
+        assertEquals(Generators.ofObject(OrderFixture.class, firstConfig).generate(),
+                     Generators.ofObject(OrderFixture.class, secondConfig).generate());
     }
 
     @Test
-    @DisplayName("migrated faker/domain generator examples are repeatable with the same krandom seed")
-    void migratedDomainGeneratorExamplesAreRepeatableWithSameSeed() {
+    @DisplayName("domain generators repeat with the same configured seed")
+    void domainGeneratorsRepeatWithSameSeed() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .seed(20260511L)
                                                 .locale(Locale.US)
@@ -79,7 +79,7 @@ class KRandomReferenceDeterminismParityTest {
         assertEquals(first, second);
     }
 
-    private static GeneratorConfig migrationConfig(long seed) {
+    private static GeneratorConfig deterministicConfig(long seed) {
         return GeneratorConfig.builder()
                               .seed(seed)
                               .stringLength(3, 8)
@@ -90,17 +90,17 @@ class KRandomReferenceDeterminismParityTest {
                               .build();
     }
 
-    record MigratedOrder(
+    record OrderFixture(
         String trackingCode,
         int quantity,
         List<Integer> scores,
         Map<String, Integer> attributes,
         Optional<String> note,
-        MigratedCustomer customer,
+        CustomerFixture customer,
         ExternalId externalId
     ) {}
 
-    record MigratedCustomer(String name, boolean active) {}
+    record CustomerFixture(String name, boolean active) {}
 
     record ExternalId(String value) {}
 }

@@ -25,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("k-random migration guide examples")
-class KRandomReferenceMigrationGuideExamplesTest {
+@DisplayName("object generation documentation examples")
+class ObjectGenerationDocumentationExamplesTest {
 
     @Test
     @DisplayName("basic object generation example stays runnable")

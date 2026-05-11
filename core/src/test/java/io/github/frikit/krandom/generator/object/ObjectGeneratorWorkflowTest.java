@@ -28,20 +28,20 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("k-random reference parity — native object generation")
-class KRandomReferenceObjectGenerationParityTest {
+@DisplayName("object generator workflows")
+class ObjectGeneratorWorkflowTest {
 
     @Test
-    @DisplayName("KRandom.nextObject(Class) maps to Generators.ofObject(Class).generate()")
-    void nextObjectWorkflowMapsToNativeObjectGenerator() {
+    @DisplayName("single object workflow uses object generation")
+    void singleObjectWorkflowUsesObjectGeneration() {
         Person person = Generators.ofObject(Person.class).generate();
 
         assertPopulatedPerson(person);
     }
 
     @Test
-    @DisplayName("KRandom.objects(Class, size) maps to generateList(size) and stream().limit(size)")
-    void objectsWorkflowMapsToNativeBulkGeneration() {
+    @DisplayName("bulk object workflow uses generateList(size) and stream().limit(size)")
+    void bulkObjectWorkflowUsesGeneratedListsAndStreams() {
         ObjectGenerator<Person> generator = Generators.ofObject(Person.class);
 
         List<Person> generatedList = generator.generateList(5);

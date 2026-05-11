@@ -47,8 +47,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("k-random reference parity — Bean Validation")
-class KRandomReferenceBeanValidationParityTest {
+@DisplayName("Bean Validation constraint generation")
+class BeanValidationConstraintGenerationTest {
 
     private static final int SAMPLES = 20;
 
@@ -74,7 +74,7 @@ class KRandomReferenceBeanValidationParityTest {
     private static String violationsFor(ConstraintFixture fixture) {
         return VALIDATOR.validate(fixture)
                         .stream()
-                        .map(KRandomReferenceBeanValidationParityTest::formatViolation)
+                        .map(BeanValidationConstraintGenerationTest::formatViolation)
                         .collect(Collectors.joining(", "));
     }
 
