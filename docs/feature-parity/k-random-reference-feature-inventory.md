@@ -12,7 +12,7 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | --- | --- | --- |
 | `core` | `io.github.krandom`, `io.github.krandom.api`, `io.github.krandom.annotation`, `io.github.krandom.randomizers.*` | `krandom-core` with `io.github.frikit.krandom.generator.*`, especially `Generators`, `GeneratorConfig`, `ObjectGenerator`, `ObjectFaker`, object annotations, and provider namespaces. |
 | `randomizers` | `io.github.krandom.randomizers.faker.*` | Native domain generators in `user`, `location`, `finance`, `network`, `identifier`, and `text` packages, usually reached through `Generators.person()`, `Generators.location()`, `Generators.finance()`, `Generators.network()`, `Generators.identifier()`, and `Generators.text()`. |
-| `bean-validation` | `io.github.krandom.validation.*` | Native object-generation constraint handling in `BeanValidationSupport`; remaining constraints are tracked as parity gaps. |
+| `bean-validation` | `io.github.krandom.validation.*` | Native object-generation constraint handling in `BeanValidationSupport`; no compatibility module is required. |
 
 ## Entry Points And Object Generation
 
@@ -118,27 +118,27 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 
 | Reference constraint handler | Native status |
 | --- | --- |
-| `AssertFalse`, `AssertTrue` | Missing |
-| `DecimalMin`, `DecimalMax` | Covered for `BigDecimal` when both bounds are present; single-bound and inclusive/exclusive semantics need parity checks |
+| `AssertFalse`, `AssertTrue` | Covered for `boolean`/`Boolean` |
+| `DecimalMin`, `DecimalMax` | Covered for `BigDecimal`, `BigInteger`, primitive/wrapper numbers, `Number`, and numeric strings, including single-bound and inclusive/exclusive handling |
 | `Email` | Covered for `String` |
-| `Future`, `FutureOrPresent` | Missing |
-| `Max`, `Min` | Covered for `int`/`Integer` and `long`/`Long`; broader numeric types need checks |
-| `Negative`, `NegativeOrZero` | Covered for `int`/`Integer` and `long`/`Long` |
-| `NotBlank` | Missing |
-| `Null` | Missing |
-| `Past`, `PastOrPresent` | Missing |
+| `Future`, `FutureOrPresent` | Covered for common Java temporal field types |
+| `Max`, `Min` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, `BigDecimal`, and numeric strings |
+| `Negative`, `NegativeOrZero` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, and `BigDecimal` |
+| `NotBlank` | Covered for `String` |
+| `Null` | Covered for reference fields |
+| `Past`, `PastOrPresent` | Covered for common Java temporal field types |
 | `Pattern` | Covered for `String` |
-| `Positive`, `PositiveOrZero` | Covered for `int`/`Integer` and `long`/`Long` |
-| `Size` | Covered for `String`; collection, map, array, and other `CharSequence` targets missing |
-| Field annotations | Covered for supported constraints |
-| Record component annotations | Covered for supported constraints |
-| Getter/method annotations | Missing |
+| `Positive`, `PositiveOrZero` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, and `BigDecimal` |
+| `Size` | Covered for `String`, arrays, lists, sets, queues, collections, and maps |
+| Field annotations | Covered |
+| Record component annotations | Covered through record accessors and backing fields |
+| Getter/method annotations | Covered for JavaBean getters, boolean getters, record accessors, and interface accessor declarations |
 
 ## Backlog Derived From Inventory
 
 1. Add migration parity tests for native object generation before changing behavior.
-2. Continue parity tests for Bean Validation.
-3. Add missing Bean Validation constraints and container `@Size`.
+2. Continue determinism parity documentation and tests.
+3. Add migration examples that compile against native krandom APIs.
 4. Add missing TypePredicates helpers and regex/varargs FieldPredicates helpers if migration ergonomics matter.
 5. Add standalone facade methods only where migration docs become awkward; prefer namespaces for domain data.
 6. Keep deterministic behavior local to krandom seeds and document that exact k-random/DataFaker output strings are not promised.

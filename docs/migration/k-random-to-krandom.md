@@ -396,7 +396,45 @@ The full mapping baseline lives in `docs/feature-parity/k-random-reference-featu
 
 ## Bean Validation
 
-k-random loads Bean Validation support through a separate registry module. krandom handles supported constraints during native object generation. The parity plan tracks remaining gaps such as temporal constraints, null/not-blank variants, collection/map/array size, and getter-method annotations.
+k-random loads Bean Validation support through `k-random-bean-validation`. krandom handles the equivalent behavior natively during object generation; keep using `krandom-core`.
+
+Supported native constraints include:
+
+| Bean Validation constraint | krandom object-generation behavior |
+| --- | --- |
+| `@AssertFalse`, `@AssertTrue` | Generates matching `boolean`/`Boolean` values |
+| `@Null` | Generates `null` for reference fields |
+| `@NotBlank` | Generates non-blank strings |
+| `@Size` | Respects string, array, list, set, queue, collection, and map sizes |
+| `@Min`, `@Max` | Respects numeric bounds for primitive/wrapper numbers, `Number`, `BigInteger`, `BigDecimal`, and numeric strings |
+| `@DecimalMin`, `@DecimalMax` | Respects decimal bounds, including single-sided and exclusive bounds |
+| `@Positive`, `@PositiveOrZero`, `@Negative`, `@NegativeOrZero` | Generates matching signed numeric values |
+| `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent` | Generates valid common Java temporal values |
+| `@Pattern` | Generates strings matching the regexp |
+| `@Email` | Generates email-like strings |
+
+Field annotations, JavaBean getters, boolean getters, record accessors, and interface accessor declarations are recognized.
+
+Example:
+
+```java
+class Account {
+    @NotBlank
+    @Size(min = 3, max = 16)
+    private String username;
+
+    @Email
+    private String email;
+
+    @Size(min = 2, max = 4)
+    private List<Integer> scores;
+
+    @Future
+    private Instant expiresAt;
+}
+
+Account account = Generators.ofObject(Account.class).generate();
+```
 
 ## Determinism
 

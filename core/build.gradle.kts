@@ -26,6 +26,7 @@ dependencies {
     runtimeOnly(libs.logback.classic)
 
     testImplementation(libs.commons.validator)
+    testImplementation(libs.hibernate.validator)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.junit.jupiter.api)

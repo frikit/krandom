@@ -247,32 +247,41 @@ Acceptance:
 
 ## Phase 6: Bean Validation Feature Parity
 
+Status: **Completed**.
+
 Goal: match reference Bean Validation behavior in native object generation.
 
-- [ ] Support or verify:
-  - [ ] `AssertFalse`
-  - [ ] `AssertTrue`
-  - [ ] `DecimalMin`
-  - [ ] `DecimalMax`
-  - [ ] `Email`
-  - [ ] `Future`
-  - [ ] `FutureOrPresent`
-  - [ ] `Max`
-  - [ ] `Min`
-  - [ ] `Negative`
-  - [ ] `NegativeOrZero`
-  - [ ] `NotBlank`
-  - [ ] `Null`
-  - [ ] `Past`
-  - [ ] `PastOrPresent`
-  - [ ] `Pattern`
-  - [ ] `Positive`
-  - [ ] `PositiveOrZero`
-  - [ ] `Size`
-- [ ] Support `@Size` for strings, collections, lists, sets, maps, and arrays.
-- [ ] Support field annotations and getter/method annotations where the reference does.
-- [ ] Add validator integration tests with Hibernate Validator.
-- [ ] Document migration from `k-random-bean-validation` to native krandom core behavior.
+- [x] Support or verify:
+  - [x] `AssertFalse`
+  - [x] `AssertTrue`
+  - [x] `DecimalMin`
+  - [x] `DecimalMax`
+  - [x] `Email`
+  - [x] `Future`
+  - [x] `FutureOrPresent`
+  - [x] `Max`
+  - [x] `Min`
+  - [x] `Negative`
+  - [x] `NegativeOrZero`
+  - [x] `NotBlank`
+  - [x] `Null`
+  - [x] `Past`
+  - [x] `PastOrPresent`
+  - [x] `Pattern`
+  - [x] `Positive`
+  - [x] `PositiveOrZero`
+  - [x] `Size`
+- [x] Support `@Size` for strings, collections, lists, sets, maps, queues, and arrays.
+- [x] Support field annotations and getter/method annotations where the reference does.
+- [x] Add validator integration tests with Hibernate Validator.
+- [x] Document migration from `k-random-bean-validation` to native krandom core behavior.
+
+Decision:
+
+- Bean Validation support remains native to `krandom-core`; no `k-random-bean-validation` compatibility module is added.
+- Getter/method constraints are resolved from JavaBean accessors, boolean accessors, record accessors, and interface accessor declarations.
+- Numeric constraints now cover primitive/wrapper byte, short, int, long, float, double, `Number`, `BigInteger`, `BigDecimal`, and numeric strings where Bean Validation supports numeric text.
+- Temporal constraints now cover common Java temporal targets used by the reference: `Date`, `Calendar`, SQL date/timestamp, `Instant`, `LocalDate`, `LocalDateTime`, `LocalTime`, `OffsetDateTime`, `OffsetTime`, `Year`, `YearMonth`, `MonthDay`, and `ZonedDateTime`.
 
 Acceptance:
 

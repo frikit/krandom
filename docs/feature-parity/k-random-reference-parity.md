@@ -32,7 +32,7 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Arrays, collections, maps, optionals | High | Partial | Local supports common typed containers. Reference has dedicated populator/randomizer classes and more exact concrete collection behavior. |
 | Built-in Java type randomizers | High | Covered | Scalar, number, atomic, Java time, legacy date/time, URI/URL, locale, UUID, text/regex, collection/object-field, and faker/domain randomizer families now have native generators or documented generator-composition replacements. |
 | Faker/DataFaker randomizers | High functional | Partial | Local has richer native providers. Reference exposes DataFaker-backed classes such as `FirstNameRandomizer`, `ZipCodeRandomizer`, `PasswordRandomizer`, `RegularExpressionRandomizer`; map those to native generators. |
-| Bean Validation | Partial | Partial | Local supports `@Size` on String, `@Email`, `@Pattern`, int/long min/max, decimal min/max, positive/negative. Reference adds `@AssertTrue`, `@AssertFalse`, `@Null`, `@NotBlank`, `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent`, collection/map/array `@Size`, method/getter annotations, and registry/service loading. |
+| Bean Validation | High | Covered through native APIs | Local object generation now supports the reference constraint families for fields and getter/method annotations, including assert true/false, null/not-blank, numeric bounds/signs, decimal bounds, past/future temporal constraints, pattern/email, and string/container/map/array `@Size`. Reference registry/service loading maps to native resolver behavior rather than a separate module. |
 | Extension SPI | Medium | Covered through native APIs and migration docs | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local maps these to `Generator<T>`, `ContextualGenerator<T>`, predicate/object overrides, `ProviderHub`, and explicit native construction decisions. |
 | Annotations | High | Covered for reference-style field rules | Local has analogous `@Exclude`, `@Randomizer`, `@RandomizerArgument`, plus `@Fake` and `@FakeRange`. Constructor arguments cover common reference-style value types. |
 | Classpath scanning | Missing by design | Migration-doc-only replacement | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local migration uses explicit `objectOverride(...)` registrations instead of scanning. |
@@ -49,7 +49,7 @@ The detailed inventory is now captured in `docs/feature-parity/k-random-referenc
 - Object graph generation already covers the major reference behaviors: records, classes, nested objects, inherited fields, arrays, collections, maps, optionals, object pool behavior, max depth, circular references, Objenesis fallback, and seed propagation.
 - Predicate and annotation parity is partial: local field predicates cover common cases, but reference regex name matching, varargs annotation matching, and most `TypePredicates` helpers need native additions or documented custom predicates.
 - Built-in randomizer capability parity is broad. Most reference randomizers map to scalar factories, object field support, or domain namespaces. The main public-facade gaps are standalone atomics, some standalone time types, and collection randomizer classes.
-- Bean Validation parity is incomplete. Local support covers common string and numeric constraints; missing areas are assert true/false, null/not-blank, past/future variants, container `@Size`, getter/method annotations, and broader numeric coverage.
+- Bean Validation parity is now implemented natively in `krandom-core`. The remaining difference is packaging: krandom does not add a `k-random-bean-validation` module or registry ServiceLoader surface.
 
 ## Phase 2 Configuration Baseline
 
@@ -130,8 +130,8 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
    - Covered by `Generator`, `ContextualGenerator`, field/type/predicate overrides, `ProviderHub`, and explicit construction decisions.
 
 4. Bean Validation:
-   - Add missing constraints: assert true/false, null, not blank, past/future variants, collection/map/array size, and method/getter annotation lookup.
-   - Keep behavior native to existing krandom modules unless a first-party optional module is justified.
+   - Covered natively in object generation for reference constraint families.
+   - Keep behavior native to existing krandom modules; no first-party compatibility module is justified.
 
 5. Reference randomizer capability coverage:
    - Covered by Phase 5 native generators, facade methods, `forType(...)` lookup, object field resolution, and migration-table replacements.
@@ -171,9 +171,9 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
 
 ### Phase 6: Bean Validation feature parity
 
-- Build the missing constraint handlers.
-- Cover both field annotations and method/getter annotations.
-- Add collection/map/array `@Size` support and validator integration tests.
+- Completed. Native constraint handlers cover assert true/false, null/not-blank, numeric and decimal bounds, sign constraints, past/future temporal constraints, pattern/email, and `@Size` for strings, arrays, collections, queues, sets, lists, and maps.
+- Field annotations, record/accessor annotations, JavaBean getters, boolean getters, and interface accessor declarations are covered.
+- Hibernate Validator integration tests prove generated objects satisfy supported constraints.
 
 ### Phase 7: Migration documentation
 

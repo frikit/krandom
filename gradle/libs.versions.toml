@@ -10,6 +10,7 @@ junit-jupiter = "6.0.3"
 junit-platform = "6.0.3"
 objenesis = "3.5"
 jakarta-validation = "3.1.1"
+hibernate-validator = "9.1.0.Final"
 jackson = "2.21.3"
 jqwik = "1.9.3"
 spring-boot = "4.0.6"
@@ -28,6 +29,7 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
 objenesis = { module = "org.objenesis:objenesis", version.ref = "objenesis" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
+hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "hibernate-validator" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
 jqwik-api = { module = "net.jqwik:jqwik-api", version.ref = "jqwik" }

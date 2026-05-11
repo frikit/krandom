@@ -906,15 +906,26 @@ final class FieldGeneratorResolver {
         return false;
     }
 
-    private boolean shouldReturnNull(AnnotatedElement element, Class<?> rawType, Generator<?> annotationGenerator, Generator<?> bvGen) {
+    private boolean shouldReturnNull(AnnotatedElement element,
+                                     Class<?> rawType,
+                                     Generator<?> annotationGenerator,
+                                     Generator<?> bvGen,
+                                     boolean hasSizeConstraint) {
         if (element == null || rawType.isPrimitive() || rawType == Optional.class) {
             return false;
         }
-        if (annotationGenerator != null || bvGen != null) {
+        if (annotationGenerator != null || bvGen != null || hasSizeConstraint) {
             return false;
         }
         double probability = config.getNullProbability();
         return probability > 0.0 && sequenceRandom.nextDouble() < probability;
+    }
+
+    private boolean shouldReturnNull(AnnotatedElement element,
+                                     Class<?> rawType,
+                                     Generator<?> annotationGenerator,
+                                     Generator<?> bvGen) {
+        return shouldReturnNull(element, rawType, annotationGenerator, bvGen, false);
     }
 
     private boolean shouldReturnEmptyOptional(AnnotatedElement element) {
@@ -1254,7 +1265,8 @@ final class FieldGeneratorResolver {
         Generator<?> annotationGenerator = element != null ? annotationRandomizerFor(element) : null;
         Generator<?> fakeAnnotationGenerator = element != null ? fakeAnnotationGeneratorFor(element, rawType) : null;
         Generator<?> fakeRangeGenerator = element != null ? fakeRangeGeneratorFor(element, rawType) : null;
-        Generator<?> bvGen = element != null ? BeanValidationSupport.constraintGeneratorFor(element, rawType) : null;
+        Generator<?> bvGen = element != null ? BeanValidationSupport.constraintGeneratorFor(element, rawType, sequenceRandom) : null;
+        boolean hasSizeConstraint = element != null && BeanValidationSupport.hasSizeConstraint(element);
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────
         String semanticKey = semanticKeyForFieldName(fieldName);
@@ -1267,6 +1279,9 @@ final class FieldGeneratorResolver {
         }
 
         // ── 3aa. Configured null/optional behavior ────────────────────────────
+        if (bvGen != null && BeanValidationSupport.hasNullConstraint(element)) {
+            return bvGen.generate();
+        }
         if (Optional.class == rawType) {
             if (shouldReturnEmptyOptional(element)) {
                 return Optional.empty();
@@ -1275,7 +1290,7 @@ final class FieldGeneratorResolver {
             Object value = resolveAndGenerate(valueType, valueType, fieldName + ".value", ownerType, currentDepth, null);
             return Optional.ofNullable(value);
         }
-        if (shouldReturnNull(element, rawType, annotationGenerator, bvGen)) {
+        if (shouldReturnNull(element, rawType, annotationGenerator, bvGen, hasSizeConstraint)) {
             return null;
         }
 
@@ -1315,15 +1330,26 @@ final class FieldGeneratorResolver {
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
         if (rawType.isArray()) {
-            return generateArray(rawType, ownerType, fieldName, currentDepth);
+            return generateArray(rawType, ownerType, fieldName, currentDepth, element);
         }
 
-        // ── 6b. List / Set ────────────────────────────────────────────────────
-        if (List.class.isAssignableFrom(rawType)
-            || Set.class.isAssignableFrom(rawType)
-            || Queue.class.isAssignableFrom(rawType)) {
+        // ── 6b. Set ───────────────────────────────────────────────────────────
+        if (Set.class.isAssignableFrom(rawType)) {
             Class<?> elem = typeArg(genericType, 0);
-            int elementCount = nextCollectionSize();
+            int elementCount = nextCollectionSize(element);
+            Set<Object> values = new LinkedHashSet<>();
+            int attempts = 0;
+            int maxAttempts = Math.max(10, elementCount * 10);
+            while (values.size() < elementCount && attempts++ < maxAttempts) {
+                values.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
+            }
+            return toSetType(rawType, new ArrayList<>(values));
+        }
+
+        // ── 6c. List / Queue ──────────────────────────────────────────────────
+        if (List.class.isAssignableFrom(rawType) || Queue.class.isAssignableFrom(rawType)) {
+            Class<?> elem = typeArg(genericType, 0);
+            int elementCount = nextCollectionSize(element);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
                 els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
@@ -1331,13 +1357,10 @@ final class FieldGeneratorResolver {
             if (List.class.isAssignableFrom(rawType)) {
                 return toListType(rawType, els);
             }
-            if (Queue.class.isAssignableFrom(rawType)) {
-                return toQueueType(rawType, els);
-            }
-            return toSetType(rawType, els);
+            return toQueueType(rawType, els);
         }
 
-        // ── 6c. Map ───────────────────────────────────────────────────────────
+        // ── 6d. Map ───────────────────────────────────────────────────────────
         if (Map.class.isAssignableFrom(rawType)) {
             Class<?> k = typeArg(genericType, 0);
             Class<?> v = typeArg(genericType, 1);
@@ -1345,8 +1368,10 @@ final class FieldGeneratorResolver {
             if (map == null) {
                 return null;
             }
-            int elementCount = nextCollectionSize();
-            for (int i = 0; i < elementCount; i++) {
+            int elementCount = nextCollectionSize(element);
+            int attempts = 0;
+            int maxAttempts = Math.max(10, elementCount * 10);
+            while (map.size() < elementCount && attempts++ < maxAttempts) {
                 Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth, null);
                 Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth, null);
                 if (key != null) {
@@ -1407,9 +1432,9 @@ final class FieldGeneratorResolver {
     }
 
     private Object generateArray(Class<?> arrayType, Class<?> ownerType,
-                                 String fieldName, int depth) {
+                                 String fieldName, int depth, AnnotatedElement element) {
         Class<?> comp = arrayType.getComponentType();
-        int elementCount = nextCollectionSize();
+        int elementCount = nextCollectionSize(element);
         Object arr = Array.newInstance(comp, elementCount);
         for (int i = 0; i < elementCount; i++) {
             Object el = resolveAndGenerate(comp, fieldName + "[]", ownerType, depth);
@@ -1422,10 +1447,11 @@ final class FieldGeneratorResolver {
         return arr;
     }
 
-    private int nextCollectionSize() {
-        int min = generatorConfig.getMinCollectionSize();
-        int max = generatorConfig.getMaxCollectionSize();
-        return min == max ? min : sequenceRandom.nextInt(min, max + 1);
+    private int nextCollectionSize(AnnotatedElement element) {
+        return BeanValidationSupport.sizeFor(element,
+                                             sequenceRandom,
+                                             generatorConfig.getMinCollectionSize(),
+                                             generatorConfig.getMaxCollectionSize());
     }
 
     /**
