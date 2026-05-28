@@ -11,7 +11,6 @@ import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
@@ -489,18 +488,17 @@ final class SemanticCoherenceAdjuster {
             return true;
         }
 
-        AnnotatedElement annotatedElement = slot.annotatedElement();
-        if (annotatedElement instanceof Field field
-            && (config.getContextualFieldPredicateOverride(field).isPresent()
-                || config.getFieldPredicateOverride(field).isPresent())) {
+        Field field = slot.annotatedElement();
+        if (config.getContextualFieldPredicateOverride(field).isPresent()
+            || config.getFieldPredicateOverride(field).isPresent()) {
             return true;
         }
 
         if (config.getSemanticMode() == ObjectGenerationSemanticMode.RELAXED) {
-            if (annotatedElement.isAnnotationPresent(Randomizer.class)) {
+            if (field.isAnnotationPresent(Randomizer.class)) {
                 return true;
             }
-            return BeanValidationSupport.constraintGeneratorFor(annotatedElement, slot.rawType()) != null;
+            return BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;
         }
         return false;
     }
@@ -930,7 +928,7 @@ final class SemanticCoherenceAdjuster {
 
         Class<?> rawType();
 
-        AnnotatedElement annotatedElement();
+        Field annotatedElement();
 
         Object getValue();
 
@@ -967,7 +965,7 @@ final class SemanticCoherenceAdjuster {
         }
 
         @Override
-        public AnnotatedElement annotatedElement() {
+        public Field annotatedElement() {
             return field;
         }
 
@@ -1026,7 +1024,7 @@ final class SemanticCoherenceAdjuster {
         }
 
         @Override
-        public AnnotatedElement annotatedElement() {
+        public Field annotatedElement() {
             return backingField;
         }
 

@@ -812,6 +812,19 @@ class SemanticCoherenceAdjusterTest {
                                                       declaredFields(ManualEmailHolder.class), true);
         assertNull(contextualTypeOverride.email);
 
+        SemanticCoherenceAdjuster predicateOverrideAdjuster =
+            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
+                                                               .override(FieldPredicates.named("fullName"), () -> "fixed")
+                                                               .build(),
+                                          new UniqueFieldTracker());
+        ManualNameHolder predicateOverride = new ManualNameHolder();
+        predicateOverride.firstName = "Ada";
+        predicateOverride.lastName = "Lovelace";
+        predicateOverride.fullName = "RAW";
+        predicateOverrideAdjuster.adjustInstance(ManualNameHolder.class, predicateOverride,
+                                                 declaredFields(ManualNameHolder.class), true);
+        assertEquals("RAW", predicateOverride.fullName);
+
         UrlOnlyHolder urlOnly = new UrlOnlyHolder();
         defaultAdjuster.adjustInstance(UrlOnlyHolder.class, urlOnly, declaredFields(UrlOnlyHolder.class), true);
         assertNull(urlOnly.url);

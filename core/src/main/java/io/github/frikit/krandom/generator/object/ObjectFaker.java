@@ -740,8 +740,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         if (valueType.isPrimitive() || valueType.isEnum() || valueType.isArray()) {
             return false;
         }
-        Package valuePackage = valueType.getPackage();
-        return valuePackage == null || !valuePackage.getName().startsWith("java.");
+        return !valueType.getPackageName().startsWith("java.");
     }
 
     private static Object defaultValue(Class<?> valueType) {

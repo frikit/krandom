@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Generates random instances of any Java class or record by introspecting its structure
@@ -279,11 +281,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
         Class<?>[] paramTypes = Arrays.stream(components)
                                       .map(RecordComponent::getType)
                                       .toArray(Class[]::new);
+        Map<String, Field> fieldsByName = Arrays.stream(recordType.getDeclaredFields())
+                                                .collect(Collectors.toMap(Field::getName, field -> field));
         Field[] backingFields = Arrays.stream(components)
-            .map(c -> {
-                try { return recordType.getDeclaredField(c.getName()); }
-                catch (NoSuchFieldException e) { throw new IllegalStateException(e); }
-            })
+            .map(c -> Objects.requireNonNull(fieldsByName.get(c.getName()),
+                                             "record backing field missing for " + recordType.getName() + "." + c.getName()))
             .toArray(Field[]::new);
         return new RecordMeta(components, backingFields, paramTypes);
     }

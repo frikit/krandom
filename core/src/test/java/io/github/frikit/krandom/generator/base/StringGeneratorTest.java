@@ -53,6 +53,20 @@ class StringGeneratorTest {
         }
 
         @Test
+        @DisplayName("letters(min, max) should honor the requested length range")
+        void lettersRangeShouldGenerateOnlyLettersWithinBounds() {
+            StringGenerator generator = StringGenerator.letters(2, 4);
+
+            for (int i = 0; i < 50; i++) {
+                String s = generator.generate();
+                assertTrue(s.length() >= 2 && s.length() <= 4,
+                           "Length should be 2-4, got: " + s.length());
+                assertTrue(s.chars().allMatch(Character::isLetter),
+                           "Should contain only letters, got: " + s);
+            }
+        }
+
+        @Test
         @DisplayName("digits() should generate only digit strings")
         void digitsShouldGenerateOnlyDigits() {
             StringGenerator generator = StringGenerator.digits();

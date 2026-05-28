@@ -80,6 +80,9 @@ class CalendarGeneratorTest {
         assertNotNull(Generators.ofCalendar(1L).generate());
         assertNotNull(Generators.ofCalendar(GeneratorConfig.defaults()).generate());
         assertNotNull(Generators.ofCalendar(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2)).generate());
+        assertNotNull(Generators.ofCalendar(LocalDate.of(2024, 1, 1),
+                                            LocalDate.of(2024, 1, 2),
+                                            GeneratorConfig.builder().seed(2L).build()).generate());
         assertInstanceOf(GregorianCalendar.class, Generators.forType(Calendar.class).generate());
         assertInstanceOf(GregorianCalendar.class, Generators.forType(GregorianCalendar.class).generate());
     }

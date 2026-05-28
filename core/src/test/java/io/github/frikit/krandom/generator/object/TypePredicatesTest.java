@@ -67,6 +67,7 @@ class TypePredicatesTest {
         assertFalse(TypePredicates.isInterface().test(Sample.class));
         assertTrue(TypePredicates.isAbstract().test(AbstractSample.class));
         assertTrue(TypePredicates.hasModifiers(Modifier.ABSTRACT).test(AbstractSample.class));
+        assertFalse(TypePredicates.hasModifiers(Modifier.FINAL).test(AbstractSample.class));
         assertTrue(TypePredicates.isEnum().test(SampleEnum.class));
         assertTrue(TypePredicates.isArray().test(String[].class));
         assertTrue(TypePredicates.isAssignableFrom(ConcreteChild.class).test(AbstractSample.class));
