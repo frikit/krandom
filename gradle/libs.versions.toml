@@ -12,7 +12,7 @@ objenesis = "3.5"
 jakarta-validation = "3.1.1"
 hibernate-validator = "9.1.0.Final"
 jackson = "2.21.3"
-jqwik = "1.9.3"
+jqwik = "1.10.1"
 spring-boot = "4.0.6"
 
 [libraries]
