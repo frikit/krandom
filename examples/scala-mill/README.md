@@ -15,5 +15,5 @@ mill -i app.test
 To use a different artifact version:
 
 ```bash
-mill -Dkrandom.version=<version> -i app.test
+mill -i -Dkrandom.version=<version> app.test
 ```

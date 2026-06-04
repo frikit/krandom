@@ -1,0 +1,34 @@
+import mill._
+import mill.scalalib._
+
+object app extends ScalaModule {
+  override def moduleDir = super.moduleDir / os.up
+
+  def krandomVersion = sys.props.getOrElse("krandom.version", sys.env.getOrElse("KRANDOM_VERSION", "1.1.0-SNAPSHOT"))
+
+  def scalaVersion = "3.3.7"
+
+  def mvnDeps = Seq(
+    mvn"io.github.frikit:krandom-core:$krandomVersion"
+  )
+
+  override def repositories = Task {
+    super.repositories() ++ Seq(
+      s"file://${sys.props("user.home")}/.m2/repository"
+    )
+  }
+
+  object test extends ScalaTests with TestModule.ScalaTest {
+    def moduleDeps = Seq(app)
+
+    def mvnDeps = Seq(
+      mvn"org.scalatest::scalatest:3.2.19"
+    )
+
+    override def repositories = Task {
+      super.repositories() ++ Seq(
+        s"file://${sys.props("user.home")}/.m2/repository"
+      )
+    }
+  }
+}
