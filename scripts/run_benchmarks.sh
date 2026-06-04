@@ -46,6 +46,35 @@ require_java() {
     "${REPO_ROOT}/scripts/require_java21.sh"
 }
 
+format_integer() {
+    local number="$1"
+    local result=""
+
+    while [ "${#number}" -gt 3 ]; do
+        result=",${number: -3}${result}"
+        number="${number:0:${#number}-3}"
+    done
+
+    printf "%s%s" "${number}" "${result}"
+}
+
+format_score() {
+    local lines="$1"
+    local benchmark="$2"
+    local batch_size="${3:-}"
+    local score
+
+    if [ -n "${batch_size}" ]; then
+        score=$(awk -v benchmark="${benchmark}" -v batch_size="${batch_size}" \
+            '$1 == benchmark && $2 == batch_size { printf "%d", $6; found = 1; exit } END { if (!found) exit 1 }' <<< "${lines}")
+    else
+        score=$(awk -v benchmark="${benchmark}" \
+            '$1 == benchmark { printf "%d", $6; found = 1; exit } END { if (!found) exit 1 }' <<< "${lines}")
+    fi
+
+    format_integer "${score}"
+}
+
 # ── Run benchmarks ────────────────────────────────────────────────────────────
 
 require_java
@@ -111,15 +140,15 @@ BULK_LINES=$(grep "^CompetitorBulk" "${RAW_OUTPUT}" 2>/dev/null || true)
 
 if [ -n "$SCALAR_LINES" ]; then
     # Parse scalar results
-    krandom_fn=$(echo "$SCALAR_LINES" | grep "krandomFirstName" | awk '{printf "%'\''d", $5}')
-    datafaker_fn=$(echo "$SCALAR_LINES" | grep "dataFakerFirstName" | awk '{printf "%'\''d", $5}')
-    javafaker_fn=$(echo "$SCALAR_LINES" | grep "javaFakerFirstName" | awk '{printf "%'\''d", $5}')
-    krandom_em=$(echo "$SCALAR_LINES" | grep "krandomEmail" | awk '{printf "%'\''d", $5}')
-    datafaker_em=$(echo "$SCALAR_LINES" | grep "dataFakerEmail" | awk '{printf "%'\''d", $5}')
-    javafaker_em=$(echo "$SCALAR_LINES" | grep "javaFakerEmail" | awk '{printf "%'\''d", $5}')
-    krandom_sa=$(echo "$SCALAR_LINES" | grep "krandomStreetAddress" | awk '{printf "%'\''d", $5}')
-    datafaker_sa=$(echo "$SCALAR_LINES" | grep "dataFakerStreetAddress" | awk '{printf "%'\''d", $5}')
-    javafaker_sa=$(echo "$SCALAR_LINES" | grep "javaFakerStreetAddress" | awk '{printf "%'\''d", $5}')
+    krandom_fn=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.krandomFirstName")
+    datafaker_fn=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.dataFakerFirstName")
+    javafaker_fn=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.javaFakerFirstName")
+    krandom_em=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.krandomEmail")
+    datafaker_em=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.dataFakerEmail")
+    javafaker_em=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.javaFakerEmail")
+    krandom_sa=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.krandomStreetAddress")
+    datafaker_sa=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.dataFakerStreetAddress")
+    javafaker_sa=$(format_score "$SCALAR_LINES" "CompetitorScalarBenchmark.javaFakerStreetAddress")
 
     cat >> "${DASHBOARD}" << SCALAR
 ## Competitor Comparison: Scalar Generation
@@ -136,10 +165,10 @@ SCALAR
 fi
 
 if [ -n "$OBJECT_LINES" ]; then
-    krandom_obj=$(echo "$OBJECT_LINES" | grep "krandomObject" | awk '{printf "%'\''d", $5}')
-    datafaker_obj=$(echo "$OBJECT_LINES" | grep "dataFakerObject" | awk '{printf "%'\''d", $5}')
-    easyrandom_obj=$(echo "$OBJECT_LINES" | grep "easyRandomObject" | awk '{printf "%'\''d", $5}')
-    instancio_obj=$(echo "$OBJECT_LINES" | grep "instancioObject" | awk '{printf "%'\''d", $5}')
+    krandom_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.krandomObject")
+    datafaker_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.dataFakerObject")
+    easyrandom_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.easyRandomObject")
+    instancio_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.instancioObject")
 
     cat >> "${DASHBOARD}" << OBJECT
 ## Competitor Comparison: Object Population
@@ -154,14 +183,14 @@ OBJECT
 fi
 
 if [ -n "$BULK_LINES" ]; then
-    krandom_100=$(echo "$BULK_LINES" | grep "krandomBulk" | grep -w "100" | awk '{printf "%'\''d", $5}')
-    datafaker_100=$(echo "$BULK_LINES" | grep "dataFakerBulk" | grep -w "100" | awk '{printf "%'\''d", $5}')
-    easyrandom_100=$(echo "$BULK_LINES" | grep "easyRandomBulk" | grep -w "100" | awk '{printf "%'\''d", $5}')
-    instancio_100=$(echo "$BULK_LINES" | grep "instancioBulk" | grep -w "100" | awk '{printf "%'\''d", $5}')
-    krandom_1k=$(echo "$BULK_LINES" | grep "krandomBulk" | grep -w "1000" | awk '{printf "%'\''d", $5}')
-    datafaker_1k=$(echo "$BULK_LINES" | grep "dataFakerBulk" | grep -w "1000" | awk '{printf "%'\''d", $5}')
-    easyrandom_1k=$(echo "$BULK_LINES" | grep "easyRandomBulk" | grep -w "1000" | awk '{printf "%'\''d", $5}')
-    instancio_1k=$(echo "$BULK_LINES" | grep "instancioBulk" | grep -w "1000" | awk '{printf "%'\''d", $5}')
+    krandom_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.krandomBulk" "100")
+    datafaker_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.dataFakerBulk" "100")
+    easyrandom_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.easyRandomBulk" "100")
+    instancio_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.instancioBulk" "100")
+    krandom_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.krandomBulk" "1000")
+    datafaker_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.dataFakerBulk" "1000")
+    easyrandom_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.easyRandomBulk" "1000")
+    instancio_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.instancioBulk" "1000")
 
     cat >> "${DASHBOARD}" << BULK
 ## Competitor Comparison: Bulk Generation
