@@ -9,7 +9,10 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
@@ -537,6 +540,21 @@ class CreditCardGeneratorTest {
             assertTrue(expiryDate.isBefore(fiveYearsLater),
                        "Expiration date should be within 5 years: " + expiry);
         }
+    }
+
+    @Test
+    @DisplayName("expiration date uses configured clock")
+    void expirationDateUsesConfiguredClock() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        GeneratorConfig config = GeneratorConfig.builder().seed(4L).clock(clock).build();
+        CreditCardGenerator gen = new CreditCardGenerator(config, CardType.VISA);
+
+        LocalDate expiryDate = LocalDate.parse("01/" + gen.getExpirationDate(), DateTimeFormatter.ofPattern("dd/MM/yy"));
+        LocalDate firstAllowed = LocalDate.now(clock).plusMonths(1).withDayOfMonth(1);
+        LocalDate lastAllowed = LocalDate.now(clock).plusMonths(60).withDayOfMonth(1);
+
+        assertFalse(expiryDate.isBefore(firstAllowed));
+        assertFalse(expiryDate.isAfter(lastAllowed));
     }
 
     // ── CardInfo tests ────────────────────────────────────────────────────────

@@ -506,7 +506,7 @@ final class FieldGeneratorResolver {
                                                                                           Random seedSource) {
         Map<String, Map<Class<?>, Generator<?>>> generators = new HashMap<>();
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(config.getClock());
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "createdat", today.minusYears(10), today);
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "updatedat", today.minusYears(10), today);
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "birthdate", today.minusYears(90), today.minusYears(18));
@@ -1265,7 +1265,10 @@ final class FieldGeneratorResolver {
         Generator<?> annotationGenerator = element != null ? annotationRandomizerFor(element) : null;
         Generator<?> fakeAnnotationGenerator = element != null ? fakeAnnotationGeneratorFor(element, rawType) : null;
         Generator<?> fakeRangeGenerator = element != null ? fakeRangeGeneratorFor(element, rawType) : null;
-        Generator<?> bvGen = element != null ? BeanValidationSupport.constraintGeneratorFor(element, rawType, sequenceRandom) : null;
+        Generator<?> bvGen = element != null
+                              ? BeanValidationSupport.constraintGeneratorFor(
+                                  element, rawType, sequenceRandom, generatorConfig.getClock())
+                              : null;
         boolean hasSizeConstraint = element != null && BeanValidationSupport.hasSizeConstraint(element);
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────

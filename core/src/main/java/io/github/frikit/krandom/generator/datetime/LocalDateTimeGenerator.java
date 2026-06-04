@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -51,6 +52,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
     private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.of(MAX_YEAR, 12, 31, 23, 59, 59);
 
     private final Random    random;
+    private final Clock     clock;
     private final LocalDate rangeMin;
     private final LocalDate rangeMax;
 
@@ -70,6 +72,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
     public LocalDateTimeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.clock = config.getClock();
         this.rangeMin = null;
         this.rangeMax = null;
     }
@@ -83,6 +86,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
      */
     public LocalDateTimeGenerator(LocalDate min, LocalDate max) {
         this.random = new SecureRandom();
+        this.clock = GeneratorConfig.defaults().getClock();
         this.rangeMin = min;
         this.rangeMax = max;
     }
@@ -194,7 +198,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
         if (maxDaysAhead <= 0) {
             throw new IllegalArgumentException("maxDaysAhead must be > 0, got: " + maxDaysAhead);
         }
-        LocalDateTime start = LocalDateTime.now().plusSeconds(1);
+        LocalDateTime start = LocalDateTime.now(clock).plusSeconds(1);
         LocalDateTime end = start.plusDays(maxDaysAhead);
         return between(start, end);
     }
@@ -218,7 +222,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime> {
         if (maxDaysBack <= 0) {
             throw new IllegalArgumentException("maxDaysBack must be > 0, got: " + maxDaysBack);
         }
-        LocalDateTime end = LocalDateTime.now().minusSeconds(1);
+        LocalDateTime end = LocalDateTime.now(clock).minusSeconds(1);
         LocalDateTime start = end.minusDays(maxDaysBack);
         return between(start, end);
     }

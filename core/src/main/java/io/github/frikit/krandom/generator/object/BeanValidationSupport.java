@@ -35,6 +35,7 @@ import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,12 +45,12 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Year;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Random;
+import java.util.TimeZone;
 
 /**
  * Derives a constrained {@link Generator} from Bean Validation annotations on a field.
@@ -74,11 +75,19 @@ final class BeanValidationSupport {
      * @return a constraint-respecting generator, or {@code null}
      */
     static Generator<?> constraintGeneratorFor(AnnotatedElement element, Class<?> rawType) {
-        return constraintGeneratorFor(element, rawType, new Random());
+        return constraintGeneratorFor(element, rawType, new Random(), Clock.systemDefaultZone());
     }
 
     static Generator<?> constraintGeneratorFor(AnnotatedElement element, Class<?> rawType, Random random) {
+        return constraintGeneratorFor(element, rawType, random, Clock.systemDefaultZone());
+    }
+
+    static Generator<?> constraintGeneratorFor(AnnotatedElement element,
+                                               Class<?> rawType,
+                                               Random random,
+                                               Clock clock) {
         Objects.requireNonNull(random, "random must not be null");
+        Objects.requireNonNull(clock, "clock must not be null");
 
         if (element == null) {
             return null;
@@ -115,7 +124,7 @@ final class BeanValidationSupport {
         if (numericGenerator != null) {
             return numericGenerator;
         }
-        return temporalGeneratorFor(element, rawType, random);
+        return temporalGeneratorFor(element, rawType, random, clock);
     }
 
     static boolean hasNullConstraint(AnnotatedElement element) {
@@ -231,51 +240,57 @@ final class BeanValidationSupport {
         return null;
     }
 
-    private static Generator<?> temporalGeneratorFor(AnnotatedElement element, Class<?> rawType, Random random) {
+    private static Generator<?> temporalGeneratorFor(AnnotatedElement element,
+                                                     Class<?> rawType,
+                                                     Random random,
+                                                     Clock clock) {
         TemporalConstraint constraint = temporalConstraintFor(element);
         if (constraint == null) {
             return null;
         }
-        return () -> temporalValueFor(rawType, constraint, random);
+        return () -> temporalValueFor(rawType, constraint, random, clock);
     }
 
-    private static Object temporalValueFor(Class<?> rawType, TemporalConstraint constraint, Random random) {
+    private static Object temporalValueFor(Class<?> rawType,
+                                           TemporalConstraint constraint,
+                                           Random random,
+                                           Clock clock) {
         long seconds = random.nextLong(60, 3650L * 24L * 60L * 60L + 1L);
-        Instant instantNow = Instant.now();
+        Instant instantNow = clock.instant();
         Instant instant = constraint.future() ? instantNow.plusSeconds(seconds) : instantNow.minusSeconds(seconds);
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         LocalDate date = constraint.future()
                          ? today.plusDays(random.nextLong(1, 3651))
                          : today.minusDays(random.nextLong(1, 3651));
-        LocalDateTime dateTimeNow = LocalDateTime.now();
+        LocalDateTime dateTimeNow = LocalDateTime.now(clock);
         LocalDateTime dateTime = constraint.future()
                                  ? dateTimeNow.plusSeconds(seconds)
                                  : dateTimeNow.minusSeconds(seconds);
         if (rawType == Instant.class) return instant;
         if (rawType == LocalDate.class) return date;
         if (rawType == LocalDateTime.class) return dateTime;
-        if (rawType == ZonedDateTime.class) return ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
-        if (rawType == OffsetDateTime.class) return OffsetDateTime.ofInstant(instant, ZoneId.systemDefault());
+        if (rawType == ZonedDateTime.class) return ZonedDateTime.ofInstant(instant, clock.getZone());
+        if (rawType == OffsetDateTime.class) return OffsetDateTime.ofInstant(instant, clock.getZone());
         if (rawType == Date.class) return Date.from(instant);
         if (rawType == java.sql.Date.class) return java.sql.Date.valueOf(date);
         if (rawType == Timestamp.class) return Timestamp.from(instant);
         if (rawType == Calendar.class) {
-            Calendar calendar = Calendar.getInstance();
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
             calendar.setTime(Date.from(instant));
             return calendar;
         }
-        if (rawType == LocalTime.class) return localTimeFor(constraint);
-        if (rawType == OffsetTime.class) return localTimeFor(constraint).atOffset(OffsetDateTime.now().getOffset());
-        if (rawType == Year.class) return constraint.future() ? Year.now().plusYears(1) : Year.now().minusYears(1);
-        if (rawType == YearMonth.class) return constraint.future() ? YearMonth.now().plusMonths(1) : YearMonth.now().minusMonths(1);
+        if (rawType == LocalTime.class) return localTimeFor(constraint, clock);
+        if (rawType == OffsetTime.class) return localTimeFor(constraint, clock).atOffset(OffsetDateTime.now(clock).getOffset());
+        if (rawType == Year.class) return constraint.future() ? Year.now(clock).plusYears(1) : Year.now(clock).minusYears(1);
+        if (rawType == YearMonth.class) return constraint.future() ? YearMonth.now(clock).plusMonths(1) : YearMonth.now(clock).minusMonths(1);
         if (rawType == MonthDay.class) {
             return MonthDay.from(date);
         }
         return null;
     }
 
-    private static LocalTime localTimeFor(TemporalConstraint constraint) {
-        LocalTime now = LocalTime.now();
+    private static LocalTime localTimeFor(TemporalConstraint constraint, Clock clock) {
+        LocalTime now = LocalTime.now(clock);
         return constraint.future() ? now.plusNanos(1) : now.minusNanos(1);
     }
 

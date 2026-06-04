@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -93,6 +94,7 @@ public final class CardExpirationGenerator implements Generator<String> {
     private final GeneratorConfig config;
     private final Random          random;
     private final DateRange       dateRange;
+    private final Clock           clock;
 
     /**
      * Creates a generator that produces future-only expiration dates with default configuration.
@@ -132,6 +134,7 @@ public final class CardExpirationGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.dateRange = Objects.requireNonNull(dateRange, "dateRange must not be null");
         this.random = config.createRandom();
+        this.clock = config.getClock();
     }
 
     /**
@@ -255,7 +258,7 @@ public final class CardExpirationGenerator implements Generator<String> {
      * @return a YearMonth instance
      */
     private YearMonth generateYearMonth(DateRange dateRange) {
-        YearMonth now = YearMonth.now();
+        YearMonth now = YearMonth.now(clock);
 
         return switch (dateRange) {
             case PAST -> {

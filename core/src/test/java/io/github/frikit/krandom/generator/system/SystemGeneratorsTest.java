@@ -10,6 +10,9 @@ import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,7 +49,10 @@ class SystemGeneratorsTest {
     @Test
     @DisplayName("exception payload generator provides standard keys")
     void exceptionPayload() {
-        ExceptionPayloadGenerator generator = new ExceptionPayloadGenerator(GeneratorConfig.builder().seed(9L).build());
+        Instant instant = Instant.parse("2026-06-04T12:00:00Z");
+        Clock clock = Clock.fixed(instant, ZoneId.of("UTC"));
+        ExceptionPayloadGenerator generator =
+            new ExceptionPayloadGenerator(GeneratorConfig.builder().seed(9L).clock(clock).build());
         Map<String, String> payload = generator.generate();
         assertEquals(4, payload.size());
         assertTrue(payload.containsKey("type"));
@@ -54,6 +60,7 @@ class SystemGeneratorsTest {
         assertTrue(payload.containsKey("code"));
         assertTrue(payload.containsKey("timestamp"));
         assertTrue(payload.get("code").matches("ERR-\\d{4}"));
+        assertEquals(instant.toString(), payload.get("timestamp"));
         assertThrows(NullPointerException.class, () -> new ExceptionPayloadGenerator(null));
     }
 

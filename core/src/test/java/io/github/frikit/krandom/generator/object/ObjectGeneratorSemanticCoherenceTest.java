@@ -13,9 +13,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
@@ -124,22 +126,29 @@ class ObjectGeneratorSemanticCoherenceTest {
     @Test
     @DisplayName("birthDate and age stay aligned")
     void birthDateAndAgeStayAligned() {
-        AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class).generate();
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        GeneratorConfig config = GeneratorConfig.builder().seed(53L).clock(clock).build();
+        AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class, config).generate();
 
-        assertEquals((int) ChronoUnit.YEARS.between(value.dateOfBirth, LocalDate.now()), value.ageYears);
+        assertEquals((int) ChronoUnit.YEARS.between(value.dateOfBirth, LocalDate.now(clock)), value.ageYears);
     }
 
     @Test
     @DisplayName("birthDate is rebuilt from overridden age when age is protected")
     void birthDateIsRebuiltFromProtectedAge() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .generatorConfig(GeneratorConfig.builder()
+                                                                                            .clock(Clock.fixed(
+                                                                                                Instant.parse("2026-06-04T12:00:00Z"),
+                                                                                                ZoneId.of("UTC")))
+                                                                                            .build())
                                                             .override(AgeCoherenceHolder.class, "ageYears", () -> 42)
                                                             .build();
 
         AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class, config).generate();
 
         assertEquals(42, value.ageYears);
-        assertEquals(42, (int) ChronoUnit.YEARS.between(value.dateOfBirth, LocalDate.now()));
+        assertEquals(LocalDate.of(1984, 6, 4), value.dateOfBirth);
     }
 
     @Test

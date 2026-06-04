@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
@@ -58,6 +61,7 @@ class GeneratorConfigTest {
         assertTrue(c.getObjectContextualTypeOverride(String.class).isEmpty());
         assertTrue(c.getObjectContextualFieldOverride(RootObjectConfigFixture.class, "name").isEmpty());
         assertEquals(Locale.US, c.getLocale());
+        assertEquals(ZoneId.systemDefault(), c.getClock().getZone());
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
     }
 
@@ -368,6 +372,22 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("clock() stores the clock")
+    void clockStored() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T10:15:30Z"), ZoneId.of("UTC"));
+        GeneratorConfig config = GeneratorConfig.builder().clock(clock).build();
+
+        assertSame(clock, config.getClock());
+    }
+
+    @Test
+    @DisplayName("clock(null) throws NullPointerException")
+    void clockNullThrows() {
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().clock(null));
+    }
+
+    @Test
     @DisplayName("registryContext() stores the context")
     void registryContextStored() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
@@ -386,6 +406,7 @@ class GeneratorConfigTest {
     @DisplayName("toBuilder() copies all fields and allows deriving new config")
     void toBuilderCopiesAndDerives() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T10:15:30Z"), ZoneId.of("Europe/London"));
         AtomicInteger calls = new AtomicInteger();
         GeneratorConfig base = GeneratorConfig.builder()
                                               .seed("my-seed")
@@ -406,6 +427,7 @@ class GeneratorConfigTest {
                                               .objectOverride(RootObjectConfigFixture.class, "name", () -> "field-value")
                                               .objectExcludeField("password")
                                               .locale(Locale.FRANCE)
+                                              .clock(clock)
                                               .randomFactory(() -> {
                                                   calls.incrementAndGet();
                                                   return new Random(5L);
@@ -437,6 +459,7 @@ class GeneratorConfigTest {
         assertEquals("field-value",
                      derived.getObjectFieldOverride(RootObjectConfigFixture.class, "name").orElseThrow().generate());
         assertEquals(Locale.JAPAN, derived.getLocale());
+        assertSame(clock, derived.getClock());
         assertSame(context, derived.getRegistryContext());
         assertTrue(derived.getRandomFactory().isPresent());
 

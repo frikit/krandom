@@ -9,8 +9,11 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -73,6 +76,19 @@ class CardExpirationGeneratorTest {
 
         CardExpirationGenerator anyGen = new CardExpirationGenerator(config, DateRange.ANY);
         assertEquals(DateRange.ANY, anyGen.getDateRange());
+    }
+
+    @Test
+    void testConfiguredClockControlsRelativeDateRange() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        GeneratorConfig config = GeneratorConfig.builder().seed(42L).clock(clock).build();
+        CardExpirationGenerator gen = new CardExpirationGenerator(config, DateRange.FUTURE);
+
+        YearMonth now = YearMonth.now(clock);
+        YearMonth expiryDate = parseExpiryDate(gen.generate());
+
+        assertTrue(expiryDate.isAfter(now));
+        assertFalse(expiryDate.isAfter(now.plusMonths(60)));
     }
 
     @Test

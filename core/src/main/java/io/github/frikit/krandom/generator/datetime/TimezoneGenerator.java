@@ -8,7 +8,7 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
@@ -39,6 +39,7 @@ public final class TimezoneGenerator implements Generator<String> {
 
     private final Locale locale;
     private final Random random;
+    private final Clock  clock;
 
     public TimezoneGenerator() {
         this(GeneratorConfig.defaults());
@@ -52,6 +53,7 @@ public final class TimezoneGenerator implements Generator<String> {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.locale = effective.getLocale();
         this.random = effective.createRandom();
+        this.clock = effective.getClock();
     }
 
     @Override
@@ -80,7 +82,7 @@ public final class TimezoneGenerator implements Generator<String> {
      */
     public String generateOffset() {
         ZoneId zoneId = ZoneId.of(generate());
-        return zoneId.getRules().getOffset(Instant.now()).getId();
+        return zoneId.getRules().getOffset(clock.instant()).getId();
     }
 
     /**

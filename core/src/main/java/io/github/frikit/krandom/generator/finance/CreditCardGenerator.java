@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -103,6 +104,7 @@ public final class CreditCardGenerator implements Generator<String> {
     private final GeneratorConfig config;
     private final Random          random;
     private final CardType        cardType;
+    private final Clock           clock;
 
     /**
      * Creates a generator that produces random card types using default configuration.
@@ -142,6 +144,7 @@ public final class CreditCardGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.cardType = Objects.requireNonNull(cardType, "cardType must not be null");
         this.random = config.createRandom();
+        this.clock = config.getClock();
     }
 
     /**
@@ -344,7 +347,7 @@ public final class CreditCardGenerator implements Generator<String> {
      * @return an expiration date string in MM/YY format; never {@code null}
      */
     public String getExpirationDate() {
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(clock);
         int monthsToAdd = 1 + random.nextInt(60); // 1-60 months (up to 5 years)
         LocalDate expiryDate = now.plusMonths(monthsToAdd);
         return expiryDate.format(EXPIRY_FORMATTER);

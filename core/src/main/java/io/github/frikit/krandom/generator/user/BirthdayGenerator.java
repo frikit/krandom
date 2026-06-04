@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -73,6 +74,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
     private final int    minAge;
     private final int    maxAge;
     private final Locale locale;
+    private final Clock  clock;
 
     // ── No-locale constructors (backward compatible) ───────────────────────────
 
@@ -157,7 +159,8 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
         this(minAge,
              maxAge,
              Objects.requireNonNull(config, "config must not be null").createRandom(),
-             config.getLocale());
+             config.getLocale(),
+             config.getClock());
     }
 
     // ── Locale-aware constructors ─────────────────────────────────────────────
@@ -247,10 +250,11 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
         this(minAge,
              maxAge,
              seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom(),
-             locale);
+             locale,
+             GeneratorConfig.defaults().getClock());
     }
 
-    private BirthdayGenerator(int minAge, int maxAge, Random random, Locale locale) {
+    private BirthdayGenerator(int minAge, int maxAge, Random random, Locale locale, Clock clock) {
         if (minAge < 0) {
             throw new IllegalArgumentException("minAge must be >= 0, got: " + minAge);
         }
@@ -262,6 +266,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
         this.maxAge = maxAge;
         this.locale = locale;
         this.random = Objects.requireNonNull(random, "random must not be null");
+        this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
 
     // ── Generation ────────────────────────────────────────────────────────────
@@ -274,7 +279,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      */
     @Override
     public LocalDate generate() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         int age = minAge + random.nextInt(maxAge - minAge + 1);
         LocalDate latest = today.minusYears(age);
         LocalDate earliest = today.minusYears((long) age + 1).plusDays(1);

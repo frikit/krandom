@@ -9,7 +9,10 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -130,8 +133,9 @@ class LocalDateTimeGeneratorTest {
     @Test
     @DisplayName("future/past helpers obey relative ranges")
     void futurePast() {
-        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(94L).build());
-        LocalDateTime now = LocalDateTime.now();
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(94L).clock(clock).build());
+        LocalDateTime now = LocalDateTime.now(clock);
         assertTrue(gen.future().isAfter(now));
         assertTrue(gen.past().isBefore(now));
         assertThrows(IllegalArgumentException.class, () -> gen.future(0));

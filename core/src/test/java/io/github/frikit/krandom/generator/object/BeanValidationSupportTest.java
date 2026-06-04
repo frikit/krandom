@@ -22,6 +22,8 @@ import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.MonthDay;
@@ -29,6 +31,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Random;
 
@@ -36,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("BeanValidationSupport")
@@ -151,6 +155,26 @@ class BeanValidationSupportTest {
         assertNotNull(generatorFor("pastYearMonth", YearMonth.class).generate());
         assertNotNull(generatorFor("futureMonthDay", MonthDay.class).generate());
         assertNull(generatorFor("futureUnsupported", Object.class).generate());
+    }
+
+    @Test
+    @DisplayName("temporal constraints use the configured clock")
+    void temporalConstraintsUseClock() throws Exception {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("Asia/Tokyo"));
+        ZonedDateTime zoned = (ZonedDateTime) BeanValidationSupport.constraintGeneratorFor(
+            field("futureZonedDateTime"), ZonedDateTime.class, new Random(1L), clock).generate();
+        OffsetTime offsetTime = (OffsetTime) BeanValidationSupport.constraintGeneratorFor(
+            field("futureOffsetTime"), OffsetTime.class, new Random(1L), clock).generate();
+        Year futureYear = (Year) BeanValidationSupport.constraintGeneratorFor(
+            field("futureYear"), Year.class, new Random(1L), clock).generate();
+
+        assertEquals(clock.getZone(), zoned.getZone());
+        assertTrue(zoned.toInstant().isAfter(clock.instant()));
+        assertEquals(OffsetDateTime.now(clock).getOffset(), offsetTime.getOffset());
+        assertEquals(Year.now(clock).plusYears(1), futureYear);
+        assertThrows(NullPointerException.class,
+                     () -> BeanValidationSupport.constraintGeneratorFor(
+                         field("futureYear"), Year.class, new Random(1L), null));
     }
 
     @Test

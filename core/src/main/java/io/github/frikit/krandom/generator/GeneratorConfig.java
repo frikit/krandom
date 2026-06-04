@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,6 +85,7 @@ public final class GeneratorConfig {
     private final Locale       locale;
     private final Supplier<Random> randomFactory;
     private final DataRegistryContext registryContext;
+    private final Clock        clock;
 
     private GeneratorConfig(Builder b) {
         this.seed = effectiveSeed(b.numericSeed, b.stringSeed);
@@ -116,6 +118,7 @@ public final class GeneratorConfig {
         this.locale = b.locale;
         this.randomFactory = b.randomFactory;
         this.registryContext = b.registryContext;
+        this.clock = b.clock;
     }
 
     /**
@@ -349,6 +352,13 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Clock used by relative temporal generators. Default: {@link Clock#systemDefaultZone()}.
+     */
+    public Clock getClock() {
+        return clock;
+    }
+
+    /**
      * Optional random-factory override configured by callers.
      */
     public Optional<Supplier<Random>> getRandomFactory() {
@@ -464,6 +474,7 @@ public final class GeneratorConfig {
         private Locale            locale            = Locale.US;
         private Supplier<Random>  randomFactory;
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
+        private Clock             clock             = Clock.systemDefaultZone();
 
         private Builder() {
         }
@@ -498,6 +509,7 @@ public final class GeneratorConfig {
             this.locale = source.locale;
             this.randomFactory = source.randomFactory;
             this.registryContext = source.registryContext;
+            this.clock = source.clock;
         }
 
         /**
@@ -772,6 +784,14 @@ public final class GeneratorConfig {
          */
         public Builder locale(Locale locale) {
             this.locale = Objects.requireNonNull(locale, "locale");
+            return this;
+        }
+
+        /**
+         * Clock used by relative temporal generators and semantic object generation.
+         */
+        public Builder clock(Clock clock) {
+            this.clock = Objects.requireNonNull(clock, "clock");
             return this;
         }
 

@@ -9,7 +9,10 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -93,6 +96,23 @@ class BirthdayGeneratorTest {
         BirthdayGenerator gen2 = new BirthdayGenerator(AgeType.ADULT, config);
 
         assertEquals(gen1.generateList(20), gen2.generateList(20));
+    }
+
+    @Test
+    @DisplayName("config constructor uses configured clock for age windows")
+    void configConstructorUsesClock() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        GeneratorConfig config = GeneratorConfig.builder().seed(13L).clock(clock).build();
+        BirthdayGenerator gen = new BirthdayGenerator(25, 25, config);
+
+        LocalDate today = LocalDate.now(clock);
+        LocalDate earliest = today.minusYears(26).plusDays(1);
+        LocalDate latest = today.minusYears(25);
+        for (int i = 0; i < 20; i++) {
+            LocalDate birthday = gen.generate();
+            assertTrue(!birthday.isBefore(earliest) && !birthday.isAfter(latest),
+                       "birthday should use fixed clock age window: " + birthday);
+        }
     }
 
     @Test

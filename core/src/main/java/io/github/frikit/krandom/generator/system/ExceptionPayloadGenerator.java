@@ -9,7 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,6 +33,7 @@ public final class ExceptionPayloadGenerator implements Generator<Map<String, St
     };
 
     private final Random random;
+    private final Clock  clock;
 
     public ExceptionPayloadGenerator() {
         this(GeneratorConfig.defaults());
@@ -41,6 +42,7 @@ public final class ExceptionPayloadGenerator implements Generator<Map<String, St
     public ExceptionPayloadGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.clock = config.getClock();
     }
 
     @Override
@@ -52,7 +54,7 @@ public final class ExceptionPayloadGenerator implements Generator<Map<String, St
         payload.put("type", type);
         payload.put("message", message);
         payload.put("code", "ERR-" + code);
-        payload.put("timestamp", Instant.now().toString());
+        payload.put("timestamp", clock.instant().toString());
         return payload;
     }
 }

@@ -9,6 +9,8 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Locale;
 
@@ -50,6 +52,15 @@ class TimezoneGeneratorTest {
     void offset() {
         String offset = new TimezoneGenerator(Locale.UK).generateOffset();
         assertTrue(offset.equals("Z") || offset.matches("[+-]\\d{2}:\\d{2}"));
+    }
+
+    @Test
+    @DisplayName("generateOffset uses configured clock instant")
+    void offsetUsesConfiguredClock() {
+        Clock summer = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.UK).clock(summer).build();
+
+        assertEquals("+01:00", new TimezoneGenerator(config).generateOffset());
     }
 
     @Test

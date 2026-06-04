@@ -8,6 +8,8 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashSet;
@@ -328,6 +330,16 @@ class DateGeneratorTest {
     }
 
     @Test
+    void testTimestampUsesConfiguredClockZone() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("America/Los_Angeles"));
+        GeneratorConfig config = GeneratorConfig.builder().seed(556L).clock(clock).build();
+        LocalDate generatedDate = new DateGenerator(config).generate();
+
+        long expected = generatedDate.atStartOfDay(clock.getZone()).toEpochSecond();
+        assertEquals(expected, new DateGenerator(config).generateTimestamp());
+    }
+
+    @Test
     void testYearRangeCoversEntireRange() {
         DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(123L).build());
         int min = Integer.MAX_VALUE;
@@ -371,8 +383,9 @@ class DateGeneratorTest {
 
     @Test
     void testFutureProducesFutureDates() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(101L).build());
-        LocalDate today = LocalDate.now();
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(101L).clock(clock).build());
+        LocalDate today = LocalDate.now(clock);
         for (int i = 0; i < 50; i++) {
             assertTrue(generator.future().isAfter(today));
         }
@@ -380,8 +393,9 @@ class DateGeneratorTest {
 
     @Test
     void testFutureWithMaxDaysRange() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(202L).build());
-        LocalDate start = LocalDate.now().plusDays(1);
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(202L).clock(clock).build());
+        LocalDate start = LocalDate.now(clock).plusDays(1);
         LocalDate end = start.plusDays(30);
         for (int i = 0; i < 50; i++) {
             LocalDate date = generator.future(30);
@@ -392,8 +406,9 @@ class DateGeneratorTest {
 
     @Test
     void testPastProducesPastDates() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(303L).build());
-        LocalDate today = LocalDate.now();
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(303L).clock(clock).build());
+        LocalDate today = LocalDate.now(clock);
         for (int i = 0; i < 50; i++) {
             assertTrue(generator.past().isBefore(today));
         }
@@ -401,8 +416,9 @@ class DateGeneratorTest {
 
     @Test
     void testPastWithMaxDaysRange() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(404L).build());
-        LocalDate end = LocalDate.now().minusDays(1);
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(404L).clock(clock).build());
+        LocalDate end = LocalDate.now(clock).minusDays(1);
         LocalDate start = end.minusDays(30);
         for (int i = 0; i < 50; i++) {
             LocalDate date = generator.past(30);

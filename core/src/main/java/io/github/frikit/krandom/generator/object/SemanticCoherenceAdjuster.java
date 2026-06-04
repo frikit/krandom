@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.net.URI;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -365,13 +366,13 @@ final class SemanticCoherenceAdjuster {
                 return;
             }
             if (age != null && canAssign(birthDateSlot, allowOverwriteExisting)) {
-                birthDateSlot.setValue(fromLocalDate(LocalDate.now().minusYears(age), birthDateSlot.rawType()));
+                birthDateSlot.setValue(fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
             }
             return;
         }
 
         if (age != null && canAssign(birthDateSlot, allowOverwriteExisting)) {
-            birthDateSlot.setValue(fromLocalDate(LocalDate.now().minusYears(age), birthDateSlot.rawType()));
+            birthDateSlot.setValue(fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
         }
     }
 
@@ -832,8 +833,13 @@ final class SemanticCoherenceAdjuster {
         return left.compareTo(right) < 0;
     }
 
-    private static int ageFromBirthDate(LocalDate birthDate) {
-        return Math.toIntExact(ChronoUnit.YEARS.between(birthDate, LocalDate.now()));
+    private int ageFromBirthDate(LocalDate birthDate) {
+        return Math.toIntExact(ChronoUnit.YEARS.between(birthDate, today()));
+    }
+
+    private LocalDate today() {
+        Clock clock = config.getGeneratorConfig().getClock();
+        return LocalDate.now(clock);
     }
 
     private static Object fromAge(int age, Class<?> rawType) {

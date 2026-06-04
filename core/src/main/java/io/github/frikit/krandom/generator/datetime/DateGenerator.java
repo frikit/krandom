@@ -9,10 +9,10 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
@@ -79,6 +79,7 @@ public final class DateGenerator implements Generator<LocalDate> {
     private static final int MAX_YEAR = 2100;
     private final GeneratorConfig config;
     private final Random          random;
+    private final Clock           clock;
     /**
      * Non-null only when constructed via the bounded constructor.
      */
@@ -101,6 +102,7 @@ public final class DateGenerator implements Generator<LocalDate> {
     public DateGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.clock = config.getClock();
         this.rangeMin = null;
         this.rangeMax = null;
     }
@@ -115,6 +117,7 @@ public final class DateGenerator implements Generator<LocalDate> {
     public DateGenerator(LocalDate min, LocalDate max) {
         this.config = GeneratorConfig.defaults();
         this.random = new SecureRandom();
+        this.clock = this.config.getClock();
         this.rangeMin = min;
         this.rangeMax = max;
     }
@@ -268,7 +271,7 @@ public final class DateGenerator implements Generator<LocalDate> {
         LocalDate date = generate();
         // Use midnight for the timestamp
         LocalDateTime dateTime = date.atStartOfDay();
-        return dateTime.atZone(ZoneId.systemDefault()).toEpochSecond();
+        return dateTime.atZone(clock.getZone()).toEpochSecond();
     }
 
     /**
@@ -318,7 +321,7 @@ public final class DateGenerator implements Generator<LocalDate> {
         if (maxDaysAhead <= 0) {
             throw new IllegalArgumentException("maxDaysAhead must be > 0, got: " + maxDaysAhead);
         }
-        LocalDate start = LocalDate.now().plusDays(1);
+        LocalDate start = LocalDate.now(clock).plusDays(1);
         LocalDate end = start.plusDays(maxDaysAhead);
         return between(start, end);
     }
@@ -343,7 +346,7 @@ public final class DateGenerator implements Generator<LocalDate> {
         if (maxDaysBack <= 0) {
             throw new IllegalArgumentException("maxDaysBack must be > 0, got: " + maxDaysBack);
         }
-        LocalDate end = LocalDate.now().minusDays(1);
+        LocalDate end = LocalDate.now(clock).minusDays(1);
         LocalDate start = end.minusDays(maxDaysBack);
         return between(start, end);
     }
