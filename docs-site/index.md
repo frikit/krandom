@@ -30,5 +30,5 @@ This site is focused on the Java side only.
 
 - Java is the source-of-truth implementation.
 - Consumer integrations build directly on `core`.
-- Planned release integrations include Jackson, Spring Boot, Kotest, jqwik, and the Kotlin DSL.
+- Release integrations include Jackson, Spring Boot, Kotest, and the Kotlin DSL.
 - Java remains the primary API, with Kotlin and property-testing modules focused on consumer ergonomics.

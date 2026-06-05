@@ -2,7 +2,7 @@
 
 This folder contains test-based examples for each supported language/build-tool combination.
 
-Core examples verify direct `io.github.frikit:krandom-core` consumption. Integration examples verify the published Jackson, Spring Boot, jqwik, Kotest, and Kotlin DSL artifacts from clean consumer builds.
+Core examples verify direct `io.github.frikit:krandom-core` consumption. Integration examples verify the published Jackson, Spring Boot, Kotest, and Kotlin DSL artifacts from clean consumer builds.
 
 Default example version: `1.1.0-SNAPSHOT`
 

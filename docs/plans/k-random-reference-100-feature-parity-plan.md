@@ -36,7 +36,7 @@ Exact byte-for-byte generated fake data is out of scope unless promoted by a sep
   - `core/src/main/java/io/github/frikit/krandom/generator`
   - `core/src/main/java/io/github/frikit/krandom/generator/object`
   - `core/src/main/java/io/github/frikit/krandom/generator/provider`
-  - integration modules under `jackson`, `spring-boot-starter`, `jqwik-extensions`, `kotest-extensions`, and `kotlin-dsl`
+  - integration modules under `jackson`, `spring-boot-starter`, `kotest-extensions`, and `kotlin-dsl`
 
 ## Delivery Rules
 

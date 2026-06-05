@@ -32,7 +32,6 @@ step "Publish krandom modules ${VERSION} to Maven local"
     :jackson:publishToMavenLocal \
     :spring-boot-starter:publishToMavenLocal \
     :kotest-extensions:publishToMavenLocal \
-    :jqwik-extensions:publishToMavenLocal \
     :kotlin-dsl:publishToMavenLocal \
     -PreleaseVersion="${VERSION}" \
     --no-daemon \

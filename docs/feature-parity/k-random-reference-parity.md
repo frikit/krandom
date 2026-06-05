@@ -136,7 +136,7 @@ The reference codebase is an Easy Random fork, not primarily a fake-data catalog
 ## Local Strengths Versus Reference
 
 - Much broader first-party fake-data catalog: names, locations, finance, identifiers, commerce, network, text, files, schema output, provider hub, and semantic object generation.
-- More integrations: Jackson, Spring Boot starter, jqwik, Kotest, Kotlin DSL, examples, docs site, benchmarks.
+- More integrations: Jackson, Spring Boot starter, Kotest, Kotlin DSL, examples, docs site, benchmarks.
 - Richer object faker authoring API with named profiles, include/ignore paths, post-processing, semantic modes, unique field tracking, and provider-backed semantic fields.
 - Stronger release/test infrastructure in this repository, including coverage gates and docs verification scripts.
 

@@ -70,7 +70,6 @@ subprojects {
             "jackson" to "Jackson serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
             "spring-boot-starter" to "Spring Boot 4.x auto-configuration for kRandom — registers GeneratorConfig, ProviderHub, and KrandomObjectFakerFactory beans driven by krandom.* application properties.",
             "kotest-extensions" to "Kotest Arb adapters for kRandom generators, enabling property-based testing on top of krandom-core.",
-            "jqwik-extensions" to "jqwik Arbitrary adapters for kRandom generators, enabling property-based testing on top of krandom-core.",
             "kotlin-dsl" to "Kotlin DSL builder for kRandom object-generation rules — fluent fixture configuration on top of krandom-core."
         )
         val moduleNames = mapOf(
@@ -78,7 +77,6 @@ subprojects {
             "jackson" to "io.github.frikit.krandom.jackson",
             "spring-boot-starter" to "io.github.frikit.krandom.spring.boot.starter",
             "kotest-extensions" to "io.github.frikit.krandom.kotest",
-            "jqwik-extensions" to "io.github.frikit.krandom.jqwik",
             "kotlin-dsl" to "io.github.frikit.krandom.kotlin.dsl"
         )
 

@@ -13,7 +13,6 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 | `jackson` | Jackson integration on top of `core` |
 | `spring-boot-starter` | Spring Boot 4.x auto-configuration for `core` (requires Spring Boot 4.x on the consumer) |
 | `kotest-extensions` | Kotest `Arb` adapters for property-based tests |
-| `jqwik-extensions` | jqwik `Arbitrary` adapters for property-based tests |
 | `kotlin-dsl` | Kotlin DSL for object generation rules |
 | `benchmarks` | JMH and macro-profile workloads, including competitor comparisons |
 | `examples/` | Consumer examples for Java, Kotlin, and Scala build-tool combinations using `core` directly |
@@ -24,7 +23,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 
 - Java-first architecture.
 - `core` is the only behavior source of truth.
-- `jackson`, `spring-boot-starter`, `kotest-extensions`, `jqwik-extensions`, and `kotlin-dsl` are published integration modules.
+- `jackson`, `spring-boot-starter`, `kotest-extensions`, and `kotlin-dsl` are published integration modules.
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs tests and coverage on Java 21.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
@@ -123,7 +122,6 @@ Public artifacts on Maven Central (group `io.github.frikit`):
 | `io.github.frikit:krandom-jackson` | `io.github.frikit.krandom.jackson` |
 | `io.github.frikit:krandom-spring-boot-starter` | `io.github.frikit.krandom.spring.boot.starter` |
 | `io.github.frikit:krandom-kotest-extensions` | `io.github.frikit.krandom.kotest` |
-| `io.github.frikit:krandom-jqwik-extensions` | `io.github.frikit.krandom.jqwik` |
 | `io.github.frikit:krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` |
 
 The current version is `1.0.0`. Latest version is always shown on

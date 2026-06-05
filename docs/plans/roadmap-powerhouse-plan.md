@@ -46,7 +46,6 @@ Goal: polish the public API for discoverability and correctness in real-world us
 Goal: make krandom the natural choice for JVM test infrastructure.
 
 - [x] **3.1 Kotest Arb adapter** — new module `kotest-extensions` bridging `Generator<T>` to Kotest `Arb<T>` for property-based testing.
-- [x] **3.2 jqwik Arbitrary adapter** — new module `jqwik-extensions` bridging `Generator<T>` to jqwik `Arbitrary<T>`.
 - [x] **3.3 Annotation-driven generation** — `@Fake("email")`, `@FakeRange(min=1, max=100)` on fields as declarative alternative to `ObjectFaker.ruleFor()`. Process annotations in `ObjectGenerator`.
 - [x] **3.4 Spring Boot test slice** — `@KrandomTest` annotation in `spring-boot-starter` that loads only krandom auto-configuration beans. Enables lightweight test fixtures without full application context.
 

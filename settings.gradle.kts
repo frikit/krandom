@@ -26,7 +26,6 @@ include(":core")
 include(":jackson")
 include(":spring-boot-starter")
 include(":kotest-extensions")
-include(":jqwik-extensions")
 include(":kotlin-dsl")
 include(":benchmarks")
 

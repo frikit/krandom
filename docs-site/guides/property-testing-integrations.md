@@ -6,7 +6,7 @@ permalink: /guides/property-testing-integrations/
 
 # Property Testing Integrations
 
-Use the property-testing modules when kRandom generators should feed Kotest or jqwik test data.
+Use the property-testing module when kRandom generators should feed Kotest test data.
 
 ## Kotest
 
@@ -47,34 +47,4 @@ val userArb = krandomObjectArb<UserDto>(
 )
 ```
 
-## jqwik
-
-Dependency:
-
-```kotlin
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testImplementation("io.github.frikit:krandom-jqwik-extensions:1.0.0")
-}
-```
-
-Usage:
-
-```java
-import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.jqwik.KrandomArbitraries;
-import net.jqwik.api.Arbitrary;
-
-Arbitrary<String> emails = KrandomArbitraries.fromGenerator(Generators.ofEmail());
-```
-
-For generated objects:
-
-```java
-Arbitrary<UserDto> users = KrandomArbitraries.forType(UserDto.class);
-```
-
-Both modules depend on `krandom-core` transitively.
+The module depends on `krandom-core` transitively.

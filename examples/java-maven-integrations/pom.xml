@@ -11,7 +11,6 @@
         <krandom.version>1.1.0-SNAPSHOT</krandom.version>
         <spring.boot.version>4.0.6</spring.boot.version>
         <junit.version>6.0.3</junit.version>
-        <jqwik.version>1.9.3</jqwik.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -33,21 +32,9 @@
             <version>${krandom.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.github.frikit</groupId>
-            <artifactId>krandom-jqwik-extensions</artifactId>
-            <version>${krandom.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${spring.boot.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.jqwik</groupId>
-            <artifactId>jqwik</artifactId>
-            <version>${jqwik.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

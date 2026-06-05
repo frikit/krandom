@@ -4,7 +4,6 @@ This example verifies that published integration artifacts are consumable from a
 
 - `io.github.frikit:krandom-jackson`
 - `io.github.frikit:krandom-spring-boot-starter`
-- `io.github.frikit:krandom-jqwik-extensions`
 
 It is executed by `../../scripts/verify_examples_local.sh` after the repository modules are published to Maven local.
 

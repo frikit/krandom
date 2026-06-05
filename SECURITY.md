@@ -40,7 +40,7 @@ In scope:
 
 - Code in this repository's published modules (`krandom-core`,
   `krandom-jackson`, `krandom-spring-boot-starter`, `krandom-kotest-extensions`,
-  `krandom-jqwik-extensions`, `krandom-kotlin-dsl`).
+  `krandom-kotlin-dsl`).
 - Build and release tooling that ships in the repository
   (`scripts/`, `.github/workflows/`).
 

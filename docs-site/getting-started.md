@@ -19,7 +19,6 @@ Public coordinates on Maven Central:
 - `io.github.frikit:krandom-jackson`
 - `io.github.frikit:krandom-spring-boot-starter`
 - `io.github.frikit:krandom-kotest-extensions`
-- `io.github.frikit:krandom-jqwik-extensions`
 - `io.github.frikit:krandom-kotlin-dsl`
 
 The current version is `1.0.0`. Latest version is always shown on
@@ -38,7 +37,6 @@ dependencies {
     implementation("io.github.frikit:krandom-jackson:1.0.0")
     implementation("io.github.frikit:krandom-spring-boot-starter:1.0.0")
     testImplementation("io.github.frikit:krandom-kotest-extensions:1.0.0")
-    testImplementation("io.github.frikit:krandom-jqwik-extensions:1.0.0")
     testImplementation("io.github.frikit:krandom-kotlin-dsl:1.0.0")
 }
 ```

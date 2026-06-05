@@ -95,7 +95,6 @@ jobs:
             jackson/build/libs/*.jar
             spring-boot-starter/build/libs/*.jar
             kotest-extensions/build/libs/*.jar
-            jqwik-extensions/build/libs/*.jar
             kotlin-dsl/build/libs/*.jar
           body: |
             Published modules:
@@ -103,7 +102,6 @@ jobs:
             - io.github.frikit:krandom-jackson:${{ env.VERSION }}
             - io.github.frikit:krandom-spring-boot-starter:${{ env.VERSION }}
             - io.github.frikit:krandom-kotest-extensions:${{ env.VERSION }}
-            - io.github.frikit:krandom-jqwik-extensions:${{ env.VERSION }}
             - io.github.frikit:krandom-kotlin-dsl:${{ env.VERSION }}
 
             ### Maven Central

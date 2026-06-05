@@ -12,7 +12,6 @@ objenesis = "3.5"
 jakarta-validation = "3.1.1"
 hibernate-validator = "9.1.0.Final"
 jackson = "2.21.3"
-jqwik = "1.10.1"
 spring-boot = "4.0.6"
 
 [libraries]
@@ -31,8 +30,6 @@ objenesis = { module = "org.objenesis:objenesis", version.ref = "objenesis" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
 hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "hibernate-validator" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
-jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
-jqwik-api = { module = "net.jqwik:jqwik-api", version.ref = "jqwik" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
