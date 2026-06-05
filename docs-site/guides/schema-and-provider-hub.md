@@ -82,6 +82,8 @@ schema.writeXml(out, 1000);
 schema.writeSqlInserts(out, "public.orders", 1000);
 ```
 
+For stream-based output, `writeTo(OutputStream, OutputFormat, count)` writes UTF-8 and flushes its adapter writer without closing the caller-owned stream. The `Writer` overload also leaves ownership with the caller.
+
 `FieldLookup` is now an extensible token registry rather than a fixed table, and `Field` exposes the same registration flow:
 
 ```java

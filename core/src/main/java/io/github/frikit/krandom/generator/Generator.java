@@ -42,6 +42,11 @@ import java.util.stream.Stream;
 public interface Generator<T> {
 
     /**
+     * Default retry cap for {@link #filter(Predicate)}.
+     */
+    int DEFAULT_FILTER_MAX_ATTEMPTS = 10_000;
+
+    /**
      * Produce one random value.
      */
     T generate();
@@ -139,16 +144,37 @@ public interface Generator<T> {
 
     /**
      * Return a new {@code Generator<T>} that keeps generating until the produced value
-     * satisfies {@code predicate}. Use with care — an unsatisfiable predicate loops forever.
+     * satisfies {@code predicate}.
+     *
+     * <p>The returned generator fails after {@link #DEFAULT_FILTER_MAX_ATTEMPTS} attempts
+     * to avoid hanging forever when the predicate cannot be satisfied.
      */
     default Generator<T> filter(Predicate<? super T> predicate) {
+        return filter(predicate, DEFAULT_FILTER_MAX_ATTEMPTS);
+    }
+
+    /**
+     * Return a new {@code Generator<T>} that keeps generating until the produced value
+     * satisfies {@code predicate}, failing after {@code maxAttempts}.
+     *
+     * @param predicate predicate a generated value must satisfy
+     * @param maxAttempts maximum generated values to try before failing
+     * @throws IllegalArgumentException if {@code maxAttempts} is not positive
+     */
+    default Generator<T> filter(Predicate<? super T> predicate, int maxAttempts) {
         Objects.requireNonNull(predicate, "predicate must not be null");
+        if (maxAttempts <= 0) {
+            throw new IllegalArgumentException("maxAttempts must be > 0, was: " + maxAttempts);
+        }
         return () -> {
-            T value;
-            do {
-                value = generate();
-            } while (!predicate.test(value));
-            return value;
+            for (int attempt = 0; attempt < maxAttempts; attempt++) {
+                T value = generate();
+                if (predicate.test(value)) {
+                    return value;
+                }
+            }
+            throw new IllegalStateException(
+                "Unable to generate a value matching the predicate after " + maxAttempts + " attempts");
         };
     }
 }

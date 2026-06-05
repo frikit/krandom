@@ -719,6 +719,37 @@ class BaseTypeGeneratorsTest {
         }
 
         @Test
+        @DisplayName("Generator.filter can use a caller supplied retry cap")
+        void generatorFilterWithCustomMaxAttempts() {
+            int[] next = {0};
+            Generator<Integer> source = () -> ++next[0];
+            Generator<Integer> thirdAttempt = source.filter(n -> n == 3, 3);
+
+            assertEquals(3, thirdAttempt.generate());
+        }
+
+        @Test
+        @DisplayName("Generator.filter fails after bounded attempts")
+        void generatorFilterFailsAfterBoundedAttempts() {
+            Generator<Integer> source = () -> 1;
+
+            IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> source.filter(n -> n > 1, 2).generate());
+
+            assertTrue(ex.getMessage().contains("2 attempts"));
+        }
+
+        @Test
+        @DisplayName("Generator.filter rejects invalid arguments")
+        void generatorFilterRejectsInvalidArguments() {
+            assertThrows(NullPointerException.class,
+                         () -> Generators.ofInt().filter((java.util.function.Predicate<Integer>) null));
+            assertThrows(IllegalArgumentException.class,
+                         () -> Generators.ofInt().filter(n -> true, 0));
+        }
+
+        @Test
         @DisplayName("generateList with count=0 returns empty list")
         void generateListZero() {
             List<Integer> list = Generators.ofInt().generateList(0);

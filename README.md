@@ -85,6 +85,8 @@ krandom's `ObjectGenerator` trades throughput for semantic realism — every fie
 
 Unseeded generators use the JDK's fast `Random` by default, which is appropriate for fixture and fake-data generation. Use `GeneratorConfig.builder().seed(...)` when output must be reproducible, `GeneratorConfig.builder().random(myRandom)` when a client owns the PRNG instance, or `GeneratorConfig.builder().secureRandom()` when a consumer explicitly needs a `SecureRandom` source.
 
+`Generator.filter(predicate)` is bounded by default and throws if no generated value matches after 10,000 attempts. Use `filter(predicate, maxAttempts)` when a domain-specific predicate is intentionally rare.
+
 ## Object semantic aliases
 
 `ObjectGenerator` resolves common field names such as `firstName`, `email`, and `createdAt` through semantic providers. Projects with their own vocabulary can extend that lookup with a `SemanticFieldRegistry`:
@@ -115,12 +117,14 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 Public artifacts on Maven Central (group `io.github.frikit`):
 
-- `io.github.frikit:krandom-core`
-- `io.github.frikit:krandom-jackson`
-- `io.github.frikit:krandom-spring-boot-starter`
-- `io.github.frikit:krandom-kotest-extensions`
-- `io.github.frikit:krandom-jqwik-extensions`
-- `io.github.frikit:krandom-kotlin-dsl`
+| Artifact | Automatic module name |
+|:---|:---|
+| `io.github.frikit:krandom-core` | `io.github.frikit.krandom` |
+| `io.github.frikit:krandom-jackson` | `io.github.frikit.krandom.jackson` |
+| `io.github.frikit:krandom-spring-boot-starter` | `io.github.frikit.krandom.spring.boot.starter` |
+| `io.github.frikit:krandom-kotest-extensions` | `io.github.frikit.krandom.kotest` |
+| `io.github.frikit:krandom-jqwik-extensions` | `io.github.frikit.krandom.jqwik` |
+| `io.github.frikit:krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` |
 
 The current version is `1.0.0`. Latest version is always shown on
 [GitHub Releases](https://github.com/frikit/krandom/releases) and

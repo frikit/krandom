@@ -322,9 +322,9 @@ public final class Schema implements Generator<Map<String, Object>> {
     public void writeTo(OutputStream out, OutputFormat format, int count, String tableName) throws IOException {
         Objects.requireNonNull(out, "out must not be null");
         Objects.requireNonNull(format, "format must not be null");
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
-            writeTo(writer, format, count, tableName);
-        }
+        Writer writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+        writeTo(writer, format, count, tableName);
+        writer.flush();
     }
 
     /**

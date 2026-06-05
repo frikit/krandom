@@ -85,6 +85,18 @@ class SchemaWriteToTest {
     }
 
     @Test
+    @DisplayName("writeTo OutputStream leaves caller-owned stream open")
+    void writeToOutputStreamDoesNotCloseCallerStream() throws IOException {
+        CloseTrackingOutputStream out = new CloseTrackingOutputStream();
+
+        schema.writeTo(out, OutputFormat.JSONL, 1);
+
+        assertFalse(out.closed);
+        out.write('x');
+        assertTrue(out.toString(StandardCharsets.UTF_8).endsWith("x"));
+    }
+
+    @Test
     @DisplayName("writeTo Writer with all formats")
     void writeToWriter() throws IOException {
         for (OutputFormat format : OutputFormat.values()) {
@@ -93,6 +105,18 @@ class SchemaWriteToTest {
             String result = writer.toString();
             assertFalse(result.isEmpty(), "Output should not be empty for format: " + format);
         }
+    }
+
+    @Test
+    @DisplayName("writeTo Writer leaves caller-owned writer open")
+    void writeToWriterDoesNotCloseCallerWriter() throws IOException {
+        CloseTrackingWriter writer = new CloseTrackingWriter();
+
+        schema.writeTo(writer, OutputFormat.CSV, 1, "users");
+
+        assertFalse(writer.closed);
+        writer.write("tail");
+        assertTrue(writer.toString().endsWith("tail"));
     }
 
     @Test
@@ -135,6 +159,28 @@ class SchemaWriteToTest {
         @Override
         public String value() {
             throw new IllegalStateException("accessor failure");
+        }
+    }
+
+    private static final class CloseTrackingOutputStream extends ByteArrayOutputStream {
+
+        private boolean closed;
+
+        @Override
+        public void close() throws IOException {
+            closed = true;
+            super.close();
+        }
+    }
+
+    private static final class CloseTrackingWriter extends StringWriter {
+
+        private boolean closed;
+
+        @Override
+        public void close() throws IOException {
+            closed = true;
+            super.close();
         }
     }
 }

@@ -1,6 +1,7 @@
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.signing.SigningExtension
 
 plugins {
@@ -72,8 +73,22 @@ subprojects {
             "jqwik-extensions" to "jqwik Arbitrary adapters for kRandom generators, enabling property-based testing on top of krandom-core.",
             "kotlin-dsl" to "Kotlin DSL builder for kRandom object-generation rules — fluent fixture configuration on top of krandom-core."
         )
+        val moduleNames = mapOf(
+            "core" to "io.github.frikit.krandom",
+            "jackson" to "io.github.frikit.krandom.jackson",
+            "spring-boot-starter" to "io.github.frikit.krandom.spring.boot.starter",
+            "kotest-extensions" to "io.github.frikit.krandom.kotest",
+            "jqwik-extensions" to "io.github.frikit.krandom.jqwik",
+            "kotlin-dsl" to "io.github.frikit.krandom.kotlin.dsl"
+        )
 
         if (componentName != null && project.name in moduleDescriptions.keys) {
+            tasks.named<Jar>("jar").configure {
+                manifest {
+                    attributes("Automatic-Module-Name" to moduleNames.getValue(project.name))
+                }
+            }
+
             configure<PublishingExtension> {
                 publications {
                     if (findByName("mavenJava") == null) {
