@@ -40,6 +40,8 @@ jobs:
   examples:
     name: Examples (Local Maven Snapshot)
     runs-on: ubuntu-latest
+    env:
+      MILL_VERSION: '1.1.6'
 
     steps:
       - uses: actions/checkout@v5
@@ -54,7 +56,19 @@ jobs:
       - name: Install Scala example tools
         uses: coursier/setup-action@v3
         with:
-          apps: sbt mill
+          apps: sbt
+
+      - name: Install Mill
+        run: |
+          mkdir -p "${HOME}/.local/bin"
+          curl -fsSL "https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${MILL_VERSION}/mill-dist-${MILL_VERSION}-mill.sh" -o "${HOME}/.local/bin/mill"
+          chmod +x "${HOME}/.local/bin/mill"
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+
+      - name: Show Scala tool versions
+        run: |
+          sbt --version
+          mill --version
 
       - name: Make gradle wrappers executable
         run: chmod +x gradlew examples/java-gradle/gradlew examples/kotlin-gradle/gradlew
