@@ -916,7 +916,7 @@ _None - awaiting next feature selection_
 | **Seeding**          |
 | Constructor seed     | ✅ `new Chance(42)`                | ✅ Yes   | ✓ DONE   | Most generators support |
 | String seed          | ✅ `new Chance('my-seed')`         | ✅ Yes   | ✓ DONE   | `GeneratorConfig.Builder.seed(String)` + `deriveSeed(String)` |
-| Custom RNG           | ✅ `new Chance(Math.random)`       | ✅ Yes   | ✓ DONE   | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)` |
+| Custom RNG           | ✅ `new Chance(Math.random)`       | ✅ Yes   | ✓ DONE   | `GeneratorConfig.Builder.random(Random)` or `randomFactory(Supplier<? extends Random>)` |
 | Deterministic output | ✅ Same seed = same sequence       | ✅ Yes   | ✓ DONE   | Full reproducibility                                          |
 | Re-seed              | ✅ `chance.seed(42)`               | ✅ Yes   | ✓ DONE   | `Generator.reseed(long)` / `reseed(String)` + `Seedable`      |
 | Unseeded mode        | ✅ `new Chance()` uses Math.random | ✅ Yes   | ✓ DONE   | Default behavior        |

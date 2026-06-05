@@ -35,7 +35,7 @@ public final class NationalIdGenerator implements Generator<String> {
     private final NationalIdProvider provider;
 
     /**
-     * Creates a generator for the given locale using a secure random source.
+     * Creates a generator for the given locale using the default fast PRNG.
      *
      * @param locale the locale identifying which national ID format to use; must not be {@code null}
      * @throws UnsupportedOperationException if no provider is registered for the locale

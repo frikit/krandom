@@ -383,7 +383,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | **Seeding**              |
 | Class-level seed         | ✅ `Faker.seed(n)`                         | No (intentional) | SKIP | Global mutable seed conflicts with instance-scoped `GeneratorConfig.seed(...)` |
 | Instance-level seed      | ✅ `faker.seed_instance(n)`                | ✅ Yes     | ✓ DONE   | Most generators support       |
-| Custom random            | ✅ `generator` param                       | ✅ Yes     | ✓ DONE   | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)` |
+| Custom random            | ✅ `generator` param                       | ✅ Yes     | ✓ DONE   | `GeneratorConfig.Builder.random(Random)` or `randomFactory(Supplier<? extends Random>)` |
 | **String Utilities**     |
 | Numerify                 | ✅ `numerify("###-####")`                  | ✅ Yes     | ✓ DONE   | `TextFormatProvider.numerify` |
 | Letterify                | ✅ `lexify("???-???")`                     | ✅ Yes     | ✓ DONE   | `TextFormatProvider.lexify`   |

@@ -65,7 +65,7 @@ public final class MoneyGenerator implements Generator<String> {
     // ── Constructors ──────────────────────────────────────────────────────────
 
     /**
-     * Creates a generator for {@link Locale#US} (USD) using a secure random source.
+     * Creates a generator for {@link Locale#US} (USD) using the default fast PRNG.
      */
     public MoneyGenerator() {
         this(GeneratorConfig.defaults());
@@ -84,7 +84,7 @@ public final class MoneyGenerator implements Generator<String> {
     }
 
     /**
-     * Creates a generator for the given locale using a secure random source.
+     * Creates a generator for the given locale using the default fast PRNG.
      *
      * @param locale the locale for currency formatting; must not be {@code null}
      * @throws NullPointerException if {@code locale} is {@code null}

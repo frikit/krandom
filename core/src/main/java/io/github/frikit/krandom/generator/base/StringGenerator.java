@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -59,7 +58,7 @@ public final class StringGenerator implements Generator<String> {
             this.random = new Random(b.seed);
         } else {
             this.charGenerator = b.charGenerator;
-            this.random = new SecureRandom();
+            this.random = new Random();
         }
         this.minLength = b.minLength;
         this.maxLength = b.maxLength;

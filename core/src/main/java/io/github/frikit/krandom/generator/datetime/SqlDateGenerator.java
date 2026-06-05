@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Random;
@@ -37,7 +36,7 @@ public final class SqlDateGenerator implements Generator<java.sql.Date> {
     }
 
     public SqlDateGenerator(LocalDate min, LocalDate max) {
-        this.random = new SecureRandom();
+        this.random = new Random();
         this.min = Objects.requireNonNull(min, "min must not be null");
         this.max = Objects.requireNonNull(max, "max must not be null");
         if (this.min.isAfter(this.max)) {

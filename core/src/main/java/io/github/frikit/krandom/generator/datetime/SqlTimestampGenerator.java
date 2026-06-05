@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -39,7 +38,7 @@ public final class SqlTimestampGenerator implements Generator<Timestamp> {
     }
 
     public SqlTimestampGenerator(LocalDate min, LocalDate max) {
-        this.random = new SecureRandom();
+        this.random = new Random();
         this.min = Objects.requireNonNull(min, "min must not be null");
         this.max = Objects.requireNonNull(max, "max must not be null");
         if (this.min.isAfter(this.max)) {

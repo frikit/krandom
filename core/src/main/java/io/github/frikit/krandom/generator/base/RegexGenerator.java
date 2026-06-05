@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -115,14 +114,14 @@ public final class RegexGenerator implements Generator<String> {
 
 
     /**
-     * Creates a regex generator using {@link SecureRandom}.
+     * Creates a regex generator using the default fast PRNG.
      *
      * @param pattern the simplified regex pattern; must not be {@code null}
      * @throws IllegalArgumentException if the pattern contains unsupported or malformed syntax
      */
     public RegexGenerator(String pattern) {
         Objects.requireNonNull(pattern, "pattern must not be null");
-        this.random = new SecureRandom();
+        this.random = new Random();
         this.root = parsePattern(pattern);
     }
 

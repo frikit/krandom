@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,13 +25,13 @@ public final class PickSetGenerator<T> implements Generator<List<T>> {
     private final Random  random;
 
     /**
-     * Creates a pick-set generator backed by {@link SecureRandom}.
+     * Creates a pick-set generator backed by the default fast PRNG.
      *
      * @param source source list; must not be null
      * @param count  number of unique elements to pick
      */
     public PickSetGenerator(List<T> source, int count) {
-        this(source, count, new SecureRandom());
+        this(source, count, new Random());
     }
 
     /**
@@ -69,4 +68,3 @@ public final class PickSetGenerator<T> implements Generator<List<T>> {
         return List.copyOf(copy.subList(0, count));
     }
 }
-

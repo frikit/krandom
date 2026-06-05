@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
@@ -34,10 +33,10 @@ public final class BooleanGenerator implements Generator<Boolean> {
     private final int             likelihood; // 0-100: probability of returning true
 
     /**
-     * Uses {@link SecureRandom} — non-deterministic, 50% likelihood.
+     * Uses the default fast PRNG with 50% likelihood.
      */
     public BooleanGenerator() {
-        this.random = new SecureRandom();
+        this.random = new Random();
         this.likelihood = 50;
     }
 

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -25,13 +24,13 @@ public final class WeightedGenerator<T> implements Generator<T> {
     private final Random  random;
 
     /**
-     * Creates a weighted generator backed by {@link SecureRandom}.
+     * Creates a weighted generator backed by the default fast PRNG.
      *
      * @param values  values to choose from; must not be null/empty
      * @param weights positive weights; same size as values
      */
     public WeightedGenerator(List<T> values, List<Integer> weights) {
-        this(values, weights, new SecureRandom());
+        this(values, weights, new Random());
     }
 
     /**
@@ -84,4 +83,3 @@ public final class WeightedGenerator<T> implements Generator<T> {
         return values.get(idx);
     }
 }
-

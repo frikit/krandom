@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.base;
 import io.github.frikit.krandom.generator.BoundedGenerator;
 import io.github.frikit.krandom.generator.Seedable;
 
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -18,8 +17,7 @@ import java.util.random.RandomGenerator;
  *
  * <p>Responsibilities:
  * <ul>
- *   <li>Owns the {@link RandomGenerator} instance ({@link java.security.SecureRandom} when no
- *       seed is supplied, {@link Random} when a seed is supplied).</li>
+ *   <li>Owns the {@link RandomGenerator} instance ({@link Random}).</li>
  *   <li>Stores the default {@code min} / {@code max} bounds.</li>
  *   <li>Delegates no-arg {@link #generate()} to {@link #generate(Comparable, Comparable)}.</li>
  *   <li>Provides {@link #validate(Number, Number)}, {@link #lo(Number, Number)}, and
@@ -42,12 +40,12 @@ public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
     /**
      * @param min  lower bound (inclusive) used by the no-arg {@link #generate()}
      * @param max  upper bound (exclusive) used by the no-arg {@link #generate()}
-     * @param seed optional seed; {@code null} means {@link SecureRandom}
+     * @param seed optional seed for reproducibility
      */
     protected AbstractBoundedGenerator(T min, T max, Long seed) {
         this.min = Objects.requireNonNull(min, "min must not be null");
         this.max = Objects.requireNonNull(max, "max must not be null");
-        this.random = seed != null ? new Random(seed) : new SecureRandom();
+        this.random = seed != null ? new Random(seed) : new Random();
     }
 
     // ── BoundedGenerator ──────────────────────────────────────────────────────

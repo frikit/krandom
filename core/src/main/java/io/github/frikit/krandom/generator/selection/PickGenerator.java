@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -23,12 +22,12 @@ public final class PickGenerator<T> implements Generator<T> {
     private final Random  random;
 
     /**
-     * Creates a pick generator backed by {@link SecureRandom}.
+     * Creates a pick generator backed by the default fast PRNG.
      *
      * @param source source list; must not be null or empty
      */
     public PickGenerator(List<T> source) {
-        this(source, new SecureRandom());
+        this(source, new Random());
     }
 
     /**
@@ -55,4 +54,3 @@ public final class PickGenerator<T> implements Generator<T> {
         return source.get(random.nextInt(source.size()));
     }
 }
-

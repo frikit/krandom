@@ -7,11 +7,11 @@ package io.github.frikit.krandom.generator.games.dice;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * Generates random integer results for any standard polyhedral die.
@@ -37,8 +37,8 @@ import java.util.Objects;
  */
 public final class DiceGenerator implements Generator<Integer> {
 
-    private final DiceType     type;
-    private final SecureRandom random = new SecureRandom();
+    private final DiceType type;
+    private final Random   random = new Random();
 
     public DiceGenerator(DiceType type) {
         this.type = Objects.requireNonNull(type, "type must not be null");

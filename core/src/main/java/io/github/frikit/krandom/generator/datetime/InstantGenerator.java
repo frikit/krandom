@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -77,7 +76,7 @@ public final class InstantGenerator implements Generator<Instant> {
      * @param max latest date (inclusive)
      */
     public InstantGenerator(LocalDate min, LocalDate max) {
-        this.random = new SecureRandom();
+        this.random = new Random();
         this.rangeMin = min;
         this.rangeMax = max;
     }

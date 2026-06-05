@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -37,7 +38,9 @@ class GeneratorConfigTest {
         GeneratorConfig c = GeneratorConfig.defaults();
         assertTrue(c.getSeed().isEmpty());
         assertTrue(c.getStringSeed().isEmpty());
+        assertTrue(c.getRandom().isEmpty());
         assertTrue(c.getRandomFactory().isEmpty());
+        assertFalse(c.isSecureRandom());
         assertEquals(GeneratorConfig.STRING_SEED_DERIVATION, c.getSeedDerivationVersion());
         assertEquals(StandardCharsets.US_ASCII, c.getCharset());
         assertEquals(5, c.getMinStringLength());
@@ -110,6 +113,61 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("random(Random) stores and reuses caller-owned instance")
+    void randomInstanceStoredAndReused() {
+        Random random = new Random(7L);
+        GeneratorConfig c = GeneratorConfig.builder().random(random).build();
+
+        assertSame(random, c.getRandom().orElseThrow());
+        assertSame(random, c.createRandom());
+        assertSame(random, c.createRandom());
+    }
+
+    @Test
+    @DisplayName("random(Random) wins over seed and secure random opt-in")
+    void randomInstanceWinsOverSeedAndSecureRandom() {
+        Random random = new Random(99L);
+        Random expected = new Random(99L);
+        GeneratorConfig c = GeneratorConfig.builder().seed(42L).secureRandom().random(random).build();
+
+        assertSame(random, c.createRandom());
+        assertEquals(expected.nextInt(), c.createRandom().nextInt());
+    }
+
+    @Test
+    @DisplayName("random(null) throws NullPointerException")
+    void randomNullThrows() {
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().random(null));
+    }
+
+    @Test
+    @DisplayName("toBuilder() can swap caller-owned random instance")
+    void toBuilderCanSwapRandomInstance() {
+        Random first = new Random(1L);
+        Random second = new Random(2L);
+        GeneratorConfig base = GeneratorConfig.builder().random(first).build();
+
+        GeneratorConfig swapped = base.toBuilder().random(second).build();
+
+        assertSame(first, base.createRandom());
+        assertSame(second, swapped.createRandom());
+    }
+
+    @Test
+    @DisplayName("random source methods use the latest explicit source")
+    void randomSourceMethodsUseLatestExplicitSource() {
+        Random random = new Random(3L);
+
+        GeneratorConfig first = GeneratorConfig.builder().secureRandom().random(random).build();
+        GeneratorConfig second = GeneratorConfig.builder().random(random).secureRandom().build();
+
+        assertSame(random, first.createRandom());
+        assertFalse(first.isSecureRandom());
+        assertTrue(second.createRandom() instanceof SecureRandom);
+        assertTrue(second.getRandom().isEmpty());
+    }
+
+    @Test
     @DisplayName("randomFactory is used and receives configured seed")
     void randomFactoryUsed() {
         AtomicInteger calls = new AtomicInteger();
@@ -138,6 +196,48 @@ class GeneratorConfigTest {
     void randomFactoryReturningNullThrows() {
         GeneratorConfig c = GeneratorConfig.builder().randomFactory(() -> null).build();
         assertThrows(NullPointerException.class, c::createRandom);
+    }
+
+    @Test
+    @DisplayName("createRandom uses fast Random by default")
+    void createRandomDefaultUsesFastRandom() {
+        assertFalse(GeneratorConfig.defaults().createRandom() instanceof SecureRandom);
+    }
+
+    @Test
+    @DisplayName("secureRandom() opts unseeded generation into SecureRandom")
+    void secureRandomOptInUsesSecureRandom() {
+        GeneratorConfig c = GeneratorConfig.builder().secureRandom().build();
+
+        assertTrue(c.isSecureRandom());
+        assertTrue(c.createRandom() instanceof SecureRandom);
+    }
+
+    @Test
+    @DisplayName("secureRandom(false) disables secure random opt-in")
+    void secureRandomCanBeDisabled() {
+        GeneratorConfig c = GeneratorConfig.builder().secureRandom().secureRandom(false).build();
+
+        assertFalse(c.isSecureRandom());
+        assertFalse(c.createRandom() instanceof SecureRandom);
+    }
+
+    @Test
+    @DisplayName("toBuilder() copies secure random opt-in")
+    void toBuilderCopiesSecureRandomOptIn() {
+        GeneratorConfig derived = GeneratorConfig.builder().secureRandom().build().toBuilder().build();
+
+        assertTrue(derived.isSecureRandom());
+        assertTrue(derived.createRandom() instanceof SecureRandom);
+    }
+
+    @Test
+    @DisplayName("seeded generation stays deterministic even with secure random opt-in")
+    void seedWinsOverSecureRandomOptIn() {
+        GeneratorConfig c = GeneratorConfig.builder().seed(42L).secureRandom().build();
+
+        assertEquals(-1170105035, c.createRandom().nextInt());
+        assertFalse(c.createRandom() instanceof SecureRandom);
     }
 
     @Test
@@ -407,7 +507,7 @@ class GeneratorConfigTest {
     void toBuilderCopiesAndDerives() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T10:15:30Z"), ZoneId.of("Europe/London"));
-        AtomicInteger calls = new AtomicInteger();
+        Random random = new Random(5L);
         GeneratorConfig base = GeneratorConfig.builder()
                                               .seed("my-seed")
                                               .charset(StandardCharsets.UTF_8)
@@ -428,10 +528,7 @@ class GeneratorConfigTest {
                                               .objectExcludeField("password")
                                               .locale(Locale.FRANCE)
                                               .clock(clock)
-                                              .randomFactory(() -> {
-                                                  calls.incrementAndGet();
-                                                  return new Random(5L);
-                                              })
+                                              .random(random)
                                               .registryContext(context)
                                               .build();
 
@@ -461,11 +558,7 @@ class GeneratorConfigTest {
         assertEquals(Locale.JAPAN, derived.getLocale());
         assertSame(clock, derived.getClock());
         assertSame(context, derived.getRegistryContext());
-        assertTrue(derived.getRandomFactory().isPresent());
-
-        // Ensure copied factory remains active.
-        derived.createRandom();
-        assertEquals(1, calls.get());
+        assertSame(random, derived.getRandom().orElseThrow());
     }
 
     @Test

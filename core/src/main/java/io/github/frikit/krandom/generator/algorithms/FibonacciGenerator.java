@@ -7,10 +7,10 @@ package io.github.frikit.krandom.generator.algorithms;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.random.RandomGenerator;
 
 /**
@@ -134,10 +134,10 @@ public final class FibonacciGenerator implements Generator<Long> {
     private final RandomGenerator random;
 
     /**
-     * Creates a generator backed by {@link SecureRandom}.
+     * Creates a generator backed by the default fast PRNG.
      */
     public FibonacciGenerator() {
-        this.random = new SecureRandom();
+        this.random = new Random();
     }
 
     /**

@@ -443,7 +443,7 @@ testing.
 | **Core Traits**           |
 | `Fake` trait              | ✅ Primary API            | No (intentional) | SKIP                | Rust trait — Java equivalent is `Generator<T>` (`generate()` method)  |
 | `Dummy` trait             | ✅ Extensibility API      | No (intentional) | SKIP                | Rust trait — Java equivalent is `ObjectFaker.ruleFor` + `@Fake`       |
-| Generic over `Rng`        | ✅ All methods            | ✅ Yes              | ✓ DONE              | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)`   |
+| Generic over `Rng`        | ✅ All methods            | ✅ Yes              | ✓ DONE              | `GeneratorConfig.Builder.random(Random)` or `randomFactory(Supplier<? extends Random>)`   |
 | **Procedural Macros**     |
 | `#[derive(Dummy)]`        | ✅ Auto-implementation    | No (intentional) | SKIP                | Rust proc-macro — Java reflection-based `ObjectGenerator` is the equivalent |
 | `#[dummy(faker = "...")]` | ✅ Field-level config     | No (intentional) | SKIP                | Rust attribute — Java equivalent is `@Fake("name")` annotation        |
@@ -529,7 +529,7 @@ philosophy. This is a key differentiator from monolithic faker libraries.
 | Thread-local RNG   | ✅ `.fake()`                  | No (intentional) | SKIP                | Java generators are explicit instances, not global thread-local faker calls |
 | Seeded RNG         | ✅ `.fake_with_rng(&mut rng)` | ✅ Yes          | ✓ DONE                  | `GeneratorConfig.seed(...)` |
 | Reproducible tests | ✅ Via StdRng::seed_from_u64  | ✅ Yes          | ✓ DONE                  | Seeded configs are deterministic |
-| Custom Rng impl    | ✅ Any rand::Rng              | ✅ Yes          | ✓ DONE                  | `GeneratorConfig.Builder.randomFactory(Supplier<? extends Random>)` |
+| Custom Rng impl    | ✅ Any rand::Rng              | ✅ Yes          | ✓ DONE                  | `GeneratorConfig.Builder.random(Random)` or `randomFactory(Supplier<? extends Random>)` |
 
 **Analysis**: All fake-rs generators accept any `rand::Rng` implementation, enabling deterministic testing with seeded RNGs. This is critical for reproducible tests and property-based testing
 integration.

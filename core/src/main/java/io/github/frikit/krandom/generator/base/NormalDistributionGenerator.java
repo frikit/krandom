@@ -5,7 +5,6 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import java.security.SecureRandom;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
@@ -68,7 +67,7 @@ public final class NormalDistributionGenerator implements io.github.frikit.krand
      *
      * @param mean              the mean (μ) of the distribution
      * @param standardDeviation the standard deviation (σ) of the distribution
-     * @param seed              optional seed for reproducibility; {@code null} means {@link SecureRandom}
+     * @param seed              optional seed for reproducibility
      * @throws IllegalArgumentException if standardDeviation is negative or zero
      */
     public NormalDistributionGenerator(double mean, double standardDeviation, Long seed) {
@@ -78,7 +77,7 @@ public final class NormalDistributionGenerator implements io.github.frikit.krand
         }
         this.mean = mean;
         this.standardDeviation = standardDeviation;
-        this.random = seed != null ? new Random(seed) : new SecureRandom();
+        this.random = seed != null ? new Random(seed) : new Random();
     }
 
     /**

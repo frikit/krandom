@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,12 +24,12 @@ public final class ShuffleGenerator<T> implements Generator<List<T>> {
     private final Random  random;
 
     /**
-     * Creates a shuffle generator backed by {@link SecureRandom}.
+     * Creates a shuffle generator backed by the default fast PRNG.
      *
      * @param source source list; must not be null
      */
     public ShuffleGenerator(List<T> source) {
-        this(source, new SecureRandom());
+        this(source, new Random());
     }
 
     /**
@@ -56,4 +55,3 @@ public final class ShuffleGenerator<T> implements Generator<List<T>> {
         return List.copyOf(copy);
     }
 }
-

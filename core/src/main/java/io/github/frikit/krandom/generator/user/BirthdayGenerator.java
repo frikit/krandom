@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -249,7 +248,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
     private BirthdayGenerator(int minAge, int maxAge, OptionalLong seed, Locale locale) {
         this(minAge,
              maxAge,
-             seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom(),
+             seed.isPresent() ? new Random(seed.getAsLong()) : new Random(),
              locale,
              GeneratorConfig.defaults().getClock());
     }

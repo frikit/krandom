@@ -7,8 +7,8 @@ package io.github.frikit.krandom.generator.games.coin;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Generates random coin-flip results.
@@ -32,7 +32,7 @@ public final class CoinGenerator implements Generator<CoinResult> {
      */
     public static final int MAX_ALLOWED_SIZE = Short.MAX_VALUE;
 
-    private final SecureRandom random = new SecureRandom();
+    private final Random random = new Random();
 
     @Override
     public CoinResult generate() {

@@ -7,7 +7,7 @@ package io.github.frikit.krandom.generator.algorithms;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
+import java.util.Random;
 import java.util.random.RandomGenerator;
 
 /**
@@ -28,10 +28,10 @@ public final class LuhnGenerator implements Generator<String> {
     private final RandomGenerator random;
 
     /**
-     * Creates a generator backed by {@link SecureRandom}.
+     * Creates a generator backed by the default fast PRNG.
      */
     public LuhnGenerator() {
-        this.random = new SecureRandom();
+        this.random = new Random();
     }
 
     /**

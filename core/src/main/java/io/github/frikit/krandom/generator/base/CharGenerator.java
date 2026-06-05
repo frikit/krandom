@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -99,7 +98,7 @@ public final class CharGenerator implements Generator<Character> {
         if (characters == null || characters.isEmpty()) {
             throw new IllegalArgumentException("Character pool must not be null or empty");
         }
-        return new CharGenerator(characters.toCharArray(), new SecureRandom());
+        return new CharGenerator(characters.toCharArray(), new Random());
     }
 
     /**
@@ -119,7 +118,7 @@ public final class CharGenerator implements Generator<Character> {
         if (characters == null || characters.length == 0) {
             throw new IllegalArgumentException("Character pool must not be null or empty");
         }
-        return new CharGenerator(characters.clone(), new SecureRandom());
+        return new CharGenerator(characters.clone(), new Random());
     }
 
     /**
@@ -246,7 +245,7 @@ public final class CharGenerator implements Generator<Character> {
             char[] pool = new char[chars.size()];
             for (int i = 0; i < chars.size(); i++) pool[i] = chars.get(i);
 
-            RandomGenerator rng = seed != null ? new Random(seed) : new SecureRandom();
+            RandomGenerator rng = seed != null ? new Random(seed) : new Random();
             return new CharGenerator(pool, rng);
         }
     }

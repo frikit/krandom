@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.base;
 import io.github.frikit.krandom.generator.Generator;
 
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -69,7 +68,7 @@ public final class BigIntegerGenerator implements Generator<BigInteger> {
         }
         this.min = min;
         this.max = max;
-        this.random = seed != null ? new Random(seed) : new SecureRandom();
+        this.random = seed != null ? new Random(seed) : new Random();
     }
 
     /**

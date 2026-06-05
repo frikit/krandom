@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -116,7 +115,7 @@ public final class DateGenerator implements Generator<LocalDate> {
      */
     public DateGenerator(LocalDate min, LocalDate max) {
         this.config = GeneratorConfig.defaults();
-        this.random = new SecureRandom();
+        this.random = new Random();
         this.clock = this.config.getClock();
         this.rangeMin = min;
         this.rangeMax = max;

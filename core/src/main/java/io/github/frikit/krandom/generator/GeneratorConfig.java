@@ -83,9 +83,11 @@ public final class GeneratorConfig {
     private final List<Predicate<Field>>                objectExclusionPredicates;
     private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates;
     private final Locale       locale;
+    private final Random       random;
     private final Supplier<Random> randomFactory;
     private final DataRegistryContext registryContext;
     private final Clock        clock;
+    private final boolean      secureRandom;
 
     private GeneratorConfig(Builder b) {
         this.seed = effectiveSeed(b.numericSeed, b.stringSeed);
@@ -116,9 +118,11 @@ public final class GeneratorConfig {
         this.objectExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectExclusionPredicates));
         this.objectTypeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectTypeExclusionPredicates));
         this.locale = b.locale;
+        this.random = b.random;
         this.randomFactory = b.randomFactory;
         this.registryContext = b.registryContext;
         this.clock = b.clock;
+        this.secureRandom = b.secureRandom;
     }
 
     /**
@@ -142,7 +146,7 @@ public final class GeneratorConfig {
     // ── Accessors ─────────────────────────────────────────────────────────────
 
     /**
-     * Seed for deterministic generation; empty means {@link java.security.SecureRandom}.
+     * Seed for deterministic generation; empty means unseeded generation.
      */
     public OptionalLong getSeed() {
         return seed;
@@ -359,6 +363,13 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Optional caller-owned random instance configured by callers.
+     */
+    public Optional<Random> getRandom() {
+        return Optional.ofNullable(random);
+    }
+
+    /**
      * Optional random-factory override configured by callers.
      */
     public Optional<Supplier<Random>> getRandomFactory() {
@@ -366,22 +377,37 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Returns {@code true} when unseeded generation should use {@link SecureRandom}.
+     */
+    public boolean isSecureRandom() {
+        return secureRandom;
+    }
+
+    /**
      * Creates a random instance honoring custom factory and configured seed.
      *
      * <p>Precedence:
      * <ol>
-     *   <li>If a random factory is configured, it is used.</li>
+     *   <li>If a caller-owned random instance is configured, it is used.</li>
+     *   <li>Otherwise, if a random factory is configured, it is used.</li>
      *   <li>Otherwise, if a seed is configured, {@link Random} is used.</li>
-     *   <li>Otherwise, {@link SecureRandom} is used.</li>
+     *   <li>Otherwise, if secure random is explicitly enabled, {@link SecureRandom} is used.</li>
+     *   <li>Otherwise, {@link Random} is used.</li>
      * </ol>
      */
     public Random createRandom() {
+        if (random != null) {
+            return random;
+        }
         if (randomFactory != null) {
             Random random = Objects.requireNonNull(randomFactory.get(), "randomFactory returned null");
             seed.ifPresent(random::setSeed);
             return random;
         }
-        return seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom();
+        if (seed.isPresent()) {
+            return new Random(seed.getAsLong());
+        }
+        return secureRandom ? new SecureRandom() : new Random();
     }
 
     /**
@@ -472,9 +498,11 @@ public final class GeneratorConfig {
         private final List<Predicate<Field>>                objectExclusionPredicates     = new ArrayList<>();
         private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates = new ArrayList<>();
         private Locale            locale            = Locale.US;
+        private Random            random;
         private Supplier<Random>  randomFactory;
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
         private Clock             clock             = Clock.systemDefaultZone();
+        private boolean           secureRandom;
 
         private Builder() {
         }
@@ -507,9 +535,11 @@ public final class GeneratorConfig {
             this.objectExclusionPredicates.addAll(source.objectExclusionPredicates);
             this.objectTypeExclusionPredicates.addAll(source.objectTypeExclusionPredicates);
             this.locale = source.locale;
+            this.random = source.random;
             this.randomFactory = source.randomFactory;
             this.registryContext = source.registryContext;
             this.clock = source.clock;
+            this.secureRandom = source.secureRandom;
         }
 
         /**
@@ -535,11 +565,42 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Inject custom random strategy for advanced use cases and tests.
+         * Use a caller-owned random instance for generated values.
+         */
+        public Builder random(Random random) {
+            this.random = Objects.requireNonNull(random, "random");
+            this.randomFactory = null;
+            this.secureRandom = false;
+            return this;
+        }
+
+        /**
+         * Inject custom random factory for advanced use cases and tests.
          */
         public Builder randomFactory(Supplier<? extends Random> randomFactory) {
             Objects.requireNonNull(randomFactory, "randomFactory");
+            this.random = null;
+            this.secureRandom = false;
             this.randomFactory = () -> randomFactory.get();
+            return this;
+        }
+
+        /**
+         * Opt in to {@link SecureRandom} for unseeded generation.
+         */
+        public Builder secureRandom() {
+            return secureRandom(true);
+        }
+
+        /**
+         * Controls whether unseeded generation uses {@link SecureRandom}.
+         */
+        public Builder secureRandom(boolean secureRandom) {
+            this.secureRandom = secureRandom;
+            if (secureRandom) {
+                this.random = null;
+                this.randomFactory = null;
+            }
             return this;
         }
 

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -30,7 +29,7 @@ public final class EnumGenerator<E extends Enum<E>> implements Generator<E> {
     private final RandomGenerator random;
 
     /**
-     * Uses {@link java.security.SecureRandom}.
+     * Uses the default fast PRNG.
      */
     public EnumGenerator(Class<E> enumClass) {
         this(enumClass, null);
@@ -45,7 +44,7 @@ public final class EnumGenerator<E extends Enum<E>> implements Generator<E> {
         if (constants == null || constants.length == 0) {
             throw new IllegalArgumentException("Enum " + enumClass.getName() + " has no constants");
         }
-        this.random = seed != null ? new Random(seed) : new SecureRandom();
+        this.random = seed != null ? new Random(seed) : new Random();
     }
 
     @Override

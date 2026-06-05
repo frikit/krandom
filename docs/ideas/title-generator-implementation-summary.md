@@ -64,7 +64,7 @@ Implements `Generator<String>` interface with full locale support.
 #### Constructors:
 
 ```java
-// Default (US locale, secure random)
+// Default (US locale, fast random)
 new TitleGenerator()
 
 // With configuration (includes locale + seed)

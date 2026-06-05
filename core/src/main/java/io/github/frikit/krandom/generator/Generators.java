@@ -213,7 +213,7 @@ import java.util.function.Supplier;
  *
  * <p>Every {@code of*()} method has two forms:
  * <ul>
- *   <li>No-arg — default range / default character set, uses {@link java.security.SecureRandom}.</li>
+ *   <li>No-arg — default range / default character set, uses the default fast PRNG.</li>
  *   <li>With bounds (and optional seed) — fully configured.</li>
  * </ul>
  *

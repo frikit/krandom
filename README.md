@@ -81,6 +81,10 @@ krandom's scalar generators are significantly faster than comparable JVM librari
 
 krandom's `ObjectGenerator` trades throughput for semantic realism — every field is populated with a domain-appropriate value (real names, valid emails, real cities) rather than arbitrary random bytes.
 
+## Randomness model
+
+Unseeded generators use the JDK's fast `Random` by default, which is appropriate for fixture and fake-data generation. Use `GeneratorConfig.builder().seed(...)` when output must be reproducible, `GeneratorConfig.builder().random(myRandom)` when a client owns the PRNG instance, or `GeneratorConfig.builder().secureRandom()` when a consumer explicitly needs a `SecureRandom` source.
+
 ## Build and verify locally
 
 Ensure `java -version` reports Java 21+ before running the local checks.

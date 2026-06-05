@@ -20,9 +20,9 @@ Single value per invocation (ops/s, higher is better).
 
 | Benchmark | krandom | DataFaker | JavaFaker |
 |:---|---:|---:|---:|
-| firstName | 103,837,647 | 5,577,792 | 602,778 |
-| email | 19,712,729 | 907,575 | 341,944 |
-| streetAddress | 25,071,681 | 1,803,841 | 113,143 |
+| firstName | 104,274,244 | 6,364,380 | 610,701 |
+| email | 19,331,205 | 873,459 | 359,200 |
+| streetAddress | 18,550,884 | 1,703,668 | 104,471 |
 
 ## Competitor Comparison: Object Population
 
@@ -30,7 +30,7 @@ Populate a 6-field POJO per invocation (ops/s, higher is better).
 
 | Benchmark | krandom | DataFaker | EasyRandom | Instancio |
 |:---|---:|---:|---:|---:|
-| single object | 2,463 | 481,199 | 210,732 | 181,543 |
+| single object | 2,324 | 422,463 | 179,285 | 183,256 |
 
 ## Competitor Comparison: Bulk Generation
 
@@ -38,42 +38,42 @@ Generate N objects per invocation (ops/s, higher is better).
 
 | Batch size | krandom | DataFaker | EasyRandom | Instancio |
 |:---|---:|---:|---:|---:|
-| 100 | 23 | 4,678 | 1,824 | 13,508 |
-| 1,000 | 2 | 509 | 173 | 1,441 |
+| 100 | 25 | 5,235 | 1,647 | 13,370 |
+| 1,000 | 2 | 516 | 176 | 1,274 |
 
 ## Internal Benchmarks
 
 krandom's own generator throughput across configurations.
 
 ```
-ExpandedGenerationBenchmark.relaxedSemanticObjectGraph                   N/A          N/A  thrpt    2        726.653          ops/s
-ExpandedGenerationBenchmark.semanticObjectGraph                          N/A          N/A  thrpt    2       1012.792          ops/s
-ExpandedGenerationBenchmark.semanticObjectGraphWithUniqueFields          N/A          N/A  thrpt    2       1032.663          ops/s
-ExpandedGenerationBenchmark.structuralOnlyObjectGraph                    N/A          N/A  thrpt    2       1043.016          ops/s
-ExpandedGenerationBenchmark.uniquenessHeavyEmailGeneration               N/A          N/A  thrpt    2       8704.045          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        en_US  thrpt    2  103373190.818          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        en_GB  thrpt    2  103664821.007          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        en_AU  thrpt    2  103594362.843          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        fr_FR  thrpt    2  104806182.878          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        de_DE  thrpt    2  101981211.140          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        ja_JP  thrpt    2  105451522.186          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        es_ES  thrpt    2  105269845.235          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        it_IT  thrpt    2  105599371.796          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        pt_BR  thrpt    2  105137855.838          ops/s
-FirstNameGeneratorBenchmark.firstName                                    N/A        zh_CN  thrpt    2  105124436.343          ops/s
-ObjectFactoryBenchmark.directObjectGenerator                             N/A          N/A  thrpt    2       4480.619          ops/s
-ObjectFactoryBenchmark.generatorsFacadeObjectGenerator                   N/A          N/A  thrpt    2       4424.350          ops/s
-ObjectFactoryBenchmark.manualConstruction                                N/A          N/A  thrpt    2   42983105.988          ops/s
-ObjectGeneratorBenchmark.depth10ObjectGraph                              N/A          N/A  thrpt    2        836.785          ops/s
-ObjectGeneratorBenchmark.depth2ObjectGraph                               N/A          N/A  thrpt    2       3107.687          ops/s
-ObjectGeneratorBenchmark.depth5ObjectGraph                               N/A          N/A  thrpt    2       1541.022          ops/s
-RegexGeneratorBenchmark.complexPattern                                   N/A          N/A  thrpt    2    5083046.970          ops/s
-RegexGeneratorBenchmark.constructorHotPathWithCachedParseTree            N/A          N/A  thrpt    2    5536851.272          ops/s
-RegexGeneratorBenchmark.simplePattern                                    N/A          N/A  thrpt    2    9239931.897          ops/s
-SchemaOutputBenchmark.largeSchemaBatch                                   N/A          N/A  thrpt    2       1521.252          ops/s
-SchemaOutputBenchmark.largeSchemaJsonLines                               N/A          N/A  thrpt    2       1097.506          ops/s
-SchemaOutputBenchmark.streamingCsv                                       N/A          N/A  thrpt    2       1377.274          ops/s
-SchemaOutputBenchmark.streamingJsonLines                                 N/A          N/A  thrpt    2       1179.880          ops/s
+ExpandedGenerationBenchmark.relaxedSemanticObjectGraph                   N/A          N/A  thrpt    2        762.200          ops/s
+ExpandedGenerationBenchmark.semanticObjectGraph                          N/A          N/A  thrpt    2       1108.814          ops/s
+ExpandedGenerationBenchmark.semanticObjectGraphWithUniqueFields          N/A          N/A  thrpt    2       1001.671          ops/s
+ExpandedGenerationBenchmark.structuralOnlyObjectGraph                    N/A          N/A  thrpt    2       1154.822          ops/s
+ExpandedGenerationBenchmark.uniquenessHeavyEmailGeneration               N/A          N/A  thrpt    2       9070.964          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        en_US  thrpt    2  102103919.738          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        en_GB  thrpt    2  103066948.392          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        en_AU  thrpt    2   90073683.774          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        fr_FR  thrpt    2  100213577.748          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        de_DE  thrpt    2  103092492.222          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        ja_JP  thrpt    2   92963489.065          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        es_ES  thrpt    2  104176972.525          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        it_IT  thrpt    2  104173768.993          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        pt_BR  thrpt    2   92640858.332          ops/s
+FirstNameGeneratorBenchmark.firstName                                    N/A        zh_CN  thrpt    2  103451519.174          ops/s
+ObjectFactoryBenchmark.directObjectGenerator                             N/A          N/A  thrpt    2       3935.383          ops/s
+ObjectFactoryBenchmark.generatorsFacadeObjectGenerator                   N/A          N/A  thrpt    2       4082.187          ops/s
+ObjectFactoryBenchmark.manualConstruction                                N/A          N/A  thrpt    2   44213888.907          ops/s
+ObjectGeneratorBenchmark.depth10ObjectGraph                              N/A          N/A  thrpt    2        869.089          ops/s
+ObjectGeneratorBenchmark.depth2ObjectGraph                               N/A          N/A  thrpt    2       2920.285          ops/s
+ObjectGeneratorBenchmark.depth5ObjectGraph                               N/A          N/A  thrpt    2       1627.168          ops/s
+RegexGeneratorBenchmark.complexPattern                                   N/A          N/A  thrpt    2    4869635.527          ops/s
+RegexGeneratorBenchmark.constructorHotPathWithCachedParseTree            N/A          N/A  thrpt    2    5040628.679          ops/s
+RegexGeneratorBenchmark.simplePattern                                    N/A          N/A  thrpt    2    8211541.370          ops/s
+SchemaOutputBenchmark.largeSchemaBatch                                   N/A          N/A  thrpt    2       1451.225          ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines                               N/A          N/A  thrpt    2        932.646          ops/s
+SchemaOutputBenchmark.streamingCsv                                       N/A          N/A  thrpt    2       1345.811          ops/s
+SchemaOutputBenchmark.streamingJsonLines                                 N/A          N/A  thrpt    2       1191.775          ops/s
 ```
 
 ## Raw Output

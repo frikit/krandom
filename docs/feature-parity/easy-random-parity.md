@@ -534,7 +534,7 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 
 | Aspect              | Easy Random         | krandom                 | Winner                      |
 |---------------------|---------------------|-------------------------|-----------------------------|
-| **Seed**            | ✅ Default: 123L     | ✅ Default: SecureRandom | Easy Random (deterministic) |
+| **Seed / PRNG**     | ✅ Default: 123L     | ✅ Unseeded fast `Random`; `random(Random)` and `secureRandom()` opt-ins | Easy Random (deterministic) |
 | **Charset**         | ✅ Default: US_ASCII | ✅ Default: US_ASCII     | Tie                         |
 | **String length**   | ✅ [1, 32]           | ✅ [5, 20]               | Preference                  |
 | **Collection size** | ✅ [1, 100]          | ✅ [1, 10]               | Preference                  |
@@ -1070,8 +1070,8 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
     - No complex registry/provider/policy abstractions
     - Easy Random has steep learning curve
 
-4. **Deterministic by Default** 🎯
-    - `SecureRandom` unless seeded
+4. **Explicit Determinism** 🎯
+    - Fast unseeded random by default, seeded config for repeatability, `random(Random)` for caller-owned PRNGs, `secureRandom()` for explicit secure PRNG use
     - Easy Random defaults to seed 123L (surprising)
 
 5. **Network Generators** 🎯

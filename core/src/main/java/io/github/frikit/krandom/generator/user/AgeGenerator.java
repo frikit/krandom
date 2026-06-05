@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.Random;
@@ -113,7 +112,7 @@ public final class AgeGenerator implements Generator<Integer> {
     }
 
     private AgeGenerator(int minAge, int maxAge, OptionalLong seed) {
-        this(minAge, maxAge, seed.isPresent() ? new Random(seed.getAsLong()) : new SecureRandom());
+        this(minAge, maxAge, seed.isPresent() ? new Random(seed.getAsLong()) : new Random());
     }
 
     private AgeGenerator(int minAge, int maxAge, Random random) {
