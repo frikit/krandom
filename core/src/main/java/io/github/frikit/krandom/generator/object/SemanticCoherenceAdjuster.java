@@ -46,6 +46,7 @@ final class SemanticCoherenceAdjuster {
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
+    private final SemanticFieldRegistry semanticRegistry;
     private final Long generationSeed;
     private       AddressInfo addressInfo;
     private       boolean     addressInfoResolved;
@@ -59,6 +60,7 @@ final class SemanticCoherenceAdjuster {
                               Long generationSeed) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
+        this.semanticRegistry = config.getSemanticRegistry();
         this.generationSeed = generationSeed;
     }
 
@@ -110,7 +112,7 @@ final class SemanticCoherenceAdjuster {
 
         Map<String, Slot> slotsBySemanticKey = new LinkedHashMap<>();
         for (Slot slot : slots) {
-            String semanticKey = FieldGeneratorResolver.semanticKeyForFieldName(slot.fieldName());
+            String semanticKey = semanticRegistry.semanticKeyForFieldName(slot.fieldName());
             if (semanticKey != null) {
                 slotsBySemanticKey.putIfAbsent(semanticKey, slot);
             }
@@ -521,7 +523,7 @@ final class SemanticCoherenceAdjuster {
         if (uniqueFieldNames.contains(normalizedFieldName) || uniqueFieldNames.contains(semanticKey)) {
             return true;
         }
-        for (String alias : FieldGeneratorResolver.semanticAliasesFor(semanticKey)) {
+        for (String alias : semanticRegistry.semanticAliasesFor(semanticKey)) {
             if (uniqueFieldNames.contains(alias)) {
                 return true;
             }

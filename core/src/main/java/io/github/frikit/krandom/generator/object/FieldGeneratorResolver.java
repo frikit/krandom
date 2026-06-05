@@ -184,11 +184,8 @@ final class FieldGeneratorResolver {
     private final Map<String, Generator<?>>   semanticStringGenerators;
     private final Map<String, Map<Class<?>, Generator<?>>> semanticTypedGenerators;
     private final ObjectGenerationSemanticMode semanticMode;
+    private final SemanticFieldRegistry       semanticRegistry;
     private final Set<String>                 uniqueFieldNames;
-
-    private static final Map<String, String> SEMANTIC_KEYS_BY_ALIAS = buildSemanticKeysByAlias();
-    private static final Map<String, Set<String>> SEMANTIC_ALIASES_BY_KEY = buildSemanticAliasesByKey();
-    private static final Map<String, String> SEMANTIC_PROVIDER_NAMES_BY_KEY = buildSemanticProviderNames();
 
     FieldGeneratorResolver(ObjectGeneratorConfig config,
                            ObjectPool pool,
@@ -200,7 +197,8 @@ final class FieldGeneratorResolver {
         this.uniqueFieldTracker = uniqueFieldTracker;
         this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
         this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
-        this.semanticStringGenerators = buildSemanticStringGenerators(this.generatorConfig, this.sequenceRandom);
+        this.semanticRegistry = config.getSemanticRegistry();
+        this.semanticStringGenerators = buildSemanticStringGenerators(this.generatorConfig, this.sequenceRandom, this.semanticRegistry);
         this.semanticTypedGenerators = buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
         this.semanticMode = config.getSemanticMode();
         this.uniqueFieldNames = config.getUniqueFieldNames();
@@ -478,11 +476,13 @@ final class FieldGeneratorResolver {
         return generator;
     }
 
-    private static Map<String, Generator<?>> buildSemanticStringGenerators(GeneratorConfig config, Random seedSource) {
+    private static Map<String, Generator<?>> buildSemanticStringGenerators(GeneratorConfig config,
+                                                                          Random seedSource,
+                                                                          SemanticFieldRegistry semanticRegistry) {
         Map<String, Generator<?>> generators = new HashMap<>();
-        for (String semanticKey : SEMANTIC_PROVIDER_NAMES_BY_KEY.keySet()) {
+        for (String semanticKey : semanticRegistry.providerBackedSemanticKeys()) {
             registerSemantic(generators, config, seedSource,
-                             derivedConfig -> buildProviderBackedSemanticGenerator(derivedConfig, semanticKey),
+                             derivedConfig -> buildProviderBackedSemanticGenerator(derivedConfig, semanticRegistry, semanticKey),
                              semanticKey);
         }
         registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStatusStringGenerator, "status");
@@ -647,9 +647,11 @@ final class FieldGeneratorResolver {
         return () -> values.get(random.nextInt(values.size()));
     }
 
-    private static Generator<?> buildProviderBackedSemanticGenerator(GeneratorConfig config, String semanticKey) {
+    private static Generator<?> buildProviderBackedSemanticGenerator(GeneratorConfig config,
+                                                                     SemanticFieldRegistry semanticRegistry,
+                                                                     String semanticKey) {
         ProviderHub hub = new ProviderHub(config);
-        String providerName = Objects.requireNonNull(semanticProviderNameFor(semanticKey),
+        String providerName = Objects.requireNonNull(semanticRegistry.semanticProviderNameFor(semanticKey),
                                                      "No provider mapping for semantic key: " + semanticKey);
         Generator<?> provider = hub.get(providerName, Generator.class);
         if ("uuid".equals(semanticKey)) {
@@ -719,116 +721,27 @@ final class FieldGeneratorResolver {
         return () -> java.util.Currency.getInstance(codeGenerator.generate());
     }
 
-    private static Map<String, String> buildSemanticKeysByAlias() {
-        Map<String, String> aliases = new HashMap<>();
-        registerSemanticAliases(aliases, "firstname", "firstname", "givenname");
-        registerSemanticAliases(aliases, "lastname", "lastname", "surname", "familyname");
-        registerSemanticAliases(aliases, "fullname", "fullname", "displayname");
-        registerSemanticAliases(aliases, "email", "email", "emailaddress");
-        registerSemanticAliases(aliases, "username", "username", "userhandle");
-        registerSemanticAliases(aliases, "phone", "phone", "phonenumber", "mobile", "mobilephone", "telephone");
-        registerSemanticAliases(aliases, "streetaddress", "street", "streetaddress", "addressline1");
-        registerSemanticAliases(aliases, "city", "city", "town");
-        registerSemanticAliases(aliases, "state", "state", "province", "region");
-        registerSemanticAliases(aliases, "postalcode", "postalcode", "postcode", "zipcode", "zip");
-        registerSemanticAliases(aliases, "country", "country", "countryname");
-        registerSemanticAliases(aliases, "companyname", "company", "companyname", "organization", "organisation");
-        registerSemanticAliases(aliases, "industry", "industry", "sector");
-        registerSemanticAliases(aliases, "companyemail", "companyemail", "businessemail", "corporateemail");
-        registerSemanticAliases(aliases, "companyurl", "companyurl", "companywebsite", "businesswebsite");
-        registerSemanticAliases(aliases, "password", "password", "passcode");
-        registerSemanticAliases(aliases, "url", "url", "website", "homepage", "link");
-        registerSemanticAliases(aliases, "domain", "domain", "hostname");
-        registerSemanticAliases(aliases, "currency", "currency", "currencycode");
-        registerSemanticAliases(aliases, "uuid", "uuid", "guid");
-        registerSemanticAliases(aliases, "createdat", "createdat", "createdon", "createddate", "createdtimestamp", "creationdate");
-        registerSemanticAliases(aliases, "updatedat", "updatedat", "updatedon", "updateddate", "updatedtimestamp", "lastupdated", "modifiedat", "modifiedon");
-        registerSemanticAliases(aliases, "birthdate", "birthdate", "dateofbirth", "dob", "birthday", "bornon");
-        registerSemanticAliases(aliases, "age", "age", "ageyears", "yearsold");
-        registerSemanticAliases(aliases, "amount", "amount", "totalamount", "subtotal", "paymentamount");
-        registerSemanticAliases(aliases, "balance", "balance", "accountbalance", "currentbalance");
-        registerSemanticAliases(aliases, "price", "price", "unitprice", "cost");
-        registerSemanticAliases(aliases, "id", "id", "userid", "accountid", "orderid", "customerid", "productid", "geoid", "identifier");
-        registerSemanticAliases(aliases, "active", "active", "isactive", "enabled", "isenabled");
-        registerSemanticAliases(aliases, "status", "status", "accountstatus", "orderstatus");
-        registerSemanticAliases(aliases, "latitude", "latitude", "lat");
-        registerSemanticAliases(aliases, "longitude", "longitude", "lon", "lng");
-        return Collections.unmodifiableMap(aliases);
-    }
-
-    private static Map<String, Set<String>> buildSemanticAliasesByKey() {
-        Map<String, Set<String>> aliasesByKey = new HashMap<>();
-        for (Map.Entry<String, String> entry : SEMANTIC_KEYS_BY_ALIAS.entrySet()) {
-            aliasesByKey.computeIfAbsent(entry.getValue(), ignored -> new LinkedHashSet<>()).add(entry.getKey());
-        }
-        Map<String, Set<String>> unmodifiable = new HashMap<>(aliasesByKey.size());
-        for (Map.Entry<String, Set<String>> entry : aliasesByKey.entrySet()) {
-            unmodifiable.put(entry.getKey(), Collections.unmodifiableSet(new LinkedHashSet<>(entry.getValue())));
-        }
-        return Collections.unmodifiableMap(unmodifiable);
-    }
-
-    private static Map<String, String> buildSemanticProviderNames() {
-        Map<String, String> providerNames = new LinkedHashMap<>();
-        providerNames.put("firstname", "person.first_name");
-        providerNames.put("lastname", "person.last_name");
-        providerNames.put("fullname", "person.full_name");
-        providerNames.put("email", "person.email");
-        providerNames.put("username", "person.username");
-        providerNames.put("phone", "address.phone_number");
-        providerNames.put("streetaddress", "address.street_address");
-        providerNames.put("city", "address.city");
-        providerNames.put("state", "address.state");
-        providerNames.put("postalcode", "address.postal_code");
-        providerNames.put("country", "address.country");
-        providerNames.put("companyname", "company.name");
-        providerNames.put("industry", "company.industry");
-        providerNames.put("companyemail", "company.email");
-        providerNames.put("companyurl", "company.url");
-        providerNames.put("password", "security.password");
-        providerNames.put("url", "internet.url");
-        providerNames.put("domain", "internet.domain");
-        providerNames.put("currency", "finance.currency");
-        providerNames.put("uuid", "code.uuid");
-        return Collections.unmodifiableMap(providerNames);
-    }
-
-    private static void registerSemanticAliases(Map<String, String> aliases, String semanticKey, String... fieldNames) {
-        for (String fieldName : fieldNames) {
-            aliases.put(normalizeSemanticFieldName(fieldName), semanticKey);
-        }
-    }
-
     static String normalizeSemanticFieldName(String fieldName) {
-        StringBuilder normalized = new StringBuilder(fieldName.length());
-        for (int i = 0; i < fieldName.length(); i++) {
-            char ch = fieldName.charAt(i);
-            if (Character.isLetterOrDigit(ch)) {
-                normalized.append(Character.toLowerCase(ch));
-            }
-        }
-        return normalized.toString();
+        return SemanticFieldRegistry.normalizeFieldName(fieldName);
     }
 
     static String semanticKeyForFieldName(String fieldName) {
-        return SEMANTIC_KEYS_BY_ALIAS.get(normalizeSemanticFieldName(fieldName));
+        return SemanticFieldRegistry.defaults().semanticKeyForFieldName(fieldName);
     }
 
     static Set<String> semanticAliasesFor(String semanticKey) {
-        return SEMANTIC_ALIASES_BY_KEY.getOrDefault(normalizeSemanticFieldName(semanticKey), Set.of());
+        return SemanticFieldRegistry.defaults().semanticAliasesFor(semanticKey);
     }
 
     static String semanticProviderNameFor(String semanticKey) {
-        String normalized = normalizeSemanticFieldName(semanticKey);
-        String canonicalKey = SEMANTIC_KEYS_BY_ALIAS.getOrDefault(normalized, normalized);
-        return SEMANTIC_PROVIDER_NAMES_BY_KEY.get(canonicalKey);
+        return SemanticFieldRegistry.defaults().semanticProviderNameFor(semanticKey);
     }
 
     private Generator<?> semanticGeneratorFor(Class<?> rawType, String fieldName) {
         if (semanticMode == ObjectGenerationSemanticMode.STRUCTURAL_ONLY) {
             return null;
         }
-        String semanticKey = semanticKeyForFieldName(fieldName);
+        String semanticKey = semanticRegistry.semanticKeyForFieldName(fieldName);
         if (semanticKey == null) {
             return null;
         }
@@ -898,7 +811,7 @@ final class FieldGeneratorResolver {
         if (uniqueFieldNames.contains(semanticKey)) {
             return true;
         }
-        for (String alias : semanticAliasesFor(semanticKey)) {
+        for (String alias : semanticRegistry.semanticAliasesFor(semanticKey)) {
             if (uniqueFieldNames.contains(alias)) {
                 return true;
             }
@@ -1094,7 +1007,10 @@ final class FieldGeneratorResolver {
         Fake annotation = element.getAnnotation(Fake.class);
         if (annotation == null) return null;
         String key = normalizeSemanticFieldName(annotation.value());
-        String canonicalKey = SEMANTIC_KEYS_BY_ALIAS.getOrDefault(key, key);
+        String canonicalKey = semanticRegistry.semanticKeyForFieldName(annotation.value());
+        if (canonicalKey == null) {
+            canonicalKey = key;
+        }
         // Try typed generators first (for non-String types)
         Map<Class<?>, Generator<?>> typedGenerators = semanticTypedGenerators.get(canonicalKey);
         if (typedGenerators != null) {
@@ -1272,7 +1188,7 @@ final class FieldGeneratorResolver {
         boolean hasSizeConstraint = element != null && BeanValidationSupport.hasSizeConstraint(element);
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────
-        String semanticKey = semanticKeyForFieldName(fieldName);
+        String semanticKey = semanticRegistry.semanticKeyForFieldName(fieldName);
         Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
         if (semanticGenerator != null
             && (semanticMode == ObjectGenerationSemanticMode.STRICT

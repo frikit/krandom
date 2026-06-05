@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,6 +35,13 @@ class ObjectGeneratorCoverageEdgeTest {
             () -> method.invoke(generator, new PrivateFieldHolder(), field)
         );
         assertTrue(ex.getCause() instanceof IllegalStateException);
+    }
+
+    @Test
+    @DisplayName("metadata caches use ClassValue")
+    void metadataCachesUseClassValue() throws Exception {
+        assertEquals(ClassValue.class, ObjectGenerator.class.getDeclaredField("SETTABLE_FIELDS").getType());
+        assertEquals(ClassValue.class, ObjectGenerator.class.getDeclaredField("RECORD_META").getType());
     }
 
     @Test

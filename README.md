@@ -85,6 +85,18 @@ krandom's `ObjectGenerator` trades throughput for semantic realism — every fie
 
 Unseeded generators use the JDK's fast `Random` by default, which is appropriate for fixture and fake-data generation. Use `GeneratorConfig.builder().seed(...)` when output must be reproducible, `GeneratorConfig.builder().random(myRandom)` when a client owns the PRNG instance, or `GeneratorConfig.builder().secureRandom()` when a consumer explicitly needs a `SecureRandom` source.
 
+## Object semantic aliases
+
+`ObjectGenerator` resolves common field names such as `firstName`, `email`, and `createdAt` through semantic providers. Projects with their own vocabulary can extend that lookup with a `SemanticFieldRegistry`:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectSemanticRegistry(SemanticFieldRegistry.defaults().toBuilder()
+        .alias("email", "contactMail")
+        .build())
+    .build();
+```
+
 ## Build and verify locally
 
 Ensure `java -version` reports Java 21+ before running the local checks.

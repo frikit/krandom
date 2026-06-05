@@ -53,6 +53,7 @@ final class ObjectGeneratorConfig {
     private final boolean overrideDefaultInitialization;
     private final boolean ignoreErrors;
     private final ObjectGenerationSemanticMode semanticMode;
+    private final SemanticFieldRegistry        semanticRegistry;
     private final double                       nullProbability;
     private final double                       optionalEmptyProbability;
     private final Set<String>                  uniqueFieldNames;
@@ -116,6 +117,7 @@ final class ObjectGeneratorConfig {
         this.overrideDefaultInitialization = b.overrideDefaultInitialization;
         this.ignoreErrors = b.ignoreErrors;
         this.semanticMode = b.semanticMode;
+        this.semanticRegistry = b.semanticRegistry;
         this.nullProbability = b.nullProbability;
         this.optionalEmptyProbability = b.optionalEmptyProbability;
         this.uniqueFieldNames = Collections.unmodifiableSet(new LinkedHashSet<>(b.uniqueFieldNames));
@@ -202,6 +204,13 @@ final class ObjectGeneratorConfig {
      */
     public ObjectGenerationSemanticMode getSemanticMode() {
         return semanticMode;
+    }
+
+    /**
+     * Registry used to resolve semantic field-name aliases and provider mappings.
+     */
+    public SemanticFieldRegistry getSemanticRegistry() {
+        return semanticRegistry;
     }
 
     /**
@@ -370,6 +379,7 @@ final class ObjectGeneratorConfig {
                                                          .objectOverrideDefaultInitialization(overrideDefaultInitialization)
                                                          .objectIgnoreErrors(ignoreErrors)
                                                          .objectSemanticMode(semanticMode)
+                                                         .objectSemanticRegistry(semanticRegistry)
                                                          .objectNullProbability(nullProbability)
                                                          .objectOptionalEmptyProbability(optionalEmptyProbability)
                                                          .objectUniqueFields(uniqueFieldNames.toArray(String[]::new))
@@ -490,6 +500,7 @@ final class ObjectGeneratorConfig {
         private       boolean                               overrideDefaultInitialization = false;
         private       boolean                               ignoreErrors                  = false;
         private       ObjectGenerationSemanticMode          semanticMode                  = ObjectGenerationSemanticMode.RELAXED;
+        private       SemanticFieldRegistry                 semanticRegistry              = SemanticFieldRegistry.defaults();
         private       double                                nullProbability;
         private       double                                optionalEmptyProbability;
         private       Set<String>                           uniqueFieldNames              =
@@ -503,6 +514,7 @@ final class ObjectGeneratorConfig {
         private       boolean                               overrideDefaultInitializationExplicit;
         private       boolean                               ignoreErrorsExplicit;
         private       boolean                               semanticModeExplicit;
+        private       boolean                               semanticRegistryExplicit;
         private       boolean                               nullProbabilityExplicit;
         private       boolean                               optionalEmptyProbabilityExplicit;
         private       boolean                               uniqueFieldNamesExplicit;
@@ -519,6 +531,7 @@ final class ObjectGeneratorConfig {
             this.overrideDefaultInitialization = source.overrideDefaultInitialization;
             this.ignoreErrors = source.ignoreErrors;
             this.semanticMode = source.semanticMode;
+            this.semanticRegistry = source.semanticRegistry;
             this.nullProbability = source.nullProbability;
             this.optionalEmptyProbability = source.optionalEmptyProbability;
             this.uniqueFieldNames = new LinkedHashSet<>(source.uniqueFieldNames);
@@ -530,6 +543,7 @@ final class ObjectGeneratorConfig {
             this.overrideDefaultInitializationExplicit = true;
             this.ignoreErrorsExplicit = true;
             this.semanticModeExplicit = true;
+            this.semanticRegistryExplicit = true;
             this.nullProbabilityExplicit = true;
             this.optionalEmptyProbabilityExplicit = true;
             this.uniqueFieldNamesExplicit = true;
@@ -596,6 +610,15 @@ final class ObjectGeneratorConfig {
         public Builder semanticMode(ObjectGenerationSemanticMode semanticMode) {
             this.semanticMode = Objects.requireNonNull(semanticMode, "semanticMode");
             this.semanticModeExplicit = true;
+            return this;
+        }
+
+        /**
+         * Sets the registry used to resolve semantic field-name aliases and provider mappings.
+         */
+        public Builder semanticRegistry(SemanticFieldRegistry semanticRegistry) {
+            this.semanticRegistry = Objects.requireNonNull(semanticRegistry, "semanticRegistry");
+            this.semanticRegistryExplicit = true;
             return this;
         }
 
@@ -809,6 +832,9 @@ final class ObjectGeneratorConfig {
             }
             if (!semanticModeExplicit) {
                 this.semanticMode = generatorConfig.getObjectSemanticMode();
+            }
+            if (!semanticRegistryExplicit) {
+                this.semanticRegistry = generatorConfig.getObjectSemanticRegistry();
             }
             if (!nullProbabilityExplicit) {
                 this.nullProbability = generatorConfig.getObjectNullProbability();

@@ -36,7 +36,7 @@ Goal: polish the public API for discoverability and correctness in real-world us
 
 - [x] **2.1 Fluent domain namespaces** — add `Generators.person()`, `Generators.finance()`, `Generators.location()`, `Generators.network()`, `Generators.text()`, `Generators.commerce()`, `Generators.identifier()`, `Generators.datetime()` returning typed namespace objects. Keep existing `ofXxx()` methods as-is for backwards compatibility.
 - [x] **2.2 Thread safety documentation** — add `@apiNote` Javadoc on `Generator<T>` and `Generators` clarifying that instances are not thread-safe. Add `Generators.threadLocal(Generator<T>)` wrapper that returns a `ThreadLocal`-backed generator.
-- [x] **2.3 Optimize ObjectGenerator hot path** — cache settable-field and record-component metadata per `Class<T>` in `ConcurrentHashMap`. Reduces per-call reflection overhead.
+- [x] **2.3 Optimize ObjectGenerator hot path** — cache settable-field and record-component metadata per `Class<T>` with `ClassValue`. Reduces per-call reflection overhead without pinning class keys in a global map.
 - [x] **2.4 Replace reflection-based reseed** — introduce a `Seedable` interface with `void reseed(long seed)`. Implement on `AbstractBoundedGenerator` and all stateful generators. Keep the reflection fallback on the `Generator` default method for custom lambdas but deprecate reliance on it.
 
 ---

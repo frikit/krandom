@@ -5,12 +5,14 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("FieldGeneratorResolver semantic aliases")
@@ -61,5 +63,48 @@ class FieldGeneratorResolverSemanticAliasTest {
         assertEquals("internet.url", FieldGeneratorResolver.semanticProviderNameFor("url"));
         assertEquals("finance.currency", FieldGeneratorResolver.semanticProviderNameFor("currencyCode"));
         assertEquals("code.uuid", FieldGeneratorResolver.semanticProviderNameFor("uuid"));
+    }
+
+    @Test
+    @DisplayName("custom registry maps project aliases to built-in semantics")
+    void customRegistryMapsProjectAliasesToBuiltInSemantics() {
+        SemanticFieldRegistry registry = SemanticFieldRegistry.defaults().toBuilder()
+                                                              .alias("email", "contactMail")
+                                                              .build();
+
+        assertEquals("email", registry.semanticKeyForFieldName("contact_mail"));
+        assertTrue(registry.semanticAliasesFor("email").contains("contactmail"));
+    }
+
+    @Test
+    @DisplayName("custom registry drives object semantic generation")
+    void customRegistryDrivesObjectSemanticGeneration() {
+        SemanticFieldRegistry registry = SemanticFieldRegistry.defaults().toBuilder()
+                                                              .alias("email", "contactMail")
+                                                              .build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(7L)
+                                                .objectSemanticRegistry(registry)
+                                                .build();
+
+        ContactAliasHolder holder = new ObjectGenerator<>(ContactAliasHolder.class, config).generate();
+
+        assertTrue(holder.contactMail.contains("@"));
+    }
+
+    @Test
+    @DisplayName("registry builder validates aliases and provider names")
+    void registryBuilderValidatesAliasesAndProviderNames() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> SemanticFieldRegistry.builder().alias("email"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> SemanticFieldRegistry.builder().alias("___", "mail"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> SemanticFieldRegistry.builder().provider("email", " "));
+    }
+
+    static final class ContactAliasHolder {
+
+        String contactMail;
     }
 }

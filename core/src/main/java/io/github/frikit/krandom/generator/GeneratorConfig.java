@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
+import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -70,6 +71,7 @@ public final class GeneratorConfig {
     private final LocalDate    objectDateMin;
     private final LocalDate    objectDateMax;
     private final ObjectGenerationSemanticMode objectSemanticMode;
+    private final SemanticFieldRegistry objectSemanticRegistry;
     private final double       objectNullProbability;
     private final double       objectOptionalEmptyProbability;
     private final Set<String>  objectUniqueFieldNames;
@@ -104,6 +106,7 @@ public final class GeneratorConfig {
         this.objectDateMin = b.objectDateMin;
         this.objectDateMax = b.objectDateMax;
         this.objectSemanticMode = b.objectSemanticMode;
+        this.objectSemanticRegistry = b.objectSemanticRegistry;
         this.objectNullProbability = b.objectNullProbability;
         this.objectOptionalEmptyProbability = b.objectOptionalEmptyProbability;
         this.objectUniqueFieldNames = Collections.unmodifiableSet(new LinkedHashSet<>(b.objectUniqueFieldNames));
@@ -233,6 +236,13 @@ public final class GeneratorConfig {
      */
     public ObjectGenerationSemanticMode getObjectSemanticMode() {
         return objectSemanticMode;
+    }
+
+    /**
+     * Registry used to resolve semantic object field names.
+     */
+    public SemanticFieldRegistry getObjectSemanticRegistry() {
+        return objectSemanticRegistry;
     }
 
     /**
@@ -483,6 +493,7 @@ public final class GeneratorConfig {
         private LocalDate         objectDateMin;
         private LocalDate         objectDateMax;
         private ObjectGenerationSemanticMode objectSemanticMode = ObjectGenerationSemanticMode.RELAXED;
+        private SemanticFieldRegistry objectSemanticRegistry = SemanticFieldRegistry.defaults();
         private double            objectNullProbability;
         private double            objectOptionalEmptyProbability;
         private Set<String>       objectUniqueFieldNames = new LinkedHashSet<>(
@@ -522,6 +533,7 @@ public final class GeneratorConfig {
             this.objectDateMin = source.objectDateMin;
             this.objectDateMax = source.objectDateMax;
             this.objectSemanticMode = source.objectSemanticMode;
+            this.objectSemanticRegistry = source.objectSemanticRegistry;
             this.objectNullProbability = source.objectNullProbability;
             this.objectOptionalEmptyProbability = source.objectOptionalEmptyProbability;
             this.objectUniqueFieldNames = new LinkedHashSet<>(source.objectUniqueFieldNames);
@@ -691,6 +703,14 @@ public final class GeneratorConfig {
          */
         public Builder objectSemanticMode(ObjectGenerationSemanticMode objectSemanticMode) {
             this.objectSemanticMode = Objects.requireNonNull(objectSemanticMode, "objectSemanticMode");
+            return this;
+        }
+
+        /**
+         * Sets the registry used to resolve semantic object field names.
+         */
+        public Builder objectSemanticRegistry(SemanticFieldRegistry objectSemanticRegistry) {
+            this.objectSemanticRegistry = Objects.requireNonNull(objectSemanticRegistry, "objectSemanticRegistry");
             return this;
         }
 

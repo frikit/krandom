@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -75,15 +74,24 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private static final Objenesis OBJENESIS = new ObjenesisStd();
 
     /**
-     * Cache of settable (non-static, non-final) field lists per class.
-     * Avoids repeated reflection introspection on every {@link #generate()} call.
+     * Classloader-aware cache of settable field lists per class.
      */
-    private static final ConcurrentHashMap<Class<?>, List<Field>> SETTABLE_FIELDS_CACHE = new ConcurrentHashMap<>();
+    private static final ClassValue<List<Field>> SETTABLE_FIELDS = new ClassValue<>() {
+        @Override
+        protected List<Field> computeValue(Class<?> type) {
+            return doCollectSettableFields(type);
+        }
+    };
 
     /**
-     * Cache of record component metadata (components, backing fields, param types) per record class.
+     * Classloader-aware cache of record component metadata per record class.
      */
-    private static final ConcurrentHashMap<Class<?>, RecordMeta> RECORD_META_CACHE = new ConcurrentHashMap<>();
+    private static final ClassValue<RecordMeta> RECORD_META = new ClassValue<>() {
+        @Override
+        protected RecordMeta computeValue(Class<?> type) {
+            return buildRecordMeta(type);
+        }
+    };
 
     private record RecordMeta(RecordComponent[] components, Field[] backingFields, Class<?>[] paramTypes) {}
 
@@ -250,7 +258,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private T generateRecord(FieldGeneratorResolver resolver,
                              SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
-        RecordMeta meta = RECORD_META_CACHE.computeIfAbsent(type, ObjectGenerator::buildRecordMeta);
+        RecordMeta meta = RECORD_META.get(type);
         RecordComponent[] components = meta.components();
         Field[] backingFields = meta.backingFields();
 
@@ -358,7 +366,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * (but not including) {@link Object}. Results are cached per class.
      */
     private List<Field> collectSettableFields(Class<?> clazz) {
-        return SETTABLE_FIELDS_CACHE.computeIfAbsent(clazz, ObjectGenerator::doCollectSettableFields);
+        return SETTABLE_FIELDS.get(clazz);
     }
 
     private static List<Field> doCollectSettableFields(Class<?> clazz) {

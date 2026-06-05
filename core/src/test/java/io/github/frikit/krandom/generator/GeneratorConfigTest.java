@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
+import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +55,7 @@ class GeneratorConfigTest {
         assertNull(c.getObjectDateMin());
         assertNull(c.getObjectDateMax());
         assertEquals(ObjectGenerationSemanticMode.RELAXED, c.getObjectSemanticMode());
+        assertSame(SemanticFieldRegistry.defaults(), c.getObjectSemanticRegistry());
         assertEquals(0.0, c.getObjectNullProbability());
         assertEquals(0.0, c.getObjectOptionalEmptyProbability());
         assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
@@ -503,11 +505,32 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("objectSemanticRegistry() stores the registry")
+    void objectSemanticRegistryStored() {
+        SemanticFieldRegistry registry = SemanticFieldRegistry.defaults().toBuilder()
+                                                              .alias("email", "contactMail")
+                                                              .build();
+        GeneratorConfig config = GeneratorConfig.builder().objectSemanticRegistry(registry).build();
+
+        assertSame(registry, config.getObjectSemanticRegistry());
+    }
+
+    @Test
+    @DisplayName("objectSemanticRegistry(null) throws NullPointerException")
+    void objectSemanticRegistryNullThrows() {
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().objectSemanticRegistry(null));
+    }
+
+    @Test
     @DisplayName("toBuilder() copies all fields and allows deriving new config")
     void toBuilderCopiesAndDerives() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T10:15:30Z"), ZoneId.of("Europe/London"));
         Random random = new Random(5L);
+        SemanticFieldRegistry semanticRegistry = SemanticFieldRegistry.defaults().toBuilder()
+                                                                         .alias("email", "contactMail")
+                                                                         .build();
         GeneratorConfig base = GeneratorConfig.builder()
                                               .seed("my-seed")
                                               .charset(StandardCharsets.UTF_8)
@@ -518,6 +541,7 @@ class GeneratorConfigTest {
                                               .objectOverrideDefaultInitialization(true)
                                               .objectIgnoreErrors(true)
                                               .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                              .objectSemanticRegistry(semanticRegistry)
                                               .objectNullProbability(0.25)
                                               .objectOptionalEmptyProbability(0.5)
                                               .objectUniqueFields("email", "accountId")
@@ -546,6 +570,7 @@ class GeneratorConfigTest {
         assertTrue(derived.isObjectOverrideDefaultInitialization());
         assertTrue(derived.isObjectIgnoreErrors());
         assertEquals(ObjectGenerationSemanticMode.STRICT, derived.getObjectSemanticMode());
+        assertSame(semanticRegistry, derived.getObjectSemanticRegistry());
         assertEquals(0.25, derived.getObjectNullProbability());
         assertEquals(0.5, derived.getObjectOptionalEmptyProbability());
         assertEquals(Set.of("email", "accountid"), derived.getObjectUniqueFieldNames());

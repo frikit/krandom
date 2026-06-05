@@ -37,6 +37,7 @@ class ObjectGeneratorConfigTest {
         assertFalse(c.isOverrideDefaultInitialization());
         assertFalse(c.isIgnoreErrors());
         assertEquals(ObjectGenerationSemanticMode.RELAXED, c.getSemanticMode());
+        assertSame(SemanticFieldRegistry.defaults(), c.getSemanticRegistry());
         assertEquals(0.0, c.getNullProbability());
         assertEquals(0.0, c.getOptionalEmptyProbability());
         assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
@@ -49,6 +50,9 @@ class ObjectGeneratorConfigTest {
     @Test
     @DisplayName("generatorConfig(...) stores the shared root config")
     void generatorConfigStored() {
+        SemanticFieldRegistry registry = SemanticFieldRegistry.defaults().toBuilder()
+                                                              .alias("email", "contactMail")
+                                                              .build();
         GeneratorConfig generatorConfig = GeneratorConfig.builder()
                                                          .locale(Locale.GERMANY)
                                                          .stringLength(8, 8)
@@ -58,6 +62,7 @@ class ObjectGeneratorConfigTest {
                                                          .objectOverrideDefaultInitialization(true)
                                                          .objectIgnoreErrors(true)
                                                          .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                                         .objectSemanticRegistry(registry)
                                                          .objectNullProbability(0.25)
                                                          .objectOptionalEmptyProbability(0.5)
                                                          .objectUniqueFields("email", "accountId")
@@ -75,6 +80,7 @@ class ObjectGeneratorConfigTest {
         assertTrue(objectConfig.isOverrideDefaultInitialization());
         assertTrue(objectConfig.isIgnoreErrors());
         assertEquals(ObjectGenerationSemanticMode.STRICT, objectConfig.getSemanticMode());
+        assertSame(registry, objectConfig.getSemanticRegistry());
         assertEquals(0.25, objectConfig.getNullProbability());
         assertEquals(0.5, objectConfig.getOptionalEmptyProbability());
         assertEquals(Set.of("email", "accountid"), objectConfig.getUniqueFieldNames());
@@ -323,14 +329,19 @@ class ObjectGeneratorConfigTest {
     @Test
     @DisplayName("semantic and nullability controls are stored and validated")
     void semanticAndNullabilityControlsStored() {
+        SemanticFieldRegistry registry = SemanticFieldRegistry.defaults().toBuilder()
+                                                              .alias("email", "contactMail")
+                                                              .build();
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
                                                             .semanticMode(ObjectGenerationSemanticMode.STRICT)
+                                                            .semanticRegistry(registry)
                                                             .nullProbability(0.25)
                                                             .optionalEmptyProbability(0.5)
                                                             .uniqueFields("Email", "account_id")
                                                             .uniquenessMaxAttempts(5)
                                                             .build();
         assertEquals(ObjectGenerationSemanticMode.STRICT, config.getSemanticMode());
+        assertSame(registry, config.getSemanticRegistry());
         assertEquals(0.25, config.getNullProbability());
         assertEquals(0.5, config.getOptionalEmptyProbability());
         assertEquals(Set.of("email", "accountid"), config.getUniqueFieldNames());
@@ -345,6 +356,8 @@ class ObjectGeneratorConfigTest {
                      () -> ObjectGeneratorConfig.builder().uniquenessMaxAttempts(0));
         assertThrows(IllegalArgumentException.class,
                      () -> ObjectGeneratorConfig.builder().optionalEmptyProbability(Double.NaN));
+        assertThrows(NullPointerException.class,
+                     () -> ObjectGeneratorConfig.builder().semanticRegistry(null));
     }
 
     @Test
