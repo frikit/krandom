@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Java 21 (Temurin)
         uses: actions/setup-java@v5
@@ -41,7 +41,7 @@ jobs:
       MILL_VERSION: '1.1.6'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Java 21 (Temurin)
         uses: actions/setup-java@v5
