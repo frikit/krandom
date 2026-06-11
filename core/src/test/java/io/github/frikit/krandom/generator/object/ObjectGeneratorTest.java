@@ -20,11 +20,16 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -597,6 +602,41 @@ class ObjectGeneratorTest {
                                                                 .build();
             // Even if some field can't be set, the generator should not throw
             assertDoesNotThrow(() -> new ObjectGenerator<>(Person.class, config).generate());
+        }
+
+        @Test
+        @DisplayName("ignoreErrors=true logs swallowed failures at FINE level")
+        void ignoreErrorsLogsSwallowedFailuresAtFineLevel() {
+            Logger logger = Logger.getLogger(FieldGeneratorResolver.class.getName());
+            List<LogRecord> records = new ArrayList<>();
+            Handler handler = new Handler() {
+                @Override
+                public void publish(LogRecord logRecord) {
+                    records.add(logRecord);
+                }
+
+                @Override
+                public void flush() {}
+
+                @Override
+                public void close() {}
+            };
+            handler.setLevel(Level.FINE);
+            Level previousLevel = logger.getLevel();
+            logger.addHandler(handler);
+            logger.setLevel(Level.FINE);
+            try {
+                GeneratorConfig rootConfig = GeneratorConfig.builder().objectIgnoreErrors(true).build();
+                RootIgnoreErrorsHolder holder =
+                    new ObjectGenerator<>(RootIgnoreErrorsHolder.class, rootConfig).generate();
+                assertNull(holder.nested, "throwing nested type should be swallowed");
+                assertTrue(records.stream()
+                                  .anyMatch(r -> r.getMessage().contains("Ignored nested generation failure")),
+                           "swallowed failure should be logged at FINE level");
+            } finally {
+                logger.removeHandler(handler);
+                logger.setLevel(previousLevel);
+            }
         }
 
         @Test

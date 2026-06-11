@@ -807,7 +807,8 @@ final class ObjectGeneratorConfig {
         }
 
         /**
-         * When {@code true}, population errors are swallowed; fields are left {@code null}.
+         * When {@code true}, population errors are swallowed; fields are left {@code null}
+         * and each ignored failure is logged at {@link java.util.logging.Level#FINE}.
          * When {@code false} (default), errors propagate as {@link
          * io.github.frikit.krandom.generator.object.exception.ObjectGenerationException}.
          */

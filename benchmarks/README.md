@@ -89,6 +89,11 @@ Run a subset with custom JMH args:
 
 ## Latest Internal Run Snapshot
 
+This is an ad-hoc local `profileGeneration` snapshot used to spot-check
+internals on a developer machine. It is separate from the monthly competitor
+reports archived in [`docs/benchmarks/`](../docs/benchmarks/), which are the
+authoritative, methodology-documented numbers.
+
 Date: **March 29, 2026 12:52:48 BST**
 JDK: **Temurin OpenJDK 21.0.10+7 LTS**
 Command: `./gradlew :benchmarks:profileGeneration`

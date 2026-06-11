@@ -90,6 +90,9 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
     /**
      * Registers a type-level override.
      *
+     * When [clazz] is a primitive or wrapper type, the override is registered for both
+     * forms, so an override for `Int` matches both `int` and `Integer` fields.
+     *
      * ```kotlin
      * ruleForType(String::class.java) { "fixed" }
      * ```
@@ -101,6 +104,9 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
 
     /**
      * Registers a type-level override using reified type.
+     *
+     * Primitive/wrapper symmetry applies: `ruleForType<Int>` matches both `int` and
+     * `Integer` fields.
      *
      * ```kotlin
      * ruleForType<String> { "fixed" }

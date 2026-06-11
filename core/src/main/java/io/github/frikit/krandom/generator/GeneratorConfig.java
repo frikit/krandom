@@ -678,6 +678,11 @@ public final class GeneratorConfig {
 
         /**
          * Controls whether object-generation population errors are swallowed.
+         *
+         * <p>When {@code true}, affected fields are left at {@code null} / their primitive
+         * default and each ignored failure is logged at {@link java.util.logging.Level#FINE}
+         * so it remains diagnosable. Default: {@code false} (errors propagate as
+         * {@code ObjectGenerationException}).
          */
         public Builder objectIgnoreErrors(boolean objectIgnoreErrors) {
             this.objectIgnoreErrors = objectIgnoreErrors;

@@ -94,6 +94,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 /**
  * Internal resolver: maps a field's ({@link Type}, {@link Class}, name, owner) tuple
@@ -124,6 +125,8 @@ import java.util.function.Supplier;
  * </ol>
  */
 final class FieldGeneratorResolver {
+
+    private static final Logger LOGGER = Logger.getLogger(FieldGeneratorResolver.class.getName());
 
     static final int DEFAULT_MIN_ELEMENT_COUNT = GeneratorConfig.defaults().getMinCollectionSize();
     static final int DEFAULT_MAX_ELEMENT_COUNT = GeneratorConfig.defaults().getMaxCollectionSize();
@@ -1326,11 +1329,19 @@ final class FieldGeneratorResolver {
                 return instance;
             } catch (ObjectGenerationException e) {
                 pool.end(rawType, null);
-                if (config.isIgnoreErrors()) return null;
+                if (config.isIgnoreErrors()) {
+                    LOGGER.fine("Ignored nested generation failure for field '"
+                                + ownerType.getSimpleName() + "." + fieldName + "': " + e);
+                    return null;
+                }
                 throw e;
             } catch (Exception e) {
                 pool.end(rawType, null);
-                if (config.isIgnoreErrors()) return null;
+                if (config.isIgnoreErrors()) {
+                    LOGGER.fine("Ignored nested generation failure for field '"
+                                + ownerType.getSimpleName() + "." + fieldName + "': " + e);
+                    return null;
+                }
                 throw new ObjectGenerationException(
                     "Failed to generate nested type " + rawType.getName() + " for field '"
                     + ownerType.getSimpleName() + "." + fieldName + "'", e);

@@ -49,8 +49,15 @@ import io.github.frikit.krandom.generator.user.UsernameGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -351,5 +358,41 @@ class ProviderHubTest {
 
         hub.register("profiled", (profile, cfg) -> profile.name() + ":" + cfg.getLocale());
         assertTrue(hub.get("profiled").toString().startsWith("FAST:"));
+    }
+
+    @Test
+    @DisplayName("concurrent registration and lookup is thread-safe")
+    void concurrentRegistrationAndLookupIsSafe() throws Exception {
+        ProviderHub hub = new ProviderHub();
+        int threads = 8;
+        int perThread = 50;
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        try {
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<?>> futures = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                int threadId = t;
+                futures.add(pool.submit(() -> {
+                    start.await();
+                    for (int i = 0; i < perThread; i++) {
+                        hub.register("custom." + threadId + "." + i, cfg -> "value");
+                        assertTrue(hub.has("person.email"));
+                        assertNotNull(hub.get("email"));
+                    }
+                    return null;
+                }));
+            }
+            start.countDown();
+            for (Future<?> future : futures) {
+                future.get(30, TimeUnit.SECONDS);
+            }
+        } finally {
+            pool.shutdown();
+        }
+        for (int t = 0; t < threads; t++) {
+            for (int i = 0; i < perThread; i++) {
+                assertTrue(hub.has("custom." + t + "." + i));
+            }
+        }
     }
 }

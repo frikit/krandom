@@ -44,6 +44,11 @@ import java.lang.annotation.Target;
  * <p>Properties such as {@code krandom.seed} and {@code krandom.locale} are
  * honored via {@code @TestPropertySource} or {@code @SpringBootTest(properties = ...)}.
  *
+ * <p><b>Note on placement:</b> this annotation intentionally lives in {@code src/main/java}
+ * (not {@code src/test/java}) so it is part of the published artifact and usable from
+ * consumers' own test suites — the same packaging approach Spring Boot uses for its
+ * test slice annotations.
+ *
  * @see KrandomAutoConfiguration
  * @see KrandomObjectFakerFactory
  */

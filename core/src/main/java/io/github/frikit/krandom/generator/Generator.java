@@ -85,7 +85,8 @@ public interface Generator<T> {
      * {@link Random#setSeed(long)}.
      *
      * <p>New generators should implement {@link Seedable} directly instead of relying on
-     * the reflection fallback.
+     * the reflection fallback. The reflection fallback is a transitional mechanism and is
+     * planned for deprecation and removal in a future major release.
      *
      * @param seed deterministic seed
      * @throws UnsupportedOperationException if no reseedable random field is present

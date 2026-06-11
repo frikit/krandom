@@ -52,21 +52,28 @@ import io.github.frikit.krandom.generator.user.PersonInfoGenerator;
 import io.github.frikit.krandom.generator.user.UsernameGenerator;
 
 import java.util.function.BiPredicate;
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Mimesis-style generic provider hub with alias-based lookup and runtime registration.
+ *
+ * <p><b>Thread safety:</b> lookups and registrations are backed by concurrent maps, so a hub
+ * instance may be shared across threads. A single registration is atomic under
+ * {@link ConflictPolicy#FAIL}; the cross-map validation in
+ * {@link #registerAlias(String, String, ConflictPolicy)} is best-effort when providers and
+ * aliases are registered concurrently. For fully deterministic setups, complete all
+ * registration before sharing the hub across threads.
  */
 public final class ProviderHub {
 
     private final GeneratorConfig              config;
     private final GeneratorProfile             profile;
-    private final Map<String, ProviderFactory> providers = new LinkedHashMap<>();
-    private final Map<String, String>          aliases   = new LinkedHashMap<>();
+    private final Map<String, ProviderFactory> providers = new ConcurrentHashMap<>();
+    private final Map<String, String>          aliases   = new ConcurrentHashMap<>();
 
     /**
      * Creates provider hub with default configuration.
@@ -207,8 +214,11 @@ public final class ProviderHub {
         String key = normalize(name);
         ProviderFactory value = Objects.requireNonNull(factory, "factory must not be null");
         ConflictPolicy conflictPolicy = Objects.requireNonNull(policy, "policy must not be null");
-        if (providers.containsKey(key) && conflictPolicy == ConflictPolicy.FAIL) {
-            throw new IllegalArgumentException("Provider already registered: " + key);
+        if (conflictPolicy == ConflictPolicy.FAIL) {
+            if (providers.putIfAbsent(key, value) != null) {
+                throw new IllegalArgumentException("Provider already registered: " + key);
+            }
+            return;
         }
         providers.put(key, value);
     }
@@ -252,8 +262,11 @@ public final class ProviderHub {
         if (providers.containsKey(aliasKey) && !aliasKey.equals(targetKey)) {
             throw new IllegalArgumentException("Alias conflicts with canonical provider name: " + aliasKey);
         }
-        if (aliases.containsKey(aliasKey) && conflictPolicy == ConflictPolicy.FAIL) {
-            throw new IllegalArgumentException("Alias already registered: " + aliasKey);
+        if (conflictPolicy == ConflictPolicy.FAIL) {
+            if (aliases.putIfAbsent(aliasKey, targetKey) != null) {
+                throw new IllegalArgumentException("Alias already registered: " + aliasKey);
+            }
+            return;
         }
         aliases.put(aliasKey, targetKey);
     }

@@ -2,6 +2,8 @@
 
 [![tests + coverage](https://github.com/frikit/krandom/actions/workflows/continuous-integration-workflow.yml/badge.svg)](https://github.com/frikit/krandom/actions/workflows/continuous-integration-workflow.yml)
 [![codecov](https://codecov.io/github/frikit/krandom/graph/badge.svg?token=CpcHkmbzo7)](https://codecov.io/github/frikit/krandom)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.frikit/krandom-core?label=maven%20central)](https://central.sonatype.com/artifact/io.github.frikit/krandom-core)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 kRandom is a Java 21 random and fake-data generation toolkit. The repository is centered on the Java core plus focused integration modules for Jackson, Spring Boot, property-based testing, and Kotlin DSL usage.
 
@@ -53,6 +55,19 @@ int roll = Generators.ofInt(1, 7).generate();
 String name = Generators.ofFullName().generate();
 String email = Generators.ofEmail().generate();
 String label = Generators.ofProviderTemplate("{firstname}-##").generate();
+```
+
+Kotlin consumers can use the same core API directly, or the fixture DSL from
+`krandom-kotlin-dsl`:
+
+```kotlin
+import io.github.frikit.krandom.dsl.krandom
+
+val user = krandom<User> {
+    config { seed(42L) }
+    rule("firstName") { "Ada" }
+    exclude("password")
+}
 ```
 
 ## Choosing an API
@@ -170,6 +185,17 @@ Consumer examples live in [`examples/`](examples/). They are test-based examples
 - Kotlin + Maven
 - Scala + sbt
 - Scala + Mill
+
+## Versioning and compatibility
+
+kRandom follows [Semantic Versioning](https://semver.org). The full policy —
+Java support window, Spring Boot compatibility, seed/output stability, and
+deprecation rules — is documented in [VERSIONING.md](VERSIONING.md).
+
+## Getting help
+
+- [GitHub Issues](https://github.com/frikit/krandom/issues) for bug reports and feature requests
+- [FAQ](docs-site/faq.md) for common questions, also published at [frikit.github.io/krandom](https://frikit.github.io/krandom/)
 
 ## Docs
 
