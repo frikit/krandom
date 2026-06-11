@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ import java.util.stream.Stream;
  * @param <T> the type of value produced
  */
 @FunctionalInterface
-public interface Generator<T> {
+public interface Generator<T extends @Nullable Object> {
 
     /**
      * Default retry cap for {@link #filter(Predicate)}.
@@ -138,7 +140,7 @@ public interface Generator<T> {
      *   Generator<String> intAsString = Generators.ofInt(1, 100).map(Object::toString);
      * }</pre>
      */
-    default <R> Generator<R> map(Function<? super T, ? extends R> mapper) {
+    default <R extends @Nullable Object> Generator<R> map(Function<? super T, ? extends R> mapper) {
         Objects.requireNonNull(mapper, "mapper must not be null");
         return () -> mapper.apply(generate());
     }

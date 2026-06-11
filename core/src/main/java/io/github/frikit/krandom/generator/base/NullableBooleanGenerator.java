@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import org.jspecify.annotations.Nullable;
 
 import java.security.SecureRandom;
 import java.util.Objects;
@@ -15,7 +16,7 @@ import java.util.Random;
 /**
  * Generates nullable booleans (true/false/null).
  */
-public final class NullableBooleanGenerator implements Generator<Boolean> {
+public final class NullableBooleanGenerator implements Generator<@Nullable Boolean> {
 
     private final Random random;
 
@@ -29,7 +30,7 @@ public final class NullableBooleanGenerator implements Generator<Boolean> {
     }
 
     @Override
-    public Boolean generate() {
+    public @Nullable Boolean generate() {
         int value = random.nextInt(3);
         if (value == 0) {
             return null;

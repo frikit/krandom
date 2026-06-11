@@ -19,6 +19,7 @@ kotlin {
 }
 
 dependencies {
+    api(libs.jspecify)
     implementation(libs.kotlin.stdlib)
     implementation(libs.slf4j.api)
     implementation(libs.objenesis)

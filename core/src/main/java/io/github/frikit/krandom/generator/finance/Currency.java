@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Locale;
 
 /**
@@ -110,7 +112,7 @@ public enum Currency {
      * @param locale the locale to get currency for
      * @return the currency for the locale, or null if locale is null or not supported
      */
-    public static Currency forLocale(Locale locale) {
+    public static @Nullable Currency forLocale(@Nullable Locale locale) {
         if (locale == null) {
             return null;
         }
@@ -144,7 +146,7 @@ public enum Currency {
      * @param code the ISO 4217 code to look up
      * @return the currency with that code, or null if not found
      */
-    public static Currency fromCode(String code) {
+    public static @Nullable Currency fromCode(@Nullable String code) {
         if (code == null) {
             return null;
         }

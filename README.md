@@ -73,6 +73,7 @@ val user = krandom<User> {
 ## Choosing an API
 
 - Use scalar generators like `Generators.ofInt(...)`, `Generators.ofEmail()`, or `Generators.ofCity()` when you need a few direct values.
+- Use the domain namespaces — `Generators.person()`, `Generators.finance()`, `Generators.location()`, `Generators.network()`, `Generators.text()`, `Generators.commerce()`, `Generators.identifier()`, `Generators.datetime()` — when you want a discoverable, IDE-friendly entry point per domain (each also accepts a `GeneratorConfig`).
 - Use `ObjectGenerator<T>` when you want an existing DTO / record populated with realistic defaults.
 - Use `ObjectFaker<T>` when you need explicit fixture rules, nested overrides, or reusable profiles.
 - Use `Field` + `Schema` when you want row-style payloads or formatted export output such as CSV, JSONL, XML, or SQL.

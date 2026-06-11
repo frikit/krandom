@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.user.nationalid;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -125,7 +127,7 @@ public final class NationalIdRegistry {
      *
      * @return the provider, or {@code null} if none is registered for the locale or its language
      */
-    public static NationalIdProvider forLocale(Locale locale) {
+    public static @Nullable NationalIdProvider forLocale(@Nullable Locale locale) {
         if (locale == null) return null;
         String lang = locale.getLanguage();
         String country = locale.getCountry();

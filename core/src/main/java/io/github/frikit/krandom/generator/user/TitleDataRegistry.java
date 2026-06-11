@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -85,7 +86,7 @@ public final class TitleDataRegistry {
      *
      * @return the provider, or {@code null} if none is registered for the locale or its language
      */
-    public static TitleDataProvider forLocale(Locale locale) {
+    public static @Nullable TitleDataProvider forLocale(@Nullable Locale locale) {
         if (locale == null) return null;
         String lang = locale.getLanguage();
         String country = locale.getCountry();

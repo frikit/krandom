@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,7 +97,7 @@ public final class ProfessionDataRegistry {
     /**
      * Returns provider by exact match, then language fallback, else {@code null}.
      */
-    public static ProfessionDataProvider forLocale(Locale locale) {
+    public static @Nullable ProfessionDataProvider forLocale(@Nullable Locale locale) {
         if (locale == null) return null;
         String lang = locale.getLanguage();
         String country = locale.getCountry();

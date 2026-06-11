@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -73,7 +74,7 @@ public final class LastNameDataRegistry {
      *
      * @return the provider, or {@code null} if none is registered
      */
-    public static LastNameDataProvider forLocale(Locale locale) {
+    public static @Nullable LastNameDataProvider forLocale(@Nullable Locale locale) {
         if (locale == null) return null;
         String lang = locale.getLanguage();
         String country = locale.getCountry();

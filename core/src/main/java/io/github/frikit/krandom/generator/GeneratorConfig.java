@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -781,7 +782,7 @@ public final class GeneratorConfig {
         /**
          * Register a field-level override for object generation.
          */
-        public <T> Builder objectOverride(Class<?> ownerType, String fieldName, Generator<T> generator) {
+        public <T extends @Nullable Object> Builder objectOverride(Class<?> ownerType, String fieldName, Generator<T> generator) {
             Objects.requireNonNull(ownerType, "ownerType must not be null");
             Objects.requireNonNull(fieldName, "fieldName must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
@@ -813,7 +814,7 @@ public final class GeneratorConfig {
         /**
          * Register a predicate field override for object generation.
          */
-        public <T> Builder objectOverride(Predicate<Field> predicate, Generator<T> generator) {
+        public <T extends @Nullable Object> Builder objectOverride(Predicate<Field> predicate, Generator<T> generator) {
             Objects.requireNonNull(predicate, "predicate must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
             objectPredicateFieldOverrides.add(new FieldGeneratorOverride(predicate, generator));
