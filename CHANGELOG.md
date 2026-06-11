@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Configurable random source on `GeneratorConfig`: `builder().random(Random)` for client-owned PRNG instances and `builder().secureRandom()` for `SecureRandom`-backed generation.
+- Deterministic temporal generation: `GeneratorConfig` now carries a `Clock`, making date/time, card-expiration, and birthday generators reproducible under a fixed clock and seed.
+- `Schema.writeTo(OutputStream | Writer, OutputFormat, count[, tableName])` streaming export overloads.
+
+### Changed
+- Hardened object generation internals: `FieldGeneratorResolver`, `SemanticCoherenceAdjuster`, and `SemanticFieldRegistry` refactored for stricter semantic-alias resolution and edge-case coverage.
+- Consumer API polish across `Generator` and `Schema`; module metadata refreshed for published artifacts.
+- Kotlin updated to 2.4.0; Gradle wrapper downloads made resilient (longer timeout, retries).
+
+### Removed
+- jqwik integration module (`jqwik-extensions`); property-based testing support continues via `kotest-extensions`.
+
 ## [1.0.0] - 2026-05-08
 
 First public release on Maven Central under `io.github.frikit`.

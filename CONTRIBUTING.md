@@ -39,7 +39,7 @@ java -version   # must report 21+
 
 - **Bug fixes** with a reproducing test case.
 - **New generators** that follow the existing `Generator<T>` pattern and include locale-aware data where applicable.
-- **Locale data expansion** — see [locale contribution guide](docs-site/guides/locale-contribution-guide.md) for adding or improving locale datasets.
+- **Locale data expansion** — see [locale contribution guide](docs/locale-contribution-guide.md) for adding or improving locale datasets.
 - **Documentation improvements** — especially usage examples and API guides.
 - **Performance improvements** backed by JMH benchmark data.
 
