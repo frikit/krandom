@@ -1,35 +1,32 @@
 #!/bin/bash
+set -euo pipefail
 
-curr=${PDW}
-cd ../
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "${REPO_ROOT}"
 
-echo Make gradlew executable
+command -v jq >/dev/null 2>&1 || {
+    echo "ERROR: jq is required to parse the Gradle version feed. Install jq and retry." >&2
+    exit 1
+}
+
+echo "Make gradlew executable"
 chmod +x gradlew
 
-echo Upgrade gradle wrapper...
-version_json=$(curl https://services.gradle.org/versions/current)
+echo "Fetching latest Gradle version..."
+version_json=$(curl -fsSL https://services.gradle.org/versions/current) || {
+    echo "ERROR: failed to fetch https://services.gradle.org/versions/current" >&2
+    exit 1
+}
 
-version_line=""
+latest_version=$(printf '%s' "${version_json}" | jq -r '.version // empty')
 
-while read -r line; do
-    if [[ ${line} == *"version"* ]]; then
-        version_line=${line}
-    fi
-done <<< "$version_json"
+if [ -z "${latest_version}" ]; then
+    echo "ERROR: could not parse Gradle version from response:" >&2
+    printf '%s\n' "${version_json}" >&2
+    exit 1
+fi
 
-version_line=${version_line/\"version\" : \"/""}
-version_line=${version_line/\",/""}
+echo "Upgrading Gradle wrapper to [${latest_version}]"
+./gradlew wrapper --gradle-version "${latest_version}" --distribution-type=ALL --warning-mode=ALL
 
-echo "Version is [${version_line}]"
-
-latest_version=${version_line}
-type="ALL"
-
-echo Upgrade gradle version to "${latest_version}"
-./gradlew wrapper --gradle-version "${latest_version}" --distribution-type=${type} --warning-mode=ALL
-
-sleep 1
-
-./gradlew
-
-cd "${curr}" || exit
+./gradlew --version

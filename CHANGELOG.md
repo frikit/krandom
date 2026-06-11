@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `Schema.writeTo(OutputStream | Writer, OutputFormat, count[, tableName])` streaming export overloads.
 
 ### Changed
+- `ProviderHub` is now thread-safe: registries are backed by concurrent maps and single registrations are atomic under `ConflictPolicy.FAIL`; the thread-safety contract is documented in the class Javadoc.
+- `objectIgnoreErrors=true` / `ignoreErrors=true` no longer swallows population failures fully silently: each ignored failure is logged at `java.util.logging` FINE level for diagnosability.
 - Hardened object generation internals: `FieldGeneratorResolver`, `SemanticCoherenceAdjuster`, and `SemanticFieldRegistry` refactored for stricter semantic-alias resolution and edge-case coverage.
 - Consumer API polish across `Generator` and `Schema`; module metadata refreshed for published artifacts.
 - Kotlin updated to 2.4.0; Gradle wrapper downloads made resilient (longer timeout, retries).

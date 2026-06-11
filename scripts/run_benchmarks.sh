@@ -112,6 +112,11 @@ OS_VERSION=$(uname -r)
 # Extract the benchmark results table from JMH output
 JMH_TABLE=$(grep -E "^(Benchmark|Competitor|Expanded|FirstName|ObjectFactory|ObjectGenerator|Regex|Schema)" "${RAW_OUTPUT}" 2>/dev/null || true)
 
+if [ -z "${JMH_TABLE}" ]; then
+    echo "WARNING: no JMH result rows parsed from ${RAW_OUTPUT}; the generated dashboard will have empty tables." >&2
+    echo "         Check the raw output for JMH failures or a changed output format." >&2
+fi
+
 # Build the dashboard
 cat > "${DASHBOARD}" << HEADER
 # krandom Benchmark Dashboard

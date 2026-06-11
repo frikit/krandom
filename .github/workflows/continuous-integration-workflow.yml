@@ -20,9 +20,6 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Remove local Java home override
-        run: sed -i '/org.gradle.java.home/d' gradle.properties
-
       - name: Make gradlew executable
         run: chmod +x gradlew
 

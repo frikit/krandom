@@ -57,9 +57,6 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
 
-      - name: Remove local Java home override
-        run: sed -i '/org.gradle.java.home/d' gradle.properties
-
       - name: Make gradlew executable
         run: chmod +x gradlew
 
@@ -84,7 +81,7 @@ jobs:
         run: ./gradlew publishAggregationToCentralPortal -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           tag_name: ${{ env.TAG }}
           name: Release ${{ env.TAG }}
