@@ -7,7 +7,9 @@ package io.github.frikit.krandom.kotest
 
 import io.github.frikit.krandom.generator.GeneratorConfig
 import io.github.frikit.krandom.generator.Generators
+import io.github.frikit.krandom.generator.base.IntGenerator
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeInRange
@@ -98,6 +100,34 @@ class KrandomArbTest : DescribeSpec({
                 pojo shouldNotBe null
                 pojo.name shouldNotBe null
             }
+        }
+    }
+
+    describe("edge cases") {
+
+        it("toArb supports zero and single-sample takes") {
+            val intArb = Generators.ofInt(1, 100).toArb()
+            intArb.take(0).toList() shouldHaveSize 0
+            intArb.take(1).toList() shouldHaveSize 1
+        }
+
+        it("toArb stays within generator bounds across a large sample") {
+            val samples = Generators.ofInt(10, 20).toArb().take(500).toList()
+            samples shouldHaveSize 500
+            samples.forEach { it shouldBeInRange 10..19 }
+        }
+
+        it("krandomArb preserves seeded sequence progression across repeated sampling") {
+            val first = krandomArb { IntGenerator(1, 1_000_000, 42L) }.take(50).toList()
+            val second = krandomArb { IntGenerator(1, 1_000_000, 42L) }.take(50).toList()
+            first shouldBe second
+        }
+
+        it("krandomObjectArb with a seeded config is deterministic across instances") {
+            val config = GeneratorConfig.builder().seed(42L).build()
+            val first = krandomObjectArb<SamplePojo>(config).take(10).toList().map { it.name to it.age }
+            val second = krandomObjectArb<SamplePojo>(config).take(10).toList().map { it.name to it.age }
+            first shouldBe second
         }
     }
 })

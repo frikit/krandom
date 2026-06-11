@@ -84,4 +84,27 @@ class SeedableTest {
         // SecureRandom extends Random, so setSeed should work
         assertDoesNotThrow(() -> gen.reseed(42L));
     }
+
+    @Test
+    @DisplayName("independently constructed generators with the same seed produce identical sequences")
+    void sameSeedSameSequenceAcrossInstances() {
+        assertEquals(new IntGenerator(1, 1000, 42L).generateList(25),
+                     new IntGenerator(1, 1000, 42L).generateList(25));
+        assertEquals(new LongGenerator(1L, 1_000_000L, 7L).generateList(25),
+                     new LongGenerator(1L, 1_000_000L, 7L).generateList(25));
+        assertEquals(new DoubleGenerator(0.0, 1.0, 99L).generateList(25),
+                     new DoubleGenerator(0.0, 1.0, 99L).generateList(25));
+    }
+
+    @Test
+    @DisplayName("string seed produces the same sequence as its derived numeric seed")
+    void stringSeedMatchesDerivedNumericSeed() {
+        long derived = GeneratorConfig.deriveSeed("regression-seed");
+        IntGenerator fromNumeric = new IntGenerator(1, 1000, derived);
+
+        IntGenerator fromText = new IntGenerator(1, 1000, 1L);
+        fromText.reseed("regression-seed");
+
+        assertEquals(fromNumeric.generateList(25), fromText.generateList(25));
+    }
 }
