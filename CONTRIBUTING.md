@@ -42,6 +42,11 @@ java -version   # must report 21+
 - **Locale data expansion** — see [locale contribution guide](docs/locale-contribution-guide.md) for adding or improving locale datasets.
 - **Documentation improvements** — especially usage examples and API guides.
 - **Performance improvements** backed by JMH benchmark data.
+- **Domain data packs** — long-tail providers (sports, food, media, science, …)
+  are welcome as self-contained generator packages following the existing
+  `Generator<T>` and registry patterns, with locale-aware data where applicable
+  and tests meeting the coverage gate. Register them through `ProviderHub` so
+  they compose with templates and schema export.
 
 ## Pull request guidelines
 

@@ -183,6 +183,10 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     /**
      * Defines a reusable named profile that can later be applied with {@link #useProfile(String)}.
+     *
+     * <p>Profiles compose: a profile body may itself call {@code useProfile} to apply
+     * another profile, building larger fixture rule sets from smaller ones. Cyclic
+     * application is rejected at apply time.
      */
     public ObjectFaker<T> profile(String name, Consumer<ObjectFaker<T>> profile) {
         Objects.requireNonNull(name, "name must not be null");
