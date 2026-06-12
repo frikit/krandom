@@ -35,6 +35,7 @@ dependencies {
 | `.withMaxDepth(3)` | `.objectMaxDepth(3)` |
 | `Instancio.of(Model<T>)` | `ObjectFaker.profile("name", ...)` + `.useProfile("name")` (closest analogue) |
 | `generate(field(...), gen -> gen.ints().range(1, 10))` | `.ruleFor("count", Generators.ofInt(1, 10))` |
+| `@ExtendWith(InstancioExtension.class)` + `@Seed(42)` | `@ExtendWith(KrandomExtension.class)` + `@KrandomSeed(42L)` from `krandom-junit` — same failure-seed reporting; see the [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }}) guide |
 
 ## Before and after
 
@@ -72,9 +73,6 @@ User user = new ObjectFaker<>(User.class, config)
 
 ## Honest gaps
 
-- **JUnit 5 extension with seed reporting** (`@WithSettings`, failure-seed
-  logging): not shipped yet — on the roadmap. Until then, fix seeds
-  explicitly via `GeneratorConfig.builder().seed(...)`.
 - **Method-reference selectors** (`field(User::getEmail)`): kRandom rules use
   field names and predicates, not method references.
 - **`Model<T>` composition**: `ObjectFaker` profiles cover named rule sets,

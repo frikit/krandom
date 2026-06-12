@@ -15,6 +15,7 @@ permalink: /guides/
 - [Schema and Provider Hub]({{ '/guides/schema-and-provider-hub/' | relative_url }})
 - [Jackson Integration]({{ '/guides/jackson-integration/' | relative_url }})
 - [Spring Boot Starter]({{ '/guides/spring-boot-starter/' | relative_url }})
+- [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }})
 - [Property Testing Integrations]({{ '/guides/property-testing-integrations/' | relative_url }})
 - [Kotlin DSL]({{ '/guides/kotlin-dsl/' | relative_url }})
 - [Testing Integrations]({{ '/guides/testing-integrations/' | relative_url }})

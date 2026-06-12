@@ -24,6 +24,7 @@ rootProject.name = "krandom"
 
 include(":core")
 include(":jackson")
+include(":junit")
 include(":spring-boot-starter")
 include(":kotest-extensions")
 include(":kotlin-dsl")

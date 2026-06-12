@@ -31,7 +31,7 @@ configure<com.diffplug.gradle.spotless.SpotlessExtension> {
 
 // Modules published to Maven Central. Their POM, sources/javadoc jars, manifest,
 // and signing setup live in buildSrc/src/main/kotlin/krandom-publishing-conventions.gradle.kts.
-val publishedModules = setOf("core", "jackson", "spring-boot-starter", "kotest-extensions", "kotlin-dsl")
+val publishedModules = setOf("core", "jackson", "junit", "spring-boot-starter", "kotest-extensions", "kotlin-dsl")
 
 subprojects {
     apply(plugin = "com.diffplug.spotless")

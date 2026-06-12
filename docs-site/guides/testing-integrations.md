@@ -11,6 +11,10 @@ fixtures. This keeps locale, seed, object depth, and registry choices easy to au
 
 ## JUnit fixtures
 
+For per-test seed management with automatic failure-seed reporting, use the dedicated
+`krandom-junit` extension — see the [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }})
+guide. The manual pattern below remains the right fit when one shared config drives many fixtures:
+
 ```java
 GeneratorConfig cfg = GeneratorConfig.builder()
         .locale(Locale.US)

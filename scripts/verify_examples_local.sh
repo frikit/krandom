@@ -30,6 +30,7 @@ step "Publish krandom modules ${VERSION} to Maven local"
 "${GRADLEW}" \
     :core:publishToMavenLocal \
     :jackson:publishToMavenLocal \
+    :junit:publishToMavenLocal \
     :spring-boot-starter:publishToMavenLocal \
     :kotest-extensions:publishToMavenLocal \
     :kotlin-dsl:publishToMavenLocal \

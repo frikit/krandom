@@ -6,8 +6,8 @@
 
 <!--
 Bulleted list of the meaningful changes. Group by module if relevant
-(core / jackson / spring-boot-starter / kotest-extensions / kotlin-dsl / docs /
-build).
+(core / jackson / junit / spring-boot-starter / kotest-extensions / kotlin-dsl /
+docs / build).
 -->
 
 -

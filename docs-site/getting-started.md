@@ -17,6 +17,7 @@ Public coordinates on Maven Central:
 
 - `io.github.frikit:krandom-core`
 - `io.github.frikit:krandom-jackson`
+- `io.github.frikit:krandom-junit` (from `1.1.0`)
 - `io.github.frikit:krandom-spring-boot-starter`
 - `io.github.frikit:krandom-kotest-extensions`
 - `io.github.frikit:krandom-kotlin-dsl`
@@ -38,6 +39,8 @@ dependencies {
     implementation("io.github.frikit:krandom-spring-boot-starter:1.0.0")
     testImplementation("io.github.frikit:krandom-kotest-extensions:1.0.0")
     testImplementation("io.github.frikit:krandom-kotlin-dsl:1.0.0")
+    testImplementation("io.github.frikit:krandom-junit:1.1.0") // JUnit 5 seed extension, from 1.1.0
+
 }
 ```
 
@@ -144,5 +147,6 @@ See also:
 
 - [Jackson Integration]({{ '/guides/jackson-integration/' | relative_url }})
 - [Spring Boot Starter]({{ '/guides/spring-boot-starter/' | relative_url }})
+- [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }})
 - [Property Testing Integrations]({{ '/guides/property-testing-integrations/' | relative_url }})
 - [Kotlin DSL]({{ '/guides/kotlin-dsl/' | relative_url }})
