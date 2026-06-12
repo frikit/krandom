@@ -30,6 +30,17 @@ carry no compatibility guarantee.
 
 ## Platform support window
 
+**Java 21 is the deliberate baseline for the entire 1.x line.** This is a
+positioning decision, not an oversight: it will not be lowered within 1.x,
+and any future change to the Java baseline would only happen in a major
+release.
+
+### Compatibility table
+
+| kRandom | Java | Spring Boot (`krandom-spring-boot-starter`) | Kotlin modules (`krandom-kotlin-dsl`, `krandom-kotest-extensions`) |
+|:---|:---|:---|:---|
+| 1.x | 21+ | 4.x | Kotlin version pinned in `gradle/libs.versions.toml` |
+
 - **Java**: 21 or later (toolchain-enforced at build time).
 - **Spring Boot**: the `krandom-spring-boot-starter` module targets Spring
   Boot 4.x; consumers must be on Spring Boot 4.x.

@@ -43,6 +43,25 @@ String city = new CityGenerator(fr).generate();
 String country = new CountryGenerator(fr).generate();
 ```
 
+## Template helpers (numerify / letterify / bothify)
+
+Faker-style string templates are supported natively:
+
+```java
+String code = Generators.ofTemplate("ORD-####-??").generate(); // digits + letters
+String digits = Generators.ofTemplate("###-##-####").generate();
+String mixed = Generators.ofProviderTemplate("{firstname}-##").generate(); // provider token + digits
+```
+
+`#` expands to a digit, `?` to a letter; `ofProviderTemplate` additionally
+resolves `{token}` placeholders (e.g. `{firstname}`, `{email}`, `{city}`)
+through the `ProviderHub`. For one-off transformations,
+`TemplateStringGenerator` also exposes `numerify(String)` and
+`letterify(String)` directly.
+
+DataFaker users: a dedicated guide exists —
+[Migration from DataFaker]({{ '/guides/migration-from-datafaker/' | relative_url }}).
+
 ## Notes
 
 - Prefer `Generators.of*()` factories for straightforward migration.

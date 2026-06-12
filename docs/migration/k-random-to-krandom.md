@@ -279,7 +279,7 @@ GeneratorConfig config = GeneratorConfig.builder()
     .build();
 ```
 
-For annotations, replace k-random's `io.github.krandom.annotation.Exclude` with krandom's object-generation exclusion annotation.
+For annotations, replace k-random's `io.github.krandom.annotation.Exclude` with krandom's `io.github.frikit.krandom.generator.object.Exclude`.
 
 Field predicate mapping:
 

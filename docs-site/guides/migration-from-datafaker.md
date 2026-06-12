@@ -1,0 +1,95 @@
+---
+layout: page
+title: Migration from DataFaker
+permalink: /guides/migration-from-datafaker/
+---
+
+# Migration from DataFaker
+
+Use this mapping to move DataFaker (or JavaFaker) code to kRandom. This is
+feature-parity guidance, not source-compatible import replacement. JavaFaker
+users: the same mappings apply — JavaFaker is unmaintained and DataFaker is
+its successor, so both columns read the same.
+
+## Install
+
+```kotlin
+dependencies {
+    implementation("io.github.frikit:krandom-core:1.0.0")
+}
+```
+
+## API mapping
+
+| DataFaker | kRandom equivalent |
+|---|---|
+| `new Faker()` | no instance needed — `Generators.of*()` statics or domain namespaces |
+| `new Faker(Locale.GERMANY)` | `Generators.ofCity(Locale.GERMANY)` per call, or `GeneratorConfig.builder().locale(...)` shared |
+| `new Faker(new Random(42))` | `GeneratorConfig.builder().seed(42L).build()` |
+| `faker.name().fullName()` | `Generators.ofFullName().generate()` |
+| `faker.name().firstName()` | `Generators.person().firstName().generate()` |
+| `faker.name().lastName()` | `Generators.person().lastName().generate()` |
+| `faker.internet().emailAddress()` | `Generators.ofEmail().generate()` |
+| `faker.internet().url()` | `Generators.ofUrl().generate()` |
+| `faker.internet().ipV4Address()` | `Generators.ofIPv4().generate()` |
+| `faker.internet().username()` | `Generators.ofUsername().generate()` |
+| `faker.address().city()` | `Generators.ofCity().generate()` |
+| `faker.address().country()` | `Generators.ofCountry().generate()` |
+| `faker.address().streetAddress()` | `Generators.ofStreetAddress().generate()` |
+| `faker.address().zipCode()` | `Generators.ofPostalCode().generate()` |
+| `faker.phoneNumber().phoneNumber()` | `Generators.ofPhoneNumber().generate()` |
+| `faker.company().name()` | `Generators.ofCompanyName().generate()` |
+| `faker.finance().iban()` | `Generators.ofIban().generate()` |
+| `faker.finance().creditCard()` | `Generators.ofCreditCard().generate()` |
+| `faker.number().numberBetween(1, 100)` | `Generators.ofInt(1, 100).generate()` |
+| `faker.regexify("[a-z]{8}")` | `new RegexGenerator("[a-z]{8}").generate()` |
+
+Domain namespaces (`Generators.person()`, `location()`, `finance()`,
+`network()`, `text()`, `commerce()`, `identifier()`, `datetime()`) mirror
+DataFaker's provider-object style if you prefer fluent discovery over flat
+statics. Each accepts an optional `GeneratorConfig`.
+
+## Template helpers
+
+DataFaker's string templates map directly:
+
+| DataFaker | kRandom equivalent |
+|---|---|
+| `faker.numerify("###-##")` | `Generators.ofTemplate("###-##").generate()` |
+| `faker.letterify("????")` | `Generators.ofTemplate("????").generate()` |
+| `faker.bothify("##??")` | `Generators.ofTemplate("##??").generate()` |
+| `faker.expression("#{Name.firstName}")` | `Generators.ofProviderTemplate("{firstname}").generate()` |
+
+`ofProviderTemplate` resolves `{token}` placeholders through the
+`ProviderHub` (tokens like `{firstname}`, `{email}`, `{city}`) and expands
+`#`/`?` placeholders in the same string — see the
+[Schema and Provider Hub]({{ '/guides/schema-and-provider-hub/' | relative_url }})
+guide for the full token list.
+
+## Bulk and structured output
+
+DataFaker has no first-class bulk export; kRandom does. For row-style data
+use `Field` + `Schema` and export to CSV, JSONL, XML, or SQL — see
+[Schema and Provider Hub]({{ '/guides/schema-and-provider-hub/' | relative_url }}).
+
+## Seeding differences
+
+DataFaker shares one `Random` across the whole faker instance. kRandom seeds
+per generator or per shared `GeneratorConfig`; string seeds are supported via
+a stable derivation (`GeneratorConfig.deriveSeed`, `fnv1a64-v1`). Tests
+should assert on shape, not exact values — see
+[VERSIONING.md](https://github.com/frikit/krandom/blob/master/VERSIONING.md)
+for the seed-stability policy.
+
+## Honest gaps
+
+- **Long-tail novelty providers** (sports teams, movies, food, animals,
+  pop-culture catalogs): not shipped. If your tests depend on these, keep
+  DataFaker for those calls or open an issue — domain packs are
+  community-contributable.
+- **Locales**: kRandom ships 35 curated locales; DataFaker advertises 60+.
+  Check yours against the [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}) guide.
+- **Runtime YAML data files**: kRandom uses code-based registries instead;
+  custom data is registered through `ProviderHub` or `DataRegistryContext`.
+- **`#{...}` expression syntax**: kRandom's token syntax is `{token}`, not
+  `#{Provider.method}` — a thin adapter is on the roadmap.

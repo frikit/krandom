@@ -20,5 +20,8 @@ permalink: /guides/
 - [Testing Integrations]({{ '/guides/testing-integrations/' | relative_url }})
 - [Runnable Snippets]({{ '/guides/runnable-snippets/' | relative_url }})
 - [Migration from Faker and Chance]({{ '/guides/migration-from-faker-chance/' | relative_url }})
+- [Migration from DataFaker]({{ '/guides/migration-from-datafaker/' | relative_url }})
+- [Migration from easy-random]({{ '/guides/migration-from-easy-random/' | relative_url }})
+- [Migration from Instancio]({{ '/guides/migration-from-instancio/' | relative_url }})
 - [Migration from k-random]({{ '/guides/k-random-migration/' | relative_url }})
 - [Performance and Observability]({{ '/guides/performance-and-observability/' | relative_url }})
