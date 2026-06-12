@@ -13,7 +13,7 @@ jakarta-validation = "3.1.1"
 jspecify = "1.0.0"
 hibernate-validator = "9.1.0.Final"
 jackson = "2.21.3"
-spring-boot = "4.0.6"
+spring-boot = "4.1.0"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
