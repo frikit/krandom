@@ -58,7 +58,7 @@ DataFaker's string templates map directly:
 | `faker.numerify("###-##")` | `Generators.ofTemplate("###-##").generate()` |
 | `faker.letterify("????")` | `Generators.ofTemplate("????").generate()` |
 | `faker.bothify("##??")` | `Generators.ofTemplate("##??").generate()` |
-| `faker.expression("#{Name.firstName}")` | `Generators.ofProviderTemplate("{firstname}").generate()` |
+| `faker.expression("#{Name.firstName}")` | `Generators.ofDataFakerExpression("#{Name.firstName}").generate()` (same syntax) or `Generators.ofProviderTemplate("{firstname}").generate()` (native syntax) |
 
 `ofProviderTemplate` resolves `{token}` placeholders through the
 `ProviderHub` (tokens like `{firstname}`, `{email}`, `{city}`) and expands
@@ -91,5 +91,7 @@ for the seed-stability policy.
   Check yours against the [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}) guide.
 - **Runtime YAML data files**: kRandom uses code-based registries instead;
   custom data is registered through `ProviderHub` or `DataRegistryContext`.
-- **`#{...}` expression syntax**: kRandom's token syntax is `{token}`, not
-  `#{Provider.method}` — a thin adapter is on the roadmap.
+- **`#{...}` expression syntax**: the common tokens work directly via
+  `Generators.ofDataFakerExpression(...)` (case-insensitive, camelCase or
+  snake_case; unknown tokens fail fast with the supported list). Exotic
+  provider tokens beyond that list still need manual mapping.

@@ -1312,23 +1312,26 @@ final class FieldGeneratorResolver {
         }
 
         // ── 8. Nested class or record (cycle-safe) ────────────────────────────
-        if (isNestableType(rawType)) {
-            if (pool.isInProgress(rawType)) {
-                return pool.getCached(rawType); // break circular reference
+        // Abstract/interface field types may be mapped to a concrete implementation
+        // via GeneratorConfig.objectSubtype / ObjectGeneratorConfig.subtype.
+        Class<?> nestedType = config.resolveSubtype(rawType);
+        if (isNestableType(nestedType)) {
+            if (pool.isInProgress(nestedType)) {
+                return pool.getCached(nestedType); // break circular reference
             }
-            pool.begin(rawType);
+            pool.begin(nestedType);
             try {
                 Object instance = new ObjectGenerator<>(
-                    rawType,
+                    nestedType,
                     config,
                     currentDepth + 1,
                     pool,
                     nextDeterministicSeed(generatorConfig, sequenceRandom),
                     uniqueFieldTracker).generate();
-                pool.end(rawType, instance);
+                pool.end(nestedType, instance);
                 return instance;
             } catch (ObjectGenerationException e) {
-                pool.end(rawType, null);
+                pool.end(nestedType, null);
                 if (config.isIgnoreErrors()) {
                     LOGGER.fine("Ignored nested generation failure for field '"
                                 + ownerType.getSimpleName() + "." + fieldName + "': " + e);
@@ -1336,7 +1339,7 @@ final class FieldGeneratorResolver {
                 }
                 throw e;
             } catch (Exception e) {
-                pool.end(rawType, null);
+                pool.end(nestedType, null);
                 if (config.isIgnoreErrors()) {
                     LOGGER.fine("Ignored nested generation failure for field '"
                                 + ownerType.getSimpleName() + "." + fieldName + "': " + e);

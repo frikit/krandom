@@ -35,6 +35,7 @@ dependencies {
 | `.randomize(named("email"), randomizer)` | `.objectOverride(User.class, "email", generator)` or `.objectOverride(fieldPredicate, generator)` |
 | `.excludeField(named("password"))` | `.objectExcludeField("password")` or `.objectExclude(fieldPredicate)` |
 | `.excludeType(t -> ...)` | `.objectExcludeType(...)` |
+| `.scanClasspathForConcreteTypes(true)` | `.objectSubtype(declaredType, implementationType)` per abstract type |
 | `@org.jeasy.random.annotation.Randomizer` | `@io.github.frikit.krandom.generator.object.Randomizer` |
 | `@org.jeasy.random.annotation.Exclude` | `@io.github.frikit.krandom.generator.object.Exclude` |
 | `easy-random-bean-validation` module | built into `krandom-core` (19 Jakarta constraints honored) |
@@ -79,10 +80,10 @@ User user = Generators.ofObject(User.class, config).generate();
 ## Honest gaps
 
 - **`scanClasspathForConcreteTypes(true)`**: kRandom does not scan the
-  classpath to pick implementations for abstract/interface fields. Register
-  the implementation explicitly instead:
-  `.objectOverride(PaymentMethod.class, CardPayment::new)`. A first-class
-  `subtype()` mapping is on the roadmap.
+  classpath to pick implementations for abstract/interface fields. Map each
+  implementation explicitly instead:
+  `.objectSubtype(PaymentMethod.class, CardPayment.class)` — the mapped
+  implementation is then fully populated like any concrete type.
 - **ServiceLoader randomizer SPI**: kRandom uses explicit `ProviderHub`
   registration instead of `META-INF/services` discovery.
 - **Setter-based population**: kRandom populates via field reflection, not

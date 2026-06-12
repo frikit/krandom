@@ -78,6 +78,7 @@ final class ObjectGeneratorConfig {
      * Takes precedence over type overrides.
      */
     private final Map<String, Generator<?>> fieldOverrides;
+    private final Map<Class<?>, Class<?>> subtypes;
 
     /**
      * Predicate field overrides. First matching predicate wins.
@@ -126,6 +127,7 @@ final class ObjectGeneratorConfig {
         this.dateMax = b.dateMax;
         this.typeOverrides = Collections.unmodifiableMap(new HashMap<>(b.typeOverrides));
         this.fieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.fieldOverrides));
+        this.subtypes = Collections.unmodifiableMap(new HashMap<>(b.subtypes));
         this.predicateFieldOverrides = Collections.unmodifiableList(new ArrayList<>(b.predicateFieldOverrides));
         this.contextualTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.contextualTypeOverrides));
         this.contextualFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.contextualFieldOverrides));
@@ -197,6 +199,14 @@ final class ObjectGeneratorConfig {
      */
     public boolean isIgnoreErrors() {
         return ignoreErrors;
+    }
+
+    /**
+     * Resolves the concrete implementation registered for {@code declaredType}, or returns
+     * {@code declaredType} unchanged when no subtype mapping exists.
+     */
+    public Class<?> resolveSubtype(Class<?> declaredType) {
+        return subtypes.getOrDefault(declaredType, declaredType);
     }
 
     /**
@@ -397,6 +407,7 @@ final class ObjectGeneratorConfig {
         contextualPredicateFieldOverrides.forEach(override -> applyContextualPredicateFieldOverride(builder, override));
         exclusionPredicates.forEach(builder::objectExclude);
         typeExclusionPredicates.forEach(builder::objectExcludeType);
+        subtypes.forEach(builder::objectSubtype);
         return builder.build();
     }
 
@@ -487,6 +498,8 @@ final class ObjectGeneratorConfig {
 
         private final Map<Class<?>, Generator<?>>           typeOverrides                 = new HashMap<>();
         private final Map<String, Generator<?>>             fieldOverrides                = new HashMap<>();
+        private final Map<Class<?>, Class<?>>               subtypes                      = new HashMap<>();
+        private       boolean                               subtypesExplicit;
         private final List<FieldGeneratorOverride>          predicateFieldOverrides       = new ArrayList<>();
         private final Map<Class<?>, ContextualGenerator<?>> contextualTypeOverrides       = new HashMap<>();
         private final Map<String, ContextualGenerator<?>>   contextualFieldOverrides      = new HashMap<>();
@@ -551,6 +564,7 @@ final class ObjectGeneratorConfig {
             this.dateRangeExplicit = source.dateMin != null || source.dateMax != null;
             this.typeOverrides.putAll(source.typeOverrides);
             this.fieldOverrides.putAll(source.fieldOverrides);
+            this.subtypes.putAll(source.subtypes);
             this.predicateFieldOverrides.addAll(source.predicateFieldOverrides);
             this.contextualTypeOverrides.putAll(source.contextualTypeOverrides);
             this.contextualFieldOverrides.putAll(source.contextualFieldOverrides);
@@ -818,6 +832,28 @@ final class ObjectGeneratorConfig {
             return this;
         }
 
+        /**
+         * Maps an abstract or interface field type to the concrete implementation
+         * instantiated during object generation. See
+         * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder#objectSubtype(Class, Class)}.
+         */
+        public Builder subtype(Class<?> declaredType, Class<?> implementationType) {
+            Objects.requireNonNull(declaredType, "declaredType must not be null");
+            Objects.requireNonNull(implementationType, "implementationType must not be null");
+            if (!declaredType.isAssignableFrom(implementationType)) {
+                throw new IllegalArgumentException("implementationType " + implementationType.getName()
+                                                   + " is not assignable to " + declaredType.getName());
+            }
+            if (implementationType.isInterface()
+                || java.lang.reflect.Modifier.isAbstract(implementationType.getModifiers())) {
+                throw new IllegalArgumentException("implementationType must be a concrete class, got: "
+                                                   + implementationType.getName());
+            }
+            subtypes.put(declaredType, implementationType);
+            this.subtypesExplicit = true;
+            return this;
+        }
+
         private void inheritObjectDefaults(GeneratorConfig generatorConfig) {
             if (!maxDepthExplicit) {
                 this.maxDepth = generatorConfig.getObjectMaxDepth();
@@ -852,6 +888,9 @@ final class ObjectGeneratorConfig {
             if (!dateRangeExplicit) {
                 this.dateMin = generatorConfig.getObjectDateMin();
                 this.dateMax = generatorConfig.getObjectDateMax();
+            }
+            if (!subtypesExplicit) {
+                this.subtypes.putAll(generatorConfig.getObjectSubtypes());
             }
         }
 

@@ -125,6 +125,7 @@ import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.network.UserAgentGenerator;
 import io.github.frikit.krandom.generator.object.ObjectFaker;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
+import io.github.frikit.krandom.generator.provider.DataFakerExpressionGenerator;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.FieldLookup;
@@ -2043,6 +2044,23 @@ public final class Generators {
      */
     public static ProviderTemplateGenerator ofProviderTemplate(String template, GeneratorConfig config) {
         return new ProviderTemplateGenerator(template, config);
+    }
+
+    /**
+     * Returns a generator resolving DataFaker-style {@code #{Provider.method}} expressions,
+     * e.g. {@code "#{Name.firstName} <#{Internet.emailAddress}>"}. Migration-compatibility
+     * adapter for DataFaker/JavaFaker users; unknown tokens fail fast at construction.
+     */
+    public static DataFakerExpressionGenerator ofDataFakerExpression(String expression) {
+        return new DataFakerExpressionGenerator(expression);
+    }
+
+    /**
+     * Returns a DataFaker-expression generator resolving providers with explicit configuration
+     * (seed, locale).
+     */
+    public static DataFakerExpressionGenerator ofDataFakerExpression(String expression, GeneratorConfig config) {
+        return new DataFakerExpressionGenerator(expression, config);
     }
 
     /**

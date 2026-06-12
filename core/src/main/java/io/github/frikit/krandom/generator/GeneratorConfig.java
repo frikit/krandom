@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
@@ -85,6 +86,7 @@ public final class GeneratorConfig {
     private final List<ContextualFieldGeneratorOverride> objectContextualPredicateFieldOverrides;
     private final List<Predicate<Field>>                objectExclusionPredicates;
     private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates;
+    private final Map<Class<?>, Class<?>>               objectSubtypes;
     private final Locale       locale;
     private final Random       random;
     private final Supplier<Random> randomFactory;
@@ -121,6 +123,7 @@ public final class GeneratorConfig {
             Collections.unmodifiableList(new ArrayList<>(b.objectContextualPredicateFieldOverrides));
         this.objectExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectExclusionPredicates));
         this.objectTypeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectTypeExclusionPredicates));
+        this.objectSubtypes = Collections.unmodifiableMap(new HashMap<>(b.objectSubtypes));
         this.locale = b.locale;
         this.random = b.random;
         this.randomFactory = b.randomFactory;
@@ -216,6 +219,14 @@ public final class GeneratorConfig {
      */
     public boolean isObjectIgnoreErrors() {
         return objectIgnoreErrors;
+    }
+
+    /**
+     * Mapping of abstract/interface field types to the concrete implementations that
+     * object generation instantiates for them.
+     */
+    public Map<Class<?>, Class<?>> getObjectSubtypes() {
+        return objectSubtypes;
     }
 
     /**
@@ -509,6 +520,7 @@ public final class GeneratorConfig {
             new ArrayList<>();
         private final List<Predicate<Field>>                objectExclusionPredicates     = new ArrayList<>();
         private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates = new ArrayList<>();
+        private final Map<Class<?>, Class<?>>               objectSubtypes                = new HashMap<>();
         private Locale            locale            = Locale.US;
         private Random            random;
         private Supplier<Random>  randomFactory;
@@ -547,6 +559,7 @@ public final class GeneratorConfig {
             this.objectContextualPredicateFieldOverrides.addAll(source.objectContextualPredicateFieldOverrides);
             this.objectExclusionPredicates.addAll(source.objectExclusionPredicates);
             this.objectTypeExclusionPredicates.addAll(source.objectTypeExclusionPredicates);
+            this.objectSubtypes.putAll(source.objectSubtypes);
             this.locale = source.locale;
             this.random = source.random;
             this.randomFactory = source.randomFactory;
@@ -687,6 +700,31 @@ public final class GeneratorConfig {
          */
         public Builder objectIgnoreErrors(boolean objectIgnoreErrors) {
             this.objectIgnoreErrors = objectIgnoreErrors;
+            return this;
+        }
+
+        /**
+         * Maps an abstract or interface field type to the concrete implementation that
+         * object generation instantiates for it.
+         *
+         * <p>kRandom does not scan the classpath for implementations; this explicit
+         * mapping is the supported way to populate abstract and interface fields.
+         *
+         * @param declaredType abstract class or interface declared by fields
+         * @param implementationType concrete subtype to instantiate for those fields
+         */
+        public Builder objectSubtype(Class<?> declaredType, Class<?> implementationType) {
+            Objects.requireNonNull(declaredType, "declaredType must not be null");
+            Objects.requireNonNull(implementationType, "implementationType must not be null");
+            if (!declaredType.isAssignableFrom(implementationType)) {
+                throw new IllegalArgumentException("implementationType " + implementationType.getName()
+                                                   + " is not assignable to " + declaredType.getName());
+            }
+            if (implementationType.isInterface() || Modifier.isAbstract(implementationType.getModifiers())) {
+                throw new IllegalArgumentException("implementationType must be a concrete class, got: "
+                                                   + implementationType.getName());
+            }
+            objectSubtypes.put(declaredType, implementationType);
             return this;
         }
 
