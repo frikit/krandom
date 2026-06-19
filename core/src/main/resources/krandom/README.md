@@ -38,7 +38,7 @@ real-world use cases), and hundreds over time. Current coverage by folder:
 | `cities/` | 1 | 35 | 35 | ≥ 100 unique real cities | all ≥ 100 (107–247) |
 | `names/` | 3 subfolders | 105 | 35 | ≥ 100 unique per file | all ≥ 100 |
 | `states/` | 1 | 35 | 35 | all first-level subdivisions + codes | ok |
-| `streets/` | 4 | 140 | 35 | complete, paired, unique (see below) | ok |
+| `streets/` | 4 subfolders | 140 | 35 | complete, paired, unique (see below) | ok |
 | `countries/` | 1 | 35 | 35 | full world set (195), localized | all 35 at 195 |
 | `text/` | n/a | 1 set | non-locale | complete standard set | ok |
 
@@ -95,14 +95,15 @@ One file per locale, `<locale>_states.txt`.
 
 ### `streets/`
 
-Four files per locale, one per address component:
+Four subfolders, one per address component, each holding one `<locale>.txt`
+per locale:
 
-| File | Content | Rule |
+| Subfolder | Content | Rule |
 |:---|:---|:---|
-| `<locale>_street_types_long.txt` | full street-type words (`Street`, `Avenue`, `Boulevard`) | the **complete** real set for the locale, unique |
-| `<locale>_street_types_short.txt` | their abbreviations (`St`, `Ave`, `Blvd`) | **paired 1:1** with the long list (same count/order), unique |
-| `<locale>_street_names.txt` | representative real street base-names | unique, representative sample |
-| `<locale>_secondary_units.txt` | sub-address designators (apartment, suite, floor, …) | all common designators for the locale, unique |
+| `street_types_long/<locale>.txt` | full street-type words (`Street`, `Avenue`, `Boulevard`) | the **complete** real set for the locale, unique |
+| `street_types_short/<locale>.txt` | their abbreviations (`St`, `Ave`, `Blvd`) | **paired 1:1** with the long list (same count/order), unique |
+| `street_names/<locale>.txt` | representative real street base-names | unique, representative sample |
+| `secondary_units/<locale>.txt` | sub-address designators (apartment, suite, floor, …) | all common designators for the locale, unique |
 
 - **Rule (street types):** the long and short type lists must be **exhaustive**
   for the locale and **correspond one-to-one** (every long form has its short

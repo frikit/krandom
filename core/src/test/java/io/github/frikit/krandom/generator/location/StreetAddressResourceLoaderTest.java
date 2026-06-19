@@ -18,7 +18,7 @@ class StreetAddressResourceLoaderTest {
     @Test
     @DisplayName("load reads resource and skips comments/blank lines")
     void loadSkipsCommentsAndBlankLines() {
-        String[] values = StreetAddressResourceLoader.load("krandom/streets/en_US_street_names.txt");
+        String[] values = StreetAddressResourceLoader.load("krandom/streets/street_names/en_US.txt");
         assertTrue(values.length >= 20);
         for (String value : values) {
             assertFalse(value.isBlank());

@@ -22,9 +22,9 @@ final class BuiltInStreetAddressDataProvider implements StreetAddressDataProvide
     BuiltInStreetAddressDataProvider(SupportedLocale supportedLocale) {
         this.locale = supportedLocale.locale();
         String resourcePrefix = supportedLocale.resourcePrefix();
-        this.streetNames = StreetAddressResourceLoader.load("krandom/streets/" + resourcePrefix + "_street_names.txt");
-        this.streetTypesShort = StreetAddressResourceLoader.load("krandom/streets/" + resourcePrefix + "_street_types_short.txt");
-        this.streetTypesLong = StreetAddressResourceLoader.load("krandom/streets/" + resourcePrefix + "_street_types_long.txt");
+        this.streetNames = StreetAddressResourceLoader.load("krandom/streets/street_names/" + resourcePrefix + ".txt");
+        this.streetTypesShort = StreetAddressResourceLoader.load("krandom/streets/street_types_short/" + resourcePrefix + ".txt");
+        this.streetTypesLong = StreetAddressResourceLoader.load("krandom/streets/street_types_long/" + resourcePrefix + ".txt");
     }
 
     @Override
