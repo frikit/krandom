@@ -37,7 +37,7 @@ class NameResourceLoaderTest {
     @Test
     @DisplayName("load reads known names file")
     void loadKnownFile() {
-        String[] names = NameResourceLoader.load("krandom/names/en_US_first_male.txt");
+        String[] names = NameResourceLoader.load("krandom/names/first_male/en_US.txt");
         assertTrue(names.length > 10);
     }
 

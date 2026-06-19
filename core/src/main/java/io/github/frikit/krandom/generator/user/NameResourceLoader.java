@@ -25,7 +25,7 @@ final class NameResourceLoader {
     /**
      * Loads names from a classpath resource file.
      *
-     * @param resourcePath path relative to the classpath root (e.g. {@code "krandom/names/en_US_first_male.txt"})
+     * @param resourcePath path relative to the classpath root (e.g. {@code "krandom/names/first_male/en_US.txt"})
      * @return non-empty array of name strings
      * @throws IllegalStateException if the resource cannot be found or read
      */
