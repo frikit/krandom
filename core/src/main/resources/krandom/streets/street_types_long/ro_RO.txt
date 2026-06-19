@@ -10,3 +10,10 @@ Fundătura
 Drumul
 Prelungirea
 Pasajul
+Stradela
+Vadul
+Curtea
+Trecătoarea
+Scuarul
+Cheiul
+Cartierul

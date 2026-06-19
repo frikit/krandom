@@ -8,3 +8,16 @@ pl.
 sq.
 q.
 rt.
+crs.
+pass.
+voie.
+sen.
+esp.
+rpt.
+fg.
+vla.
+cite.
+ven.
+gal.
+mail.
+prom.

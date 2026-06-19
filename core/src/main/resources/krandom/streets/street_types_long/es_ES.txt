@@ -8,3 +8,20 @@ Travesia
 Glorieta
 Plaza Mayor
 Rambla
+Ronda
+Pasaje
+Via
+Vial
+Bulevar
+Cuesta
+Bajada
+Subida
+Callejon
+Plazoleta
+Parque
+Jardines
+Sendero
+Pasadizo
+Costanilla
+Gran Via
+Autovia

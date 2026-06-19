@@ -10,3 +10,11 @@ park
 pril.
 odvojak
 prolaz
+poljana
+nasip
+magistrala
+av.
+gat
+bul.
+perivoj
+naselje

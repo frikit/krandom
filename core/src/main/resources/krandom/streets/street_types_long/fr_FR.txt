@@ -8,3 +8,16 @@ Place
 Square
 Quai
 Route
+Cours
+Passage
+Voie
+Sentier
+Esplanade
+Rond-point
+Faubourg
+Villa
+Cite
+Venelle
+Galerie
+Mail
+Promenade

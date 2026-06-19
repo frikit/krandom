@@ -10,3 +10,21 @@ Costa
 Camí
 Gran Via
 Baixada
+Ronda
+Via
+Glorieta
+Pujada
+Riera
+Moll
+Plaçeta
+Carreró
+Sender
+Drecera
+Jardins
+Pont
+Túnel
+Rotonda
+Eixample
+Urbanització
+Polígon
+Travessia

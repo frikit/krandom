@@ -8,3 +8,15 @@ Singel
 Kade
 Pad
 Hof
+Steeg
+Dijk
+Boulevard
+Park
+Markt
+Ring
+Baan
+Wal
+Brink
+Plantsoen
+Kanaal
+Erf

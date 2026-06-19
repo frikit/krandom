@@ -8,3 +8,15 @@ sgl.
 kd.
 pad
 hf.
+stg.
+dk.
+bd.
+prk.
+mkt.
+rng.
+bn.
+wl.
+brk.
+plts.
+kan.
+erf

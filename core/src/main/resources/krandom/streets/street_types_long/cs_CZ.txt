@@ -8,3 +8,13 @@ stezka
 okruh
 průchod
 parková
+sady
+zahrady
+náměstíčko
+pasáž
+schody
+vyhlídka
+dvůr
+park
+ostrov
+val

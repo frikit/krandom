@@ -8,3 +8,13 @@ Bulwar
 Droga
 Trasa
 Deptak
+Zaułek
+Pasaż
+Wybrzeże
+Park
+Wzgórze
+Most
+Szosa
+Wjazd
+Ciąg
+Wąwóz

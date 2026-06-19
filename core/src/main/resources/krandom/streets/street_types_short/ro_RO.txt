@@ -10,3 +10,10 @@ Fd.
 Dr.
 Pr.
 Pt.
+Stdla
+Vad.
+Crt.
+Trec.
+Sc.
+Ch.
+Cart.

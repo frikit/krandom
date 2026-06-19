@@ -10,3 +10,15 @@ fasor
 liget
 sétány
 lakótelep
+park
+rakpart
+udvar
+lépcső
+domb
+árok
+híd
+gát
+kert
+forduló
+mélyút
+országút

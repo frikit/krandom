@@ -10,3 +10,15 @@ fasor
 liget
 stny.
 ltp.
+park
+rkp.
+udv.
+lpcs.
+domb
+árok
+híd
+gát
+kert
+ford.
+mélyút
+ou.

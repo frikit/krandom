@@ -8,3 +8,17 @@ Lgo.
 Est.
 Via
 Pq.
+Lad.
+Vla.
+Bc.
+Vd.
+Pso.
+Mar.
+Qd.
+Vl.
+Cj.
+Svc.
+Trev.
+Psl.
+Rec.
+Jd.

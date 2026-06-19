@@ -8,3 +8,17 @@ Largo
 Estrada
 Via
 Parque
+Ladeira
+Viela
+Beco
+Viaduto
+Passeio
+Marginal
+Quadra
+Vila
+Conjunto
+Servidao
+Trevo
+Passarela
+Recanto
+Jardim

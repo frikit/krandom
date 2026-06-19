@@ -10,3 +10,7 @@ alej
 most
 pasáž
 dvor
+záhrada
+sad
+schody
+okruh

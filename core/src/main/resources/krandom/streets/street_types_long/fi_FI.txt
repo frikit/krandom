@@ -10,3 +10,13 @@ rinne
 portti
 silta
 väylä
+ranta
+aukio
+penger
+mäki
+laita
+kallio
+harju
+puisto
+taival
+kierto

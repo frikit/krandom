@@ -8,3 +8,13 @@ Yolu
 Parkı
 Sitesi
 Geçidi
+Çıkmazı
+Pasajı
+Köprüsü
+Çarşısı
+Yokuşu
+Küme Evleri
+Köyü
+İskelesi
+Plazası
+Tüneli

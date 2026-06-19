@@ -8,3 +8,13 @@ bulw.
 droga
 trasa
 dept.
+zaul.
+pasaż
+wyb.
+park
+wzg.
+most
+szosa
+wjazd
+ciąg
+wąwóz
