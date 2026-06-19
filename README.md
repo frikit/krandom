@@ -103,6 +103,24 @@ Unseeded generators use the JDK's fast `Random` by default, which is appropriate
 
 `Generator.filter(predicate)` is bounded by default and throws if no generated value matches after 10,000 attempts. Use `filter(predicate, maxAttempts)` when a domain-specific predicate is intentionally rare.
 
+## Concurrency and determinism
+
+A `Generator` instance is **not thread-safe**: it holds a single mutable PRNG. Sharing one instance across threads is memory-safe (the backing `Random` is synchronized) but interleaves the random sequence — which destroys reproducibility — and serializes callers on the PRNG. The rule for multi-threaded services is **one generator instance per thread**:
+
+```java
+// Each thread builds its own generator from a shared, immutable config.
+GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).build();
+Generator<String> emails = Generators.threadLocal(() -> Generators.ofEmail(config));
+```
+
+`Generators.threadLocal(Supplier)` gives each thread its own instance from the supplied factory. What *is* safe to share:
+
+- **`GeneratorConfig`** is immutable and safe to share across threads as configuration (it is not itself a generator).
+- **`ProviderHub`** registration is thread-safe; complete all registration before sharing the hub for lookups.
+- **`ObjectGenerator` / `ObjectFaker` / `Schema`** are stateful per generation call and must be confined to one thread (one instance per thread).
+
+**Determinism.** A fixed seed reproduces output only under **single-threaded** use of a given instance — concurrent calls race on PRNG call order. For reproducible per-thread data, derive a distinct seed per thread (e.g. `baseSeed ^ threadId`) and build one seeded config per thread. Seeded object-graph output is also stable across JDK builds and vendors: fields are populated in a name-sorted order rather than the JVM's unspecified reflection order.
+
 ## Object semantic aliases
 
 `ObjectGenerator` resolves common field names such as `firstName`, `email`, and `createdAt` through semantic providers. Projects with their own vocabulary can extend that lookup with a `SemanticFieldRegistry`:

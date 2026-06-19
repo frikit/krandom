@@ -81,8 +81,10 @@ import java.util.Random;
  * }</pre>
  *
  * <p><strong>Thread Safety:</strong>
- * This generator is thread-safe and can be shared across threads. Each instance uses its own
- * Random instance for generating values.
+ * This generator holds a single mutable PRNG. Concurrent calls are memory-safe but interleave the
+ * random sequence (destroying reproducibility) and contend on the PRNG, so an instance is <em>not</em>
+ * safe to share across threads. Confine one instance per thread, or wrap construction with
+ * {@code Generators.threadLocal(...)} for deterministic concurrent use.
  *
  * <p><strong>ISO 4217 Compliance:</strong>
  * All generated currency data conforms to ISO 4217 standards, including alphabetic codes,
