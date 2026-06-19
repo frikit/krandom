@@ -36,14 +36,15 @@ real-world use cases), and hundreds over time. Current coverage by folder:
 | Folder | Datasets per locale | Files | Locales supported | Per-entry rule | Status |
 |:---|:---|---:|---:|:---|:---|
 | `cities/` | 1 | 35 | 35 | ≥ 100 unique real cities | all ≥ 100 (107–247) |
-| `names/` | 3 subfolders | 105 | 35 | target ≥ 100 unique per file | currently 39–74 — expansion needed |
+| `names/` | 3 subfolders | 105 | 35 | ≥ 100 unique per file | all ≥ 100 |
 | `states/` | 1 | 35 | 35 | all first-level subdivisions + codes | ok |
 | `streets/` | 4 | 140 | 35 | complete, paired, unique (see below) | ok |
-| `countries/` | 1 | 10 | 10 | full world set (195), localized | only 10 of 35 locales |
+| `countries/` | 1 | 35 | 35 | full world set (195), localized | all 35 at 195 |
 | `text/` | n/a | 1 set | non-locale | complete standard set | ok |
 
-35 is the current "core" locale set (cities, names, states, streets); countries
-trails at 10 and is the next coverage gap to close.
+All five locale-keyed folders (cities, names, states, streets, countries) now
+cover the same 35-locale core set. The next step is growing that core toward
+the 100-most-popular-locales goal.
 
 ## Folders
 
@@ -116,9 +117,7 @@ One file per locale, `<locale>_countries.txt`, one country name per line.
   language (e.g. `de_DE` → `Ägypten`, `Albanien`).
 - **Rule:** the **full set of world countries** (currently 195 per file),
   localized and unique.
-- **Coverage:** only 10 locales today (`de_DE`, `en_AU`, `en_GB`, `en_US`,
-  `es_ES`, `fr_FR`, `it_IT`, `ja_JP`, `pt_BR`, `zh_CN`) — the main gap versus
-  the 35-locale core set.
+- **Coverage:** all 35 core locales (195 countries each).
 
 ### `text/`
 
