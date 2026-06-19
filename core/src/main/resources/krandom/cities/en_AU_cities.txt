@@ -71,3 +71,62 @@ Warrnambool
 Whyalla
 Wollongong
 Wyndham
+Bega
+Coffs Harbour
+Forbes
+Grafton
+Inverell
+Katoomba
+Moree
+Muswellbrook
+Singleton
+Taree
+Tweed Heads
+Yass
+Cessnock
+Queanbeyan
+Batemans Bay
+Ulladulla
+Cooma
+Broome
+Carnarvon
+Kununurra
+Northam
+Bairnsdale
+Sale
+Wodonga
+Colac
+Hamilton
+Ararat
+Castlemaine
+Echuca
+Swan Hill
+Benalla
+Kyabram
+Cobram
+Maryborough
+Charters Towers
+Mount Isa
+Emerald
+Gympie
+Warwick
+Roma
+Kingaroy
+Yeppoon
+Bowen
+Ayr
+Innisfail
+Burnie
+Ulverstone
+Kingston
+Murray Bridge
+Victor Harbor
+Mount Barker
+Gawler
+Renmark
+Naracoorte
+Bordertown
+Katherine
+Tennant Creek
+Palmerston
+Nuriootpa

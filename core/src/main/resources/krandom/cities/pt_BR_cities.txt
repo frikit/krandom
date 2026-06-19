@@ -88,3 +88,27 @@ Vila Velha
 Vitória
 Vitória da Conquista
 Volta Redonda
+Anápolis
+Bauru
+Blumenau
+Caruaru
+Chapecó
+Criciúma
+Dourados
+Foz do Iguaçu
+Franca
+Imperatriz
+Itabuna
+Jundiaí
+Limeira
+Marília
+Maringá
+Mossoró
+Parnamirim
+Petrolina
+Ponta Grossa
+Presidente Prudente
+Rio Grande
+Rondonópolis
+São Carlos
+Sumaré

@@ -68,3 +68,57 @@ Ełk
 Żory
 Pruszków
 Marki
+Tczew
+Ostrowiec Świętokrzyski
+Stalowa Wola
+Świętochłowice
+Zawiercie
+Skierniewice
+Starachowice
+Wodzisław Śląski
+Racibórz
+Tomaszów Mazowiecki
+Legionowo
+Kędzierzyn-Koźle
+Mysłowice
+Piła
+Ostrów Wielkopolski
+Otwock
+Zgierz
+Świnoujście
+Ząbki
+Mińsk Mazowiecki
+Sopot
+Kutno
+Sandomierz
+Sieradz
+Nysa
+Świebodzice
+Bochnia
+Oświęcim
+Cieszyn
+Kwidzyn
+Dębica
+Krosno
+Łomża
+Sanok
+Brzeg
+Malbork
+Łowicz
+Wieliczka
+Zakopane
+Kołobrzeg
+Ostróda
+Giżycko
+Wejherowo
+Rumia
+Reda
+Brodnica
+Świecie
+Działdowo
+Augustów
+Bartoszyce
+Kętrzyn
+Mrągowo
+Szczytno
+Iława

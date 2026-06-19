@@ -83,3 +83,42 @@ Vigo
 Vitoria-Gasteiz
 Zamora
 Zaragoza
+Cáceres
+Guadalajara
+Cuenca
+Ávila
+Teruel
+Huesca
+Mérida
+Talavera de la Reina
+Manresa
+Vilanova i la Geltrú
+Sant Cugat del Vallès
+Castelldefels
+Granollers
+El Prat de Llobregat
+Mollet del Vallès
+Rubí
+Viladecans
+Gandía
+Benidorm
+Alcoy
+Elda
+Orihuela
+Roquetas de Mar
+El Ejido
+Motril
+Linares
+Estepona
+Fuengirola
+Mijas
+Torremolinos
+Antequera
+Ronda
+Ferrol
+Arrecife
+Aranjuez
+Coslada
+San Sebastián de los Reyes
+Majadahonda
+Collado Villalba

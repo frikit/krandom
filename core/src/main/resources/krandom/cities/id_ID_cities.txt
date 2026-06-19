@@ -78,3 +78,57 @@ Palangka Raya
 Bitung
 Tomohon
 Kotamobagu
+Banda Aceh
+Lhokseumawe
+Langsa
+Sabang
+Subulussalam
+Tanjung Selor
+Singkawang
+Sungai Penuh
+Banyuwangi
+Sumenep
+Pamekasan
+Bangkalan
+Gresik
+Sidoarjo
+Lamongan
+Tuban
+Nganjuk
+Ngawi
+Ponorogo
+Trenggalek
+Tulungagung
+Lumajang
+Bondowoso
+Banyumas
+Kebumen
+Purworejo
+Wonosobo
+Temanggung
+Salatiga
+Demak
+Kudus
+Jepara
+Rembang
+Pati
+Brebes
+Indramayu
+Kuningan
+Garut
+Ciamis
+Banjar
+Purwakarta
+Karawang
+Sumedang
+Majalengka
+Pandeglang
+Singaraja
+Tabanan
+Maumere
+Ende
+Ruteng
+Bima
+Sumbawa Besar
+Waingapu
+Atambua

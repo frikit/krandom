@@ -68,3 +68,81 @@ Slaný
 Bohumín
 Louny
 Boskovice
+Vrchlabí
+Domažlice
+Vlašim
+Rokycany
+Hranice
+Bruntál
+Český Krumlov
+Havlíčkův Brod
+Jirkov
+Valašské Meziříčí
+Žatec
+Frýdlant nad Ostravicí
+Mariánské Lázně
+Dvůr Králové nad Labem
+Roudnice nad Labem
+Veselí nad Moravou
+Šternberk
+Uherský Brod
+Tachov
+Bílina
+Varnsdorf
+Sušice
+Milevsko
+Kralupy nad Vltavou
+Neratovice
+Čelákovice
+Říčany
+Černošice
+Mělník
+Rumburk
+Krupka
+Aš
+Bystřice nad Pernštejnem
+Moravská Třebová
+Litomyšl
+Ústí nad Orlicí
+Vysoké Mýto
+Choceň
+Lanškroun
+Polička
+Svitavy
+Česká Třebová
+Kyjov
+Hustopeče
+Mikulov
+Slavkov u Brna
+Tišnov
+Ivančice
+Velké Meziříčí
+Bučovice
+Humpolec
+Chrudim
+Heřmanův Městec
+Třinec
+Frenštát pod Radhoštěm
+Studénka
+Odry
+Příbor
+Fulnek
+Vítkov
+Jeseník
+Zábřeh
+Mohelnice
+Litovel
+Uničov
+Hlučín
+Klimkovice
+Vodňany
+Třeboň
+Kaplice
+Dačice
+Nymburk
+Poděbrady
+Lysá nad Labem
+Sedlčany
+Hořovice
+Dobříš
+Votice
