@@ -160,8 +160,8 @@ Public artifacts on Maven Central (group `io.github.frikit`):
 | `io.github.frikit:krandom-kotest-extensions` | `io.github.frikit.krandom.kotest` |
 | `io.github.frikit:krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` |
 
-The latest published version is `1.0.0`; the repository is developing `1.1.0`
-(default build version `1.1.0-SNAPSHOT`). The latest released version is always
+The latest released version is `1.2.0` (the in-repo development build defaults to
+`1.2.0-SNAPSHOT`). The released version is always
 shown on [GitHub Releases](https://github.com/frikit/krandom/releases) and
 [Maven Central](https://central.sonatype.com/artifact/io.github.frikit/krandom-core).
 
@@ -169,7 +169,7 @@ shown on [GitHub Releases](https://github.com/frikit/krandom/releases) and
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.0.0")
+    implementation("io.github.frikit:krandom-core:1.2.0")
 }
 ```
 
@@ -177,7 +177,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:1.0.0'
+    implementation 'io.github.frikit:krandom-core:1.2.0'
 }
 ```
 
@@ -187,7 +187,7 @@ dependencies {
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>1.0.0</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 
