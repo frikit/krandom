@@ -29,9 +29,9 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
     private static final BigDecimal DEFAULT_MAX   = new BigDecimal("1000000");
     private static final int        DEFAULT_SCALE = 2;
 
-    private final BigDecimal min;
-    private final BigDecimal max;
     private final int        scale;
+    private final long       originInclusive;
+    private final long       boundExclusive;
     private final Random     random;
 
     /**
@@ -83,10 +83,33 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
         if (scale < 0) {
             throw new IllegalArgumentException("scale must be >= 0, was: " + scale);
         }
-        this.min = min;
-        this.max = max;
         this.scale = scale;
+        // Pre-scale the bounds to the integer domain used by generate(), failing fast (at
+        // construction) if either bound overflows long once scaled — previously longValue()
+        // narrowed silently and could yield an invalid range or out-of-range values.
+        this.originInclusive = scaledBound(min);
+        this.boundExclusive = boundExclusive(scaledBound(max));
         this.random = seed != null ? new Random(seed) : new Random();
+    }
+
+    private long scaledBound(BigDecimal value) {
+        // toBigInteger() truncates any precision finer than the configured scale (existing
+        // behaviour); longValueExact() then rejects only genuine magnitude overflow.
+        try {
+            return value.scaleByPowerOfTen(scale).toBigInteger().longValueExact();
+        } catch (ArithmeticException e) {
+            throw new IllegalArgumentException(
+                "bound " + value + " scaled by 10^" + scale + " exceeds the supported long range", e);
+        }
+    }
+
+    private static long boundExclusive(long scaledMax) {
+        try {
+            return Math.addExact(scaledMax, 1L);
+        } catch (ArithmeticException e) {
+            throw new IllegalArgumentException(
+                "max bound scaled by 10^scale is too close to Long.MAX_VALUE to represent an exclusive bound", e);
+        }
     }
 
     /**
@@ -99,9 +122,7 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
      */
     @Override
     public BigDecimal generate() {
-        long lo = min.scaleByPowerOfTen(scale).longValue();
-        long hi = max.scaleByPowerOfTen(scale).longValue();
-        long v = random.nextLong(lo, hi + 1);
+        long v = random.nextLong(originInclusive, boundExclusive);
         return BigDecimal.valueOf(v, scale);
     }
 }

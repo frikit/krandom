@@ -548,4 +548,39 @@ class RegexGeneratorTest {
             }
         }
     }
+
+    // ── Repetition cap (DoS guard) ────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("Repetition cap")
+    class RepetitionCapTest {
+
+        @Test
+        @DisplayName("{n} at the cap is allowed")
+        void atCapAllowed() {
+            String s = new RegexGenerator("a{" + RegexGenerator.MAX_REPETITIONS + "}").generate();
+            assertEquals(RegexGenerator.MAX_REPETITIONS, s.length());
+        }
+
+        @Test
+        @DisplayName("{n} above the cap is rejected at construction")
+        void exactCountAboveCapThrows() {
+            assertThrows(IllegalArgumentException.class,
+                         () -> new RegexGenerator("a{" + (RegexGenerator.MAX_REPETITIONS + 1) + "}"));
+        }
+
+        @Test
+        @DisplayName("{n,m} max above the cap is rejected at construction")
+        void rangeMaxAboveCapThrows() {
+            assertThrows(IllegalArgumentException.class,
+                         () -> new RegexGenerator("a{1," + (RegexGenerator.MAX_REPETITIONS + 1) + "}"));
+        }
+
+        @Test
+        @DisplayName("absurdly long digit run is rejected without overflowing")
+        void hugeCountThrows() {
+            assertThrows(IllegalArgumentException.class,
+                         () -> new RegexGenerator("a{1234567890123456789}"));
+        }
+    }
 }

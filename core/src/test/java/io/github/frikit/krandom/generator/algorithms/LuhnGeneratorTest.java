@@ -100,4 +100,20 @@ class LuhnGeneratorTest {
     void factoryMethod() {
         assertInstanceOf(LuhnGenerator.class, Generators.ofLuhn());
     }
+
+    @Test
+    @DisplayName("payload digits can be 0 (regression: digit range is [0,9], not [1,9])")
+    void payloadDigitsCanBeZero() {
+        LuhnGenerator gen = new LuhnGenerator();
+        boolean sawZeroInPayload = false;
+        for (int i = 0; i < SAMPLES && !sawZeroInPayload; i++) {
+            String value = gen.generate();
+            // First 9 characters are the random payload; the 10th is the computed check digit.
+            if (value.substring(0, 9).indexOf('0') >= 0) {
+                sawZeroInPayload = true;
+            }
+        }
+        assertTrue(sawZeroInPayload,
+                   "Expected a 0 among payload digits over " + SAMPLES + " samples");
+    }
 }

@@ -43,7 +43,7 @@ public final class LuhnGenerator implements Generator<String> {
     public String generate() {
         StringBuilder builder = new StringBuilder(PAYLOAD_LENGTH + 1);
         for (int i = 0; i < PAYLOAD_LENGTH; i++) {
-            int digit = 1 + random.nextInt(9); // [1, 9]
+            int digit = random.nextInt(10); // [0, 9]
             builder.append(digit);
         }
         builder.append(getCheckDigit(builder.toString()));

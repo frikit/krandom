@@ -28,7 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Character classes: {@code [abc]}, {@code [a-z]}, {@code [^abc]} (negated),
  *       mixed ranges and literals</li>
  *   <li>Quantifiers: {@code ?} (0–1), {@code +} (1–10), {@code *} (0–10),
- *       {@code {n}}, {@code {n,m}}</li>
+ *       {@code {n}}, {@code {n,m}} (explicit counts are capped at 10&nbsp;000; larger counts
+ *       are rejected at construction time)</li>
  *   <li>Groups and alternation: {@code (a|b|c)}</li>
  *   <li>Anchors: {@code ^} and {@code $} are silently ignored</li>
  * </ul>
@@ -71,6 +72,13 @@ public final class RegexGenerator implements Generator<String> {
     private static final char[] WHITESPACE = { ' ', '\t', '\n', '\r' };
     private static final char[] NON_WHITESPACE;
     private static final Map<String, SequenceNode> PARSED_PATTERNS = new ConcurrentHashMap<>();
+
+    /**
+     * Upper bound on explicit {@code {n}} / {@code {n,m}} repetition counts. Patterns requesting
+     * more are rejected at construction time so a single quantifier cannot drive unbounded output
+     * expansion (e.g. {@code a{2000000000}} attempting a multi-gigabyte string).
+     */
+    static final int MAX_REPETITIONS = 10_000;
 
     static {
         DIGITS = "0123456789".toCharArray();
@@ -427,7 +435,16 @@ public final class RegexGenerator implements Generator<String> {
                 throw new IllegalArgumentException(
                     "Expected number at position " + pos + " in pattern: " + src);
             }
-            return Integer.parseInt(src.substring(start, pos));
+            String digits = src.substring(start, pos);
+            // Parse as long (and short-circuit absurdly long digit runs) so an over-large count is
+            // rejected cleanly rather than overflowing int or exhausting memory during generation.
+            long value = digits.length() > 18 ? Long.MAX_VALUE : Long.parseLong(digits);
+            if (value > MAX_REPETITIONS) {
+                throw new IllegalArgumentException(
+                    "Quantifier repetition " + digits + " exceeds the maximum supported value "
+                    + MAX_REPETITIONS + " in pattern: " + src);
+            }
+            return (int) value;
         }
     }
 }

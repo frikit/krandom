@@ -18,6 +18,7 @@ import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -380,7 +381,13 @@ public final class ObjectGenerator<T> implements Generator<T> {
         List<Field> fields = new ArrayList<>();
         Class<?> current = clazz;
         while (current != Object.class) {
-            for (Field f : current.getDeclaredFields()) {
+            // getDeclaredFields() order is JVM-implementation-specific; sort each class's fields by
+            // name so per-field seed allocation (and thus seeded output) is reproducible across JDK
+            // builds, vendors, and instrumentation agents. Hierarchy order (subclass before
+            // superclass) is already deterministic via getSuperclass().
+            Field[] declared = current.getDeclaredFields();
+            Arrays.sort(declared, Comparator.comparing(Field::getName));
+            for (Field f : declared) {
                 int mods = f.getModifiers();
                 if (Modifier.isStatic(mods)) continue;  // class-level, not instance
                 if (Modifier.isFinal(mods)) continue;  // immutable after construction

@@ -140,5 +140,20 @@ class BigDecimalGeneratorTest {
             assertThrows(IllegalArgumentException.class,
                          () -> new BigDecimalGenerator(BigDecimal.ZERO, BigDecimal.TEN, -1));
         }
+
+        @Test
+        @DisplayName("bound that overflows long when scaled throws IllegalArgumentException")
+        void scaledBoundOverflowThrows() {
+            // 1e30 scaled by 10^0 exceeds Long.MAX_VALUE — previously narrowed silently via longValue().
+            assertThrows(IllegalArgumentException.class,
+                         () -> new BigDecimalGenerator(BigDecimal.ZERO, new BigDecimal("1E30"), 0));
+        }
+
+        @Test
+        @DisplayName("max scaled to Long.MAX_VALUE throws (no room for exclusive bound)")
+        void exclusiveBoundOverflowThrows() {
+            assertThrows(IllegalArgumentException.class,
+                         () -> new BigDecimalGenerator(BigDecimal.ZERO, new BigDecimal(Long.MAX_VALUE), 0));
+        }
     }
 }
