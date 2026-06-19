@@ -3,3 +3,31 @@ Poschodie
 Izba
 Kancelária
 Vchod
+Apartmán
+Suita
+Jednotka
+Miestnosť
+Podlažie
+Prízemie
+Suterén
+Pivnica
+Medziposchodie
+Podkrovie
+Mezonet
+Budova
+Blok
+Krídlo
+Schodisko
+Dvere
+Brána
+Vráta
+Úroveň
+Parkovacie miesto
+Garáž
+Hala
+Sklad
+Ateliér
+Štúdio
+Prevádzka
+Číslo bytu
+Číslo dverí

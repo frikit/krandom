@@ -3,3 +3,31 @@ Suite
 Unita
 Piano
 Stanza
+Interno
+Int.
+Scala
+Sc.
+Palazzo
+Palazzina
+Edificio
+Stabile
+Ala
+Corpo
+Ingresso
+Ufficio
+Locale
+Camera
+Vano
+Box
+Lotto
+Porta
+Cancello
+Piano terra
+Piano rialzato
+Seminterrato
+Piano interrato
+Sottotetto
+Attico
+Ammezzato
+Mezzanino
+Pianerottolo

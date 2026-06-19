@@ -8,3 +8,43 @@ Oppgang A
 Oppgang B
 Hus A
 Hus B
+Leilighet 1
+Leilighet 2
+Etasje 1
+Etasje 2
+Inngang A
+Inngang B
+Dør 1
+Dør 2
+Kontor 1
+Kontor 2
+Rom 1
+Rom 2
+Kjeller
+Underetasje
+Sokkel
+Sokkeletasje
+Loft
+Loftsetasje
+1. etasje
+2. etasje
+H0101
+H0102
+H0201
+U0101
+U0201
+L0101
+K0101
+Bygg A
+Bygg B
+Blokk A
+Blokk B
+Fløy A
+Fløy B
+Inngang 1
+Inngang 2
+Oppgang 1
+Oppgang 2
+Plan 1
+Plan 2
+Mellometasje

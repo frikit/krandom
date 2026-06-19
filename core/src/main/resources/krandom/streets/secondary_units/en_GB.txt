@@ -3,3 +3,38 @@ Suite
 Unit
 Floor
 Room
+Apartment
+Apt
+Block
+Building
+Bldg
+House
+Studio
+Maisonette
+Penthouse
+Basement
+Ground Floor
+First Floor
+Second Floor
+Third Floor
+Mezzanine
+Lower Ground Floor
+Upper Floor
+Storey
+Level
+Wing
+Annexe
+Office
+Room No
+Door
+Entrance
+Staircase
+Stairwell
+Bay
+Lodge
+Court
+Mews
+Cottage
+Gate
+Workshop
+Berth

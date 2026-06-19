@@ -3,3 +3,26 @@ Tingkat
 Blok
 Lot
 Suite
+Aras
+Bangunan
+Pangsapuri
+Apartmen
+Pejabat
+Bilik
+Tingkat Bawah
+Tingkat Atas
+Tingkat Bawah Tanah
+Aras Bawah
+Mezanin
+Bahagian
+Sayap
+Tangga
+Pintu
+Pintu Masuk
+Pintu Pagar
+Pagar
+Menara
+Wisma
+Kompleks
+Petak
+No.

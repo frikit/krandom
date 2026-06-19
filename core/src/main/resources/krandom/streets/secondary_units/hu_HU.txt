@@ -3,3 +3,27 @@ Emelet
 Szoba
 Iroda
 Lépcsőház
+Ajtó
+Em.
+Lph.
+Fszt.
+Földszint
+Félemelet
+Magasföldszint
+Alagsor
+Pince
+Padlás
+Tetőtér
+Manzárd
+Épület
+Ép.
+Szárny
+Torony
+Bejárat
+Kapu
+Hrsz.
+Helyrajzi szám
+Üzlet
+Pavilon
+Beltéri szám
+Külterületi szám

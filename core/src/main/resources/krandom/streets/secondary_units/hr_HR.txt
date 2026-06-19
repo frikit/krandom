@@ -3,3 +3,17 @@ kat
 ured
 soba
 lokal
+apartman
+prizemlje
+suteren
+podrum
+potkrovlje
+međukat
+zgrada
+ulaz
+vrata
+stubište
+poslovni prostor
+blok
+krilo
+garaža

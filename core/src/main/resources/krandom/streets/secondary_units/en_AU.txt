@@ -3,3 +3,27 @@ Suite
 Apartment
 Level
 Room
+Flat
+Office
+Shop
+Lot
+Floor
+Ground Floor
+Basement
+Mezzanine
+Penthouse
+Townhouse
+Villa
+Block
+Wing
+Building
+Bay
+Carspace
+Storage
+Apt
+Bsmt
+Lt
+Lvl
+Rm
+Se
+Ste

@@ -8,3 +8,46 @@ Site
 Apartman
 Ofis
 Bağımsız Bölüm
+Dış Kapı
+Kapı
+Kapı No
+Giriş
+Apartman No
+Daire No
+Kat No
+Blok No
+A Blok
+B Blok
+C Blok
+Zemin Kat
+Bodrum Kat
+Asma Kat
+Çatı Katı
+Ara Kat
+Bahçe Katı
+Teras
+Teras Kat
+Dükkan
+Mağaza
+İşyeri
+Büro
+Oda
+Atölye
+Depo
+Garaj
+Otopark
+Mahzen
+Site No
+Apt
+Apt No
+Kısım
+Bölüm
+Köşk
+Villa
+Han
+Pasaj
+İş Hanı
+İş Merkezi
+Plaza
+Çarşı
+Sokak No

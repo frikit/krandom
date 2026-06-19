@@ -3,3 +3,27 @@ Phòng
 Tầng
 Lô
 Tòa nhà
+Số
+Block
+Tháp
+Đơn nguyên
+Văn phòng
+Lầu
+Trệt
+Tầng trệt
+Tầng hầm
+Tầng lửng
+Tầng thượng
+Cầu thang
+Sảnh
+Cổng
+Cửa
+Khu
+Dãy
+Tổ
+Ki-ốt
+Sạp
+Gian hàng
+Ngách
+Hẻm
+Kiệt

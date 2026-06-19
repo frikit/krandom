@@ -3,3 +3,39 @@ Lantai
 Blok
 Kavling
 Ruko
+Apartemen
+Apt
+Rukan
+Suite
+Kantor
+Ruang
+Ruangan
+Kamar
+Lantai Dasar
+Lantai Atas
+Lantai Bawah
+Basement
+Lantai Mezanin
+Mezanin
+Penthouse
+Loteng
+Bangunan
+Gedung
+Menara
+Tower
+Sayap
+Wing
+Tangga
+Pintu
+Gerbang
+Pos
+Tingkat
+Petak
+Los
+Kios
+Hanggar
+Dermaga
+RT
+RW
+No
+Nomor
