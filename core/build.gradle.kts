@@ -24,7 +24,6 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.objenesis)
     implementation(libs.jakarta.validation.api)
-    runtimeOnly(libs.logback.classic)
 
     testImplementation(libs.commons.validator)
     testImplementation(libs.hibernate.validator)
@@ -34,6 +33,8 @@ dependencies {
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
+    // Logging backend for the build's own tests only; intentionally NOT shipped to consumers.
+    testRuntimeOnly(libs.logback.classic)
 }
 
 tasks.test {
