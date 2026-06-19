@@ -18,3 +18,28 @@ Colon
 Cervantes
 Granada
 Sevilla
+Alcala
+Goya
+Velazquez
+Serrano
+Princesa
+Gran Via
+Toledo
+Atocha
+Recoletos
+Constitucion
+Libertad
+Independencia
+Quevedo
+Picasso
+Dali
+Lope de Vega
+Calvario
+Fuente
+Carmen
+Santa Maria
+San Juan
+Almendro
+Naranjo
+Jazmin
+Floridablanca

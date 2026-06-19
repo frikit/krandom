@@ -23,3 +23,23 @@ Jernbanegade
 Havnegade
 Slotsgade
 Møllegade
+Adelgade
+Vimmelskaftet
+Gammeltorv
+Nytorv
+Vesterbrogade
+Nørrebrogade
+Østerbrogade
+Amagerbrogade
+Rådhuspladsen
+Kongens Nytorv
+Gothersgade
+Vester Voldgade
+Borgergade
+Landemærket
+Gråbrødretorv
+Klosterstræde
+Fiolstræde
+Larsbjørnsstræde
+Pilestræde
+Lyngbyvej

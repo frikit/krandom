@@ -1,5 +1,4 @@
 # US street names
-
 Main
 Oak
 Maple
@@ -20,3 +19,33 @@ Valley
 Highland
 Willow
 Lincoln
+Jefferson
+Madison
+Franklin
+Jackson
+Adams
+Church
+Center
+Walnut
+Chestnut
+Birch
+Spruce
+Dogwood
+Magnolia
+Sycamore
+Cherry
+Aspen
+Broadway
+Market
+Union
+Liberty
+Franklin Roosevelt
+Riverside
+Lakeview
+Hillside
+Brookside
+Fairview
+Woodland
+Pleasant
+Prospect
+Grove
