@@ -26,10 +26,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -605,36 +606,24 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("ignoreErrors=true logs swallowed failures at FINE level")
-        void ignoreErrorsLogsSwallowedFailuresAtFineLevel() {
-            Logger logger = Logger.getLogger(FieldGeneratorResolver.class.getName());
-            List<LogRecord> records = new ArrayList<>();
-            Handler handler = new Handler() {
-                @Override
-                public void publish(LogRecord logRecord) {
-                    records.add(logRecord);
-                }
-
-                @Override
-                public void flush() {}
-
-                @Override
-                public void close() {}
-            };
-            handler.setLevel(Level.FINE);
+        @DisplayName("ignoreErrors=true logs swallowed failures at DEBUG level")
+        void ignoreErrorsLogsSwallowedFailuresAtDebugLevel() {
+            Logger logger = (Logger) LoggerFactory.getLogger(FieldGeneratorResolver.class);
+            ListAppender<ILoggingEvent> appender = new ListAppender<>();
+            appender.start();
             Level previousLevel = logger.getLevel();
-            logger.addHandler(handler);
-            logger.setLevel(Level.FINE);
+            logger.setLevel(Level.DEBUG);
+            logger.addAppender(appender);
             try {
                 GeneratorConfig rootConfig = GeneratorConfig.builder().objectIgnoreErrors(true).build();
                 RootIgnoreErrorsHolder holder =
                     new ObjectGenerator<>(RootIgnoreErrorsHolder.class, rootConfig).generate();
                 assertNull(holder.nested, "throwing nested type should be swallowed");
-                assertTrue(records.stream()
-                                  .anyMatch(r -> r.getMessage().contains("Ignored nested generation failure")),
-                           "swallowed failure should be logged at FINE level");
+                assertTrue(appender.list.stream()
+                                  .anyMatch(e -> e.getFormattedMessage().contains("Ignored nested generation failure")),
+                           "swallowed failure should be logged at DEBUG level");
             } finally {
-                logger.removeHandler(handler);
+                logger.detachAppender(appender);
                 logger.setLevel(previousLevel);
             }
         }

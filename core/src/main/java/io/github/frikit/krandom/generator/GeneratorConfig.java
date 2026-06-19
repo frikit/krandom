@@ -694,7 +694,7 @@ public final class GeneratorConfig {
          * Controls whether object-generation population errors are swallowed.
          *
          * <p>When {@code true}, affected fields are left at {@code null} / their primitive
-         * default and each ignored failure is logged at {@link java.util.logging.Level#FINE}
+         * default and each ignored failure is logged at SLF4J {@code DEBUG} level
          * so it remains diagnosable. Default: {@code false} (errors propagate as
          * {@code ObjectGenerationException}).
          */

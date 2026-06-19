@@ -94,7 +94,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Internal resolver: maps a field's ({@link Type}, {@link Class}, name, owner) tuple
@@ -126,7 +127,7 @@ import java.util.logging.Logger;
  */
 final class FieldGeneratorResolver {
 
-    private static final Logger LOGGER = Logger.getLogger(FieldGeneratorResolver.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(FieldGeneratorResolver.class);
 
     static final int DEFAULT_MIN_ELEMENT_COUNT = GeneratorConfig.defaults().getMinCollectionSize();
     static final int DEFAULT_MAX_ELEMENT_COUNT = GeneratorConfig.defaults().getMaxCollectionSize();
@@ -1333,7 +1334,7 @@ final class FieldGeneratorResolver {
             } catch (ObjectGenerationException e) {
                 pool.end(nestedType, null);
                 if (config.isIgnoreErrors()) {
-                    LOGGER.fine("Ignored nested generation failure for field '"
+                    LOGGER.debug("Ignored nested generation failure for field '"
                                 + ownerType.getSimpleName() + "." + fieldName + "': " + e);
                     return null;
                 }
@@ -1341,7 +1342,7 @@ final class FieldGeneratorResolver {
             } catch (Exception e) {
                 pool.end(nestedType, null);
                 if (config.isIgnoreErrors()) {
-                    LOGGER.fine("Ignored nested generation failure for field '"
+                    LOGGER.debug("Ignored nested generation failure for field '"
                                 + ownerType.getSimpleName() + "." + fieldName + "': " + e);
                     return null;
                 }

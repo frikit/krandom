@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
 
 /**
@@ -75,7 +76,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
      */
     private static final Objenesis OBJENESIS = new ObjenesisStd();
 
-    private static final Logger LOGGER = Logger.getLogger(ObjectGenerator.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ObjectGenerator.class);
 
     /**
      * Classloader-aware cache of settable field lists per class.
@@ -337,7 +338,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 }
                 // ignoreErrors=true: leave field at its initialized value, but keep the
                 // failure diagnosable via FINE logging.
-                LOGGER.fine("Ignored object-generation failure: could not set field '"
+                LOGGER.debug("Ignored object-generation failure: could not set field '"
                             + field.getDeclaringClass().getSimpleName() + "." + field.getName()
                             + "' to value " + value + " (" + e + ")");
             }
