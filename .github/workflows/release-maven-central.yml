@@ -107,7 +107,3 @@ jobs:
             ```kotlin
             implementation("io.github.frikit:krandom-core:${{ env.VERSION }}")
             ```
-
-            ### Required secrets
-            - `CENTRAL_PORTAL_USERNAME` / `CENTRAL_PORTAL_PASSWORD` — Central Portal user token (generate at https://central.sonatype.com → Account → Generate User Token)
-            - `GPG_SIGNING_KEY` / `GPG_SIGNING_PASSWORD` — ASCII-armored GPG private key + passphrase
