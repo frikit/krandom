@@ -8,8 +8,10 @@ package io.github.frikit.krandom.examples.e2e.googlesignup;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectFaker;
+import io.github.frikit.krandom.generator.user.BirthdayGenerator;
 import io.github.frikit.krandom.jackson.KrandomJackson;
 
+import java.time.LocalDate;
 import java.util.Locale;
 
 /**
@@ -17,9 +19,11 @@ import java.util.Locale;
  *
  * <p>The whole form is filled with a single {@link ObjectFaker} call -- every field is resolved by
  * name and type, nested records included -- so there is one pattern to remember:
- * {@code new ObjectFaker<>(Form.class, config).generate()}. Only {@code agreeToTerms} is pinned
- * (you must accept the terms to register). Wired to the UK locale ({@code en_GB}); pass another
- * {@link Locale} to {@link #fake(Locale, long)} to localize it.
+ * {@code new ObjectFaker<>(Form.class, config).generate()}. Two fields are pinned with
+ * {@code ruleFor}: {@code agreeToTerms} (you must accept the terms) and the date of birth, which is
+ * constrained to a realistic 18..99-year-old via {@link BirthdayGenerator}'s min/max age bounds.
+ * Wired to the UK locale ({@code en_GB}); pass another {@link Locale} to {@link #fake(Locale, long)}
+ * to localize it.
  */
 public final class GoogleSignupForm {
 
@@ -51,8 +55,16 @@ public final class GoogleSignupForm {
     /** Fills the whole payload in one call, reproducibly for a given locale and seed. */
     public static SignupPayload fake(Locale locale, long seed) {
         GeneratorConfig config = GeneratorConfig.builder().locale(locale).seed(seed).build();
+
+        // Constrain the date of birth to an 18..99-year-old using min/max age bounds.
+        BirthdayGenerator dateOfBirth = new BirthdayGenerator(18, 99, config);
+
         return new ObjectFaker<>(SignupPayload.class, config)
                 .ruleFor("agreeToTerms", () -> true)
+                .ruleFor("birthday", () -> {
+                    LocalDate dob = dateOfBirth.generate();
+                    return new Birthday(dob.getYear(), dob.getMonthValue(), dob.getDayOfMonth());
+                })
                 .generate();
     }
 

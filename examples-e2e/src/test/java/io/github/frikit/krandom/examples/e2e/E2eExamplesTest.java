@@ -12,6 +12,8 @@ import io.github.frikit.krandom.jackson.KrandomJackson;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,6 +35,17 @@ class E2eExamplesTest {
         assertTrue(node.get("birthday").has("year"));
         assertTrue(node.get("agreeToTerms").asBoolean(), "agreeToTerms is pinned via ruleFor");
         assertEquals(Locale.UK, GoogleSignupForm.DEFAULT_LOCALE);
+    }
+
+    @Test
+    @DisplayName("date of birth is always an 18..99-year-old")
+    void birthdayWithinAgeRange() throws Exception {
+        for (long seed = 0; seed < 25; seed++) {
+            JsonNode b = parse(GoogleSignupForm.toJson(seed)).get("birthday");
+            LocalDate dob = LocalDate.of(b.get("year").asInt(), b.get("month").asInt(), b.get("day").asInt());
+            int age = Period.between(dob, LocalDate.now()).getYears();
+            assertTrue(age >= 18 && age <= 99, "seed " + seed + " produced age " + age);
+        }
     }
 
     @Test
