@@ -1,0 +1,8 @@
+# pt_BR honorific titles
+Sr.
+Sra.
+Srta.
+Dr.
+Dra.
+Prof.
+Profa.

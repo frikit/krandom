@@ -1,0 +1,41 @@
+# hr_HR professions
+Softverski inženjer
+Učitelj
+Medicinska sestra
+Računovođa
+Prodajni predstavnik
+Voditelj projekta
+Analitičar podataka
+Grafički dizajner
+Električar
+Mehaničar
+Odvjetnik
+Liječnik
+Ljekarnik
+Kuhar
+Arhitekt
+Građevinski inženjer
+Marketinški stručnjak
+HR voditelj
+Operativni voditelj
+Voditelj proizvoda
+UX dizajner
+Stomatolog
+Hitna pomoć
+Financijski analitičar
+Specijalist korisničke podrške
+Policajac
+Vatrogasac
+Novinar
+Fotograf
+Vodoinstalater
+Stolar
+Veterinar
+Psiholog
+Prevoditelj
+Web programer
+Ekonomist
+Stjuardesa
+Konobar
+Knjižničar
+Socijalni radnik

@@ -1,0 +1,41 @@
+# tr_TR professions
+Yazılım Mühendisi
+Öğretmen
+Hemşire
+Muhasebeci
+Satış Temsilcisi
+Proje Yöneticisi
+Veri Analisti
+Grafik Tasarımcı
+Elektrikçi
+Mekanik Teknisyeni
+Avukat
+Doktor
+Eczacı
+Şef
+Mimar
+İnşaat Mühendisi
+Pazarlama Uzmanı
+İK Müdürü
+Operasyon Müdürü
+Ürün Müdürü
+UX Tasarımcı
+Diş Hekimi
+Paramedik
+Finans Analisti
+Müşteri Destek Uzmanı
+Polis Memuru
+İtfaiyeci
+Gazeteci
+Fotoğrafçı
+Tesisatçı
+Marangoz
+Veteriner
+Psikolog
+Çevirmen
+Web Geliştirici
+Ekonomist
+Kabin Görevlisi
+Garson
+Kütüphaneci
+Sosyal Hizmet Uzmanı

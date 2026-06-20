@@ -1,0 +1,41 @@
+# fr_FR professions
+Ingénieur logiciel
+Professeur
+Infirmier
+Comptable
+Commercial
+Chef de projet
+Analyste de données
+Graphiste
+Électricien
+Mécanicien
+Avocat
+Médecin
+Pharmacien
+Chef cuisinier
+Architecte
+Ingénieur civil
+Spécialiste marketing
+Responsable RH
+Responsable opérations
+Chef de produit
+Designer UX
+Dentiste
+Ambulancier
+Analyste financier
+Agent support client
+Policier
+Pompier
+Journaliste
+Photographe
+Plombier
+Charpentier
+Vétérinaire
+Psychologue
+Traducteur
+Développeur web
+Économiste
+Hôtesse de l'air
+Serveur
+Bibliothécaire
+Travailleur social

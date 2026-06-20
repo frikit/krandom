@@ -1,0 +1,7 @@
+# tr_TR honorific titles
+Bay
+Bayan
+Dr.
+Prof.
+Bey
+Hanım

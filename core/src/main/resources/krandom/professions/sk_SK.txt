@@ -1,0 +1,41 @@
+# sk_SK professions
+Softvérový inžinier
+Učiteľ
+Zdravotná sestra
+Účtovník
+Obchodný zástupca
+Projektový manažér
+Dátový analytik
+Grafický dizajnér
+Elektrikár
+Mechanik
+Právnik
+Lekár
+Lekárnik
+Šéfkuchár
+Architekt
+Stavebný inžinier
+Marketingový špecialista
+HR manažér
+Prevádzkový manažér
+Produktový manažér
+UX dizajnér
+Zubár
+Záchranár
+Finančný analytik
+Špecialista zákazníckej podpory
+Policajt
+Hasič
+Novinár
+Fotograf
+Inštalatér
+Stolár
+Veterinár
+Psychológ
+Prekladateľ
+Webový vývojár
+Ekonóm
+Letuška
+Čašník
+Knihovník
+Sociálny pracovník

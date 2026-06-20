@@ -1,0 +1,7 @@
+# sk_SK honorific titles
+Pán
+Pani
+Dr.
+Prof.
+Ing.
+Mgr.

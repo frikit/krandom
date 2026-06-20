@@ -214,13 +214,13 @@ class FirstNameGeneratorTest {
     // ── Registry extensibility ────────────────────────────────────────────────
 
     @Test
-    @DisplayName("NameResourceLoader throws when resource path does not exist")
+    @DisplayName("LocaleTextResourceLoader throws when resource path does not exist")
     void nameResourceLoaderThrowsForMissingResource() {
         assertThrows(IllegalStateException.class,
-                     () -> NameResourceLoader.load("krandom/names/nonexistent_locale.txt"));
+                     () -> LocaleTextResourceLoader.load("krandom/names/nonexistent_locale.txt"));
     }
 
-    // ── NameResourceLoader ────────────────────────────────────────────────────
+    // ── LocaleTextResourceLoader ──────────────────────────────────────────────
 
     @Test
     @DisplayName("all 10 built-in locales produce non-empty names")

@@ -12,27 +12,28 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Loads name lists from classpath resource files.
+ * Loads single-entry-per-line text datasets (names, professions, titles, …) from classpath
+ * resource files.
  *
- * <p>Each resource file is a plain UTF-8 text file with one name per line.
- * Blank lines and lines starting with {@code #} are ignored.
+ * <p>Each resource file is a plain UTF-8 text file with one entry per line. Blank lines and lines
+ * starting with {@code #} (header comments) are ignored.
  */
-final class NameResourceLoader {
+final class LocaleTextResourceLoader {
 
-    private NameResourceLoader() {
+    private LocaleTextResourceLoader() {
     }
 
     /**
-     * Loads names from a classpath resource file.
+     * Loads entries from a classpath resource file.
      *
-     * @param resourcePath path relative to the classpath root (e.g. {@code "krandom/names/first_male/en_US.txt"})
-     * @return non-empty array of name strings
+     * @param resourcePath path relative to the classpath root (e.g. {@code "krandom/professions/en_US.txt"})
+     * @return non-empty array of entry strings
      * @throws IllegalStateException if the resource cannot be found or read
      */
     static String[] load(String resourcePath) {
-        InputStream is = NameResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = LocaleTextResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
         if (is == null) {
-            throw new IllegalStateException("Name resource not found: " + resourcePath);
+            throw new IllegalStateException("Resource not found: " + resourcePath);
         }
         return load(is, resourcePath);
     }
@@ -44,7 +45,7 @@ final class NameResourceLoader {
                          .filter(line -> !line.isEmpty() && !line.startsWith("#"))
                          .toArray(String[]::new);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to read name resource: " + resourcePath, e);
+            throw new IllegalStateException("Failed to read resource: " + resourcePath, e);
         }
     }
 }

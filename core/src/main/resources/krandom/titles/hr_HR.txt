@@ -1,0 +1,6 @@
+# hr_HR honorific titles
+G.
+Gđa.
+Gđica.
+Dr.
+Prof.

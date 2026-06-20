@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("NameResourceLoader")
-class NameResourceLoaderTest {
+@DisplayName("LocaleTextResourceLoader")
+class LocaleTextResourceLoaderTest {
 
     private static InputStream closeFailingStream() {
         return new InputStream() {
@@ -38,37 +38,44 @@ class NameResourceLoaderTest {
     }
 
     @Test
-    @DisplayName("load reads known names file")
-    void loadKnownFile() {
-        String[] names = NameResourceLoader.load("krandom/names/first_male/en_US.txt");
+    @DisplayName("load reads a known names file")
+    void loadKnownNamesFile() {
+        String[] names = LocaleTextResourceLoader.load("krandom/names/first_male/en_US.txt");
         assertTrue(names.length > 10);
+    }
+
+    @Test
+    @DisplayName("load reads a known professions file")
+    void loadKnownProfessionsFile() {
+        String[] professions = LocaleTextResourceLoader.load("krandom/professions/en_US.txt");
+        assertTrue(professions.length >= 40);
     }
 
     @Test
     @DisplayName("load skips blank lines and comment lines")
     void loadSkipsBlankAndCommentLines() {
         String content = "# header comment\nAlice\n\n  \nBob\n";
-        String[] names = NameResourceLoader.load(
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)), "synthetic-names");
+        String[] names = LocaleTextResourceLoader.load(
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)), "synthetic-entries");
         assertArrayEquals(new String[] {"Alice", "Bob"}, names);
     }
 
     @Test
     @DisplayName("load throws for missing resource")
     void loadMissingFile() {
-        assertThrows(IllegalStateException.class, () -> NameResourceLoader.load("krandom/names/does_not_exist.txt"));
+        assertThrows(IllegalStateException.class, () -> LocaleTextResourceLoader.load("krandom/names/does_not_exist.txt"));
     }
 
     @Test
     @DisplayName("load wraps IO failures")
     void loadIoFailure() {
-        assertThrows(IllegalStateException.class, () -> NameResourceLoader.load(closeFailingStream(), "broken-names"));
+        assertThrows(IllegalStateException.class, () -> LocaleTextResourceLoader.load(closeFailingStream(), "broken-entries"));
     }
 
     @Test
     @DisplayName("private constructor is callable by reflection")
     void constructorCoverage() throws Exception {
-        Constructor<NameResourceLoader> ctor = NameResourceLoader.class.getDeclaredConstructor();
+        Constructor<LocaleTextResourceLoader> ctor = LocaleTextResourceLoader.class.getDeclaredConstructor();
         ctor.setAccessible(true);
         assertDoesNotThrow(() -> {
             ctor.newInstance();

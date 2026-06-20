@@ -1,0 +1,41 @@
+# id_ID professions
+Insinyur perangkat lunak
+Guru
+Perawat
+Akuntan
+Perwakilan penjualan
+Manajer proyek
+Analis data
+Desainer grafis
+Teknisi listrik
+Mekanik
+Pengacara
+Dokter
+Apoteker
+Koki
+Arsitek
+Insinyur sipil
+Spesialis pemasaran
+Manajer SDM
+Manajer operasi
+Manajer produk
+Desainer UX
+Dokter gigi
+Paramedis
+Analis keuangan
+Spesialis layanan pelanggan
+Polisi
+Petugas pemadam kebakaran
+Jurnalis
+Fotografer
+Tukang ledeng
+Tukang kayu
+Dokter hewan
+Psikolog
+Penerjemah
+Pengembang web
+Ekonom
+Pramugari
+Pelayan
+Pustakawan
+Pekerja sosial

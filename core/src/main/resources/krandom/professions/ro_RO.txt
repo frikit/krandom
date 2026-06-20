@@ -1,0 +1,41 @@
+# ro_RO professions
+Inginer software
+Profesor
+Asistent medical
+Contabil
+Reprezentant vânzări
+Manager de proiect
+Analist de date
+Designer grafic
+Electrician
+Mecanic
+Avocat
+Medic
+Farmacist
+Bucătar-șef
+Arhitect
+Inginer constructor
+Specialist marketing
+Manager HR
+Director operațiuni
+Manager de produs
+Designer UX
+Dentist
+Paramedic
+Analist financiar
+Specialist suport clienți
+Polițist
+Pompier
+Jurnalist
+Fotograf
+Instalator
+Tâmplar
+Medic veterinar
+Psiholog
+Traducător
+Dezvoltator web
+Economist
+Însoțitor de zbor
+Chelner
+Bibliotecar
+Asistent social

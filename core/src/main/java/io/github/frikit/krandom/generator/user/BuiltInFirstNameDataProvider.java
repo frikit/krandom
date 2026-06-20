@@ -21,8 +21,8 @@ final class BuiltInFirstNameDataProvider implements FirstNameDataProvider {
     BuiltInFirstNameDataProvider(SupportedLocale supportedLocale) {
         this.locale = supportedLocale.locale();
         String resourcePrefix = supportedLocale.resourcePrefix();
-        this.maleNames = NameResourceLoader.load("krandom/names/first_male/" + resourcePrefix + ".txt");
-        this.femaleNames = NameResourceLoader.load("krandom/names/first_female/" + resourcePrefix + ".txt");
+        this.maleNames = LocaleTextResourceLoader.load("krandom/names/first_male/" + resourcePrefix + ".txt");
+        this.femaleNames = LocaleTextResourceLoader.load("krandom/names/first_female/" + resourcePrefix + ".txt");
     }
 
     @Override

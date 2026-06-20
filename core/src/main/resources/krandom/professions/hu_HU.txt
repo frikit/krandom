@@ -1,0 +1,41 @@
+# hu_HU professions
+Szoftverfejlesztő
+Tanár
+Ápoló
+Könyvelő
+Értékesítő
+Projektmenedzser
+Adatelemző
+Grafikus
+Villanyszerelő
+Szerelő
+Ügyvéd
+Orvos
+Gyógyszerész
+Séf
+Építész
+Építőmérnök
+Marketing szakértő
+HR vezető
+Üzemeltetési vezető
+Termékmenedzser
+UX tervező
+Fogorvos
+Mentős
+Pénzügyi elemző
+Ügyfélszolgálati munkatárs
+Rendőr
+Tűzoltó
+Újságíró
+Fényképész
+Vízvezeték-szerelő
+Asztalos
+Állatorvos
+Pszichológus
+Fordító
+Webfejlesztő
+Közgazdász
+Légiutas-kísérő
+Pincér
+Könyvtáros
+Szociális munkás

@@ -1,0 +1,8 @@
+# it_IT honorific titles
+Sig.
+Sig.ra
+Sig.na
+Dott.
+Dott.ssa
+Prof.
+Avv.

@@ -1,0 +1,41 @@
+# cs_CZ professions
+Softwarový inženýr
+Učitel
+Zdravotní sestra
+Účetní
+Obchodní zástupce
+Projektový manažer
+Datový analytik
+Grafický designér
+Elektrikář
+Mechanik
+Právník
+Lékař
+Lékárník
+Šéfkuchař
+Architekt
+Stavební inženýr
+Marketingový specialista
+HR manažer
+Provozní manažer
+Produktový manažer
+UX designér
+Zubař
+Záchranář
+Finanční analytik
+Specialista zákaznické podpory
+Policista
+Hasič
+Novinář
+Fotograf
+Instalatér
+Truhlář
+Veterinář
+Psycholog
+Překladatel
+Webový vývojář
+Ekonom
+Letuška
+Číšník
+Knihovník
+Sociální pracovník

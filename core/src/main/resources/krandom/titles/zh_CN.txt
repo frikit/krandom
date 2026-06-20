@@ -1,0 +1,7 @@
+# zh_CN honorific titles
+先生
+女士
+小姐
+博士
+教授
+老师

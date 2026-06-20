@@ -1,0 +1,6 @@
+# bg_BG honorific titles
+Г-н
+Г-жа
+Г-ца
+Д-р
+Проф.

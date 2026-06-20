@@ -1,0 +1,7 @@
+# pl_PL honorific titles
+Pan
+Pani
+Dr
+Prof.
+Mgr
+Inż.

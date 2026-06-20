@@ -1,9 +1,9 @@
 # kRandom bundled locale resources
 
 This directory holds the curated, locale-aware datasets that back kRandom's
-fake-data generators (names, cities, addresses, countries, …). Everything here
-is loaded from the classpath at runtime by the `*ResourceLoader` classes in
-`io.github.frikit.krandom.generator.*`.
+fake-data generators (names, cities, addresses, countries, professions, titles,
+…). Everything here is loaded from the classpath at runtime by the
+`*ResourceLoader` classes in `io.github.frikit.krandom.generator.*`.
 
 ## File conventions
 
@@ -18,6 +18,8 @@ All datasets follow the same rules, enforced per folder by their loader:
   unique.
 - **Naming:** `<language>_<COUNTRY>_<dataset>.txt`, e.g. `de_DE_cities.txt`,
   using the BCP-47 `xx_YY` locale form that maps to `java.util.Locale`.
+  Folders that hold a single dataset per locale in a typed subfolder
+  (`names/`, `professions/`, `titles/`) name files `<locale>.txt`.
 
 New locales and entries are **curated from real data** — never bulk-generated.
 See [`docs/locale-contribution-guide.md`](../../../../../docs/locale-contribution-guide.md)
@@ -40,11 +42,13 @@ real-world use cases), and hundreds over time. Current coverage by folder:
 | `states/` | 1 | 35 | 35 | all first-level subdivisions + codes | ok |
 | `streets/` | 4 subfolders | 140 | 35 | complete, paired, unique (see below) | ok |
 | `countries/` | 1 | 35 | 35 | full world set (195), localized | all 35 at 195 |
+| `professions/` | 1 | 35 | 35 | ≥ 40 unique professions | all ≥ 40 |
+| `titles/` | 1 | 35 | 35 | ≥ 4 unique honorifics | ok |
 | `text/` | n/a | 1 set | non-locale | complete standard set | ok |
 
-All five locale-keyed folders (cities, names, states, streets, countries) now
-cover the same 35-locale core set. The next step is growing that core toward
-the 100-most-popular-locales goal.
+All seven locale-keyed folders (cities, names, states, streets, countries,
+professions, titles) now cover the same 35-locale core set. The next step is
+growing that core toward the 100-most-popular-locales goal.
 
 ## Folders
 
@@ -72,7 +76,8 @@ named `<locale>.txt` (one name per line):
   popular names. *Current files hold 39–74 entries and are below target — this
   folder is the priority for the next curation pass.*
 - **Loader:** the name registries under `generator.user` (e.g.
-  `FirstNameDataRegistry`, `LastNameDataRegistry`).
+  `FirstNameDataRegistry`, `LastNameDataRegistry`), backed by
+  `LocaleTextResourceLoader`.
 
 ### `states/`
 
@@ -120,6 +125,32 @@ One file per locale, `<locale>_countries.txt`, one country name per line.
   localized and unique.
 - **Coverage:** all 35 core locales (195 countries each).
 
+### `professions/`
+
+One file per locale, `professions/<locale>.txt`, one profession per line,
+**ordered most-common-first**.
+
+- **Content:** common professions / job titles for the locale, in the local
+  language/script.
+- **Rule:** **at least 40 unique** entries per locale.
+- **Ranking:** ranked generation derives its weights from list position — the
+  first (most common) entry is weighted highest and the last gets weight `1` —
+  so no parallel weights table is maintained. Keep the list ordered
+  most-common-first.
+- **Loader:** `LocaleTextResourceLoader` / `BuiltInProfessionDataProvider`
+  (via `ProfessionDataRegistry`).
+
+### `titles/`
+
+One file per locale, `titles/<locale>.txt`, one honorific title per line.
+
+- **Content:** honorific titles for the locale (e.g. `Mr.`, `Dr.`, `Herr`,
+  `さん`), in the local language/script.
+- **Rule:** **at least 4 unique** entries per locale — the locale's real,
+  largely closed honorific set.
+- **Loader:** `LocaleTextResourceLoader` / `BuiltInTitleDataProvider`
+  (via `TitleDataRegistry`).
+
 ### `text/`
 
 Non-locale-keyed auxiliary text data. Currently a `phonetics/` subfolder
@@ -135,7 +166,7 @@ folders above, files here are not named per `xx_YY` locale.
    format; keep the optional leading `#` header comment.
 2. Use **real, verifiable** data in the locale's native language/script; do not
    invent or machine-translate entries.
-3. Satisfy the folder's rule above (e.g. ≥ 100 unique cities; exhaustive,
-   paired street types).
+3. Satisfy the folder's rule above (e.g. ≥ 100 unique cities; ≥ 40 unique
+   professions; exhaustive, paired street types).
 4. Ensure no duplicate lines (byte-exact), then run
    `./scripts/pre_commit_check.sh` so the registry coverage checks pass.

@@ -1,0 +1,6 @@
+# uk_UA honorific titles
+Пан
+Пані
+Панна
+Д-р
+Проф.

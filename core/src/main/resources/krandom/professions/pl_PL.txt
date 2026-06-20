@@ -1,0 +1,41 @@
+# pl_PL professions
+Programista
+Nauczyciel
+Pielęgniarka
+Księgowy
+Przedstawiciel handlowy
+Kierownik projektu
+Analityk danych
+Grafik
+Elektryk
+Mechanik
+Prawnik
+Lekarz
+Farmaceuta
+Szef kuchni
+Architekt
+Inżynier budownictwa
+Specjalista ds. marketingu
+Menedżer HR
+Kierownik operacyjny
+Menedżer produktu
+Projektant UX
+Dentysta
+Ratownik medyczny
+Analityk finansowy
+Specjalista ds. obsługi klienta
+Policjant
+Strażak
+Dziennikarz
+Fotograf
+Hydraulik
+Stolarz
+Weterynarz
+Psycholog
+Tłumacz
+Programista WWW
+Ekonomista
+Stewardesa
+Kelner
+Bibliotekarz
+Pracownik socjalny

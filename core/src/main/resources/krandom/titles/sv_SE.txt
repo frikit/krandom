@@ -1,0 +1,6 @@
+# sv_SE honorific titles
+Herr
+Fru
+Fröken
+Dr.
+Prof.

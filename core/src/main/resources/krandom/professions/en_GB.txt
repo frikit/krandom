@@ -1,0 +1,41 @@
+# en_GB professions
+Software Engineer
+Teacher
+Nurse
+Accountant
+Sales Executive
+Project Manager
+Data Analyst
+Graphic Designer
+Electrician
+Mechanic
+Solicitor
+Doctor
+Pharmacist
+Chef
+Architect
+Civil Engineer
+Marketing Specialist
+HR Manager
+Operations Manager
+Product Manager
+UX Designer
+Dentist
+Paramedic
+Financial Analyst
+Customer Support Specialist
+Police Officer
+Firefighter
+Journalist
+Photographer
+Plumber
+Carpenter
+Veterinarian
+Psychologist
+Translator
+Web Developer
+Economist
+Flight Attendant
+Waiter
+Librarian
+Social Worker

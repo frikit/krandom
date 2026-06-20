@@ -1,0 +1,8 @@
+# fr_FR honorific titles
+M.
+Mme
+Mlle
+Dr
+Pr
+Me
+Mgr

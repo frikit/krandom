@@ -1,0 +1,41 @@
+# nl_NL professions
+Softwareontwikkelaar
+Docent
+Verpleegkundige
+Boekhouder
+Verkoopmedewerker
+Projectmanager
+Data-analist
+Grafisch ontwerper
+Elektricien
+Monteur
+Advocaat
+Arts
+Apotheker
+Kok
+Architect
+Civiel ingenieur
+Marketeer
+HR-manager
+Operationeel manager
+Productmanager
+UX-designer
+Tandarts
+Ambulanceverpleegkundige
+Financieel analist
+Klantsupportspecialist
+Politieagent
+Brandweerman
+Journalist
+Fotograaf
+Loodgieter
+Timmerman
+Dierenarts
+Psycholoog
+Vertaler
+Webontwikkelaar
+Econoom
+Steward
+Ober
+Bibliothecaris
+Maatschappelijk werker

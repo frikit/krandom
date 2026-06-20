@@ -1,0 +1,5 @@
+# he_IL honorific titles
+מר
+גברת
+ד"ר
+פרופ'
