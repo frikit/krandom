@@ -8,6 +8,7 @@ package io.github.frikit.krandom.examples.e2e;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.frikit.krandom.examples.e2e.googlesignup.GoogleSignupForm;
 import io.github.frikit.krandom.examples.e2e.jobapplication.JobApplicationForm;
+import io.github.frikit.krandom.examples.e2e.spidregistration.SpidRegistrationForm;
 import io.github.frikit.krandom.jackson.KrandomJackson;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,10 +85,51 @@ class E2eExamplesTest {
     }
 
     @Test
+    @DisplayName("SPID registration (Italy) fills every section in one ObjectFaker call")
+    void spidRegistrationIsComprehensive() throws Exception {
+        JsonNode p = parse(SpidRegistrationForm.toJson(11L));
+        for (String section : List.of("identity", "birth", "residence", "contacts", "idCard", "consents")) {
+            assertTrue(p.hasNonNull(section), "missing section: " + section);
+        }
+        // name and placeOfBirth auto-resolve via the custom SPID vocabulary registry.
+        assertTrue(p.get("identity").hasNonNull("name"), "name should resolve as a first name");
+        assertTrue(p.get("identity").hasNonNull("familyName"));
+        assertTrue(p.get("birth").hasNonNull("placeOfBirth"), "placeOfBirth should resolve as a city");
+        assertEquals("Italia", p.get("residence").get("country").asText());
+        assertEquals(Locale.ITALY, SpidRegistrationForm.DEFAULT_LOCALE);
+    }
+
+    @Test
+    @DisplayName("SPID identifiers carry their official Italian formats")
+    void spidIdentifiersAreWellFormed() throws Exception {
+        for (long seed = 0; seed < 20; seed++) {
+            JsonNode p = parse(SpidRegistrationForm.toJson(seed));
+            // Codice Fiscale: TINIT- prefix + 16-char fiscal code, exactly as SPID assertions carry it.
+            String fiscalNumber = p.get("identity").get("fiscalNumber").asText();
+            assertTrue(fiscalNumber.matches("TINIT-[A-Z0-9]{16}"), "seed " + seed + " fiscalNumber " + fiscalNumber);
+            // Gender is recorded as M or F.
+            assertTrue(p.get("identity").get("gender").asText().matches("[MF]"));
+            // County of birth resolves to a real Italian region (no province-code data in krandom).
+            assertTrue(!p.get("birth").get("countyOfBirth").asText().isBlank(), "seed " + seed + " countyOfBirth");
+            // CIE card number: 2 letters + 5 digits + 2 letters.
+            assertTrue(p.get("idCard").get("number").asText().matches("[A-Z]{2}[0-9]{5}[A-Z]{2}"));
+            // Date of birth is a realistic 18..99-year-old.
+            int age = ageOf(p.get("birth").get("dateOfBirth").asText());
+            assertTrue(age >= 18 && age <= 99, "seed " + seed + " age " + age);
+            // The electronic ID card expires in the future.
+            LocalDate expiry = LocalDate.parse(p.get("idCard").get("expirationDate").asText());
+            assertTrue(expiry.isAfter(LocalDate.now()), "seed " + seed + " expiry " + expiry);
+            // Consents an applicant must affirm to activate the identity.
+            assertTrue(p.get("consents").get("consentToDataProcessing").asBoolean());
+        }
+    }
+
+    @Test
     @DisplayName("same seed + locale is reproducible")
     void reproducibleForSameSeed() {
         assertEquals(GoogleSignupForm.toJson(99L), GoogleSignupForm.toJson(99L));
         assertEquals(JobApplicationForm.toJson(99L), JobApplicationForm.toJson(99L));
+        assertEquals(SpidRegistrationForm.toJson(99L), SpidRegistrationForm.toJson(99L));
     }
 
     @Test

@@ -8,6 +8,7 @@ its own package so you can read one end to end:
 |:---|:---|:---|
 | `googlesignup` | "Create your Google Account" registration form | `en_GB` (UK) |
 | `jobapplication` | A larger, nested job-application form | `de_DE` (Germany) |
+| `spidregistration` | Italian **SPID** digital-identity enrolment (official AgID attribute set, real Codice Fiscale) | `it_IT` (Italy) |
 
 Every example follows the same one-line shape:
 
