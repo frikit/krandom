@@ -17,7 +17,7 @@ java -version   # must report 21+
 ## Development workflow
 
 1. **Fork** the repository and clone your fork.
-2. **Create a branch** from `master` for your change.
+2. **Create a branch** from `main` for your change.
 3. **Make your changes** — keep commits focused and atomic.
 4. **Run the pre-commit checks** before pushing:
 
@@ -27,7 +27,7 @@ java -version   # must report 21+
 
    This runs formatting, markdown checks, compilation, tests, Javadoc validation, and coverage verification.
 
-5. **Open a pull request** against `master`.
+5. **Open a pull request** against `main`.
 
 ## Code quality gates
 

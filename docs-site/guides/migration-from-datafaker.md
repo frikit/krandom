@@ -78,7 +78,7 @@ DataFaker shares one `Random` across the whole faker instance. kRandom seeds
 per generator or per shared `GeneratorConfig`; string seeds are supported via
 a stable derivation (`GeneratorConfig.deriveSeed`, `fnv1a64-v1`). Tests
 should assert on shape, not exact values — see
-[VERSIONING.md](https://github.com/frikit/krandom/blob/master/VERSIONING.md)
+[VERSIONING.md](https://github.com/frikit/krandom/blob/main/VERSIONING.md)
 for the seed-stability policy.
 
 ## Honest gaps

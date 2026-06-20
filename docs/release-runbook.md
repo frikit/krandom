@@ -29,7 +29,7 @@ The GPG public key must be uploaded to a public keyserver (for example
 
 1. **Decide the version.** SemVer; for example `1.0.0`. Confirm the
    `[Unreleased]` section in `CHANGELOG.md` is final.
-2. **Land any last commits on `master`.** Run `./scripts/pre_commit_check.sh`
+2. **Land any last commits on `main`.** Run `./scripts/pre_commit_check.sh`
    and `./scripts/verify_examples_local.sh` locally; both must pass.
 3. **Cut the CHANGELOG section.** Promote `[Unreleased]` to
    `[<version>] - <YYYY-MM-DD>`, add a fresh empty `[Unreleased]` heading,
