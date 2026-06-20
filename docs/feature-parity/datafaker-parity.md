@@ -9,7 +9,7 @@
 - **License**: Apache 2.0
 - **Key Strength**: 200+ providers, extensive localization, schema-based output
 
-**Last Updated**: 2026-02-28 (Java phased plan moved to `docs/plans/datafaker-java-plan.md`)
+**Last Updated**: 2026-06-20 — cross-library backlog now lives in [`GAP-TRACKER.md`](./GAP-TRACKER.md). **Locale note:** per-row "10 locales" figures below predate the v1.3–v1.4 expansion and should be read as **35 locales**.
 
 ## Java Execution Plan
 
@@ -310,7 +310,7 @@ DataFaker's largest surface area is curated vocabulary catalogs. These are expli
 | Feature                  | DataFaker                          | krandom | Priority | Implementation Notes                                                   |
 |--------------------------|------------------------------------|---------|----------|------------------------------------------------------------------------|
 | **Locale Support**       |
-| Multiple locales         | ✅ 60+ locales                      | ✅ Yes   | ✓ DONE   | 10 built-in locales (en_US/GB/AU, de/fr/es/it, pt_BR, ja, zh_CN)       |
+| Multiple locales         | ✅ 60+ locales                      | ✅ Yes   | ✓ DONE   | **35 built-in locales** (v1.3–v1.4 expansion); gap to 60+ tracked in GAP-TRACKER.md |
 | Locale-aware data        | ✅ Names, addresses, phones         | ✅ Yes   | ✓ DONE   | Names, cities, states, postcodes, phones, coordinates all locale-aware |
 | Runtime locale switching | ✅ Yes                              | ✅ Yes   | ✓ DONE   | Pass different `Locale` to constructor per call                        |
 | **Seeding**              |
@@ -395,7 +395,7 @@ DataFaker's largest surface area is curated vocabulary catalogs. These are expli
 ### DataFaker Strengths (vs krandom)
 
 1. **200+ providers** vs ~50 in krandom (krandom has grown significantly)
-2. **60+ locales** vs 10 in krandom — DataFaker has broader locale coverage
+2. **60+ locales** vs **35** in krandom — still a gap, but much narrower than this doc's older "10" figure
 3. **Schema-based output** (CSV/JSON/YAML/XML) — no equivalent in krandom
 4. **Template-based generation breadth** (`numerify`, `letterify`, `bothify`, `regexify`) — partial in krandom (`numerify/letterify/bothify` implemented)
 5. **Unique value enforcement ergonomics** (`faker.unique()` fluent provider chaining) — partial in krandom (`Generators.unique(...)`)
