@@ -17,12 +17,12 @@ Public coordinates on Maven Central:
 
 - `io.github.frikit:krandom-core`
 - `io.github.frikit:krandom-jackson`
-- `io.github.frikit:krandom-junit` (from `1.3.0`)
+- `io.github.frikit:krandom-junit` (from `1.4.0`)
 - `io.github.frikit:krandom-spring-boot-starter`
 - `io.github.frikit:krandom-kotest-extensions`
 - `io.github.frikit:krandom-kotlin-dsl`
 
-The current version is `1.3.0`. Latest version is always shown on
+The current version is `1.4.0`. Latest version is always shown on
 [GitHub Releases](https://github.com/frikit/krandom/releases).
 
 Gradle:
@@ -33,13 +33,13 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.3.0")
+    implementation("io.github.frikit:krandom-core:1.4.0")
     // Optional integrations:
-    implementation("io.github.frikit:krandom-jackson:1.3.0")
-    implementation("io.github.frikit:krandom-spring-boot-starter:1.3.0")
-    testImplementation("io.github.frikit:krandom-kotest-extensions:1.3.0")
-    testImplementation("io.github.frikit:krandom-kotlin-dsl:1.3.0")
-    testImplementation("io.github.frikit:krandom-junit:1.3.0") // JUnit 5 seed extension, from 1.3.0
+    implementation("io.github.frikit:krandom-jackson:1.4.0")
+    implementation("io.github.frikit:krandom-spring-boot-starter:1.4.0")
+    testImplementation("io.github.frikit:krandom-kotest-extensions:1.4.0")
+    testImplementation("io.github.frikit:krandom-kotlin-dsl:1.4.0")
+    testImplementation("io.github.frikit:krandom-junit:1.4.0") // JUnit 5 seed extension, from 1.4.0
 
 }
 ```
@@ -50,7 +50,7 @@ Maven:
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>1.3.0</version>
+  <version>1.4.0</version>
 </dependency>
 ```
 

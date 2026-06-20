@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-20
+
+### Changed
+- Gender labels, name suffixes, professions, and titles are now curated per-locale classpath resource files (`krandom/genders/<locale>.txt`, `krandom/suffixes/<locale>.txt`, `krandom/professions/<locale>.txt`, `krandom/titles/<locale>.txt`), loaded the same way as names — the last hardcoded language-string switches in the built-in user-data providers are gone, so adding or expanding a locale is a data edit, not a code change. **Relevant to consumers who load these classpath resources directly.** Gender and suffix data is migrated verbatim (generator behaviour unchanged); profession and title coverage is expanded (35 locales, 40 professions each, plus broader honorific/title sets). Profession ranked weights are now derived from list position, so the files can be any length.
+- Build: Gradle wrapper upgraded 9.5.1 → 9.6.0.
+
+### Fixed
+- `CoordinatesGenerator` now renders coordinates as plain decimals via `BigDecimal.toPlainString()`: a near-zero value such as longitude `0.00044` previously serialized as `4.4E-4` and failed coordinate-format validation. Output never uses scientific notation and always uses `.` as the decimal separator regardless of locale.
+
 ## [1.3.0] - 2026-06-20
 
 ### Added
@@ -256,5 +265,9 @@ See [`docs/reviews/project-review-codex.md`](docs/reviews/project-review-codex.m
 - Travis CI and GitHub Actions CI.
 - Gradle wrapper management.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/frikit/krandom/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/frikit/krandom/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/frikit/krandom/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/frikit/krandom/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/frikit/krandom/releases/tag/v1.0.0
