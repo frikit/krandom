@@ -74,6 +74,7 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
   - [ ] NATO phonetic alphabet · Measurement/units · Pronouns
   - [ ] Cloud resource names (AWS/Azure) · Computer/Device/OS · Programming Language
   - [ ] University · Restaurant · Hobby · Financial Terms · CNPJ (BR company id)
+  - **Design note — locale-frequency providers (blood type, …):** back them with per-locale resource files (`krandom/bloodtypes/<locale>.txt`, `TYPE WEIGHT` lines) + weighted selection, seeded only for locales that have a file (others fall back to `default.txt`), mirroring the Gender data-provider/registry pattern. Do **not** hardcode as enums — distributions differ by population/locale. (slice 1: `default`, `en_US`, `ja_JP` shipped; remaining 32 locales are backlog.)
 - [ ] **Ergonomics parity with Instancio** (the real competitive pressure):
   - [ ] Bean-Validation/JPA-aware generation, first-class & documented (krandom has `BeanValidationSupport` — promote it)
   - [ ] Predicate/type **selectors** + reusable **Model/template** concept (beyond `ruleFor`/profiles)
