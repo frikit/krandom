@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-20
+
+### Added
+- Localized country datasets for all 35 supported locales (195 countries each). Previously only 10 locales had curated country files; the other 25 fell back to JDK-localized names.
+
+### Changed
+- Expanded every built-in locale dataset to richer, fully-unique coverage: cities ≥100 per locale, first (male/female) and last names ≥100 per locale, street names >25 per locale, plus comprehensive secondary-unit designators and paired long/short street types per locale.
+- **Resource layout:** `names/` and `streets/` datasets are reorganized into per-type subfolders — `names/{first_male,first_female,last}/<locale>.txt` and `streets/{street_names,street_types_long,street_types_short,secondary_units}/<locale>.txt` (previously flat `<locale>_<type>.txt`). Relevant to consumers who load these classpath resources directly.
+- Tightened locale coverage tests to lock in the new dataset floors (cities ≥100, names ≥100, countries ≥195, street names ≥26, street types ≥15) and to assert the long/short street-type lists stay paired (equal length) for every locale.
+
 ## [1.2.0] - 2026-06-19
 
 ### Added

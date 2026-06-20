@@ -8,10 +8,13 @@ package io.github.frikit.krandom.generator.user;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,6 +42,15 @@ class NameResourceLoaderTest {
     void loadKnownFile() {
         String[] names = NameResourceLoader.load("krandom/names/first_male/en_US.txt");
         assertTrue(names.length > 10);
+    }
+
+    @Test
+    @DisplayName("load skips blank lines and comment lines")
+    void loadSkipsBlankAndCommentLines() {
+        String content = "# header comment\nAlice\n\n  \nBob\n";
+        String[] names = NameResourceLoader.load(
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)), "synthetic-names");
+        assertArrayEquals(new String[] {"Alice", "Bob"}, names);
     }
 
     @Test

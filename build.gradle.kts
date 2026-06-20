@@ -5,7 +5,7 @@ plugins {
 
 allprojects {
     group = "io.github.frikit"
-    version = (findProperty("releaseVersion") as String?) ?: "1.2.0-SNAPSHOT"
+    version = (findProperty("releaseVersion") as String?) ?: "1.3.0-SNAPSHOT"
 
     repositories {
         if (hasProperty("useLocalMaven")) {

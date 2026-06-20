@@ -106,7 +106,7 @@ class StreetAddressGeneratorTest {
     @DisplayName("generate(true) uses short suffixes")
     void shortSuffixMode() {
         StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
-        Set<String> shortSuffixes = Set.of("St", "Ave", "Blvd", "Dr", "Rd", "Ln", "Ct", "Pl", "Way", "Cir");
+        Set<String> shortSuffixes = Set.of(StreetAddressDataRegistry.forLocale(Locale.US).getStreetTypesShort());
         for (int i = 0; i < SAMPLES; i++) {
             String suffix = gen.generate(true).split(" ")[2];
             assertTrue(shortSuffixes.contains(suffix));
@@ -117,7 +117,7 @@ class StreetAddressGeneratorTest {
     @DisplayName("generate(false) uses long suffixes")
     void longSuffixMode() {
         StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
-        Set<String> longSuffixes = Set.of("Street", "Avenue", "Boulevard", "Drive", "Road", "Lane", "Court", "Place", "Way", "Circle");
+        Set<String> longSuffixes = Set.of(StreetAddressDataRegistry.forLocale(Locale.US).getStreetTypesLong());
         for (int i = 0; i < SAMPLES; i++) {
             String suffix = gen.generate(false).split(" ")[2];
             assertTrue(longSuffixes.contains(suffix));

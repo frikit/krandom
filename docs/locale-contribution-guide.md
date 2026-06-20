@@ -53,18 +53,18 @@ Country data can come from built-in resource files or from JDK-localized country
 
 The current locale coverage tests enforce these minimums:
 
-- male first names: `>= 40`
-- female first names: `>= 40`
-- last names: `>= 40`
+- male first names: `>= 100`
+- female first names: `>= 100`
+- last names: `>= 100`
 - professions: `>= 25`
 - titles: `>= 4`
 - suffixes: `>= 3`
-- cities: `>= 70`
+- cities: `>= 100`
 - states / regions: `>= 4`
-- countries: `>= 150`
-- street names: `>= 20`
-- street types short: `>= 10`
-- street types long: `>= 10`
+- countries: `>= 195`
+- street names: `>= 26`
+- street types short: `>= 15`
+- street types long: `>= 15` (and the long/short lists must have the same length — paired by line index)
 
 ## Data quality rules
 

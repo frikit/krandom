@@ -151,9 +151,9 @@ class SupportedLocaleCoverageTest {
             String[] titles = stringArray(titleProvider, "getTitles");
             String[] suffixes = stringArray(suffixProvider, "getSuffixes");
 
-            assertDatasetQuality(supportedLocale + " male first names", maleFirstNames, 40);
-            assertDatasetQuality(supportedLocale + " female first names", femaleFirstNames, 40);
-            assertDatasetQuality(supportedLocale + " last names", lastNames, 40);
+            assertDatasetQuality(supportedLocale + " male first names", maleFirstNames, 100);
+            assertDatasetQuality(supportedLocale + " female first names", femaleFirstNames, 100);
+            assertDatasetQuality(supportedLocale + " last names", lastNames, 100);
             assertTrue(!stringValue(genderProvider, "getMaleLabel").isBlank());
             assertTrue(!stringValue(genderProvider, "getFemaleLabel").isBlank());
             assertTrue(!stringValue(genderProvider, "getMaleLabel").equals(stringValue(genderProvider, "getFemaleLabel")));
@@ -199,14 +199,16 @@ class SupportedLocaleCoverageTest {
             String[] streetTypesShort = stringArray(streetProvider, "getStreetTypesShort");
             String[] streetTypesLong = stringArray(streetProvider, "getStreetTypesLong");
 
-            assertDatasetQuality(supportedLocale + " cities", cities, 70);
+            assertDatasetQuality(supportedLocale + " cities", cities, 100);
             assertDatasetQuality(supportedLocale + " states", states, 4);
             assertEquals(states.length, stateAbbreviations.length);
             assertOptionalDatasetQuality(supportedLocale + " state abbreviations", stateAbbreviations);
-            assertDatasetQuality(supportedLocale + " countries", countries, 150);
-            assertDatasetQuality(supportedLocale + " street names", streetNames, 20);
-            assertDatasetQuality(supportedLocale + " street types short", streetTypesShort, 10);
-            assertDatasetQuality(supportedLocale + " street types long", streetTypesLong, 10);
+            assertDatasetQuality(supportedLocale + " countries", countries, 195);
+            assertDatasetQuality(supportedLocale + " street names", streetNames, 26);
+            assertDatasetQuality(supportedLocale + " street types short", streetTypesShort, 15);
+            assertDatasetQuality(supportedLocale + " street types long", streetTypesLong, 15);
+            assertEquals(streetTypesShort.length, streetTypesLong.length,
+                         supportedLocale + " street type short/long lists must be paired (equal length)");
             assertExpectedScriptCoverage(supportedLocale, cities, states, streetNames, streetTypesShort, streetTypesLong);
         }
     }
