@@ -6,26 +6,20 @@
 package io.github.frikit.krandom.examples.e2e.googlesignup;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.github.frikit.krandom.examples.e2e.support.Emails;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.user.FirstNameGenerator;
-import io.github.frikit.krandom.generator.user.Gender;
-import io.github.frikit.krandom.generator.user.GenderGenerator;
-import io.github.frikit.krandom.generator.user.LastNameGenerator;
-import io.github.frikit.krandom.generator.user.PasswordGenerator;
+import io.github.frikit.krandom.generator.object.ObjectFaker;
 import io.github.frikit.krandom.jackson.KrandomJackson;
 
 import java.util.Locale;
 
 /**
- * End-to-end example: fill the "Create your Google Account" registration form and produce the exact
- * JSON payload such a page would POST to its backend.
+ * End-to-end example: produce the JSON payload the "Create your Google Account" page submits.
  *
- * <p>This example is wired to the UK locale ({@code en_GB}); pass a different {@link Locale} to
- * {@link #fake(Locale, long)} to localize it elsewhere. The username and both email addresses are
- * derived from the generated name so the identity is internally consistent. Run
- * {@link #main(String[])} to print a sample payload.
+ * <p>The whole form is filled with a single {@link ObjectFaker} call -- every field is resolved by
+ * name and type, nested records included -- so there is one pattern to remember:
+ * {@code new ObjectFaker<>(Form.class, config).generate()}. Only {@code agreeToTerms} is pinned
+ * (you must accept the terms to register). Wired to the UK locale ({@code en_GB}); pass another
+ * {@link Locale} to {@link #fake(Locale, long)} to localize it.
  */
 public final class GoogleSignupForm {
 
@@ -54,33 +48,12 @@ public final class GoogleSignupForm {
     public record Birthday(int year, int month, int day) {
     }
 
-    /** Builds one fake-but-realistic signup payload, reproducibly for a given locale and seed. */
+    /** Fills the whole payload in one call, reproducibly for a given locale and seed. */
     public static SignupPayload fake(Locale locale, long seed) {
         GeneratorConfig config = GeneratorConfig.builder().locale(locale).seed(seed).build();
-
-        // Pick a gender first so the given name and gender label agree.
-        Gender gender = Generators.ofBoolean(seed).generate() ? Gender.MALE : Gender.FEMALE;
-
-        String firstName = new FirstNameGenerator(config).generate(gender);
-        String lastName = new LastNameGenerator(config).generate();
-
-        Birthday birthday = new Birthday(
-                Generators.ofInt(1960, 2005, seed).generate(),
-                Generators.ofInt(1, 12, seed + 1).generate(),
-                Generators.ofInt(1, 28, seed + 2).generate());
-
-        return new SignupPayload(
-                firstName,
-                lastName,
-                Emails.username(firstName, lastName, seed + 5),
-                Emails.fromName(firstName, lastName, seed + 3),
-                new PasswordGenerator(config).generate(),
-                birthday,
-                new GenderGenerator(config).generate(gender),
-                Generators.ofPhoneNumber(config).generate(),
-                Emails.fromName(firstName, lastName, seed + 4),
-                Generators.ofCountry(config).generate(),
-                true);
+        return new ObjectFaker<>(SignupPayload.class, config)
+                .ruleFor("agreeToTerms", () -> true)
+                .generate();
     }
 
     /** Serializes a freshly generated payload to the JSON the browser would submit. */
