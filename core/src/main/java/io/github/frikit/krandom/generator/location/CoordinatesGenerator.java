@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.location;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
@@ -153,7 +154,17 @@ public final class CoordinatesGenerator implements Generator<String> {
     public String generate() {
         double lat = generateLatitude();
         double lon = generateLongitude();
-        return lat + "," + lon;
+        return format(lat) + "," + format(lon);
+    }
+
+    /**
+     * Formats a coordinate as a plain decimal string -- never scientific notation -- so near-zero
+     * values such as {@code 0.00044} render as {@code "0.00044"} rather than {@code "4.4E-4"}.
+     * {@code BigDecimal.valueOf} preserves the canonical shortest decimal representation and always
+     * emits a {@code '.'} separator regardless of locale.
+     */
+    private static String format(double value) {
+        return BigDecimal.valueOf(value).toPlainString();
     }
 
     /**
