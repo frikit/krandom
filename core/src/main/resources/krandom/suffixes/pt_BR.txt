@@ -1,0 +1,6 @@
+# pt_BR name suffixes
+Filho
+Júnior
+Neto
+PhD
+MD

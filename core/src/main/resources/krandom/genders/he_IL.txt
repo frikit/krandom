@@ -1,0 +1,3 @@
+# he_IL gender labels (male, female)
+זכר
+נקבה

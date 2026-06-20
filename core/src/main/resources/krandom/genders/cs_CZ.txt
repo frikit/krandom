@@ -1,0 +1,3 @@
+# cs_CZ gender labels (male, female)
+Muž
+Žena

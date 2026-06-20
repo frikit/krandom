@@ -1,0 +1,7 @@
+# es_ES name suffixes
+Jr.
+Sr.
+II
+III
+PhD
+MD

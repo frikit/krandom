@@ -1,0 +1,5 @@
+# fi_FI name suffixes
+nuor.
+vanh.
+FT
+TkT

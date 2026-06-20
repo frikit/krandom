@@ -1,0 +1,3 @@
+# ja_JP gender labels (male, female)
+男性
+女性

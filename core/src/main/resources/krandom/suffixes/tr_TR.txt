@@ -1,0 +1,5 @@
+# tr_TR name suffixes
+Jr.
+Sr.
+Dr.
+Prof.

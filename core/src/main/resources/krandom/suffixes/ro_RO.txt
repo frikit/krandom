@@ -1,0 +1,5 @@
+# ro_RO name suffixes
+Jr.
+Sr.
+PhD
+Dr.

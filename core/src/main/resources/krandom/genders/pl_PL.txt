@@ -1,0 +1,3 @@
+# pl_PL gender labels (male, female)
+Mężczyzna
+Kobieta

@@ -1,0 +1,3 @@
+# hi_IN gender labels (male, female)
+पुरुष
+महिला

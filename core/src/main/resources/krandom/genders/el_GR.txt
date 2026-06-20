@@ -1,0 +1,3 @@
+# el_GR gender labels (male, female)
+Άνδρας
+Γυναίκα

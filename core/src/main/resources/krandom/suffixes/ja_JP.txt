@@ -1,0 +1,4 @@
+# ja_JP name suffixes
+博士
+学士
+修士

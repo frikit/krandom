@@ -10,7 +10,9 @@ import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import java.util.Locale;
 
 /**
- * Built-in suffix provider for supported locales.
+ * Built-in suffix provider backed by classpath suffix resources.
+ *
+ * <p>Suffixes are loaded from {@code krandom/suffixes/<locale>.txt} (one suffix per line).
  */
 final class BuiltInSuffixDataProvider implements SuffixDataProvider {
 
@@ -19,44 +21,7 @@ final class BuiltInSuffixDataProvider implements SuffixDataProvider {
 
     BuiltInSuffixDataProvider(SupportedLocale supportedLocale) {
         this.locale = supportedLocale.locale();
-        this.suffixes = suffixesFor(supportedLocale);
-    }
-
-    private static String[] suffixesFor(SupportedLocale supportedLocale) {
-        return switch (supportedLocale.locale().getLanguage()) {
-            case "fr" -> new String[] { "fils", "père", "PhD", "MD" };
-            case "de" -> new String[] { "jun.", "sen.", "PhD", "Dr. h.c." };
-            case "ja" -> new String[] { "博士", "学士", "修士" };
-            case "es" -> new String[] { "Jr.", "Sr.", "II", "III", "PhD", "MD" };
-            case "it" -> new String[] { "Jr.", "Sr.", "PhD", "MD" };
-            case "pt" -> new String[] { "Filho", "Júnior", "Neto", "PhD", "MD" };
-            case "zh" -> new String[] { "博士", "硕士", "学士" };
-            case "nl" -> new String[] { "Jr.", "Sr.", "drs.", "PhD" };
-            case "pl" -> new String[] { "junior", "senior", "dr", "mgr", "PhD" };
-            case "ru" -> new String[] { "мл.", "ст.", "канд. наук", "д-р" };
-            case "ko" -> new String[] { "주니어", "시니어", "박사", "석사" };
-            case "tr" -> new String[] { "Jr.", "Sr.", "Dr.", "Prof." };
-            case "sv" -> new String[] { "d.y.", "d.ä.", "Fil.dr", "MD" };
-            case "nb" -> new String[] { "jr.", "sr.", "PhD", "Dr." };
-            case "cs" -> new String[] { "ml.", "st.", "Ing.", "PhDr." };
-            case "ar" -> new String[] { "الابن", "الأب", "د.", "م." };
-            case "hi" -> new String[] { "जूनियर", "सीनियर", "पीएचडी", "एमडी" };
-            case "da" -> new String[] { "jr.", "sr.", "PhD", "dr.med." };
-            case "fi" -> new String[] { "nuor.", "vanh.", "FT", "TkT" };
-            case "hu" -> new String[] { "ifj.", "id.", "PhD", "Dr." };
-            case "ro" -> new String[] { "Jr.", "Sr.", "PhD", "Dr." };
-            case "sk" -> new String[] { "ml.", "st.", "Ing.", "PhDr." };
-            case "uk" -> new String[] { "мол.", "ст.", "канд. наук", "д-р" };
-            case "bg" -> new String[] { "мл.", "ст.", "д-р", "проф." };
-            case "hr" -> new String[] { "ml.", "st.", "dr.", "prof." };
-            case "el" -> new String[] { "Νεώτ.", "Πρεσβ.", "Δρ.", "PhD" };
-            case "th" -> new String[] { "จูเนียร์", "ซีเนียร์", "ปริญญาเอก", "นพ." };
-            case "vi" -> new String[] { "Con", "Cha", "TS.", "PGS." };
-            case "id", "ms" -> new String[] { "Jr.", "Sr.", "S.T.", "Dr." };
-            case "he" -> new String[] { "ג'וניור", "סניור", "דוקטור", "פרופ'" };
-            case "ca" -> new String[] { "Jr.", "Sr.", "PhD", "Dr." };
-            default -> new String[] { "Jr.", "Sr.", "II", "III", "IV", "Esq.", "PhD", "MD", "JD", "DO", "DDS", "RN", "CPA" };
-        };
+        this.suffixes = LocaleTextResourceLoader.load("krandom/suffixes/" + supportedLocale.resourcePrefix() + ".txt");
     }
 
     @Override

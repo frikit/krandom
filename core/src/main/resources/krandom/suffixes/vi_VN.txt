@@ -1,0 +1,5 @@
+# vi_VN name suffixes
+Con
+Cha
+TS.
+PGS.

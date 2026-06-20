@@ -1,0 +1,3 @@
+# nb_NO gender labels (male, female)
+Mann
+Kvinne

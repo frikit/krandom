@@ -1,0 +1,5 @@
+# ca_ES name suffixes
+Jr.
+Sr.
+PhD
+Dr.

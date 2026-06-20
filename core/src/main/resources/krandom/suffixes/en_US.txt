@@ -1,0 +1,14 @@
+# en_US name suffixes
+Jr.
+Sr.
+II
+III
+IV
+Esq.
+PhD
+MD
+JD
+DO
+DDS
+RN
+CPA

@@ -1,0 +1,5 @@
+# cs_CZ name suffixes
+ml.
+st.
+Ing.
+PhDr.

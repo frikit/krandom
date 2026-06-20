@@ -1,0 +1,3 @@
+# uk_UA gender labels (male, female)
+Чоловік
+Жінка

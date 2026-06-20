@@ -1,0 +1,3 @@
+# nl_NL gender labels (male, female)
+Man
+Vrouw

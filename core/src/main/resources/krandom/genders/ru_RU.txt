@@ -1,0 +1,3 @@
+# ru_RU gender labels (male, female)
+Мужчина
+Женщина

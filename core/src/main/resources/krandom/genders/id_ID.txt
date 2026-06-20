@@ -1,0 +1,3 @@
+# id_ID gender labels (male, female)
+Laki-laki
+Perempuan

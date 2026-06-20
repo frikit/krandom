@@ -1,0 +1,4 @@
+# zh_CN name suffixes
+博士
+硕士
+学士

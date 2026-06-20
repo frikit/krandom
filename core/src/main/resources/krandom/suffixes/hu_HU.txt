@@ -1,0 +1,5 @@
+# hu_HU name suffixes
+ifj.
+id.
+PhD
+Dr.
