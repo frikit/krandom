@@ -79,4 +79,4 @@ String email = Generators.ofEmail().generate();
 String city = Generators.location().city().generate();
 ```
 
-The complete migration guide lives in the repository at [docs/migration/k-random-to-krandom.md](https://github.com/frikit/krandom/blob/master/docs/migration/k-random-to-krandom.md).
+The complete migration guide lives in the repository at [docs/migration/k-random-to-krandom.md](https://github.com/frikit/krandom/blob/main/docs/migration/k-random-to-krandom.md).
