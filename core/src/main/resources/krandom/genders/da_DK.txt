@@ -1,0 +1,3 @@
+# da_DK gender labels (male, female)
+Mand
+Kvinde

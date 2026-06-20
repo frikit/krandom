@@ -1,0 +1,5 @@
+# de_DE name suffixes
+jun.
+sen.
+PhD
+Dr. h.c.

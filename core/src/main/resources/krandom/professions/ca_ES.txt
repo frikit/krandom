@@ -1,0 +1,41 @@
+# ca_ES professions
+Enginyer de programari
+Professor
+Infermer
+Comptable
+Representant de vendes
+Cap de projecte
+Analista de dades
+Dissenyador gràfic
+Electricista
+Mecànic
+Advocat
+Metge
+Farmacèutic
+Xef
+Arquitecte
+Enginyer civil
+Especialista en màrqueting
+Gerent de recursos humans
+Gerent d'operacions
+Gerent de producte
+Dissenyador UX
+Dentista
+Paramèdic
+Analista financer
+Especialista de suport al client
+Policia
+Bomber
+Periodista
+Fotògraf
+Lampista
+Fuster
+Veterinari
+Psicòleg
+Traductor
+Desenvolupador web
+Economista
+Auxiliar de vol
+Cambrer
+Bibliotecari
+Treballador social

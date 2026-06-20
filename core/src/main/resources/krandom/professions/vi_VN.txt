@@ -1,0 +1,41 @@
+# vi_VN professions
+Kỹ sư phần mềm
+Giáo viên
+Y tá
+Kế toán
+Đại diện bán hàng
+Quản lý dự án
+Phân tích dữ liệu
+Nhà thiết kế đồ họa
+Thợ điện
+Thợ cơ khí
+Luật sư
+Bác sĩ
+Dược sĩ
+Đầu bếp
+Kiến trúc sư
+Kỹ sư xây dựng
+Chuyên viên marketing
+Quản lý nhân sự
+Quản lý vận hành
+Quản lý sản phẩm
+Nhà thiết kế UX
+Nha sĩ
+Nhân viên cấp cứu
+Phân tích tài chính
+Chuyên viên hỗ trợ khách hàng
+Cảnh sát
+Lính cứu hỏa
+Nhà báo
+Nhiếp ảnh gia
+Thợ sửa ống nước
+Thợ mộc
+Bác sĩ thú y
+Nhà tâm lý học
+Phiên dịch viên
+Lập trình viên web
+Nhà kinh tế học
+Tiếp viên hàng không
+Bồi bàn
+Thủ thư
+Nhân viên xã hội

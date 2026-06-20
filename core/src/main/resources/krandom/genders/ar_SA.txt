@@ -1,0 +1,3 @@
+# ar_SA gender labels (male, female)
+ذكر
+أنثى

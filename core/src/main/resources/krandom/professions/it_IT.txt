@@ -1,0 +1,41 @@
+# it_IT professions
+Ingegnere del software
+Insegnante
+Infermiere
+Contabile
+Rappresentante vendite
+Project manager
+Analista dati
+Grafico
+Elettricista
+Meccanico
+Avvocato
+Medico
+Farmacista
+Chef
+Architetto
+Ingegnere civile
+Specialista marketing
+Responsabile risorse umane
+Responsabile operativo
+Product manager
+Designer UX
+Dentista
+Paramedico
+Analista finanziario
+Specialista supporto clienti
+Poliziotto
+Vigile del fuoco
+Giornalista
+Fotografo
+Idraulico
+Falegname
+Veterinario
+Psicologo
+Traduttore
+Sviluppatore web
+Economista
+Assistente di volo
+Cameriere
+Bibliotecario
+Assistente sociale

@@ -1,0 +1,3 @@
+# bg_BG gender labels (male, female)
+Мъж
+Жена

@@ -1,0 +1,5 @@
+# sk_SK name suffixes
+ml.
+st.
+Ing.
+PhDr.

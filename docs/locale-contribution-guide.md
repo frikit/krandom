@@ -44,10 +44,15 @@ A native built-in locale is expected to provide:
   - `<locale>_street_types_short.txt`
   - `<locale>_street_types_long.txt`
   - `<locale>_secondary_units.txt`
-- profession coverage in `BuiltInProfessionDataProvider`
-- localized titles / suffixes where the locale is supported
+- professions:
+  - `professions/<locale>.txt` (one profession per line, ordered most-common-first)
+- titles:
+  - `titles/<locale>.txt` (one honorific title per line)
+- localized suffixes where the locale is supported
 
 Country data can come from built-in resource files or from JDK-localized country names, depending on the locale strategy already used in the codebase.
+
+Profession lists are ordered most-common-first: ranked generation derives its weights from list position (the first entry is weighted highest, the last gets weight `1`), so no separate weights table is maintained.
 
 ## Dataset minimums
 
@@ -56,7 +61,7 @@ The current locale coverage tests enforce these minimums:
 - male first names: `>= 100`
 - female first names: `>= 100`
 - last names: `>= 100`
-- professions: `>= 25`
+- professions: `>= 40`
 - titles: `>= 4`
 - suffixes: `>= 3`
 - cities: `>= 100`
@@ -97,7 +102,7 @@ Expected script families are currently:
 
 1. Add or update the `SupportedLocale` entry.
 2. Add matching resource files under `core/src/main/resources/krandom/`.
-3. Update `BuiltInProfessionDataProvider` if the locale needs native profession data.
+3. Add `professions/<locale>.txt` and `titles/<locale>.txt` resource files for the locale.
 4. Update any locale-specific country-name handling if the locale should use JDK-localized country names.
 5. Update locale docs in `docs-site/guides/locale-aware-data.md`.
 6. Run `./scripts/pre_commit_check.sh`.

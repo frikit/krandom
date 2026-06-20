@@ -1,0 +1,3 @@
+# pt_BR gender labels (male, female)
+Masculino
+Feminino

@@ -10,7 +10,9 @@ import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import java.util.Locale;
 
 /**
- * Built-in title provider for supported locales.
+ * Built-in title provider backed by classpath title resources.
+ *
+ * <p>Honorific titles are loaded from {@code krandom/titles/<locale>.txt} (one title per line).
  */
 final class BuiltInTitleDataProvider implements TitleDataProvider {
 
@@ -19,50 +21,7 @@ final class BuiltInTitleDataProvider implements TitleDataProvider {
 
     BuiltInTitleDataProvider(SupportedLocale supportedLocale) {
         this.locale = supportedLocale.locale();
-        this.titles = titlesFor(supportedLocale);
-    }
-
-    private static String[] titlesFor(SupportedLocale supportedLocale) {
-        if (supportedLocale == SupportedLocale.EN_GB) {
-            return new String[] { "Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", "Rev", "Sir", "Dame", "Lord", "Lady", "Mx" };
-        }
-        if (supportedLocale == SupportedLocale.EN_AU) {
-            return new String[] { "Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", "Rev", "Mx" };
-        }
-        return switch (supportedLocale.locale().getLanguage()) {
-            case "fr" -> new String[] { "M.", "Mme", "Mlle", "Dr", "Pr", "Me", "Mgr" };
-            case "de" -> new String[] { "Herr", "Frau", "Dr.", "Prof.", "Dr. med.", "Dr. jur.", "Dipl.-Ing." };
-            case "ja" -> new String[] { "さん", "様", "殿", "君", "ちゃん", "先生", "博士" };
-            case "es" -> new String[] { "Sr.", "Sra.", "Srta.", "Dr.", "Dra.", "Prof.", "Don", "Doña" };
-            case "it" -> new String[] { "Sig.", "Sig.ra", "Sig.na", "Dott.", "Dott.ssa", "Prof.", "Avv." };
-            case "pt" -> new String[] { "Sr.", "Sra.", "Srta.", "Dr.", "Dra.", "Prof.", "Profa." };
-            case "zh" -> new String[] { "先生", "女士", "小姐", "博士", "教授", "老师" };
-            case "nl" -> new String[] { "Dhr.", "Mevr.", "Dr.", "Prof.", "Ir." };
-            case "pl" -> new String[] { "Pan", "Pani", "Dr", "Prof." };
-            case "ru" -> new String[] { "Г-н", "Г-жа", "Д-р", "Проф." };
-            case "ko" -> new String[] { "씨", "님", "박사", "교수" };
-            case "tr" -> new String[] { "Bay", "Bayan", "Dr.", "Prof." };
-            case "sv" -> new String[] { "Herr", "Fru", "Fröken", "Dr.", "Prof." };
-            case "nb" -> new String[] { "Hr.", "Fru", "Frøken", "Dr.", "Prof." };
-            case "cs" -> new String[] { "Pan", "Paní", "Dr.", "Prof." };
-            case "ar" -> new String[] { "السيد", "السيدة", "د.", "أ." };
-            case "hi" -> new String[] { "श्री", "श्रीमती", "डॉ.", "प्रो." };
-            case "da" -> new String[] { "Hr.", "Fru", "Frk.", "Dr.", "Prof." };
-            case "fi" -> new String[] { "Herra", "Rouva", "Neiti", "Tri", "Prof." };
-            case "hu" -> new String[] { "Úr", "Asszony", "Dr.", "Prof." };
-            case "ro" -> new String[] { "Dl.", "Dna.", "Dra.", "Dr.", "Prof." };
-            case "sk" -> new String[] { "Pán", "Pani", "Dr.", "Prof." };
-            case "uk" -> new String[] { "Пан", "Пані", "Д-р", "Проф." };
-            case "bg" -> new String[] { "Г-н", "Г-жа", "Д-р", "Проф." };
-            case "hr" -> new String[] { "G.", "Gđa.", "Dr.", "Prof." };
-            case "el" -> new String[] { "Κος", "Κα", "Δρ.", "Καθ." };
-            case "th" -> new String[] { "คุณ", "นาย", "นาง", "นางสาว", "ดร." };
-            case "vi" -> new String[] { "Ông", "Bà", "Anh", "Chị", "TS." };
-            case "id", "ms" -> new String[] { "Bapak", "Ibu", "Saudara", "Dr." };
-            case "he" -> new String[] { "מר", "גברת", "ד\"ר", "פרופ'" };
-            case "ca" -> new String[] { "Sr.", "Sra.", "Srta.", "Dr.", "Prof." };
-            default -> new String[] { "Mr.", "Mrs.", "Ms.", "Miss", "Dr.", "Prof.", "Rev.", "Hon.", "Mx." };
-        };
+        this.titles = LocaleTextResourceLoader.load("krandom/titles/" + supportedLocale.resourcePrefix() + ".txt");
     }
 
     @Override

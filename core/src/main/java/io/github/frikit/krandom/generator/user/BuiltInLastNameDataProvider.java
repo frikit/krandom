@@ -20,7 +20,7 @@ final class BuiltInLastNameDataProvider implements LastNameDataProvider {
     BuiltInLastNameDataProvider(SupportedLocale supportedLocale) {
         this.locale = supportedLocale.locale();
         String resourcePrefix = supportedLocale.resourcePrefix();
-        this.lastNames = NameResourceLoader.load("krandom/names/last/" + resourcePrefix + ".txt");
+        this.lastNames = LocaleTextResourceLoader.load("krandom/names/last/" + resourcePrefix + ".txt");
     }
 
     @Override

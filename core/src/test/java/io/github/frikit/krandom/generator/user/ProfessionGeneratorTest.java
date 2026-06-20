@@ -111,11 +111,11 @@ class ProfessionGeneratorTest {
         }
 
         @Test
-        @DisplayName("all built-in locale providers have at least 25 professions")
+        @DisplayName("all built-in locale providers have at least 40 professions")
         void builtInLocaleCounts() {
             for (SupportedLocale supportedLocale : SupportedLocale.values()) {
                 ProfessionDataProvider data = new BuiltInProfessionDataProvider(supportedLocale);
-                assertTrue(data.getProfessions().length >= 25);
+                assertTrue(data.getProfessions().length >= 40);
                 assertEquals(data.getProfessions().length, data.getWeights().length);
             }
         }

@@ -1,0 +1,5 @@
+# it_IT name suffixes
+Jr.
+Sr.
+PhD
+MD

@@ -1,0 +1,8 @@
+# de_DE honorific titles
+Herr
+Frau
+Dr.
+Prof.
+Dr. med.
+Dr. jur.
+Dipl.-Ing.

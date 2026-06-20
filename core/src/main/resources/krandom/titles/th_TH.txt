@@ -1,0 +1,6 @@
+# th_TH honorific titles
+คุณ
+นาย
+นาง
+นางสาว
+ดร.

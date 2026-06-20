@@ -1,0 +1,5 @@
+# bg_BG name suffixes
+мл.
+ст.
+д-р
+проф.

@@ -1,0 +1,7 @@
+# hu_HU honorific titles
+Úr
+Asszony
+Kisasszony
+Dr.
+Prof.
+Ifj.

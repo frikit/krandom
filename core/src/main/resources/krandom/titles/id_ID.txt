@@ -1,0 +1,8 @@
+# id_ID honorific titles
+Bapak
+Ibu
+Saudara
+Saudari
+Tuan
+Nyonya
+Dr.

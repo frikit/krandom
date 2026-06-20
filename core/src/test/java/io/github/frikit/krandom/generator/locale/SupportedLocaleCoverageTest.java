@@ -157,8 +157,8 @@ class SupportedLocaleCoverageTest {
             assertTrue(!stringValue(genderProvider, "getMaleLabel").isBlank());
             assertTrue(!stringValue(genderProvider, "getFemaleLabel").isBlank());
             assertTrue(!stringValue(genderProvider, "getMaleLabel").equals(stringValue(genderProvider, "getFemaleLabel")));
-            assertDatasetQuality(supportedLocale + " professions", professions, 25);
-            assertEquals(25, intArray(professionProvider, "getWeights").length);
+            assertDatasetQuality(supportedLocale + " professions", professions, 40);
+            assertEquals(professions.length, intArray(professionProvider, "getWeights").length);
             assertDatasetQuality(supportedLocale + " titles", titles, 4);
             assertDatasetQuality(supportedLocale + " suffixes", suffixes, 3);
             assertExpectedScriptCoverage(supportedLocale,

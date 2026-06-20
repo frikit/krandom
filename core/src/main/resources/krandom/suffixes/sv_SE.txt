@@ -1,0 +1,5 @@
+# sv_SE name suffixes
+d.y.
+d.ä.
+Fil.dr
+MD

@@ -1,0 +1,5 @@
+# da_DK name suffixes
+jr.
+sr.
+PhD
+dr.med.

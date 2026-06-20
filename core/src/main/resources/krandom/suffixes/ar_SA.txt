@@ -1,0 +1,5 @@
+# ar_SA name suffixes
+الابن
+الأب
+د.
+م.

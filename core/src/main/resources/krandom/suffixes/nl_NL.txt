@@ -1,0 +1,5 @@
+# nl_NL name suffixes
+Jr.
+Sr.
+drs.
+PhD

@@ -1,0 +1,7 @@
+# cs_CZ honorific titles
+Pan
+Paní
+Dr.
+Prof.
+Ing.
+Mgr.

@@ -1,0 +1,5 @@
+# hr_HR name suffixes
+ml.
+st.
+dr.
+prof.

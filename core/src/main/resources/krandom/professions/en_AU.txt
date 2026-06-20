@@ -1,0 +1,41 @@
+# en_AU professions
+Software Engineer
+Teacher
+Nurse
+Accountant
+Sales Representative
+Project Manager
+Data Analyst
+Graphic Designer
+Electrician
+Mechanic
+Barrister
+Doctor
+Pharmacist
+Chef
+Architect
+Civil Engineer
+Marketing Specialist
+HR Manager
+Operations Manager
+Product Manager
+UX Designer
+Dentist
+Paramedic
+Financial Analyst
+Customer Support Specialist
+Police Officer
+Firefighter
+Journalist
+Photographer
+Plumber
+Carpenter
+Veterinarian
+Psychologist
+Translator
+Web Developer
+Economist
+Flight Attendant
+Waiter
+Librarian
+Social Worker

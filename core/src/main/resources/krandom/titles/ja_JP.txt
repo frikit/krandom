@@ -1,0 +1,8 @@
+# ja_JP honorific titles
+さん
+様
+殿
+君
+ちゃん
+先生
+博士

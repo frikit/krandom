@@ -29,6 +29,7 @@ include(":spring-boot-starter")
 include(":kotest-extensions")
 include(":kotlin-dsl")
 include(":benchmarks")
+include(":examples-e2e")
 
 nmcpSettings {
     centralPortal {

@@ -1,0 +1,41 @@
+# es_ES professions
+Ingeniero de software
+Profesor
+Enfermero
+Contable
+Representante de ventas
+Jefe de proyecto
+Analista de datos
+Diseñador gráfico
+Electricista
+Mecánico
+Abogado
+Médico
+Farmacéutico
+Chef
+Arquitecto
+Ingeniero civil
+Especialista en marketing
+Gerente de RR. HH.
+Gerente de operaciones
+Gerente de producto
+Diseñador UX
+Dentista
+Paramédico
+Analista financiero
+Especialista de soporte al cliente
+Policía
+Bombero
+Periodista
+Fotógrafo
+Fontanero
+Carpintero
+Veterinario
+Psicólogo
+Traductor
+Desarrollador web
+Economista
+Auxiliar de vuelo
+Camarero
+Bibliotecario
+Trabajador social

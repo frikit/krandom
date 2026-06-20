@@ -1,0 +1,3 @@
+# fi_FI gender labels (male, female)
+Mies
+Nainen

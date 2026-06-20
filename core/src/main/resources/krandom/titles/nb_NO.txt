@@ -1,0 +1,6 @@
+# nb_NO honorific titles
+Hr.
+Fru
+Frøken
+Dr.
+Prof.

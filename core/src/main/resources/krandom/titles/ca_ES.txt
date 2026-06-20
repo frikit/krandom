@@ -1,0 +1,6 @@
+# ca_ES honorific titles
+Sr.
+Sra.
+Srta.
+Dr.
+Prof.

@@ -1,0 +1,6 @@
+# da_DK honorific titles
+Hr.
+Fru
+Frk.
+Dr.
+Prof.
