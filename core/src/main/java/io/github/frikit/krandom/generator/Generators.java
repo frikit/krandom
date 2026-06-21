@@ -164,7 +164,10 @@ import io.github.frikit.krandom.generator.user.JobFieldGenerator;
 import io.github.frikit.krandom.generator.user.JobInfoGenerator;
 import io.github.frikit.krandom.generator.user.JobTypeGenerator;
 import io.github.frikit.krandom.generator.commerce.CnpjGenerator;
+import io.github.frikit.krandom.generator.tech.ProgrammingLanguageGenerator;
 import io.github.frikit.krandom.generator.text.NatoPhoneticGenerator;
+import io.github.frikit.krandom.generator.user.HobbyGenerator;
+import io.github.frikit.krandom.generator.user.MbtiGenerator;
 import io.github.frikit.krandom.generator.vehicle.VehicleGenerator;
 import io.github.frikit.krandom.generator.vehicle.VinGenerator;
 import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
@@ -1643,6 +1646,48 @@ public final class Generators {
      */
     public static VehicleGenerator ofVehicle(GeneratorConfig config) {
         return new VehicleGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces MBTI personality types (e.g. {@code "INTJ"}).
+     */
+    public static MbtiGenerator ofMbti() {
+        return new MbtiGenerator();
+    }
+
+    /**
+     * Returns an MBTI generator configured by the given {@link GeneratorConfig}.
+     */
+    public static MbtiGenerator ofMbti(GeneratorConfig config) {
+        return new MbtiGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces hobby names (e.g. {@code "Photography"}).
+     */
+    public static HobbyGenerator ofHobby() {
+        return new HobbyGenerator();
+    }
+
+    /**
+     * Returns a hobby generator configured by the given {@link GeneratorConfig}.
+     */
+    public static HobbyGenerator ofHobby(GeneratorConfig config) {
+        return new HobbyGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces programming language names (e.g. {@code "Kotlin"}).
+     */
+    public static ProgrammingLanguageGenerator ofProgrammingLanguage() {
+        return new ProgrammingLanguageGenerator();
+    }
+
+    /**
+     * Returns a programming language generator configured by the given {@link GeneratorConfig}.
+     */
+    public static ProgrammingLanguageGenerator ofProgrammingLanguage(GeneratorConfig config) {
+        return new ProgrammingLanguageGenerator(config);
     }
 
     /**
