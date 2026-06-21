@@ -183,6 +183,7 @@ import io.github.frikit.krandom.generator.user.NationalityGenerator;
 import io.github.frikit.krandom.generator.user.MiddleNameGenerator;
 import io.github.frikit.krandom.generator.user.PasswordGenerator;
 import io.github.frikit.krandom.generator.user.PassportGenerator;
+import io.github.frikit.krandom.generator.user.DrivingLicenseGenerator;
 import io.github.frikit.krandom.generator.user.PersonInfoGenerator;
 import io.github.frikit.krandom.generator.user.PositionGenerator;
 import io.github.frikit.krandom.generator.user.ProfessionGenerator;
@@ -1736,6 +1737,20 @@ public final class Generators {
      */
     public static PassportGenerator ofPassport(GeneratorConfig config) {
         return new PassportGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces generic driving-license numbers (e.g. {@code "AB123456"}).
+     */
+    public static DrivingLicenseGenerator ofDrivingLicense() {
+        return new DrivingLicenseGenerator();
+    }
+
+    /**
+     * Returns a driving-license generator configured by the given {@link GeneratorConfig}.
+     */
+    public static DrivingLicenseGenerator ofDrivingLicense(GeneratorConfig config) {
+        return new DrivingLicenseGenerator(config);
     }
 
     /**
