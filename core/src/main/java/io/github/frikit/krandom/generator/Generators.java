@@ -169,6 +169,7 @@ import io.github.frikit.krandom.generator.commerce.CnpjGenerator;
 import io.github.frikit.krandom.generator.tech.ProgrammingLanguageGenerator;
 import io.github.frikit.krandom.generator.tech.AwsGenerator;
 import io.github.frikit.krandom.generator.tech.AzureGenerator;
+import io.github.frikit.krandom.generator.tech.ComputerGenerator;
 import io.github.frikit.krandom.generator.text.NatoPhoneticGenerator;
 import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.MbtiGenerator;
@@ -1781,6 +1782,20 @@ public final class Generators {
      */
     public static AzureGenerator ofAzure(GeneratorConfig config) {
         return new AzureGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces computer values (operating systems, platforms, device types).
+     */
+    public static ComputerGenerator ofComputer() {
+        return new ComputerGenerator();
+    }
+
+    /**
+     * Returns a computer generator configured by the given {@link GeneratorConfig}.
+     */
+    public static ComputerGenerator ofComputer(GeneratorConfig config) {
+        return new ComputerGenerator(config);
     }
 
     /**
