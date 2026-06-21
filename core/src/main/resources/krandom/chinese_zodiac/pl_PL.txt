@@ -1,0 +1,13 @@
+# Chinese zodiac animals in cycle order: Monkey first (animals[year mod 12]).
+Małpa
+Kogut
+Pies
+Świnia
+Szczur
+Wół
+Tygrys
+Królik
+Smok
+Wąż
+Koń
+Koza

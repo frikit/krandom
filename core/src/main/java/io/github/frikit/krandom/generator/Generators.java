@@ -1563,6 +1563,13 @@ public final class Generators {
     }
 
     /**
+     * Returns a Chinese zodiac generator whose animal names are localized for the given locale.
+     */
+    public static ChineseZodiacGenerator ofChineseZodiac(Locale locale) {
+        return new ChineseZodiacGenerator(locale);
+    }
+
+    /**
      * Returns a Chinese zodiac generator configured by the given {@link GeneratorConfig}.
      */
     public static ChineseZodiacGenerator ofChineseZodiac(GeneratorConfig config) {

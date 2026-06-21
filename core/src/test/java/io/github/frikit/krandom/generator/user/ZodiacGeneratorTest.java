@@ -43,6 +43,9 @@ class ZodiacGeneratorTest {
         "Monkey", "Rooster", "Dog", "Pig", "Rat", "Ox",
         "Tiger", "Rabbit", "Dragon", "Snake", "Horse", "Goat");
 
+    private static final Set<String> CHINESE_ZH = Set.of(
+        "猴", "鸡", "狗", "猪", "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊");
+
     @Nested
     @DisplayName("ZodiacGenerator (Western)")
     class Western {
@@ -233,10 +236,56 @@ class ZodiacGeneratorTest {
         }
 
         @Test
+        @DisplayName("Chinese locale generates and resolves localized animal names")
+        void chineseLocalized() {
+            ChineseZodiacGenerator gen = new ChineseZodiacGenerator(Locale.CHINA);
+            assertEquals("龙", gen.animalFor(2024));
+            assertEquals("鼠", gen.animalFor(2020));
+            for (int i = 0; i < 200; i++) {
+                assertTrue(CHINESE_ZH.contains(gen.generate()));
+            }
+        }
+
+        @Test
+        @DisplayName("unmapped locale falls back to English animals")
+        void unmappedFallsBackToEnglish() {
+            assertEquals("Dragon", new ChineseZodiacGenerator(Locale.of("is", "IS")).animalFor(2024));
+        }
+
+        @Test
+        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
+        void registry() {
+            assertTrue(ChineseZodiacDataRegistry.isRegistered(Locale.CHINA));
+            assertTrue(ChineseZodiacDataRegistry.isRegistered(Locale.of("zh"))); // language-only
+            assertFalse(ChineseZodiacDataRegistry.isRegistered(Locale.of("is", "IS")));
+            assertFalse(ChineseZodiacDataRegistry.isRegistered(null));
+            assertNotNull(ChineseZodiacDataRegistry.forLocale(Locale.CHINA));
+            assertNull(ChineseZodiacDataRegistry.forLocale(null));
+            assertTrue(ChineseZodiacDataRegistry.registeredKeys().contains("zh_CN"));
+
+            List<String> animals = List.of(
+                "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12");
+            ChineseZodiacDataRegistry.register(new ChineseZodiacDataProvider() {
+                @Override
+                public Locale getLocale() {
+                    return Locale.of("zz");
+                }
+
+                @Override
+                public List<String> getAnimals() {
+                    return animals;
+                }
+            });
+            assertTrue(animals.contains(new ChineseZodiacGenerator(Locale.of("zz")).generate()));
+            assertThrows(NullPointerException.class, () -> ChineseZodiacDataRegistry.register(null));
+        }
+
+        @Test
         @DisplayName("null arguments are rejected")
         void nullsRejected() {
             ChineseZodiacGenerator gen = new ChineseZodiacGenerator();
-            assertThrows(NullPointerException.class, () -> new ChineseZodiacGenerator(null));
+            assertThrows(NullPointerException.class, () -> new ChineseZodiacGenerator((GeneratorConfig) null));
+            assertThrows(NullPointerException.class, () -> new ChineseZodiacGenerator((Locale) null));
             assertThrows(NullPointerException.class, () -> gen.animalFor((LocalDate) null));
         }
     }
@@ -253,6 +302,7 @@ class ZodiacGeneratorTest {
             assertTrue(WESTERN_EN.contains(
                 Generators.ofZodiac(GeneratorConfig.builder().seed(1L).build()).generate()));
             assertTrue(CHINESE.contains(Generators.ofChineseZodiac().generate()));
+            assertTrue(CHINESE_ZH.contains(Generators.ofChineseZodiac(Locale.CHINA).generate()));
             assertTrue(CHINESE.contains(
                 Generators.ofChineseZodiac(GeneratorConfig.builder().seed(1L).build()).generate()));
         }

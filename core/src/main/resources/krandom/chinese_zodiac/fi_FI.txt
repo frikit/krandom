@@ -1,0 +1,13 @@
+# Chinese zodiac animals in cycle order: Monkey first (animals[year mod 12]).
+Apina
+Kukko
+Koira
+Sika
+Rotta
+Härkä
+Tiikeri
+Kani
+Lohikäärme
+Käärme
+Hevonen
+Vuohi
