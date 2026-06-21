@@ -1,0 +1,4 @@
+# Personal pronoun sets, one "subject/object" pair per line.
+on/jeho
+ona/jej
+oni/ich

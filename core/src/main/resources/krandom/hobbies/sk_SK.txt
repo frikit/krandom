@@ -1,0 +1,15 @@
+# Hobby names, one per line.
+Fotografovanie
+Záhradníčenie
+Turistika
+Maľovanie
+Varenie
+Čítanie
+Cyklistika
+Beh
+Joga
+Šach
+Rybárčenie
+Tanec
+Plávanie
+Cestovanie

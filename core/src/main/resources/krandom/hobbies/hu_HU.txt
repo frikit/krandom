@@ -1,0 +1,15 @@
+# Hobby names, one per line.
+Fényképezés
+Kertészkedés
+Túrázás
+Festészet
+Főzés
+Olvasás
+Kerékpározás
+Futás
+Jóga
+Sakk
+Horgászat
+Tánc
+Úszás
+Utazás

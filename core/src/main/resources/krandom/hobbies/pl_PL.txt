@@ -1,0 +1,15 @@
+# Hobby names, one per line.
+Fotografia
+Ogrodnictwo
+Wędrówki
+Malarstwo
+Gotowanie
+Czytanie
+Kolarstwo
+Bieganie
+Joga
+Szachy
+Wędkarstwo
+Taniec
+Pływanie
+Podróże

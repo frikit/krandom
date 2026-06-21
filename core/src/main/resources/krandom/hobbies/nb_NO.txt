@@ -1,0 +1,15 @@
+# Hobby names, one per line.
+Fotografering
+Hagearbeid
+Fotturer
+Maling
+Matlaging
+Lesing
+Sykling
+Løping
+Yoga
+Sjakk
+Fiske
+Dans
+Svømming
+Reise

@@ -1591,10 +1591,17 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces English pronoun sets (e.g. {@code "they/them"}).
+     * Returns a generator that produces pronoun sets (e.g. {@code "they/them"}).
      */
     public static PronounGenerator ofPronoun() {
         return new PronounGenerator();
+    }
+
+    /**
+     * Returns a pronoun generator whose sets are localized for the given locale.
+     */
+    public static PronounGenerator ofPronoun(Locale locale) {
+        return new PronounGenerator(locale);
     }
 
     /**
@@ -1681,6 +1688,13 @@ public final class Generators {
      */
     public static HobbyGenerator ofHobby() {
         return new HobbyGenerator();
+    }
+
+    /**
+     * Returns a hobby generator whose names are localized for the given locale.
+     */
+    public static HobbyGenerator ofHobby(Locale locale) {
+        return new HobbyGenerator(locale);
     }
 
     /**

@@ -1,0 +1,15 @@
+# Hobby names, one per line.
+Fotografie
+Grădinărit
+Drumeții
+Pictură
+Gătit
+Lectură
+Ciclism
+Alergare
+Yoga
+Șah
+Pescuit
+Dans
+Înot
+Călătorii

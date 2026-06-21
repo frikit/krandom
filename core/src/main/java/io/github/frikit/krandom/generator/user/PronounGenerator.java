@@ -8,54 +8,72 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates English personal-pronoun sets such as {@code "they/them"}.
+ * Generates locale-aware personal-pronoun sets, e.g. {@code "they/them"} for English or
+ * {@code "они/их"} for Russian.
  *
- * <p>{@link #generate()} returns a {@code subject/object} pair. {@link #subjective()} and
- * {@link #objective()} return just the subject or object form of a randomly chosen set.
+ * <p>Sets are resolved from {@link PronounDataRegistry} for the configured locale; locales without a
+ * built-in file fall back to the bundled English sets. {@link #subjective()} and {@link #objective()}
+ * return just the subject or object form of a randomly chosen set.
  *
  * <pre>{@code
- *   String set  = new PronounGenerator().generate();   // e.g. "she/her"
- *   String subj = new PronounGenerator().subjective(); // e.g. "they"
+ *   String en = new PronounGenerator().generate();                   // e.g. "she/her"
+ *   String ru = new PronounGenerator(Locale.of("ru","RU")).generate(); // e.g. "они/их"
  * }</pre>
  */
 public final class PronounGenerator implements Generator<String> {
 
-    /** Common English pronoun sets in {@code subject/object} form. */
-    private static final String[] SETS = {
-        "he/him", "she/her", "they/them", "ze/zir", "xe/xem", "ey/em"
-    };
+    private static final PronounDataProvider DEFAULT_PROVIDER =
+        new BuiltInPronounDataProvider(Locale.ROOT, "krandom/pronouns/default.txt");
 
+    private final List<String> sets;
     private final Random random;
 
     /**
-     * Creates a generator using the default configuration.
+     * Creates a generator using the default configuration (and its locale).
      */
     public PronounGenerator() {
         this(GeneratorConfig.defaults());
     }
 
     /**
-     * Creates a generator from explicit configuration (optional seed).
+     * Creates a generator for the given locale.
+     *
+     * @param locale the locale whose pronoun sets to use; falls back to English if no built-in file
+     *               exists; must not be {@code null}
+     */
+    public PronounGenerator(Locale locale) {
+        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+    }
+
+    /**
+     * Creates a generator from explicit configuration (locale + optional seed).
      *
      * @param config the generator configuration; must not be {@code null}
      */
     public PronounGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
+        PronounDataProvider provider = PronounDataRegistry.forLocale(config.getLocale());
+        if (provider == null) {
+            provider = DEFAULT_PROVIDER;
+        }
+        this.sets = provider.getPronounSets();
         this.random = config.createRandom();
     }
 
     /**
      * Generates a random pronoun set in {@code subject/object} form.
      *
-     * @return a set such as {@code "they/them"}; never {@code null}
+     * @return a localized set such as {@code "they/them"}; never {@code null}
      */
     @Override
     public String generate() {
-        return SETS[random.nextInt(SETS.length)];
+        return sets.get(random.nextInt(sets.size()));
     }
 
     /**

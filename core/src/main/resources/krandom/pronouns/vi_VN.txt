@@ -1,0 +1,4 @@
+# Personal pronoun sets, one "subject/object" pair per line.
+anh ấy/anh ấy
+cô ấy/cô ấy
+họ/họ

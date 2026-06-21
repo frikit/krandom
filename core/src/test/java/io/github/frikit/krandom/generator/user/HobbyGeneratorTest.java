@@ -8,29 +8,39 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("HobbyGenerator")
 class HobbyGeneratorTest {
 
+    private static final Locale RU = Locale.of("ru", "RU");
+
+    private static final Set<String> RU_HOBBIES = Set.of(
+        "Фотография", "Садоводство", "Туризм", "Живопись", "Кулинария", "Чтение", "Велоспорт",
+        "Бег", "Йога", "Шахматы", "Рыбалка", "Танцы", "Плавание", "Путешествия");
+
     @RepeatedTest(200)
-    @DisplayName("generate() returns a non-empty hobby")
+    @DisplayName("default generate() returns a non-empty English hobby")
     void generateNotEmpty() {
         assertFalse(new HobbyGenerator().generate().isEmpty());
     }
 
     @Test
-    @DisplayName("generate() produces varied values over many draws")
+    @DisplayName("default generate() produces varied values over many draws")
     void generateVaried() {
         HobbyGenerator gen = new HobbyGenerator(GeneratorConfig.builder().seed(33L).build());
         Set<String> seen = new HashSet<>();
@@ -38,6 +48,21 @@ class HobbyGeneratorTest {
             seen.add(gen.generate());
         }
         assertTrue(seen.size() >= 20, "expected variety, saw " + seen.size());
+    }
+
+    @Test
+    @DisplayName("Russian locale generates Russian hobby names")
+    void russian() {
+        HobbyGenerator gen = new HobbyGenerator(RU);
+        for (int i = 0; i < 200; i++) {
+            assertTrue(RU_HOBBIES.contains(gen.generate()));
+        }
+    }
+
+    @Test
+    @DisplayName("unmapped locale falls back to English hobbies")
+    void unmappedFallsBackToEnglish() {
+        assertFalse(new HobbyGenerator(Locale.of("is", "IS")).generate().isEmpty());
     }
 
     @Test
@@ -49,15 +74,57 @@ class HobbyGeneratorTest {
     }
 
     @Test
-    @DisplayName("null config is rejected")
-    void nullConfig() {
-        assertThrows(NullPointerException.class, () -> new HobbyGenerator(null));
+    @DisplayName("null arguments are rejected")
+    void nullsRejected() {
+        assertThrows(NullPointerException.class, () -> new HobbyGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new HobbyGenerator((Locale) null));
     }
 
-    @Test
-    @DisplayName("facade ofHobby produces non-empty values")
-    void facade() {
-        assertFalse(Generators.ofHobby().generate().isEmpty());
-        assertFalse(Generators.ofHobby(GeneratorConfig.builder().seed(1L).build()).generate().isEmpty());
+    @Nested
+    @DisplayName("HobbyDataRegistry")
+    class Registry {
+
+        @Test
+        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
+        void registry() {
+            assertTrue(HobbyDataRegistry.isRegistered(RU));
+            assertTrue(HobbyDataRegistry.isRegistered(Locale.of("ru"))); // language-only
+            assertFalse(HobbyDataRegistry.isRegistered(Locale.of("is", "IS")));
+            assertFalse(HobbyDataRegistry.isRegistered(null));
+
+            assertNotNull(HobbyDataRegistry.forLocale(RU));
+            assertNotNull(HobbyDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
+            assertNull(HobbyDataRegistry.forLocale(Locale.of("is")));
+            assertNull(HobbyDataRegistry.forLocale(null));
+            assertTrue(HobbyDataRegistry.registeredKeys().contains("ru_RU"));
+
+            HobbyDataProvider custom = new HobbyDataProvider() {
+                @Override
+                public Locale getLocale() {
+                    return Locale.of("zz");
+                }
+
+                @Override
+                public List<String> getHobbies() {
+                    return List.of("Zzzz");
+                }
+            };
+            HobbyDataRegistry.register(custom);
+            assertEquals("Zzzz", new HobbyGenerator(Locale.of("zz")).generate());
+            assertThrows(NullPointerException.class, () -> HobbyDataRegistry.register(null));
+        }
+    }
+
+    @Nested
+    @DisplayName("Generators facade")
+    class Facade {
+
+        @Test
+        @DisplayName("ofHobby (default / locale / config) produce valid values")
+        void facade() {
+            assertFalse(Generators.ofHobby().generate().isEmpty());
+            assertTrue(RU_HOBBIES.contains(Generators.ofHobby(RU).generate()));
+            assertFalse(Generators.ofHobby(GeneratorConfig.builder().seed(1L).build()).generate().isEmpty());
+        }
     }
 }

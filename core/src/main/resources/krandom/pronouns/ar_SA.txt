@@ -1,0 +1,3 @@
+# Personal pronoun sets, one "subject/object" pair per line.
+هو/له
+هي/لها

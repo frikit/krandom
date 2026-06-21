@@ -1,0 +1,2 @@
+# Personal pronoun sets, one "subject/object" pair per line.
+o/onu

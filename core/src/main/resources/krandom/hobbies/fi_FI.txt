@@ -1,0 +1,15 @@
+# Hobby names, one per line.
+Valokuvaus
+Puutarhanhoito
+Vaellus
+Maalaus
+Ruoanlaitto
+Lukeminen
+Pyöräily
+Juoksu
+Jooga
+Šakki
+Kalastus
+Tanssi
+Uinti
+Matkustaminen

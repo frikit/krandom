@@ -1,0 +1,3 @@
+# Personal pronoun sets, one "subject/object" pair per line.
+彼/彼
+彼女/彼女

@@ -1,0 +1,15 @@
+# Hobby names, one per line.
+Fotografie
+Tuinieren
+Wandelen
+Schilderen
+Koken
+Lezen
+Fietsen
+Hardlopen
+Yoga
+Schaken
+Vissen
+Dansen
+Zwemmen
+Reizen

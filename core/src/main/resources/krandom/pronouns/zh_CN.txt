@@ -1,0 +1,4 @@
+# Personal pronoun sets, one "subject/object" pair per line.
+他/他
+她/她
+它/它

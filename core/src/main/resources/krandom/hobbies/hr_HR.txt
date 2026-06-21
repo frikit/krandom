@@ -1,0 +1,15 @@
+# Hobby names, one per line.
+Fotografija
+Vrtlarstvo
+Planinarenje
+Slikanje
+Kuhanje
+Čitanje
+Biciklizam
+Trčanje
+Joga
+Šah
+Ribolov
+Ples
+Plivanje
+Putovanje

@@ -1,0 +1,7 @@
+# Personal pronoun sets, one "subject/object" pair per line.
+he/him
+she/her
+they/them
+ze/zir
+xe/xem
+ey/em

@@ -1,0 +1,27 @@
+# Hobby names, one per line.
+Photography
+Gardening
+Hiking
+Painting
+Cooking
+Reading
+Cycling
+Running
+Yoga
+Chess
+Knitting
+Woodworking
+Pottery
+Fishing
+Birdwatching
+Calligraphy
+Gaming
+Baking
+Surfing
+Climbing
+Dancing
+Sketching
+Astronomy
+Origami
+Skiing
+Brewing
