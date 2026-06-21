@@ -5,7 +5,7 @@ landscape and what we build next**. Consolidates the per-library parity docs in
 this folder into one prioritized backlog. Update this file whenever a backlog
 item ships or a competitor adds something material.
 
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-21
 
 ## Strategy decisions (locked)
 
@@ -68,22 +68,28 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
 
 ### Phase 2 — Close core gaps
 - [ ] **Locales 35 → 60+** (roadmap doc + per-locale data PRs; prioritize by user demand: add e.g. `pt_PT`, `en_CA`, `en_IN`, `zh_TW`, `es_MX`, `fr_CA`, `de_AT`, `de_CH`, plus broader EU/APAC)
-- [ ] **Curated ~20 Base providers** (core-worthy, test-fixture value):
+- [ ] **Curated ~20 Base providers** (core-worthy, test-fixture value) — *essentially cleared; only University left (deprioritized)*:
   - **Shipped:** Blood Type, Zodiac + Chinese Zodiac, NATO phonetic, Pronouns,
-    Vehicle (VIN + make/model + plate), CNPJ, MBTI, Hobby, Programming Language;
-    CPF exposed via `ofCpf()`.
-  - **Locale coverage:** Zodiac, Chinese Zodiac, Pronoun, and Hobby are localized
-    across **all 35 built-in locales** (per-locale resource files under
-    `krandom/{zodiac,chinese_zodiac,pronouns,hobbies}/<locale>.txt`, English fallback).
-    Non-English translations are best-effort and open to native-speaker review (edit
-    the `.txt`; no code change). NATO/VIN/Programming Language/CNPJ/MBTI-codes stay
+    Vehicle (VIN + make/model + plate), CNPJ, MBTI, Hobby, Programming Language,
+    Measurement, Financial Terms, Nationality, Weather, Passport, Driving License,
+    AWS, Azure, Computer/Device, Restaurant; CPF exposed via `ofCpf()`.
+    **Curated Base backlog is now essentially cleared — only University remains
+    (deprioritized).**
+  - **Locale coverage:** Zodiac, Chinese Zodiac, Pronoun, Hobby, Measurement,
+    Financial Terms, Nationality, Restaurant, and Weather are localized across
+    **all 35 built-in locales** (per-locale resource files under
+    `krandom/{zodiac,chinese_zodiac,pronouns,hobbies,measurement,finance,nationality,restaurant,weather}/<locale>.txt`,
+    English fallback). Non-English translations are best-effort and open to
+    native-speaker review (edit the `.txt`; no code change). Blood Type is
+    locale-weighted (partial: `default`/`en_US`/`ja_JP`). NATO/VIN/Programming
+    Language/MBTI-codes/AWS/Azure/Computer/Passport/Driving License stay
     locale-independent by design.
     Full DataFaker mapping: [`datafaker-providers-catalog.md`](./datafaker-providers-catalog.md).
-  - [ ] Vehicle (VIN, make/model) ✅ · Weather · Passport · Driving License
-  - [ ] Nationality / Language / Nation · Blood Type ✅ · Zodiac ✅ · MBTI ✅
-  - [ ] NATO phonetic alphabet ✅ · Measurement/units · Pronouns ✅
-  - [ ] Cloud resource names (AWS/Azure) · Computer/Device/OS · Programming Language ✅
-  - [ ] University · Restaurant · Hobby ✅ · Financial Terms · CNPJ ✅ (BR company id)
+  - [x] Vehicle (VIN, make/model) ✅ · Weather ✅ · Passport ✅ · Driving License ✅
+  - [x] Nationality / Language / Nation ✅ · Blood Type ✅ · Zodiac ✅ · MBTI ✅
+  - [x] NATO phonetic alphabet ✅ · Measurement/units ✅ · Pronouns ✅
+  - [x] Cloud resource names (AWS/Azure) ✅ · Computer/Device/OS ✅ · Programming Language ✅
+  - [ ] University (deprioritized) · Restaurant ✅ · Hobby ✅ · Financial Terms ✅ · CNPJ ✅ (BR company id)
   - **Design note — locale-frequency providers (blood type, …):** back them with per-locale resource files (`krandom/bloodtypes/<locale>.txt`, `TYPE WEIGHT` lines) + weighted selection, seeded only for locales that have a file (others fall back to `default.txt`), mirroring the Gender data-provider/registry pattern. Do **not** hardcode as enums — distributions differ by population/locale. (slice 1: `default`, `en_US`, `ja_JP` shipped; remaining 32 locales are backlog.)
 - [ ] **Ergonomics parity with Instancio** (the real competitive pressure):
   - [ ] Bean-Validation/JPA-aware generation, first-class & documented (krandom has `BeanValidationSupport` — promote it)

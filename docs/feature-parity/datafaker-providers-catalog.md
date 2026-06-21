@@ -35,23 +35,23 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Blood Type | ✅ DONE | `BloodTypeGenerator` — locale-weighted, slice 1 (2026-06-21) |
 | Zodiac | ✅ DONE | `ZodiacGenerator` + `ChineseZodiacGenerator` (user) — localized across all 35 locales (`krandom/zodiac`, `krandom/chinese_zodiac`); `signFor(date)`/`animalFor(year)` |
 | Mbti | ✅ DONE | `MbtiGenerator` (user) — 16 types + `withNickname()` |
-| Nato Phonetic Alphabet | 🟢 | Alpha…Zulu; trivial fixed list, high fixture value |
+| Nato Phonetic Alphabet | ✅ DONE | `NatoPhoneticGenerator` (text) — universal ICAO standard |
 | Pronouns | ✅ DONE | `PronounGenerator` (user) — `subject/object` sets localized across all 35 locales (`krandom/pronouns`) |
-| Measurement | 🟢 | units (metric/imperial), quantities |
-| Nation / Nationality / Language Code | 🟢 | demonyms + ISO language names/codes; locale-aware |
-| Vehicle | 🟢 | VIN (check-digit valid), make/model, plate |
-| Weather | 🟢 | description, temperature (locale unit) |
-| Passport | 🟢 | locale-formatted passport numbers |
-| Driving License | 🟢 | locale-formatted license numbers |
-| Programming Language | ✅ DONE | `ProgrammingLanguageGenerator` (tech) — language names |
-| University | 🟢 | institution names |
-| Restaurant | 🟢 | names, types |
+| Measurement | ✅ DONE | `MeasurementGenerator` (measurement) — units/quantities localized across all 35 locales |
+| Nation / Nationality / Language Code | ✅ DONE | `NationalityGenerator` (user) — demonyms localized across all 35 locales |
+| Vehicle | ✅ DONE | `VehicleGenerator` + `VinGenerator` (vehicle) — make/model + ISO-3779 VIN |
+| Weather | ✅ DONE | `WeatherGenerator` (weather) — description/temperature localized across all 35 locales |
+| Passport | ✅ DONE | `PassportGenerator` (user) — generic format `[A-Z][0-9]{8}` |
+| Driving License | ✅ DONE | `DrivingLicenseGenerator` (user) — generic format `[A-Z]{2}[0-9]{6}` |
+| Programming Language | ✅ DONE | `ProgrammingLanguageGenerator` (tech) — universal proper nouns |
+| University | 🟢 | institution names — **deprioritized**: needs curated real per-locale institution names (data/research task, not the translation pattern) |
+| Restaurant | ✅ DONE | `RestaurantTypeGenerator` (commerce) — cuisine/type localized across all 35 locales |
 | Hobby | ✅ DONE | `HobbyGenerator` (user) — activity vocabulary localized across all 35 locales (`krandom/hobbies`) |
-| Financial Terms | 🟢 | finance vocabulary |
-| Computer / Device | 🟢 | OS, platform, device names |
-| Aws / Azure | 🟢 | cloud resource-name shapes (ARNs, regions, service ids) |
-| CNPJ (BR) | 🟢 | Brazilian company id, check-digit valid (national-id family) |
-| CPF (BR) | 🟢 | Brazilian person id, check-digit valid (national-id family) |
+| Financial Terms | ✅ DONE | `FinancialTermGenerator` (finance) — finance vocabulary localized across all 35 locales |
+| Computer / Device | ✅ DONE | `ComputerGenerator` (tech) — universal OS/platform/deviceType |
+| Aws / Azure | ✅ DONE | `AwsGenerator` + `AzureGenerator` (tech) — universal regions/instanceId/s3Bucket, resourceGroup |
+| CNPJ (BR) | ✅ DONE | `CnpjGenerator` (commerce) — Brazilian company id, check-digit valid |
+| CPF (BR) | ✅ DONE | `ofCpf()` via `NationalIdGenerator` — Brazilian person id, check-digit valid |
 
 ### ✅ Already covered
 
@@ -122,14 +122,17 @@ per-catalog licensing review (GAP-TRACKER Phase 3).
 
 | Bucket | Count (approx) | Disposition |
 |--------|----------------|-------------|
-| ✅ HAVE / 🟡 PARTIAL | ~45 Base | core, shipped |
-| 🟢 BACKLOG (curated) | ~21 Base | **build into core, one slice at a time** |
+| ✅ HAVE / 🟡 PARTIAL | ~65 Base | core, shipped (incl. the now-cleared curated backlog) |
+| 🟢 BACKLOG (curated) | 1 Base (University) | **deprioritized — needs curated per-locale institution data** |
 | 🟣 NOVELTY | ~60 Base + 129 (groups 2–5) | optional `krandom-novelty` module |
 | ⛔ SKIP | ~6 | intentionally out of scope |
 
-**Net core engineering work from DataFaker = the ~21 🟢 backlog providers + locale
-expansion (35 → 60+).** Everything else is either done, a module concern, or a
-deliberate skip — consistent with the locked GAP-TRACKER strategy.
+**Net core engineering work from DataFaker = essentially done.** The curated 🟢
+Base backlog is cleared except **University** (deprioritized: needs curated real
+per-locale institution names, a data/research task rather than the translation
+pattern). Remaining headroom is locale expansion (35 → 60+). Everything else is
+either shipped, a module concern, or a deliberate skip — consistent with the
+locked GAP-TRACKER strategy.
 
 ---
 
@@ -140,10 +143,12 @@ resources (where locale-varying) + tests + `./scripts/pre_commit_check.sh`,
 mirroring the Blood Type slice.
 
 1. **Blood Type** ✅ shipped
-2. **Person-attribute pair: Zodiac + MBTI** — natural follow-on to Blood Type (deterministic, no curated catalog, immediate fixture value)
-3. NATO Phonetic Alphabet · Pronouns (tiny, high-value fixed lists)
-4. Vehicle (VIN check-digit) · Passport · Driving License (validated-id family)
-5. Nation / Nationality / Language Code (locale vocabulary)
-6. Programming Language · Computer/Device · Aws/Azure (engineering fixtures)
-7. University · Restaurant · Hobby · Financial Terms · Measurement · Weather
-8. CNPJ / CPF (extend `NationalIdGenerator` family)
+2. **Person-attribute pair: Zodiac + MBTI** ✅ shipped (+ Chinese Zodiac, Nationality, Pronouns, Hobby)
+3. NATO Phonetic Alphabet · Pronouns ✅ shipped
+4. Vehicle (VIN check-digit) · Passport · Driving License ✅ shipped
+5. Nation / Nationality / Language Code ✅ shipped
+6. Programming Language · Computer/Device · Aws/Azure ✅ shipped
+7. Restaurant · Hobby · Financial Terms · Measurement · Weather ✅ shipped — **University** still open (deprioritized: needs curated per-locale institution data)
+8. CNPJ / CPF ✅ shipped (`CnpjGenerator` + `ofCpf()` in `NationalIdGenerator` family)
+
+**Curated Base backlog is now essentially cleared — only University remains.**
