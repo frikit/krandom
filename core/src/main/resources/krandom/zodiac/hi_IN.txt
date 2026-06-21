@@ -1,0 +1,13 @@
+# Western zodiac signs in canonical order: Aries first.
+मेष
+वृषभ
+मिथुन
+कर्क
+सिंह
+कन्या
+तुला
+वृश्चिक
+धनु
+मकर
+कुंभ
+मीन

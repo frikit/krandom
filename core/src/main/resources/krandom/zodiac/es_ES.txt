@@ -1,0 +1,13 @@
+# Western zodiac signs in canonical order: Aries first.
+Aries
+Tauro
+Géminis
+Cáncer
+Leo
+Virgo
+Libra
+Escorpio
+Sagitario
+Capricornio
+Acuario
+Piscis

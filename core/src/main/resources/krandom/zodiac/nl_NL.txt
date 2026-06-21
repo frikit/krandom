@@ -1,0 +1,13 @@
+# Western zodiac signs in canonical order: Aries first.
+Ram
+Stier
+Tweelingen
+Kreeft
+Leeuw
+Maagd
+Weegschaal
+Schorpioen
+Boogschutter
+Steenbok
+Waterman
+Vissen

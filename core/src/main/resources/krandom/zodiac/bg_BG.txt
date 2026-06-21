@@ -1,0 +1,13 @@
+# Western zodiac signs in canonical order: Aries first.
+Овен
+Телец
+Близнаци
+Рак
+Лъв
+Дева
+Везни
+Скорпион
+Стрелец
+Козирог
+Водолей
+Риби
