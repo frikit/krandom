@@ -1,0 +1,10 @@
+# Approximate ABO/Rh blood-type distribution — Japan (Rh-negative is rare, ~0.5%).
+# Format: TYPE WEIGHT (weights are relative, scaled per-mille to capture rare Rh-).
+A+ 398
+O+ 298
+B+ 199
+AB+ 99
+A- 2
+O- 2
+B- 1
+AB- 1

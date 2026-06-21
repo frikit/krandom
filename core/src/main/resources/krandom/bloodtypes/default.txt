@@ -1,0 +1,10 @@
+# Approximate global ABO/Rh blood-type distribution (fallback for locales without a file).
+# Format: TYPE WEIGHT (weights are relative).
+O+ 38
+A+ 27
+B+ 22
+AB+ 6
+O- 3
+A- 2
+B- 1
+AB- 1

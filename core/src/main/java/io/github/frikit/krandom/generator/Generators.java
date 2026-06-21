@@ -163,6 +163,7 @@ import io.github.frikit.krandom.generator.user.IndustryGenerator;
 import io.github.frikit.krandom.generator.user.JobFieldGenerator;
 import io.github.frikit.krandom.generator.user.JobInfoGenerator;
 import io.github.frikit.krandom.generator.user.JobTypeGenerator;
+import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
 import io.github.frikit.krandom.generator.user.MaritalStatusGenerator;
 import io.github.frikit.krandom.generator.user.MiddleNameGenerator;
 import io.github.frikit.krandom.generator.user.PasswordGenerator;
@@ -1500,6 +1501,27 @@ public final class Generators {
      */
     public static MaritalStatusGenerator ofMaritalStatus() {
         return new MaritalStatusGenerator();
+    }
+
+    /**
+     * Returns a generator that produces locale-weighted blood types (e.g. {@code "O+"}).
+     */
+    public static BloodTypeGenerator ofBloodType() {
+        return new BloodTypeGenerator();
+    }
+
+    /**
+     * Returns a blood-type generator weighted by the given locale's distribution.
+     */
+    public static BloodTypeGenerator ofBloodType(Locale locale) {
+        return new BloodTypeGenerator(locale);
+    }
+
+    /**
+     * Returns a blood-type generator configured by the given {@link GeneratorConfig}.
+     */
+    public static BloodTypeGenerator ofBloodType(GeneratorConfig config) {
+        return new BloodTypeGenerator(config);
     }
 
     /**
