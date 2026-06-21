@@ -1,0 +1,13 @@
+# Đơn vị đo lường, mỗi dòng một đơn vị.
+Mét
+Kilômét
+Xentimét
+Milimét
+Gam
+Kilôgam
+Lít
+Mililít
+Giây
+Phút
+Giờ
+Độ C

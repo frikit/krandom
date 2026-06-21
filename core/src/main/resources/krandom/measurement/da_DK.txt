@@ -1,0 +1,13 @@
+# Måleenheder, én pr. linje.
+Meter
+Kilometer
+Centimeter
+Millimeter
+Gram
+Kilogram
+Liter
+Milliliter
+Sekund
+Minut
+Time
+Celsius

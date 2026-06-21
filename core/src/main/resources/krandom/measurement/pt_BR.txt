@@ -1,0 +1,13 @@
+# Unidades de medida, uma por linha.
+Metro
+Quilômetro
+Centímetro
+Milímetro
+Grama
+Quilograma
+Litro
+Mililitro
+Segundo
+Minuto
+Hora
+Celsius

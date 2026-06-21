@@ -1,0 +1,13 @@
+# Meeteenheden, één per regel.
+Meter
+Kilometer
+Centimeter
+Millimeter
+Gram
+Kilogram
+Liter
+Milliliter
+Seconde
+Minuut
+Uur
+Celsius

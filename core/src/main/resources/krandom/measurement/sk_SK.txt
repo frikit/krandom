@@ -1,0 +1,13 @@
+# Merné jednotky, jedna na riadok.
+Meter
+Kilometer
+Centimeter
+Milimeter
+Gram
+Kilogram
+Liter
+Mililiter
+Sekunda
+Minúta
+Hodina
+Celzius

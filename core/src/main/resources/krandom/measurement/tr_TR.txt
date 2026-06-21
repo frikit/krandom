@@ -1,0 +1,13 @@
+# Ölçü birimleri, her satırda bir tane.
+Metre
+Kilometre
+Santimetre
+Milimetre
+Gram
+Kilogram
+Litre
+Mililitre
+Saniye
+Dakika
+Saat
+Santigrat

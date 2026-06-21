@@ -1,0 +1,13 @@
+# Måttenheter, en per rad.
+Meter
+Kilometer
+Centimeter
+Millimeter
+Gram
+Kilogram
+Liter
+Milliliter
+Sekund
+Minut
+Timme
+Celsius

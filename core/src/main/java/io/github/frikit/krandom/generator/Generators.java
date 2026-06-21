@@ -170,6 +170,7 @@ import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.MbtiGenerator;
 import io.github.frikit.krandom.generator.vehicle.VehicleGenerator;
 import io.github.frikit.krandom.generator.vehicle.VinGenerator;
+import io.github.frikit.krandom.generator.measurement.MeasurementGenerator;
 import io.github.frikit.krandom.generator.weather.WeatherGenerator;
 import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
 import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
@@ -1738,6 +1739,27 @@ public final class Generators {
      */
     public static WeatherGenerator ofWeather(GeneratorConfig config) {
         return new WeatherGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces measurement-unit names (e.g. {@code "Kilometer"}).
+     */
+    public static MeasurementGenerator ofMeasurement() {
+        return new MeasurementGenerator();
+    }
+
+    /**
+     * Returns a measurement generator whose unit names are localized for the given locale.
+     */
+    public static MeasurementGenerator ofMeasurement(Locale locale) {
+        return new MeasurementGenerator(locale);
+    }
+
+    /**
+     * Returns a measurement generator configured by the given {@link GeneratorConfig}.
+     */
+    public static MeasurementGenerator ofMeasurement(GeneratorConfig config) {
+        return new MeasurementGenerator(config);
     }
 
     /**

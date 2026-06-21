@@ -1,0 +1,13 @@
+# Satuan pengukuran, satu per baris.
+Meter
+Kilometer
+Sentimeter
+Milimeter
+Gram
+Kilogram
+Liter
+Mililiter
+Detik
+Menit
+Jam
+Celsius

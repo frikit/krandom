@@ -1,0 +1,13 @@
+# Unități de măsură, una pe linie.
+Metru
+Kilometru
+Centimetru
+Milimetru
+Gram
+Kilogram
+Litru
+Mililitru
+Secundă
+Minut
+Oră
+Celsius

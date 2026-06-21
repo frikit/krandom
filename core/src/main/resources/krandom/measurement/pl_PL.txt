@@ -1,0 +1,13 @@
+# Jednostki miary, po jednej w wierszu.
+Metr
+Kilometr
+Centymetr
+Milimetr
+Gram
+Kilogram
+Litr
+Mililitr
+Sekunda
+Minuta
+Godzina
+Celsjusz

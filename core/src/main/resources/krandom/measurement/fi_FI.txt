@@ -1,0 +1,13 @@
+# Mittayksiköt, yksi riviä kohden.
+Metri
+Kilometri
+Senttimetri
+Millimetri
+Gramma
+Kilogramma
+Litra
+Millilitra
+Sekunti
+Minuutti
+Tunti
+Celsius

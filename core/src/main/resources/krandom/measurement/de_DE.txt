@@ -1,0 +1,13 @@
+# Maßeinheiten, eine pro Zeile.
+Meter
+Kilometer
+Zentimeter
+Millimeter
+Gramm
+Kilogramm
+Liter
+Milliliter
+Sekunde
+Minute
+Stunde
+Celsius

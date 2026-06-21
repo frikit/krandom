@@ -1,0 +1,13 @@
+# Měrné jednotky, jedna na řádek.
+Metr
+Kilometr
+Centimetr
+Milimetr
+Gram
+Kilogram
+Litr
+Mililitr
+Sekunda
+Minuta
+Hodina
+Celsius

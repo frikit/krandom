@@ -1,0 +1,13 @@
+# Mértékegységek, soronként egy.
+Méter
+Kilométer
+Centiméter
+Milliméter
+Gramm
+Kilogramm
+Liter
+Milliliter
+Másodperc
+Perc
+Óra
+Celsius

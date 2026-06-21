@@ -1,0 +1,13 @@
+# Unit ukuran, satu setiap baris.
+Meter
+Kilometer
+Sentimeter
+Milimeter
+Gram
+Kilogram
+Liter
+Mililiter
+Saat
+Minit
+Jam
+Celsius

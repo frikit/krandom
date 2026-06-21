@@ -1,0 +1,13 @@
+# Unità di misura, una per riga.
+Metro
+Chilometro
+Centimetro
+Millimetro
+Grammo
+Chilogrammo
+Litro
+Millilitro
+Secondo
+Minuto
+Ora
+Celsius
