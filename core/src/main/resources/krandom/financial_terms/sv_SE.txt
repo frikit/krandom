@@ -1,0 +1,13 @@
+# Finansiella termer, en per rad.
+Tillgång
+Skuld
+Eget kapital
+Intäkt
+Vinst
+Förlust
+Utdelning
+Ränta
+Inflation
+Budget
+Kapital
+Skuld

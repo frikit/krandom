@@ -1,0 +1,13 @@
+# Finansal terimler, her satıra bir tane.
+Varlık
+Yükümlülük
+Özkaynak
+Gelir
+Kâr
+Zarar
+Temettü
+Faiz
+Enflasyon
+Bütçe
+Sermaye
+Borç

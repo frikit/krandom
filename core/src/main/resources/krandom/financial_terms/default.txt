@@ -1,0 +1,13 @@
+# Financial terms, one per line (canonical order: Asset first).
+Asset
+Liability
+Equity
+Revenue
+Profit
+Loss
+Dividend
+Interest
+Inflation
+Budget
+Capital
+Debt

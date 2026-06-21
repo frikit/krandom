@@ -1,0 +1,13 @@
+# Talousalan termit, yksi riviä kohden.
+Varallisuuserä
+Velka
+Oma pääoma
+Liikevaihto
+Voitto
+Tappio
+Osinko
+Korko
+Inflaatio
+Budjetti
+Pääoma
+Velka

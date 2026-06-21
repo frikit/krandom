@@ -1,0 +1,13 @@
+# Financiële termen, één per regel.
+Activa
+Passiva
+Eigen vermogen
+Omzet
+Winst
+Verlies
+Dividend
+Rente
+Inflatie
+Budget
+Kapitaal
+Schuld

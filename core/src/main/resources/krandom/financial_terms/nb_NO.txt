@@ -1,0 +1,13 @@
+# Finansielle termer, ett per linje.
+Eiendel
+Forpliktelse
+Egenkapital
+Inntekt
+Overskudd
+Tap
+Utbytte
+Rente
+Inflasjon
+Budsjett
+Kapital
+Gjeld

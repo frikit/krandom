@@ -1,0 +1,13 @@
+# Termes financers, un per línia.
+Actiu
+Passiu
+Patrimoni net
+Ingrés
+Benefici
+Pèrdua
+Dividend
+Interès
+Inflació
+Pressupost
+Capital
+Deute

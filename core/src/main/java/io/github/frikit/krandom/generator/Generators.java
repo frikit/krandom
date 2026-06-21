@@ -81,6 +81,7 @@ import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
 import io.github.frikit.krandom.generator.finance.CurrencyPairGenerator;
 import io.github.frikit.krandom.generator.finance.CusipGenerator;
 import io.github.frikit.krandom.generator.finance.EinGenerator;
+import io.github.frikit.krandom.generator.finance.FinancialTermGenerator;
 import io.github.frikit.krandom.generator.finance.IbanGenerator;
 import io.github.frikit.krandom.generator.finance.IsinGenerator;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;
@@ -1760,6 +1761,27 @@ public final class Generators {
      */
     public static MeasurementGenerator ofMeasurement(GeneratorConfig config) {
         return new MeasurementGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces financial-term names (e.g. {@code "Dividend"}).
+     */
+    public static FinancialTermGenerator ofFinancialTerm() {
+        return new FinancialTermGenerator();
+    }
+
+    /**
+     * Returns a financial-term generator whose term names are localized for the given locale.
+     */
+    public static FinancialTermGenerator ofFinancialTerm(Locale locale) {
+        return new FinancialTermGenerator(locale);
+    }
+
+    /**
+     * Returns a financial-term generator configured by the given {@link GeneratorConfig}.
+     */
+    public static FinancialTermGenerator ofFinancialTerm(GeneratorConfig config) {
+        return new FinancialTermGenerator(config);
     }
 
     /**

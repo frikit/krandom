@@ -1,0 +1,13 @@
+# Termes financiers, un par ligne.
+Actif
+Passif
+Capitaux propres
+Revenu
+Bénéfice
+Perte
+Dividende
+Intérêt
+Inflation
+Budget
+Capital
+Dette

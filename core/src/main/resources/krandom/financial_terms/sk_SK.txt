@@ -1,0 +1,13 @@
+# Finančné termíny, jeden na riadok.
+Aktívum
+Záväzok
+Vlastné imanie
+Výnos
+Zisk
+Strata
+Dividenda
+Úrok
+Inflácia
+Rozpočet
+Kapitál
+Dlh

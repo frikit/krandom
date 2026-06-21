@@ -1,0 +1,13 @@
+# Istilah kewangan, satu setiap baris.
+Aset
+Liabiliti
+Ekuiti
+Hasil
+Untung
+Rugi
+Dividen
+Faedah
+Inflasi
+Belanjawan
+Modal
+Hutang

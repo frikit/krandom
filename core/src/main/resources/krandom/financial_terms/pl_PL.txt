@@ -1,0 +1,13 @@
+# Terminy finansowe, jeden na wiersz.
+Aktywa
+Zobowiązanie
+Kapitał własny
+Przychód
+Zysk
+Strata
+Dywidenda
+Odsetki
+Inflacja
+Budżet
+Kapitał
+Dług

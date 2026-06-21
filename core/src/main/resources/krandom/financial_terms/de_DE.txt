@@ -1,0 +1,13 @@
+# Finanzbegriffe, einer pro Zeile.
+Vermögenswert
+Verbindlichkeit
+Eigenkapital
+Umsatz
+Gewinn
+Verlust
+Dividende
+Zinsen
+Inflation
+Budget
+Kapital
+Schulden

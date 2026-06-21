@@ -1,0 +1,13 @@
+# Istilah keuangan, satu per baris.
+Aset
+Liabilitas
+Ekuitas
+Pendapatan
+Laba
+Rugi
+Dividen
+Bunga
+Inflasi
+Anggaran
+Modal
+Utang

@@ -1,0 +1,13 @@
+# Termos financeiros, um por linha.
+Ativo
+Passivo
+Patrimônio
+Receita
+Lucro
+Prejuízo
+Dividendo
+Juros
+Inflação
+Orçamento
+Capital
+Dívida

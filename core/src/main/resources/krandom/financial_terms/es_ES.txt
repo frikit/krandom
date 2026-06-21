@@ -1,0 +1,13 @@
+# Términos financieros, uno por línea.
+Activo
+Pasivo
+Patrimonio
+Ingreso
+Beneficio
+Pérdida
+Dividendo
+Interés
+Inflación
+Presupuesto
+Capital
+Deuda

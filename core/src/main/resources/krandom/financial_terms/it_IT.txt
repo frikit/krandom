@@ -1,0 +1,13 @@
+# Termini finanziari, uno per riga.
+Attività
+Passività
+Patrimonio netto
+Ricavo
+Profitto
+Perdita
+Dividendo
+Interesse
+Inflazione
+Bilancio
+Capitale
+Debito

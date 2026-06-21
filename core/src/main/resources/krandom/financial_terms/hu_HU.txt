@@ -1,0 +1,13 @@
+# Pénzügyi kifejezések, soronként egy.
+Eszköz
+Kötelezettség
+Saját tőke
+Bevétel
+Nyereség
+Veszteség
+Osztalék
+Kamat
+Infláció
+Költségvetés
+Tőke
+Adósság
