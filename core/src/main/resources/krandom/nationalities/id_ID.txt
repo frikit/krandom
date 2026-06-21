@@ -1,0 +1,13 @@
+# Kebangsaan, satu per baris.
+Amerika
+Inggris
+Prancis
+Jerman
+Jepang
+Tiongkok
+Brasil
+Italia
+Spanyol
+Rusia
+India
+Kanada

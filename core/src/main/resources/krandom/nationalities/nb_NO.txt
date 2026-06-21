@@ -1,0 +1,13 @@
+# Nasjonaliteter, ett per linje.
+Amerikaner
+Brite
+Franskmann
+Tysker
+Japaner
+Kineser
+Brasilianer
+Italiener
+Spanjol
+Russer
+Inder
+Kanadier

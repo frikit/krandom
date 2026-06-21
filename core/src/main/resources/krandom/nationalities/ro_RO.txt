@@ -1,0 +1,13 @@
+# Naționalități, una pe linie.
+American
+Britanic
+Francez
+German
+Japonez
+Chinez
+Brazilian
+Italian
+Spaniol
+Rus
+Indian
+Canadian

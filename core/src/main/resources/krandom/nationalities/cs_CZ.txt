@@ -1,0 +1,13 @@
+# Národnosti, jedna na řádek.
+Američan
+Brit
+Francouz
+Němec
+Japonec
+Číňan
+Brazilec
+Ital
+Španěl
+Rus
+Ind
+Kanaďan

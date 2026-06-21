@@ -1,0 +1,13 @@
+# Nacionalitats, una per línia.
+Americà
+Britànic
+Francès
+Alemany
+Japonès
+Xinès
+Brasiler
+Italià
+Espanyol
+Rus
+Indi
+Canadenc

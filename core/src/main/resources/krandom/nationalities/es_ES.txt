@@ -1,0 +1,13 @@
+# Nacionalidades, una por línea.
+Estadounidense
+Británico
+Francés
+Alemán
+Japonés
+Chino
+Brasileño
+Italiano
+Español
+Ruso
+Indio
+Canadiense

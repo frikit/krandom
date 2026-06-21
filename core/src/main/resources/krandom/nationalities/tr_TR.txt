@@ -1,0 +1,13 @@
+# Milliyetler, her satıra bir tane.
+Amerikalı
+İngiliz
+Fransız
+Alman
+Japon
+Çinli
+Brezilyalı
+İtalyan
+İspanyol
+Rus
+Hintli
+Kanadalı

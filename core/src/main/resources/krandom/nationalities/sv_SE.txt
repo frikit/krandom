@@ -1,0 +1,13 @@
+# Nationaliteter, en per rad.
+Amerikan
+Britt
+Fransman
+Tysk
+Japan
+Kines
+Brasilianare
+Italienare
+Spanjor
+Ryss
+Indier
+Kanadensare

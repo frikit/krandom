@@ -1,0 +1,13 @@
+# Nationality demonyms, one per line (canonical order: American first).
+American
+British
+French
+German
+Japanese
+Chinese
+Brazilian
+Italian
+Spanish
+Russian
+Indian
+Canadian

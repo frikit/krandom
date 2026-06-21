@@ -178,6 +178,7 @@ import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
 import io.github.frikit.krandom.generator.user.PronounGenerator;
 import io.github.frikit.krandom.generator.user.ZodiacGenerator;
 import io.github.frikit.krandom.generator.user.MaritalStatusGenerator;
+import io.github.frikit.krandom.generator.user.NationalityGenerator;
 import io.github.frikit.krandom.generator.user.MiddleNameGenerator;
 import io.github.frikit.krandom.generator.user.PasswordGenerator;
 import io.github.frikit.krandom.generator.user.PersonInfoGenerator;
@@ -1782,6 +1783,27 @@ public final class Generators {
      */
     public static FinancialTermGenerator ofFinancialTerm(GeneratorConfig config) {
         return new FinancialTermGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces nationality demonyms (e.g. {@code "French"}).
+     */
+    public static NationalityGenerator ofNationality() {
+        return new NationalityGenerator();
+    }
+
+    /**
+     * Returns a nationality generator whose demonyms are localized for the given locale.
+     */
+    public static NationalityGenerator ofNationality(Locale locale) {
+        return new NationalityGenerator(locale);
+    }
+
+    /**
+     * Returns a nationality generator configured by the given {@link GeneratorConfig}.
+     */
+    public static NationalityGenerator ofNationality(GeneratorConfig config) {
+        return new NationalityGenerator(config);
     }
 
     /**

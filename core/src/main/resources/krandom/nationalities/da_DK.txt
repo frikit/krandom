@@ -1,0 +1,13 @@
+# Nationaliteter, en pr. linje.
+Amerikaner
+Brite
+Franskmand
+Tysker
+Japaner
+Kineser
+Brasilianer
+Italiener
+Spanier
+Russer
+Inder
+Canadier

@@ -1,0 +1,13 @@
+# Nationaliteiten, één per regel.
+Amerikaan
+Brit
+Fransman
+Duitser
+Japanner
+Chinees
+Braziliaan
+Italiaan
+Spanjaard
+Rus
+Indiër
+Canadees

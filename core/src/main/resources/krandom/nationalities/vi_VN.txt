@@ -1,0 +1,13 @@
+# Quốc tịch, mỗi dòng một từ.
+Người Mỹ
+Người Anh
+Người Pháp
+Người Đức
+Người Nhật
+Người Trung Quốc
+Người Brazil
+Người Ý
+Người Tây Ban Nha
+Người Nga
+Người Ấn Độ
+Người Canada

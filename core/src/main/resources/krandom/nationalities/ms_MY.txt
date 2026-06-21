@@ -1,0 +1,13 @@
+# Kewarganegaraan, satu setiap baris.
+Amerika
+British
+Perancis
+Jerman
+Jepun
+Cina
+Brazil
+Itali
+Sepanyol
+Rusia
+India
+Kanada

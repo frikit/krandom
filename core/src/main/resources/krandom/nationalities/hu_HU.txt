@@ -1,0 +1,13 @@
+# Nemzetiségek, soronként egy.
+Amerikai
+Brit
+Francia
+Német
+Japán
+Kínai
+Brazil
+Olasz
+Spanyol
+Orosz
+Indiai
+Kanadai

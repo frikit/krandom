@@ -1,0 +1,13 @@
+# Nationalitäten, eine pro Zeile.
+Amerikaner
+Brite
+Franzose
+Deutscher
+Japaner
+Chinese
+Brasilianer
+Italiener
+Spanier
+Russe
+Inder
+Kanadier

@@ -1,0 +1,13 @@
+# Kansallisuudet, yksi riviä kohden.
+Amerikkalainen
+Britti
+Ranskalainen
+Saksalainen
+Japanilainen
+Kiinalainen
+Brasilialainen
+Italialainen
+Espanjalainen
+Venäläinen
+Intialainen
+Kanadalainen
