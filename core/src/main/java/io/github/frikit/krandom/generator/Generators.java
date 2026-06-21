@@ -163,7 +163,14 @@ import io.github.frikit.krandom.generator.user.IndustryGenerator;
 import io.github.frikit.krandom.generator.user.JobFieldGenerator;
 import io.github.frikit.krandom.generator.user.JobInfoGenerator;
 import io.github.frikit.krandom.generator.user.JobTypeGenerator;
+import io.github.frikit.krandom.generator.commerce.CnpjGenerator;
+import io.github.frikit.krandom.generator.text.NatoPhoneticGenerator;
+import io.github.frikit.krandom.generator.vehicle.VehicleGenerator;
+import io.github.frikit.krandom.generator.vehicle.VinGenerator;
 import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
+import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
+import io.github.frikit.krandom.generator.user.PronounGenerator;
+import io.github.frikit.krandom.generator.user.ZodiacGenerator;
 import io.github.frikit.krandom.generator.user.MaritalStatusGenerator;
 import io.github.frikit.krandom.generator.user.MiddleNameGenerator;
 import io.github.frikit.krandom.generator.user.PasswordGenerator;
@@ -1522,6 +1529,120 @@ public final class Generators {
      */
     public static BloodTypeGenerator ofBloodType(GeneratorConfig config) {
         return new BloodTypeGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces Western zodiac signs (e.g. {@code "Scorpio"}).
+     */
+    public static ZodiacGenerator ofZodiac() {
+        return new ZodiacGenerator();
+    }
+
+    /**
+     * Returns a Western zodiac generator configured by the given {@link GeneratorConfig}.
+     */
+    public static ZodiacGenerator ofZodiac(GeneratorConfig config) {
+        return new ZodiacGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces Chinese zodiac animals (e.g. {@code "Dragon"}).
+     */
+    public static ChineseZodiacGenerator ofChineseZodiac() {
+        return new ChineseZodiacGenerator();
+    }
+
+    /**
+     * Returns a Chinese zodiac generator configured by the given {@link GeneratorConfig}.
+     */
+    public static ChineseZodiacGenerator ofChineseZodiac(GeneratorConfig config) {
+        return new ChineseZodiacGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces NATO phonetic alphabet code words (e.g. {@code "Bravo"}).
+     */
+    public static NatoPhoneticGenerator ofNatoPhonetic() {
+        return new NatoPhoneticGenerator();
+    }
+
+    /**
+     * Returns a NATO phonetic generator configured by the given {@link GeneratorConfig}.
+     */
+    public static NatoPhoneticGenerator ofNatoPhonetic(GeneratorConfig config) {
+        return new NatoPhoneticGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces English pronoun sets (e.g. {@code "they/them"}).
+     */
+    public static PronounGenerator ofPronoun() {
+        return new PronounGenerator();
+    }
+
+    /**
+     * Returns a pronoun generator configured by the given {@link GeneratorConfig}.
+     */
+    public static PronounGenerator ofPronoun(GeneratorConfig config) {
+        return new PronounGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces Brazilian company tax IDs (CNPJ), e.g. {@code "12.345.678/0001-95"}.
+     */
+    public static CnpjGenerator ofCnpj() {
+        return new CnpjGenerator();
+    }
+
+    /**
+     * Returns a CNPJ generator configured by the given {@link GeneratorConfig}.
+     */
+    public static CnpjGenerator ofCnpj(GeneratorConfig config) {
+        return new CnpjGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces Brazilian individual tax IDs (CPF), e.g. {@code "123.456.789-09"}.
+     *
+     * <p>This is a convenience alias for {@link #ofNationalId(Locale)} with the {@code pt_BR} locale.
+     */
+    public static NationalIdGenerator ofCpf() {
+        return new NationalIdGenerator(Locale.of("pt", "BR"));
+    }
+
+    /**
+     * Returns a CPF generator with a fixed seed for reproducible output.
+     */
+    public static NationalIdGenerator ofCpf(long seed) {
+        return new NationalIdGenerator(Locale.of("pt", "BR"), seed);
+    }
+
+    /**
+     * Returns a generator that produces 17-character VINs with a valid check digit.
+     */
+    public static VinGenerator ofVin() {
+        return new VinGenerator();
+    }
+
+    /**
+     * Returns a VIN generator configured by the given {@link GeneratorConfig}.
+     */
+    public static VinGenerator ofVin(GeneratorConfig config) {
+        return new VinGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces vehicle make/model pairs and license plates.
+     */
+    public static VehicleGenerator ofVehicle() {
+        return new VehicleGenerator();
+    }
+
+    /**
+     * Returns a vehicle generator configured by the given {@link GeneratorConfig}.
+     */
+    public static VehicleGenerator ofVehicle(GeneratorConfig config) {
+        return new VehicleGenerator(config);
     }
 
     /**
