@@ -97,6 +97,6 @@ krandom does better · What it doesn't have yet (link backlog) · Copy-paste
 examples.** Any competitor "pro" with no krandom answer becomes a Phase 2 item.
 
 ## Per-library parity docs (detail lives here)
-- [`datafaker-parity.md`](./datafaker-parity.md) · [`easy-random-parity.md`](./easy-random-parity.md)
+- [`datafaker-parity.md`](./datafaker-parity.md) (narrative matrix) · [`datafaker-providers-catalog.md`](./datafaker-providers-catalog.md) (full 256-provider live mapping) · [`easy-random-parity.md`](./easy-random-parity.md)
 - `instancio-parity.md` *(to create — Phase 1)*
 - Non-JVM references: `faker-python-parity.md`, `chancejs-parity.md`, `fake-rs-parity.md`, `gofakeit-parity.md`, `feature-parity-bogus.md`, `mimesis-parity.md`, `k-random-reference-parity.md`
