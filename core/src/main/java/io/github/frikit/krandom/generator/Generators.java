@@ -168,6 +168,7 @@ import io.github.frikit.krandom.generator.user.JobTypeGenerator;
 import io.github.frikit.krandom.generator.commerce.CnpjGenerator;
 import io.github.frikit.krandom.generator.tech.ProgrammingLanguageGenerator;
 import io.github.frikit.krandom.generator.tech.AwsGenerator;
+import io.github.frikit.krandom.generator.tech.AzureGenerator;
 import io.github.frikit.krandom.generator.text.NatoPhoneticGenerator;
 import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.MbtiGenerator;
@@ -1766,6 +1767,20 @@ public final class Generators {
      */
     public static AwsGenerator ofAws(GeneratorConfig config) {
         return new AwsGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces Azure resource identifiers (regions, resource groups).
+     */
+    public static AzureGenerator ofAzure() {
+        return new AzureGenerator();
+    }
+
+    /**
+     * Returns an Azure resource generator configured by the given {@link GeneratorConfig}.
+     */
+    public static AzureGenerator ofAzure(GeneratorConfig config) {
+        return new AzureGenerator(config);
     }
 
     /**
