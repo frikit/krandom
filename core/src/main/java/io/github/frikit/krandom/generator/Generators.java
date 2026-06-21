@@ -182,6 +182,7 @@ import io.github.frikit.krandom.generator.user.MaritalStatusGenerator;
 import io.github.frikit.krandom.generator.user.NationalityGenerator;
 import io.github.frikit.krandom.generator.user.MiddleNameGenerator;
 import io.github.frikit.krandom.generator.user.PasswordGenerator;
+import io.github.frikit.krandom.generator.user.PassportGenerator;
 import io.github.frikit.krandom.generator.user.PersonInfoGenerator;
 import io.github.frikit.krandom.generator.user.PositionGenerator;
 import io.github.frikit.krandom.generator.user.ProfessionGenerator;
@@ -1721,6 +1722,20 @@ public final class Generators {
      */
     public static ProgrammingLanguageGenerator ofProgrammingLanguage(GeneratorConfig config) {
         return new ProgrammingLanguageGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces generic passport numbers (e.g. {@code "A12345678"}).
+     */
+    public static PassportGenerator ofPassport() {
+        return new PassportGenerator();
+    }
+
+    /**
+     * Returns a passport generator configured by the given {@link GeneratorConfig}.
+     */
+    public static PassportGenerator ofPassport(GeneratorConfig config) {
+        return new PassportGenerator(config);
     }
 
     /**
