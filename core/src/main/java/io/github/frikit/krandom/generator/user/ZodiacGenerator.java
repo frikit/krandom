@@ -10,72 +10,88 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.time.LocalDate;
 import java.time.MonthDay;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates Western (tropical) zodiac signs such as {@code "Scorpio"}.
+ * Generates locale-aware Western (tropical) zodiac signs, e.g. {@code "Scorpio"} for English or
+ * {@code "Скорпион"} for Russian.
  *
- * <p>{@link #generate()} returns a uniformly random sign. To derive the sign that corresponds to a
- * particular birth date, use {@link #signFor(LocalDate)} or {@link #signFor(MonthDay)} — both use the
- * conventional tropical-zodiac date boundaries.
+ * <p>The sign names are resolved from {@link ZodiacDataRegistry} for the configured locale; locales
+ * without a built-in file fall back to the bundled English names. The date boundaries themselves are
+ * universal, so {@link #signFor(LocalDate)} returns the correct sign in the configured language.
  *
  * <pre>{@code
- *   String any  = new ZodiacGenerator().generate();                 // e.g. "Leo"
- *   String mine = new ZodiacGenerator().signFor(LocalDate.of(1990, 11, 5)); // "Scorpio"
+ *   String en = new ZodiacGenerator().signFor(LocalDate.of(1990, 11, 5));            // "Scorpio"
+ *   String ru = new ZodiacGenerator(Locale.of("ru", "RU")).signFor(LocalDate.of(1990, 11, 5)); // "Скорпион"
  * }</pre>
  */
 public final class ZodiacGenerator implements Generator<String> {
 
-    /** The twelve signs in zodiac order, used for uniform random selection. */
-    private static final String[] SIGNS = {
-        "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
-    };
+    private static final ZodiacDataProvider DEFAULT_PROVIDER =
+        new BuiltInZodiacDataProvider(Locale.ROOT, "krandom/zodiac/default.txt");
 
     /** First day (inclusive) on which each month's later sign begins, indexed by month - 1. */
     private static final int[] CUTOFF = {20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22};
 
-    /** The sign that begins on {@code CUTOFF[month - 1]} within each month, indexed by month - 1. */
-    private static final String[] SIGN_FROM_CUTOFF = {
-        "Aquarius", "Pisces", "Aries", "Taurus", "Gemini", "Cancer",
-        "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn"
-    };
+    /**
+     * Canonical sign index (0 = Aries … 11 = Pisces) of the sign that begins on
+     * {@code CUTOFF[month - 1]} within each month, indexed by month - 1.
+     */
+    private static final int[] SIGN_INDEX_FROM_CUTOFF = {10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
+    private final List<String> signs;
     private final Random random;
 
     /**
-     * Creates a generator using the default configuration.
+     * Creates a generator using the default configuration (and its locale).
      */
     public ZodiacGenerator() {
         this(GeneratorConfig.defaults());
     }
 
     /**
-     * Creates a generator from explicit configuration (optional seed).
+     * Creates a generator for the given locale.
+     *
+     * @param locale the locale whose sign names to use; falls back to English if no built-in file
+     *               exists; must not be {@code null}
+     */
+    public ZodiacGenerator(Locale locale) {
+        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+    }
+
+    /**
+     * Creates a generator from explicit configuration (locale + optional seed).
      *
      * @param config the generator configuration; must not be {@code null}
      */
     public ZodiacGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
+        ZodiacDataProvider provider = ZodiacDataRegistry.forLocale(config.getLocale());
+        if (provider == null) {
+            provider = DEFAULT_PROVIDER;
+        }
+        this.signs = provider.getSigns();
         this.random = config.createRandom();
     }
 
     /**
-     * Generates a uniformly random Western zodiac sign.
+     * Generates a uniformly random zodiac sign in the configured locale.
      *
-     * @return a sign such as {@code "Scorpio"}; never {@code null}
+     * @return a localized sign name; never {@code null}
      */
     @Override
     public String generate() {
-        return SIGNS[random.nextInt(SIGNS.length)];
+        return signs.get(random.nextInt(signs.size()));
     }
 
     /**
-     * Returns the Western zodiac sign for the given date.
+     * Returns the zodiac sign for the given date, in the configured locale.
      *
      * @param date the date whose sign to resolve; must not be {@code null}
-     * @return the corresponding sign; never {@code null}
+     * @return the corresponding localized sign; never {@code null}
      */
     public String signFor(LocalDate date) {
         Objects.requireNonNull(date, "date must not be null");
@@ -83,17 +99,17 @@ public final class ZodiacGenerator implements Generator<String> {
     }
 
     /**
-     * Returns the Western zodiac sign for the given month and day.
+     * Returns the zodiac sign for the given month and day, in the configured locale.
      *
      * @param monthDay the month-day whose sign to resolve; must not be {@code null}
-     * @return the corresponding sign; never {@code null}
+     * @return the corresponding localized sign; never {@code null}
      */
     public String signFor(MonthDay monthDay) {
         Objects.requireNonNull(monthDay, "monthDay must not be null");
         int idx = monthDay.getMonthValue() - 1;
-        if (monthDay.getDayOfMonth() >= CUTOFF[idx]) {
-            return SIGN_FROM_CUTOFF[idx];
-        }
-        return SIGN_FROM_CUTOFF[(idx + 11) % 12];
+        int signIndex = monthDay.getDayOfMonth() >= CUTOFF[idx]
+            ? SIGN_INDEX_FROM_CUTOFF[idx]
+            : SIGN_INDEX_FROM_CUTOFF[(idx + 11) % 12];
+        return signs.get(signIndex);
     }
 }

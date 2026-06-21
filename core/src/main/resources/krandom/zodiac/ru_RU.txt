@@ -1,0 +1,13 @@
+# Western zodiac signs (Russian) in canonical order: Aries (Овен) first.
+Овен
+Телец
+Близнецы
+Рак
+Лев
+Дева
+Весы
+Скорпион
+Стрелец
+Козерог
+Водолей
+Рыбы

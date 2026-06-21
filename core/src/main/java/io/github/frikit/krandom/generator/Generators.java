@@ -1542,6 +1542,13 @@ public final class Generators {
     }
 
     /**
+     * Returns a Western zodiac generator whose sign names are localized for the given locale.
+     */
+    public static ZodiacGenerator ofZodiac(Locale locale) {
+        return new ZodiacGenerator(locale);
+    }
+
+    /**
      * Returns a Western zodiac generator configured by the given {@link GeneratorConfig}.
      */
     public static ZodiacGenerator ofZodiac(GeneratorConfig config) {
