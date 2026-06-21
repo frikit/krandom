@@ -167,6 +167,7 @@ import io.github.frikit.krandom.generator.user.JobInfoGenerator;
 import io.github.frikit.krandom.generator.user.JobTypeGenerator;
 import io.github.frikit.krandom.generator.commerce.CnpjGenerator;
 import io.github.frikit.krandom.generator.tech.ProgrammingLanguageGenerator;
+import io.github.frikit.krandom.generator.tech.AwsGenerator;
 import io.github.frikit.krandom.generator.text.NatoPhoneticGenerator;
 import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.MbtiGenerator;
@@ -1751,6 +1752,20 @@ public final class Generators {
      */
     public static DrivingLicenseGenerator ofDrivingLicense(GeneratorConfig config) {
         return new DrivingLicenseGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces AWS resource identifiers (regions, instance IDs, S3 buckets).
+     */
+    public static AwsGenerator ofAws() {
+        return new AwsGenerator();
+    }
+
+    /**
+     * Returns an AWS resource generator configured by the given {@link GeneratorConfig}.
+     */
+    public static AwsGenerator ofAws(GeneratorConfig config) {
+        return new AwsGenerator(config);
     }
 
     /**
