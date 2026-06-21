@@ -33,10 +33,10 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | DataFaker provider | krandom | Notes |
 |--------------------|---------|-------|
 | Blood Type | ✅ DONE | `BloodTypeGenerator` — locale-weighted, slice 1 (2026-06-21) |
-| Zodiac | 🟢 | Western (12) + Chinese (12) signs; derivable from a birthdate. Deterministic, no licensing risk |
+| Zodiac | ✅ DONE | `ZodiacGenerator` + `ChineseZodiacGenerator` (user) — localized across all 35 locales (`krandom/zodiac`, `krandom/chinese_zodiac`); `signFor(date)`/`animalFor(year)` |
 | Mbti | ✅ DONE | `MbtiGenerator` (user) — 16 types + `withNickname()` |
 | Nato Phonetic Alphabet | 🟢 | Alpha…Zulu; trivial fixed list, high fixture value |
-| Pronouns | 🟢 | he/him, she/her, they/them, neopronouns; locale-aware |
+| Pronouns | ✅ DONE | `PronounGenerator` (user) — `subject/object` sets localized across all 35 locales (`krandom/pronouns`) |
 | Measurement | 🟢 | units (metric/imperial), quantities |
 | Nation / Nationality / Language Code | 🟢 | demonyms + ISO language names/codes; locale-aware |
 | Vehicle | 🟢 | VIN (check-digit valid), make/model, plate |
@@ -46,7 +46,7 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Programming Language | ✅ DONE | `ProgrammingLanguageGenerator` (tech) — language names |
 | University | 🟢 | institution names |
 | Restaurant | 🟢 | names, types |
-| Hobby | ✅ DONE | `HobbyGenerator` (user) — activity vocabulary |
+| Hobby | ✅ DONE | `HobbyGenerator` (user) — activity vocabulary localized across all 35 locales (`krandom/hobbies`) |
 | Financial Terms | 🟢 | finance vocabulary |
 | Computer / Device | 🟢 | OS, platform, device names |
 | Aws / Azure | 🟢 | cloud resource-name shapes (ARNs, regions, service ids) |

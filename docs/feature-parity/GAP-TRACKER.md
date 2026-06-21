@@ -72,6 +72,12 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
   - **Shipped:** Blood Type, Zodiac + Chinese Zodiac, NATO phonetic, Pronouns,
     Vehicle (VIN + make/model + plate), CNPJ, MBTI, Hobby, Programming Language;
     CPF exposed via `ofCpf()`.
+  - **Locale coverage:** Zodiac, Chinese Zodiac, Pronoun, and Hobby are localized
+    across **all 35 built-in locales** (per-locale resource files under
+    `krandom/{zodiac,chinese_zodiac,pronouns,hobbies}/<locale>.txt`, English fallback).
+    Non-English translations are best-effort and open to native-speaker review (edit
+    the `.txt`; no code change). NATO/VIN/Programming Language/CNPJ/MBTI-codes stay
+    locale-independent by design.
     Full DataFaker mapping: [`datafaker-providers-catalog.md`](./datafaker-providers-catalog.md).
   - [ ] Vehicle (VIN, make/model) ✅ · Weather · Passport · Driving License
   - [ ] Nationality / Language / Nation · Blood Type ✅ · Zodiac ✅ · MBTI ✅
