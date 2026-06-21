@@ -70,13 +70,14 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
 - [ ] **Locales 35 → 60+** (roadmap doc + per-locale data PRs; prioritize by user demand: add e.g. `pt_PT`, `en_CA`, `en_IN`, `zh_TW`, `es_MX`, `fr_CA`, `de_AT`, `de_CH`, plus broader EU/APAC)
 - [ ] **Curated ~20 Base providers** (core-worthy, test-fixture value):
   - **Shipped:** Blood Type, Zodiac + Chinese Zodiac, NATO phonetic, Pronouns,
-    Vehicle (VIN + make/model + plate), CNPJ; CPF exposed via `ofCpf()`.
+    Vehicle (VIN + make/model + plate), CNPJ, MBTI, Hobby, Programming Language;
+    CPF exposed via `ofCpf()`.
     Full DataFaker mapping: [`datafaker-providers-catalog.md`](./datafaker-providers-catalog.md).
   - [ ] Vehicle (VIN, make/model) ✅ · Weather · Passport · Driving License
-  - [ ] Nationality / Language / Nation · Blood Type ✅ · Zodiac ✅ · MBTI
+  - [ ] Nationality / Language / Nation · Blood Type ✅ · Zodiac ✅ · MBTI ✅
   - [ ] NATO phonetic alphabet ✅ · Measurement/units · Pronouns ✅
-  - [ ] Cloud resource names (AWS/Azure) · Computer/Device/OS · Programming Language
-  - [ ] University · Restaurant · Hobby · Financial Terms · CNPJ (BR company id)
+  - [ ] Cloud resource names (AWS/Azure) · Computer/Device/OS · Programming Language ✅
+  - [ ] University · Restaurant · Hobby ✅ · Financial Terms · CNPJ ✅ (BR company id)
   - **Design note — locale-frequency providers (blood type, …):** back them with per-locale resource files (`krandom/bloodtypes/<locale>.txt`, `TYPE WEIGHT` lines) + weighted selection, seeded only for locales that have a file (others fall back to `default.txt`), mirroring the Gender data-provider/registry pattern. Do **not** hardcode as enums — distributions differ by population/locale. (slice 1: `default`, `en_US`, `ja_JP` shipped; remaining 32 locales are backlog.)
 - [ ] **Ergonomics parity with Instancio** (the real competitive pressure):
   - [ ] Bean-Validation/JPA-aware generation, first-class & documented (krandom has `BeanValidationSupport` — promote it)

@@ -34,7 +34,7 @@ DataFaker's without bloating core. ⛔ stays out by design.
 |--------------------|---------|-------|
 | Blood Type | ✅ DONE | `BloodTypeGenerator` — locale-weighted, slice 1 (2026-06-21) |
 | Zodiac | 🟢 | Western (12) + Chinese (12) signs; derivable from a birthdate. Deterministic, no licensing risk |
-| Mbti | 🟢 | 16 personality types; uniform or weighted pick |
+| Mbti | ✅ DONE | `MbtiGenerator` (user) — 16 types + `withNickname()` |
 | Nato Phonetic Alphabet | 🟢 | Alpha…Zulu; trivial fixed list, high fixture value |
 | Pronouns | 🟢 | he/him, she/her, they/them, neopronouns; locale-aware |
 | Measurement | 🟢 | units (metric/imperial), quantities |
@@ -43,10 +43,10 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Weather | 🟢 | description, temperature (locale unit) |
 | Passport | 🟢 | locale-formatted passport numbers |
 | Driving License | 🟢 | locale-formatted license numbers |
-| Programming Language | 🟢 | language names + versions |
+| Programming Language | ✅ DONE | `ProgrammingLanguageGenerator` (tech) — language names |
 | University | 🟢 | institution names |
 | Restaurant | 🟢 | names, types |
-| Hobby | 🟢 | activity vocabulary |
+| Hobby | ✅ DONE | `HobbyGenerator` (user) — activity vocabulary |
 | Financial Terms | 🟢 | finance vocabulary |
 | Computer / Device | 🟢 | OS, platform, device names |
 | Aws / Azure | 🟢 | cloud resource-name shapes (ARNs, regions, service ids) |
