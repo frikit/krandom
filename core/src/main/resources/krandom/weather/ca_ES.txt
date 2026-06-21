@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Assolellat
+Serè
+Ennuvolat
+Cobert
+Plujós
+Plugim
+Tempesta
+Nevat
+Ventós
+Boirós
+Humit
+Tempestuós

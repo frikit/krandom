@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+مشمس
+صافٍ
+غائم
+ملبد
+ممطر
+رذاذ
+عاصفة رعدية
+ثلجي
+عاصف
+ضبابي
+رطب
+عاصف هوجاء

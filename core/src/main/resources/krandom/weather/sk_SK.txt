@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Slnečno
+Jasno
+Oblačno
+Zamračené
+Daždivo
+Mrholenie
+Búrka
+Sneženie
+Veterno
+Hmlisto
+Vlhko
+Búrlivo

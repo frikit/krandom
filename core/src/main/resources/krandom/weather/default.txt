@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Sunny
+Clear
+Cloudy
+Overcast
+Rainy
+Drizzle
+Thunderstorm
+Snowy
+Windy
+Foggy
+Humid
+Stormy

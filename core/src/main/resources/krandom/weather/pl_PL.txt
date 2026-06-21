@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Słonecznie
+Bezchmurnie
+Pochmurno
+Zachmurzenie
+Deszczowo
+Mżawka
+Burza
+Śnieżnie
+Wietrznie
+Mgliście
+Wilgotno
+Sztormowo

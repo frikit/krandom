@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Nắng
+Quang đãng
+Nhiều mây
+U ám
+Mưa
+Mưa phùn
+Dông bão
+Tuyết
+Gió
+Sương mù
+Ẩm ướt
+Bão

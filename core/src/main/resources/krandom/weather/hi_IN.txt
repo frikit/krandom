@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+धूप
+साफ़
+बादल
+घना बादल
+बारिश
+बूँदाबाँदी
+आँधी-तूफान
+बर्फ़ीला
+हवादार
+कोहरा
+आर्द्र
+तूफ़ानी

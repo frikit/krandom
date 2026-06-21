@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Solrigt
+Klart
+Skyet
+Overskyet
+Regnfuldt
+Støvregn
+Tordenvejr
+Snerigt
+Blæsende
+Tåget
+Fugtigt
+Stormfuldt

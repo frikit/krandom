@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+晴朗
+晴
+多云
+阴
+雨
+毛毛雨
+雷暴
+雪
+有风
+雾
+潮湿
+暴风雨

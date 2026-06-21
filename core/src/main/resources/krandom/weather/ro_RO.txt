@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Însorit
+Senin
+Înnorat
+Acoperit
+Ploios
+Burniță
+Furtună
+Ninsoare
+Vântos
+Cețos
+Umed
+Furtunos

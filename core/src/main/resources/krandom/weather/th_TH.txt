@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+แดดจัด
+ท้องฟ้าแจ่มใส
+มีเมฆ
+เมฆมาก
+ฝนตก
+ฝนปรอย
+พายุฝนฟ้าคะนอง
+หิมะตก
+ลมแรง
+หมอก
+ชื้น
+พายุ

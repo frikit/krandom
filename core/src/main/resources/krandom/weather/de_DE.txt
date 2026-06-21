@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Sonnig
+Klar
+Bewölkt
+Bedeckt
+Regnerisch
+Nieselregen
+Gewitter
+Schneebedeckt
+Windig
+Neblig
+Feucht
+Stürmisch

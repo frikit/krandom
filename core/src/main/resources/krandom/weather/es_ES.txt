@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Soleado
+Despejado
+Nublado
+Cubierto
+Lluvioso
+Llovizna
+Tormenta
+Nevado
+Ventoso
+Neblinoso
+Húmedo
+Tempestuoso

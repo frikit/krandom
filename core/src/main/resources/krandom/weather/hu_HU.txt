@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Napos
+Tiszta
+Felhős
+Borult
+Esős
+Szitálás
+Zivatar
+Havas
+Szeles
+Ködös
+Párás
+Viharos

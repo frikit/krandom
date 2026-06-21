@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
  * <p>Each resource file is a plain UTF-8 text file with one entry per line. Blank lines and lines
  * starting with {@code #} (header comments) are ignored.
  */
-final class LocaleTextResourceLoader {
+public final class LocaleTextResourceLoader {
 
     private LocaleTextResourceLoader() {
     }
@@ -30,7 +30,7 @@ final class LocaleTextResourceLoader {
      * @return non-empty array of entry strings
      * @throws IllegalStateException if the resource cannot be found or read
      */
-    static String[] load(String resourcePath) {
+    public static String[] load(String resourcePath) {
         InputStream is = LocaleTextResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
         if (is == null) {
             throw new IllegalStateException("Resource not found: " + resourcePath);

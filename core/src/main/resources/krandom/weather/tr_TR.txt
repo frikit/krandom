@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Güneşli
+Açık
+Bulutlu
+Kapalı
+Yağmurlu
+Çiseleme
+Gök gürültülü fırtına
+Karlı
+Rüzgarlı
+Sisli
+Nemli
+Fırtınalı

@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+晴れ
+快晴
+曇り
+曇天
+雨
+霧雨
+雷雨
+雪
+風が強い
+霧
+湿気
+嵐

@@ -170,6 +170,7 @@ import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.MbtiGenerator;
 import io.github.frikit.krandom.generator.vehicle.VehicleGenerator;
 import io.github.frikit.krandom.generator.vehicle.VinGenerator;
+import io.github.frikit.krandom.generator.weather.WeatherGenerator;
 import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
 import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
 import io.github.frikit.krandom.generator.user.PronounGenerator;
@@ -1716,6 +1717,27 @@ public final class Generators {
      */
     public static ProgrammingLanguageGenerator ofProgrammingLanguage(GeneratorConfig config) {
         return new ProgrammingLanguageGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces weather conditions (e.g. {@code "Sunny"}).
+     */
+    public static WeatherGenerator ofWeather() {
+        return new WeatherGenerator();
+    }
+
+    /**
+     * Returns a weather generator whose condition names are localized for the given locale.
+     */
+    public static WeatherGenerator ofWeather(Locale locale) {
+        return new WeatherGenerator(locale);
+    }
+
+    /**
+     * Returns a weather generator configured by the given {@link GeneratorConfig}.
+     */
+    public static WeatherGenerator ofWeather(GeneratorConfig config) {
+        return new WeatherGenerator(config);
     }
 
     /**

@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Slunečno
+Jasno
+Oblačno
+Zataženo
+Deštivo
+Mrholení
+Bouřka
+Sněžení
+Větrno
+Mlhavo
+Vlhko
+Bouřlivo

@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Soligt
+Klart
+Molnigt
+Mulet
+Regnigt
+Duggregn
+Åskväder
+Snöigt
+Blåsigt
+Dimmigt
+Fuktigt
+Stormigt

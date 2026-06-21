@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Ensoleillé
+Dégagé
+Nuageux
+Couvert
+Pluvieux
+Bruine
+Orage
+Neigeux
+Venteux
+Brumeux
+Humide
+Tempétueux

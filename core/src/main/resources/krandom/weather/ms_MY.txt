@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Cerah
+Jernih
+Berawan
+Mendung
+Hujan
+Gerimis
+Ribut petir
+Bersalji
+Berangin
+Berkabus
+Lembap
+Berbadai

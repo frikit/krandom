@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+שמשי
+בהיר
+מעונן
+מכוסה עננים
+גשום
+טפטוף
+סופת רעמים
+מושלג
+רוחות
+ערפילי
+לח
+סוער

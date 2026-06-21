@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Aurinkoinen
+Selkeä
+Pilvinen
+Puolipilvinen
+Sateinen
+Tihkusade
+Ukkonen
+Luminen
+Tuulinen
+Sumuinen
+Kostea
+Myrskyinen

@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+맑음
+청명
+흐림
+구름많음
+비
+이슬비
+뇌우
+눈
+바람
+안개
+습함
+폭풍

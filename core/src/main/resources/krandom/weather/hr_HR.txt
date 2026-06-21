@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Sunčano
+Vedro
+Oblačno
+Naoblačeno
+Kišovito
+Rosulja
+Grmljavinska oluja
+Snježno
+Vjetrovito
+Maglovito
+Vlažno
+Olujno

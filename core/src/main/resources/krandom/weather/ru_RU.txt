@@ -1,0 +1,13 @@
+# Weather conditions, one per line (canonical order: Sunny first).
+Солнечно
+Ясно
+Облачно
+Пасмурно
+Дождливо
+Морось
+Гроза
+Снежно
+Ветрено
+Туманно
+Влажно
+Штормово
