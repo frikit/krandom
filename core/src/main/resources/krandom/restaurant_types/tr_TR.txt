@@ -1,0 +1,13 @@
+# Restoran türleri, her satıra bir tane.
+İtalyan
+Çin
+Japon
+Meksika
+Hint
+Fransız
+Tayland
+Yunan
+Steakhouse
+Deniz ürünleri
+Bistro
+Kafe

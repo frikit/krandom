@@ -1,0 +1,13 @@
+# Jenis restoran, satu per baris.
+Italia
+Tionghoa
+Jepang
+Meksiko
+India
+Prancis
+Thailand
+Yunani
+Steakhouse
+Makanan laut
+Bistro
+Kafe

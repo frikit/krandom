@@ -1,0 +1,13 @@
+# Restauranttyper, ett per linje.
+Italiensk
+Kinesisk
+Japansk
+Meksikansk
+Indisk
+Fransk
+Thailandsk
+Gresk
+Steakhouse
+Sjømat
+Bistro
+Kafé

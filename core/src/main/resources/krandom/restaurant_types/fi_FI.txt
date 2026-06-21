@@ -1,0 +1,13 @@
+# Ravintolatyypit, yksi riviä kohden.
+Italialainen
+Kiinalainen
+Japanilainen
+Meksikolainen
+Intialainen
+Ranskalainen
+Thaimaalainen
+Kreikkalainen
+Pihviravintola
+Merenelävät
+Bistro
+Kahvila

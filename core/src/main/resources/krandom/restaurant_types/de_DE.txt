@@ -1,0 +1,13 @@
+# Restauranttypen, einer pro Zeile.
+Italienisch
+Chinesisch
+Japanisch
+Mexikanisch
+Indisch
+Französisch
+Thailändisch
+Griechisch
+Steakhaus
+Meeresfrüchte
+Bistro
+Café

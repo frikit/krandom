@@ -1,0 +1,13 @@
+# Vrste restorana, jedan po retku.
+Talijanski
+Kineski
+Japanski
+Meksički
+Indijski
+Francuski
+Tajlandski
+Grčki
+Steakhouse
+Plodovi mora
+Bistro
+Kafić

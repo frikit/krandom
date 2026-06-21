@@ -1,0 +1,13 @@
+# Restaurant cuisine/types, one per line (canonical order: Italian first).
+Italian
+Chinese
+Japanese
+Mexican
+Indian
+French
+Thai
+Greek
+Steakhouse
+Seafood
+Bistro
+Cafe

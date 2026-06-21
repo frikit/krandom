@@ -1,0 +1,13 @@
+# Tipos de restaurante, um por linha.
+Italiano
+Chinês
+Japonês
+Mexicano
+Indiano
+Francês
+Tailandês
+Grego
+Churrascaria
+Frutos do mar
+Bistrô
+Café

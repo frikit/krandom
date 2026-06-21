@@ -1,0 +1,13 @@
+# Jenis restoran, satu setiap baris.
+Itali
+Cina
+Jepun
+Mexico
+India
+Perancis
+Thai
+Greek
+Steakhouse
+Makanan laut
+Bistro
+Kafe

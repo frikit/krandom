@@ -1,0 +1,13 @@
+# Typy restauracji, jeden na wiersz.
+Włoska
+Chińska
+Japońska
+Meksykańska
+Indyjska
+Francuska
+Tajska
+Grecka
+Stek house
+Owoce morza
+Bistro
+Kawiarnia

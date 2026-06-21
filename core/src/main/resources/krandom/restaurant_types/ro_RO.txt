@@ -1,0 +1,13 @@
+# Tipuri de restaurant, unul pe linie.
+Italian
+Chinezesc
+Japonez
+Mexican
+Indian
+Francez
+Thailandez
+Grecesc
+Steakhouse
+Fructe de mare
+Bistro
+Cafenea

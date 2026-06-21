@@ -1,0 +1,13 @@
+# Étteremtípusok, soronként egy.
+Olasz
+Kínai
+Japán
+Mexikói
+Indiai
+Francia
+Thai
+Görög
+Steakház
+Tenger gyümölcsei
+Bisztró
+Kávézó

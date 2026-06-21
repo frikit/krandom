@@ -1,0 +1,13 @@
+# Restauranttyper, en pr. linje.
+Italiensk
+Kinesisk
+Japansk
+Mexicansk
+Indisk
+Fransk
+Thailandsk
+Græsk
+Steakhouse
+Fisk og skaldyr
+Bistro
+Café

@@ -1,0 +1,13 @@
+# Restauranttypes, één per regel.
+Italiaans
+Chinees
+Japans
+Mexicaans
+Indiaas
+Frans
+Thais
+Grieks
+Steakhouse
+Zeevruchten
+Bistro
+Café

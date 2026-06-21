@@ -1,0 +1,13 @@
+# Tipus de restaurant, un per línia.
+Italià
+Xinès
+Japonès
+Mexicà
+Indi
+Francès
+Tailandès
+Grec
+Graella
+Marisc
+Bistró
+Cafeteria

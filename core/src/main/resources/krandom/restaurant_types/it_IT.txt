@@ -1,0 +1,13 @@
+# Tipi di ristorante, uno per riga.
+Italiano
+Cinese
+Giapponese
+Messicano
+Indiano
+Francese
+Tailandese
+Greco
+Steakhouse
+Pesce
+Bistrot
+Caffè

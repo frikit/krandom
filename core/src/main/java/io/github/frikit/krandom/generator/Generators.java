@@ -34,6 +34,7 @@ import io.github.frikit.krandom.generator.color.ColorGenerator;
 import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
 import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
+import io.github.frikit.krandom.generator.commerce.RestaurantTypeGenerator;
 import io.github.frikit.krandom.generator.commerce.ShipmentInfoGenerator;
 import io.github.frikit.krandom.generator.database.DatabaseGenerator;
 import io.github.frikit.krandom.generator.datetime.CalendarGenerator;
@@ -1804,6 +1805,27 @@ public final class Generators {
      */
     public static NationalityGenerator ofNationality(GeneratorConfig config) {
         return new NationalityGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces restaurant cuisine/type names (e.g. {@code "Italian"}).
+     */
+    public static RestaurantTypeGenerator ofRestaurantType() {
+        return new RestaurantTypeGenerator();
+    }
+
+    /**
+     * Returns a restaurant-type generator whose type names are localized for the given locale.
+     */
+    public static RestaurantTypeGenerator ofRestaurantType(Locale locale) {
+        return new RestaurantTypeGenerator(locale);
+    }
+
+    /**
+     * Returns a restaurant-type generator configured by the given {@link GeneratorConfig}.
+     */
+    public static RestaurantTypeGenerator ofRestaurantType(GeneratorConfig config) {
+        return new RestaurantTypeGenerator(config);
     }
 
     /**

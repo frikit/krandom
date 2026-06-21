@@ -1,0 +1,13 @@
+# Typy reštaurácií, jeden na riadok.
+Talianska
+Čínska
+Japonská
+Mexická
+Indická
+Francúzska
+Thajská
+Grécka
+Steakhouse
+Morské plody
+Bistro
+Kaviareň

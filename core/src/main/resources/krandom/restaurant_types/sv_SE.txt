@@ -1,0 +1,13 @@
+# Restaurangtyper, en per rad.
+Italiensk
+Kinesisk
+Japansk
+Mexikansk
+Indisk
+Fransk
+Thailändsk
+Grekisk
+Steakhouse
+Skaldjur
+Bistro
+Kafé

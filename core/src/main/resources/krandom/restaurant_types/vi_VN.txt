@@ -1,0 +1,13 @@
+# Loại nhà hàng, mỗi dòng một loại.
+Ý
+Trung Hoa
+Nhật Bản
+Mexico
+Ấn Độ
+Pháp
+Thái
+Hy Lạp
+Nhà hàng bít tết
+Hải sản
+Quán bistro
+Quán cà phê
