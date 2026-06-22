@@ -25,7 +25,7 @@ Configuration on demand is an incubating feature.
 > Task :benchmarks:jmh
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -56,7 +56,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.dataFakerBul
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -87,7 +87,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.dataFakerBul
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -118,7 +118,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.easyRandomBu
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -149,7 +149,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.easyRandomBu
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -183,7 +183,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.instancioBul
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -217,7 +217,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.instancioBul
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -251,7 +251,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.krandomBulk"
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -285,7 +285,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorBulkBenchmark.krandomBulk"
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -315,7 +315,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.dataFakerO
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -345,7 +345,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.easyRandom
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -378,7 +378,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.instancioO
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -411,7 +411,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorObjectBenchmark.krandomObj
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -441,7 +441,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerE
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -471,7 +471,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerF
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -501,7 +501,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.dataFakerS
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -531,7 +531,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerE
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -561,7 +561,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerF
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -591,7 +591,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.javaFakerS
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -621,7 +621,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomEma
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -651,7 +651,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomFir
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -681,7 +681,7 @@ Result "io.github.frikit.krandom.benchmarks.CompetitorScalarBenchmark.krandomStr
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -714,7 +714,7 @@ Result "io.github.frikit.krandom.benchmarks.ExpandedGenerationBenchmark.relaxedS
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -747,7 +747,7 @@ Result "io.github.frikit.krandom.benchmarks.ExpandedGenerationBenchmark.semantic
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -780,7 +780,7 @@ Result "io.github.frikit.krandom.benchmarks.ExpandedGenerationBenchmark.semantic
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -813,7 +813,7 @@ Result "io.github.frikit.krandom.benchmarks.ExpandedGenerationBenchmark.structur
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -846,7 +846,7 @@ Result "io.github.frikit.krandom.benchmarks.ExpandedGenerationBenchmark.uniquene
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -877,7 +877,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -908,7 +908,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -939,7 +939,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -970,7 +970,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1001,7 +1001,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1032,7 +1032,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1063,7 +1063,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1094,7 +1094,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1125,7 +1125,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1156,7 +1156,7 @@ Result "io.github.frikit.krandom.benchmarks.FirstNameGeneratorBenchmark.firstNam
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1189,7 +1189,7 @@ Result "io.github.frikit.krandom.benchmarks.ObjectFactoryBenchmark.directObjectG
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1222,7 +1222,7 @@ Result "io.github.frikit.krandom.benchmarks.ObjectFactoryBenchmark.generatorsFac
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1252,7 +1252,7 @@ Result "io.github.frikit.krandom.benchmarks.ObjectFactoryBenchmark.manualConstru
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1285,7 +1285,7 @@ Result "io.github.frikit.krandom.benchmarks.ObjectGeneratorBenchmark.depth10Obje
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1318,7 +1318,7 @@ Result "io.github.frikit.krandom.benchmarks.ObjectGeneratorBenchmark.depth2Objec
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1351,7 +1351,7 @@ Result "io.github.frikit.krandom.benchmarks.ObjectGeneratorBenchmark.depth5Objec
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1381,7 +1381,7 @@ Result "io.github.frikit.krandom.benchmarks.RegexGeneratorBenchmark.complexPatte
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1411,7 +1411,7 @@ Result "io.github.frikit.krandom.benchmarks.RegexGeneratorBenchmark.constructorH
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1441,7 +1441,7 @@ Result "io.github.frikit.krandom.benchmarks.RegexGeneratorBenchmark.simplePatter
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1471,7 +1471,7 @@ Result "io.github.frikit.krandom.benchmarks.SchemaOutputBenchmark.largeSchemaBat
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1501,7 +1501,7 @@ Result "io.github.frikit.krandom.benchmarks.SchemaOutputBenchmark.largeSchemaJso
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1531,7 +1531,7 @@ Result "io.github.frikit.krandom.benchmarks.SchemaOutputBenchmark.streamingCsv":
 
 # JMH version: 1.37
 # VM version: JDK 21.0.11, OpenJDK 64-Bit Server VM, 21.0.11+10-LTS
-# VM invoker: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home/bin/java
+# VM invoker: <jdk>/bin/java
 # VM options: -Dfile.encoding=UTF-8 -Duser.country=GB -Duser.language=en -Duser.variant
 # Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
 # Warmup: 3 iterations, 1 s each
@@ -1624,7 +1624,7 @@ SchemaOutputBenchmark.largeSchemaJsonLines                               N/A    
 SchemaOutputBenchmark.streamingCsv                                       N/A          N/A  thrpt    5       1336.321 ±      74.881  ops/s
 SchemaOutputBenchmark.streamingJsonLines                                 N/A          N/A  thrpt    5       1167.114 ±      80.443  ops/s
 
-[Incubating] Problems report is available at: file:///Users/frikit/IdeaProjects/krandom/build/reports/problems/problems-report.html
+[Incubating] Problems report is available at: file://<repo>/build/reports/problems/problems-report.html
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
 

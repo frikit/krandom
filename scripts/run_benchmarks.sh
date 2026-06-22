@@ -94,8 +94,14 @@ echo "  JMH args: ${JMH_ARGS}"
 echo "  This may take several minutes..."
 echo
 
+# Redact machine-local paths (repo root, home dir, JDK install path) from the
+# captured output so committed result files never leak a local filesystem path.
 "${GRADLEW}" :benchmarks:jmh -PjmhArgs="${BENCH_FILTER} ${JMH_ARGS}" \
-    --console=plain 2>&1 | tee "${RAW_OUTPUT}"
+    --console=plain 2>&1 \
+    | sed -e "s#${REPO_ROOT}#<repo>#g" \
+          -e "s#${HOME}#<home>#g" \
+          -e 's#/Library/Java/JavaVirtualMachines/[^/[:space:]]*/Contents/Home#<jdk>#g' \
+    | tee "${RAW_OUTPUT}"
 
 step "Raw output saved to ${RAW_OUTPUT}"
 
