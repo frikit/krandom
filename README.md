@@ -93,7 +93,7 @@ krandom's scalar generators are significantly faster than comparable JVM librari
 | email | **7,041,044** | 868,973 | 270,552 | 8.1x faster |
 | streetAddress | **13,305,613** | 951,856 | 85,805 | 14.0x faster |
 
-> JDK 21.0.10, JMH 1.37, aarch64. See the [latest full report](docs/benchmarks/competitor-report-2026-04-25.md) for object-population and bulk-generation numbers, methodology notes, and raw JMH output.
+> JDK 21.0.10, JMH 1.37, aarch64. See the [latest full report](docs/benchmarks/DASHBOARD.md) for object-population and bulk-generation numbers, methodology notes, and raw JMH output.
 
 krandom's `ObjectGenerator` trades throughput for semantic realism — every field is populated with a domain-appropriate value (real names, valid emails, real cities) rather than arbitrary random bytes.
 

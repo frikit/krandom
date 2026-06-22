@@ -18,7 +18,7 @@ Three benchmark classes compare krandom against other JVM fake-data libraries:
 
 ### Latest Results Summary
 
-See the full report: [docs/benchmarks/competitor-report-2026-04-25.md](../docs/benchmarks/competitor-report-2026-04-25.md)
+See the full report: [docs/benchmarks/DASHBOARD.md](../docs/benchmarks/DASHBOARD.md)
 
 **Scalar generation** — krandom is **8x to 19x faster** than DataFaker and **26x to 155x faster** than JavaFaker:
 
@@ -42,7 +42,7 @@ Benchmark reports are stored in [`docs/benchmarks/`](../docs/benchmarks/) with o
 
 | Report | Date | JDK |
 |:---|:---|:---|
-| [competitor-report-2026-04-25.md](../docs/benchmarks/competitor-report-2026-04-25.md) | 2026-04-25 | Temurin 21.0.10+7 |
+| [DASHBOARD.md](../docs/benchmarks/DASHBOARD.md) | 2026-04-25 | Temurin 21.0.10+7 |
 
 ### Running competitor benchmarks
 
