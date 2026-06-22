@@ -20,7 +20,7 @@ developed and produces the same graphs with **realistic, locale-aware values**.
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:1.4.0")
+    testImplementation("io.github.frikit:krandom-core:1.5.0")
 }
 ```
 

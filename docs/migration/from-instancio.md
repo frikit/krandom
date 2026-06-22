@@ -18,8 +18,8 @@ field names and `profile(..)` templates instead.
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:1.4.0")
-    // optional: testImplementation("io.github.frikit:krandom-junit:1.4.0")
+    testImplementation("io.github.frikit:krandom-core:1.5.0")
+    // optional: testImplementation("io.github.frikit:krandom-junit:1.5.0")
 }
 ```
 

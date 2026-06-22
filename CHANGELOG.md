@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-06-22
+
+### Added
+- **21 new DataFaker-parity generators**, each exposed on the `Generators` facade with 100% line/branch coverage. The locale-aware vocabulary generators ship per-locale resource files for all 35 built-in locales (`krandom/<concept>/<locale>.txt`) with English fallback.
+  - **Person attributes:** `BloodTypeGenerator` (`ofBloodType`, locale-weighted ABO/Rh), `ZodiacGenerator` (`ofZodiac`, Western signs + `signFor(date)`; localized across 35 locales), `ChineseZodiacGenerator` (`ofChineseZodiac`, animals + `animalFor(year)`; 35 locales), `PronounGenerator` (`ofPronoun`, subject/object sets; 35 locales), `MbtiGenerator` (`ofMbti`, 16 types + `withNickname()`), `NationalityGenerator` (`ofNationality`, demonyms; 35 locales), `HobbyGenerator` (`ofHobby`; 35 locales).
+  - **Localized vocabulary (35 locales):** `MeasurementGenerator` (`ofMeasurement`, units), `FinancialTermGenerator` (`ofFinancialTerm`), `RestaurantTypeGenerator` (`ofRestaurantType`, cuisine/type), `WeatherGenerator` (`ofWeather`, conditions).
+  - **Identifiers & formats:** `VinGenerator` (`ofVin`, ISO-3779 check digit) + `VehicleGenerator` (`ofVehicle`, make/model/plate); `CnpjGenerator` (`ofCnpj`) and `ofCpf()` for Brazilian company/person tax ids (check-digit valid); `PassportGenerator` (`ofPassport`); `DrivingLicenseGenerator` (`ofDrivingLicense`).
+  - **Technical / universal:** `NatoPhoneticGenerator` (`ofNatoPhonetic`, ICAO; `wordFor`/`spell`), `ProgrammingLanguageGenerator` (`ofProgrammingLanguage`), `AwsGenerator` (`ofAws`; region/instanceId/s3Bucket), `AzureGenerator` (`ofAzure`; region/resourceGroup), `ComputerGenerator` (`ofComputer`; OS/platform/deviceType).
+- `LocaleTextResourceLoader` is now `public` so locale-aware generators in any package can reuse the shared classpath resource loader.
+- Full DataFaker provider catalog mapping all 256 providers to krandom status (`docs/feature-parity/datafaker-providers-catalog.md`), plus a competitive gap tracker, Instancio parity matrix, and migration guides (from JavaFaker/DataFaker/EasyRandom/Instancio).
+
+### Changed
+- Dependency bumps (verified no regression across tests, 100% coverage gate, consumer examples, and JMH benchmarks): `net.datafaker` 2.5.4→2.6.0, `com.diffplug.spotless` 8.6.0→8.7.0, `io.kotest` 6.1.11→6.2.1, `com.gradleup.nmcp.settings` 1.5.0→1.6.0; CI actions `actions/checkout` 6→7 and `softprops/action-gh-release` 3.0.0→3.0.1.
+- Benchmark dashboard refreshed to a full-run JMH baseline; `run_benchmarks.sh` now redacts machine-local paths from captured result files.
+- CHANGELOG pre-1.0.0 history condensed into a single summarized section.
+
 ## [1.4.0] - 2026-06-20
 
 ### Changed
@@ -114,7 +130,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/frikit/krandom/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/frikit/krandom/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/frikit/krandom/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/frikit/krandom/compare/v1.1.0...v1.2.0
