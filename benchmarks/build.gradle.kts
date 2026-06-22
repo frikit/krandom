@@ -14,7 +14,7 @@ dependencies {
     annotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
 
     // Competitor libraries for comparative benchmarks
-    implementation("net.datafaker:datafaker:2.5.4")
+    implementation("net.datafaker:datafaker:2.6.0")
     implementation("org.jeasy:easy-random-core:5.0.0")
     implementation("org.instancio:instancio-core:5.6.0")
     implementation("com.github.javafaker:javafaker:1.0.2") {
