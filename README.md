@@ -161,7 +161,7 @@ Public artifacts on Maven Central (group `io.github.frikit`):
 | `io.github.frikit:krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` |
 
 The latest released version is `1.5.0` (the in-repo development build defaults to
-`1.5.0-SNAPSHOT`). The released version is always
+`1.6.0-SNAPSHOT`). The released version is always
 shown on [GitHub Releases](https://github.com/frikit/krandom/releases) and
 [Maven Central](https://central.sonatype.com/artifact/io.github.frikit/krandom-core).
 

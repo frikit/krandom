@@ -5,7 +5,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
-VERSION="${KRANDOM_VERSION:-1.5.0-SNAPSHOT}"
+VERSION="${KRANDOM_VERSION:-1.6.0-SNAPSHOT}"
 REQUIRE_SCALA_TOOLS="${KRANDOM_REQUIRE_SCALA_TOOLS:-false}"
 
 step() { echo; echo "==> $*"; }

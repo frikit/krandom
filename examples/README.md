@@ -4,11 +4,11 @@ This folder contains test-based examples for each supported language/build-tool 
 
 Core examples verify direct `io.github.frikit:krandom-core` consumption. Integration examples verify the published Jackson, Spring Boot, Kotest, and Kotlin DSL artifacts from clean consumer builds.
 
-Default example version: `1.5.0-SNAPSHOT`
+Default example version: `1.6.0-SNAPSHOT`
 
 Version strategy:
 
-- `1.5.0-SNAPSHOT` is the repo-local default for Maven-local verification.
+- `1.6.0-SNAPSHOT` is the repo-local default for Maven-local verification.
 - CI injects the version under test instead of editing example build files.
 - published-release checks should pass an explicit version with the existing property knobs rather than changing the embedded defaults.
 

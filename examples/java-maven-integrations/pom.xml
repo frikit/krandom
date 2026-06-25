@@ -8,7 +8,7 @@
     <version>0.1.0</version>
 
     <properties>
-        <krandom.version>1.5.0-SNAPSHOT</krandom.version>
+        <krandom.version>1.6.0-SNAPSHOT</krandom.version>
         <spring.boot.version>4.0.6</spring.boot.version>
         <junit.version>6.0.3</junit.version>
         <maven.compiler.release>21</maven.compiler.release>
