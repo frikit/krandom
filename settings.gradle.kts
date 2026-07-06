@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradleup.nmcp.settings") version "1.6.0"
+    id("com.gradleup.nmcp.settings") version "1.6.1"
 }
 
 val currentJava = org.gradle.api.JavaVersion.current()
