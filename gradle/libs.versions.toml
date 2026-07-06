@@ -11,7 +11,7 @@ junit-platform = "6.1.1"
 objenesis = "3.5"
 jakarta-validation = "3.1.1"
 jspecify = "1.0.0"
-hibernate-validator = "9.1.0.Final"
+hibernate-validator = "9.1.1.Final"
 jackson = "2.21.3"
 spring-boot = "4.1.0"
 
