@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.3.10"
+    kotlin("jvm") version "2.4.0"
 }
 
 val krandomVersion = providers.gradleProperty("krandomVersion")
@@ -15,9 +15,9 @@ dependencies {
     implementation("io.github.frikit:krandom-core:${krandomVersion.get()}")
     testImplementation("io.github.frikit:krandom-kotest-extensions:${krandomVersion.get()}")
     testImplementation("io.github.frikit:krandom-kotlin-dsl:${krandomVersion.get()}")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:6.0.3")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.0.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:6.1.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.1.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.1")
 }
 
 kotlin {

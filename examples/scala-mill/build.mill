@@ -6,7 +6,7 @@ object app extends ScalaModule {
 
   def krandomVersion = sys.props.getOrElse("krandom.version", sys.env.getOrElse("KRANDOM_VERSION", "1.6.0-SNAPSHOT"))
 
-  def scalaVersion = "3.3.7"
+  def scalaVersion = "3.3.8"
 
   def mvnDeps = Seq(
     mvn"io.github.frikit:krandom-core:$krandomVersion"
@@ -22,7 +22,7 @@ object app extends ScalaModule {
     def moduleDeps = Seq(app)
 
     def mvnDeps = Seq(
-      mvn"org.scalatest::scalatest:3.2.19"
+      mvn"org.scalatest::scalatest:3.2.20"
     )
 
     override def repositories = Task {

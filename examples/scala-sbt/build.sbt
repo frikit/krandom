@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.3.8"
 ThisBuild / version := "0.1.0"
 ThisBuild / organization := "io.github.frikit.krandom.examples"
 
@@ -8,5 +8,5 @@ resolvers += Resolver.mavenLocal
 
 libraryDependencies ++= Seq(
   "io.github.frikit" % "krandom-core" % krandomVersion,
-  "org.scalatest" %% "scalatest" % "3.2.19" % Test
+  "org.scalatest" %% "scalatest" % "3.2.20" % Test
 )

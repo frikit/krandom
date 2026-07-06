@@ -1,18 +1,18 @@
 [versions]
 kotlin = "2.4.0"
-jacoco = "0.8.12"
+jacoco = "0.8.15"
 spotless = "8.8.0"
 commons-validator = "1.10.1"
 slf4j = "2.0.18"
 logback = "1.5.37"
 kotest = "6.2.1"
-junit-jupiter = "6.0.3"
+junit-jupiter = "6.1.1"
 junit-platform = "6.1.1"
 objenesis = "3.5"
 jakarta-validation = "3.1.1"
 jspecify = "1.0.0"
-hibernate-validator = "9.1.1.Final"
-jackson = "2.21.3"
+hibernate-validator = "9.1.2.Final"
+jackson = "2.22.0"
 spring-boot = "4.1.0"
 
 [libraries]
