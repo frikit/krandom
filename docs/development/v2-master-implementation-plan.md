@@ -233,19 +233,19 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 **Actions**
 
-- [ ] Define machine-readable facts for latest GA version, development version, module list, Java minimum, native locale count, fallback locale count, total locale variants, and supported constraints/formats.
-- [ ] Replace stale hard-coded `1.0.0` snippets in current guides.
-- [ ] Correct locale contribution resource paths.
-- [ ] Correct JUnit introduction history and Spring default-random claims.
-- [ ] Introduce precise validity terms: `format-valid`, `checksum-valid`, `semantically plausible`, and `test-safe/non-routable`.
-- [ ] Generate or test README/docs-site tables from the facts source.
-- [ ] Compile executable documentation snippets where practical.
+- [x] Define machine-readable facts for latest GA version, development version, module list, Java minimum, native locale count, fallback locale count, total locale variants, and supported constraints/formats.
+- [x] Replace stale hard-coded `1.0.0` snippets in current guides.
+- [x] Correct locale contribution resource paths.
+- [x] Correct JUnit introduction history and Spring default-random claims.
+- [x] Introduce precise validity terms: `format-valid`, `checksum-valid`, `semantically plausible`, and `test-safe/non-routable`.
+- [x] Generate or test README/docs-site tables from the facts source.
+- [x] Compile executable documentation snippets where practical.
 
 **Tests**
 
-- [ ] A facts test compares documentation counts with enums/resources.
-- [ ] A version check detects stale current-version snippets.
-- [ ] All docs-site links and code snippets pass.
+- [x] A facts test compares documentation counts with enums/resources.
+- [x] A version check detects stale current-version snippets.
+- [x] All docs-site links and code snippets pass.
 
 **Done when:** Public documentation cannot silently drift from code facts.
 
@@ -695,7 +695,7 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 - [ ] Contract fixtures cover every supported and unsupported construct.
 - [ ] Round-trip tests validate supported imports/exports.
-- [ ] CSV, JSON, JSONL, XML, SQL, YAML, and XLSX escaping tests remain green.
+- [ ] JSONL, CSV, XML, and SQL escaping tests remain green.
 - [ ] Unsupported constructs never become silently unconstrained schemas.
 
 **Done when:** Schema support is precise, testable, and no broader than implementation.

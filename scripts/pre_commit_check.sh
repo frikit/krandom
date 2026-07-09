@@ -74,6 +74,14 @@ else
     exit 1
 fi
 
+step "Verify documentation facts"
+if bash "${REPO_ROOT}/scripts/verify_documentation_facts.sh"; then
+    ok "Documentation facts OK"
+else
+    fail "Documentation facts verification failed"
+    exit 1
+fi
+
 step "Compile all modules"
 if "${GRADLEW}" classes testClasses --quiet; then
     ok "Compilation OK"

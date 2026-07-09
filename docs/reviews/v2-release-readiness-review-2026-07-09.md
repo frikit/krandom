@@ -42,7 +42,7 @@ That is a sound ideology. v2 should make it enforceable.
 - The module boundary is understandable: core, Jackson, JUnit, Spring Boot, Kotest, Kotlin DSL, benchmarks, and executable consumer examples.
 - Core has roughly 46,000 production lines and 52,000 test lines, with about 3,300 tests and an enforced 99.9% JaCoCo gate across counters.
 - Locale/provider resources are substantial and packaged reproducibly.
-- The schema export code streams CSV, JSON, JSONL, XML, SQL, YAML, and XLSX rather than materializing every record.
+- The schema export code streams JSONL, CSV, XML, and SQL rather than materializing every record.
 - Recent work fixed several risks recorded in older reviews: scoped registries for the original provider families, locale fallback, collection subtype handling, registry input validation, and opt-in `mavenLocal()`.
 - CI exercises Java, Kotlin, Scala, Maven, Gradle, and Mill consumers.
 - Release artifacts are signed and include sources and Javadoc.

@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("io.github.frikit:krandom-kotest-extensions:1.0.0")
+    testImplementation("io.github.frikit:krandom-kotest-extensions:1.5.0")
 }
 ```
 

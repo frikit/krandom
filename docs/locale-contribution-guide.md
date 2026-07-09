@@ -32,18 +32,18 @@ That path keeps overrides local to one `GeneratorConfig` / runtime instead of mu
 A native built-in locale is expected to provide:
 
 - names:
-  - `<locale>_first_male.txt`
-  - `<locale>_first_female.txt`
-  - `<locale>_last.txt`
+  - `names/first_male/<locale>.txt`
+  - `names/first_female/<locale>.txt`
+  - `names/last/<locale>.txt`
 - cities:
   - `<locale>_cities.txt`
 - states / regions:
   - `<locale>_states.txt`
 - streets:
-  - `<locale>_street_names.txt`
-  - `<locale>_street_types_short.txt`
-  - `<locale>_street_types_long.txt`
-  - `<locale>_secondary_units.txt`
+  - `streets/street_names/<locale>.txt`
+  - `streets/street_types_short/<locale>.txt`
+  - `streets/street_types_long/<locale>.txt`
+  - `streets/secondary_units/<locale>.txt`
 - professions:
   - `professions/<locale>.txt` (one profession per line, ordered most-common-first)
 - titles:

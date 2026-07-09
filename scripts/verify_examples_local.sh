@@ -5,7 +5,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
-VERSION="${KRANDOM_VERSION:-1.6.0-SNAPSHOT}"
+DEFAULT_VERSION="$(awk -F= '$1 == "developmentVersion" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
+VERSION="${KRANDOM_VERSION:-${DEFAULT_VERSION}}"
 REQUIRE_SCALA_TOOLS="${KRANDOM_REQUIRE_SCALA_TOOLS:-false}"
 
 step() { echo; echo "==> $*"; }

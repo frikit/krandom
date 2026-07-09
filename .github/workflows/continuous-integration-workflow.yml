@@ -23,6 +23,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Verify documentation facts
+        run: ./scripts/verify_documentation_facts.sh
+
       - name: Build and verify
         run: ./gradlew clean build check checkApiContract --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 

@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Externalized configuration for the krandom auto-configuration.
  *
  * <p>All properties are optional. When omitted, krandom uses its built-in defaults
- * (non-deterministic {@code SecureRandom}, US locale, depth 5, etc.).
+ * (an unseeded {@link java.util.Random}, US locale, depth 5, etc.).
  *
  * <pre>{@code
  *   krandom.seed=42
@@ -23,8 +23,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class KrandomProperties {
 
     /**
-     * Numeric PRNG seed for reproducible output. When unset, a non-deterministic
-     * {@code SecureRandom} is used.
+     * Numeric PRNG seed for reproducible output. When unset, the core default
+     * {@link java.util.Random} source is used.
      */
     private Long seed;
 

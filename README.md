@@ -155,7 +155,7 @@ Public artifacts on Maven Central (group `io.github.frikit`):
 
 | Artifact | Automatic module name |
 |:---|:---|
-| `io.github.frikit:krandom-bom` | — (Maven/Gradle platform) |
+| `io.github.frikit:krandom-bom` (from 1.6.0) | — (Maven/Gradle platform) |
 | `io.github.frikit:krandom-core` | `io.github.frikit.krandom` |
 | `io.github.frikit:krandom-jackson` | `io.github.frikit.krandom.jackson` |
 | `io.github.frikit:krandom-junit` | `io.github.frikit.krandom.junit` |
@@ -172,8 +172,7 @@ shown on [GitHub Releases](https://github.com/frikit/krandom/releases) and
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.frikit:krandom-bom:1.6.0"))
-    implementation("io.github.frikit:krandom-core")
+    implementation("io.github.frikit:krandom-core:1.5.0")
 }
 ```
 
@@ -181,31 +180,21 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation platform('io.github.frikit:krandom-bom:1.6.0')
-    implementation 'io.github.frikit:krandom-core'
+    implementation 'io.github.frikit:krandom-core:1.5.0'
 }
 ```
 
 ### Maven
 
 ```xml
-<dependencyManagement>
-  <dependencies>
-    <dependency>
-      <groupId>io.github.frikit</groupId>
-      <artifactId>krandom-bom</artifactId>
-      <version>1.6.0</version>
-      <type>pom</type>
-      <scope>import</scope>
-    </dependency>
-  </dependencies>
-</dependencyManagement>
-
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
+  <version>1.5.0</version>
 </dependency>
 ```
+
+Starting with 1.6.0, multi-module consumers can import `krandom-bom` once and omit versions from individual kRandom dependencies. The consumer examples already exercise this path against the development snapshot.
 
 For local consumer verification against an unpublished snapshot, use
 `./scripts/verify_examples_local.sh` or

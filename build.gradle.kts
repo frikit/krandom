@@ -21,7 +21,7 @@ dependencies {
 
 allprojects {
     group = "io.github.frikit"
-    version = (findProperty("releaseVersion") as String?) ?: "1.6.0-SNAPSHOT"
+    version = (findProperty("releaseVersion") as String?) ?: rootProject.providers.gradleProperty("developmentVersion").get()
 
     repositories {
         if (hasProperty("useLocalMaven")) {

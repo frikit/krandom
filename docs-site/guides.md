@@ -11,6 +11,7 @@ permalink: /guides/
 - [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }})
 - [Network, URL, and File Data]({{ '/guides/network-url-file/' | relative_url }})
 - [Finance and Identity]({{ '/guides/finance-and-identity/' | relative_url }})
+- [Data Validity and Safety]({{ '/guides/data-validity-and-safety/' | relative_url }})
 - [Object Generation]({{ '/guides/object-generation/' | relative_url }})
 - [Schema and Provider Hub]({{ '/guides/schema-and-provider-hub/' | relative_url }})
 - [Jackson Integration]({{ '/guides/jackson-integration/' | relative_url }})
