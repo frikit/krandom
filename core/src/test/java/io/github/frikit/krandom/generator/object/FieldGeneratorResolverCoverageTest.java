@@ -253,8 +253,9 @@ class FieldGeneratorResolverCoverageTest {
 
         Generator<Float> roundedFloatGenerator =
             invokeStatic("floatGenerator",
-                         new Class<?>[]{ Long.class, float.class, float.class, int.class },
-                         13L,
+                         new Class<?>[]{ Long.class, Random.class, float.class, float.class, Integer.class },
+                         null,
+                         new Random(1L),
                          1.25f,
                          1.75f,
                          2);

@@ -158,7 +158,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
         this.topLevelSeedSequence = depth == 0 && pool == null
                                     ? config.getGeneratorConfig().getSeed().isPresent()
-                                      ? new Random(config.getGeneratorConfig().getSeed().getAsLong())
+                                      ? config.getGeneratorConfig().createRandom()
                                       : null
                                     : null;
     }

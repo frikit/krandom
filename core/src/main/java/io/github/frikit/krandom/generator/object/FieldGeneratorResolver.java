@@ -128,6 +128,7 @@ import org.slf4j.LoggerFactory;
 final class FieldGeneratorResolver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FieldGeneratorResolver.class);
+    private static final String OBJECT_CHARACTER_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     static final int DEFAULT_MIN_ELEMENT_COUNT = GeneratorConfig.defaults().getMinCollectionSize();
     static final int DEFAULT_MAX_ELEMENT_COUNT = GeneratorConfig.defaults().getMaxCollectionSize();
@@ -222,17 +223,20 @@ final class FieldGeneratorResolver {
         Long charSeed = nextDeterministicSeed(generatorConfig, seedSource);
         Long booleanSeed = nextDeterministicSeed(generatorConfig, seedSource);
 
-        Generator<Byte> byteGenerator = byteSeed != null ? new ByteGenerator(Byte.MIN_VALUE, Byte.MAX_VALUE, byteSeed) : new ByteGenerator();
-        Generator<Short> shortGenerator = shortSeed != null ? new ShortGenerator(Short.MIN_VALUE, Short.MAX_VALUE, shortSeed) : new ShortGenerator();
-        Generator<Integer> intGenerator = intSeed != null ? new IntGenerator(Integer.MIN_VALUE, Integer.MAX_VALUE, intSeed) : new IntGenerator();
-        Generator<Long> longGenerator = longSeed != null ? new LongGenerator(Long.MIN_VALUE, Long.MAX_VALUE, longSeed) : new LongGenerator();
-        Generator<Float> floatGenerator = floatSeed != null ? new FloatGenerator(0f, 1f, floatSeed) : new FloatGenerator();
-        Generator<Double> doubleGenerator = doubleSeed != null ? new DoubleGenerator(0.0, 1.0, doubleSeed) : new DoubleGenerator();
-        Generator<Character> charGenerator = buildCharGenerator(charSeed);
-        Generator<Boolean> booleanGenerator = booleanSeed != null ? new BooleanGenerator(booleanSeed) : new BooleanGenerator();
-        Generator<String> stringGenerator = buildStringGenerator(generatorConfig, nextDeterministicSeed(generatorConfig, seedSource));
-        Generator<BigDecimal> bigDecimalGenerator = buildBigDecimalGenerator(nextDeterministicSeed(generatorConfig, seedSource));
-        Generator<BigInteger> bigIntegerGenerator = buildBigIntegerGenerator(nextDeterministicSeed(generatorConfig, seedSource));
+        Generator<Byte> byteGenerator = byteGenerator(byteSeed, seedSource, Byte.MIN_VALUE, Byte.MAX_VALUE);
+        Generator<Short> shortGenerator = shortGenerator(shortSeed, seedSource, Short.MIN_VALUE, Short.MAX_VALUE);
+        Generator<Integer> intGenerator = intGenerator(intSeed, seedSource, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        Generator<Long> longGenerator = longGenerator(longSeed, seedSource, Long.MIN_VALUE, Long.MAX_VALUE);
+        Generator<Float> floatGenerator = floatGenerator(floatSeed, seedSource, 0f, 1f, null);
+        Generator<Double> doubleGenerator = doubleGenerator(doubleSeed, seedSource, 0.0, 1.0, null);
+        Generator<Character> charGenerator = charGenerator(charSeed, seedSource);
+        Generator<Boolean> booleanGenerator = booleanGenerator(booleanSeed, seedSource);
+        Generator<String> stringGenerator = buildStringGenerator(
+            generatorConfig, nextDeterministicSeed(generatorConfig, seedSource), seedSource);
+        Generator<BigDecimal> bigDecimalGenerator = bigDecimalGenerator(
+            nextDeterministicSeed(generatorConfig, seedSource), seedSource, "0", "1000000", 2);
+        Generator<BigInteger> bigIntegerGenerator = bigIntegerGenerator(
+            nextDeterministicSeed(generatorConfig, seedSource), seedSource, 0L, Long.MAX_VALUE);
         Generator<Number> numberGenerator = new NumberGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
         Generator<AtomicInteger> atomicIntegerGenerator = () -> new AtomicInteger(intGenerator.generate());
         Generator<AtomicLong> atomicLongGenerator = () -> new AtomicLong(longGenerator.generate());
@@ -343,36 +347,57 @@ final class FieldGeneratorResolver {
 
     private static Random randomFor(GeneratorConfig config, Random seedSource) {
         Long seed = nextDeterministicSeed(config, seedSource);
-        return seed != null ? new Random(seed) : config.createRandom();
+        return seed != null ? new Random(seed) : seedSource;
     }
 
-    private static CharGenerator buildCharGenerator(Long seed) {
-        CharGenerator.Builder builder = CharGenerator.builder().uppercase().lowercase();
+    private static CharGenerator buildCharGenerator(long seed) {
+        return CharGenerator.builder().uppercase().lowercase().seed(seed).build();
+    }
+
+    private static Generator<Character> charGenerator(Long seed, Random source) {
         if (seed != null) {
-            builder.seed(seed);
+            return buildCharGenerator(seed);
         }
-        return builder.build();
+        return () -> OBJECT_CHARACTER_POOL.charAt(source.nextInt(OBJECT_CHARACTER_POOL.length()));
     }
 
-    private static StringGenerator buildStringGenerator(GeneratorConfig config, Long seed) {
+    private static Generator<Boolean> booleanGenerator(Long seed, Random source) {
+        if (seed != null) {
+            return new BooleanGenerator(seed);
+        }
+        return source::nextBoolean;
+    }
+
+    private static Generator<String> buildStringGenerator(GeneratorConfig config, Long seed, Random source) {
+        if (seed == null) {
+            Generator<Character> characters = charGenerator(null, source);
+            return () -> {
+                int length = config.getMinStringLength() == config.getMaxStringLength()
+                             ? config.getMinStringLength()
+                             : (int) source.nextLong(config.getMinStringLength(),
+                                                     (long) config.getMaxStringLength() + 1L);
+                StringBuilder value = new StringBuilder(length);
+                for (int i = 0; i < length; i++) {
+                    value.append(characters.generate());
+                }
+                return value.toString();
+            };
+        }
         StringGenerator.Builder builder = StringGenerator.builder()
                                                         .minLength(config.getMinStringLength())
                                                         .maxLength(config.getMaxStringLength())
                                                         .charGenerator(buildCharGenerator(seed));
-        if (seed != null) {
-            builder.seed(seed);
-        }
-        return builder.build();
+        return builder.seed(seed).build();
     }
 
-    private static BigDecimalGenerator buildBigDecimalGenerator(Long seed) {
-        return seed != null ? new BigDecimalGenerator(new BigDecimal("0"), new BigDecimal("1000000"), 2, seed)
-                            : new BigDecimalGenerator();
+    private static Generator<Byte> byteGenerator(Long seed, Random source, byte min, byte maxExclusive) {
+        return seed != null ? new ByteGenerator(min, maxExclusive, seed)
+                            : () -> (byte) source.nextInt(min, maxExclusive);
     }
 
-    private static BigIntegerGenerator buildBigIntegerGenerator(Long seed) {
-        return seed != null ? new BigIntegerGenerator(BigInteger.ZERO, BigInteger.valueOf(Long.MAX_VALUE), seed)
-                            : new BigIntegerGenerator();
+    private static Generator<Short> shortGenerator(Long seed, Random source, short min, short maxExclusive) {
+        return seed != null ? new ShortGenerator(min, maxExclusive, seed)
+                            : () -> (short) source.nextInt(min, maxExclusive);
     }
 
     private static Generator<LocalDate> buildDateGenerator(GeneratorConfig config,
@@ -514,7 +539,7 @@ final class FieldGeneratorResolver {
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "createdat", today.minusYears(10), today);
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "updatedat", today.minusYears(10), today);
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "birthdate", today.minusYears(90), today.minusYears(18));
-        Generator<Integer> ageGenerator = intGenerator(nextDeterministicSeed(config, seedSource), 18, 91);
+        Generator<Integer> ageGenerator = intGenerator(nextDeterministicSeed(config, seedSource), seedSource, 18, 91);
         registerTypedSemantic(generators, "age", int.class, ageGenerator);
         registerTypedSemantic(generators, "age", Integer.class, ageGenerator);
         registerTypedSemantic(generators, "age", long.class, (Generator<Long>) () -> Long.valueOf(ageGenerator.generate()));
@@ -524,28 +549,43 @@ final class FieldGeneratorResolver {
         registerTypedSemantic(generators, "age", String.class, (Generator<String>) () -> Integer.toString(ageGenerator.generate()));
 
         registerNumericSemantic(generators, "amount",
-                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "1000000", 2),
-                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
-                                intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE),
-                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
-                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 1000000.0, 2),
-                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 1000000.0f, 2));
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    "0", "1000000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    1L, Long.MAX_VALUE),
+                                intGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                             1, Integer.MAX_VALUE),
+                                longGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                              1L, Long.MAX_VALUE),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                0.01, 1000000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                               0.01f, 1000000.0f, 2));
 
         registerNumericSemantic(generators, "balance",
-                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "10000000", 2),
-                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
-                                intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE),
-                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
-                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 10000000.0, 2),
-                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 10000000.0f, 2));
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    "0", "10000000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    1L, Long.MAX_VALUE),
+                                intGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                             1, Integer.MAX_VALUE),
+                                longGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                              1L, Long.MAX_VALUE),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                0.01, 10000000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                               0.01f, 10000000.0f, 2));
 
         registerNumericSemantic(generators, "price",
-                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "10000", 2),
-                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, 10000L),
-                                intGenerator(nextDeterministicSeed(config, seedSource), 1, 10000),
-                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, 10000L),
-                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 10000.0, 2),
-                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 10000.0f, 2));
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    "0", "10000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource, 1L, 10000L),
+                                intGenerator(nextDeterministicSeed(config, seedSource), seedSource, 1, 10000),
+                                longGenerator(nextDeterministicSeed(config, seedSource), seedSource, 1L, 10000L),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                0.01, 10000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                               0.01f, 10000.0f, 2));
 
         Generator<String> currencyCodeGenerator = buildLocaleCurrencyCodeGenerator(config, seedSource);
         registerTypedSemantic(generators, "currency", String.class, currencyCodeGenerator);
@@ -553,15 +593,25 @@ final class FieldGeneratorResolver {
                               buildLibraryCurrencyGenerator(config, seedSource));
         registerTypedSemantic(generators, "currency", java.util.Currency.class, buildJavaCurrencyGenerator(config, seedSource));
 
-        Generator<Long> stringIdGenerator = longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE);
+        Generator<Long> stringIdGenerator = longGenerator(
+            nextDeterministicSeed(config, seedSource), seedSource, 1L, Long.MAX_VALUE);
         registerTypedSemantic(generators, "id", UUID.class, new UUIDGenerator(derivedGeneratorConfig(config, seedSource)));
         registerTypedSemantic(generators, "id", String.class, () -> Long.toString(stringIdGenerator.generate()));
         registerTypedSemantic(generators, "id", BigInteger.class,
-                              bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
-        registerTypedSemantic(generators, "id", int.class, intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE));
-        registerTypedSemantic(generators, "id", Integer.class, intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE));
-        registerTypedSemantic(generators, "id", long.class, longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
-        registerTypedSemantic(generators, "id", Long.class, longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
+                              bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                  1L, Long.MAX_VALUE));
+        registerTypedSemantic(generators, "id", int.class,
+                              intGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                           1, Integer.MAX_VALUE));
+        registerTypedSemantic(generators, "id", Integer.class,
+                              intGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                           1, Integer.MAX_VALUE));
+        registerTypedSemantic(generators, "id", long.class,
+                              longGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                            1L, Long.MAX_VALUE));
+        registerTypedSemantic(generators, "id", Long.class,
+                              longGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                            1L, Long.MAX_VALUE));
 
         Generator<Boolean> activeGenerator = buildActiveGenerator(config, seedSource);
         registerTypedSemantic(generators, "active", boolean.class, activeGenerator);
@@ -664,34 +714,70 @@ final class FieldGeneratorResolver {
         return provider;
     }
 
-    private static Generator<BigDecimal> bigDecimalGenerator(Long seed, String min, String max, int scale) {
-        return seed != null
-               ? new BigDecimalGenerator(new BigDecimal(min), new BigDecimal(max), scale, seed)
-               : new BigDecimalGenerator(new BigDecimal(min), new BigDecimal(max), scale);
+    private static Generator<BigDecimal> bigDecimalGenerator(Long seed,
+                                                             Random source,
+                                                             String min,
+                                                             String max,
+                                                             int scale) {
+        BigDecimal lower = new BigDecimal(min);
+        BigDecimal upper = new BigDecimal(max);
+        if (seed != null) {
+            return new BigDecimalGenerator(lower, upper, scale, seed);
+        }
+        long originInclusive = lower.scaleByPowerOfTen(scale).toBigInteger().longValueExact();
+        long boundExclusive = Math.addExact(
+            upper.scaleByPowerOfTen(scale).toBigInteger().longValueExact(), 1L);
+        return () -> BigDecimal.valueOf(source.nextLong(originInclusive, boundExclusive), scale);
     }
 
-    private static Generator<BigInteger> bigIntegerGenerator(Long seed, long min, long maxExclusive) {
-        BigInteger lower = BigInteger.valueOf(min);
-        BigInteger upper = BigInteger.valueOf(Math.max(min + 1, maxExclusive));
-        return seed != null ? new BigIntegerGenerator(lower, upper, seed) : new BigIntegerGenerator(lower, upper);
+    private static Generator<BigInteger> bigIntegerGenerator(Long seed,
+                                                             Random source,
+                                                             long min,
+                                                             long maxExclusive) {
+        if (seed != null) {
+            BigInteger lower = BigInteger.valueOf(min);
+            BigInteger upper = BigInteger.valueOf(Math.max(min + 1, maxExclusive));
+            return new BigIntegerGenerator(lower, upper, seed);
+        }
+        return () -> BigInteger.valueOf(source.nextLong(min, maxExclusive));
     }
 
-    private static Generator<Integer> intGenerator(Long seed, int min, int maxExclusive) {
-        return seed != null ? new IntGenerator(min, maxExclusive, seed) : new IntGenerator(min, maxExclusive);
+    private static Generator<Integer> intGenerator(Long seed, Random source, int min, int maxExclusive) {
+        return seed != null ? new IntGenerator(min, maxExclusive, seed) : () -> source.nextInt(min, maxExclusive);
     }
 
-    private static Generator<Long> longGenerator(Long seed, long min, long maxExclusive) {
-        return seed != null ? new LongGenerator(min, maxExclusive, seed) : new LongGenerator(min, maxExclusive);
+    private static Generator<Long> longGenerator(Long seed, Random source, long min, long maxExclusive) {
+        return seed != null ? new LongGenerator(min, maxExclusive, seed) : () -> source.nextLong(min, maxExclusive);
     }
 
-    private static Generator<Double> doubleGenerator(Long seed, double min, double max, int precision) {
-        DoubleGenerator generator = seed != null ? new DoubleGenerator(min, max, seed) : new DoubleGenerator(min, max);
-        return () -> round(generator.generate(), precision);
+    private static Generator<Double> doubleGenerator(Long seed,
+                                                     Random source,
+                                                     double min,
+                                                     double max,
+                                                     Integer precision) {
+        if (seed != null) {
+            DoubleGenerator generator = new DoubleGenerator(min, max, seed);
+            return precision == null ? generator : () -> round(generator.generate(), precision);
+        }
+        return () -> {
+            double value = source.nextDouble(min, max);
+            return precision == null ? value : round(value, precision);
+        };
     }
 
-    private static Generator<Float> floatGenerator(Long seed, float min, float max, int precision) {
-        FloatGenerator generator = seed != null ? new FloatGenerator(min, max, seed) : new FloatGenerator(min, max);
-        return () -> (float) round(generator.generate(), precision);
+    private static Generator<Float> floatGenerator(Long seed,
+                                                   Random source,
+                                                   float min,
+                                                   float max,
+                                                   Integer precision) {
+        if (seed != null) {
+            FloatGenerator generator = new FloatGenerator(min, max, seed);
+            return precision == null ? generator : () -> (float) round(generator.generate(), precision);
+        }
+        return () -> {
+            float value = source.nextFloat(min, max);
+            return precision == null ? value : (float) round(value, precision);
+        };
     }
 
     private static double round(double value, int precision) {
