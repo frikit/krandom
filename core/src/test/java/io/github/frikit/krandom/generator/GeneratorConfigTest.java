@@ -9,6 +9,9 @@ import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +25,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -126,17 +132,6 @@ class GeneratorConfigTest {
     }
 
     @Test
-    @DisplayName("random(Random) wins over seed and secure random opt-in")
-    void randomInstanceWinsOverSeedAndSecureRandom() {
-        Random random = new Random(99L);
-        Random expected = new Random(99L);
-        GeneratorConfig c = GeneratorConfig.builder().seed(42L).secureRandom().random(random).build();
-
-        assertSame(random, c.createRandom());
-        assertEquals(expected.nextInt(), c.createRandom().nextInt());
-    }
-
-    @Test
     @DisplayName("random(null) throws NullPointerException")
     void randomNullThrows() {
         assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().random(null));
@@ -155,26 +150,45 @@ class GeneratorConfigTest {
         assertSame(second, swapped.createRandom());
     }
 
-    @Test
-    @DisplayName("random source methods use the latest explicit source")
-    void randomSourceMethodsUseLatestExplicitSource() {
-        Random random = new Random(3L);
+    @ParameterizedTest(name = "{0} then {2}")
+    @MethodSource("conflictingRandomSources")
+    @DisplayName("build rejects conflicting random sources regardless of call order")
+    void conflictingRandomSourcesRejected(String firstName,
+                                           Consumer<GeneratorConfig.Builder> first,
+                                           String secondName,
+                                           Consumer<GeneratorConfig.Builder> second) {
+        GeneratorConfig.Builder builder = GeneratorConfig.builder();
+        first.accept(builder);
+        second.accept(builder);
 
-        GeneratorConfig first = GeneratorConfig.builder().secureRandom().random(random).build();
-        GeneratorConfig second = GeneratorConfig.builder().random(random).secureRandom().build();
+        IllegalStateException error = assertThrows(IllegalStateException.class, builder::build);
+        assertEquals("Configure only one random source: seed, random, randomFactory, or secureRandom",
+                     error.getMessage());
+    }
 
-        assertSame(random, first.createRandom());
-        assertFalse(first.isSecureRandom());
-        assertTrue(second.createRandom() instanceof SecureRandom);
-        assertTrue(second.getRandom().isEmpty());
+    private static Stream<Arguments> conflictingRandomSources() {
+        var sources = java.util.List.of(
+            new RandomSourceConfiguration("seed", builder -> builder.seed(42L)),
+            new RandomSourceConfiguration("random", builder -> builder.random(new Random(7L))),
+            new RandomSourceConfiguration("randomFactory", builder -> builder.randomFactory(() -> new Random(11L))),
+            new RandomSourceConfiguration("secureRandom", GeneratorConfig.Builder::secureRandom));
+
+        return IntStream.range(0, sources.size())
+                        .boxed()
+                        .flatMap(first -> IntStream.range(0, sources.size())
+                                                   .filter(second -> second != first)
+                                                   .mapToObj(second -> Arguments.of(
+                                                       sources.get(first).name(),
+                                                       sources.get(first).configure(),
+                                                       sources.get(second).name(),
+                                                       sources.get(second).configure())));
     }
 
     @Test
-    @DisplayName("randomFactory is used and receives configured seed")
+    @DisplayName("randomFactory is used without mutating the returned random source")
     void randomFactoryUsed() {
         AtomicInteger calls = new AtomicInteger();
         GeneratorConfig c = GeneratorConfig.builder()
-                                           .seed("phase2-seed")
                                            .randomFactory(() -> {
                                                calls.incrementAndGet();
                                                return new Random(1L);
@@ -182,7 +196,7 @@ class GeneratorConfigTest {
                                            .build();
 
         Random actual = c.createRandom();
-        Random expected = new Random(c.getSeed().orElseThrow());
+        Random expected = new Random(1L);
         assertEquals(expected.nextInt(), actual.nextInt());
         assertEquals(1, calls.get());
     }
@@ -231,15 +245,6 @@ class GeneratorConfigTest {
 
         assertTrue(derived.isSecureRandom());
         assertTrue(derived.createRandom() instanceof SecureRandom);
-    }
-
-    @Test
-    @DisplayName("seeded generation stays deterministic even with secure random opt-in")
-    void seedWinsOverSecureRandomOptIn() {
-        GeneratorConfig c = GeneratorConfig.builder().seed(42L).secureRandom().build();
-
-        assertEquals(-1170105035, c.createRandom().nextInt());
-        assertFalse(c.createRandom() instanceof SecureRandom);
     }
 
     @Test
@@ -527,7 +532,6 @@ class GeneratorConfigTest {
     void toBuilderCopiesAndDerives() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T10:15:30Z"), ZoneId.of("Europe/London"));
-        Random random = new Random(5L);
         SemanticFieldRegistry semanticRegistry = SemanticFieldRegistry.defaults().toBuilder()
                                                                          .alias("email", "contactMail")
                                                                          .build();
@@ -552,7 +556,6 @@ class GeneratorConfigTest {
                                               .objectExcludeField("password")
                                               .locale(Locale.FRANCE)
                                               .clock(clock)
-                                              .random(random)
                                               .registryContext(context)
                                               .build();
 
@@ -583,7 +586,7 @@ class GeneratorConfigTest {
         assertEquals(Locale.JAPAN, derived.getLocale());
         assertSame(clock, derived.getClock());
         assertSame(context, derived.getRegistryContext());
-        assertSame(random, derived.getRandom().orElseThrow());
+        assertTrue(derived.getRandom().isEmpty());
     }
 
     @Test
@@ -605,5 +608,8 @@ class GeneratorConfigTest {
         String    password;
         Integer   score;
         LocalDate createdAt;
+    }
+
+    private record RandomSourceConfiguration(String name, Consumer<GeneratorConfig.Builder> configure) {
     }
 }

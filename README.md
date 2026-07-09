@@ -101,7 +101,7 @@ krandom's `ObjectGenerator` trades throughput for semantic realism — every fie
 
 ## Randomness model
 
-Unseeded generators use the JDK's fast `Random` by default, which is appropriate for fixture and fake-data generation. Use `GeneratorConfig.builder().seed(...)` when output must be reproducible, `GeneratorConfig.builder().random(myRandom)` when a client owns the PRNG instance, or `GeneratorConfig.builder().secureRandom()` when a consumer explicitly needs a `SecureRandom` source.
+Unseeded generators use the JDK's fast `Random` by default, which is appropriate for fixture and fake-data generation. Use `GeneratorConfig.builder().seed(...)` when output must be reproducible, `GeneratorConfig.builder().random(myRandom)` when a client owns the PRNG instance, `randomFactory(...)` for a fresh custom source per generator, or `secureRandom()` when a consumer explicitly needs a `SecureRandom` source. These source choices are mutually exclusive; `build()` rejects mixed configurations instead of applying call-order precedence.
 
 `Generator.filter(predicate)` is bounded by default and throws if no generated value matches after 10,000 attempts. Use `filter(predicate, maxAttempts)` when a domain-specific predicate is intentionally rare.
 
@@ -117,7 +117,7 @@ Generator<String> emails = Generators.threadLocal(() -> Generators.ofEmail(confi
 
 `Generators.threadLocal(Supplier)` gives each thread its own instance from the supplied factory. What *is* safe to share:
 
-- **`GeneratorConfig`** is immutable and safe to share across threads as configuration (it is not itself a generator).
+- **`GeneratorConfig`** has immutable value fields and is safe to share when its caller-owned `Random`, factory, registry, and other extension objects are also used according to their own concurrency contracts. A configured caller-owned `Random` remains shared mutable state.
 - **`ProviderHub`** registration is thread-safe; complete all registration before sharing the hub for lookups.
 - **`ObjectGenerator` / `ObjectFaker` / `Schema`** are stateful per generation call and must be confined to one thread (one instance per thread).
 

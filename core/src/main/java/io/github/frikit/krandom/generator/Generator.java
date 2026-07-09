@@ -32,11 +32,12 @@ import java.util.stream.Stream;
  * {@link #filter}) let generators be composed without sub-classing.
  *
  * <p><strong>Thread safety:</strong> Instances of {@code Generator} are <em>not thread-safe</em>. Each
- * generator holds its own {@link java.util.Random} instance whose internal state mutates
- * on every call to {@link #generate()}. Sharing a generator across threads without
- * external synchronization will produce corrupted or duplicated output. Use
- * {@code Generators.threadLocal()} to obtain a thread-confined wrapper when
- * concurrent generation is needed.
+ * generator usually holds a mutable random source whose state advances on every call to
+ * {@link #generate()}. The JDK's {@link Random} is memory-safe when shared, but concurrent
+ * calls contend and interleave its sequence, so call order and seeded replay are no longer
+ * deterministic. Other generator state may not be safe to share. Use
+ * {@code Generators.threadLocal()} to obtain a thread-confined generator when concurrent
+ * generation is needed.
  *
  * @param <T> the type of value produced
  */

@@ -32,7 +32,10 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * Immutable configuration shared across generators.
+ * Configuration whose value fields are immutable after construction.
+ *
+ * <p>A caller-owned {@link Random} and a caller-supplied random factory are retained by
+ * reference. Their state, lifecycle, and thread-safety remain the caller's responsibility.
  *
  * <p>Obtain an instance via the fluent {@link Builder}:
  * <pre>{@code
@@ -385,36 +388,41 @@ public final class GeneratorConfig {
     }
 
     /**
-     * Optional caller-owned random instance configured by callers.
+     * Optional caller-owned random instance.
+     *
+     * <p>The instance is retained by reference and is never copied or implicitly reseeded.
      */
     public Optional<Random> getRandom() {
         return Optional.ofNullable(random);
     }
 
     /**
-     * Optional random-factory override configured by callers.
+     * Optional caller-owned random factory.
+     *
+     * <p>The factory is invoked once for each call to {@link #createRandom()} and must
+     * return a non-null source. The factory and returned sources are never implicitly reseeded.
      */
     public Optional<Supplier<Random>> getRandomFactory() {
         return Optional.ofNullable(randomFactory);
     }
 
     /**
-     * Returns {@code true} when unseeded generation should use {@link SecureRandom}.
+     * Returns {@code true} when {@link SecureRandom} is the configured random source.
      */
     public boolean isSecureRandom() {
         return secureRandom;
     }
 
     /**
-     * Creates a random instance honoring custom factory and configured seed.
+     * Obtains the configured random source.
      *
-     * <p>Precedence:
+     * <p>The builder permits exactly one explicit source specification:
      * <ol>
-     *   <li>If a caller-owned random instance is configured, it is used.</li>
-     *   <li>Otherwise, if a random factory is configured, it is used.</li>
-     *   <li>Otherwise, if a seed is configured, {@link Random} is used.</li>
-     *   <li>Otherwise, if secure random is explicitly enabled, {@link SecureRandom} is used.</li>
-     *   <li>Otherwise, {@link Random} is used.</li>
+     *   <li>A caller-owned instance is returned unchanged on every call.</li>
+     *   <li>A configured factory is invoked on every call.</li>
+     *   <li>A seed creates a fresh {@link Random} at the same initial state on every call.</li>
+     *   <li>Secure mode creates a fresh {@link SecureRandom} on every call.</li>
+     *   <li>With no explicit source, a fresh unseeded {@link Random} is created.</li>
      * </ol>
      */
     public Random createRandom() {
@@ -422,9 +430,7 @@ public final class GeneratorConfig {
             return random;
         }
         if (randomFactory != null) {
-            Random random = Objects.requireNonNull(randomFactory.get(), "randomFactory returned null");
-            seed.ifPresent(random::setSeed);
-            return random;
+            return Objects.requireNonNull(randomFactory.get(), "randomFactory returned null");
         }
         if (seed.isPresent()) {
             return new Random(seed.getAsLong());
@@ -570,6 +576,9 @@ public final class GeneratorConfig {
 
         /**
          * Fix the PRNG seed for reproducible output.
+         *
+         * <p>A seed cannot be combined with {@link #random(Random)},
+         * {@link #randomFactory(Supplier)}, or {@link #secureRandom()}.
          */
         public Builder seed(long seed) {
             this.numericSeed = OptionalLong.of(seed);
@@ -579,6 +588,8 @@ public final class GeneratorConfig {
 
         /**
          * Derive a deterministic numeric seed from a non-blank string.
+         *
+         * <p>A seed cannot be combined with another random-source specification.
          */
         public Builder seed(String seedText) {
             Objects.requireNonNull(seedText, "seedText");
@@ -592,41 +603,41 @@ public final class GeneratorConfig {
 
         /**
          * Use a caller-owned random instance for generated values.
+         *
+         * <p>The instance is retained by reference, returned unchanged, and never reseeded.
+         * It cannot be combined with a seed, random factory, or secure mode.
          */
         public Builder random(Random random) {
             this.random = Objects.requireNonNull(random, "random");
-            this.randomFactory = null;
-            this.secureRandom = false;
             return this;
         }
 
         /**
-         * Inject custom random factory for advanced use cases and tests.
+         * Inject a caller-owned random factory for advanced use cases and tests.
+         *
+         * <p>The factory is invoked once per {@link GeneratorConfig#createRandom()} call.
+         * Its result is not reseeded. It cannot be combined with another source specification.
          */
         public Builder randomFactory(Supplier<? extends Random> randomFactory) {
             Objects.requireNonNull(randomFactory, "randomFactory");
-            this.random = null;
-            this.secureRandom = false;
             this.randomFactory = () -> randomFactory.get();
             return this;
         }
 
         /**
-         * Opt in to {@link SecureRandom} for unseeded generation.
+         * Use fresh {@link SecureRandom} instances for generation.
+         *
+         * <p>Secure mode cannot be combined with another random-source specification.
          */
         public Builder secureRandom() {
             return secureRandom(true);
         }
 
         /**
-         * Controls whether unseeded generation uses {@link SecureRandom}.
+         * Controls whether generation uses fresh {@link SecureRandom} instances.
          */
         public Builder secureRandom(boolean secureRandom) {
             this.secureRandom = secureRandom;
-            if (secureRandom) {
-                this.random = null;
-                this.randomFactory = null;
-            }
             return this;
         }
 
@@ -951,6 +962,14 @@ public final class GeneratorConfig {
         }
 
         public GeneratorConfig build() {
+            int configuredSources = (numericSeed.isPresent() || stringSeed.isPresent()) ? 1 : 0;
+            configuredSources += random == null ? 0 : 1;
+            configuredSources += randomFactory == null ? 0 : 1;
+            configuredSources += secureRandom ? 1 : 0;
+            if (configuredSources > 1) {
+                throw new IllegalStateException(
+                    "Configure only one random source: seed, random, randomFactory, or secureRandom");
+            }
             return new GeneratorConfig(this);
         }
     }
