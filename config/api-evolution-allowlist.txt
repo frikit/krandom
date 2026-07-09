@@ -33,3 +33,6 @@ io.github.frikit.krandom.generator.object.ObjectFaker
 # fields changes class-level metadata even though serialization remains compatible.
 io.github.frikit.krandom.generator.object.exception.ObjectGenerationException
 io.github.frikit.krandom.generator.schema.SchemaGenerationException
+# Field remains KEEP; this class-level entry covers the package-private reference-membership
+# probe used by SchemaParser. No public member is added or removed.
+io.github.frikit.krandom.generator.schema.Field

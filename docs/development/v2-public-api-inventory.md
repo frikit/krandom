@@ -117,6 +117,8 @@ japicmp.
 `GeneratorConfig` and its builder also retain **KEEP** dispositions; their exact class-level
 classifications cover private listener storage, while the accessor and builder method above are
 the complete additive public surface.
+`Field` remains **KEEP** with no new public members; its exact class-level classification covers
+the package-private non-throwing membership probe used by schema semantic resolution.
 
 ## Integration exceptions
 

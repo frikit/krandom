@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Object-generation assignment, container, nested, unsupported-type, and semantic-reflection failures now share one strict/lenient policy with standardized value-sanitized diagnostics and unchanged documented fallbacks.
 - `ObjectFaker` nested rule, include, and ignore reflection failures now report sanitized root-relative target paths and preserve the original cause.
 - Schema value-provider and metadata-export failures now have distinct operations and messages; metadata export no longer reports a synthetic record index.
+- Schema semantic resolution now probes reference membership explicitly instead of swallowing arbitrary runtime failures during binding.
 
 ## [1.5.0] - 2026-06-22
 

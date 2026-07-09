@@ -50,7 +50,7 @@ diagnostic events.
 | GFI-15 | `ObjectFaker` nested include/rule/ignore operations | Assignment and reflection failures report root-relative target paths, declared type, depth, operation, and unwrapped cause | Boundary wrapper | Complete |
 | GFI-16 | `Schema.generateAtIndex` | Provider failures report `SCHEMA_VALUE`, `GENERATE`, field path, record index, and original cause | Boundary wrapper | Complete |
 | GFI-17 | `Schema.toJsonSchema` | Metadata-provider failures report `SCHEMA_METADATA`, `EXPORT_SCHEMA`, field path, no record index, and an operation-specific message | Boundary wrapper | Complete |
-| GFI-18 | `SchemaParser.trySemanticResolve` | Broad `RuntimeException` means “reference not found” | Probe with excessive catch | Replace exception-driven probing or narrow it to the provider's documented missing-reference failure |
+| GFI-18 | `SchemaParser.trySemanticResolve` | Explicit non-throwing membership checks distinguish missing references before binding | Probe | Complete; binding failures are no longer swallowed as lookup misses |
 | GFI-19 | `JsonSchemaSupport` and schema record conversion | Record accessor failures become `IllegalArgumentException` | Boundary wrapper | Convert to the shared schema failure context with component path |
 | GFI-20 | URL conversion helpers | Conversion failures preserve the cause | Strict failure | Keep the now-sanitized message; never include the generated URI |
 
@@ -116,7 +116,7 @@ and cause class, not the generated value or third-party exception message.
 
 ### Slice D — Schema and diagnostics
 
-- Migrate GFI-15 through GFI-19. **GFI-15 through GFI-17 complete.**
+- Migrate GFI-15 through GFI-19. **GFI-15 through GFI-18 complete.**
 - Add the sanitized diagnostic listener. **Complete.**
 - Add replay identity after Step 2.7 defines the recipe contract.
 

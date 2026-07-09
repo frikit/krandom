@@ -390,20 +390,14 @@ public final class SchemaParser {
         String normalized = normalizeFieldName(fieldName);
 
         // Try direct reference resolution
-        try {
+        if (field.hasReference(normalized)) {
             return field.bind(normalized);
-        } catch (RuntimeException ignored) {
-            // Not a known reference
         }
 
         // Try common semantic mappings
         String semanticRef = semanticReference(normalized);
-        if (semanticRef != null) {
-            try {
-                return field.bind(semanticRef);
-            } catch (RuntimeException ignored) {
-                // Not resolvable
-            }
+        if (semanticRef != null && field.hasReference(semanticRef)) {
+            return field.bind(semanticRef);
         }
 
         return null;
