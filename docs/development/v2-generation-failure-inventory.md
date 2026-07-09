@@ -1,6 +1,6 @@
 # V2 Generation Failure Inventory
 
-**Status:** Implementation in progress; Slices A through C, GFI-01, GFI-05, and GFI-09 complete
+**Status:** Core migration complete; replay identity is deferred to Step 2.7
 **Scope:** Core object generation, object faker rules, schema generation, and schema inference
 **Audience:** Maintainers implementing Stage 2 of the v2 master plan
 

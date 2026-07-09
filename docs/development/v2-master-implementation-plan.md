@@ -1,7 +1,7 @@
 # kRandom v2 Master Implementation Plan
 
 **Created:** 2026-07-09
-**Status:** Ready for execution
+**Status:** In progress
 **Source review:** [`../reviews/v2-release-readiness-review-2026-07-09.md`](../reviews/v2-release-readiness-review-2026-07-09.md)
 **Current line:** `1.6.0-SNAPSHOT`
 **Target:** A stable v2 contract followed by controlled adoption across consumer projects
@@ -345,7 +345,7 @@ while keeping the seven published modules explicit.
 - [x] Route explicit lenient behavior through one policy rather than scattered catch blocks.
 - [x] Prevent exception messages from printing generated personal-looking values.
 - [x] Define an optional sanitized diagnostic event/listener containing failure category, path, and replay-recipe identity without generated personal-looking values.
-- [ ] Preserve causes and add context at the correct boundary rather than wrapping repeatedly.
+- [x] Preserve causes and add context at the correct boundary rather than wrapping repeatedly.
 
 **Tests**
 
@@ -356,13 +356,18 @@ while keeping the seven published modules explicit.
 
 **Done when:** Unsupported or failed generation is diagnosable without debugging internal reflection code.
 
+All inventoried core boundaries are migrated. The remaining JPMS-specific access-denial consumer
+is intentionally implemented in Step 3.8, where a real named module can verify `opens` behavior.
+
 ### Step 2.2 — Replace shallow generic handling with a recursive type model
 
 **Depends on:** 2.1.
 
+**Characterization:** [`v2-recursive-type-model.md`](v2-recursive-type-model.md)
+
 **Actions**
 
-- [ ] Characterize the current `Class<?>`/`Type` conversion paths.
+- [x] Characterize the current `Class<?>`/`Type` conversion paths.
 - [ ] Model classes, parameterized types, generic arrays, wildcards, and type variables recursively.
 - [ ] Carry annotations and the full field path into nested resolution.
 - [ ] Define supported wildcard/type-variable bounds and fail clearly for unsupported ambiguity.
