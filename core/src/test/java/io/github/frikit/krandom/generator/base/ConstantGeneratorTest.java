@@ -33,6 +33,7 @@ class ConstantGeneratorTest {
     }
 
     @Test
+    @SuppressWarnings("removal")
     @DisplayName("object identity is preserved")
     void objectIdentityIsPreserved() {
         List<String> value = new ArrayList<>();

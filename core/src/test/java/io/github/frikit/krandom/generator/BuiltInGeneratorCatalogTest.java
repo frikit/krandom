@@ -215,7 +215,7 @@ class BuiltInGeneratorCatalogTest {
     @DisplayName("misc, network, identifier, and domain randomizers have native replacements")
     void miscNetworkIdentifierAndDomainRandomizersHaveNativeReplacements() {
         assertInstanceOf(Boolean.class, Generators.ofBoolean().generate());
-        assertEquals("fixed", Generators.constant("fixed").generate());
+        assertEquals("fixed", Generators.ofConstant("fixed").generate());
         assertInstanceOf(Locale.class, Generators.ofLocale().generate());
         assertInstanceOf(UUID.class, Generators.ofUuid().generate());
         assertInstanceOf(URI.class, Generators.ofURI().generate());

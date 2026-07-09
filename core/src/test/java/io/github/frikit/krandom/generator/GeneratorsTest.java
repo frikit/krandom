@@ -129,6 +129,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -404,39 +405,45 @@ class GeneratorsTest {
     // ── Selection / helper-style generators ──────────────────────────────────
 
     @Test
-    @DisplayName("pickFrom(source) returns PickGenerator")
-    void pickFrom() {
-        assertInstanceOf(PickGenerator.class, Generators.pickFrom(List.of("a", "b")));
-    }
-
-    @Test
-    @DisplayName("pick(source) returns PickGenerator alias")
-    void pickAlias() {
+    @DisplayName("pick(source) returns PickGenerator")
+    void pick() {
         assertInstanceOf(PickGenerator.class, Generators.pick(List.of("a", "b")));
     }
 
     @Test
-    @DisplayName("pickSetFrom(source, count) returns PickSetGenerator")
-    void pickSetFrom() {
-        assertInstanceOf(PickSetGenerator.class, Generators.pickSetFrom(List.of(1, 2, 3), 2));
+    @SuppressWarnings("removal")
+    @DisplayName("pickFrom(source) delegates to canonical pick behavior")
+    void pickFromAlias() {
+        assertEquals("only", Generators.pickFrom(List.of("only")).generate());
     }
 
     @Test
-    @DisplayName("pickset(source, count) returns PickSetGenerator alias")
-    void pickSetAlias() {
-        assertInstanceOf(PickSetGenerator.class, Generators.pickset(List.of(1, 2, 3), 2));
+    @DisplayName("pickSet(source, count) returns PickSetGenerator")
+    void pickSet() {
+        assertInstanceOf(PickSetGenerator.class, Generators.pickSet(List.of(1, 2, 3), 2));
     }
 
     @Test
-    @DisplayName("shuffleOf(source) returns ShuffleGenerator")
-    void shuffleOf() {
-        assertInstanceOf(ShuffleGenerator.class, Generators.shuffleOf(List.of(1, 2, 3)));
+    @SuppressWarnings("removal")
+    @DisplayName("legacy pick-set aliases delegate to canonical pickSet behavior")
+    void pickSetAliases() {
+        assertAll(
+            () -> assertEquals(List.of(1), Generators.pickSetFrom(List.of(1), 1).generate()),
+            () -> assertEquals(List.of(1), Generators.pickset(List.of(1), 1).generate())
+        );
     }
 
     @Test
-    @DisplayName("shuffle(source) returns ShuffleGenerator alias")
-    void shuffleAlias() {
+    @DisplayName("shuffle(source) returns ShuffleGenerator")
+    void shuffle() {
         assertInstanceOf(ShuffleGenerator.class, Generators.shuffle(List.of(1, 2, 3)));
+    }
+
+    @Test
+    @SuppressWarnings("removal")
+    @DisplayName("shuffleOf(source) delegates to canonical shuffle behavior")
+    void shuffleOfAlias() {
+        assertEquals(List.of(1), Generators.shuffleOf(List.of(1)).generate());
     }
 
     @Test

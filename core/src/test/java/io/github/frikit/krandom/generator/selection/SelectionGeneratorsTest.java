@@ -177,6 +177,7 @@ class SelectionGeneratorsTest {
     }
 
     @Test
+    @SuppressWarnings("removal")
     @DisplayName("Generators.uniqueValues alias wraps source generator")
     void generatorsUniqueValuesAliasWorks() {
         Generator<Integer> bounded = new Generator<>() {

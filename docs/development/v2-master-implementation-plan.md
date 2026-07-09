@@ -212,18 +212,18 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 **Actions**
 
-- [ ] Deprecate redundant facade aliases and point to one canonical name per operation.
+- [x] Deprecate redundant facade aliases and point to one canonical name per operation.
 - [ ] Deprecate global registry mutations that will be replaced by scoped contexts.
 - [ ] Deprecate ambiguous reseeding fallbacks that cannot preserve the v2 contract.
-- [ ] Add `@since`, `@Deprecated(since = "1.6", forRemoval = true)`, and migration examples.
-- [ ] Keep deprecated methods as thin delegates; do not duplicate behavior.
-- [ ] Add a v1.6-to-v2 migration table organized by common use case.
+- [x] Add `@since`, `@Deprecated(since = "1.6", forRemoval = true)`, and migration examples.
+- [x] Keep deprecated methods as thin delegates; do not duplicate behavior.
+- [x] Add a v1.6-to-v2 migration table organized by common use case.
 
 **Tests**
 
-- [ ] Deprecated and canonical entry points return equivalent values under the same configuration.
-- [ ] Javadocs contain valid replacement links.
-- [ ] Consumer examples compile with deprecation warnings enabled.
+- [x] Deprecated and canonical entry points return equivalent values under the same configuration.
+- [x] Javadocs contain valid replacement links.
+- [x] Consumer examples compile with deprecation warnings enabled.
 
 **Done when:** Every planned safe removal has a working 1.6 replacement path.
 

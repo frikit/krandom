@@ -8,3 +8,6 @@
 #
 # Never add package-wide wildcards. This file classifies evolution; the separate
 # compatibility gate still checks allowed elements for binary/source breakage.
+
+# 1.6 canonical replacement for pickSetFrom/pickset; see v2-public-api-inventory.md.
+io.github.frikit.krandom.generator.Generators#pickSet(java.util.List,int)
