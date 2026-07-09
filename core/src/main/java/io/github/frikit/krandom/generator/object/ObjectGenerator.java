@@ -331,16 +331,16 @@ public final class ObjectGenerator<T> implements Generator<T> {
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
+                String fieldContext = "field '" + field.getDeclaringClass().getSimpleName()
+                                      + "." + field.getName() + "' (declared type "
+                                      + field.getGenericType().getTypeName() + ", depth " + depth + ")";
                 if (!config.isIgnoreErrors()) {
-                    throw new ObjectGenerationException(
-                        "Could not set field '" + field.getDeclaringClass().getSimpleName()
-                        + "." + field.getName() + "' to value " + value, e);
+                    throw new ObjectGenerationException("Could not set " + fieldContext, e);
                 }
                 // ignoreErrors=true: leave field at its initialized value, but keep the
-                // failure diagnosable via FINE logging.
-                LOGGER.debug("Ignored object-generation failure: could not set field '"
-                            + field.getDeclaringClass().getSimpleName() + "." + field.getName()
-                            + "' to value " + value + " (" + e + ")");
+                // failure diagnosable without logging generated values or exception messages.
+                LOGGER.debug("Ignored object-generation failure: could not set " + fieldContext
+                             + "; cause=" + e.getClass().getName());
             }
         }
         coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting);

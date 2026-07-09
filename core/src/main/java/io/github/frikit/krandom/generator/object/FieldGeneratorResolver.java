@@ -332,7 +332,7 @@ final class FieldGeneratorResolver {
         try {
             return uri.toURL();
         } catch (MalformedURLException | IllegalArgumentException e) {
-            throw new ObjectGenerationException("Generated URI could not be converted to URL: " + uri, e);
+            throw new ObjectGenerationException("Generated URI could not be converted to URL", e);
         }
     }
 
@@ -1443,7 +1443,9 @@ final class FieldGeneratorResolver {
                 pool.end(nestedType, null);
                 if (config.isIgnoreErrors()) {
                     LOGGER.debug("Ignored nested generation failure for field '"
-                                + ownerType.getSimpleName() + "." + fieldName + "': " + e);
+                                + ownerType.getSimpleName() + "." + fieldName + "' (declared type "
+                                + rawType.getTypeName() + ", depth " + currentDepth + "); cause="
+                                + e.getClass().getName());
                     return null;
                 }
                 throw e;
@@ -1451,7 +1453,9 @@ final class FieldGeneratorResolver {
                 pool.end(nestedType, null);
                 if (config.isIgnoreErrors()) {
                     LOGGER.debug("Ignored nested generation failure for field '"
-                                + ownerType.getSimpleName() + "." + fieldName + "': " + e);
+                                + ownerType.getSimpleName() + "." + fieldName + "' (declared type "
+                                + rawType.getTypeName() + ", depth " + currentDepth + "); cause="
+                                + e.getClass().getName());
                     return null;
                 }
                 throw new ObjectGenerationException(

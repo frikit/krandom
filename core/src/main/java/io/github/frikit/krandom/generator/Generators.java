@@ -2766,7 +2766,7 @@ public final class Generators {
         try {
             return uri.toURL();
         } catch (MalformedURLException | IllegalArgumentException e) {
-            throw new IllegalStateException("Generated URI could not be converted to URL: " + uri, e);
+            throw new IllegalStateException("Generated URI could not be converted to URL", e);
         }
     }
 

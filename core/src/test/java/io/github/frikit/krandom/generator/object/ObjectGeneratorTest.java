@@ -1022,7 +1022,23 @@ class ObjectGeneratorTest {
                                                              .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
                                                              .ignoreErrors(true)
                                                              .build();
-            assertDoesNotThrow(() -> new ObjectGenerator<>(Address.class, cfg).generate());
+            Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerator.class);
+            ListAppender<ILoggingEvent> appender = new ListAppender<>();
+            appender.start();
+            Level previousLevel = logger.getLevel();
+            logger.setLevel(Level.DEBUG);
+            logger.addAppender(appender);
+            try {
+                assertDoesNotThrow(() -> new ObjectGenerator<>(Address.class, cfg).generate());
+                assertTrue(appender.list.stream()
+                                        .anyMatch(event -> event.getFormattedMessage().contains(
+                                            "field 'Address.houseNumber' (declared type int, depth 0)")));
+                assertFalse(appender.list.stream()
+                                         .anyMatch(event -> event.getFormattedMessage().contains("NOT_AN_INT")));
+            } finally {
+                logger.detachAppender(appender);
+                logger.setLevel(previousLevel);
+            }
         }
 
         @Test
@@ -1031,8 +1047,12 @@ class ObjectGeneratorTest {
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
                                                              .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
                                                              .build();
-            assertThrows(ObjectGenerationException.class,
-                         () -> new ObjectGenerator<>(Address.class, cfg).generate());
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(Address.class, cfg).generate());
+
+            assertEquals("Could not set field 'Address.houseNumber' (declared type int, depth 0)",
+                         error.getMessage());
         }
     }
 }

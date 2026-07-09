@@ -331,7 +331,7 @@ while keeping the seven published modules explicit.
 **Goal**: Make object creation, constraints, random sources, registries, and sensitive data explicit and correct before higher-level adapters depend on them.
 **Success Criteria**: Default generation returns valid supported values or one contextual exception; all P0 core-contract tests pass; deterministic recipes replay across core generation paths.
 **Tests**: Focused red/green unit tests, black-box object fixtures, Hibernate Validator integration, golden seed streams, concurrency/replay tests, resource/registry tests, and the full pre-commit gate.
-**Status**: Not Started
+**Status**: In Progress
 
 ### Step 2.1 — Introduce a contextual generation failure model
 
@@ -343,7 +343,7 @@ while keeping the seven published modules explicit.
 - [ ] Define a small failure hierarchy with operation, owner type, field/schema path, declared type, depth, and root cause.
 - [ ] Make strict behavior the default.
 - [ ] Route explicit lenient behavior through one policy rather than scattered catch blocks.
-- [ ] Prevent exception messages from printing generated personal-looking values.
+- [x] Prevent exception messages from printing generated personal-looking values.
 - [ ] Define an optional sanitized diagnostic event/listener containing failure category, path, and replay-recipe identity without generated personal-looking values.
 - [ ] Preserve causes and add context at the correct boundary rather than wrapping repeatedly.
 

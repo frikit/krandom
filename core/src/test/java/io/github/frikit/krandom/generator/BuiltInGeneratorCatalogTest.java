@@ -253,6 +253,7 @@ class BuiltInGeneratorCatalogTest {
             () -> generatorToUrl.invoke(null, URI.create("relative/path"))
         );
         assertInstanceOf(IllegalStateException.class, generatorFailure.getCause());
+        assertEquals("Generated URI could not be converted to URL", generatorFailure.getCause().getMessage());
 
         Class<?> resolverClass = Class.forName("io.github.frikit.krandom.generator.object.FieldGeneratorResolver");
         Method resolverToUrl = resolverClass.getDeclaredMethod("toUrl", URI.class);
@@ -262,6 +263,7 @@ class BuiltInGeneratorCatalogTest {
             () -> resolverToUrl.invoke(null, URI.create("relative/path"))
         );
         assertInstanceOf(ObjectGenerationException.class, resolverFailure.getCause());
+        assertEquals("Generated URI could not be converted to URL", resolverFailure.getCause().getMessage());
     }
 
     @Test
