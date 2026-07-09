@@ -68,14 +68,15 @@ class ObjectGeneratorArrayTest {
     // ── Array.set IllegalArgumentException path ───────────────────────────────
 
     @Test
-    @DisplayName("Array.set IAE (incompatible element type) is caught silently; array slots default to 0")
+    @DisplayName("lenient Array.set failure leaves primitive array slots at the JVM default")
     @SuppressWarnings({ "unchecked", "rawtypes" })
     void arraySetIllegalArgumentExceptionHandled() {
-        // Supply a String where int[] expects Integer — Array.set throws IAE, caught internally.
+        // Supply a String where int[] expects Integer — lenient mode keeps the JVM default.
         // Raw-typed generator used here to deliberately pass the wrong value type.
         var badGen = (io.github.frikit.krandom.generator.Generator) () -> "NOT_AN_INT";
         ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
                                                          .override((Class) int.class, badGen)
+                                                         .ignoreErrors(true)
                                                          .build();
         WithIntArray obj = assertDoesNotThrow(
             () -> new ObjectGenerator<>(WithIntArray.class, cfg).generate(),

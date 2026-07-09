@@ -1505,8 +1505,28 @@ final class FieldGeneratorResolver {
             Object el = resolveAndGenerate(comp, fieldName + "[]", ownerType, depth);
             try {
                 Array.set(arr, i, el);
-            } catch (IllegalArgumentException ignored) {
-                // null into a primitive slot — leave the JVM default (0 / false)
+            } catch (IllegalArgumentException e) {
+                String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
+                String declaredType = arrayType.getTypeName();
+                if (config.isIgnoreErrors()) {
+                    LOGGER.debug("Ignored array insertion failure at '" + elementPath
+                                 + "' (declared type " + declaredType + ", depth " + depth
+                                 + "); cause=" + e.getClass().getName());
+                    continue;
+                }
+                GenerationFailureContext context = new GenerationFailureContext(
+                    GenerationFailureCategory.COLLECTION_INSERTION,
+                    GenerationOperation.INSERT,
+                    elementPath,
+                    ownerType,
+                    declaredType,
+                    depth,
+                    -1);
+                throw new ObjectGenerationException(
+                    "Could not insert array element at '" + elementPath + "' (declared type "
+                    + declaredType + ", depth " + depth + ")",
+                    context,
+                    e);
             }
         }
         return arr;

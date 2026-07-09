@@ -170,11 +170,45 @@ class FieldGeneratorResolverCollectionFallbackTest {
         assertNull(holder.values);
     }
 
+    @Test
+    @DisplayName("strict primitive-array insertion failure reports indexed context")
+    void strictPrimitiveArrayInsertionFailureIsContextual() {
+        GeneratorConfig config = arrayFailureConfig(false);
+
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(PrimitiveArrayHolder.class, config).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.COLLECTION_INSERTION, context.category());
+        assertEquals(GenerationOperation.INSERT, context.operation());
+        assertEquals("PrimitiveArrayHolder.values[0]", context.path());
+        assertEquals("int[]", context.declaredType());
+    }
+
+    @Test
+    @DisplayName("lenient primitive-array insertion failure keeps the JVM default")
+    void lenientPrimitiveArrayInsertionFailureUsesDefault() {
+        PrimitiveArrayHolder holder = new ObjectGenerator<>(PrimitiveArrayHolder.class, arrayFailureConfig(true)).generate();
+
+        assertEquals(1, holder.values.length);
+        assertEquals(0, holder.values[0]);
+    }
+
     private static GeneratorConfig mapFailureConfig(boolean ignoreErrors) {
         return GeneratorConfig.builder()
                               .collectionSize(1, 1)
                               .objectIgnoreErrors(ignoreErrors)
                               .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                              .build();
+    }
+
+    private static GeneratorConfig arrayFailureConfig(boolean ignoreErrors) {
+        return GeneratorConfig.builder()
+                              .collectionSize(1, 1)
+                              .objectIgnoreErrors(ignoreErrors)
+                              .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                              .objectOverride(int.class, () -> null)
                               .build();
     }
 
@@ -259,5 +293,10 @@ class FieldGeneratorResolverCollectionFallbackTest {
     static final class ThrowingMapHolder {
 
         ThrowingPutMap<String, Integer> values;
+    }
+
+    static final class PrimitiveArrayHolder {
+
+        int[] values;
     }
 }
