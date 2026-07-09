@@ -1,6 +1,6 @@
 # V2 Recursive Type Model
 
-**Status:** Characterized; implementation pending
+**Status:** Implementation in progress; Slices A and B complete
 **Scope:** Object fields, Java records, constructor parameters, containers, schema metadata, and Kotlin hand-off
 
 ## Purpose
@@ -65,11 +65,17 @@ still being proven.
   arrays.
 - Do not change generated values in this slice.
 
+**Complete.** `ResolvedType` retains recursive arguments, components, effective bounds, bindings,
+signatures, and explicit unresolved reasons without adding public API.
+
 ### Slice B — Containers and optionals
 
 - Replace `typeArg(...)` with recursive child nodes.
 - Cover `List<List<String>>`, `Map<String, List<Integer>>`, nested optionals, and records containing
   the same shapes.
+
+**Complete.** Optional, set, list, queue, and map child resolution now passes `ResolvedType` nodes
+through the existing resolver. Mutable fields and Java records share the same behavior.
 
 ### Slice C — Bounds and inherited variables
 

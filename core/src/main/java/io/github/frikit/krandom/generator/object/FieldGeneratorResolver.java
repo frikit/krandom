@@ -46,7 +46,6 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -972,15 +971,14 @@ final class FieldGeneratorResolver {
     // ── Primary entry point ───────────────────────────────────────────────────
 
     /**
-     * Extracts the {@code idx}-th type argument from a {@link ParameterizedType}.
-     * Returns {@code Object.class} when the type is raw or the argument is not a plain class.
+     * Extracts a recursively resolved type argument while retaining raw-container compatibility.
      */
-    private static Class<?> typeArg(Type t, int idx) {
-        if (t instanceof ParameterizedType pt) {
-            var arg = pt.getActualTypeArguments();
-            if (arg[idx] instanceof Class<?> c) return c;
+    private static ResolvedType typeArg(Type type, int index) {
+        ResolvedType resolved = ResolvedType.resolve(type);
+        if (index < resolved.arguments().size()) {
+            return resolved.argument(index);
         }
-        return Object.class; // raw or erased — resolveAndGenerate handles Object gracefully
+        return ResolvedType.resolve(Object.class);
     }
 
     private static Set<Object> toSetType(Class<?> rawType, List<Object> values) {
@@ -1400,8 +1398,8 @@ final class FieldGeneratorResolver {
             if (shouldReturnEmptyOptional(element)) {
                 return Optional.empty();
             }
-            Class<?> valueType = typeArg(genericType, 0);
-            Object value = resolveAndGenerate(valueType, valueType, fieldName + ".value", ownerType, currentDepth, null);
+            ResolvedType valueType = typeArg(genericType, 0);
+            Object value = resolveAndGenerate(valueType, fieldName + ".value", ownerType, currentDepth);
             return Optional.ofNullable(value);
         }
         if (shouldReturnNull(element, rawType, annotationGenerator, bvGen, hasSizeConstraint)) {
@@ -1452,13 +1450,13 @@ final class FieldGeneratorResolver {
 
         // ── 6b. Set ───────────────────────────────────────────────────────────
         if (Set.class.isAssignableFrom(rawType)) {
-            Class<?> elem = typeArg(genericType, 0);
+            ResolvedType elem = typeArg(genericType, 0);
             int elementCount = nextCollectionSize(element);
             Set<Object> values = new LinkedHashSet<>();
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (values.size() < elementCount && attempts++ < maxAttempts) {
-                values.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
+                values.add(resolveAndGenerate(elem, fieldName + "[]", ownerType, currentDepth));
             }
             try {
                 return toSetType(rawType, new ArrayList<>(values));
@@ -1473,11 +1471,11 @@ final class FieldGeneratorResolver {
 
         // ── 6c. List / Queue ──────────────────────────────────────────────────
         if (List.class.isAssignableFrom(rawType) || Queue.class.isAssignableFrom(rawType)) {
-            Class<?> elem = typeArg(genericType, 0);
+            ResolvedType elem = typeArg(genericType, 0);
             int elementCount = nextCollectionSize(element);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
-                els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
+                els.add(resolveAndGenerate(elem, fieldName + "[]", ownerType, currentDepth));
             }
             try {
                 if (List.class.isAssignableFrom(rawType)) {
@@ -1495,8 +1493,8 @@ final class FieldGeneratorResolver {
 
         // ── 6d. Map ───────────────────────────────────────────────────────────
         if (Map.class.isAssignableFrom(rawType)) {
-            Class<?> k = typeArg(genericType, 0);
-            Class<?> v = typeArg(genericType, 1);
+            ResolvedType k = typeArg(genericType, 0);
+            ResolvedType v = typeArg(genericType, 1);
             Map<Object, Object> map;
             try {
                 map = toMapType(rawType);
@@ -1511,8 +1509,8 @@ final class FieldGeneratorResolver {
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (map.size() < elementCount && attempts++ < maxAttempts) {
-                Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth, null);
-                Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth, null);
+                Object key = resolveAndGenerate(k, fieldName + ".key", ownerType, currentDepth);
+                Object val = resolveAndGenerate(v, fieldName + ".value", ownerType, currentDepth);
                 if (key != null) {
                     String entryPath = ownerType.getSimpleName() + "." + fieldName + "[" + map.size() + "]";
                     try {
@@ -1740,6 +1738,14 @@ final class FieldGeneratorResolver {
     Object resolveAndGenerate(Class<?> rawType, String fieldName,
                               Class<?> ownerType, int currentDepth) {
         return resolveAndGenerate(rawType, rawType, fieldName, ownerType, currentDepth, null);
+    }
+
+    private Object resolveAndGenerate(ResolvedType type,
+                                      String fieldName,
+                                      Class<?> ownerType,
+                                      int currentDepth) {
+        Class<?> rawType = Objects.requireNonNullElse(type.rawClass(), Object.class);
+        return resolveAndGenerate(type.declaredType(), rawType, fieldName, ownerType, currentDepth, null);
     }
 
     private Object generateArray(Class<?> arrayType, Class<?> ownerType,
