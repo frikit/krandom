@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator;
 import io.github.frikit.krandom.generator.base.DigitGenerator;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
+import io.github.frikit.krandom.generator.object.FakeRange;
 import io.github.frikit.krandom.generator.provider.TextFormatProvider;
 import io.github.frikit.krandom.generator.schema.Schema;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +18,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -57,6 +62,21 @@ class RandomSourceContractTest {
         assertTrue(random.drawCount() > 0, type + " did not consume the configured Random");
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("objectSpecialPaths")
+    @DisplayName("object special paths consume the configured caller-owned source")
+    void objectSpecialPathsConsumeCallerOwnedSource(String path, Consumer<GeneratorConfig> generate) {
+        TrackingRandom random = new TrackingRandom(42L);
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .random(random)
+                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                                .build();
+
+        generate.accept(config);
+
+        assertTrue(random.drawCount() > 0, path + " did not consume the configured Random");
+    }
+
     private static Stream<Arguments> generatorFamilies() {
         return Stream.of(
             Arguments.of("scalar", (Consumer<GeneratorConfig>) config -> new DigitGenerator(config).generate()),
@@ -85,6 +105,33 @@ class RandomSourceContractTest {
 
     private static Arguments objectType(String name, Class<?> type) {
         return Arguments.of(name, (Consumer<GeneratorConfig>) config -> new ObjectGenerator<>(type, config).generate());
+    }
+
+    private static Stream<Arguments> objectSpecialPaths() {
+        return Stream.of(
+            objectType("enum", EnumFixture.class),
+            objectType("@FakeRange byte", RangedByteFixture.class),
+            objectType("@FakeRange short", RangedShortFixture.class),
+            objectType("@FakeRange int", RangedIntFixture.class),
+            objectType("@FakeRange long", RangedLongFixture.class),
+            objectType("@FakeRange float", RangedFloatFixture.class),
+            objectType("@FakeRange double", RangedDoubleFixture.class),
+            rangedTemporalType("LocalDate", LocalDateFixture.class),
+            rangedTemporalType("LocalDateTime", LocalDateTimeFixture.class),
+            rangedTemporalType("Instant", InstantFixture.class),
+            rangedTemporalType("ZonedDateTime", ZonedDateTimeFixture.class),
+            rangedTemporalType("Date", DateFixture.class),
+            rangedTemporalType("SQL Date", SqlDateFixture.class),
+            rangedTemporalType("SQL Timestamp", SqlTimestampFixture.class));
+    }
+
+    private static Arguments rangedTemporalType(String name, Class<?> type) {
+        return Arguments.of(name, (Consumer<GeneratorConfig>) config -> {
+            GeneratorConfig ranged = config.toBuilder()
+                                           .objectDateRange(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31))
+                                           .build();
+            new ObjectGenerator<>(type, ranged).generate();
+        });
     }
 
     private record ByteFixture(byte value) {
@@ -118,6 +165,53 @@ class RandomSourceContractTest {
     }
 
     private record BigIntegerFixture(BigInteger value) {
+    }
+
+    private record EnumFixture(SourceStatus value) {
+    }
+
+    private record RangedByteFixture(@FakeRange(min = 1, max = 10) byte value) {
+    }
+
+    private record RangedShortFixture(@FakeRange(min = 1, max = 10) short value) {
+    }
+
+    private record RangedIntFixture(@FakeRange(min = 1, max = 10) int value) {
+    }
+
+    private record RangedLongFixture(@FakeRange(min = 1, max = 10) long value) {
+    }
+
+    private record RangedFloatFixture(@FakeRange(min = 1, max = 10) float value) {
+    }
+
+    private record RangedDoubleFixture(@FakeRange(min = 1, max = 10) double value) {
+    }
+
+    private record LocalDateFixture(LocalDate value) {
+    }
+
+    private record LocalDateTimeFixture(LocalDateTime value) {
+    }
+
+    private record InstantFixture(Instant value) {
+    }
+
+    private record ZonedDateTimeFixture(ZonedDateTime value) {
+    }
+
+    private record DateFixture(java.util.Date value) {
+    }
+
+    private record SqlDateFixture(java.sql.Date value) {
+    }
+
+    private record SqlTimestampFixture(java.sql.Timestamp value) {
+    }
+
+    private enum SourceStatus {
+        FIRST,
+        SECOND
     }
 
     private static final class TrackingRandom extends Random {

@@ -451,14 +451,14 @@ while keeping the seven published modules explicit.
 - [x] Enumerate seed, caller random, secure source, algorithm factory, and default-source configurations.
 - [x] Replace ambiguous precedence with mutually exclusive source specifications or builder validation.
 - [x] Define source ownership, lifecycle, thread behavior, and whether a source is reproducible.
-- [ ] Make scalar, object, schema, and provider entry points use the same source creation path.
+- [x] Make scalar, object, schema, and provider entry points use the same source creation path.
 - [x] Correct Javadocs about `Random` thread safety, contention, interleaving, and reproducibility.
 - [x] Prevent configuration from claiming secure mode when it creates a non-secure source.
 
 **Tests**
 
 - [x] Implement a truth-table test for every allowed and rejected source combination.
-- [ ] Prove equivalent configurations behave consistently across generator families.
+- [x] Prove equivalent configurations behave consistently across generator families.
 - [ ] Add concurrent-use tests that distinguish safety from reproducibility.
 - [x] Prove caller-owned sources are not copied or reseeded implicitly.
 

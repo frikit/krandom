@@ -407,12 +407,13 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new DateGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        DateGenerator generator = new DateGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            DateGenerator generator = new DateGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        return () -> randomDate(seedSource, min, max);
     }
 
     private static Generator<LocalDateTime> buildLocalDateTimeGenerator(GeneratorConfig config,
@@ -422,12 +423,13 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new LocalDateTimeGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        LocalDateTimeGenerator generator = new LocalDateTimeGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            LocalDateTimeGenerator generator = new LocalDateTimeGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        return () -> randomLocalDateTime(seedSource, min, max);
     }
 
     private static Generator<Instant> buildInstantGenerator(GeneratorConfig config,
@@ -437,12 +439,13 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new InstantGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        InstantGenerator generator = new InstantGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            InstantGenerator generator = new InstantGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        return () -> randomDate(seedSource, min, max).atStartOfDay().toInstant(ZoneOffset.UTC);
     }
 
     private static Generator<ZonedDateTime> buildZonedDateTimeGenerator(GeneratorConfig config,
@@ -452,12 +455,17 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new ZonedDateTimeGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        ZonedDateTimeGenerator generator = new ZonedDateTimeGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            ZonedDateTimeGenerator generator = new ZonedDateTimeGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        List<String> zoneIds = new ArrayList<>(ZoneId.getAvailableZoneIds());
+        zoneIds.sort(String::compareTo);
+        return () -> ZonedDateTime.of(
+            randomLocalDateTime(seedSource, min, max),
+            ZoneId.of(zoneIds.get(seedSource.nextInt(zoneIds.size()))));
     }
 
     private static Generator<java.util.Date> buildUtilDateGenerator(GeneratorConfig config,
@@ -467,12 +475,15 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new UtilDateGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        UtilDateGenerator generator = new UtilDateGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            UtilDateGenerator generator = new UtilDateGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        long minMillis = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        long maxExclusiveMillis = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        return () -> new java.util.Date(seedSource.nextLong(minMillis, maxExclusiveMillis));
     }
 
     private static Generator<java.sql.Date> buildSqlDateGenerator(GeneratorConfig config,
@@ -482,12 +493,13 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new SqlDateGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        SqlDateGenerator generator = new SqlDateGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            SqlDateGenerator generator = new SqlDateGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        return () -> java.sql.Date.valueOf(randomDate(seedSource, min, max));
     }
 
     private static Generator<java.sql.Timestamp> buildSqlTimestampGenerator(GeneratorConfig config,
@@ -497,12 +509,25 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new SqlTimestampGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        SqlTimestampGenerator generator = new SqlTimestampGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            SqlTimestampGenerator generator = new SqlTimestampGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        long minMillis = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        long maxExclusiveMillis = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        return () -> new java.sql.Timestamp(seedSource.nextLong(minMillis, maxExclusiveMillis));
+    }
+
+    private static LocalDate randomDate(Random source, LocalDate min, LocalDate max) {
+        return LocalDate.ofEpochDay(source.nextLong(min.toEpochDay(), max.toEpochDay() + 1L));
+    }
+
+    private static LocalDateTime randomLocalDateTime(Random source, LocalDate min, LocalDate max) {
+        return LocalDateTime.of(
+            randomDate(source, min, max),
+            LocalTime.of(source.nextInt(24), source.nextInt(60), source.nextInt(60)));
     }
 
     private static Map<String, Generator<?>> buildSemanticStringGenerators(GeneratorConfig config,
@@ -1122,28 +1147,22 @@ final class FieldGeneratorResolver {
         long max = annotation.max();
         Long seed = nextDeterministicSeed(generatorConfig, sequenceRandom);
         if (rawType == int.class || rawType == Integer.class) {
-            return seed != null ? new IntGenerator((int) min, (int) max, seed)
-                                : new IntGenerator((int) min, (int) max);
+            return intGenerator(seed, sequenceRandom, (int) min, (int) max);
         }
         if (rawType == long.class || rawType == Long.class) {
-            return seed != null ? new LongGenerator(min, max, seed)
-                                : new LongGenerator(min, max);
+            return longGenerator(seed, sequenceRandom, min, max);
         }
         if (rawType == double.class || rawType == Double.class) {
-            return seed != null ? new DoubleGenerator(min, max, seed)
-                                : new DoubleGenerator(min, max);
+            return doubleGenerator(seed, sequenceRandom, min, max, null);
         }
         if (rawType == float.class || rawType == Float.class) {
-            return seed != null ? new FloatGenerator(min, max, seed)
-                                : new FloatGenerator(min, max);
+            return floatGenerator(seed, sequenceRandom, min, max, null);
         }
         if (rawType == short.class || rawType == Short.class) {
-            return seed != null ? new ShortGenerator((short) min, (short) max, seed)
-                                : new ShortGenerator((short) min, (short) max);
+            return shortGenerator(seed, sequenceRandom, (short) min, (short) max);
         }
         if (rawType == byte.class || rawType == Byte.class) {
-            return seed != null ? new ByteGenerator((byte) min, (byte) max, seed)
-                                : new ByteGenerator((byte) min, (byte) max);
+            return byteGenerator(seed, sequenceRandom, (byte) min, (byte) max);
         }
         return null;
     }
@@ -1334,7 +1353,10 @@ final class FieldGeneratorResolver {
             Object[] constants = rawType.getEnumConstants();
             if (constants.length == 0) return null;
             Long enumSeed = nextDeterministicSeed(generatorConfig, sequenceRandom);
-            return generateWithUniqueness(fieldName, new EnumGenerator((Class<? extends Enum>) rawType, enumSeed));
+            Generator<?> enumGenerator = enumSeed != null
+                                         ? new EnumGenerator((Class<? extends Enum>) rawType, enumSeed)
+                                         : () -> constants[sequenceRandom.nextInt(constants.length)];
+            return generateWithUniqueness(fieldName, enumGenerator);
         }
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
