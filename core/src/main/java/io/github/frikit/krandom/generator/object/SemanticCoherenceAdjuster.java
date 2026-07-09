@@ -6,6 +6,9 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
@@ -36,32 +39,44 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Applies lightweight sibling-field coherence after structural value generation.
  */
 final class SemanticCoherenceAdjuster {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SemanticCoherenceAdjuster.class);
     private static final Pattern MONEY_FRAGMENT = Pattern.compile("[-+]?\\d+(?:\\.\\d+)?");
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
     private final SemanticFieldRegistry semanticRegistry;
     private final Long generationSeed;
+    private final int depth;
     private       AddressInfo addressInfo;
     private       boolean     addressInfoResolved;
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker) {
-        this(config, uniqueFieldTracker, null);
+        this(config, uniqueFieldTracker, null, 0);
     }
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
                               UniqueFieldTracker uniqueFieldTracker,
                               Long generationSeed) {
+        this(config, uniqueFieldTracker, generationSeed, 0);
+    }
+
+    SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
+                              UniqueFieldTracker uniqueFieldTracker,
+                              Long generationSeed,
+                              int depth) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
         this.semanticRegistry = config.getSemanticRegistry();
         this.generationSeed = generationSeed;
+        this.depth = depth;
     }
 
     void adjustInstance(Class<?> ownerType, Object instance, List<Field> fields, boolean allowOverwriteExisting) {
@@ -77,7 +92,7 @@ final class SemanticCoherenceAdjuster {
                 continue;
             }
             field.setAccessible(true);
-            slots.add(new ReflectionSlot(ownerType, field, instance, config.isIgnoreErrors()));
+            slots.add(new ReflectionSlot(ownerType, field, instance, config.isIgnoreErrors(), depth));
         }
         apply(slots, allowOverwriteExisting);
     }
@@ -949,12 +964,22 @@ final class SemanticCoherenceAdjuster {
         private final Field field;
         private final Object instance;
         private final boolean ignoreErrors;
+        private final int depth;
 
         private ReflectionSlot(Class<?> ownerType, Field field, Object instance, boolean ignoreErrors) {
+            this(ownerType, field, instance, ignoreErrors, 0);
+        }
+
+        private ReflectionSlot(Class<?> ownerType,
+                               Field field,
+                               Object instance,
+                               boolean ignoreErrors,
+                               int depth) {
             this.ownerType = ownerType;
             this.field = field;
             this.instance = instance;
             this.ignoreErrors = ignoreErrors;
+            this.depth = depth;
         }
 
         @Override
@@ -982,8 +1007,17 @@ final class SemanticCoherenceAdjuster {
             try {
                 return field.get(instance);
             } catch (IllegalAccessException e) {
+                GenerationFailureContext context = failureContext(
+                    GenerationFailureCategory.REFLECTION, GenerationOperation.READ);
+                if (ignoreErrors) {
+                    logIgnored("read", context, e);
+                    return null;
+                }
                 throw new ObjectGenerationException(
-                    "Could not read field '" + ownerType.getSimpleName() + "." + field.getName() + "'", e);
+                    "Could not read semantic field at '" + context.path() + "' (declared type "
+                    + context.declaredType() + ", depth " + depth + ")",
+                    context,
+                    e);
             }
         }
 
@@ -992,11 +1026,35 @@ final class SemanticCoherenceAdjuster {
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
+                GenerationFailureContext context = failureContext(
+                    GenerationFailureCategory.ASSIGNMENT, GenerationOperation.ALIGN_SEMANTICS);
                 if (!ignoreErrors) {
                     throw new ObjectGenerationException(
-                        "Could not align field '" + ownerType.getSimpleName() + "." + field.getName() + "'", e);
+                        "Could not align semantic field at '" + context.path() + "' (declared type "
+                        + context.declaredType() + ", depth " + depth + ")",
+                        context,
+                        e);
                 }
+                logIgnored("write", context, e);
             }
+        }
+
+        private GenerationFailureContext failureContext(GenerationFailureCategory category,
+                                                        GenerationOperation operation) {
+            return new GenerationFailureContext(
+                category,
+                operation,
+                ownerType.getSimpleName() + "." + field.getName(),
+                ownerType,
+                field.getGenericType().getTypeName(),
+                depth,
+                -1);
+        }
+
+        private static void logIgnored(String action, GenerationFailureContext context, Exception cause) {
+            LOGGER.debug("Ignored semantic field " + action + " failure at '" + context.path()
+                         + "' (declared type " + context.declaredType() + ", depth " + context.depth()
+                         + "); cause=" + cause.getClass().getName());
         }
     }
 

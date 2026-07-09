@@ -1,6 +1,6 @@
 # V2 Generation Failure Inventory
 
-**Status:** Implementation in progress; Slice A, Slice B, GFI-01, GFI-05, GFI-09, and GFI-11 complete; GFI-10 strict path composition complete
+**Status:** Implementation in progress; Slice A, Slice B, GFI-01, GFI-05, GFI-09, GFI-11, and GFI-13 complete; GFI-10 strict path composition complete
 **Scope:** Core object generation, object faker rules, schema generation, and schema inference
 **Audience:** Maintainers implementing Stage 2 of the v2 master plan
 
@@ -45,7 +45,7 @@ diagnostic events.
 | GFI-10 | `FieldGeneratorResolver` nested generation | Strict mode composes root-relative paths while retaining child category, operation, owner, and original cause; lenient mode returns `null` and logs | Strict/lenient failure | Strict path composition is complete; route leniency through the central policy in Slice C |
 | GFI-11 | `FieldGeneratorResolver` unsupported type branch | Direct unsupported fields report structured context; explicit lenient mode returns the type default | Strict/lenient failure | Keep the erased nested `Object` bridge only until Step 2.2 replaces shallow generic resolution |
 | GFI-12 | `SemanticCoherenceAdjuster` parsing helpers | Invalid URL, currency, and numeric candidates return no semantic match | Probe | Keep as normalization probes; these do not represent failed object generation |
-| GFI-13 | `SemanticCoherenceAdjuster` reflective slots | Read failures throw; write failures throw or are silently ignored | Strict/lenient failure | Use the same field policy and diagnostic event as normal assignment |
+| GFI-13 | `SemanticCoherenceAdjuster` reflective slots | Strict reads/writes report field, declared type, depth, operation, and cause; lenient reads return `null` and writes retain the previous value with sanitized diagnostics | Strict/lenient failure | Complete; route the existing diagnostics through the listener introduced later in Step 2.1 |
 | GFI-14 | `BeanValidationSupport` hierarchy lookup | Missing methods continue interface/superclass search | Probe | Keep the narrow `NoSuchMethodException` control flow |
 | GFI-15 | `ObjectFaker` nested include/rule/ignore operations | Reflection failures are wrapped with a textual path | Boundary wrapper | Reuse the shared path/context model and preserve the original cause |
 | GFI-16 | `Schema.generateAtIndex` | Provider failures become `SchemaGenerationException` with field and record index | Boundary wrapper | Keep as the baseline; add operation and declared/schema path through the shared context model |

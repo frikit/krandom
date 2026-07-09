@@ -236,7 +236,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 uniqueFieldTracker,
                 generationSeed);
         SemanticCoherenceAdjuster coherenceAdjuster =
-            new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed);
+            new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth);
         try {
             return type.isRecord() ? generateRecord(resolver, coherenceAdjuster) : generateClass(resolver, coherenceAdjuster);
         } catch (InvocationTargetException e) {
@@ -272,7 +272,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 generationSeed);
         populateClass(instance,
                       resolver,
-                      new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed),
+                      new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),
                       config.isOverrideDefaultInitialization());
         return instance;
     }

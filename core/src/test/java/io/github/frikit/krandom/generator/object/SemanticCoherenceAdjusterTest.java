@@ -9,12 +9,20 @@ import jakarta.validation.constraints.Size;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -1056,31 +1064,89 @@ class SemanticCoherenceAdjusterTest {
     @DisplayName("reflection slots wrap read and write failures")
     void reflectionSlotsWrapReadAndWriteFailures() throws Exception {
         Constructor<?> constructor = Class.forName("io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$ReflectionSlot")
-                                         .getDeclaredConstructor(Class.class, Field.class, Object.class, boolean.class);
+                                         .getDeclaredConstructor(
+                                             Class.class, Field.class, Object.class, boolean.class, int.class);
         constructor.setAccessible(true);
 
         PrivateValueHolder privateHolder = new PrivateValueHolder();
         Field privateField = PrivateValueHolder.class.getDeclaredField("value");
-        Object slot = constructor.newInstance(PrivateValueHolder.class, privateField, privateHolder, false);
+        Object slot = constructor.newInstance(PrivateValueHolder.class, privateField, privateHolder, false, 3);
 
         Method getValue = slot.getClass().getDeclaredMethod("getValue");
         getValue.setAccessible(true);
         ObjectGenerationException readException =
             assertThrows(ObjectGenerationException.class, () -> invokeMethod(slot, getValue));
-        assertTrue(readException.getMessage().contains("Could not read field"));
+        GenerationFailureContext readContext = readException.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.REFLECTION, readContext.category());
+        assertEquals(GenerationOperation.READ, readContext.operation());
+        assertEquals("PrivateValueHolder.value", readContext.path());
+        assertEquals(String.class.getTypeName(), readContext.declaredType());
+        assertEquals(3, readContext.depth());
+
+        Object lenientReadSlot = constructor.newInstance(
+            PrivateValueHolder.class, privateField, privateHolder, true, 3);
+        assertNull(invokeMethod(lenientReadSlot, getValue));
 
         Field publicField = PublicValueHolder.class.getDeclaredField("value");
-        Object strictSlot = constructor.newInstance(PublicValueHolder.class, publicField, new PublicValueHolder(), false);
+        Object strictSlot = constructor.newInstance(
+            PublicValueHolder.class, publicField, new PublicValueHolder(), false, 4);
         Method setValue = strictSlot.getClass().getDeclaredMethod("setValue", Object.class);
         setValue.setAccessible(true);
         ObjectGenerationException writeException =
             assertThrows(ObjectGenerationException.class, () -> invokeMethod(strictSlot, setValue, 123));
-        assertTrue(writeException.getMessage().contains("Could not align field"));
+        GenerationFailureContext writeContext = writeException.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.ASSIGNMENT, writeContext.category());
+        assertEquals(GenerationOperation.ALIGN_SEMANTICS, writeContext.operation());
+        assertEquals("PublicValueHolder.value", writeContext.path());
+        assertEquals(String.class.getTypeName(), writeContext.declaredType());
+        assertEquals(4, writeContext.depth());
 
         PublicValueHolder ignored = new PublicValueHolder();
-        Object lenientSlot = constructor.newInstance(PublicValueHolder.class, publicField, ignored, true);
+        Object lenientSlot = constructor.newInstance(PublicValueHolder.class, publicField, ignored, true, 4);
         assertDoesNotThrow(() -> invokeMethod(lenientSlot, setValue, 123));
         assertEquals("ok", ignored.value);
+    }
+
+    @Test
+    @DisplayName("lenient reflection diagnostics contain context but no field values")
+    void lenientReflectionDiagnosticsAreSanitized() throws Exception {
+        Constructor<?> constructor = Class.forName(
+            "io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$ReflectionSlot")
+                                              .getDeclaredConstructor(
+                                                  Class.class, Field.class, Object.class, boolean.class, int.class);
+        constructor.setAccessible(true);
+        Field privateField = PrivateValueHolder.class.getDeclaredField("value");
+        Object readSlot = constructor.newInstance(
+            PrivateValueHolder.class, privateField, new PrivateValueHolder(), true, 3);
+        Method getValue = readSlot.getClass().getDeclaredMethod("getValue");
+        getValue.setAccessible(true);
+
+        Field publicField = PublicValueHolder.class.getDeclaredField("value");
+        Object writeSlot = constructor.newInstance(
+            PublicValueHolder.class, publicField, new PublicValueHolder(), true, 4);
+        Method setValue = writeSlot.getClass().getDeclaredMethod("setValue", Object.class);
+        setValue.setAccessible(true);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(SemanticCoherenceAdjuster.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        Level previousLevel = logger.getLevel();
+        logger.setLevel(Level.DEBUG);
+        logger.addAppender(appender);
+        try {
+            assertNull(invokeMethod(readSlot, getValue));
+            assertDoesNotThrow(() -> invokeMethod(writeSlot, setValue, 123));
+
+            List<String> messages = appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+            assertTrue(messages.stream().anyMatch(message -> message.contains("PrivateValueHolder.value")));
+            assertTrue(messages.stream().anyMatch(message -> message.contains("PublicValueHolder.value")));
+            assertFalse(messages.stream().anyMatch(message -> message.contains("hidden")
+                                                               || message.contains("ok")
+                                                               || message.contains("123")));
+        } finally {
+            logger.detachAppender(appender);
+            logger.setLevel(previousLevel);
+        }
     }
 
     private static Object invokeStatic(String name, Class<?>[] parameterTypes, Object... args) throws Exception {
