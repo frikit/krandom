@@ -8,6 +8,9 @@ package io.github.frikit.krandom.generator.object;
 import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.base.BigDecimalGenerator;
 import io.github.frikit.krandom.generator.base.BigIntegerGenerator;
 import io.github.frikit.krandom.generator.base.BooleanGenerator;
@@ -1110,14 +1113,6 @@ final class FieldGeneratorResolver {
         }
     }
 
-    private static void putSafely(Map<Object, Object> target, Object key, Object value) {
-        try {
-            target.put(key, value);
-        } catch (RuntimeException ignored) {
-            // Keep generation resilient for custom maps with stricter insertion rules.
-        }
-    }
-
     private Generator<?> fakeAnnotationGeneratorFor(AnnotatedElement element, Class<?> rawType) {
         Fake annotation = element.getAnnotation(Fake.class);
         if (annotation == null) return null;
@@ -1406,7 +1401,31 @@ final class FieldGeneratorResolver {
                 Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth, null);
                 Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth, null);
                 if (key != null) {
-                    putSafely(map, key, val);
+                    String entryPath = ownerType.getSimpleName() + "." + fieldName + "[" + map.size() + "]";
+                    try {
+                        map.put(key, val);
+                    } catch (RuntimeException e) {
+                        String declaredType = genericType.getTypeName();
+                        if (config.isIgnoreErrors()) {
+                            LOGGER.debug("Ignored map insertion failure at '" + entryPath
+                                         + "' (declared type " + declaredType + ", depth " + currentDepth
+                                         + "); cause=" + e.getClass().getName());
+                            return null;
+                        }
+                        GenerationFailureContext context = new GenerationFailureContext(
+                            GenerationFailureCategory.COLLECTION_INSERTION,
+                            GenerationOperation.INSERT,
+                            entryPath,
+                            ownerType,
+                            declaredType,
+                            currentDepth,
+                            -1);
+                        throw new ObjectGenerationException(
+                            "Could not insert map entry at '" + entryPath + "' (declared type "
+                            + declaredType + ", depth " + currentDepth + ")",
+                            context,
+                            e);
+                    }
                 }
             }
             if (rawType == Map.class) {

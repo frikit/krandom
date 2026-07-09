@@ -5,6 +5,10 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -20,9 +24,10 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("FieldGeneratorResolver collection fallback coverage")
@@ -54,13 +59,6 @@ class FieldGeneratorResolverCollectionFallbackTest {
         Method method = FieldGeneratorResolver.class.getDeclaredMethod("toMapType", Class.class);
         method.setAccessible(true);
         return (Map<Object, Object>) method.invoke(null, rawType);
-    }
-
-    private static void invokePutSafely(Map<Object, Object> target, Object key, Object value) throws Exception {
-        Method method = FieldGeneratorResolver.class.getDeclaredMethod(
-            "putSafely", Map.class, Object.class, Object.class);
-        method.setAccessible(true);
-        method.invoke(null, target, key, value);
     }
 
     private static Object invokeInstantiateCollectionType(Class<?> rawType, Class<?> expectedType) throws Exception {
@@ -148,11 +146,36 @@ class FieldGeneratorResolverCollectionFallbackTest {
     }
 
     @Test
-    @DisplayName("putSafely swallows runtime exceptions from custom maps")
-    void putSafelySwallowsRuntimeException() throws Exception {
-        Map<Object, Object> throwing = new ThrowingPutMap<>();
-        assertDoesNotThrow(() -> invokePutSafely(throwing, "k", "v"));
-        assertTrue(throwing.isEmpty());
+    @DisplayName("strict map insertion failure reports sanitized indexed context")
+    void strictMapInsertionFailureIsContextual() {
+        GeneratorConfig config = mapFailureConfig(false);
+
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(ThrowingMapHolder.class, config).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.COLLECTION_INSERTION, context.category());
+        assertEquals(GenerationOperation.INSERT, context.operation());
+        assertEquals("ThrowingMapHolder.values[0]", context.path());
+        assertTrue(error.getCause() instanceof UnsupportedOperationException);
+        assertFalse(error.getMessage().contains("reject put"));
+    }
+
+    @Test
+    @DisplayName("lenient map insertion failure discards the whole map")
+    void lenientMapInsertionFailureReturnsNull() {
+        ThrowingMapHolder holder = new ObjectGenerator<>(ThrowingMapHolder.class, mapFailureConfig(true)).generate();
+
+        assertNull(holder.values);
+    }
+
+    private static GeneratorConfig mapFailureConfig(boolean ignoreErrors) {
+        return GeneratorConfig.builder()
+                              .collectionSize(1, 1)
+                              .objectIgnoreErrors(ignoreErrors)
+                              .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                              .build();
     }
 
     @Test
@@ -231,5 +254,10 @@ class FieldGeneratorResolverCollectionFallbackTest {
         public V put(K key, V value) {
             throw new UnsupportedOperationException("reject put");
         }
+    }
+
+    static final class ThrowingMapHolder {
+
+        ThrowingPutMap<String, Integer> values;
     }
 }
