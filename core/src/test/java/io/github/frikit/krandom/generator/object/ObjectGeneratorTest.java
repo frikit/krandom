@@ -750,13 +750,21 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("constructor that throws is wrapped in ObjectGenerationException (ReflectiveOperationException path)")
-        void throwingConstructorWrappedInOGE() {
-            // ctor.newInstance() raises InvocationTargetException (a ReflectiveOperationException)
-            // which is caught in generate() and re-thrown as ObjectGenerationException.
-            ObjectGenerationException ex = assertThrows(ObjectGenerationException.class,
-                                                        () -> new ObjectGenerator<>(ThrowingCtor.class).generate());
-            assertNotNull(ex.getCause(), "Expected a cause wrapping the original exception");
+        @DisplayName("constructor that throws reports sanitized root construction context")
+        void throwingConstructorIsContextual() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ThrowingCtor.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
+            assertEquals(GenerationOperation.CONSTRUCT, context.operation());
+            assertEquals("ThrowingCtor", context.path());
+            assertEquals(ThrowingCtor.class, context.ownerType());
+            assertEquals(ThrowingCtor.class.getTypeName(), context.declaredType());
+            assertEquals(0, context.depth());
+            assertTrue(error.getCause() instanceof RuntimeException);
+            assertFalse(error.getMessage().contains("personal-looking-value"));
         }
 
         @Test
@@ -790,7 +798,7 @@ class ObjectGeneratorTest {
             String value;
 
             ThrowingCtor() {
-                throw new RuntimeException("ctor intentionally throws");
+                throw new RuntimeException("personal-looking-value");
             }
         }
     }
@@ -894,12 +902,12 @@ class ObjectGeneratorTest {
                 () -> new ObjectGenerator<>(WithThrowingNestedField.class).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
-            assertEquals(GenerationFailureCategory.REFLECTION, context.category());
-            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
+            assertEquals(GenerationOperation.CONSTRUCT, context.operation());
             assertEquals("WithThrowingNestedField.nested", context.path());
             assertEquals(ThrowsOnCreate.class.getTypeName(), context.declaredType());
-            assertEquals(0, context.depth());
-            assertNotNull(error.getCause());
+            assertEquals(1, context.depth());
+            assertTrue(error.getCause() instanceof RuntimeException);
         }
 
         @Test
@@ -935,6 +943,28 @@ class ObjectGeneratorTest {
             assertEquals(GenerationOperation.GENERATE, context.operation());
             assertEquals("OuterWithInner.inner", context.path());
             assertTrue(error.getCause() instanceof RuntimeException);
+        }
+
+        @Test
+        @DisplayName("legacy nested ObjectGenerationException gains parent context")
+        void legacyNestedFailureGainsParentContext() {
+            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
+                                                             .override(String.class, () -> {
+                                                                 throw new ObjectGenerationException(
+                                                                     "personal-looking-value");
+                                                             })
+                                                             .build();
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals("OuterWithInner.inner", context.path());
+            assertEquals(InnerWithString.class.getTypeName(), context.declaredType());
+            assertNull(error.getCause());
+            assertFalse(error.getMessage().contains("personal-looking-value"));
         }
 
         @Test

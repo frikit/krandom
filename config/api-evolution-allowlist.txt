@@ -16,6 +16,9 @@ io.github.frikit.krandom.generator.Generators#pickSet(java.util.List,int)
 io.github.frikit.krandom.generator.failure.GenerationFailureCategory
 io.github.frikit.krandom.generator.failure.GenerationFailureContext
 io.github.frikit.krandom.generator.failure.GenerationOperation
+# ObjectGenerator remains KEEP; japicmp marks the public class modified when its private
+# construction-context helper changes class metadata. No public member is added or removed.
+io.github.frikit.krandom.generator.object.ObjectGenerator
 # Exact class classification is required because adding explicit legacy serialVersionUID
 # fields changes class-level metadata even though serialization remains compatible.
 io.github.frikit.krandom.generator.object.exception.ObjectGenerationException

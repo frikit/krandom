@@ -1634,7 +1634,9 @@ final class FieldGeneratorResolver {
         GenerationFailureContext child = existing.orElseThrow();
         String nestedRoot = nestedType.getSimpleName();
         String childSuffix;
-        if (child.path().startsWith(nestedRoot + ".")) {
+        if (child.path().equals(nestedRoot)) {
+            childSuffix = "";
+        } else if (child.path().startsWith(nestedRoot + ".")) {
             childSuffix = child.path().substring(nestedRoot.length());
         } else {
             childSuffix = "." + child.path();

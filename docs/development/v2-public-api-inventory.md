@@ -105,6 +105,8 @@ Public Javadocs currently leak the package-private `ObjectGeneratorConfig` type 
 
 The context deliberately excludes generated values and third-party exception messages. Existing
 exception constructors and inheritance remain compatible; the original cause is preserved.
+`ObjectGenerator` remains **KEEP** with no new public member; its exact class-level evolution
+classification covers private construction-context implementation reported by japicmp.
 
 ## Integration exceptions
 

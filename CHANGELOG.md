@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Direct fields with unsupported interface, abstract, `Object`, or JDK types now fail with sanitized structured context by default; explicit lenient mode retains the type-default fallback.
 - `@Randomizer` construction and execution failures now report the sanitized owner field path, operation, and generator type while preserving original or already-structured causes.
 - Strict nested-object failures now compose one root-relative path across every object boundary while retaining the child failure category, operation, owner type, depth, and original cause.
+- Top-level class and record constructor failures now expose sanitized `CONSTRUCTION` context and preserve the original target exception without copying its message.
 
 ## [1.5.0] - 2026-06-22
 

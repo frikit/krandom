@@ -1,6 +1,6 @@
 # V2 Generation Failure Inventory
 
-**Status:** Implementation in progress; Slice A, Slice B, GFI-05, GFI-09, and GFI-11 complete; GFI-10 strict path composition complete
+**Status:** Implementation in progress; Slice A, Slice B, GFI-01, GFI-05, GFI-09, and GFI-11 complete; GFI-10 strict path composition complete
 **Scope:** Core object generation, object faker rules, schema generation, and schema inference
 **Audience:** Maintainers implementing Stage 2 of the v2 master plan
 
@@ -33,7 +33,7 @@ diagnostic events.
 
 | ID | Location | Current behavior | Classification | V2 disposition |
 |---|---|---|---|---|
-| GFI-01 | `ObjectGenerator.generateWithPool` | Wraps top-level reflection failures with the target type | Boundary wrapper | Add operation and root path; preserve the cause only once |
+| GFI-01 | `ObjectGenerator.generateWithPool` | Reports sanitized root construction context and unwraps constructor target failures to their original cause | Boundary wrapper | Complete; nested boundaries retain the construction category, operation, cause, and child depth |
 | GFI-02 | `ObjectGenerator.populateClass` | Field assignment throws in strict mode or leaves the initialized value in lenient mode | Strict/lenient failure | Route both outcomes through one policy; sanitized owner, field, type, and depth are already present |
 | GFI-03 | `ObjectGenerator.instantiate` | Missing no-arg constructor falls through to Objenesis | Policy fallback | Move constructor bypass behind the explicit unsafe-construction policy in Step 2.4 |
 | GFI-04 | `FieldGeneratorResolver.registerSemantic` | Unsupported locale/provider falls back to structural generation | Probe | Keep the typed `UnsupportedOperationException` probe; do not broaden the catch |

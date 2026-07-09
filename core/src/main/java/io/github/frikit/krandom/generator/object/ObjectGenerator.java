@@ -16,6 +16,7 @@ import org.objenesis.ObjenesisStd;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
@@ -238,10 +239,28 @@ public final class ObjectGenerator<T> implements Generator<T> {
             new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed);
         try {
             return type.isRecord() ? generateRecord(resolver, coherenceAdjuster) : generateClass(resolver, coherenceAdjuster);
+        } catch (InvocationTargetException e) {
+            throw constructionFailure(e.getTargetException());
         } catch (ReflectiveOperationException e) {
-            throw new ObjectGenerationException(
-                "Failed to generate instance of " + type.getName() + ": " + e.getMessage(), e);
+            throw constructionFailure(e);
         }
+    }
+
+    private ObjectGenerationException constructionFailure(Throwable cause) {
+        String path = type.getSimpleName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.CONSTRUCTION,
+            GenerationOperation.CONSTRUCT,
+            path,
+            type,
+            type.getTypeName(),
+            depth,
+            -1);
+        return new ObjectGenerationException(
+            "Could not construct type at '" + path + "' (declared type "
+            + type.getTypeName() + ", depth " + depth + ")",
+            context,
+            cause);
     }
 
     private T populateWithPool(T instance) {
