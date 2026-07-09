@@ -45,6 +45,7 @@ import io.github.frikit.krandom.generator.provider.ProviderHub;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -1089,8 +1090,12 @@ final class FieldGeneratorResolver {
             Constructor<?> ctor = rawType.getDeclaredConstructor();
             ctor.setAccessible(true);
             return (T) ctor.newInstance();
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (NoSuchMethodException ignored) {
             return null;
+        } catch (InvocationTargetException e) {
+            throw new CollectionConstructionFailure(e.getTargetException());
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            throw new CollectionConstructionFailure(e);
         }
     }
 
@@ -1128,6 +1133,22 @@ final class FieldGeneratorResolver {
 
         private RuntimeException insertionCause() {
             return insertionCause;
+        }
+    }
+
+    private static final class CollectionConstructionFailure extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        private final Throwable constructionCause;
+
+        private CollectionConstructionFailure(Throwable constructionCause) {
+            super(constructionCause);
+            this.constructionCause = constructionCause;
+        }
+
+        private Throwable constructionCause() {
+            return constructionCause;
         }
     }
 
@@ -1392,6 +1413,9 @@ final class FieldGeneratorResolver {
             } catch (CollectionInsertionFailure failure) {
                 return handleCollectionInsertionFailure(
                     ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
+            } catch (CollectionConstructionFailure failure) {
+                return handleCollectionConstructionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.constructionCause());
             }
         }
 
@@ -1411,6 +1435,9 @@ final class FieldGeneratorResolver {
             } catch (CollectionInsertionFailure failure) {
                 return handleCollectionInsertionFailure(
                     ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
+            } catch (CollectionConstructionFailure failure) {
+                return handleCollectionConstructionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.constructionCause());
             }
         }
 
@@ -1418,7 +1445,13 @@ final class FieldGeneratorResolver {
         if (Map.class.isAssignableFrom(rawType)) {
             Class<?> k = typeArg(genericType, 0);
             Class<?> v = typeArg(genericType, 1);
-            Map<Object, Object> map = toMapType(rawType);
+            Map<Object, Object> map;
+            try {
+                map = toMapType(rawType);
+            } catch (CollectionConstructionFailure failure) {
+                return handleCollectionConstructionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.constructionCause());
+            }
             if (map == null) {
                 return null;
             }
@@ -1538,6 +1571,34 @@ final class FieldGeneratorResolver {
             -1);
         throw new ObjectGenerationException(
             "Could not populate collection at '" + path + "' (declared type "
+            + declaredTypeName + ", depth " + depth + ")",
+            context,
+            cause);
+    }
+
+    private Object handleCollectionConstructionFailure(Class<?> ownerType,
+                                                       String fieldName,
+                                                       Type declaredType,
+                                                       int depth,
+                                                       Throwable cause) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String declaredTypeName = declaredType.getTypeName();
+        if (config.isIgnoreErrors()) {
+            LOGGER.debug("Ignored collection construction failure at '" + path
+                         + "' (declared type " + declaredTypeName + ", depth " + depth
+                         + "); cause=" + cause.getClass().getName());
+            return null;
+        }
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.CONSTRUCTION,
+            GenerationOperation.CONSTRUCT,
+            path,
+            ownerType,
+            declaredTypeName,
+            depth,
+            -1);
+        throw new ObjectGenerationException(
+            "Could not construct collection at '" + path + "' (declared type "
             + declaredTypeName + ", depth " + depth + ")",
             context,
             cause);
