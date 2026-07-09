@@ -6,12 +6,16 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.core.model.Address;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — Optional support")
@@ -42,11 +46,15 @@ class ObjectGeneratorOptionalTest {
     }
 
     @Test
-    @DisplayName("raw Optional type is generated as Optional.empty")
-    void rawOptionalIsGeneratedAsEmpty() {
-        OptionalHolder value = new ObjectGenerator<>(OptionalHolder.class).generate();
-        assertNotNull(value.getRaw());
-        assertTrue(value.getRaw().isEmpty());
+    @DisplayName("raw Optional type fails with unsupported-type context")
+    void rawOptionalFailsWithContext() {
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(RawOptionalHolder.class).generate());
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+        assertEquals("RawOptionalHolder.raw", context.path());
+        assertEquals(Optional.class.getTypeName(), context.declaredType());
     }
 
     @Test
@@ -67,8 +75,6 @@ class ObjectGeneratorOptionalTest {
         private Optional<String>  name;
         private Optional<Integer> age;
         private Optional<Address> address;
-        @SuppressWarnings("rawtypes")
-        private Optional          raw;
 
         Optional<String> getName() {
             return name;
@@ -82,9 +88,11 @@ class ObjectGeneratorOptionalTest {
             return address;
         }
 
+    }
+
+    static class RawOptionalHolder {
+
         @SuppressWarnings("rawtypes")
-        Optional getRaw() {
-            return raw;
-        }
+        private Optional raw;
     }
 }

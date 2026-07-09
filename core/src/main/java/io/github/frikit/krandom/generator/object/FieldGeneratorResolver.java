@@ -981,6 +981,14 @@ final class FieldGeneratorResolver {
         return ResolvedType.resolve(Object.class);
     }
 
+    private static boolean hasResolvedArguments(Type type, Class<?> rawType, int expectedArguments) {
+        ResolvedType resolved = ResolvedType.resolve(type);
+        if (resolved.kind() == ResolvedType.Kind.PARAMETERIZED) {
+            return resolved.arguments().size() == expectedArguments && resolved.isResolved();
+        }
+        return rawType.getTypeParameters().length == 0;
+    }
+
     private static Set<Object> toSetType(Class<?> rawType, List<Object> values) {
         if (rawType == TreeSet.class
             || rawType == SortedSet.class
@@ -1395,6 +1403,9 @@ final class FieldGeneratorResolver {
             return bvGen.generate();
         }
         if (Optional.class == rawType) {
+            if (!hasResolvedArguments(genericType, rawType, 1)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
             if (shouldReturnEmptyOptional(element)) {
                 return Optional.empty();
             }
@@ -1450,6 +1461,9 @@ final class FieldGeneratorResolver {
 
         // ── 6b. Set ───────────────────────────────────────────────────────────
         if (Set.class.isAssignableFrom(rawType)) {
+            if (!hasResolvedArguments(genericType, rawType, 1)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
             ResolvedType elem = typeArg(genericType, 0);
             int elementCount = nextCollectionSize(element);
             Set<Object> values = new LinkedHashSet<>();
@@ -1471,6 +1485,9 @@ final class FieldGeneratorResolver {
 
         // ── 6c. List / Queue ──────────────────────────────────────────────────
         if (List.class.isAssignableFrom(rawType) || Queue.class.isAssignableFrom(rawType)) {
+            if (!hasResolvedArguments(genericType, rawType, 1)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
             ResolvedType elem = typeArg(genericType, 0);
             int elementCount = nextCollectionSize(element);
             List<Object> els = new ArrayList<>(elementCount);
@@ -1493,6 +1510,9 @@ final class FieldGeneratorResolver {
 
         // ── 6d. Map ───────────────────────────────────────────────────────────
         if (Map.class.isAssignableFrom(rawType)) {
+            if (!hasResolvedArguments(genericType, rawType, 2)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
             ResolvedType k = typeArg(genericType, 0);
             ResolvedType v = typeArg(genericType, 1);
             Map<Object, Object> map;

@@ -40,6 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Schema semantic resolution now probes reference membership explicitly instead of swallowing arbitrary runtime failures during binding.
 - Schema record conversion now reports sanitized nested component paths and types while preserving the unwrapped accessor failure.
 - Object generation now preserves nested parameterized types through optionals, collections, maps, mutable fields, and Java record components.
+- Raw containers and unbounded generic arguments now fail contextually by default instead of producing null-filled values; upper/lower wildcard bounds generate their effective type.
 
 ## [1.5.0] - 2026-06-22
 

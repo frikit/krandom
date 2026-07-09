@@ -5,20 +5,29 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.core.model.PersonWithCollections;
 import io.github.frikit.krandom.generator.core.model.Status;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — collection auto-population")
@@ -88,35 +97,104 @@ class ObjectGeneratorCollectionTest {
         }
     }
 
-    // ── Raw (erased) generic type — typeArg returns Object.class ─────────────
+    // ── Unsupported ambiguous generic shapes ─────────────────────────────────
 
     @Test
-    @DisplayName("raw List field (no type argument) is populated with null-element list")
-    void rawListFieldProducesNullElements() {
-        WithRawList obj = new ObjectGenerator<>(WithRawList.class).generate();
-        assertNotNull(obj.items, "raw List must be created");
-        assertFalse(obj.items.isEmpty(), "raw List must have elements");
+    @DisplayName("raw List field fails with the complete field path and signature")
+    void rawListFieldFailsWithContext() {
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(WithRawList.class).generate());
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+        assertEquals("WithRawList.items", context.path());
+        assertEquals(List.class.getTypeName(), context.declaredType());
+        assertTrue(ex.getCause() instanceof UnsupportedOperationException);
     }
 
     @Test
-    @DisplayName("raw Map field (no type argument) is populated with at least one entry")
-    void rawMapFieldProducesEntries() {
-        // Keys resolve to Object.class → null (JDK type, not nestable) → entries may be absent
-        // Map creation itself must not throw.
-        assertDoesNotThrow(
-            () -> new ObjectGenerator<>(WithRawMap.class).generate(),
-            "raw Map field must not cause an exception");
+    @DisplayName("raw Map field fails instead of silently returning an empty map")
+    void rawMapFieldFailsWithContext() {
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(WithRawMap.class).generate());
+        assertEquals("WithRawMap.data", ex.getContext().orElseThrow().path());
     }
 
     @Test
-    @DisplayName("List<? extends Number> field — wildcard type arg falls back to Object.class elements")
-    void wildcardTypeArgFallsBackToObject() {
-        // typeArg returns Object.class for '? extends Number' (not a plain Class<?>)
-        // → elements resolve as Object (JDK bootstrap type → null) → list of nulls
+    @DisplayName("lenient raw List handling discards the whole value and emits context")
+    void lenientRawListReturnsNullAndEmitsDiagnostic() {
+        AtomicReference<GenerationFailureDiagnostic> observed = new AtomicReference<>();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectIgnoreErrors(true)
+                                                .generationFailureListener(observed::set)
+                                                .build();
+
+        WithRawList value = new ObjectGenerator<>(WithRawList.class, config).generate();
+
+        assertNull(value.items);
+        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, observed.get().context().category());
+        assertEquals("WithRawList.items", observed.get().context().path());
+    }
+
+    @Test
+    @DisplayName("lenient raw Set, Map, and Optional handling discards every whole value")
+    void lenientRawContainersReturnNullAndEmitDiagnostics() {
+        List<GenerationFailureDiagnostic> observed = new ArrayList<>();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectIgnoreErrors(true)
+                                                .generationFailureListener(observed::add)
+                                                .build();
+
+        WithRawContainers value = new ObjectGenerator<>(WithRawContainers.class, config).generate();
+
+        assertNull(value.items);
+        assertNull(value.data);
+        assertNull(value.optional);
+        assertEquals(3, observed.size());
+        assertTrue(observed.stream().allMatch(
+            diagnostic -> diagnostic.context().category() == GenerationFailureCategory.UNSUPPORTED_TYPE));
+    }
+
+    @Test
+    @DisplayName("custom list with ambiguous extra type argument fails contextually")
+    void customListWithExtraTypeArgumentFailsContextually() {
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(WithAmbiguousCustomList.class).generate());
+        assertEquals(
+            "io.github.frikit.krandom.generator.object.ObjectGeneratorCollectionTest$TwoArgumentList"
+            + "<java.lang.String, java.lang.Integer>",
+            ex.getContext().orElseThrow().declaredType());
+    }
+
+    @Test
+    @DisplayName("upper-bounded wildcard elements use the effective bound")
+    void upperBoundedWildcardUsesEffectiveBound() {
         WithWildcardList obj = new ObjectGenerator<>(WithWildcardList.class).generate();
-        assertNotNull(obj.items, "list must be created even with wildcard type");
+        assertNotNull(obj.items);
         assertTrue(obj.items.size() >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
         assertTrue(obj.items.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
+        obj.items.forEach(item -> assertTrue(item instanceof Number));
+    }
+
+    @Test
+    @DisplayName("lower-bounded wildcard elements use the effective bound")
+    void lowerBoundedWildcardUsesEffectiveBound() {
+        WithLowerWildcardList obj = new ObjectGenerator<>(WithLowerWildcardList.class).generate();
+        assertNotNull(obj.items);
+        obj.items.forEach(item -> assertTrue(item instanceof Integer));
+    }
+
+    @Test
+    @DisplayName("unbounded wildcard fails with the parent container signature")
+    void unboundedWildcardFailsWithParentSignature() {
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(WithUnboundedWildcardList.class).generate());
+        var context = ex.getContext().orElseThrow();
+        assertEquals("WithUnboundedWildcardList.items", context.path());
+        assertEquals("java.util.List<?>", context.declaredType());
     }
 
 
@@ -126,21 +204,41 @@ class ObjectGeneratorCollectionTest {
         List items;
     }
 
-    // ── Wildcard generic type — typeArg returns Object.class ─────────────────
-
-
     @SuppressWarnings("rawtypes")
     static class WithRawMap {
 
         Map data;
     }
 
+    @SuppressWarnings("rawtypes")
+    static class WithRawContainers {
 
-    /**
-     * Wildcard type argument — {@code typeArg} cannot extract a plain {@link Class}.
-     */
+        Set items;
+        Map data;
+        Optional optional;
+    }
+
+    static class WithAmbiguousCustomList {
+
+        TwoArgumentList<String, Integer> items;
+    }
+
+    static final class TwoArgumentList<E, M> extends ArrayList<E> {
+    }
+
+
     static class WithWildcardList {
 
         List<? extends Number> items;
+    }
+
+    static class WithLowerWildcardList {
+
+        List<? super Integer> items;
+    }
+
+    static class WithUnboundedWildcardList {
+
+        List<?> items;
     }
 }
