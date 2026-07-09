@@ -816,27 +816,36 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("interface-typed field is left null (isInterface branch in isNestableType)")
-        void interfaceFieldLeftNull() {
-            WithInterfaceField obj = new ObjectGenerator<>(WithInterfaceField.class).generate();
-            assertNotNull(obj);
-            assertNull(obj.runner, "interface-typed field should be null");
+        @DisplayName("interface-typed field reports unsupported type in strict mode")
+        void interfaceFieldIsUnsupported() {
+            assertUnsupportedTypeFailure(WithInterfaceField.class, "runner", Runnable.class);
         }
 
         @Test
-        @DisplayName("abstract-class-typed field is left null (isAbstract branch in isNestableType)")
-        void abstractClassFieldLeftNull() {
-            WithAbstractField obj = new ObjectGenerator<>(WithAbstractField.class).generate();
-            assertNotNull(obj);
-            assertNull(obj.base, "abstract-typed field should be null");
+        @DisplayName("abstract-class-typed field reports unsupported type in strict mode")
+        void abstractClassFieldIsUnsupported() {
+            assertUnsupportedTypeFailure(WithAbstractField.class, "base", AbstractBase.class);
         }
 
         @Test
-        @DisplayName("JDK-typed field is left null (startsWith 'java.' branch in isNestableType)")
-        void jdkTypeFieldLeftNull() {
-            WithJdkTypeField obj = new ObjectGenerator<>(WithJdkTypeField.class).generate();
-            assertNotNull(obj);
-            assertNull(obj.locale, "unsupported JDK-typed field should be null");
+        @DisplayName("unsupported JDK-typed field reports context in strict mode")
+        void jdkTypeFieldIsUnsupported() {
+            assertUnsupportedTypeFailure(WithJdkTypeField.class, "locale", java.util.Locale.class);
+        }
+
+        @Test
+        @DisplayName("Object-typed field reports unsupported type in strict mode")
+        void objectFieldIsUnsupported() {
+            assertUnsupportedTypeFailure(WithObjectField.class, "value", Object.class);
+        }
+
+        @Test
+        @DisplayName("explicit lenient mode leaves unsupported fields null")
+        void lenientUnsupportedFieldsAreNull() throws ReflectiveOperationException {
+            assertUnsupportedTypeFallback(WithInterfaceField.class, "runner");
+            assertUnsupportedTypeFallback(WithAbstractField.class, "base");
+            assertUnsupportedTypeFallback(WithJdkTypeField.class, "locale");
+            assertUnsupportedTypeFallback(WithObjectField.class, "value");
         }
 
         @Test
@@ -911,6 +920,33 @@ class ObjectGeneratorTest {
                          () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
         }
 
+        private void assertUnsupportedTypeFailure(Class<?> ownerType,
+                                                  String fieldName,
+                                                  Class<?> declaredType) {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ownerType).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals(ownerType.getSimpleName() + "." + fieldName, context.path());
+            assertEquals(ownerType, context.ownerType());
+            assertEquals(declaredType.getTypeName(), context.declaredType());
+            assertEquals(0, context.depth());
+            assertTrue(error.getCause() instanceof UnsupportedOperationException);
+        }
+
+        private void assertUnsupportedTypeFallback(Class<?> ownerType,
+                                                   String fieldName) throws ReflectiveOperationException {
+            GeneratorConfig config = GeneratorConfig.builder().objectIgnoreErrors(true).build();
+            Object generated = new ObjectGenerator<>(ownerType, config).generate();
+            var field = ownerType.getDeclaredField(fieldName);
+            field.setAccessible(true);
+
+            assertNull(field.get(generated));
+        }
+
 
         enum EmptyStatus {}
 
@@ -943,6 +979,12 @@ class ObjectGeneratorTest {
         static class WithJdkTypeField {
 
             java.util.Locale locale;
+        }
+
+
+        static class WithObjectField {
+
+            Object value;
         }
 
 

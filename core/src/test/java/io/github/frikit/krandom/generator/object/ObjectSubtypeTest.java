@@ -7,6 +7,9 @@ package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +47,11 @@ class ObjectSubtypeTest {
         String  id;
     }
 
+    static class PaymentOnlyOrder {
+
+        Payment payment;
+    }
+
     @Test
     @DisplayName("objectSubtype populates interface and abstract fields with mapped implementations")
     void subtypeMappingPopulatesAbstractFields() {
@@ -63,9 +71,22 @@ class ObjectSubtypeTest {
     }
 
     @Test
-    @DisplayName("unmapped interface and abstract fields remain null")
-    void unmappedAbstractFieldsRemainNull() {
-        Order order = Generators.ofObject(Order.class, GeneratorConfig.builder().seed(1L).build()).generate();
+    @DisplayName("unmapped interface fails in strict mode and remains null in explicit lenient mode")
+    void unmappedAbstractFieldsFollowFailurePolicy() {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> Generators.ofObject(Order.class, GeneratorConfig.builder().seed(1L).build()).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+        assertEquals(GenerationOperation.GENERATE, context.operation());
+        assertEquals("Order.payment", context.path());
+
+        GeneratorConfig lenientConfig = GeneratorConfig.builder()
+                                                       .seed(1L)
+                                                       .objectIgnoreErrors(true)
+                                                       .build();
+        Order order = Generators.ofObject(Order.class, lenientConfig).generate();
 
         assertNull(order.payment);
         assertNull(order.vehicle);
@@ -81,7 +102,7 @@ class ObjectSubtypeTest {
         assertSame(CardPayment.class, config.resolveSubtype(Payment.class));
         assertSame(Order.class, config.resolveSubtype(Order.class));
 
-        Order order = new ObjectGenerator<>(Order.class, config).generate();
+        PaymentOnlyOrder order = new ObjectGenerator<>(PaymentOnlyOrder.class, config).generate();
         assertInstanceOf(CardPayment.class, order.payment);
     }
 

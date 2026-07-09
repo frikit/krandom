@@ -126,7 +126,8 @@ import org.slf4j.LoggerFactory;
  *   <li>Depth guard: if {@code currentDepth >= maxDepth} return primitive zero / {@code null}</li>
  *   <li>Nested class or record: delegate to a child {@link ObjectGenerator} (cycle-safe via
  *       {@link ObjectPool})</li>
- *   <li>Unsupported type: return primitive zero / {@code null}</li>
+ *   <li>Unsupported type: fail with field context, or return primitive zero / {@code null}
+ *       in explicit lenient mode</li>
  * </ol>
  */
 final class FieldGeneratorResolver {
@@ -1545,7 +1546,42 @@ final class FieldGeneratorResolver {
         }
 
         // ── 9. Unsupported type ───────────────────────────────────────────────
-        return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
+        // Raw, wildcard, and inherited collection type arguments still collapse to Object.class.
+        // Keep their nested compatibility fallback until Step 2.2 replaces typeArg with the
+        // recursive type model; direct fields always carry their AnnotatedElement and fail below.
+        if (rawType == Object.class && element == null) {
+            return null;
+        }
+        return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+    }
+
+    private Object handleUnsupportedType(Class<?> rawType,
+                                         Type declaredType,
+                                         Class<?> ownerType,
+                                         String fieldName,
+                                         int depth) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String declaredTypeName = declaredType.getTypeName();
+        if (config.isIgnoreErrors()) {
+            LOGGER.debug("Ignored unsupported type at '" + path
+                         + "' (declared type " + declaredTypeName + ", depth " + depth + ")");
+            return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
+        }
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.UNSUPPORTED_TYPE,
+            GenerationOperation.GENERATE,
+            path,
+            ownerType,
+            declaredTypeName,
+            depth,
+            -1);
+        UnsupportedOperationException cause = new UnsupportedOperationException(
+            "No generator is registered for the declared type");
+        throw new ObjectGenerationException(
+            "Unsupported type at '" + path + "' (declared type "
+            + declaredTypeName + ", depth " + depth + ")",
+            context,
+            cause);
     }
 
     private Object handleCollectionInsertionFailure(Class<?> ownerType,
