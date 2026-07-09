@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -149,10 +151,14 @@ class SchemaWriteToTest {
         fields.put("payload", ctx -> new ThrowingRecord("data"));
         Schema throwingSchema = new Schema(fields);
 
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
+        SchemaGenerationException ex = assertThrows(
+            SchemaGenerationException.class,
             () -> throwingSchema.writeTo(new ByteArrayOutputStream(), OutputFormat.JSONL, 1));
-        assertTrue(ex.getMessage().contains("Failed to read record component 'value'"));
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+        assertEquals(GenerationOperation.READ, context.operation());
+        assertEquals("value", context.path());
+        assertTrue(ex.getCause() instanceof IllegalStateException);
     }
 
     private record ThrowingRecord(String value) {

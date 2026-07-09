@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.schema;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -241,6 +240,10 @@ final class JsonSchemaSupport {
     }
 
     private static Object normalizeStructuredValue(Object value) {
+        return normalizeStructuredValue(value, "");
+    }
+
+    private static Object normalizeStructuredValue(Object value, String componentPath) {
         if (value == null
             || value instanceof CharSequence
             || value instanceof Character
@@ -251,14 +254,14 @@ final class JsonSchemaSupport {
         if (value instanceof Map<?, ?> map) {
             Map<Object, Object> normalized = new LinkedHashMap<>(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                normalized.put(entry.getKey(), normalizeStructuredValue(entry.getValue()));
+                normalized.put(entry.getKey(), normalizeStructuredValue(entry.getValue(), componentPath));
             }
             return Collections.unmodifiableMap(normalized);
         }
         if (value instanceof Iterable<?> items) {
             List<Object> normalized = new ArrayList<>();
             for (Object item : items) {
-                normalized.add(normalizeStructuredValue(item));
+                normalized.add(normalizeStructuredValue(item, componentPath));
             }
             return Collections.unmodifiableList(normalized);
         }
@@ -266,29 +269,25 @@ final class JsonSchemaSupport {
             int length = Array.getLength(value);
             List<Object> normalized = new ArrayList<>(length);
             for (int i = 0; i < length; i++) {
-                normalized.add(normalizeStructuredValue(Array.get(value, i)));
+                normalized.add(normalizeStructuredValue(Array.get(value, i), componentPath));
             }
             return Collections.unmodifiableList(normalized);
         }
         if (value.getClass().isRecord()) {
-            return recordToMap(value);
+            return recordToMap(value, componentPath);
         }
         return value;
     }
 
-    private static Map<String, Object> recordToMap(Object record) {
+    private static Map<String, Object> recordToMap(Object record, String componentPath) {
         RecordComponent[] components = record.getClass().getRecordComponents();
         Map<String, Object> values = new LinkedHashMap<>(components.length);
         for (RecordComponent component : components) {
-            Method accessor = component.getAccessor();
-            accessor.setAccessible(true);
-            try {
-                values.put(component.getName(), normalizeStructuredValue(accessor.invoke(record)));
-            } catch (ReflectiveOperationException ex) {
-                throw new IllegalArgumentException(
-                    "Failed to read record component '" + component.getName() + "' from "
-                    + record.getClass().getName(), ex);
-            }
+            String path = componentPath.isEmpty()
+                          ? component.getName()
+                          : componentPath + "." + component.getName();
+            Object componentValue = SchemaRecordAccess.read(record, component, path);
+            values.put(component.getName(), normalizeStructuredValue(componentValue, path));
         }
         return Collections.unmodifiableMap(values);
     }

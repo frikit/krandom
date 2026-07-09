@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -104,11 +107,18 @@ class JsonSchemaSupportTest {
     @Test
     @DisplayName("infer wraps reflective failures from record accessors")
     void inferWrapsRecordAccessorFailure() {
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> JsonSchemaSupport.infer(new ThrowingRecord("payload")));
-        assertTrue(ex.getMessage().contains("Failed to read record component 'value'"));
-        assertTrue(ex.getCause() instanceof ReflectiveOperationException);
+        SchemaGenerationException ex = assertThrows(
+            SchemaGenerationException.class,
+            () -> JsonSchemaSupport.infer(new EnvelopeRecord(new ThrowingRecord("payload"))));
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+        assertEquals(GenerationOperation.READ, context.operation());
+        assertEquals("nested.value", context.path());
+        assertEquals(ThrowingRecord.class, context.ownerType());
+        assertEquals(String.class.getTypeName(), context.declaredType());
+        assertEquals(-1, context.recordIndex());
+        assertTrue(ex.getCause() instanceof IllegalStateException);
+        assertFalse(ex.getMessage().contains("accessor failure"));
     }
 
     @Test
@@ -132,6 +142,9 @@ class JsonSchemaSupportTest {
         public String value() {
             throw new IllegalStateException("accessor failure");
         }
+    }
+
+    private record EnvelopeRecord(ThrowingRecord nested) {
     }
 
     private record NestedRecord(String value) {

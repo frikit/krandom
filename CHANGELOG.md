@@ -38,6 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `ObjectFaker` nested rule, include, and ignore reflection failures now report sanitized root-relative target paths and preserve the original cause.
 - Schema value-provider and metadata-export failures now have distinct operations and messages; metadata export no longer reports a synthetic record index.
 - Schema semantic resolution now probes reference membership explicitly instead of swallowing arbitrary runtime failures during binding.
+- Schema record conversion now reports sanitized nested component paths and types while preserving the unwrapped accessor failure.
 
 ## [1.5.0] - 2026-06-22
 

@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -52,6 +54,23 @@ class SchemaOutputTest {
             + "\"flag\":true,\"tags\":[\"x\",null],\"meta\":{\"count\":2,\"ok\":false},"
             + "\"numbers\":[1,2],\"custom\":{\"value\":\"json\"},\"plain\":\"PlainValue[value=json]\"}\n",
             schema.toJsonLines(1));
+    }
+
+    @Test
+    @DisplayName("record accessor failures expose structured component context")
+    void recordAccessorFailuresExposeStructuredContext() {
+        Schema schema = new Schema(Map.of("record", ctx -> new ThrowingRecord("payload")));
+
+        SchemaGenerationException ex = assertThrows(SchemaGenerationException.class, () -> schema.toJsonLines(1));
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+        assertEquals(GenerationOperation.READ, context.operation());
+        assertEquals("value", context.path());
+        assertEquals(ThrowingRecord.class, context.ownerType());
+        assertEquals(String.class.getTypeName(), context.declaredType());
+        assertEquals(-1, context.recordIndex());
+        assertTrue(ex.getCause() instanceof IllegalStateException);
+        assertFalse(ex.getMessage().contains("accessor failure"));
     }
 
     @Test
@@ -390,6 +409,13 @@ class SchemaOutputTest {
     }
 
     record NamedValue(String value) {
+    }
+
+    record ThrowingRecord(String value) {
+        @Override
+        public String value() {
+            throw new IllegalStateException("accessor failure");
+        }
     }
 
     static final class PlainValue {

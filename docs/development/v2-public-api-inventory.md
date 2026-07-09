@@ -119,6 +119,8 @@ classifications cover private listener storage, while the accessor and builder m
 the complete additive public surface.
 `Field` remains **KEEP** with no new public members; its exact class-level classification covers
 the package-private non-throwing membership probe used by schema semantic resolution.
+`Schema` remains **KEEP** with no new public members; its exact class-level classification covers
+private structured-record conversion and contextual failure propagation.
 
 ## Integration exceptions
 
