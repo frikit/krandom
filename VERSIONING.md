@@ -1,5 +1,7 @@
 # Versioning and compatibility policy
 
+Every published jar module is checked for public binary and source compatibility against the `apiBaselineVersion` configured in `gradle.properties`. Run `./gradlew checkApiCompatibility`; module reports are written under `build/reports/japicmp/`. The gate compares each kRandom jar directly and ignores missing third-party classes, so behavioral changes and incompatibilities caused only by external dependency types still require review. Intentional major-version breaks require a reviewed migration path and a narrow entry in `config/api-compatibility-excludes.txt`; package-wide exclusions are forbidden.
+
 kRandom follows [Semantic Versioning 2.0.0](https://semver.org) for all
 published artifacts (`io.github.frikit:krandom-*`).
 

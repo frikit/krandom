@@ -82,6 +82,14 @@ else
     exit 1
 fi
 
+step "Verify public API compatibility"
+if "${GRADLEW}" checkApiCompatibility --quiet; then
+    ok "Public API is binary/source compatible with the configured GA baseline"
+else
+    fail "Public API compatibility failed — see build/reports/japicmp"
+    exit 1
+fi
+
 step "Validate Javadoc (check for broken links and missing docs)"
 if "${GRADLEW}" :core:javadoc --quiet; then
     ok "Javadoc validation passed"

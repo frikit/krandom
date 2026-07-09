@@ -191,18 +191,18 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 **Actions**
 
-- [ ] Select Revapi or japicmp using the smallest integration that covers all published Java artifacts.
-- [ ] Baseline 1.6 development against the Maven Central `1.5.0` artifacts.
-- [ ] Fail CI on unapproved binary/source incompatibility.
-- [ ] Add a reviewed allowlist format for intentional v2 removals; do not use broad package exclusions.
-- [ ] Add the compatibility task to the local pre-release check and release workflow.
-- [ ] Document what the tool cannot detect, including behavioral and serialized-data changes.
+- [x] Select Revapi or japicmp using the smallest integration that covers all published Java artifacts.
+- [x] Baseline 1.6 development against the Maven Central `1.5.0` artifacts.
+- [x] Fail CI on unapproved binary/source incompatibility.
+- [x] Add a reviewed allowlist format for intentional v2 removals; do not use broad package exclusions.
+- [x] Add the compatibility task to the local pre-release check and release workflow.
+- [x] Document what the tool cannot detect, including behavioral and serialized-data changes.
 
 **Tests**
 
-- [ ] A deliberate public method removal makes the compatibility task fail.
-- [ ] A deprecation without removal remains compatible.
-- [ ] All published modules are included.
+- [x] A deliberate public method removal makes the compatibility task fail.
+- [x] A deprecation without removal remains compatible.
+- [x] All published modules are included.
 
 **Done when:** Accidental API breaks cannot reach a release unnoticed.
 
@@ -255,19 +255,19 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 **Actions**
 
-- [ ] Remove the Kotlin plugin/runtime dependency from `core`, which contains no Kotlin sources.
-- [ ] Inspect generated POM and Gradle metadata for every artifact.
-- [ ] Include the project license in each published binary/source artifact and verify its path.
-- [ ] Add a `krandom-bom` Java platform containing all synchronized artifact versions.
-- [ ] Update Maven and Gradle installation examples to use the BOM where multiple modules are consumed.
-- [ ] Add a mixed-version rejection/compatibility test using consumer builds.
-- [ ] Keep existing module boundaries unless measured evidence justifies a split.
+- [x] Remove the Kotlin plugin/runtime dependency from `core`, which contains no Kotlin sources.
+- [x] Inspect generated POM and Gradle metadata for every artifact.
+- [x] Include the project license in each published binary/source artifact and verify its path.
+- [x] Add a `krandom-bom` Java platform containing all synchronized artifact versions.
+- [x] Update Maven and Gradle installation examples to use the BOM where multiple modules are consumed.
+- [x] Add a mixed-version rejection/compatibility test using consumer builds.
+- [x] Keep existing module boundaries unless measured evidence justifies a split.
 
 **Tests**
 
-- [ ] A Java-only consumer resolves core without `kotlin-stdlib`.
-- [ ] Maven and Gradle consumers import the BOM and omit module versions.
-- [ ] Published metadata contains the intended dependency scopes only.
+- [x] A Java-only consumer resolves core without `kotlin-stdlib`.
+- [x] Maven and Gradle consumers import the BOM and omit module versions.
+- [x] Published metadata contains the intended dependency scopes only.
 
 **Done when:** Java consumers pay no accidental Kotlin cost and multi-module consumers have one version source.
 

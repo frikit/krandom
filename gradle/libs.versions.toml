@@ -14,6 +14,7 @@ jspecify = "1.0.0"
 hibernate-validator = "9.1.2.Final"
 jackson = "2.22.0"
 spring-boot = "4.1.0"
+japicmp = "0.26.1"
 
 [libraries]
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }

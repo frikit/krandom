@@ -1,0 +1,9 @@
+# One exact japicmp exclusion per line. Keep this file empty during the 1.x line.
+#
+# A v2 exclusion requires all of the following in the same reviewed change:
+# - a 1.6 deprecation or an explicit explanation of why the old API is unsafe;
+# - a migration-guide entry;
+# - the narrowest class/member signature supported by japicmp;
+# - a changelog entry.
+#
+# Never add package-wide wildcards. See `java -jar japicmp.jar --help` for syntax.
