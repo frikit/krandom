@@ -1,6 +1,6 @@
 # V2 Generation Failure Inventory
 
-**Status:** Implementation in progress; Slice A complete, Slice B GFI-07 and GFI-08 complete
+**Status:** Implementation in progress; Slice A and Slice B complete
 **Scope:** Core object generation, object faker rules, schema generation, and schema inference
 **Audience:** Maintainers implementing Stage 2 of the v2 master plan
 
@@ -38,7 +38,7 @@ diagnostic events.
 | GFI-03 | `ObjectGenerator.instantiate` | Missing no-arg constructor falls through to Objenesis | Policy fallback | Move constructor bypass behind the explicit unsafe-construction policy in Step 2.4 |
 | GFI-04 | `FieldGeneratorResolver.registerSemantic` | Unsupported locale/provider falls back to structural generation | Probe | Keep the typed `UnsupportedOperationException` probe; do not broaden the catch |
 | GFI-05 | `FieldGeneratorResolver.instantiateCollectionType` | Any reflection/runtime failure returns `null`, then a generic collection may be used | Policy fallback | Preserve only unsupported-construction fallback; constructor failures become contextual strict failures |
-| GFI-06 | `FieldGeneratorResolver.addAllSafely` | Failed collection insertion retries queues and may silently fall back | Strict/lenient failure | Strict mode rejects the whole value; lenient mode chooses one documented whole-collection fallback, never a partial collection |
+| GFI-06 | `FieldGeneratorResolver.addAllOrThrow` | Failed collection insertion is reported at the field boundary after the queue compatibility fallback | Strict/lenient failure | Strict mode rejects the whole value; lenient mode returns `null`, never a partial collection |
 | GFI-07 | `FieldGeneratorResolver.putSafely` | Failed map insertion is ignored, returning a partial map | Strict/lenient failure | Remove partial-map success; report key/value paths without reporting key/value contents |
 | GFI-08 | `FieldGeneratorResolver.generateArray` | Invalid element assignment leaves a JVM default element | Strict/lenient failure | Strict mode reports the indexed path; lenient mode may use the documented default and emits a diagnostic |
 | GFI-09 | `FieldGeneratorResolver.annotationRandomizerFor` | Annotation construction is wrapped without the owner field path | Boundary wrapper | Add annotation operation, declared generator type, and complete field path |

@@ -11,6 +11,9 @@ import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
@@ -23,6 +26,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -74,13 +78,10 @@ class FieldGeneratorResolverCollectionFallbackTest {
         List<Object> values = new ArrayList<>(List.of("a", "b", "c"));
         List<Object> generated = invokeToListType(NoDefaultCtorList.class, values);
         assertNull(generated);
-
-        List<Object> rejecting = invokeToListType(RejectingList.class, values);
-        assertNull(rejecting);
     }
 
     @Test
-    @DisplayName("toSetType handles concrete subtype and rejecting concrete set")
+    @DisplayName("toSetType handles interface, abstract, concrete, and non-constructible subtypes")
     void toSetTypeConcreteAndRejectingBranches() throws Exception {
         List<Object> values = new ArrayList<>(List.of("a", "b", "c"));
         Set<Object> interfaceFallback = invokeToSetType(CustomSet.class, values);
@@ -95,8 +96,8 @@ class FieldGeneratorResolverCollectionFallbackTest {
         assertEquals(ConcreteCustomSet.class, concrete.getClass());
         assertEquals(new LinkedHashSet<>(values), concrete);
 
-        Set<Object> rejecting = invokeToSetType(RejectingSet.class, values);
-        assertNull(rejecting);
+        Set<Object> noDefaultCtor = invokeToSetType(NoDefaultCtorSet.class, values);
+        assertNull(noDefaultCtor);
     }
 
     @Test
@@ -121,9 +122,6 @@ class FieldGeneratorResolverCollectionFallbackTest {
 
         Queue<Object> abstractQueue = invokeToQueueType(AbstractCustomQueue.class, List.of("a", "b"));
         assertEquals(ArrayDeque.class, abstractQueue.getClass());
-
-        Queue<Object> exploding = invokeToQueueType(ExplodingQueue.class, Arrays.asList("a", null));
-        assertNull(exploding);
 
         Queue<Object> noDefaultCtor = invokeToQueueType(NoDefaultCtorQueue.class, List.of("x"));
         assertNull(noDefaultCtor);
@@ -195,6 +193,39 @@ class FieldGeneratorResolverCollectionFallbackTest {
         assertEquals(0, holder.values[0]);
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("rejectingCollectionHolders")
+    @DisplayName("strict concrete-collection insertion failure reports field context")
+    void strictCollectionInsertionFailureIsContextual(String expectedPath, Class<?> holderType) {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(holderType, collectionFailureConfig(false)).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.COLLECTION_INSERTION, context.category());
+        assertEquals(GenerationOperation.INSERT, context.operation());
+        assertEquals(expectedPath, context.path());
+        assertTrue(error.getCause() instanceof UnsupportedOperationException);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("rejectingCollectionHolders")
+    @DisplayName("lenient concrete-collection insertion failure discards the whole collection")
+    void lenientCollectionInsertionFailureReturnsNull(String expectedPath, Class<?> holderType) throws Exception {
+        Object holder = new ObjectGenerator<>(holderType, collectionFailureConfig(true)).generate();
+        var field = holderType.getDeclaredField("values");
+        field.setAccessible(true);
+
+        assertNull(field.get(holder), expectedPath);
+    }
+
+    private static Stream<Arguments> rejectingCollectionHolders() {
+        return Stream.of(
+            Arguments.of("RejectingListHolder.values", RejectingListHolder.class),
+            Arguments.of("RejectingSetHolder.values", RejectingSetHolder.class),
+            Arguments.of("RejectingQueueHolder.values", RejectingQueueHolder.class));
+    }
+
     private static GeneratorConfig mapFailureConfig(boolean ignoreErrors) {
         return GeneratorConfig.builder()
                               .collectionSize(1, 1)
@@ -209,6 +240,14 @@ class FieldGeneratorResolverCollectionFallbackTest {
                               .objectIgnoreErrors(ignoreErrors)
                               .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
                               .objectOverride(int.class, () -> null)
+                              .build();
+    }
+
+    private static GeneratorConfig collectionFailureConfig(boolean ignoreErrors) {
+        return GeneratorConfig.builder()
+                              .collectionSize(1, 1)
+                              .objectIgnoreErrors(ignoreErrors)
+                              .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
                               .build();
     }
 
@@ -242,6 +281,12 @@ class FieldGeneratorResolverCollectionFallbackTest {
     static final class ConcreteCustomSet<E> extends LinkedHashSet<E> {
     }
 
+    static final class NoDefaultCtorSet<E> extends LinkedHashSet<E> {
+
+        private NoDefaultCtorSet(String ignored) {
+        }
+    }
+
     static final class RejectingSet<E> extends LinkedHashSet<E> {
 
         @Override
@@ -260,6 +305,19 @@ class FieldGeneratorResolverCollectionFallbackTest {
     }
 
     static final class ExplodingQueue<E> extends ArrayDeque<E> {
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException("reject clear");
+        }
+    }
+
+    static final class RejectingQueue<E> extends ArrayDeque<E> {
+
+        @Override
+        public boolean addAll(java.util.Collection<? extends E> collection) {
+            throw new UnsupportedOperationException("reject addAll");
+        }
 
         @Override
         public void clear() {
@@ -298,5 +356,20 @@ class FieldGeneratorResolverCollectionFallbackTest {
     static final class PrimitiveArrayHolder {
 
         int[] values;
+    }
+
+    static final class RejectingListHolder {
+
+        RejectingList<String> values;
+    }
+
+    static final class RejectingSetHolder {
+
+        RejectingSet<String> values;
+    }
+
+    static final class RejectingQueueHolder {
+
+        RejectingQueue<String> values;
     }
 }

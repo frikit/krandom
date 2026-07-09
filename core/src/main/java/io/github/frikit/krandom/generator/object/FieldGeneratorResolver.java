@@ -993,7 +993,8 @@ final class FieldGeneratorResolver {
             return new LinkedHashSet<>(values);
         }
         Set<Object> concrete = instantiateCollectionType(rawType, Set.class);
-        if (concrete != null && addAllSafely(concrete, values)) {
+        if (concrete != null) {
+            addAllOrThrow(concrete, values);
             return concrete;
         }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
@@ -1026,7 +1027,8 @@ final class FieldGeneratorResolver {
             return new CopyOnWriteArrayList<>(values);
         }
         List<Object> concrete = instantiateCollectionType(rawType, List.class);
-        if (concrete != null && addAllSafely(concrete, values)) {
+        if (concrete != null) {
+            addAllOrThrow(concrete, values);
             return concrete;
         }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
@@ -1040,14 +1042,15 @@ final class FieldGeneratorResolver {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static Queue<Object> toQueueType(Class<?> rawType, List<Object> values) {
-        Queue<Object> concrete = instantiateCollectionType(rawType, Queue.class);
-        if (concrete != null && addAllSafely(concrete, values)) {
-            return concrete;
-        }
         if (rawType == PriorityQueue.class) {
             Queue<Object> queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
             queue.addAll(values);
             return queue;
+        }
+        Queue<Object> concrete = instantiateCollectionType(rawType, Queue.class);
+        if (concrete != null) {
+            addAllOrThrow(concrete, values);
+            return concrete;
         }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
             Queue<Object> queue = new java.util.ArrayDeque<>();
@@ -1091,11 +1094,10 @@ final class FieldGeneratorResolver {
         }
     }
 
-    private static boolean addAllSafely(Collection<Object> target, List<Object> values) {
+    private static void addAllOrThrow(Collection<Object> target, List<Object> values) {
         try {
             target.addAll(values);
-            return true;
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException firstFailure) {
             if (target instanceof Queue<?>) {
                 try {
                     target.clear();
@@ -1104,12 +1106,28 @@ final class FieldGeneratorResolver {
                             target.add(value);
                         }
                     }
-                    return true;
-                } catch (RuntimeException ignoredAgain) {
-                    return false;
+                    return;
+                } catch (RuntimeException fallbackFailure) {
+                    throw new CollectionInsertionFailure(fallbackFailure);
                 }
             }
-            return false;
+            throw new CollectionInsertionFailure(firstFailure);
+        }
+    }
+
+    private static final class CollectionInsertionFailure extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        private final RuntimeException insertionCause;
+
+        private CollectionInsertionFailure(RuntimeException insertionCause) {
+            super(insertionCause);
+            this.insertionCause = insertionCause;
+        }
+
+        private RuntimeException insertionCause() {
+            return insertionCause;
         }
     }
 
@@ -1369,7 +1387,12 @@ final class FieldGeneratorResolver {
             while (values.size() < elementCount && attempts++ < maxAttempts) {
                 values.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
             }
-            return toSetType(rawType, new ArrayList<>(values));
+            try {
+                return toSetType(rawType, new ArrayList<>(values));
+            } catch (CollectionInsertionFailure failure) {
+                return handleCollectionInsertionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
+            }
         }
 
         // ── 6c. List / Queue ──────────────────────────────────────────────────
@@ -1380,10 +1403,15 @@ final class FieldGeneratorResolver {
             for (int i = 0; i < elementCount; i++) {
                 els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
             }
-            if (List.class.isAssignableFrom(rawType)) {
-                return toListType(rawType, els);
+            try {
+                if (List.class.isAssignableFrom(rawType)) {
+                    return toListType(rawType, els);
+                }
+                return toQueueType(rawType, els);
+            } catch (CollectionInsertionFailure failure) {
+                return handleCollectionInsertionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
             }
-            return toQueueType(rawType, els);
         }
 
         // ── 6d. Map ───────────────────────────────────────────────────────────
@@ -1485,6 +1513,34 @@ final class FieldGeneratorResolver {
 
         // ── 9. Unsupported type ───────────────────────────────────────────────
         return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
+    }
+
+    private Object handleCollectionInsertionFailure(Class<?> ownerType,
+                                                    String fieldName,
+                                                    Type declaredType,
+                                                    int depth,
+                                                    RuntimeException cause) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String declaredTypeName = declaredType.getTypeName();
+        if (config.isIgnoreErrors()) {
+            LOGGER.debug("Ignored collection insertion failure at '" + path
+                         + "' (declared type " + declaredTypeName + ", depth " + depth
+                         + "); cause=" + cause.getClass().getName());
+            return null;
+        }
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.COLLECTION_INSERTION,
+            GenerationOperation.INSERT,
+            path,
+            ownerType,
+            declaredTypeName,
+            depth,
+            -1);
+        throw new ObjectGenerationException(
+            "Could not populate collection at '" + path + "' (declared type "
+            + declaredTypeName + ", depth " + depth + ")",
+            context,
+            cause);
     }
 
     /**
