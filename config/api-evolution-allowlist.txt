@@ -1,0 +1,10 @@
+# One exact japicmp exclusion per intentionally changed public element.
+#
+# Every entry requires in the same reviewed change:
+# - a disposition in docs/development/v2-public-api-inventory.md;
+# - focused behavior tests and Javadocs;
+# - a changelog entry;
+# - a 1.6 migration path when an existing API changes.
+#
+# Never add package-wide wildcards. This file classifies evolution; the separate
+# compatibility gate still checks allowed elements for binary/source breakage.

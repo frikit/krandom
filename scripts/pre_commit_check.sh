@@ -83,10 +83,10 @@ else
 fi
 
 step "Verify public API compatibility"
-if "${GRADLEW}" checkApiCompatibility --quiet; then
-    ok "Public API is binary/source compatible with the configured GA baseline"
+if "${GRADLEW}" checkApiContract --quiet; then
+    ok "Public API is compatible and all evolution is classified"
 else
-    fail "Public API compatibility failed — see build/reports/japicmp"
+    fail "Public API contract failed — see build/reports/japicmp and build/reports/api-evolution"
     exit 1
 fi
 

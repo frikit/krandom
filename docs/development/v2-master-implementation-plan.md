@@ -170,18 +170,18 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 **Actions**
 
-- [ ] Generate the exported class, method, constructor, field, annotation, and configuration surface for every published artifact.
-- [ ] Record `Generators` facade methods by canonical operation and alias family.
-- [ ] Classify each API as `keep`, `deprecate in 1.6`, `remove in v2`, `rename`, `internalize`, or `requires decision`.
-- [ ] Record replacement examples for every deprecation.
-- [ ] Identify public Javadocs that reference package-private types.
-- [ ] Check Maven/Gradle coordinates and automatic module names as part of the public contract.
+- [x] Generate the exported class, method, constructor, field, annotation, and configuration surface for every published artifact.
+- [x] Record `Generators` facade methods by canonical operation and alias family.
+- [x] Classify each API as `keep`, `deprecate in 1.6`, `remove in v2`, `rename`, `internalize`, or `requires decision`.
+- [x] Record replacement examples for every deprecation.
+- [x] Identify public Javadocs that reference package-private types.
+- [x] Check Maven/Gradle coordinates and automatic module names as part of the public contract.
 
 **Tests**
 
-- [ ] The inventory can be regenerated deterministically in CI.
-- [ ] A review script fails when an unclassified public API appears.
-- [ ] All 337 current facade methods are accounted for.
+- [x] The inventory can be regenerated deterministically in CI.
+- [x] A review script fails when an unclassified public API appears.
+- [x] All current facade methods are accounted for by explicit exceptions plus the default **KEEP** disposition.
 
 **Done when:** Every exported symbol has an intentional v2 disposition and owner.
 
