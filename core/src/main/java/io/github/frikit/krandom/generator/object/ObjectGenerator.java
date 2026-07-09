@@ -7,6 +7,9 @@ package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
@@ -335,7 +338,15 @@ public final class ObjectGenerator<T> implements Generator<T> {
                                       + "." + field.getName() + "' (declared type "
                                       + field.getGenericType().getTypeName() + ", depth " + depth + ")";
                 if (!config.isIgnoreErrors()) {
-                    throw new ObjectGenerationException("Could not set " + fieldContext, e);
+                    GenerationFailureContext failureContext = new GenerationFailureContext(
+                        GenerationFailureCategory.ASSIGNMENT,
+                        GenerationOperation.ASSIGN,
+                        field.getDeclaringClass().getSimpleName() + "." + field.getName(),
+                        field.getDeclaringClass(),
+                        field.getGenericType().getTypeName(),
+                        depth,
+                        -1);
+                    throw new ObjectGenerationException("Could not set " + fieldContext, failureContext, e);
                 }
                 // ignoreErrors=true: leave field at its initialized value, but keep the
                 // failure diagnosable without logging generated values or exception messages.

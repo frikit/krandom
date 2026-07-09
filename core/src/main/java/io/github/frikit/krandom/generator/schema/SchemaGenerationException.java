@@ -5,10 +5,21 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Optional;
+
 /**
  * Exception thrown when schema field generation fails.
  */
 public final class SchemaGenerationException extends RuntimeException {
+
+    private static final long serialVersionUID = 3827203847835368239L;
+
+    private final @Nullable GenerationFailureContext context;
 
     /**
      * Creates an exception with field name and record index context.
@@ -18,6 +29,23 @@ public final class SchemaGenerationException extends RuntimeException {
      * @param cause       root cause
      */
     public SchemaGenerationException(String field, int recordIndex, Throwable cause) {
+        this(field, recordIndex, GenerationFailureCategory.SCHEMA_VALUE, GenerationOperation.GENERATE, cause);
+    }
+
+    SchemaGenerationException(String field,
+                              int recordIndex,
+                              GenerationFailureCategory category,
+                              GenerationOperation operation,
+                              Throwable cause) {
         super("Failed to generate field '" + field + "' for record index " + recordIndex, cause);
+        this.context = new GenerationFailureContext(
+            category, operation, field, null, null, -1, recordIndex);
+    }
+
+    /**
+     * Returns the sanitized structured failure context.
+     */
+    public Optional<GenerationFailureContext> getContext() {
+        return Optional.ofNullable(context);
     }
 }

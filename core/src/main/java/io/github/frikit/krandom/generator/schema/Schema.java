@@ -7,6 +7,8 @@ package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -392,7 +394,12 @@ public final class Schema implements Generator<Map<String, Object>> {
             try {
                 properties.put(field, JsonSchemaSupport.copyJsonSchema(entry.getValue().jsonSchema()));
             } catch (RuntimeException ex) {
-                throw new SchemaGenerationException(field, 0, ex);
+                throw new SchemaGenerationException(
+                    field,
+                    0,
+                    GenerationFailureCategory.SCHEMA_METADATA,
+                    GenerationOperation.EXPORT_SCHEMA,
+                    ex);
             }
         }
 

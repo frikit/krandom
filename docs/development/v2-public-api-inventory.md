@@ -93,6 +93,19 @@ Global mutations must not be deprecated until the scoped replacement reaches fea
 
 Public Javadocs currently leak the package-private `ObjectGeneratorConfig` type through `Fake`, `FakeRange`, `Exclude`, `FieldPredicates`, and `TypePredicates`. Those links must be rewritten to the public `GeneratorConfig`/`ObjectFaker` path.
 
+## Structured failure context additions
+
+| API | Disposition | Reason |
+|:---|:---|:---|
+| `GenerationFailureContext` | **KEEP** | One sanitized context shape for object and schema failures |
+| `GenerationFailureCategory` | **KEEP** | Stable machine-readable failure reason |
+| `GenerationOperation` | **KEEP** | Stable operation at the failing boundary |
+| `ObjectGenerationException.getContext()` | **KEEP** | Additive migration path; empty for legacy/unmigrated boundaries |
+| `SchemaGenerationException.getContext()` | **KEEP** | New schema failures expose field/record context; optional preserves legacy deserialization |
+
+The context deliberately excludes generated values and third-party exception messages. Existing
+exception constructors and inheritance remain compatible; the original cause is preserved.
+
 ## Integration exceptions
 
 | API | Disposition | Contract work |

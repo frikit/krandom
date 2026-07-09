@@ -11,3 +11,12 @@
 
 # 1.6 canonical replacement for pickSetFrom/pickset; see v2-public-api-inventory.md.
 io.github.frikit.krandom.generator.Generators#pickSet(java.util.List,int)
+
+# V2 structured, value-sanitized generation failure context; see v2-public-api-inventory.md.
+io.github.frikit.krandom.generator.failure.GenerationFailureCategory
+io.github.frikit.krandom.generator.failure.GenerationFailureContext
+io.github.frikit.krandom.generator.failure.GenerationOperation
+# Exact class classification is required because adding explicit legacy serialVersionUID
+# fields changes class-level metadata even though serialization remains compatible.
+io.github.frikit.krandom.generator.object.exception.ObjectGenerationException
+io.github.frikit.krandom.generator.schema.SchemaGenerationException

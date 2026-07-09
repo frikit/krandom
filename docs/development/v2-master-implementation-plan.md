@@ -340,7 +340,7 @@ while keeping the seven published modules explicit.
 **Actions**
 
 - [x] Inventory every swallowed `RuntimeException`, reflection failure, collection insertion failure, and schema metadata fallback.
-- [ ] Define a small failure hierarchy with operation, owner type, field/schema path, declared type, depth, and root cause.
+- [x] Define a small failure hierarchy with operation, owner type, field/schema path, declared type, depth, and root cause.
 - [ ] Make strict behavior the default.
 - [ ] Route explicit lenient behavior through one policy rather than scattered catch blocks.
 - [x] Prevent exception messages from printing generated personal-looking values.

@@ -13,6 +13,9 @@ import io.github.frikit.krandom.generator.core.model.PersonWithArrays;
 import io.github.frikit.krandom.generator.core.model.PersonWithCollections;
 import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
 import io.github.frikit.krandom.generator.core.model.Status;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -742,6 +745,7 @@ class ObjectGeneratorTest {
             ObjectGenerationException ex = new ObjectGenerationException("standalone message");
             assertEquals("standalone message", ex.getMessage());
             assertNull(ex.getCause());
+            assertTrue(ex.getContext().isEmpty());
         }
 
         @Test
@@ -1053,6 +1057,15 @@ class ObjectGeneratorTest {
 
             assertEquals("Could not set field 'Address.houseNumber' (declared type int, depth 0)",
                          error.getMessage());
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
+            assertEquals(GenerationOperation.ASSIGN, context.operation());
+            assertEquals("Address.houseNumber", context.path());
+            assertEquals(Address.class, context.ownerType());
+            assertEquals("int", context.declaredType());
+            assertEquals(0, context.depth());
+            assertEquals(-1, context.recordIndex());
+            assertTrue(error.getCause() instanceof IllegalArgumentException);
         }
     }
 }
