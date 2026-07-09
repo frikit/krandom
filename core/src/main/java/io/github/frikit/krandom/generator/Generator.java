@@ -139,10 +139,14 @@ public interface Generator<T extends @Nullable Object> {
      * <pre>{@code
      *   Generator<String> intAsString = Generators.ofInt(1, 100).map(Object::toString);
      * }</pre>
+     *
+     * <p>If this generator implements {@link Seedable}, the returned generator also implements
+     * {@code Seedable} and forwards reseeding to this generator.
      */
     default <R extends @Nullable Object> Generator<R> map(Function<? super T, ? extends R> mapper) {
         Objects.requireNonNull(mapper, "mapper must not be null");
-        return () -> mapper.apply(generate());
+        Generator<R> mapped = () -> mapper.apply(generate());
+        return SeedableGeneratorDecorator.preserve(this, mapped);
     }
 
     /**
@@ -160,6 +164,9 @@ public interface Generator<T extends @Nullable Object> {
      * Return a new {@code Generator<T>} that keeps generating until the produced value
      * satisfies {@code predicate}, failing after {@code maxAttempts}.
      *
+     * <p>If this generator implements {@link Seedable}, the returned generator also implements
+     * {@code Seedable} and forwards reseeding to this generator.
+     *
      * @param predicate predicate a generated value must satisfy
      * @param maxAttempts maximum generated values to try before failing
      * @throws IllegalArgumentException if {@code maxAttempts} is not positive
@@ -169,7 +176,7 @@ public interface Generator<T extends @Nullable Object> {
         if (maxAttempts <= 0) {
             throw new IllegalArgumentException("maxAttempts must be > 0, was: " + maxAttempts);
         }
-        return () -> {
+        Generator<T> filtered = () -> {
             for (int attempt = 0; attempt < maxAttempts; attempt++) {
                 T value = generate();
                 if (predicate.test(value)) {
@@ -179,5 +186,6 @@ public interface Generator<T extends @Nullable Object> {
             throw new IllegalStateException(
                 "Unable to generate a value matching the predicate after " + maxAttempts + " attempts");
         };
+        return SeedableGeneratorDecorator.preserve(this, filtered);
     }
 }

@@ -21,6 +21,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Redundant `Generators` aliases for constants, selection, shuffle, and uniqueness are deprecated for removal in v2. Canonical replacements are documented in `docs/migration/v1.6-to-v2.md`; the legacy methods remain thin behavior-compatible delegates in 1.6.
 - Maven Central publication now uses NMCP's explicit aggregation plugin and an exact seven-module graph, removing the convenience settings plugin's Gradle 10 deprecation.
 
+### Fixed
+- `Generator.map(...)` and `Generator.filter(...)` now preserve deterministic reseeding when their source implements `Seedable`; non-seedable sources remain honest and do not claim that capability.
+
 ## [1.5.0] - 2026-06-22
 
 ### Added

@@ -5,13 +5,16 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.base.IntGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -75,6 +78,41 @@ class GeneratorTest {
             IllegalStateException.class,
             () -> new ProxyBackedGenerator().reseed(1L));
         assertTrue(ex.getMessage().contains("h"));
+    }
+
+    @Test
+    @DisplayName("map preserves deterministic reseeding from a Seedable source")
+    void mapPreservesSeedableReplay() {
+        Generator<String> mapped = new IntGenerator(0, 1_000).map(value -> "value-" + value);
+
+        assertTrue(mapped instanceof Seedable);
+        mapped.reseed(123456L);
+        List<String> first = mapped.generateList(20);
+        mapped.reseed(123456L);
+
+        assertEquals(first, mapped.generateList(20));
+    }
+
+    @Test
+    @DisplayName("filter preserves deterministic reseeding from a Seedable source")
+    void filterPreservesSeedableReplay() {
+        Generator<Integer> filtered = new IntGenerator(0, 1_000).filter(value -> value % 7 == 0);
+
+        assertTrue(filtered instanceof Seedable);
+        filtered.reseed(987654L);
+        List<Integer> first = filtered.generateList(20);
+        filtered.reseed(987654L);
+
+        assertEquals(first, filtered.generateList(20));
+    }
+
+    @Test
+    @DisplayName("combinators do not claim Seedable for a non-Seedable source")
+    void combinatorsDoNotInventSeedability() {
+        Generator<Integer> source = () -> 7;
+
+        assertFalse(source.map(value -> value * 2) instanceof Seedable);
+        assertFalse(source.filter(value -> true) instanceof Seedable);
     }
 
     private static class ParentGenerator {
