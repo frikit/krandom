@@ -7,6 +7,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORKFLOW_DIR="${REPO_ROOT}/.github/workflows"
 WRAPPER_PROPERTIES="${REPO_ROOT}/gradle/wrapper/gradle-wrapper.properties"
 CI_WORKFLOW="${WORKFLOW_DIR}/continuous-integration-workflow.yml"
+RELEASE_WORKFLOW="${WORKFLOW_DIR}/release-maven-central.yml"
 
 fail() {
     echo "Build input pin verification failed: $*" >&2
@@ -57,6 +58,16 @@ downloads="$(grep -R -n -E '^[[:space:]]+curl[[:space:]].*(-o|--output)[[:space:
 unexpected_downloads="$(printf '%s\n' "${downloads}" | grep -v 'mill-dist-${MILL_VERSION}-mill\.sh' || true)"
 if [[ -n "${unexpected_downloads}" ]]; then
     fail "downloaded workflow files need an explicit verification rule:\n${unexpected_downloads}"
+fi
+
+for permission in "id-token: write" "attestations: write" "artifact-metadata: write"; do
+    if ! grep -Fq "${permission}" "${RELEASE_WORKFLOW}"; then
+        fail "release provenance requires workflow permission: ${permission}"
+    fi
+done
+
+if ! grep -Fq "build/nmcp/zip/aggregation.zip" "${RELEASE_WORKFLOW}"; then
+    fail "release provenance must cover the exact Maven Central bundle"
 fi
 
 echo "Build input pins verified (${action_count} actions; Gradle wrapper and Mill checksums present)."

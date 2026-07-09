@@ -18,6 +18,9 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
+  artifact-metadata: write
 
 jobs:
   release:
@@ -69,10 +72,28 @@ jobs:
       - name: Build, test, and check
         run: ./gradlew clean build check checkApiContract verifyReleaseSboms -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
-      # Aggregates every published module's signed artifacts (jar, sources, javadoc, POM,
-      # module metadata, .asc signatures) into a single zip and uploads it via the
-      # Central Portal API at https://central.sonatype.com.
-      #
+      # Assemble before attestation so a provenance failure cannot occur after an
+      # AUTOMATIC Central publication. This is the exact signed ZIP uploaded below.
+      - name: Assemble signed Maven Central bundle
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
+        run: ./gradlew nmcpZipAggregation -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
+
+      - name: Attest release build provenance
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-path: |
+            build/nmcp/zip/aggregation.zip
+            core/build/libs/*.jar
+            jackson/build/libs/*.jar
+            junit/build/libs/*.jar
+            spring-boot-starter/build/libs/*.jar
+            kotest-extensions/build/libs/*.jar
+            kotlin-dsl/build/libs/*.jar
+            build/reports/sbom/*.cdx.json
+            build/reports/sbom/*.cdx.xml
+
       # publishingType=USER_MANAGED: artifacts arrive in the portal "Pending"
       # state; you must click "Publish" in the Central Portal UI to release them.
       # publishingType=AUTOMATIC: artifacts release as soon as Sonatype validation
@@ -100,6 +121,7 @@ jobs:
             spring-boot-starter/build/libs/*.jar
             kotest-extensions/build/libs/*.jar
             kotlin-dsl/build/libs/*.jar
+            build/nmcp/zip/aggregation.zip
             build/reports/sbom/*.cdx.json
             build/reports/sbom/*.cdx.xml
           body: |

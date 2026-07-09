@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Immutable GitHub Action revisions plus checksum verification for the Gradle wrapper distribution and downloaded Mill launcher, enforced locally and in release CI.
 - Strict Gradle dependency verification with reviewed SHA-256 metadata, centralized repositories, and rejection of dynamic or changing dependency selectors.
 - Validated CycloneDX 1.6 JSON/XML SBOMs for every published module, attached automatically to GitHub releases.
+- Pinned GitHub/Sigstore build-provenance attestations for the signed Maven Central bundle, jars, and SBOMs before publication.
 
 ### Changed
 - `krandom-core` is now a Java-only build and no longer publishes an unused `kotlin-stdlib` runtime dependency. Kotlin remains confined to the Kotlin DSL and Kotest integration modules.

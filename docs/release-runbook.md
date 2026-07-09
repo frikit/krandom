@@ -44,10 +44,13 @@ The GPG public key must be uploaded to a public keyserver (for example
    - "Build, test, and check" — full clean + tests + coverage gate and
      validated per-module CycloneDX 1.6 SBOMs
      (`-x :benchmarks:test -x :benchmarks:check`).
+   - "Assemble signed Maven Central bundle" and "Attest release build
+     provenance" — create the exact upload ZIP and record signed GitHub/Sigstore
+     provenance for it, all module jars, and all SBOM assets before publication.
    - "Publish to Maven Central (Central Portal)" — runs
      `./gradlew publishAggregationToCentralPortal`. The
-     `com.gradleup.nmcp.settings` plugin assembles a signed bundle and
-     uploads it via the Central Portal API.
+     `com.gradleup.nmcp.settings` plugin uploads the already attested signed
+     bundle via the Central Portal API.
    - "Create GitHub Release" — tags `v<version>`, attaches per-module
      jars and JSON/XML SBOMs, and writes auto-generated release notes.
 6. **(USER_MANAGED only) Release in the portal.**
@@ -61,6 +64,8 @@ The GPG public key must be uploaded to a public keyserver (for example
   (allow up to ~30 minutes for index propagation).
 - Download each `krandom-<module>.cdx.json` release asset and confirm its
   metadata component version matches the release tag.
+- Verify a downloaded jar, SBOM, or `aggregation.zip` with
+  `gh attestation verify --repo frikit/krandom <path>`.
 - Update README install snippets to the new version if you keep concrete
   versions there (currently we use `<version>` placeholders).
 - Bump the in-repo version back to a `*-SNAPSHOT` for ongoing development
