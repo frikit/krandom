@@ -5,6 +5,16 @@ pluginManagement {
     }
 }
 
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        if (providers.gradleProperty("useLocalMaven").isPresent) {
+            mavenLocal()
+        }
+        mavenCentral()
+    }
+}
+
 plugins {
     id("com.gradleup.nmcp.settings") version "1.6.1"
 }

@@ -23,11 +23,8 @@ allprojects {
     group = "io.github.frikit"
     version = (findProperty("releaseVersion") as String?) ?: rootProject.providers.gradleProperty("developmentVersion").get()
 
-    repositories {
-        if (hasProperty("useLocalMaven")) {
-            mavenLocal()
-        }
-        mavenCentral()
+    configurations.configureEach {
+        resolutionStrategy.failOnNonReproducibleResolution()
     }
 }
 
