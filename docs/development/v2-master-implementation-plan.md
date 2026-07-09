@@ -277,11 +277,11 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 **Actions**
 
-- [ ] Add the Gradle wrapper distribution SHA-256 checksum.
+- [x] Add the Gradle wrapper distribution SHA-256 checksum.
 - [ ] Enable Gradle dependency verification and document the update procedure.
 - [ ] Evaluate dependency locking for build/test configurations and enable it where it improves reproducibility without constraining library consumers.
-- [ ] Pin GitHub Actions to immutable commit SHAs.
-- [ ] Pin and verify the downloaded Mill launcher and any other executed binary.
+- [x] Pin GitHub Actions to immutable commit SHAs.
+- [x] Pin and verify the downloaded Mill launcher and any other executed binary.
 - [ ] Resolve or upgrade the Central publication plugin before its deprecation becomes a Gradle 10 error.
 - [ ] Generate CycloneDX or SPDX SBOMs for release artifacts.
 - [ ] Generate build provenance/attestation in the release workflow.
@@ -291,7 +291,7 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 - [ ] Wrapper verification fails with a deliberately wrong checksum.
 - [ ] Dependency verification runs in CI and clean local builds.
-- [ ] No workflow action or downloaded executable is floating/unverified.
+- [x] No workflow action or downloaded executable is floating/unverified.
 - [ ] `./gradlew help --warning-mode all` has no project-controlled Gradle 10 blocker.
 
 **Done when:** Every build input used for a release is pinned or cryptographically verified.

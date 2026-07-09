@@ -82,6 +82,14 @@ else
     exit 1
 fi
 
+step "Verify pinned build inputs"
+if bash "${REPO_ROOT}/scripts/verify_build_input_pins.sh"; then
+    ok "Build inputs are immutable or checksum-verified"
+else
+    fail "Build input pin verification failed"
+    exit 1
+fi
+
 step "Compile all modules"
 if "${GRADLEW}" classes testClasses --quiet; then
     ok "Compilation OK"
