@@ -37,9 +37,16 @@ public final class SchemaGenerationException extends RuntimeException {
                               GenerationFailureCategory category,
                               GenerationOperation operation,
                               Throwable cause) {
-        super("Failed to generate field '" + field + "' for record index " + recordIndex, cause);
+        super(message(field, recordIndex, operation), cause);
         this.context = new GenerationFailureContext(
             category, operation, field, null, null, -1, recordIndex);
+    }
+
+    private static String message(String field, int recordIndex, GenerationOperation operation) {
+        if (operation == GenerationOperation.EXPORT_SCHEMA) {
+            return "Failed to export schema metadata for field '" + field + "'";
+        }
+        return "Failed to generate field '" + field + "' for record index " + recordIndex;
     }
 
     /**

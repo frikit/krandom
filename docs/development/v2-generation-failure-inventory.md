@@ -48,8 +48,8 @@ diagnostic events.
 | GFI-13 | `SemanticCoherenceAdjuster` reflective slots | Strict reads/writes report structured context; lenient reads return `null` and writes retain the previous value through the central policy | Strict/lenient failure | Complete; route policy diagnostics through the listener introduced later in Step 2.1 |
 | GFI-14 | `BeanValidationSupport` hierarchy lookup | Missing methods continue interface/superclass search | Probe | Keep the narrow `NoSuchMethodException` control flow |
 | GFI-15 | `ObjectFaker` nested include/rule/ignore operations | Assignment and reflection failures report root-relative target paths, declared type, depth, operation, and unwrapped cause | Boundary wrapper | Complete |
-| GFI-16 | `Schema.generateAtIndex` | Provider failures become `SchemaGenerationException` with field and record index | Boundary wrapper | Keep as the baseline; add operation and declared/schema path through the shared context model |
-| GFI-17 | `Schema.toJsonSchema` | Metadata-provider failures use the same exception as value generation | Boundary wrapper | Distinguish schema-metadata operation from value generation |
+| GFI-16 | `Schema.generateAtIndex` | Provider failures report `SCHEMA_VALUE`, `GENERATE`, field path, record index, and original cause | Boundary wrapper | Complete |
+| GFI-17 | `Schema.toJsonSchema` | Metadata-provider failures report `SCHEMA_METADATA`, `EXPORT_SCHEMA`, field path, no record index, and an operation-specific message | Boundary wrapper | Complete |
 | GFI-18 | `SchemaParser.trySemanticResolve` | Broad `RuntimeException` means “reference not found” | Probe with excessive catch | Replace exception-driven probing or narrow it to the provider's documented missing-reference failure |
 | GFI-19 | `JsonSchemaSupport` and schema record conversion | Record accessor failures become `IllegalArgumentException` | Boundary wrapper | Convert to the shared schema failure context with component path |
 | GFI-20 | URL conversion helpers | Conversion failures preserve the cause | Strict failure | Keep the now-sanitized message; never include the generated URI |
@@ -116,7 +116,7 @@ and cause class, not the generated value or third-party exception message.
 
 ### Slice D — Schema and diagnostics
 
-- Migrate GFI-15 through GFI-19. **GFI-15 complete.**
+- Migrate GFI-15 through GFI-19. **GFI-15 through GFI-17 complete.**
 - Add the sanitized diagnostic listener. **Complete.**
 - Add replay identity after Step 2.7 defines the recipe contract.
 

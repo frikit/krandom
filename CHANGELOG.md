@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Semantic-coherence reflection failures now expose structured read/alignment context; explicit lenient mode returns `null` for failed reads or retains the prior value for failed writes and emits value-sanitized diagnostics.
 - Object-generation assignment, container, nested, unsupported-type, and semantic-reflection failures now share one strict/lenient policy with standardized value-sanitized diagnostics and unchanged documented fallbacks.
 - `ObjectFaker` nested rule, include, and ignore reflection failures now report sanitized root-relative target paths and preserve the original cause.
+- Schema value-provider and metadata-export failures now have distinct operations and messages; metadata export no longer reports a synthetic record index.
 
 ## [1.5.0] - 2026-06-22
 

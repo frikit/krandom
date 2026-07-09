@@ -396,7 +396,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             } catch (RuntimeException ex) {
                 throw new SchemaGenerationException(
                     field,
-                    0,
+                    -1,
                     GenerationFailureCategory.SCHEMA_METADATA,
                     GenerationOperation.EXPORT_SCHEMA,
                     ex);

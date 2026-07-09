@@ -93,6 +93,7 @@ class SchemaTest {
         Schema schema = new Schema(fields);
         SchemaGenerationException ex = assertThrows(SchemaGenerationException.class, schema::generate);
         assertTrue(ex.getMessage().contains("bad"));
+        assertFalse(ex.getMessage().contains("boom"));
         assertTrue(ex.getCause() instanceof IllegalStateException);
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.SCHEMA_VALUE, context.category());
@@ -356,6 +357,11 @@ class SchemaTest {
         var context = exception.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.SCHEMA_METADATA, context.category());
         assertEquals(GenerationOperation.EXPORT_SCHEMA, context.operation());
+        assertEquals("boom", context.path());
+        assertEquals(-1, context.recordIndex());
+        assertTrue(exception.getMessage().contains("export schema metadata"));
+        assertFalse(exception.getMessage().contains("explode"));
+        assertTrue(exception.getCause() instanceof IllegalStateException);
     }
 
     private record CustomerRecord(String name, AddressRecord address) {
