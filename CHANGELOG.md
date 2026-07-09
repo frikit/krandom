@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Strict nested-object failures now compose one root-relative path across every object boundary while retaining the child failure category, operation, owner type, depth, and original cause.
 - Top-level class and record constructor failures now expose sanitized `CONSTRUCTION` context and preserve the original target exception without copying its message.
 - Semantic-coherence reflection failures now expose structured read/alignment context; explicit lenient mode returns `null` for failed reads or retains the prior value for failed writes and emits value-sanitized diagnostics.
+- Object-generation assignment, container, nested, unsupported-type, and semantic-reflection failures now share one strict/lenient policy with standardized value-sanitized diagnostics and unchanged documented fallbacks.
 
 ## [1.5.0] - 2026-06-22
 

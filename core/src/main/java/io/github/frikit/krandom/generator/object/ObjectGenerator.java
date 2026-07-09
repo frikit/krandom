@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.stream.Collectors;
 
 /**
@@ -79,8 +77,6 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Thread-safe Objenesis instance; caches instantiation strategies per class.
      */
     private static final Objenesis OBJENESIS = new ObjenesisStd();
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ObjectGenerator.class);
 
     /**
      * Classloader-aware cache of settable field lists per class.
@@ -336,6 +332,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                                FieldGeneratorResolver resolver,
                                SemanticCoherenceAdjuster coherenceAdjuster,
                                boolean allowOverwriteExisting) {
+        ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(config.isIgnoreErrors());
         List<Field> settableFields = collectSettableFields(type);
         for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check
@@ -356,21 +353,17 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 String fieldContext = "field '" + field.getDeclaringClass().getSimpleName()
                                       + "." + field.getName() + "' (declared type "
                                       + field.getGenericType().getTypeName() + ", depth " + depth + ")";
-                if (!config.isIgnoreErrors()) {
-                    GenerationFailureContext failureContext = new GenerationFailureContext(
-                        GenerationFailureCategory.ASSIGNMENT,
-                        GenerationOperation.ASSIGN,
-                        field.getDeclaringClass().getSimpleName() + "." + field.getName(),
-                        field.getDeclaringClass(),
-                        field.getGenericType().getTypeName(),
-                        depth,
-                        -1);
-                    throw new ObjectGenerationException("Could not set " + fieldContext, failureContext, e);
-                }
-                // ignoreErrors=true: leave field at its initialized value, but keep the
-                // failure diagnosable without logging generated values or exception messages.
-                LOGGER.debug("Ignored object-generation failure: could not set " + fieldContext
-                             + "; cause=" + e.getClass().getName());
+                GenerationFailureContext failureContext = new GenerationFailureContext(
+                    GenerationFailureCategory.ASSIGNMENT,
+                    GenerationOperation.ASSIGN,
+                    field.getDeclaringClass().getSimpleName() + "." + field.getName(),
+                    field.getDeclaringClass(),
+                    field.getGenericType().getTypeName(),
+                    depth,
+                    -1);
+                failurePolicy.handle(
+                    new ObjectGenerationException("Could not set " + fieldContext, failureContext, e),
+                    null);
             }
         }
         coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting);

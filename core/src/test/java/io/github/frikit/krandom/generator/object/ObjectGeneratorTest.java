@@ -612,7 +612,7 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("ignoreErrors=true logs swallowed failures at DEBUG level")
         void ignoreErrorsLogsSwallowedFailuresAtDebugLevel() {
-            Logger logger = (Logger) LoggerFactory.getLogger(FieldGeneratorResolver.class);
+            Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerationFailurePolicy.class);
             ListAppender<ILoggingEvent> appender = new ListAppender<>();
             appender.start();
             Level previousLevel = logger.getLevel();
@@ -624,7 +624,7 @@ class ObjectGeneratorTest {
                     new ObjectGenerator<>(RootIgnoreErrorsHolder.class, rootConfig).generate();
                 assertNull(holder.nested, "throwing nested type should be swallowed");
                 assertTrue(appender.list.stream()
-                                  .anyMatch(e -> e.getFormattedMessage().contains("Ignored nested generation failure")),
+                                  .anyMatch(e -> e.getFormattedMessage().contains("RootIgnoreErrorsHolder.nested")),
                            "swallowed failure should be logged at DEBUG level");
             } finally {
                 logger.detachAppender(appender);
@@ -1195,7 +1195,7 @@ class ObjectGeneratorTest {
                                                              .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
                                                              .ignoreErrors(true)
                                                              .build();
-            Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerator.class);
+            Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerationFailurePolicy.class);
             ListAppender<ILoggingEvent> appender = new ListAppender<>();
             appender.start();
             Level previousLevel = logger.getLevel();
@@ -1205,7 +1205,7 @@ class ObjectGeneratorTest {
                 assertDoesNotThrow(() -> new ObjectGenerator<>(Address.class, cfg).generate());
                 assertTrue(appender.list.stream()
                                         .anyMatch(event -> event.getFormattedMessage().contains(
-                                            "field 'Address.houseNumber' (declared type int, depth 0)")));
+                                            "'Address.houseNumber' (declared type int, depth 0")));
                 assertFalse(appender.list.stream()
                                          .anyMatch(event -> event.getFormattedMessage().contains("NOT_AN_INT")));
             } finally {

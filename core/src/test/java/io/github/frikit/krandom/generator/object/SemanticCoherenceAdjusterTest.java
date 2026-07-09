@@ -1127,7 +1127,7 @@ class SemanticCoherenceAdjusterTest {
         Method setValue = writeSlot.getClass().getDeclaredMethod("setValue", Object.class);
         setValue.setAccessible(true);
 
-        Logger logger = (Logger) LoggerFactory.getLogger(SemanticCoherenceAdjuster.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerationFailurePolicy.class);
         ListAppender<ILoggingEvent> appender = new ListAppender<>();
         appender.start();
         Level previousLevel = logger.getLevel();

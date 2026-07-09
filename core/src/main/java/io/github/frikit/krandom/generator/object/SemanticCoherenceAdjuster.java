@@ -39,15 +39,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Applies lightweight sibling-field coherence after structural value generation.
  */
 final class SemanticCoherenceAdjuster {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SemanticCoherenceAdjuster.class);
     private static final Pattern MONEY_FRAGMENT = Pattern.compile("[-+]?\\d+(?:\\.\\d+)?");
 
     private final ObjectGeneratorConfig config;
@@ -963,7 +960,7 @@ final class SemanticCoherenceAdjuster {
         private final Class<?> ownerType;
         private final Field field;
         private final Object instance;
-        private final boolean ignoreErrors;
+        private final ObjectGenerationFailurePolicy failurePolicy;
         private final int depth;
 
         private ReflectionSlot(Class<?> ownerType, Field field, Object instance, boolean ignoreErrors) {
@@ -978,7 +975,7 @@ final class SemanticCoherenceAdjuster {
             this.ownerType = ownerType;
             this.field = field;
             this.instance = instance;
-            this.ignoreErrors = ignoreErrors;
+            this.failurePolicy = new ObjectGenerationFailurePolicy(ignoreErrors);
             this.depth = depth;
         }
 
@@ -1009,15 +1006,13 @@ final class SemanticCoherenceAdjuster {
             } catch (IllegalAccessException e) {
                 GenerationFailureContext context = failureContext(
                     GenerationFailureCategory.REFLECTION, GenerationOperation.READ);
-                if (ignoreErrors) {
-                    logIgnored("read", context, e);
-                    return null;
-                }
-                throw new ObjectGenerationException(
-                    "Could not read semantic field at '" + context.path() + "' (declared type "
-                    + context.declaredType() + ", depth " + depth + ")",
-                    context,
-                    e);
+                return failurePolicy.handle(
+                    new ObjectGenerationException(
+                        "Could not read semantic field at '" + context.path() + "' (declared type "
+                        + context.declaredType() + ", depth " + depth + ")",
+                        context,
+                        e),
+                    null);
             }
         }
 
@@ -1028,14 +1023,13 @@ final class SemanticCoherenceAdjuster {
             } catch (IllegalAccessException | IllegalArgumentException e) {
                 GenerationFailureContext context = failureContext(
                     GenerationFailureCategory.ASSIGNMENT, GenerationOperation.ALIGN_SEMANTICS);
-                if (!ignoreErrors) {
-                    throw new ObjectGenerationException(
+                failurePolicy.handle(
+                    new ObjectGenerationException(
                         "Could not align semantic field at '" + context.path() + "' (declared type "
                         + context.declaredType() + ", depth " + depth + ")",
                         context,
-                        e);
-                }
-                logIgnored("write", context, e);
+                        e),
+                    null);
             }
         }
 
@@ -1051,11 +1045,6 @@ final class SemanticCoherenceAdjuster {
                 -1);
         }
 
-        private static void logIgnored(String action, GenerationFailureContext context, Exception cause) {
-            LOGGER.debug("Ignored semantic field " + action + " failure at '" + context.path()
-                         + "' (declared type " + context.declaredType() + ", depth " + context.depth()
-                         + "); cause=" + cause.getClass().getName());
-        }
     }
 
     private static final class RecordSlot implements Slot {

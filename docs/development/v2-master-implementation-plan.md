@@ -341,8 +341,8 @@ while keeping the seven published modules explicit.
 
 - [x] Inventory every swallowed `RuntimeException`, reflection failure, collection insertion failure, and schema metadata fallback.
 - [x] Define a small failure hierarchy with operation, owner type, field/schema path, declared type, depth, and root cause.
-- [ ] Make strict behavior the default.
-- [ ] Route explicit lenient behavior through one policy rather than scattered catch blocks.
+- [x] Make strict behavior the default.
+- [x] Route explicit lenient behavior through one policy rather than scattered catch blocks.
 - [x] Prevent exception messages from printing generated personal-looking values.
 - [ ] Define an optional sanitized diagnostic event/listener containing failure category, path, and replay-recipe identity without generated personal-looking values.
 - [ ] Preserve causes and add context at the correct boundary rather than wrapping repeatedly.
@@ -350,8 +350,8 @@ while keeping the seven published modules explicit.
 **Tests**
 
 - [ ] Map, queue, array, constructor, reflection, JPMS-access, and custom-generator failures report full paths.
-- [ ] Strict mode never returns a partial fixture after an assignment failure.
-- [ ] Lenient mode has explicit, documented fallback assertions.
+- [x] Strict mode never returns a partial fixture after an assignment failure.
+- [x] Lenient mode has explicit, documented fallback assertions.
 - [ ] Diagnostic listeners receive structured sanitized failures and cannot observe generated field values by default.
 
 **Done when:** Unsupported or failed generation is diagnosable without debugging internal reflection code.

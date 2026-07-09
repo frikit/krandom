@@ -98,8 +98,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Internal resolver: maps a field's ({@link Type}, {@link Class}, name, owner) tuple
@@ -132,7 +130,6 @@ import org.slf4j.LoggerFactory;
  */
 final class FieldGeneratorResolver {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FieldGeneratorResolver.class);
     private static final String OBJECT_CHARACTER_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     static final int DEFAULT_MIN_ELEMENT_COUNT = GeneratorConfig.defaults().getMinCollectionSize();
@@ -196,6 +193,7 @@ final class FieldGeneratorResolver {
     private final ObjectGenerationSemanticMode semanticMode;
     private final SemanticFieldRegistry       semanticRegistry;
     private final Set<String>                 uniqueFieldNames;
+    private final ObjectGenerationFailurePolicy failurePolicy;
 
     FieldGeneratorResolver(ObjectGeneratorConfig config,
                            ObjectPool pool,
@@ -212,6 +210,7 @@ final class FieldGeneratorResolver {
         this.semanticTypedGenerators = buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
         this.semanticMode = config.getSemanticMode();
         this.uniqueFieldNames = config.getUniqueFieldNames();
+        this.failurePolicy = new ObjectGenerationFailurePolicy(config.isIgnoreErrors());
     }
 
     private static Map<Class<?>, Generator<?>> buildBuiltins(ObjectGeneratorConfig cfg,
@@ -1519,12 +1518,6 @@ final class FieldGeneratorResolver {
                         map.put(key, val);
                     } catch (RuntimeException e) {
                         String declaredType = genericType.getTypeName();
-                        if (config.isIgnoreErrors()) {
-                            LOGGER.debug("Ignored map insertion failure at '" + entryPath
-                                         + "' (declared type " + declaredType + ", depth " + currentDepth
-                                         + "); cause=" + e.getClass().getName());
-                            return null;
-                        }
                         GenerationFailureContext context = new GenerationFailureContext(
                             GenerationFailureCategory.COLLECTION_INSERTION,
                             GenerationOperation.INSERT,
@@ -1533,11 +1526,13 @@ final class FieldGeneratorResolver {
                             declaredType,
                             currentDepth,
                             -1);
-                        throw new ObjectGenerationException(
-                            "Could not insert map entry at '" + entryPath + "' (declared type "
-                            + declaredType + ", depth " + currentDepth + ")",
-                            context,
-                            e);
+                        return failurePolicy.handle(
+                            new ObjectGenerationException(
+                                "Could not insert map entry at '" + entryPath + "' (declared type "
+                                + declaredType + ", depth " + currentDepth + ")",
+                                context,
+                                e),
+                            null);
                     }
                 }
             }
@@ -1573,32 +1568,22 @@ final class FieldGeneratorResolver {
                 return instance;
             } catch (ObjectGenerationException e) {
                 pool.end(nestedType, null);
-                if (config.isIgnoreErrors()) {
-                    LOGGER.debug("Ignored nested generation failure for field '"
-                                + ownerType.getSimpleName() + "." + fieldName + "' (declared type "
-                                + rawType.getTypeName() + ", depth " + currentDepth + "); cause="
-                                + e.getClass().getName());
-                    return null;
-                }
-                throw contextualizeNestedFailure(
-                    e, nestedType, ownerType, fieldName, genericType, currentDepth);
+                return failurePolicy.handle(
+                    contextualizeNestedFailure(
+                        e, nestedType, ownerType, fieldName, genericType, currentDepth),
+                    null);
             } catch (Exception e) {
                 pool.end(nestedType, null);
-                if (config.isIgnoreErrors()) {
-                    LOGGER.debug("Ignored nested generation failure for field '"
-                                + ownerType.getSimpleName() + "." + fieldName + "' (declared type "
-                                + rawType.getTypeName() + ", depth " + currentDepth + "); cause="
-                                + e.getClass().getName());
-                    return null;
-                }
-                throw nestedFailure(
-                    GenerationFailureCategory.REFLECTION,
-                    GenerationOperation.GENERATE,
-                    ownerType.getSimpleName() + "." + fieldName,
-                    ownerType,
-                    genericType.getTypeName(),
-                    currentDepth,
-                    e);
+                return failurePolicy.handle(
+                    nestedFailure(
+                        GenerationFailureCategory.REFLECTION,
+                        GenerationOperation.GENERATE,
+                        ownerType.getSimpleName() + "." + fieldName,
+                        ownerType,
+                        genericType.getTypeName(),
+                        currentDepth,
+                        e),
+                    null);
             }
         }
 
@@ -1680,11 +1665,6 @@ final class FieldGeneratorResolver {
                                          int depth) {
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
-        if (config.isIgnoreErrors()) {
-            LOGGER.debug("Ignored unsupported type at '" + path
-                         + "' (declared type " + declaredTypeName + ", depth " + depth + ")");
-            return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
-        }
         GenerationFailureContext context = new GenerationFailureContext(
             GenerationFailureCategory.UNSUPPORTED_TYPE,
             GenerationOperation.GENERATE,
@@ -1695,11 +1675,13 @@ final class FieldGeneratorResolver {
             -1);
         UnsupportedOperationException cause = new UnsupportedOperationException(
             "No generator is registered for the declared type");
-        throw new ObjectGenerationException(
-            "Unsupported type at '" + path + "' (declared type "
-            + declaredTypeName + ", depth " + depth + ")",
-            context,
-            cause);
+        return failurePolicy.handle(
+            new ObjectGenerationException(
+                "Unsupported type at '" + path + "' (declared type "
+                + declaredTypeName + ", depth " + depth + ")",
+                context,
+                cause),
+            PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
     }
 
     private Object handleCollectionInsertionFailure(Class<?> ownerType,
@@ -1709,12 +1691,6 @@ final class FieldGeneratorResolver {
                                                     RuntimeException cause) {
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
-        if (config.isIgnoreErrors()) {
-            LOGGER.debug("Ignored collection insertion failure at '" + path
-                         + "' (declared type " + declaredTypeName + ", depth " + depth
-                         + "); cause=" + cause.getClass().getName());
-            return null;
-        }
         GenerationFailureContext context = new GenerationFailureContext(
             GenerationFailureCategory.COLLECTION_INSERTION,
             GenerationOperation.INSERT,
@@ -1723,11 +1699,13 @@ final class FieldGeneratorResolver {
             declaredTypeName,
             depth,
             -1);
-        throw new ObjectGenerationException(
-            "Could not populate collection at '" + path + "' (declared type "
-            + declaredTypeName + ", depth " + depth + ")",
-            context,
-            cause);
+        return failurePolicy.handle(
+            new ObjectGenerationException(
+                "Could not populate collection at '" + path + "' (declared type "
+                + declaredTypeName + ", depth " + depth + ")",
+                context,
+                cause),
+            null);
     }
 
     private Object handleCollectionConstructionFailure(Class<?> ownerType,
@@ -1737,12 +1715,6 @@ final class FieldGeneratorResolver {
                                                        Throwable cause) {
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
-        if (config.isIgnoreErrors()) {
-            LOGGER.debug("Ignored collection construction failure at '" + path
-                         + "' (declared type " + declaredTypeName + ", depth " + depth
-                         + "); cause=" + cause.getClass().getName());
-            return null;
-        }
         GenerationFailureContext context = new GenerationFailureContext(
             GenerationFailureCategory.CONSTRUCTION,
             GenerationOperation.CONSTRUCT,
@@ -1751,11 +1723,13 @@ final class FieldGeneratorResolver {
             declaredTypeName,
             depth,
             -1);
-        throw new ObjectGenerationException(
-            "Could not construct collection at '" + path + "' (declared type "
-            + declaredTypeName + ", depth " + depth + ")",
-            context,
-            cause);
+        return failurePolicy.handle(
+            new ObjectGenerationException(
+                "Could not construct collection at '" + path + "' (declared type "
+                + declaredTypeName + ", depth " + depth + ")",
+                context,
+                cause),
+            null);
     }
 
     /**
@@ -1779,12 +1753,6 @@ final class FieldGeneratorResolver {
             } catch (IllegalArgumentException e) {
                 String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
                 String declaredType = arrayType.getTypeName();
-                if (config.isIgnoreErrors()) {
-                    LOGGER.debug("Ignored array insertion failure at '" + elementPath
-                                 + "' (declared type " + declaredType + ", depth " + depth
-                                 + "); cause=" + e.getClass().getName());
-                    continue;
-                }
                 GenerationFailureContext context = new GenerationFailureContext(
                     GenerationFailureCategory.COLLECTION_INSERTION,
                     GenerationOperation.INSERT,
@@ -1793,11 +1761,13 @@ final class FieldGeneratorResolver {
                     declaredType,
                     depth,
                     -1);
-                throw new ObjectGenerationException(
-                    "Could not insert array element at '" + elementPath + "' (declared type "
-                    + declaredType + ", depth " + depth + ")",
-                    context,
-                    e);
+                failurePolicy.handle(
+                    new ObjectGenerationException(
+                        "Could not insert array element at '" + elementPath + "' (declared type "
+                        + declaredType + ", depth " + depth + ")",
+                        context,
+                        e),
+                    null);
             }
         }
         return arr;
