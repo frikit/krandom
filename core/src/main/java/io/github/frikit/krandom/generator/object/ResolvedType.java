@@ -15,6 +15,7 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -56,6 +57,45 @@ record ResolvedType(
         Objects.requireNonNull(type, "type must not be null");
         Objects.requireNonNull(bindings, "bindings must not be null");
         return resolve(type, Map.copyOf(bindings), new HashSet<>());
+    }
+
+    static Map<TypeVariable<?>, Type> bindingsFor(Class<?> concreteType) {
+        Objects.requireNonNull(concreteType, "concreteType must not be null");
+        return bindingsFor((Type) concreteType);
+    }
+
+    static Map<TypeVariable<?>, Type> bindingsFor(Type concreteType) {
+        Objects.requireNonNull(concreteType, "concreteType must not be null");
+        Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>();
+        collectBindings(concreteType, bindings);
+        return Map.copyOf(bindings);
+    }
+
+    private static void collectBindings(Class<?> type, Map<TypeVariable<?>, Type> bindings) {
+        if (type == Object.class) {
+            return;
+        }
+        Type superclass = type.getGenericSuperclass();
+        if (superclass != null) {
+            collectBindings(superclass, bindings);
+        }
+        for (Type interfaceType : type.getGenericInterfaces()) {
+            collectBindings(interfaceType, bindings);
+        }
+    }
+
+    private static void collectBindings(Type relationship, Map<TypeVariable<?>, Type> bindings) {
+        if (relationship instanceof ParameterizedType parameterized) {
+            Class<?> rawClass = (Class<?>) parameterized.getRawType();
+            TypeVariable<?>[] variables = rawClass.getTypeParameters();
+            Type[] arguments = parameterized.getActualTypeArguments();
+            for (int i = 0; i < variables.length; i++) {
+                bindings.put(variables[i], arguments[i]);
+            }
+            collectBindings(rawClass, bindings);
+        } else if (relationship instanceof Class<?> rawClass) {
+            collectBindings(rawClass, bindings);
+        }
     }
 
     private static ResolvedType resolve(Type type,
@@ -141,8 +181,8 @@ record ResolvedType(
             declaredType,
             kind,
             effectiveType.rawClass(),
-            List.of(),
-            null,
+            effectiveType.arguments(),
+            effectiveType.componentType(),
             effectiveType,
             effectiveType.unresolvedReason());
     }

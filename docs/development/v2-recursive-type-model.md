@@ -82,10 +82,12 @@ through the existing resolver. Mutable fields and Java records share the same be
 - Resolve upper/lower wildcards and concrete superclass/interface bindings.
 - Reject ambiguous/unbounded shapes with the complete path and signature.
 
-**In progress.** Upper/lower wildcard bounds feed default container generation. Raw containers and
+**Complete.** Upper/lower wildcard bounds feed default container generation. Raw containers and
 unbounded wildcard arguments now fail at the parent field with the full container signature;
 explicit lenient mode returns `null` for the whole value and emits a sanitized diagnostic. Concrete
-superclass/interface bindings remain to be connected.
+root bindings propagate through inherited direct and container fields, including multi-level
+parameterized bindings. Custom collection subtypes project their element/key/value variables through
+their generic superclass and interface contracts.
 
 ### Slice D — Generic arrays and schema metadata
 

@@ -47,6 +47,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -193,11 +194,13 @@ final class FieldGeneratorResolver {
     private final SemanticFieldRegistry       semanticRegistry;
     private final Set<String>                 uniqueFieldNames;
     private final ObjectGenerationFailurePolicy failurePolicy;
+    private final Map<TypeVariable<?>, Type> typeBindings;
 
     FieldGeneratorResolver(ObjectGeneratorConfig config,
                            ObjectPool pool,
                            UniqueFieldTracker uniqueFieldTracker,
-                           Long generationSeed) {
+                           Long generationSeed,
+                           Class<?> rootType) {
         this.config = config;
         this.generatorConfig = config.getGeneratorConfig();
         this.pool = pool;
@@ -211,6 +214,7 @@ final class FieldGeneratorResolver {
         this.uniqueFieldNames = config.getUniqueFieldNames();
         this.failurePolicy = new ObjectGenerationFailurePolicy(
             config.isIgnoreErrors(), generatorConfig.getGenerationFailureListener());
+        this.typeBindings = ResolvedType.bindingsFor(rootType);
     }
 
     private static Map<Class<?>, Generator<?>> buildBuiltins(ObjectGeneratorConfig cfg,
@@ -970,23 +974,23 @@ final class FieldGeneratorResolver {
 
     // ── Primary entry point ───────────────────────────────────────────────────
 
-    /**
-     * Extracts a recursively resolved type argument while retaining raw-container compatibility.
-     */
-    private static ResolvedType typeArg(Type type, int index) {
-        ResolvedType resolved = ResolvedType.resolve(type);
-        if (index < resolved.arguments().size()) {
-            return resolved.argument(index);
-        }
-        return ResolvedType.resolve(Object.class);
+    private ResolvedType containerArgument(Type type, Class<?> containerContract, int index) {
+        ResolvedType resolved = ResolvedType.resolve(type, typeBindings);
+        Type hierarchyType = resolved.effectiveType() != null
+                             ? resolved.effectiveType().declaredType()
+                             : type;
+        Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
+        bindings.putAll(ResolvedType.bindingsFor(hierarchyType));
+        return ResolvedType.resolve(containerContract.getTypeParameters()[index], bindings);
     }
 
-    private static boolean hasResolvedArguments(Type type, Class<?> rawType, int expectedArguments) {
-        ResolvedType resolved = ResolvedType.resolve(type);
-        if (resolved.kind() == ResolvedType.Kind.PARAMETERIZED) {
-            return resolved.arguments().size() == expectedArguments && resolved.isResolved();
+    private boolean hasResolvedArguments(Type type, Class<?> containerContract) {
+        for (int i = 0; i < containerContract.getTypeParameters().length; i++) {
+            if (!containerArgument(type, containerContract, i).isResolved()) {
+                return false;
+            }
         }
-        return rawType.getTypeParameters().length == 0;
+        return true;
     }
 
     private static Set<Object> toSetType(Class<?> rawType, List<Object> values) {
@@ -1337,6 +1341,9 @@ final class FieldGeneratorResolver {
                               String fieldName, Class<?> ownerType,
                               int currentDepth, AnnotatedElement element) {
 
+        ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
+        rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
+
         // ── 0a. Contextual field-level override ───────────────────────────────
         var ctxField = config.getContextualFieldOverride(ownerType, fieldName);
         if (ctxField.isPresent()) {
@@ -1403,13 +1410,13 @@ final class FieldGeneratorResolver {
             return bvGen.generate();
         }
         if (Optional.class == rawType) {
-            if (!hasResolvedArguments(genericType, rawType, 1)) {
+            if (!hasResolvedArguments(genericType, Optional.class)) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
             if (shouldReturnEmptyOptional(element)) {
                 return Optional.empty();
             }
-            ResolvedType valueType = typeArg(genericType, 0);
+            ResolvedType valueType = containerArgument(genericType, Optional.class, 0);
             Object value = resolveAndGenerate(valueType, fieldName + ".value", ownerType, currentDepth);
             return Optional.ofNullable(value);
         }
@@ -1461,10 +1468,10 @@ final class FieldGeneratorResolver {
 
         // ── 6b. Set ───────────────────────────────────────────────────────────
         if (Set.class.isAssignableFrom(rawType)) {
-            if (!hasResolvedArguments(genericType, rawType, 1)) {
+            if (!hasResolvedArguments(genericType, Set.class)) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            ResolvedType elem = typeArg(genericType, 0);
+            ResolvedType elem = containerArgument(genericType, Set.class, 0);
             int elementCount = nextCollectionSize(element);
             Set<Object> values = new LinkedHashSet<>();
             int attempts = 0;
@@ -1485,10 +1492,11 @@ final class FieldGeneratorResolver {
 
         // ── 6c. List / Queue ──────────────────────────────────────────────────
         if (List.class.isAssignableFrom(rawType) || Queue.class.isAssignableFrom(rawType)) {
-            if (!hasResolvedArguments(genericType, rawType, 1)) {
+            Class<?> containerContract = List.class.isAssignableFrom(rawType) ? List.class : Queue.class;
+            if (!hasResolvedArguments(genericType, containerContract)) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            ResolvedType elem = typeArg(genericType, 0);
+            ResolvedType elem = containerArgument(genericType, containerContract, 0);
             int elementCount = nextCollectionSize(element);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
@@ -1510,11 +1518,11 @@ final class FieldGeneratorResolver {
 
         // ── 6d. Map ───────────────────────────────────────────────────────────
         if (Map.class.isAssignableFrom(rawType)) {
-            if (!hasResolvedArguments(genericType, rawType, 2)) {
+            if (!hasResolvedArguments(genericType, Map.class)) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            ResolvedType k = typeArg(genericType, 0);
-            ResolvedType v = typeArg(genericType, 1);
+            ResolvedType k = containerArgument(genericType, Map.class, 0);
+            ResolvedType v = containerArgument(genericType, Map.class, 1);
             Map<Object, Object> map;
             try {
                 map = toMapType(rawType);
@@ -1607,12 +1615,6 @@ final class FieldGeneratorResolver {
         }
 
         // ── 9. Unsupported type ───────────────────────────────────────────────
-        // Raw, wildcard, and inherited collection type arguments still collapse to Object.class.
-        // Keep their nested compatibility fallback until Step 2.2 replaces typeArg with the
-        // recursive type model; direct fields always carry their AnnotatedElement and fail below.
-        if (rawType == Object.class && element == null) {
-            return null;
-        }
         return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
     }
 
@@ -1764,8 +1766,9 @@ final class FieldGeneratorResolver {
                                       String fieldName,
                                       Class<?> ownerType,
                                       int currentDepth) {
-        Class<?> rawType = Objects.requireNonNullElse(type.rawClass(), Object.class);
-        return resolveAndGenerate(type.declaredType(), rawType, fieldName, ownerType, currentDepth, null);
+        ResolvedType generationType = Objects.requireNonNullElse(type.effectiveType(), type);
+        Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
+        return resolveAndGenerate(generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, null);
     }
 
     private Object generateArray(Class<?> arrayType, Class<?> ownerType,

@@ -109,6 +109,25 @@ class ResolvedTypeTest {
     }
 
     @Test
+    @DisplayName("derives concrete bindings across superclasses and interfaces")
+    void derivesHierarchyBindings() throws Exception {
+        TypeVariable<Class<GenericBase>> baseVariable = GenericBase.class.getTypeParameters()[0];
+        Map<TypeVariable<?>, Type> stringBindings = ResolvedType.bindingsFor(StringChild.class);
+        assertEquals(String.class, ResolvedType.resolve(baseVariable, stringBindings).rawClass());
+
+        Map<TypeVariable<?>, Type> nestedBindings = ResolvedType.bindingsFor(IntegerChild.class);
+        ResolvedType nested = ResolvedType.resolve(baseVariable, nestedBindings);
+        assertEquals(List.class, nested.rawClass());
+        assertEquals(Integer.class, nested.argument(0).rawClass());
+
+        TypeVariable<Class<GenericContract>> contractVariable = GenericContract.class.getTypeParameters()[0];
+        Map<TypeVariable<?>, Type> interfaceBindings = ResolvedType.bindingsFor(StringContract.class);
+        assertEquals(String.class, ResolvedType.resolve(contractVariable, interfaceBindings).rawClass());
+
+        assertTrue(ResolvedType.bindingsFor(Object.class).isEmpty());
+    }
+
+    @Test
     @DisplayName("models generic arrays and reports recursive bounds")
     void modelsGenericArraysAndRecursiveBounds() throws Exception {
         ResolvedType array = ResolvedType.resolve(field("genericArray").getGenericType());
@@ -140,6 +159,7 @@ class ResolvedTypeTest {
     void validatesInputs() {
         assertThrows(NullPointerException.class, () -> ResolvedType.resolve(null));
         assertThrows(NullPointerException.class, () -> ResolvedType.resolve(String.class, null));
+        assertThrows(NullPointerException.class, () -> ResolvedType.bindingsFor((Type) null));
 
         Type unknown = new Type() {
             @Override
@@ -151,6 +171,7 @@ class ResolvedTypeTest {
         assertEquals(ResolvedType.Kind.UNKNOWN, unresolved.kind());
         assertFalse(unresolved.isResolved());
         assertTrue(unresolved.unresolvedReason().contains("unsupported Type implementation"));
+        assertTrue(ResolvedType.bindingsFor(unknown).isEmpty());
         assertThrows(IndexOutOfBoundsException.class, () -> unresolved.argument(0));
 
         ParameterizedType withoutRawClass = new ParameterizedType() {
@@ -212,6 +233,24 @@ class ResolvedTypeTest {
     private static final class AmbiguousArray<T extends List<?>> {
 
         T[] values;
+    }
+
+    private static class GenericBase<T> {
+    }
+
+    private static class GenericMiddle<U> extends GenericBase<List<U>> {
+    }
+
+    private static final class StringChild extends GenericBase<String> {
+    }
+
+    private static final class IntegerChild extends GenericMiddle<Integer> {
+    }
+
+    private interface GenericContract<T> {
+    }
+
+    private static final class StringContract implements GenericContract<String> {
     }
 
     private static final class Recursive<T extends Comparable<T>> {

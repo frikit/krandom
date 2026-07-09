@@ -230,7 +230,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 config,
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
-                generationSeed);
+                generationSeed,
+                type);
         SemanticCoherenceAdjuster coherenceAdjuster =
             new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth);
         try {
@@ -265,7 +266,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 config,
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
-                generationSeed);
+                generationSeed,
+                type);
         populateClass(instance,
                       resolver,
                       new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),

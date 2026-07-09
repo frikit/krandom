@@ -157,15 +157,11 @@ class ObjectGeneratorCollectionTest {
     }
 
     @Test
-    @DisplayName("custom list with ambiguous extra type argument fails contextually")
-    void customListWithExtraTypeArgumentFailsContextually() {
-        ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(WithAmbiguousCustomList.class).generate());
-        assertEquals(
-            "io.github.frikit.krandom.generator.object.ObjectGeneratorCollectionTest$TwoArgumentList"
-            + "<java.lang.String, java.lang.Integer>",
-            ex.getContext().orElseThrow().declaredType());
+    @DisplayName("custom list projects its element through extra type parameters")
+    void customListProjectsElementThroughExtraTypeParameters() {
+        WithMetadataCustomList value = new ObjectGenerator<>(WithMetadataCustomList.class).generate();
+        assertNotNull(value.items);
+        value.items.forEach(item -> assertTrue(item instanceof String));
     }
 
     @Test
@@ -197,6 +193,20 @@ class ObjectGeneratorCollectionTest {
         assertEquals("java.util.List<?>", context.declaredType());
     }
 
+    @Test
+    @DisplayName("map generation bounds retries when an override produces null keys")
+    void mapGenerationBoundsNullKeyRetries() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .generatorConfig(
+                                                                GeneratorConfig.builder().collectionSize(2, 2).build())
+                                                            .override(String.class, () -> null)
+                                                            .build();
+
+        NullKeyMapHolder value = new ObjectGenerator<>(NullKeyMapHolder.class, config).generate();
+
+        assertTrue(value.data.isEmpty());
+    }
+
 
     @SuppressWarnings("rawtypes")
     static class WithRawList {
@@ -218,7 +228,7 @@ class ObjectGeneratorCollectionTest {
         Optional optional;
     }
 
-    static class WithAmbiguousCustomList {
+    static class WithMetadataCustomList {
 
         TwoArgumentList<String, Integer> items;
     }
@@ -240,5 +250,10 @@ class ObjectGeneratorCollectionTest {
     static class WithUnboundedWildcardList {
 
         List<?> items;
+    }
+
+    static class NullKeyMapHolder {
+
+        Map<String, Integer> data;
     }
 }
