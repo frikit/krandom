@@ -1202,7 +1202,10 @@ final class FieldGeneratorResolver {
         return null;
     }
 
-    private static Generator<?> annotationRandomizerFor(AnnotatedElement element) {
+    private static Generator<?> annotationRandomizerFor(AnnotatedElement element,
+                                                        Class<?> ownerType,
+                                                        String fieldName,
+                                                        int depth) {
         Randomizer annotation = element.getAnnotation(Randomizer.class);
         if (annotation == null) return null;
         Class<? extends Generator<?>> generatorType = annotation.value();
@@ -1216,12 +1219,58 @@ final class FieldGeneratorResolver {
             }
             Constructor<? extends Generator<?>> ctor = generatorType.getDeclaredConstructor(parameterTypes);
             ctor.setAccessible(true);
-            return ctor.newInstance(parameterValues);
+            Generator<?> generator = ctor.newInstance(parameterValues);
+            return () -> generateWithRandomizerContext(generator, generatorType, ownerType, fieldName, depth);
+        } catch (InvocationTargetException e) {
+            throw randomizerFailure(
+                GenerationOperation.CONSTRUCT, generatorType, ownerType, fieldName, depth, e.getTargetException());
         } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new ObjectGenerationException(
-                "Failed to instantiate @" + Randomizer.class.getSimpleName()
-                + " generator: " + generatorType.getName(), e);
+            throw randomizerFailure(
+                GenerationOperation.CONSTRUCT, generatorType, ownerType, fieldName, depth, e);
         }
+    }
+
+    private static Object generateWithRandomizerContext(Generator<?> generator,
+                                                        Class<? extends Generator<?>> generatorType,
+                                                        Class<?> ownerType,
+                                                        String fieldName,
+                                                        int depth) {
+        try {
+            return generator.generate();
+        } catch (ObjectGenerationException e) {
+            if (e.getContext().isPresent()) {
+                throw e;
+            }
+            throw randomizerFailure(
+                GenerationOperation.GENERATE, generatorType, ownerType, fieldName, depth, e);
+        } catch (RuntimeException e) {
+            throw randomizerFailure(
+                GenerationOperation.GENERATE, generatorType, ownerType, fieldName, depth, e);
+        }
+    }
+
+    private static ObjectGenerationException randomizerFailure(GenerationOperation operation,
+                                                               Class<? extends Generator<?>> generatorType,
+                                                               Class<?> ownerType,
+                                                               String fieldName,
+                                                               int depth,
+                                                               Throwable cause) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String generatorTypeName = generatorType.getName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.CUSTOM_GENERATOR,
+            operation,
+            path,
+            ownerType,
+            generatorTypeName,
+            depth,
+            -1);
+        return new ObjectGenerationException(
+            "Could not " + operation.name().toLowerCase(java.util.Locale.ROOT)
+            + " @" + Randomizer.class.getSimpleName() + " generator at '" + path
+            + "' (generator type " + generatorTypeName + ", depth " + depth + ")",
+            context,
+            cause);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -1322,7 +1371,9 @@ final class FieldGeneratorResolver {
             return typeOverride.get().generate();
         }
 
-        Generator<?> annotationGenerator = element != null ? annotationRandomizerFor(element) : null;
+        Generator<?> annotationGenerator = element != null
+                                           ? annotationRandomizerFor(element, ownerType, fieldName, currentDepth)
+                                           : null;
         Generator<?> fakeAnnotationGenerator = element != null ? fakeAnnotationGeneratorFor(element, rawType) : null;
         Generator<?> fakeRangeGenerator = element != null ? fakeRangeGeneratorFor(element, rawType) : null;
         Generator<?> bvGen = element != null
