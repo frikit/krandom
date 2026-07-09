@@ -67,7 +67,7 @@ jobs:
         run: ./scripts/verify_build_input_pins.sh
 
       - name: Build, test, and check
-        run: ./gradlew clean build check checkApiContract -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
+        run: ./gradlew clean build check checkApiContract verifyReleaseSboms -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
       # Aggregates every published module's signed artifacts (jar, sources, javadoc, POM,
       # module metadata, .asc signatures) into a single zip and uploads it via the
@@ -100,6 +100,8 @@ jobs:
             spring-boot-starter/build/libs/*.jar
             kotest-extensions/build/libs/*.jar
             kotlin-dsl/build/libs/*.jar
+            build/reports/sbom/*.cdx.json
+            build/reports/sbom/*.cdx.xml
           body: |
             Published modules:
             - io.github.frikit:krandom-core:${{ env.VERSION }}

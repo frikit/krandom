@@ -30,7 +30,7 @@ jobs:
         run: ./scripts/verify_build_input_pins.sh
 
       - name: Build and verify
-        run: ./gradlew clean build check checkApiContract --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
+        run: ./gradlew clean build check checkApiContract verifyReleaseSboms --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
       - name: Upload coverage to Codecov
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.spotless) apply false
+    alias(libs.plugins.cyclonedx)
 }
 
 val apiBaselineVersion = providers.gradleProperty("apiBaselineVersion")
@@ -47,6 +48,96 @@ configure<com.diffplug.gradle.spotless.SpotlessExtension> {
 val publishedModules = setOf("bom", "core", "jackson", "junit", "spring-boot-starter", "kotest-extensions", "kotlin-dsl")
 val apiModules = publishedModules - "bom"
 val apiEvolutionTasks = mutableListOf<TaskProvider<JavaExec>>()
+
+tasks.named<org.cyclonedx.gradle.CyclonedxDirectTask>("cyclonedxDirectBom") {
+    enabled = false
+}
+
+subprojects {
+    tasks.withType<org.cyclonedx.gradle.CyclonedxDirectTask>().configureEach {
+        enabled = project.name in publishedModules
+        if (enabled) {
+            includeConfigs.set(if (project.name == "bom") listOf("classpath") else listOf("runtimeClasspath"))
+            skipConfigs.set(listOf(".*test.*", ".*Test.*"))
+            includeBuildEnvironment.set(false)
+            includeMetadataResolution.set(true)
+            componentGroup.set(project.group.toString())
+            componentName.set("krandom-${project.name}")
+            componentVersion.set(project.version.toString())
+            jsonOutput.set(rootProject.layout.buildDirectory.file("reports/sbom/krandom-${project.name}.cdx.json"))
+            xmlOutput.set(rootProject.layout.buildDirectory.file("reports/sbom/krandom-${project.name}.cdx.xml"))
+        }
+    }
+}
+
+val releaseSbomTasks = publishedModules.map { moduleName ->
+    project(":$moduleName").tasks.named("cyclonedxDirectBom")
+}
+
+tasks.register("generateReleaseSboms") {
+    group = "distribution"
+    description = "Generates CycloneDX JSON/XML SBOMs for every published module."
+    dependsOn(releaseSbomTasks)
+}
+
+tasks.register("verifyReleaseSboms") {
+    group = "verification"
+    description = "Generates and validates the CycloneDX SBOMs attached to a release."
+    dependsOn("generateReleaseSboms")
+    inputs.files(publishedModules.flatMap { moduleName ->
+        listOf(
+            layout.buildDirectory.file("reports/sbom/krandom-$moduleName.cdx.json"),
+            layout.buildDirectory.file("reports/sbom/krandom-$moduleName.cdx.xml")
+        )
+    })
+
+    doLast {
+        val xmlFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance().apply {
+            isNamespaceAware = true
+            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        }
+        val xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath()
+
+        publishedModules.forEach { moduleName ->
+            val expectedName = "krandom-$moduleName"
+            val expectedVersion = project(":$moduleName").version.toString()
+            val jsonFile = layout.buildDirectory.file("reports/sbom/$expectedName.cdx.json").get().asFile
+            val xmlFile = layout.buildDirectory.file("reports/sbom/$expectedName.cdx.xml").get().asFile
+
+            check(jsonFile.isFile && jsonFile.length() > 0) { "Missing release SBOM: $jsonFile" }
+            check(xmlFile.isFile && xmlFile.length() > 0) { "Missing release SBOM: $xmlFile" }
+
+            @Suppress("UNCHECKED_CAST")
+            val json = groovy.json.JsonSlurper().parse(jsonFile) as Map<String, Any?>
+            check(json["bomFormat"] == "CycloneDX") { "$jsonFile is not a CycloneDX document" }
+            check(json["specVersion"] == "1.6") { "$jsonFile must use CycloneDX 1.6" }
+            @Suppress("UNCHECKED_CAST")
+            val jsonMetadata = json["metadata"] as Map<String, Any?>
+            @Suppress("UNCHECKED_CAST")
+            val jsonComponent = jsonMetadata["component"] as Map<String, Any?>
+            check(jsonComponent["group"] == project.group.toString()) { "$jsonFile has the wrong component group" }
+            check(jsonComponent["name"] == expectedName) { "$jsonFile has the wrong component name" }
+            check(jsonComponent["version"] == expectedVersion) { "$jsonFile has the wrong component version" }
+            val componentNames = (json["components"] as? List<*>)
+                .orEmpty()
+                .mapNotNull { component -> (component as? Map<*, *>)?.get("name") as? String }
+            check("logback-classic" !in componentNames) { "$jsonFile contains the test-only logging backend" }
+
+            val xml = xmlFactory.newDocumentBuilder().parse(xmlFile)
+            check(xml.documentElement.localName == "bom") { "$xmlFile is not a CycloneDX document" }
+            check(xml.documentElement.namespaceURI == "http://cyclonedx.org/schema/bom/1.6") {
+                "$xmlFile must use CycloneDX 1.6"
+            }
+            fun xmlComponentValue(name: String): String = xpath.evaluate(
+                "/*[local-name()='bom']/*[local-name()='metadata']/*[local-name()='component']/*[local-name()='$name']/text()",
+                xml
+            )
+            check(xmlComponentValue("group") == project.group.toString()) { "$xmlFile has the wrong component group" }
+            check(xmlComponentValue("name") == expectedName) { "$xmlFile has the wrong component name" }
+            check(xmlComponentValue("version") == expectedVersion) { "$xmlFile has the wrong component version" }
+        }
+    }
+}
 
 val apiCompatibilityTasks = apiModules.map { moduleName ->
     val taskSuffix = moduleName

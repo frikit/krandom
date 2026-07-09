@@ -283,7 +283,7 @@ Work may run in parallel only when the dependency table for its stage allows it.
 - [x] Pin GitHub Actions to immutable commit SHAs.
 - [x] Pin and verify the downloaded Mill launcher and any other executed binary.
 - [ ] Resolve or upgrade the Central publication plugin before its deprecation becomes a Gradle 10 error.
-- [ ] Generate CycloneDX or SPDX SBOMs for release artifacts.
+- [x] Generate CycloneDX or SPDX SBOMs for release artifacts.
 - [ ] Generate build provenance/attestation in the release workflow.
 - [x] Add strict dependency/repository checks that reject dynamic versions and unexpected repositories.
 
@@ -293,6 +293,7 @@ Work may run in parallel only when the dependency table for its stage allows it.
 - [x] Dependency verification runs in CI and clean local builds.
 - [x] No workflow action or downloaded executable is floating/unverified.
 - [x] `./gradlew help --warning-mode all` has no project-controlled Gradle 10 blocker.
+- [x] Every published module produces validated CycloneDX JSON/XML release assets without test-only dependencies.
 
 The remaining Gradle 10 deprecation is attributed by Gradle's problems report to
 `com.gradleup.nmcp.settings` 1.6.1. Keep the publication-plugin action open until an upstream fix or

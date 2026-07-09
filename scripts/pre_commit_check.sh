@@ -106,6 +106,14 @@ else
     exit 1
 fi
 
+step "Generate and validate release SBOMs"
+if "${GRADLEW}" verifyReleaseSboms --quiet; then
+    ok "Release SBOMs are valid"
+else
+    fail "Release SBOM validation failed — see build/reports/sbom"
+    exit 1
+fi
+
 step "Validate Javadoc (check for broken links and missing docs)"
 if "${GRADLEW}" :core:javadoc --quiet; then
     ok "Javadoc validation passed"
