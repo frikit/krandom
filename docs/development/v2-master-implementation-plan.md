@@ -459,7 +459,7 @@ while keeping the seven published modules explicit.
 
 - [x] Implement a truth-table test for every allowed and rejected source combination.
 - [x] Prove equivalent configurations behave consistently across generator families.
-- [ ] Add concurrent-use tests that distinguish safety from reproducibility.
+- [x] Add concurrent-use tests that distinguish safety from reproducibility.
 - [x] Prove caller-owned sources are not copied or reseeded implicitly.
 
 **Done when:** A consumer can predict the source, ownership, security, and replay behavior from configuration alone.

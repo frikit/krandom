@@ -6,12 +6,13 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.base.DigitGenerator;
+import io.github.frikit.krandom.generator.object.FakeRange;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
-import io.github.frikit.krandom.generator.object.FakeRange;
 import io.github.frikit.krandom.generator.provider.TextFormatProvider;
 import io.github.frikit.krandom.generator.schema.Schema;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -22,11 +23,20 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("random source contract across generator families")
@@ -75,6 +85,49 @@ class RandomSourceContractTest {
         generate.accept(config);
 
         assertTrue(random.drawCount() > 0, path + " did not consume the configured Random");
+    }
+
+    @Test
+    @DisplayName("shared Random stays coherent but logical replay follows concurrent call order")
+    void sharedRandomIsSafeButReplayDependsOnCallOrder() throws Exception {
+        int callCount = 64;
+        GeneratorConfig expectedConfig = GeneratorConfig.builder().random(new Random(42L)).build();
+        List<String> expected = new DigitGenerator(expectedConfig).generateList(callCount);
+
+        GeneratorConfig concurrentConfig = GeneratorConfig.builder().random(new Random(42L)).build();
+        DigitGenerator shared = new DigitGenerator(concurrentConfig);
+        CountDownLatch ready = new CountDownLatch(callCount);
+        List<CountDownLatch> permits = new ArrayList<>(callCount);
+        for (int i = 0; i < callCount; i++) {
+            permits.add(new CountDownLatch(1));
+        }
+
+        List<String> observed = new ArrayList<>(Collections.nCopies(callCount, null));
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<String>> calls = new ArrayList<>(callCount);
+            for (int i = 0; i < callCount; i++) {
+                int logicalIndex = i;
+                calls.add(executor.submit(() -> {
+                    ready.countDown();
+                    permits.get(logicalIndex).await();
+                    return shared.generate();
+                }));
+            }
+
+            try {
+                assertTrue(ready.await(5, TimeUnit.SECONDS), "concurrent callers did not become ready");
+                for (int i = callCount - 1; i >= 0; i--) {
+                    permits.get(i).countDown();
+                    observed.set(i, calls.get(i).get(5, TimeUnit.SECONDS));
+                }
+            } finally {
+                permits.forEach(CountDownLatch::countDown);
+            }
+        }
+
+        List<String> expectedInReverseCallOrder = new ArrayList<>(expected);
+        Collections.reverse(expectedInReverseCallOrder);
+        assertEquals(expectedInReverseCallOrder, observed);
     }
 
     private static Stream<Arguments> generatorFamilies() {
