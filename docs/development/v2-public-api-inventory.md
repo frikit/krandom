@@ -111,8 +111,9 @@ exception constructors and inheritance remain compatible; the original cause is 
 Diagnostics expose only the cause class name, not the throwable. Replay identity remains empty
 until Step 2.7 introduces the recipe contract. Listener callback failures are sanitized and cannot
 replace strict failures or lenient fallback behavior.
-`ObjectGenerator` remains **KEEP** with no new public member; its exact class-level evolution
-classification covers private construction-context implementation reported by japicmp.
+`ObjectGenerator` and `ObjectFaker` remain **KEEP** with no new public members; their exact
+class-level evolution classifications cover private contextual-failure implementation reported by
+japicmp.
 `GeneratorConfig` and its builder also retain **KEEP** dispositions; their exact class-level
 classifications cover private listener storage, while the accessor and builder method above are
 the complete additive public surface.

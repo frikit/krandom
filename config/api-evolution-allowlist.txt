@@ -27,6 +27,8 @@ io.github.frikit.krandom.generator.GeneratorConfig$Builder
 # ObjectGenerator remains KEEP; japicmp marks the public class modified when its private
 # construction-context helper changes class metadata. No public member is added or removed.
 io.github.frikit.krandom.generator.object.ObjectGenerator
+# ObjectFaker also remains KEEP; this covers private nested-rule context helpers only.
+io.github.frikit.krandom.generator.object.ObjectFaker
 # Exact class classification is required because adding explicit legacy serialVersionUID
 # fields changes class-level metadata even though serialization remains compatible.
 io.github.frikit.krandom.generator.object.exception.ObjectGenerationException

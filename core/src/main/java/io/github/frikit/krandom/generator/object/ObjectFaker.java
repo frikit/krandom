@@ -9,10 +9,14 @@ import io.github.frikit.krandom.generator.ContextualGenerator;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.GenerationContext;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
@@ -442,12 +446,7 @@ public final class ObjectFaker<T> implements Generator<T> {
             return value;
         }
         IncludeNode includeTree = buildIncludeTree();
-        try {
-            return type.cast(pruneToIncludedPaths(value, includeTree));
-        } catch (ReflectiveOperationException e) {
-            throw new ObjectGenerationException(
-                "Failed to apply nested include rules on " + type.getName(), e);
-        }
+        return type.cast(pruneToIncludedPaths(value, includeTree, type.getSimpleName(), -1));
     }
 
     private T applyNestedIgnoreRules(T value) {
@@ -465,8 +464,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         try {
             return type.cast(assignNestedValue(instance, path, 0, value));
         } catch (ReflectiveOperationException | IllegalArgumentException e) {
-            throw new ObjectGenerationException(
-                "Failed to apply fixture rule for field path '" + path.path() + "' on " + type.getName(), e);
+            throw fakerFailure(GenerationFailureCategory.ASSIGNMENT, path, e);
         }
     }
 
@@ -503,9 +501,44 @@ public final class ObjectFaker<T> implements Generator<T> {
         try {
             return type.cast(assignNestedValue(instance, path, 0, defaultValue(path.leaf().valueType()), false));
         } catch (ReflectiveOperationException | IllegalArgumentException e) {
-            throw new ObjectGenerationException(
-                "Failed to apply ignore rule for field path '" + path.path() + "' on " + type.getName(), e);
+            throw fakerFailure(GenerationFailureCategory.ASSIGNMENT, path, e);
         }
+    }
+
+    private ObjectGenerationException fakerFailure(GenerationFailureCategory category,
+                                                    RulePath path,
+                                                    Throwable cause) {
+        RuleTarget target = path.leaf();
+        return fakerFailure(
+            category,
+            type.getSimpleName() + "." + path.path(),
+            target,
+            path.depth(),
+            cause);
+    }
+
+    private ObjectGenerationException fakerFailure(GenerationFailureCategory category,
+                                                    String path,
+                                                    RuleTarget target,
+                                                    int depth,
+                                                    Throwable cause) {
+        String declaredType = target.valueType().getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            category,
+            GenerationOperation.APPLY_RULE,
+            path,
+            target.ownerType(),
+            declaredType,
+            depth,
+            -1);
+        Throwable originalCause = cause instanceof InvocationTargetException invocation
+                                  ? invocation.getTargetException()
+                                  : cause;
+        return new ObjectGenerationException(
+            "Could not apply fixture rule at '" + path + "' (declared type "
+            + declaredType + ", depth " + depth + ")",
+            context,
+            originalCause);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -718,23 +751,37 @@ public final class ObjectFaker<T> implements Generator<T> {
         }
     }
 
-    private Object pruneToIncludedPaths(Object current, IncludeNode includeNode) throws ReflectiveOperationException {
+    private Object pruneToIncludedPaths(Object current, IncludeNode includeNode) {
+        String currentPath = current != null ? current.getClass().getSimpleName() : type.getSimpleName();
+        return pruneToIncludedPaths(current, includeNode, currentPath, -1);
+    }
+
+    private Object pruneToIncludedPaths(Object current,
+                                        IncludeNode includeNode,
+                                        String currentPath,
+                                        int currentDepth) {
         if (current == null || includeNode.keepAll || includeNode.children.isEmpty()) {
             return current;
         }
         Object updated = current;
         for (RuleTarget target : allRuleTargets(current.getClass())) {
-            IncludeNode child = includeNode.children.get(target.fieldName());
-            if (child == null) {
-                updated = writeTargetValue(updated, target, defaultValue(target.valueType()));
-                continue;
-            }
-            if (!child.keepAll && supportsNestedPruning(target.valueType())) {
-                Object nested = readTargetValue(updated, target);
-                Object pruned = pruneToIncludedPaths(nested, child);
-                if (pruned != nested) {
-                    updated = writeTargetValue(updated, target, pruned);
+            String targetPath = currentPath + "." + target.fieldName();
+            int targetDepth = currentDepth + 1;
+            try {
+                IncludeNode child = includeNode.children.get(target.fieldName());
+                if (child == null) {
+                    updated = writeTargetValue(updated, target, defaultValue(target.valueType()));
+                    continue;
                 }
+                if (!child.keepAll && supportsNestedPruning(target.valueType())) {
+                    Object nested = readTargetValue(updated, target);
+                    Object pruned = pruneToIncludedPaths(nested, child, targetPath, targetDepth);
+                    if (pruned != nested) {
+                        updated = writeTargetValue(updated, target, pruned);
+                    }
+                }
+            } catch (ReflectiveOperationException e) {
+                throw fakerFailure(GenerationFailureCategory.REFLECTION, targetPath, target, targetDepth, e);
             }
         }
         return updated;
