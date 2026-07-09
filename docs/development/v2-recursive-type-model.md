@@ -1,6 +1,6 @@
 # V2 Recursive Type Model
 
-**Status:** Implementation in progress; Slices A and B complete
+**Status:** Implementation in progress; Slices A through C complete, Slice D array work complete
 **Scope:** Object fields, Java records, constructor parameters, containers, schema metadata, and Kotlin hand-off
 
 ## Purpose
@@ -10,9 +10,9 @@ The objective is narrow: generate values that match their complete declared type
 complete path and signature. The model must not guess `Object` when reflection supplied more
 specific information.
 
-## Current resolution paths
+## Baseline resolution paths
 
-| Entry point | Type information available | Current loss |
+| Entry point | Type information available | Baseline loss |
 |---|---|---|
 | Mutable Java field | `Field.getGenericType()` and `Field.getType()` | `FieldGeneratorResolver.typeArg` retains only plain `Class<?>` arguments |
 | Java record component | `RecordComponent.getGenericType()` and `getType()` | Same `typeArg` erasure as mutable fields |
@@ -23,9 +23,10 @@ specific information.
 | ObjectFaker nested path | Reflective field/record raw class | Generic path segments are not retained |
 | Kotlin integration | Kotlin reflection can expose nullability and constructor types | No shared Java-side recursive representation exists for hand-off |
 
-The compatibility fallback at the end of `FieldGeneratorResolver.resolveAndGenerate` currently
-returns `null` for synthetic `Object.class` elements. This creates collections with null elements
-and maps with missing entries instead of reporting the original unsupported signature.
+The previous compatibility fallback at the end of `FieldGeneratorResolver.resolveAndGenerate`
+returned `null` for synthetic `Object.class` elements. It was removed in Slice C because it created
+collections with null elements and maps with missing entries instead of reporting the original
+unsupported signature.
 
 ## Required internal model
 
@@ -93,6 +94,11 @@ their generic superclass and interface contracts.
 
 - Generate concrete generic arrays when their component binding is known.
 - Make schema record inference use the same recursive model.
+
+**In progress.** Generic arrays now retain recursively resolved components for mutable fields and
+records, including inherited `T[]` bindings and parameterized components such as `List<String>[]`.
+Unresolved array components fail at the parent field in strict mode and discard the whole array with
+a contextual diagnostic in explicit lenient mode. Schema metadata alignment remains.
 
 ### Slice E — Consumers
 

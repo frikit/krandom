@@ -1463,7 +1463,10 @@ final class FieldGeneratorResolver {
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
         if (rawType.isArray()) {
-            return generateArray(rawType, ownerType, fieldName, currentDepth, element);
+            if (!resolvedType.isResolved()) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
+            return generateArray(resolvedType, rawType, ownerType, fieldName, currentDepth, element);
         }
 
         // ── 6b. Set ───────────────────────────────────────────────────────────
@@ -1753,15 +1756,6 @@ final class FieldGeneratorResolver {
             null);
     }
 
-    /**
-     * Convenience overload for callers that do not have a separate generic type
-     * (e.g. internal recursive calls for array/collection elements).
-     */
-    Object resolveAndGenerate(Class<?> rawType, String fieldName,
-                              Class<?> ownerType, int currentDepth) {
-        return resolveAndGenerate(rawType, rawType, fieldName, ownerType, currentDepth, null);
-    }
-
     private Object resolveAndGenerate(ResolvedType type,
                                       String fieldName,
                                       Class<?> ownerType,
@@ -1771,18 +1765,21 @@ final class FieldGeneratorResolver {
         return resolveAndGenerate(generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, null);
     }
 
-    private Object generateArray(Class<?> arrayType, Class<?> ownerType,
+    private Object generateArray(ResolvedType declaredArrayType,
+                                 Class<?> runtimeArrayType,
+                                 Class<?> ownerType,
                                  String fieldName, int depth, AnnotatedElement element) {
-        Class<?> comp = arrayType.getComponentType();
+        Class<?> comp = runtimeArrayType.getComponentType();
+        ResolvedType declaredComponentType = Objects.requireNonNull(declaredArrayType.componentType());
         int elementCount = nextCollectionSize(element);
         Object arr = Array.newInstance(comp, elementCount);
         for (int i = 0; i < elementCount; i++) {
-            Object el = resolveAndGenerate(comp, fieldName + "[]", ownerType, depth);
+            Object el = resolveAndGenerate(declaredComponentType, fieldName + "[]", ownerType, depth);
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
                 String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
-                String declaredType = arrayType.getTypeName();
+                String declaredType = declaredArrayType.signature();
                 GenerationFailureContext context = new GenerationFailureContext(
                     GenerationFailureCategory.COLLECTION_INSERTION,
                     GenerationOperation.INSERT,
