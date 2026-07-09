@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -795,6 +796,9 @@ public final class Schema implements Generator<Map<String, Object>> {
                 normalized.put(entry.getKey(), normalizeStructuredValue(entry.getValue(), componentPath));
             }
             return Collections.unmodifiableMap(normalized);
+        }
+        if (value instanceof Optional<?> optional) {
+            return normalizeStructuredValue(optional.orElse(null), componentPath);
         }
         if (value instanceof Iterable<?> items) {
             List<Object> normalized = new ArrayList<>();

@@ -368,17 +368,17 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Actions**
 
 - [x] Characterize the current `Class<?>`/`Type` conversion paths.
-- [ ] Model classes, parameterized types, generic arrays, wildcards, and type variables recursively.
+- [x] Model classes, parameterized types, generic arrays, wildcards, and type variables recursively.
 - [ ] Carry annotations and the full field path into nested resolution.
-- [ ] Define supported wildcard/type-variable bounds and fail clearly for unsupported ambiguity.
+- [x] Define supported wildcard/type-variable bounds and fail clearly for unsupported ambiguity.
 - [ ] Reuse one resolver for fields, records, constructors, collections, maps, arrays, and schema inference.
-- [ ] Remove silent conversion to `Object.class` for nested parameterized types.
+- [x] Remove silent conversion to `Object.class` for nested parameterized types.
 
 **Tests**
 
-- [ ] Cover `List<List<String>>`, `Map<String,List<Integer>>`, nested optionals, generic arrays, upper/lower wildcards, inherited type variables, and recursive types.
+- [x] Cover `List<List<String>>`, `Map<String,List<Integer>>`, nested optionals, generic arrays, upper/lower wildcards, inherited type variables, and recursive types.
 - [ ] Cover equivalent Java records and Kotlin generic data classes.
-- [ ] Unsupported type shapes include the complete path and type signature.
+- [x] Unsupported type shapes include the complete path and type signature.
 
 **Done when:** Nested generic values are generated with their declared element types or rejected explicitly.
 

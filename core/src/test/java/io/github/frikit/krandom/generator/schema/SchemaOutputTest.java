@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,6 +27,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Schema - outputs")
 class SchemaOutputTest {
+
+    @Test
+    @DisplayName("record output unwraps present and empty optionals")
+    void recordOutputUnwrapsOptionals() {
+        Schema schema = new Schema(Map.of(
+            "record", ctx -> new OptionalRecord(Optional.of("value"), Optional.empty())));
+
+        assertEquals("{\"record\":{\"present\":\"value\",\"empty\":null}}\n", schema.toJsonLines(1));
+    }
 
     @Test
     @DisplayName("toJsonLines renders nested values, arrays, chars, custom objects, and escapes")
@@ -409,6 +419,9 @@ class SchemaOutputTest {
     }
 
     record NamedValue(String value) {
+    }
+
+    record OptionalRecord(Optional<String> present, Optional<String> empty) {
     }
 
     record ThrowingRecord(String value) {

@@ -1,6 +1,6 @@
 # V2 Recursive Type Model
 
-**Status:** Implementation in progress; Slices A through C complete, Slice D array work complete
+**Status:** Implementation in progress; Slices A through D complete, Slice E pending
 **Scope:** Object fields, Java records, constructor parameters, containers, schema metadata, and Kotlin hand-off
 
 ## Purpose
@@ -95,12 +95,22 @@ raw and unbounded child types fail before recursive construction.
 ### Slice D — Generic arrays and schema metadata
 
 - Generate concrete generic arrays when their component binding is known.
-- Make schema record inference use the same recursive model.
+- Make schema record inference follow the same recursive resolution rules.
 
-**In progress.** Generic arrays now retain recursively resolved components for mutable fields and
+**Complete.** Generic arrays retain recursively resolved components for mutable fields and
 records, including inherited `T[]` bindings and parameterized components such as `List<String>[]`.
 Unresolved array components fail at the parent field in strict mode and discard the whole array with
-a contextual diagnostic in explicit lenient mode. Schema metadata alignment remains.
+a contextual diagnostic in explicit lenient mode. Record JSON Schema inference now preserves nested
+collections, maps, optionals, parameterized records, generic arrays, wildcard bounds, enums, and
+fixed generic collection subtypes. Recursive and unbounded shapes terminate conservatively at `{}`.
+Optional record values serialize as their contained value or JSON `null`, matching the inferred
+nullable schema.
+
+The object model remains package-private as required by the v2 API policy. Java package boundaries
+therefore prevent the schema package from importing it without creating a new public API. A narrow
+schema-side `Type` adapter implements the same resolution contract and is locked by parity tests;
+cross-module consolidation is deferred to Slice E, where constructor and Kotlin consumers can drive
+the final internal/public boundary intentionally.
 
 ### Slice E — Consumers
 

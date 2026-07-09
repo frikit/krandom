@@ -6,7 +6,12 @@
 package io.github.frikit.krandom.generator.schema;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -16,17 +21,21 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * Internal helpers for building JSON Schema fragments without generating data.
  */
 final class JsonSchemaSupport {
+
+    private record VariableResolution(TypeVariable<?> variable, Map<TypeVariable<?>, Type> bindings) {}
 
     private JsonSchemaSupport() {
     }
@@ -88,15 +97,33 @@ final class JsonSchemaSupport {
         if (!recordType.isRecord()) {
             throw new IllegalArgumentException("recordType must be a record class: " + recordType.getName());
         }
+        return record(recordType, nullable, Map.of(), new HashSet<>());
+    }
+
+    private static Map<String, Object> record(Type declaredType,
+                                              Set<String> nullableComponents,
+                                              Map<TypeVariable<?>, Type> inheritedBindings,
+                                              Set<Object> visiting) {
+        Class<?> recordType = rawClass(declaredType);
+        if (!visiting.add(declaredType)) {
+            return any();
+        }
+        Map<TypeVariable<?>, Type> bindings = bindingsFor(declaredType, inheritedBindings);
         Map<String, Object> properties = new LinkedHashMap<>();
         List<String> required = new ArrayList<>();
-        for (RecordComponent component : recordType.getRecordComponents()) {
-            String name = component.getName();
-            Map<String, Object> componentSchema = fromType(component.getType());
-            required.add(name);
-            properties.put(name, nullable.contains(name) ? nullable(componentSchema) : componentSchema);
+        try {
+            for (RecordComponent component : recordType.getRecordComponents()) {
+                String name = component.getName();
+                Map<String, Object> componentSchema = fromType(component.getGenericType(), bindings, visiting);
+                required.add(name);
+                properties.put(
+                    name,
+                    nullableComponents.contains(name) ? nullable(componentSchema) : componentSchema);
+            }
+            return objectWithRequired(properties, required);
+        } finally {
+            visiting.remove(declaredType);
         }
-        return objectWithRequired(properties, required);
     }
 
     static Map<String, Object> nullable(Map<String, ?> jsonSchema) {
@@ -108,7 +135,11 @@ final class JsonSchemaSupport {
         Object type = copy.get("type");
         Map<String, Object> nullable = new LinkedHashMap<>(copy);
         if (type instanceof String singleType) {
+            if (singleType.equals("null")) {
+                return copy;
+            }
             nullable.put("type", List.of(singleType, "null"));
+            includeNullInEnum(nullable);
             return Collections.unmodifiableMap(nullable);
         }
         if (type instanceof Iterable<?> types) {
@@ -118,12 +149,24 @@ final class JsonSchemaSupport {
             }
             combinedTypes.add("null");
             nullable.put("type", Collections.unmodifiableList(new ArrayList<>(combinedTypes)));
+            includeNullInEnum(nullable);
             return Collections.unmodifiableMap(nullable);
         }
 
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("oneOf", List.of(copy, nullType()));
         return Collections.unmodifiableMap(schema);
+    }
+
+    private static void includeNullInEnum(Map<String, Object> schema) {
+        if (schema.get("enum") instanceof Iterable<?> values) {
+            Set<Object> nullableValues = new LinkedHashSet<>();
+            for (Object value : values) {
+                nullableValues.add(value);
+            }
+            nullableValues.add(null);
+            schema.put("enum", Collections.unmodifiableList(new ArrayList<>(nullableValues)));
+        }
     }
 
     static Map<String, Object> infer(Object value) {
@@ -206,7 +249,72 @@ final class JsonSchemaSupport {
         return Collections.unmodifiableMap(schema);
     }
 
-    private static Map<String, Object> fromType(Class<?> type) {
+    static Map<String, Object> fromType(Type type) {
+        Objects.requireNonNull(type, "type must not be null");
+        return fromType(type, Map.of(), new HashSet<>());
+    }
+
+    private static Map<String, Object> fromType(Type type,
+                                                Map<TypeVariable<?>, Type> bindings,
+                                                Set<Object> visiting) {
+        if (type instanceof Class<?> rawType) {
+            return fromClass(rawType, bindings, visiting);
+        }
+        if (type instanceof ParameterizedType parameterized) {
+            Class<?> rawType = rawClass(parameterized);
+            if (rawType == Optional.class) {
+                return nullable(fromContractArgument(parameterized, Optional.class, 0, bindings, visiting));
+            }
+            if (Map.class.isAssignableFrom(rawType)) {
+                return mapValues(fromContractArgument(parameterized, Map.class, 1, bindings, visiting));
+            }
+            if (Iterable.class.isAssignableFrom(rawType)) {
+                return array(fromContractArgument(parameterized, Iterable.class, 0, bindings, visiting));
+            }
+            if (rawType.isRecord()) {
+                return record(parameterized, Set.of(), bindings, visiting);
+            }
+            return fromClass(rawType, bindings, visiting);
+        }
+        if (type instanceof GenericArrayType genericArray) {
+            return array(fromType(genericArray.getGenericComponentType(), bindings, visiting));
+        }
+        if (type instanceof WildcardType wildcard) {
+            Type[] lowerBounds = wildcard.getLowerBounds();
+            if (lowerBounds.length == 1) {
+                return fromType(lowerBounds[0], bindings, visiting);
+            }
+            Type[] upperBounds = wildcard.getUpperBounds();
+            if (upperBounds[0] != Object.class) {
+                return fromType(upperBounds[0], bindings, visiting);
+            }
+            return any();
+        }
+        if (type instanceof TypeVariable<?> variable) {
+            VariableResolution resolution = new VariableResolution(variable, bindings);
+            if (!visiting.add(resolution)) {
+                return any();
+            }
+            try {
+                Type binding = bindings.get(variable);
+                if (binding != null) {
+                    return fromType(binding, bindings, visiting);
+                }
+                Type[] bounds = variable.getBounds();
+                if (bounds.length == 1 && bounds[0] != Object.class) {
+                    return fromType(bounds[0], bindings, visiting);
+                }
+                return any();
+            } finally {
+                visiting.remove(resolution);
+            }
+        }
+        return any();
+    }
+
+    private static Map<String, Object> fromClass(Class<?> type,
+                                                 Map<TypeVariable<?>, Type> bindings,
+                                                 Set<Object> visiting) {
         if (type == String.class || type == Character.class || type == char.class) {
             return string();
         }
@@ -230,13 +338,90 @@ final class JsonSchemaSupport {
         if (type == LocalDateTime.class || type == OffsetDateTime.class || type == ZonedDateTime.class) {
             return stringFormat("date-time");
         }
+        if (type.isEnum()) {
+            Object[] constants = type.getEnumConstants();
+            if (constants.length == 0) {
+                return nullType();
+            }
+            Map<String, Object> schema = new LinkedHashMap<>();
+            schema.put("type", "string");
+            List<String> values = new ArrayList<>(constants.length);
+            for (Object constant : constants) {
+                values.add(String.valueOf(constant));
+            }
+            schema.put("enum", Collections.unmodifiableList(values));
+            return Collections.unmodifiableMap(schema);
+        }
         if (type.isArray()) {
-            return array(fromType(type.getComponentType()));
+            return array(fromType(type.getComponentType(), bindings, visiting));
+        }
+        if (type == Optional.class) {
+            return any();
+        }
+        if (Map.class.isAssignableFrom(type)) {
+            return mapValues(fromContractArgument(type, Map.class, 1, bindings, visiting));
+        }
+        if (Iterable.class.isAssignableFrom(type)) {
+            return array(fromContractArgument(type, Iterable.class, 0, bindings, visiting));
         }
         if (type.isRecord()) {
-            return record(type);
+            return record(type, Set.of(), bindings, visiting);
         }
         return any();
+    }
+
+    private static Map<String, Object> fromContractArgument(Type declaredType,
+                                                            Class<?> contract,
+                                                            int argumentIndex,
+                                                            Map<TypeVariable<?>, Type> inheritedBindings,
+                                                            Set<Object> visiting) {
+        Map<TypeVariable<?>, Type> bindings = bindingsFor(declaredType, inheritedBindings);
+        return fromType(contract.getTypeParameters()[argumentIndex], bindings, visiting);
+    }
+
+    private static Map<String, Object> mapValues(Map<String, ?> valueSchema) {
+        Map<String, Object> schema = new LinkedHashMap<>();
+        schema.put("type", "object");
+        schema.put("additionalProperties", copyJsonSchema(valueSchema));
+        return Collections.unmodifiableMap(schema);
+    }
+
+    private static Map<TypeVariable<?>, Type> bindingsFor(
+        Type declaredType,
+        Map<TypeVariable<?>, Type> inheritedBindings) {
+        Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(inheritedBindings);
+        collectBindings(declaredType, bindings);
+        return Collections.unmodifiableMap(bindings);
+    }
+
+    private static void collectBindings(Type relationship,
+                                        Map<TypeVariable<?>, Type> bindings) {
+        Class<?> rawType;
+        if (relationship instanceof ParameterizedType parameterized) {
+            rawType = rawClass(parameterized);
+            TypeVariable<?>[] variables = rawType.getTypeParameters();
+            Type[] arguments = parameterized.getActualTypeArguments();
+            for (int i = 0; i < variables.length; i++) {
+                bindings.put(variables[i], arguments[i]);
+            }
+        } else {
+            rawType = (Class<?>) relationship;
+        }
+
+        Type superclass = rawType.getGenericSuperclass();
+        if (superclass != null) {
+            collectBindings(superclass, bindings);
+        }
+        for (Type interfaceType : rawType.getGenericInterfaces()) {
+            collectBindings(interfaceType, bindings);
+        }
+    }
+
+    private static Class<?> rawClass(Type type) {
+        if (type instanceof Class<?> rawType) {
+            return rawType;
+        }
+        return (Class<?>) ((ParameterizedType) type).getRawType();
     }
 
     private static Object normalizeStructuredValue(Object value) {
@@ -257,6 +442,9 @@ final class JsonSchemaSupport {
                 normalized.put(entry.getKey(), normalizeStructuredValue(entry.getValue(), componentPath));
             }
             return Collections.unmodifiableMap(normalized);
+        }
+        if (value instanceof Optional<?> optional) {
+            return normalizeStructuredValue(optional.orElse(null), componentPath);
         }
         if (value instanceof Iterable<?> items) {
             List<Object> normalized = new ArrayList<>();
