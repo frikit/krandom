@@ -49,7 +49,7 @@ The GPG public key must be uploaded to a public keyserver (for example
      provenance for it, all module jars, and all SBOM assets before publication.
    - "Publish to Maven Central (Central Portal)" — runs
      `./gradlew publishAggregationToCentralPortal`. The
-     `com.gradleup.nmcp.settings` plugin uploads the already attested signed
+     `com.gradleup.nmcp.aggregation` plugin uploads the already attested signed
      bundle via the Central Portal API.
    - "Create GitHub Release" — tags `v<version>`, attaches per-module
      jars and JSON/XML SBOMs, and writes auto-generated release notes.

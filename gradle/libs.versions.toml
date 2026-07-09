@@ -16,6 +16,7 @@ jackson = "2.22.0"
 spring-boot = "4.1.0"
 japicmp = "0.26.1"
 cyclonedx = "3.2.4"
+nmcp = "1.6.1"
 
 [libraries]
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
@@ -42,3 +43,4 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 cyclonedx = { id = "org.cyclonedx.bom", version.ref = "cyclonedx" }
+nmcp-aggregation = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }

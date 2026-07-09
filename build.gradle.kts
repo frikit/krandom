@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.spotless) apply false
     alias(libs.plugins.cyclonedx)
+    alias(libs.plugins.nmcp.aggregation)
 }
 
 val apiBaselineVersion = providers.gradleProperty("apiBaselineVersion")
@@ -48,6 +49,21 @@ configure<com.diffplug.gradle.spotless.SpotlessExtension> {
 val publishedModules = setOf("bom", "core", "jackson", "junit", "spring-boot-starter", "kotest-extensions", "kotlin-dsl")
 val apiModules = publishedModules - "bom"
 val apiEvolutionTasks = mutableListOf<TaskProvider<JavaExec>>()
+
+dependencies {
+    publishedModules.forEach { moduleName ->
+        add("nmcpAggregation", project(":$moduleName"))
+    }
+}
+
+nmcpAggregation {
+    centralPortal {
+        username.set(providers.environmentVariable("CENTRAL_PORTAL_USERNAME").orElse(""))
+        password.set(providers.environmentVariable("CENTRAL_PORTAL_PASSWORD").orElse(""))
+        // USER_MANAGED: upload appears in the Central Portal UI for manual "Publish".
+        publishingType.set(providers.environmentVariable("CENTRAL_PORTAL_PUBLISHING_TYPE").orElse("USER_MANAGED"))
+    }
+}
 
 tasks.named<org.cyclonedx.gradle.CyclonedxDirectTask>("cyclonedxDirectBom") {
     enabled = false

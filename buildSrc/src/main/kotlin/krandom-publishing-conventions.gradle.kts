@@ -7,8 +7,8 @@
  * only when GPG_SIGNING_KEY and GPG_SIGNING_PASSWORD are present in the
  * environment (CI release workflow).
  *
- * Maven Central uploads are aggregated by the com.gradleup.nmcp.settings
- * plugin (configured in settings.gradle.kts). Run
+ * Maven Central uploads are exposed to the root com.gradleup.nmcp.aggregation
+ * plugin. Run
  * `./gradlew publishAggregationToCentralPortal` to push the signed bundle
  * to https://central.sonatype.com.
  */
@@ -19,6 +19,8 @@ plugins {
     `maven-publish`
     signing
 }
+
+apply(plugin = "com.gradleup.nmcp")
 
 val moduleDescriptions = mapOf(
     "bom" to "kRandom bill of materials for aligning all published kRandom module versions.",
