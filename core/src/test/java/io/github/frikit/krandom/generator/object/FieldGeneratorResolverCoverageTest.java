@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.util.Map;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -58,7 +59,7 @@ class FieldGeneratorResolverCoverageTest {
 
     private static FieldGeneratorResolver resolver(ObjectGeneratorConfig config) {
         return new FieldGeneratorResolver(
-            config, new ObjectPool(config.getObjectPoolSize()), new UniqueFieldTracker(), 0L, Object.class);
+            config, new ObjectPool(config.getObjectPoolSize()), new UniqueFieldTracker(), 0L, Map.of());
     }
 
     @Test

@@ -88,7 +88,9 @@ unbounded wildcard arguments now fail at the parent field with the full containe
 explicit lenient mode returns `null` for the whole value and emits a sanitized diagnostic. Concrete
 root bindings propagate through inherited direct and container fields, including multi-level
 parameterized bindings. Custom collection subtypes project their element/key/value variables through
-their generic superclass and interface contracts.
+their generic superclass and interface contracts. Parameterized nested classes and records carry
+their resolved bindings into the child generator, including when nested inside another container;
+raw and unbounded child types fail before recursive construction.
 
 ### Slice D — Generic arrays and schema metadata
 

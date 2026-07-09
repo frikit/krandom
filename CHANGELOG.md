@@ -43,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Raw containers and unbounded generic arguments now fail contextually by default instead of producing null-filled values; upper/lower wildcard bounds generate their effective type.
 - Concrete generic superclass/interface bindings now propagate into inherited direct fields and container elements, including custom collection subtypes.
 - Generic arrays now preserve bound and parameterized component types for mutable fields and records; unresolved components fail at the parent field instead of producing null-filled arrays.
+- Parameterized nested classes and records now retain their type-variable bindings through direct fields, containers, and inherited declarations; raw or unbounded child types fail at the parent boundary.
 
 ## [1.5.0] - 2026-06-22
 

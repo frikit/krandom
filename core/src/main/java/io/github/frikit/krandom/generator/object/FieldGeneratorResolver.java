@@ -200,7 +200,7 @@ final class FieldGeneratorResolver {
                            ObjectPool pool,
                            UniqueFieldTracker uniqueFieldTracker,
                            Long generationSeed,
-                           Class<?> rootType) {
+                           Map<? extends TypeVariable<?>, ? extends Type> typeBindings) {
         this.config = config;
         this.generatorConfig = config.getGeneratorConfig();
         this.pool = pool;
@@ -214,7 +214,7 @@ final class FieldGeneratorResolver {
         this.uniqueFieldNames = config.getUniqueFieldNames();
         this.failurePolicy = new ObjectGenerationFailurePolicy(
             config.isIgnoreErrors(), generatorConfig.getGenerationFailureListener());
-        this.typeBindings = ResolvedType.bindingsFor(rootType);
+        this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
     }
 
     private static Map<Class<?>, Generator<?>> buildBuiltins(ObjectGeneratorConfig cfg,
@@ -1572,6 +1572,11 @@ final class FieldGeneratorResolver {
             return map;
         }
 
+        if (!resolvedType.isResolved()
+            || (resolvedType.kind() == ResolvedType.Kind.CLASS && rawType.getTypeParameters().length > 0)) {
+            return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+        }
+
         // ── 7. Depth guard ────────────────────────────────────────────────────
         if (currentDepth >= config.getMaxDepth()) {
             return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
@@ -1593,7 +1598,8 @@ final class FieldGeneratorResolver {
                     currentDepth + 1,
                     pool,
                     nextDeterministicSeed(generatorConfig, sequenceRandom),
-                    uniqueFieldTracker).generate();
+                    uniqueFieldTracker,
+                    nestedTypeBindings(resolvedType, nestedType)).generate();
                 pool.end(nestedType, instance);
                 return instance;
             } catch (ObjectGenerationException e) {
@@ -1619,6 +1625,14 @@ final class FieldGeneratorResolver {
 
         // ── 9. Unsupported type ───────────────────────────────────────────────
         return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+    }
+
+    private Map<TypeVariable<?>, Type> nestedTypeBindings(ResolvedType resolvedType, Class<?> nestedType) {
+        Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
+        bindings.putAll(ResolvedType.bindingsFor(nestedType));
+        ResolvedType generationType = Objects.requireNonNullElse(resolvedType.effectiveType(), resolvedType);
+        bindings.putAll(ResolvedType.bindingsFor(generationType.declaredType()));
+        return Map.copyOf(bindings);
     }
 
     private static ObjectGenerationException contextualizeNestedFailure(ObjectGenerationException failure,
