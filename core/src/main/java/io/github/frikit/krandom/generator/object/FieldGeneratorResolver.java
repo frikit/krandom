@@ -210,7 +210,8 @@ final class FieldGeneratorResolver {
         this.semanticTypedGenerators = buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
         this.semanticMode = config.getSemanticMode();
         this.uniqueFieldNames = config.getUniqueFieldNames();
-        this.failurePolicy = new ObjectGenerationFailurePolicy(config.isIgnoreErrors());
+        this.failurePolicy = new ObjectGenerationFailurePolicy(
+            config.isIgnoreErrors(), generatorConfig.getGenerationFailureListener());
     }
 
     private static Map<Class<?>, Generator<?>> buildBuiltins(ObjectGeneratorConfig cfg,

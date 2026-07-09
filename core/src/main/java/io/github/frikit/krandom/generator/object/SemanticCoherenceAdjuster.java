@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.object;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
@@ -89,7 +90,13 @@ final class SemanticCoherenceAdjuster {
                 continue;
             }
             field.setAccessible(true);
-            slots.add(new ReflectionSlot(ownerType, field, instance, config.isIgnoreErrors(), depth));
+            slots.add(new ReflectionSlot(
+                ownerType,
+                field,
+                instance,
+                config.isIgnoreErrors(),
+                depth,
+                config.getGeneratorConfig().getGenerationFailureListener()));
         }
         apply(slots, allowOverwriteExisting);
     }
@@ -972,10 +979,19 @@ final class SemanticCoherenceAdjuster {
                                Object instance,
                                boolean ignoreErrors,
                                int depth) {
+            this(ownerType, field, instance, ignoreErrors, depth, diagnostic -> {});
+        }
+
+        private ReflectionSlot(Class<?> ownerType,
+                               Field field,
+                               Object instance,
+                               boolean ignoreErrors,
+                               int depth,
+                               GenerationFailureListener listener) {
             this.ownerType = ownerType;
             this.field = field;
             this.instance = instance;
-            this.failurePolicy = new ObjectGenerationFailurePolicy(ignoreErrors);
+            this.failurePolicy = new ObjectGenerationFailurePolicy(ignoreErrors, listener);
             this.depth = depth;
         }
 

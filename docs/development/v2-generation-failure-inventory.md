@@ -117,7 +117,7 @@ and cause class, not the generated value or third-party exception message.
 ### Slice D — Schema and diagnostics
 
 - Migrate GFI-15 through GFI-19.
-- Add the sanitized diagnostic listener.
+- Add the sanitized diagnostic listener. **Complete.**
 - Add replay identity after Step 2.7 defines the recipe contract.
 
 ## Verification gate

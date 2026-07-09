@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import org.jspecify.annotations.Nullable;
@@ -61,6 +62,7 @@ public final class GeneratorConfig {
 
     private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
     private static final long FNV1A_64_PRIME        = 0x100000001b3L;
+    private static final GenerationFailureListener NO_FAILURE_LISTENER = diagnostic -> {};
 
     private final OptionalLong seed;
     private final Optional<String> stringSeed;
@@ -73,6 +75,7 @@ public final class GeneratorConfig {
     private final int          objectPoolSize;
     private final boolean      objectOverrideDefaultInitialization;
     private final boolean      objectIgnoreErrors;
+    private final GenerationFailureListener generationFailureListener;
     private final LocalDate    objectDateMin;
     private final LocalDate    objectDateMax;
     private final ObjectGenerationSemanticMode objectSemanticMode;
@@ -109,6 +112,7 @@ public final class GeneratorConfig {
         this.objectPoolSize = b.objectPoolSize;
         this.objectOverrideDefaultInitialization = b.objectOverrideDefaultInitialization;
         this.objectIgnoreErrors = b.objectIgnoreErrors;
+        this.generationFailureListener = b.generationFailureListener;
         this.objectDateMin = b.objectDateMin;
         this.objectDateMax = b.objectDateMax;
         this.objectSemanticMode = b.objectSemanticMode;
@@ -222,6 +226,13 @@ public final class GeneratorConfig {
      */
     public boolean isObjectIgnoreErrors() {
         return objectIgnoreErrors;
+    }
+
+    /**
+     * Listener for strict and lenient value-sanitized object-generation failure diagnostics.
+     */
+    public GenerationFailureListener getGenerationFailureListener() {
+        return generationFailureListener;
     }
 
     /**
@@ -508,6 +519,7 @@ public final class GeneratorConfig {
         private int               objectPoolSize    = DEFAULT_OBJECT_POOL_SIZE;
         private boolean           objectOverrideDefaultInitialization;
         private boolean           objectIgnoreErrors;
+        private GenerationFailureListener generationFailureListener = NO_FAILURE_LISTENER;
         private LocalDate         objectDateMin;
         private LocalDate         objectDateMax;
         private ObjectGenerationSemanticMode objectSemanticMode = ObjectGenerationSemanticMode.RELAXED;
@@ -549,6 +561,7 @@ public final class GeneratorConfig {
             this.objectPoolSize = source.objectPoolSize;
             this.objectOverrideDefaultInitialization = source.objectOverrideDefaultInitialization;
             this.objectIgnoreErrors = source.objectIgnoreErrors;
+            this.generationFailureListener = source.generationFailureListener;
             this.objectDateMin = source.objectDateMin;
             this.objectDateMax = source.objectDateMax;
             this.objectSemanticMode = source.objectSemanticMode;
@@ -711,6 +724,18 @@ public final class GeneratorConfig {
          */
         public Builder objectIgnoreErrors(boolean objectIgnoreErrors) {
             this.objectIgnoreErrors = objectIgnoreErrors;
+            return this;
+        }
+
+        /**
+         * Sets the synchronous listener for value-sanitized object-generation failures.
+         *
+         * <p>The listener receives structured context, the cause class name, and an optional
+         * replay identity. It never receives generated field values or the throwable itself.
+         */
+        public Builder generationFailureListener(GenerationFailureListener generationFailureListener) {
+            this.generationFailureListener = Objects.requireNonNull(
+                generationFailureListener, "generationFailureListener must not be null");
             return this;
         }
 

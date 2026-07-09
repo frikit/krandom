@@ -332,7 +332,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                                FieldGeneratorResolver resolver,
                                SemanticCoherenceAdjuster coherenceAdjuster,
                                boolean allowOverwriteExisting) {
-        ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(config.isIgnoreErrors());
+        ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
+            config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
         List<Field> settableFields = collectSettableFields(type);
         for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check

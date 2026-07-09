@@ -15,7 +15,15 @@ io.github.frikit.krandom.generator.Generators#pickSet(java.util.List,int)
 # V2 structured, value-sanitized generation failure context; see v2-public-api-inventory.md.
 io.github.frikit.krandom.generator.failure.GenerationFailureCategory
 io.github.frikit.krandom.generator.failure.GenerationFailureContext
+io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic
+io.github.frikit.krandom.generator.failure.GenerationFailureListener
 io.github.frikit.krandom.generator.failure.GenerationOperation
+io.github.frikit.krandom.generator.GeneratorConfig#getGenerationFailureListener()
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#generationFailureListener(io.github.frikit.krandom.generator.failure.GenerationFailureListener)
+# Exact class classifications cover the private immutable listener fields reported by japicmp;
+# the two public additions above remain the complete listener configuration surface.
+io.github.frikit.krandom.generator.GeneratorConfig
+io.github.frikit.krandom.generator.GeneratorConfig$Builder
 # ObjectGenerator remains KEEP; japicmp marks the public class modified when its private
 # construction-context helper changes class metadata. No public member is added or removed.
 io.github.frikit.krandom.generator.object.ObjectGenerator

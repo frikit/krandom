@@ -11,6 +11,8 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
+import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
 import io.github.frikit.krandom.generator.location.AddressInfo;
@@ -1113,17 +1115,24 @@ class SemanticCoherenceAdjusterTest {
         Constructor<?> constructor = Class.forName(
             "io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$ReflectionSlot")
                                               .getDeclaredConstructor(
-                                                  Class.class, Field.class, Object.class, boolean.class, int.class);
+                                                  Class.class,
+                                                  Field.class,
+                                                  Object.class,
+                                                  boolean.class,
+                                                  int.class,
+                                                  GenerationFailureListener.class);
         constructor.setAccessible(true);
+        List<GenerationFailureDiagnostic> diagnostics = new java.util.ArrayList<>();
+        GenerationFailureListener listener = diagnostics::add;
         Field privateField = PrivateValueHolder.class.getDeclaredField("value");
         Object readSlot = constructor.newInstance(
-            PrivateValueHolder.class, privateField, new PrivateValueHolder(), true, 3);
+            PrivateValueHolder.class, privateField, new PrivateValueHolder(), true, 3, listener);
         Method getValue = readSlot.getClass().getDeclaredMethod("getValue");
         getValue.setAccessible(true);
 
         Field publicField = PublicValueHolder.class.getDeclaredField("value");
         Object writeSlot = constructor.newInstance(
-            PublicValueHolder.class, publicField, new PublicValueHolder(), true, 4);
+            PublicValueHolder.class, publicField, new PublicValueHolder(), true, 4, listener);
         Method setValue = writeSlot.getClass().getDeclaredMethod("setValue", Object.class);
         setValue.setAccessible(true);
 
@@ -1143,6 +1152,9 @@ class SemanticCoherenceAdjusterTest {
             assertFalse(messages.stream().anyMatch(message -> message.contains("hidden")
                                                                || message.contains("ok")
                                                                || message.contains("123")));
+            assertEquals(
+                List.of("PrivateValueHolder.value", "PublicValueHolder.value"),
+                diagnostics.stream().map(diagnostic -> diagnostic.context().path()).toList());
         } finally {
             logger.detachAppender(appender);
             logger.setLevel(previousLevel);

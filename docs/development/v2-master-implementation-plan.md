@@ -344,7 +344,7 @@ while keeping the seven published modules explicit.
 - [x] Make strict behavior the default.
 - [x] Route explicit lenient behavior through one policy rather than scattered catch blocks.
 - [x] Prevent exception messages from printing generated personal-looking values.
-- [ ] Define an optional sanitized diagnostic event/listener containing failure category, path, and replay-recipe identity without generated personal-looking values.
+- [x] Define an optional sanitized diagnostic event/listener containing failure category, path, and replay-recipe identity without generated personal-looking values.
 - [ ] Preserve causes and add context at the correct boundary rather than wrapping repeatedly.
 
 **Tests**
@@ -352,7 +352,7 @@ while keeping the seven published modules explicit.
 - [ ] Map, queue, array, constructor, reflection, JPMS-access, and custom-generator failures report full paths.
 - [x] Strict mode never returns a partial fixture after an assignment failure.
 - [x] Lenient mode has explicit, documented fallback assertions.
-- [ ] Diagnostic listeners receive structured sanitized failures and cannot observe generated field values by default.
+- [x] Diagnostic listeners receive structured sanitized failures and cannot observe generated field values by default.
 
 **Done when:** Unsupported or failed generation is diagnosable without debugging internal reflection code.
 

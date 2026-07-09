@@ -100,13 +100,22 @@ Public Javadocs currently leak the package-private `ObjectGeneratorConfig` type 
 | `GenerationFailureContext` | **KEEP** | One sanitized context shape for object and schema failures |
 | `GenerationFailureCategory` | **KEEP** | Stable machine-readable failure reason |
 | `GenerationOperation` | **KEEP** | Stable operation at the failing boundary |
+| `GenerationFailureDiagnostic` | **KEEP** | Value-free listener event containing context, cause class name, and optional replay identity |
+| `GenerationFailureListener` | **KEEP** | Synchronous optional observer that cannot access values or throwables |
+| `GeneratorConfig.Builder.generationFailureListener(...)` | **KEEP** | Scoped listener configuration with a no-op default |
 | `ObjectGenerationException.getContext()` | **KEEP** | Additive migration path; empty for legacy/unmigrated boundaries |
 | `SchemaGenerationException.getContext()` | **KEEP** | New schema failures expose field/record context; optional preserves legacy deserialization |
 
 The context deliberately excludes generated values and third-party exception messages. Existing
 exception constructors and inheritance remain compatible; the original cause is preserved.
+Diagnostics expose only the cause class name, not the throwable. Replay identity remains empty
+until Step 2.7 introduces the recipe contract. Listener callback failures are sanitized and cannot
+replace strict failures or lenient fallback behavior.
 `ObjectGenerator` remains **KEEP** with no new public member; its exact class-level evolution
 classification covers private construction-context implementation reported by japicmp.
+`GeneratorConfig` and its builder also retain **KEEP** dispositions; their exact class-level
+classifications cover private listener storage, while the accessor and builder method above are
+the complete additive public surface.
 
 ## Integration exceptions
 

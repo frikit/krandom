@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
+import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,6 +59,7 @@ class GeneratorConfigTest {
         assertEquals(GeneratorConfig.DEFAULT_OBJECT_POOL_SIZE, c.getObjectPoolSize());
         assertFalse(c.isObjectOverrideDefaultInitialization());
         assertFalse(c.isObjectIgnoreErrors());
+        assertTrue(c.getGenerationFailureListener() != null);
         assertNull(c.getObjectDateMin());
         assertNull(c.getObjectDateMax());
         assertEquals(ObjectGenerationSemanticMode.RELAXED, c.getObjectSemanticMode());
@@ -322,11 +324,13 @@ class GeneratorConfigTest {
     void objectGenerationSettingsStored() {
         LocalDate min = LocalDate.of(2021, 1, 1);
         LocalDate max = LocalDate.of(2021, 12, 31);
+        GenerationFailureListener listener = diagnostic -> {};
         GeneratorConfig c = GeneratorConfig.builder()
                                            .objectMaxDepth(3)
                                            .objectPoolSize(2)
                                            .objectOverrideDefaultInitialization(true)
                                            .objectIgnoreErrors(true)
+                                           .generationFailureListener(listener)
                                            .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
                                            .objectNullProbability(0.25)
                                            .objectOptionalEmptyProbability(0.5)
@@ -338,6 +342,7 @@ class GeneratorConfigTest {
         assertEquals(2, c.getObjectPoolSize());
         assertTrue(c.isObjectOverrideDefaultInitialization());
         assertTrue(c.isObjectIgnoreErrors());
+        assertSame(listener, c.getGenerationFailureListener());
         assertEquals(ObjectGenerationSemanticMode.STRICT, c.getObjectSemanticMode());
         assertEquals(0.25, c.getObjectNullProbability());
         assertEquals(0.5, c.getObjectOptionalEmptyProbability());
@@ -528,6 +533,13 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("generationFailureListener(null) throws")
+    void generationFailureListenerNullThrows() {
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().generationFailureListener(null));
+    }
+
+    @Test
     @DisplayName("toBuilder() copies all fields and allows deriving new config")
     void toBuilderCopiesAndDerives() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
@@ -535,6 +547,7 @@ class GeneratorConfigTest {
         SemanticFieldRegistry semanticRegistry = SemanticFieldRegistry.defaults().toBuilder()
                                                                          .alias("email", "contactMail")
                                                                          .build();
+        GenerationFailureListener failureListener = diagnostic -> {};
         GeneratorConfig base = GeneratorConfig.builder()
                                               .seed("my-seed")
                                               .charset(StandardCharsets.UTF_8)
@@ -544,6 +557,7 @@ class GeneratorConfigTest {
                                               .objectPoolSize(2)
                                               .objectOverrideDefaultInitialization(true)
                                               .objectIgnoreErrors(true)
+                                              .generationFailureListener(failureListener)
                                               .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
                                               .objectSemanticRegistry(semanticRegistry)
                                               .objectNullProbability(0.25)
@@ -572,6 +586,7 @@ class GeneratorConfigTest {
         assertEquals(2, derived.getObjectPoolSize());
         assertTrue(derived.isObjectOverrideDefaultInitialization());
         assertTrue(derived.isObjectIgnoreErrors());
+        assertSame(failureListener, derived.getGenerationFailureListener());
         assertEquals(ObjectGenerationSemanticMode.STRICT, derived.getObjectSemanticMode());
         assertSame(semanticRegistry, derived.getObjectSemanticRegistry());
         assertEquals(0.25, derived.getObjectNullProbability());

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Structured, value-sanitized generation failure context shared by object and schema exceptions, with stable category, operation, path, type, depth, and record-index fields.
+- Optional `GenerationFailureListener` diagnostics configured through `GeneratorConfig`, exposing only structured context, cause class name, and an optional replay identity—never generated values or throwables.
 - `krandom-bom`, a Maven/Gradle platform that keeps all published kRandom modules on one version. Consumer examples now import the BOM and omit individual kRandom module versions.
 - Japicmp compatibility and evolution gates check every published jar module against the configured latest-GA baseline (`1.5.0`) in local pre-commit checks, CI, and releases. Binary/source breaks fail independently, while additions or other public changes require exact reviewed classification.
 - A generated HTML/XML public API inventory for every published jar module, plus a checked-in v2 disposition document covering facade aliases, registries, object generation, and integrations.
