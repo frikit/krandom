@@ -552,6 +552,8 @@ Supported native constraints include:
 | --- | --- |
 | `@AssertFalse`, `@AssertTrue` | Generates matching `boolean`/`Boolean` values |
 | `@Null` | Generates `null` for reference fields |
+| `@NotNull` | Prevents nullable object-generation policies from returning `null` |
+| `@NotEmpty` | Generates non-empty strings, arrays, collections, and maps |
 | `@NotBlank` | Generates non-blank strings |
 | `@Size` | Respects string, array, list, set, queue, collection, and map sizes |
 | `@Min`, `@Max` | Respects numeric bounds for primitive/wrapper numbers, `Number`, `BigInteger`, `BigDecimal`, and numeric strings |

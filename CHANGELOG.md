@@ -45,6 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Generic arrays now preserve bound and parameterized component types for mutable fields and records; unresolved components fail at the parent field instead of producing null-filled arrays.
 - Parameterized nested classes and records now retain their type-variable bindings through direct fields, containers, and inherited declarations; raw or unbounded child types fail at the parent boundary.
 - Record JSON Schema inference now retains nested collections, maps, optionals, generic records, generic arrays, wildcard bounds, enums, and fixed generic collection subtypes; Optional values serialize as their contained value or `null`.
+- Bean Validation nullability and size rules now normalize `@Null`, `@NotNull`, `@NotEmpty`, `@NotBlank`, and `@Size`; required constraints override null/empty probabilities, while impossible intersections and unsupported targets fail contextually.
 
 ## [1.5.0] - 2026-06-22
 

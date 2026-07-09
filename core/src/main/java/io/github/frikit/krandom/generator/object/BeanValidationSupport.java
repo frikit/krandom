@@ -17,6 +17,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Negative;
 import jakarta.validation.constraints.NegativeOrZero;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Past;
@@ -47,6 +49,7 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Random;
@@ -64,6 +67,27 @@ final class BeanValidationSupport {
     private static final BigDecimal BIG_DECIMAL_LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
 
     private BeanValidationSupport() {
+    }
+
+    record ConstraintModel(
+        boolean constrained,
+        boolean nullOnly,
+        boolean required,
+        boolean nonBlank,
+        SizeRange size
+    ) {
+
+        private static final ConstraintModel NONE =
+            new ConstraintModel(false, false, false, false, null);
+    }
+
+    static final class ConstraintConflictException extends IllegalArgumentException {
+
+        private static final long serialVersionUID = 1L;
+
+        ConstraintConflictException(String message) {
+            super(message);
+        }
     }
 
     /**
@@ -86,13 +110,23 @@ final class BeanValidationSupport {
                                                Class<?> rawType,
                                                Random random,
                                                Clock clock) {
+        ConstraintModel constraints = constraintModelFor(element, rawType);
+        return constraintGeneratorFor(element, rawType, random, clock, constraints);
+    }
+
+    static Generator<?> constraintGeneratorFor(AnnotatedElement element,
+                                               Class<?> rawType,
+                                               Random random,
+                                               Clock clock,
+                                               ConstraintModel constraints) {
         Objects.requireNonNull(random, "random must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
+        Objects.requireNonNull(constraints, "constraints must not be null");
 
         if (element == null) {
             return null;
         }
-        if (annotation(element, Null.class) != null && !rawType.isPrimitive()) {
+        if (constraints.nullOnly()) {
             return () -> null;
         }
         if (rawType == boolean.class || rawType == Boolean.class) {
@@ -115,9 +149,8 @@ final class BeanValidationSupport {
             if (numericStringGenerator != null) {
                 return numericStringGenerator;
             }
-            SizeRange size = sizeRangeFor(element);
-            if (size != null || annotation(element, NotBlank.class) != null) {
-                return stringGeneratorFor(size, annotation(element, NotBlank.class) != null, random);
+            if (constraints.size() != null) {
+                return stringGeneratorFor(constraints.size(), constraints.nonBlank(), random);
             }
         }
         Generator<?> numericGenerator = numericGeneratorFor(element, rawType, random);
@@ -127,22 +160,74 @@ final class BeanValidationSupport {
         return temporalGeneratorFor(element, rawType, random, clock);
     }
 
-    static boolean hasNullConstraint(AnnotatedElement element) {
-        return element != null && annotation(element, Null.class) != null;
-    }
+    static ConstraintModel constraintModelFor(AnnotatedElement element, Class<?> rawType) {
+        if (element == null) {
+            return ConstraintModel.NONE;
+        }
+        boolean nullOnly = annotation(element, Null.class) != null;
+        boolean notNull = annotation(element, NotNull.class) != null;
+        boolean notEmpty = annotation(element, NotEmpty.class) != null;
+        boolean notBlank = annotation(element, NotBlank.class) != null;
+        boolean requiredByAnnotation = notNull || notEmpty || notBlank;
 
-    static boolean hasSizeConstraint(AnnotatedElement element) {
-        return sizeRangeFor(element) != null;
+        if (nullOnly && (rawType.isPrimitive() || requiredByAnnotation)) {
+            throw conflict("@Null cannot be combined with a primitive or required constraint");
+        }
+        if ((annotation(element, Size.class) != null || notEmpty) && !supportsSize(rawType)) {
+            throw conflict("@Size and @NotEmpty require a string, array, collection, or map target");
+        }
+        if (notBlank && !CharSequence.class.isAssignableFrom(rawType)) {
+            throw conflict("@NotBlank requires a character-sequence target");
+        }
+
+        SizeRange size = sizeRangeFor(element);
+        boolean constrained = nullOnly
+                              || requiredByAnnotation
+                              || size != null
+                              || hasNonSizeGenerationConstraint(element);
+        return new ConstraintModel(
+            constrained,
+            nullOnly,
+            rawType.isPrimitive() || requiredByAnnotation,
+            notBlank,
+            size);
     }
 
     static SizeRange sizeRangeFor(AnnotatedElement element) {
         Size size = annotation(element, Size.class);
-        if (size == null) {
+        boolean requiresContent = annotation(element, NotEmpty.class) != null
+                                  || annotation(element, NotBlank.class) != null;
+        if (size == null && !requiresContent) {
             return null;
         }
-        int min = Math.max(0, size.min());
-        int max = size.max() == Integer.MAX_VALUE ? Math.max(min, SIZE_UNBOUNDED_CAP) : size.max();
-        return new SizeRange(min, Math.max(min, max));
+        int declaredMin = size == null ? 0 : Math.max(0, size.min());
+        int min = requiresContent ? Math.max(1, declaredMin) : declaredMin;
+        int declaredMax = size == null ? Integer.MAX_VALUE : size.max();
+        int max = declaredMax == Integer.MAX_VALUE ? Math.max(min, SIZE_UNBOUNDED_CAP) : declaredMax;
+        if (max < min) {
+            throw conflict("size constraints have an empty intersection: min " + min + " exceeds max " + max);
+        }
+        return new SizeRange(min, max);
+    }
+
+    private static ConstraintConflictException conflict(String message) {
+        return new ConstraintConflictException(message);
+    }
+
+    private static boolean supportsSize(Class<?> rawType) {
+        return CharSequence.class.isAssignableFrom(rawType)
+               || rawType.isArray()
+               || Collection.class.isAssignableFrom(rawType)
+               || java.util.Map.class.isAssignableFrom(rawType);
+    }
+
+    private static boolean hasNonSizeGenerationConstraint(AnnotatedElement element) {
+        return annotation(element, AssertTrue.class) != null
+               || annotation(element, AssertFalse.class) != null
+               || annotation(element, Email.class) != null
+               || annotation(element, Pattern.class) != null
+               || hasNumericConstraint(element)
+               || temporalConstraintFor(element) != null;
     }
 
     static int sizeFor(AnnotatedElement element, Random random, int defaultMin, int defaultMax) {
@@ -160,12 +245,8 @@ final class BeanValidationSupport {
     }
 
     private static Generator<String> stringGeneratorFor(SizeRange size, boolean notBlank, Random random) {
-        int min = notBlank ? 1 : 0;
-        int max = SIZE_UNBOUNDED_CAP;
-        if (size != null) {
-            min = Math.max(min, size.min());
-            max = Math.max(min, size.max());
-        }
+        int min = Math.max(notBlank ? 1 : 0, size.min());
+        int max = Math.max(min, size.max());
         int lower = min;
         int upper = max;
         return () -> {

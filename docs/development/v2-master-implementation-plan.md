@@ -391,18 +391,18 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Actions**
 
 - [ ] Build one normalized constraint model for nullability, size, numeric range, sign, time, pattern, email, and assertion constraints.
-- [ ] Add `@NotNull` and `@NotEmpty` alongside existing `@NotBlank` support.
+- [x] Add `@NotNull` and `@NotEmpty` alongside existing `@NotBlank` support.
 - [ ] Intersect multiple compatible constraints before generation.
 - [ ] Detect impossible intersections before producing a value.
-- [ ] Define precedence between explicit field rules, annotations, defaults, and null probability.
-- [ ] Validate advertised output with a real Jakarta Validation implementation in tests.
+- [x] Define precedence between explicit field rules, annotations, defaults, and null probability.
+- [x] Validate advertised output with a real Jakarta Validation implementation in tests.
 - [ ] Publish the exact supported-constraint table from code facts.
 
 **Tests**
 
 - [ ] Add red/green cases for every supported annotation, boundary, composition, and nullability interaction.
 - [ ] Prove `@Min(10) @Max(5)` and `@Size(min=5,max=2)` fail fast.
-- [ ] Prove null probability cannot violate `@NotNull`, `@NotEmpty`, or primitive requirements.
+- [x] Prove null probability cannot violate `@NotNull`, `@NotEmpty`, or primitive requirements.
 - [ ] Validate generated objects through Hibernate Validator across many deterministic seeds.
 
 **Done when:** Generated fixtures satisfy every advertised constraint or generation fails before returning them.

@@ -65,7 +65,7 @@ User user = new ObjectFaker<>(User.class, config)
 - **Semantic field values** — `firstName`, `email`, `city` resolve to
   realistic domain data, not arbitrary strings (this is the documented
   throughput-for-realism trade-off; see the README performance section).
-- **Bean Validation awareness** — 19 Jakarta constraints (`@Email`, `@Min`,
+- **Bean Validation awareness** — 21 Jakarta constraints (`@Email`, `@Min`,
   `@Pattern`, `@Size`, …) are honored during population without extra setup.
 - **Bulk structured export** — `Field` + `Schema` produce CSV, JSONL, XML,
   and SQL output; Instancio has no export story.

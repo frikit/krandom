@@ -125,11 +125,13 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | `Max`, `Min` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, `BigDecimal`, and numeric strings |
 | `Negative`, `NegativeOrZero` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, and `BigDecimal` |
 | `NotBlank` | Covered for `String` |
-| `Null` | Covered for reference fields |
+| `NotEmpty` | Covered for strings, arrays, collections, queues, sets, and maps; implies non-null and minimum size one |
+| `NotNull` | Covered for reference fields and Optional objects; does not require an Optional value to be present |
+| `Null` | Covered for reference fields; primitive or required intersections fail before generation |
 | `Past`, `PastOrPresent` | Covered for common Java temporal field types |
 | `Pattern` | Covered for `String` |
 | `Positive`, `PositiveOrZero` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, and `BigDecimal` |
-| `Size` | Covered for `String`, arrays, lists, sets, queues, collections, and maps |
+| `Size` | Covered for strings, arrays, lists, sets, queues, collections, and maps; empty intersections fail before generation |
 | Field annotations | Covered |
 | Record component annotations | Covered through record accessors and backing fields |
 | Getter/method annotations | Covered for JavaBean getters, boolean getters, record accessors, and interface accessor declarations |

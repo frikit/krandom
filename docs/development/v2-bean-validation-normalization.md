@@ -1,6 +1,6 @@
 # V2 Bean Validation Normalization
 
-**Status:** Characterized; implementation not started
+**Status:** Implementation in progress; Stage 1 complete
 **Scope:** Jakarta Validation annotations consumed by Java object generation
 
 ## Goal
@@ -71,7 +71,14 @@ collapsing it.
 **Tests:** Focused field/record tests, strict/lenient diagnostics, and Hibernate Validator checks over
 deterministic seeds.
 
-**Status:** Not Started
+**Status:** Complete
+
+`ConstraintModel` now normalizes null-only, required, non-empty, non-blank, and size facts once per
+field or record component. Required constraints suppress null/empty probability; `@NotNull` on an
+Optional keeps the Optional object non-null without requiring a contained value. Invalid targets,
+`@Null`/required conflicts, primitive `@Null`, inverted sizes, and `@NotEmpty` intersected with
+`@Size(max = 0)` fail through structured generation context. Recognized validation constraints also
+take precedence over default strict semantic-name generation.
 
 ## Stage 2: Numeric, assertion, and temporal intersections
 

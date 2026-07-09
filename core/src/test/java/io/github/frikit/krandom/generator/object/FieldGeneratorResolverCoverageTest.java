@@ -29,7 +29,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -208,8 +207,8 @@ class FieldGeneratorResolverCoverageTest {
     }
 
     @Test
-    @DisplayName("semantic resolver covers typed coordinate wrappers, missing typed lookups, strict validated semantics, and float rounding")
-    void semanticResolverCoversTypedCoordinateWrappersMissingTypedLookupsStrictValidatedSemanticsAndFloatRounding() throws Exception {
+    @DisplayName("semantic resolver covers typed coordinates, missing lookups, constrained strict mode, and float rounding")
+    void semanticResolverCoversTypedCoordinatesMissingLookupsConstrainedStrictModeAndFloatRounding() throws Exception {
         FieldGeneratorResolver relaxedResolver = resolver(ObjectGeneratorConfig.builder()
                                                                                .generatorConfig(GeneratorConfig.builder().seed(7L).build())
                                                                                .build());
@@ -287,7 +286,7 @@ class FieldGeneratorResolverCoverageTest {
                                                   usernameField);
 
         assertNotNull(username);
-        assertNotEquals(40, username.length());
+        assertEquals(40, username.length());
     }
 
 

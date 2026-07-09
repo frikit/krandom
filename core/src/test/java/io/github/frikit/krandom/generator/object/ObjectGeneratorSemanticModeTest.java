@@ -55,13 +55,13 @@ class ObjectGeneratorSemanticModeTest {
     }
 
     @Test
-    @DisplayName("strict mode lets semantic typed defaults override Bean Validation")
-    void strictModeLetsSemanticTypedDefaultsWin() {
+    @DisplayName("strict mode keeps Bean Validation ahead of semantic typed defaults")
+    void strictModeKeepsBeanValidationAheadOfSemanticDefaults() {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
                                                 .build();
         NegativeAccountIdHolder value = new ObjectGenerator<>(NegativeAccountIdHolder.class, config).generate();
-        assertTrue(value.accountId > 0);
+        assertTrue(value.accountId < 0);
     }
 
     static class AnnotatedEmailHolder {

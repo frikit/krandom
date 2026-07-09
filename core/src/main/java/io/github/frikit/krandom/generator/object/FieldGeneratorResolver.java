@@ -946,11 +946,11 @@ final class FieldGeneratorResolver {
                                      Class<?> rawType,
                                      Generator<?> annotationGenerator,
                                      Generator<?> bvGen,
-                                     boolean hasSizeConstraint) {
+                                     boolean requiredConstraint) {
         if (element == null || rawType.isPrimitive() || rawType == Optional.class) {
             return false;
         }
-        if (annotationGenerator != null || bvGen != null || hasSizeConstraint) {
+        if (annotationGenerator != null || bvGen != null || requiredConstraint) {
             return false;
         }
         double probability = config.getNullProbability();
@@ -1389,24 +1389,33 @@ final class FieldGeneratorResolver {
                                            : null;
         Generator<?> fakeAnnotationGenerator = element != null ? fakeAnnotationGeneratorFor(element, rawType) : null;
         Generator<?> fakeRangeGenerator = element != null ? fakeRangeGeneratorFor(element, rawType) : null;
-        Generator<?> bvGen = element != null
-                              ? BeanValidationSupport.constraintGeneratorFor(
-                                  element, rawType, sequenceRandom, generatorConfig.getClock())
-                              : null;
-        boolean hasSizeConstraint = element != null && BeanValidationSupport.hasSizeConstraint(element);
+        BeanValidationSupport.ConstraintModel bvConstraints;
+        Generator<?> bvGen;
+        try {
+            bvConstraints = BeanValidationSupport.constraintModelFor(element, rawType);
+            bvGen = element != null
+                    ? BeanValidationSupport.constraintGeneratorFor(
+                        element, rawType, sequenceRandom, generatorConfig.getClock(), bvConstraints)
+                    : null;
+        } catch (BeanValidationSupport.ConstraintConflictException conflict) {
+            Object fallback = handleConstraintConflict(
+                rawType, genericType, ownerType, fieldName, currentDepth, conflict);
+            return fallback;
+        }
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────
         String semanticKey = semanticRegistry.semanticKeyForFieldName(fieldName);
         Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
         if (semanticGenerator != null
+            && !bvConstraints.constrained()
             && (semanticMode == ObjectGenerationSemanticMode.STRICT
                 || (annotationGenerator == null && fakeAnnotationGenerator == null
-                    && fakeRangeGenerator == null && bvGen == null))) {
+                    && fakeRangeGenerator == null))) {
             return generateWithUniqueness(fieldName, semanticKey, semanticGenerator);
         }
 
         // ── 3aa. Configured null/optional behavior ────────────────────────────
-        if (bvGen != null && BeanValidationSupport.hasNullConstraint(element)) {
+        if (bvConstraints.nullOnly()) {
             return bvGen.generate();
         }
         if (Optional.class == rawType) {
@@ -1420,7 +1429,7 @@ final class FieldGeneratorResolver {
             Object value = resolveAndGenerate(valueType, fieldName + ".value", ownerType, currentDepth);
             return Optional.ofNullable(value);
         }
-        if (shouldReturnNull(element, rawType, annotationGenerator, bvGen, hasSizeConstraint)) {
+        if (shouldReturnNull(element, rawType, annotationGenerator, bvGen, bvConstraints.required())) {
             return null;
         }
 
@@ -1716,6 +1725,31 @@ final class FieldGeneratorResolver {
         return failurePolicy.handle(
             new ObjectGenerationException(
                 "Unsupported type at '" + path + "' (declared type "
+                + declaredTypeName + ", depth " + depth + ")",
+                context,
+                cause),
+            PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
+    }
+
+    private Object handleConstraintConflict(Class<?> rawType,
+                                            Type declaredType,
+                                            Class<?> ownerType,
+                                            String fieldName,
+                                            int depth,
+                                            BeanValidationSupport.ConstraintConflictException cause) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String declaredTypeName = declaredType.getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.UNSUPPORTED_TYPE,
+            GenerationOperation.GENERATE,
+            path,
+            ownerType,
+            declaredTypeName,
+            depth,
+            -1);
+        return failurePolicy.handle(
+            new ObjectGenerationException(
+                "Unsatisfiable constraints at '" + path + "' (declared type "
                 + declaredTypeName + ", depth " + depth + ")",
                 context,
                 cause),

@@ -38,7 +38,7 @@ dependencies {
 | `.scanClasspathForConcreteTypes(true)` | `.objectSubtype(declaredType, implementationType)` per abstract type |
 | `@org.jeasy.random.annotation.Randomizer` | `@io.github.frikit.krandom.generator.object.Randomizer` |
 | `@org.jeasy.random.annotation.Exclude` | `@io.github.frikit.krandom.generator.object.Exclude` |
-| `easy-random-bean-validation` module | built into `krandom-core` (19 Jakarta constraints honored) |
+| `easy-random-bean-validation` module | built into `krandom-core` (21 Jakarta constraints honored) |
 
 ## Before and after
 
