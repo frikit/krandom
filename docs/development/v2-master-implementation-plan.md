@@ -386,6 +386,8 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Depends on:** 2.1, 2.2.
 
+**Characterization:** [`v2-bean-validation-normalization.md`](v2-bean-validation-normalization.md)
+
 **Actions**
 
 - [ ] Build one normalized constraint model for nullability, size, numeric range, sign, time, pattern, email, and assertion constraints.
