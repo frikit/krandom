@@ -11,6 +11,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 
 | Module | Purpose |
 |:---|:---|
+| `bom` | Maven/Gradle bill of materials for aligning published module versions |
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
 | `jackson` | Jackson integration on top of `core` |
 | `junit` | JUnit 5 extension: per-test seeds, `@KrandomSeed` pinning, failure-seed reporting |
@@ -26,6 +27,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 
 - Java-first architecture.
 - `core` is the only behavior source of truth.
+- `bom` aligns the versions of all published modules.
 - `jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`, and `kotlin-dsl` are published integration modules.
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs tests and coverage on Java 21.
@@ -153,6 +155,7 @@ Public artifacts on Maven Central (group `io.github.frikit`):
 
 | Artifact | Automatic module name |
 |:---|:---|
+| `io.github.frikit:krandom-bom` | — (Maven/Gradle platform) |
 | `io.github.frikit:krandom-core` | `io.github.frikit.krandom` |
 | `io.github.frikit:krandom-jackson` | `io.github.frikit.krandom.jackson` |
 | `io.github.frikit:krandom-junit` | `io.github.frikit.krandom.junit` |
@@ -169,7 +172,8 @@ shown on [GitHub Releases](https://github.com/frikit/krandom/releases) and
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.5.0")
+    implementation(platform("io.github.frikit:krandom-bom:1.6.0"))
+    implementation("io.github.frikit:krandom-core")
 }
 ```
 
@@ -177,17 +181,29 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:1.5.0'
+    implementation platform('io.github.frikit:krandom-bom:1.6.0')
+    implementation 'io.github.frikit:krandom-core'
 }
 ```
 
 ### Maven
 
 ```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.frikit</groupId>
+      <artifactId>krandom-bom</artifactId>
+      <version>1.6.0</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>1.5.0</version>
 </dependency>
 ```
 

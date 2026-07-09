@@ -21,6 +21,7 @@ plugins {
 }
 
 val moduleDescriptions = mapOf(
+    "bom" to "kRandom bill of materials for aligning all published kRandom module versions.",
     "core" to "kRandom core: Java 21 random and fake-data generation toolkit with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
     "jackson" to "Jackson serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
     "junit" to "JUnit 5 extension for kRandom — per-test seed management with @KrandomSeed pinning, seeded GeneratorConfig parameter injection, and failure-seed reporting for reproducible test runs.",
@@ -41,20 +42,29 @@ afterEvaluate {
     val componentName = when {
         components.names.contains("java") -> "java"
         components.names.contains("kotlin") -> "kotlin"
+        components.names.contains("javaPlatform") -> "javaPlatform"
         else -> null
     }
     if (componentName == null || project.name !in moduleDescriptions.keys) {
         return@afterEvaluate
     }
 
-    extensions.findByType(JavaPluginExtension::class.java)?.apply {
-        withSourcesJar()
-        withJavadocJar()
-    }
+    if (componentName != "javaPlatform") {
+        extensions.findByType(JavaPluginExtension::class.java)?.apply {
+            withSourcesJar()
+            withJavadocJar()
+        }
 
-    tasks.named<Jar>("jar").configure {
-        manifest {
-            attributes("Automatic-Module-Name" to moduleNames.getValue(project.name))
+        tasks.withType<Jar>().configureEach {
+            from(rootProject.file("LICENSE")) {
+                into("META-INF")
+            }
+        }
+
+        tasks.named<Jar>("jar").configure {
+            manifest {
+                attributes("Automatic-Module-Name" to moduleNames.getValue(project.name))
+            }
         }
     }
 

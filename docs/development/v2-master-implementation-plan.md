@@ -142,7 +142,7 @@ Work may run in parallel only when the dependency table for its stage allows it.
 **Goal**: Stop uncontrolled API growth, establish compatibility tooling, correct public claims, and give current consumers a migration path before v2 removes or changes behavior.
 **Success Criteria**: A released 1.6.x bridge contains the v2 deprecations, BOM, accurate documentation, compatibility baseline, and supply-chain baseline without introducing v2 breaking behavior.
 **Tests**: API baseline comparison against 1.5.0, full pre-commit gate, all consumer examples, generated POM inspection, documentation facts checks, and a release dry-run.
-**Status**: Not Started
+**Status**: In Progress
 
 ### Step 1.1 — Establish the v2 backlog and change protocol
 

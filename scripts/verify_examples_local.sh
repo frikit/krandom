@@ -28,6 +28,7 @@ cd "${REPO_ROOT}"
 
 step "Publish krandom modules ${VERSION} to Maven local"
 "${GRADLEW}" \
+    :bom:publishToMavenLocal \
     :core:publishToMavenLocal \
     :jackson:publishToMavenLocal \
     :junit:publishToMavenLocal \

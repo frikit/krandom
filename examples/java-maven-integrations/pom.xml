@@ -15,21 +15,30 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.github.frikit</groupId>
+                <artifactId>krandom-bom</artifactId>
+                <version>${krandom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-core</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-jackson</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-spring-boot-starter</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

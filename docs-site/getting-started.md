@@ -16,6 +16,7 @@ permalink: /getting-started/
 Public coordinates on Maven Central:
 
 - `io.github.frikit:krandom-core`
+- `io.github.frikit:krandom-bom` (from `1.6.0`, aligns all module versions)
 - `io.github.frikit:krandom-jackson`
 - `io.github.frikit:krandom-junit` (from `1.4.0`)
 - `io.github.frikit:krandom-spring-boot-starter`
@@ -33,24 +34,36 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.5.0")
+    implementation(platform("io.github.frikit:krandom-bom:1.6.0"))
+    implementation("io.github.frikit:krandom-core")
     // Optional integrations:
-    implementation("io.github.frikit:krandom-jackson:1.5.0")
-    implementation("io.github.frikit:krandom-spring-boot-starter:1.5.0")
-    testImplementation("io.github.frikit:krandom-kotest-extensions:1.5.0")
-    testImplementation("io.github.frikit:krandom-kotlin-dsl:1.5.0")
-    testImplementation("io.github.frikit:krandom-junit:1.5.0") // JUnit 5 seed extension, from 1.4.0
+    implementation("io.github.frikit:krandom-jackson")
+    implementation("io.github.frikit:krandom-spring-boot-starter")
+    testImplementation("io.github.frikit:krandom-kotest-extensions")
+    testImplementation("io.github.frikit:krandom-kotlin-dsl")
+    testImplementation("io.github.frikit:krandom-junit") // JUnit 5 seed extension, from 1.2.0
 
 }
 ```
 
-Maven:
+Maven (import the BOM once, then omit versions from kRandom modules):
 
 ```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.frikit</groupId>
+      <artifactId>krandom-bom</artifactId>
+      <version>1.6.0</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>1.5.0</version>
 </dependency>
 ```
 

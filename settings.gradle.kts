@@ -23,6 +23,7 @@ if (!currentJava.isCompatibleWith(org.gradle.api.JavaVersion.VERSION_21)) {
 rootProject.name = "krandom"
 
 include(":core")
+include(":bom")
 include(":jackson")
 include(":junit")
 include(":spring-boot-starter")

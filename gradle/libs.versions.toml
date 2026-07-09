@@ -16,7 +16,6 @@ jackson = "2.22.0"
 spring-boot = "4.1.0"
 
 [libraries]
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
