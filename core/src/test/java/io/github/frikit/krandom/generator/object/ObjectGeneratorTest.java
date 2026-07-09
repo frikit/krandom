@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.core.model.Address;
 import io.github.frikit.krandom.generator.core.model.Person;
@@ -886,10 +887,19 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("ignoreErrors=false re-throws ObjectGenerationException from nested type with throwing ctor")
-        void ignoreErrorsRethrowsNestedOGE() {
-            assertThrows(ObjectGenerationException.class,
-                         () -> new ObjectGenerator<>(WithThrowingNestedField.class).generate());
+        @DisplayName("strict nested constructor failure gains parent field context")
+        void strictNestedConstructorFailureIsContextual() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(WithThrowingNestedField.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals("WithThrowingNestedField.nested", context.path());
+            assertEquals(ThrowsOnCreate.class.getTypeName(), context.declaredType());
+            assertEquals(0, context.depth());
+            assertNotNull(error.getCause());
         }
 
         @Test
@@ -909,15 +919,54 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("ignoreErrors=false wraps non-OGE exception in ObjectGenerationException (Exception catch)")
-        void ignoreErrorsFalseWrapsRuntimeExceptionFromNested() {
+        @DisplayName("strict nested runtime failure gains parent field context")
+        void strictNestedRuntimeFailureIsContextual() {
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
                                                              .override(String.class, () -> {
                                                                  throw new RuntimeException("intentional");
                                                              })
                                                              .build();
-            assertThrows(ObjectGenerationException.class,
-                         () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals("OuterWithInner.inner", context.path());
+            assertTrue(error.getCause() instanceof RuntimeException);
+        }
+
+        @Test
+        @DisplayName("structured nested failure composes a root-relative path once")
+        void structuredNestedFailureComposesParentPath() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(NestedUnsupportedRoot.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals("NestedUnsupportedRoot.middle.child.task", context.path());
+            assertEquals(NestedUnsupportedChild.class, context.ownerType());
+            assertEquals(Runnable.class.getTypeName(), context.declaredType());
+            assertEquals(2, context.depth());
+            assertTrue(error.getCause() instanceof UnsupportedOperationException);
+        }
+
+        @Test
+        @DisplayName("foreign structured nested path is retained below the parent path")
+        void foreignNestedFailurePathIsRetained() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ForeignContextRoot.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
+            assertEquals("ForeignContextRoot.child.External.path", context.path());
+            assertEquals(ForeignContextGenerator.class, context.ownerType());
+            assertEquals(7, context.depth());
+            assertNull(error.getCause());
         }
 
         private void assertUnsupportedTypeFailure(Class<?> ownerType,
@@ -1049,6 +1098,54 @@ class ObjectGeneratorTest {
 
             InnerWithString inner;
             int             num;
+        }
+
+
+        static class NestedUnsupportedRoot {
+
+            NestedUnsupportedMiddle middle;
+        }
+
+
+        static class NestedUnsupportedMiddle {
+
+            NestedUnsupportedChild child;
+        }
+
+
+        static class NestedUnsupportedChild {
+
+            Runnable task;
+        }
+
+
+        static class ForeignContextRoot {
+
+            ForeignContextChild child;
+        }
+
+
+        static class ForeignContextChild {
+
+            @Randomizer(ForeignContextGenerator.class)
+            String value;
+        }
+
+
+        public static class ForeignContextGenerator implements Generator<String> {
+
+            @Override
+            public String generate() {
+                GenerationFailureContext context = new GenerationFailureContext(
+                    GenerationFailureCategory.ASSIGNMENT,
+                    GenerationOperation.ASSIGN,
+                    "External.path",
+                    ForeignContextGenerator.class,
+                    String.class.getName(),
+                    7,
+                    -1);
+                throw new ObjectGenerationException("foreign failure", context, null);
+            }
         }
     }
 

@@ -1580,7 +1580,8 @@ final class FieldGeneratorResolver {
                                 + e.getClass().getName());
                     return null;
                 }
-                throw e;
+                throw contextualizeNestedFailure(
+                    e, nestedType, ownerType, fieldName, genericType, currentDepth);
             } catch (Exception e) {
                 pool.end(nestedType, null);
                 if (config.isIgnoreErrors()) {
@@ -1590,9 +1591,14 @@ final class FieldGeneratorResolver {
                                 + e.getClass().getName());
                     return null;
                 }
-                throw new ObjectGenerationException(
-                    "Failed to generate nested type " + rawType.getName() + " for field '"
-                    + ownerType.getSimpleName() + "." + fieldName + "'", e);
+                throw nestedFailure(
+                    GenerationFailureCategory.REFLECTION,
+                    GenerationOperation.GENERATE,
+                    ownerType.getSimpleName() + "." + fieldName,
+                    ownerType,
+                    genericType.getTypeName(),
+                    currentDepth,
+                    e);
             }
         }
 
@@ -1604,6 +1610,65 @@ final class FieldGeneratorResolver {
             return null;
         }
         return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+    }
+
+    private static ObjectGenerationException contextualizeNestedFailure(ObjectGenerationException failure,
+                                                                        Class<?> nestedType,
+                                                                        Class<?> ownerType,
+                                                                        String fieldName,
+                                                                        Type declaredType,
+                                                                        int depth) {
+        String parentPath = ownerType.getSimpleName() + "." + fieldName;
+        Optional<GenerationFailureContext> existing = failure.getContext();
+        if (existing.isEmpty()) {
+            return nestedFailure(
+                GenerationFailureCategory.REFLECTION,
+                GenerationOperation.GENERATE,
+                parentPath,
+                ownerType,
+                declaredType.getTypeName(),
+                depth,
+                failure.getCause());
+        }
+
+        GenerationFailureContext child = existing.orElseThrow();
+        String nestedRoot = nestedType.getSimpleName();
+        String childSuffix;
+        if (child.path().startsWith(nestedRoot + ".")) {
+            childSuffix = child.path().substring(nestedRoot.length());
+        } else {
+            childSuffix = "." + child.path();
+        }
+        return nestedFailure(
+            child.category(),
+            child.operation(),
+            parentPath + childSuffix,
+            child.ownerType(),
+            child.declaredType(),
+            child.depth(),
+            failure.getCause());
+    }
+
+    private static ObjectGenerationException nestedFailure(GenerationFailureCategory category,
+                                                           GenerationOperation operation,
+                                                           String path,
+                                                           Class<?> ownerType,
+                                                           String declaredType,
+                                                           int depth,
+                                                           Throwable cause) {
+        GenerationFailureContext context = new GenerationFailureContext(
+            category,
+            operation,
+            path,
+            ownerType,
+            declaredType,
+            depth,
+            -1);
+        return new ObjectGenerationException(
+            "Could not generate nested value at '" + path + "' (declared type "
+            + declaredType + ", depth " + depth + ")",
+            context,
+            cause);
     }
 
     private Object handleUnsupportedType(Class<?> rawType,

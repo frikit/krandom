@@ -1,6 +1,6 @@
 # V2 Generation Failure Inventory
 
-**Status:** Implementation in progress; Slice A, Slice B, GFI-05, GFI-09, and GFI-11 complete
+**Status:** Implementation in progress; Slice A, Slice B, GFI-05, GFI-09, and GFI-11 complete; GFI-10 strict path composition complete
 **Scope:** Core object generation, object faker rules, schema generation, and schema inference
 **Audience:** Maintainers implementing Stage 2 of the v2 master plan
 
@@ -42,7 +42,7 @@ diagnostic events.
 | GFI-07 | `FieldGeneratorResolver.putSafely` | Failed map insertion is ignored, returning a partial map | Strict/lenient failure | Remove partial-map success; report key/value paths without reporting key/value contents |
 | GFI-08 | `FieldGeneratorResolver.generateArray` | Invalid element assignment leaves a JVM default element | Strict/lenient failure | Strict mode reports the indexed path; lenient mode may use the documented default and emits a diagnostic |
 | GFI-09 | `FieldGeneratorResolver.annotationRandomizerFor` | Construction and execution failures carry the owner field path, generator type, operation, and original cause | Boundary wrapper | Preserve already-contextual failures without wrapping them again |
-| GFI-10 | `FieldGeneratorResolver` nested generation | Strict mode propagates or wraps; lenient mode returns `null` and logs | Strict/lenient failure | Add the parent field path once and use the central policy; logs are already value-sanitized |
+| GFI-10 | `FieldGeneratorResolver` nested generation | Strict mode composes root-relative paths while retaining child category, operation, owner, and original cause; lenient mode returns `null` and logs | Strict/lenient failure | Strict path composition is complete; route leniency through the central policy in Slice C |
 | GFI-11 | `FieldGeneratorResolver` unsupported type branch | Direct unsupported fields report structured context; explicit lenient mode returns the type default | Strict/lenient failure | Keep the erased nested `Object` bridge only until Step 2.2 replaces shallow generic resolution |
 | GFI-12 | `SemanticCoherenceAdjuster` parsing helpers | Invalid URL, currency, and numeric candidates return no semantic match | Probe | Keep as normalization probes; these do not represent failed object generation |
 | GFI-13 | `SemanticCoherenceAdjuster` reflective slots | Read failures throw; write failures throw or are silently ignored | Strict/lenient failure | Use the same field policy and diagnostic event as normal assignment |
