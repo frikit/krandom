@@ -81,6 +81,9 @@ snapshot keys in `DataRegistryContext`; generators resolve it from `GeneratorCon
 directly from process-wide state. The 23 static mutation methods are deprecated 1.6 compatibility
 adapters with exact context-builder replacement links. A focused concurrent-context test exercises
 two isolated configurations across the scoped vocabulary families without cross-contamination.
+The later-added legacy registry bridges validate through their corresponding context registration
+before changing global state, so the compatibility path rejects the same malformed data as the
+config-scoped path.
 
 Measurement follows the same context boundary for its localized unit vocabulary. Its generator
 now resolves one config-scoped provider before using the legacy registry fallback.

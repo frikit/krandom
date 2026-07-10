@@ -6,36 +6,46 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider;
+import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry;
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeGenerator;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
+import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.finance.FinancialTermGenerator;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
 import io.github.frikit.krandom.generator.measurement.MeasurementDataProvider;
+import io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry;
 import io.github.frikit.krandom.generator.measurement.MeasurementGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyDataProvider;
+import io.github.frikit.krandom.generator.user.HobbyDataRegistry;
 import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
+import io.github.frikit.krandom.generator.user.BloodTypeDataRegistry;
 import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
 import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityDataProvider;
+import io.github.frikit.krandom.generator.user.NationalityDataRegistry;
 import io.github.frikit.krandom.generator.user.NationalityGenerator;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
 import io.github.frikit.krandom.generator.user.PronounDataProvider;
+import io.github.frikit.krandom.generator.user.PronounDataRegistry;
 import io.github.frikit.krandom.generator.user.PronounGenerator;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.ZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.ZodiacGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
+import io.github.frikit.krandom.generator.weather.WeatherDataRegistry;
 import io.github.frikit.krandom.generator.weather.WeatherGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,6 +65,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -464,6 +475,59 @@ class DataRegistryContextTest {
     void zodiacProvidersRejectIncompleteCycles() {
         assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
                                                                              .registerZodiacProvider(zodiacProvider(Locale.US, "only", 11)));
+    }
+
+    @Test
+    @DisplayName("legacy registry bridges apply context validation")
+    @SuppressWarnings("removal")
+    void legacyRegistryBridgesApplyContextValidation() {
+        Locale locale = Locale.of("zz", "WW");
+
+        assertThrows(IllegalArgumentException.class, () -> WeatherDataRegistry.register(weatherProvider(locale, List.of())));
+        assertThrows(IllegalArgumentException.class, () -> MeasurementDataRegistry.register(measurementProvider(locale, " ")));
+        assertThrows(IllegalArgumentException.class, () -> FinancialTermDataRegistry.register(financialTermProvider(locale, " ")));
+        assertThrows(IllegalArgumentException.class, () -> RestaurantTypeDataRegistry.register(restaurantTypeProvider(locale, " ")));
+        assertThrows(IllegalArgumentException.class, () -> HobbyDataRegistry.register(hobbyProvider(locale, " ")));
+        assertThrows(IllegalArgumentException.class, () -> NationalityDataRegistry.register(nationalityProvider(locale, " ")));
+        assertThrows(IllegalArgumentException.class, () -> PronounDataRegistry.register(pronounProvider(locale, "they/them/us")));
+        assertThrows(IllegalArgumentException.class,
+                     () -> BloodTypeDataRegistry.register(bloodTypeProvider(locale, List.of("O+"), List.of(0))));
+        assertThrows(IllegalArgumentException.class, () -> ChineseZodiacDataRegistry.register(chineseZodiacProvider(locale, "dragon", 11)));
+        assertThrows(IllegalArgumentException.class, () -> ZodiacDataRegistry.register(zodiacProvider(locale, "aries", 11)));
+    }
+
+    @Test
+    @DisplayName("locale provider families prefer exact values then language fallbacks")
+    void localeProviderFamiliesPreferExactValuesThenLanguageFallbacks() {
+        FirstNameDataProvider languageFirstNames = firstNameProvider(Locale.ENGLISH);
+        FirstNameDataProvider usFirstNames = firstNameProvider(Locale.US);
+        WeatherDataProvider languageWeather = weatherProvider(Locale.ENGLISH, "English weather");
+        WeatherDataProvider usWeather = weatherProvider(Locale.US, "US weather");
+        BloodTypeDataProvider languageBloodTypes = bloodTypeProvider(Locale.ENGLISH, List.of("English blood"), List.of(1));
+        BloodTypeDataProvider usBloodTypes = bloodTypeProvider(Locale.US, List.of("US blood"), List.of(1));
+        ZodiacDataProvider languageZodiac = zodiacProvider(Locale.ENGLISH, "English aries");
+        ZodiacDataProvider usZodiac = zodiacProvider(Locale.US, "US aries");
+
+        DataRegistryContext context = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerFirstNameProvider(languageFirstNames)
+                                                         .registerFirstNameProvider(usFirstNames)
+                                                         .registerWeatherProvider(languageWeather)
+                                                         .registerWeatherProvider(usWeather)
+                                                         .registerBloodTypeProvider(languageBloodTypes)
+                                                         .registerBloodTypeProvider(usBloodTypes)
+                                                         .registerZodiacProvider(languageZodiac)
+                                                         .registerZodiacProvider(usZodiac)
+                                                         .build();
+
+        assertSame(usFirstNames, context.firstNameProvider(Locale.US));
+        assertSame(languageFirstNames, context.firstNameProvider(Locale.CANADA));
+        assertSame(usWeather, context.weatherProvider(Locale.US));
+        assertSame(languageWeather, context.weatherProvider(Locale.CANADA));
+        assertSame(usBloodTypes, context.bloodTypeProvider(Locale.US));
+        assertSame(languageBloodTypes, context.bloodTypeProvider(Locale.CANADA));
+        assertSame(usZodiac, context.zodiacProvider(Locale.US));
+        assertSame(languageZodiac, context.zodiacProvider(Locale.CANADA));
     }
 
     @Test

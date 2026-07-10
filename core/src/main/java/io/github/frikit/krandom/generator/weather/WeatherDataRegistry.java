@@ -5,11 +5,11 @@
  */
 package io.github.frikit.krandom.generator.weather;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,7 +52,7 @@ public final class WeatherDataRegistry {
      */
     @Deprecated(since = "1.6", forRemoval = true)
     public static void register(WeatherDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
+        validateProvider(provider);
         putProvider(provider);
     }
 
@@ -94,6 +94,10 @@ public final class WeatherDataRegistry {
      */
     public static Set<String> registeredKeys() {
         return Set.copyOf(REGISTRY.keySet());
+    }
+
+    private static void validateProvider(WeatherDataProvider provider) {
+        DataRegistryContext.builder().isolated().registerWeatherProvider(provider);
     }
 
     private static void putProvider(WeatherDataProvider provider) {

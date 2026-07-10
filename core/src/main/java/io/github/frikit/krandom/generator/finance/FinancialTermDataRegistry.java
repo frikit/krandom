@@ -5,11 +5,11 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,7 +52,7 @@ public final class FinancialTermDataRegistry {
      */
     @Deprecated(since = "1.6", forRemoval = true)
     public static void register(FinancialTermDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
+        validateProvider(provider);
         putProvider(provider);
     }
 
@@ -94,6 +94,10 @@ public final class FinancialTermDataRegistry {
      */
     public static Set<String> registeredKeys() {
         return Set.copyOf(REGISTRY.keySet());
+    }
+
+    private static void validateProvider(FinancialTermDataProvider provider) {
+        DataRegistryContext.builder().isolated().registerFinancialTermProvider(provider);
     }
 
     private static void putProvider(FinancialTermDataProvider provider) {

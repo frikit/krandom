@@ -30,6 +30,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `ProfessionDataRegistry.append(...)` overloads are deprecated for removal in v2. They remain
   behavior-compatible 1.6 adapters; use the matching `DataRegistryContext.Builder` registration
   method to isolate custom locale data to one `GeneratorConfig`.
+- The ten later-added static data-registry bridges now validate through their matching
+  `DataRegistryContext.Builder` registration before mutating global state, including vocabulary,
+  pronoun-shape, weighted-distribution, and zodiac-cycle rules.
 - `WeatherGenerator` now resolves vocabulary through `DataRegistryContext`, so independent
   `GeneratorConfig` instances can safely use different validated weather providers for the same
   locale. The global weather registry remains a compatibility fallback.

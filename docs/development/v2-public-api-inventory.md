@@ -87,6 +87,9 @@ Public provider interfaces and lookup operations remain **KEEP**. Static global 
 All 23 global mutation methods are now deprecated in 1.6 as thin compatibility adapters. Their
 Javadocs link to the exact `DataRegistryContext.Builder` replacement and
 [`v1.6-to-v2.md`](../migration/v1.6-to-v2.md) explains configuration-scoped migration.
+The later-added registry classes remain **KEEP** with no public-member change: their private
+bridge validators reuse the matching context registration before globally mutating state, so
+compatibility registrations reject the same malformed provider data.
 
 `DataRegistryContext` weather lookup, key snapshot, and builder registration are additive **KEEP**
 APIs. They provide validated, locale-fallback-aware weather vocabulary that is isolated per

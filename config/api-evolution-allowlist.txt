@@ -141,6 +141,18 @@ io.github.frikit.krandom.generator.user.ZodiacGenerator
 
 # Deprecated global registry-mutation bridges; exact context-builder replacements are documented
 # in v1.6-to-v2.md and each method Javadoc.
+# Exact class classifications cover private validators that route the later-added bridges through
+# their matching context registration before global mutation; no public member is added or removed.
+io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry
+io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry
+io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry
+io.github.frikit.krandom.generator.user.BloodTypeDataRegistry
+io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry
+io.github.frikit.krandom.generator.user.HobbyDataRegistry
+io.github.frikit.krandom.generator.user.NationalityDataRegistry
+io.github.frikit.krandom.generator.user.PronounDataRegistry
+io.github.frikit.krandom.generator.user.ZodiacDataRegistry
+io.github.frikit.krandom.generator.weather.WeatherDataRegistry
 io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry#register(io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider)
 io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry#register(io.github.frikit.krandom.generator.finance.FinancialTermDataProvider)
 io.github.frikit.krandom.generator.location.CityDataRegistry#register(io.github.frikit.krandom.generator.location.CityDataProvider)

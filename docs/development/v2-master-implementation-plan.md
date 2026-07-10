@@ -503,7 +503,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Define one typed provider descriptor/catalog.
 - [x] Generate lookup, semantic inference, schema metadata, and documentation from the catalog.
 - [x] Move every generator-backed locale provider registry into `DataRegistryContext`.
-- [ ] Validate registered keys and data arrays uniformly.
+- [x] Validate registered keys and data arrays uniformly.
 - [x] Return immutable snapshots rather than live unmodifiable concurrent-map views.
 - [x] Keep deprecated global registration as a 1.6 adapter only.
 
@@ -511,7 +511,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [x] A catalog completeness test finds missing/duplicate keys and alias collisions.
 - [x] Every generator-backed locale provider can be overridden in one context without affecting another.
-- [ ] Locale fallback and registry validation are uniform across old and new provider families.
+- [x] Locale fallback and registry validation are uniform across old and new provider families.
 - [x] Concurrent context tests show no global leakage.
 
 **Done when:** Provider identity, metadata, and customization have one source of truth and no hidden global state.
