@@ -254,6 +254,38 @@ class GenerationRecipeTest {
     }
 
     @Test
+    @DisplayName("locale clock provider data and safety policy change portable recipes")
+    void environmentMetadataChangesPortableRecipe() {
+        GeneratorConfig.Builder base = GeneratorConfig.builder()
+                                                       .seed(101L)
+                                                       .locale(Locale.US)
+                                                       .clock(Clock.fixed(CLOCK_INSTANT, CLOCK_ZONE))
+                                                       .safetyPolicy("test-safe")
+                                                       .providerDatasetVersion("builtin-v1");
+        GenerationRecipe recipe = base.build().getGenerationRecipe().orElseThrow();
+
+        assertNotEquals(recipe, base.locale(Locale.JAPAN).build().getGenerationRecipe().orElseThrow());
+        assertNotEquals(recipe,
+                        base.locale(Locale.US)
+                            .clock(Clock.fixed(CLOCK_INSTANT.plusSeconds(1), CLOCK_ZONE))
+                            .build()
+                            .getGenerationRecipe()
+                            .orElseThrow());
+        assertNotEquals(recipe,
+                        base.clock(Clock.fixed(CLOCK_INSTANT, CLOCK_ZONE))
+                            .providerDatasetVersion("builtin-v2")
+                            .build()
+                            .getGenerationRecipe()
+                            .orElseThrow());
+        assertNotEquals(recipe,
+                        base.providerDatasetVersion("builtin-v1")
+                            .safetyPolicy("checksum-valid")
+                            .build()
+                            .getGenerationRecipe()
+                            .orElseThrow());
+    }
+
+    @Test
     @DisplayName("replays a date range and rejects incomplete or unsupported settings")
     void handlesRecipeSettingsBoundaries() {
         GenerationRecipe dated = GeneratorConfig.builder()
