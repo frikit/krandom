@@ -7,6 +7,9 @@ package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
+import io.github.frikit.krandom.generator.provider.ProviderCatalog;
+import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
+import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
 import io.github.frikit.krandom.generator.text.WordGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,6 +51,26 @@ class FieldLookupTest {
         assertEquals("finance.currency_iso_code", lookup.aliases().get("finance.currency"));
         assertEquals("code.uuid4", lookup.aliases().get("code.uuid"));
         assertEquals("commerce.order_info", lookup.aliases().get("order_info"));
+    }
+
+    @Test
+    @DisplayName("built-in schema references and aliases are defined by the provider catalog")
+    void builtInsAreDefinedByProviderCatalog() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+        Set<String> references = new java.util.HashSet<>();
+        Map<String, String> aliases = new java.util.HashMap<>();
+
+        for (ProviderDescriptor<?> descriptor : ProviderCatalog.schemaBuiltIns()) {
+            for (ProviderSchemaProjection<?> projection : descriptor.getSchemaProjections()) {
+                references.add(projection.getReference());
+                for (String alias : projection.getAliases()) {
+                    aliases.put(alias, projection.getReference());
+                }
+            }
+        }
+
+        assertEquals(references, lookup.supportedReferences());
+        assertEquals(aliases, lookup.aliases());
     }
 
     @Test

@@ -26,17 +26,21 @@ public final class ProviderDescriptor<T> {
     private final ProviderFactory   factory;
     private final List<String>      aliases;
     private final Set<String>       semanticKeys;
+    private final List<ProviderSchemaProjection<T>> schemaProjections;
 
     ProviderDescriptor(String key,
                        Class<T> providerType,
                        ProviderFactory factory,
                        List<String> aliases,
-                       Set<String> semanticKeys) {
+                       Set<String> semanticKeys,
+                       List<ProviderSchemaProjection<T>> schemaProjections) {
         this.key = Objects.requireNonNull(key, "key must not be null");
         this.providerType = Objects.requireNonNull(providerType, "providerType must not be null");
         this.factory = Objects.requireNonNull(factory, "factory must not be null");
         this.aliases = List.copyOf(Objects.requireNonNull(aliases, "aliases must not be null"));
         this.semanticKeys = Set.copyOf(Objects.requireNonNull(semanticKeys, "semanticKeys must not be null"));
+        this.schemaProjections = List.copyOf(
+            Objects.requireNonNull(schemaProjections, "schemaProjections must not be null"));
     }
 
     /**
@@ -76,6 +80,15 @@ public final class ProviderDescriptor<T> {
     }
 
     /**
+     * Returns schema references that this provider projects.
+     *
+     * @return immutable schema projections
+     */
+    public List<ProviderSchemaProjection<T>> getSchemaProjections() {
+        return schemaProjections;
+    }
+
+    /**
      * Creates a provider using the supplied configuration.
      *
      * @param config configuration propagated to the provider factory
@@ -85,5 +98,9 @@ public final class ProviderDescriptor<T> {
     public T create(GeneratorConfig config) {
         Object provider = Objects.requireNonNull(factory.create(config), "provider factory must not return null");
         return providerType.cast(provider);
+    }
+
+    ProviderDescriptor<T> withSchemaProjections(List<ProviderSchemaProjection<T>> projections) {
+        return new ProviderDescriptor<>(key, providerType, factory, aliases, semanticKeys, projections);
     }
 }

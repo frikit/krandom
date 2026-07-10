@@ -56,11 +56,13 @@ canonical key or alias before a hub is constructed. `SemanticFieldRegistry` now 
 provider-backed semantic mappings from those descriptors; it retains only field-vocabulary aliases
 of its own.
 
-`FieldLookup` is deliberately not migrated in this increment. Its references include generator
-methods that do not yet have a hub descriptor (for example `finance.cvv`, `code.ean13`, and
-`datetime.timestamp`), and its JSON Schema metadata needs to be represented by the descriptor
-rather than reconstructed ad hoc. The next increment extends the catalog with typed schema
-projections, then removes that second built-in list without changing any current token.
+`ProviderSchemaProjection` now carries every schema token's extractor, aliases, JSON Schema
+shape, string format, record type, and nullable components. It supports the hub-backed generators
+as well as the six schema-only providers required for `finance.cvv`, `datetime.timezone`, and the
+EAN/UPC/ISBN/hash references. `FieldLookup` now registers its complete built-in map from those
+projections; the catalog-completeness test compares every resulting reference and alias against
+the catalog, while the existing schema tests cover all value and metadata shapes. The only
+remaining Stage 2 deliverable is generated user-facing provider documentation.
 
 ## Stage 3: Config-scoped locale data
 

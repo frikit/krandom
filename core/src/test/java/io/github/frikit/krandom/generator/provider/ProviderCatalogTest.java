@@ -52,6 +52,22 @@ class ProviderCatalogTest {
     }
 
     @Test
+    @DisplayName("catalog rejects schema-reference and schema-alias collisions")
+    void catalogRejectsSchemaCollisions() {
+        ProviderDescriptor<String> alpha = descriptor("alpha", List.of())
+            .withSchemaProjections(List.of(projection("schema.alpha", List.of("shared"))));
+        ProviderDescriptor<String> duplicateReference = descriptor("beta", List.of())
+            .withSchemaProjections(List.of(projection("schema.alpha", List.of())));
+        ProviderDescriptor<String> duplicateAlias = descriptor("gamma", List.of())
+            .withSchemaProjections(List.of(projection("schema.gamma", List.of("shared"))));
+
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderCatalog.validateSchema(List.of(alpha, duplicateReference)));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderCatalog.validateSchema(List.of(alpha, duplicateAlias)));
+    }
+
+    @Test
     @DisplayName("descriptor creates only its declared provider type")
     void descriptorCreatesDeclaredType() {
         ProviderDescriptor<String> descriptor = descriptor("text", List.of());
@@ -59,7 +75,8 @@ class ProviderCatalogTest {
                                                                        String.class,
                                                                        config -> 42,
                                                                        List.of(),
-                                                                       Set.of());
+                                                                       Set.of(),
+                                                                       List.of());
 
         assertEquals("text", descriptor.create(GeneratorConfig.defaults()));
         assertEquals(String.class, descriptor.getProviderType());
@@ -78,6 +95,16 @@ class ProviderCatalogTest {
     }
 
     private static ProviderDescriptor<String> descriptor(String key, List<String> aliases) {
-        return new ProviderDescriptor<>(key, String.class, config -> key, aliases, Set.of());
+        return new ProviderDescriptor<>(key, String.class, config -> key, aliases, Set.of(), List.of());
+    }
+
+    private static ProviderSchemaProjection<String> projection(String reference, List<String> aliases) {
+        return new ProviderSchemaProjection<>(reference,
+                                              aliases,
+                                              (provider, config) -> provider,
+                                              false,
+                                              null,
+                                              null,
+                                              Set.of());
     }
 }

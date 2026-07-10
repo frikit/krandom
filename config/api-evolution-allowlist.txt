@@ -51,6 +51,9 @@ io.github.frikit.krandom.generator.schema.SchemaGenerationException
 # Field remains KEEP; this class-level entry covers the package-private reference-membership
 # probe used by SchemaParser. No public member is added or removed.
 io.github.frikit.krandom.generator.schema.Field
+# FieldLookup remains KEEP; this class-level entry covers private catalog-driven built-in
+# registration helpers. No public member is added or removed.
+io.github.frikit.krandom.generator.schema.FieldLookup
 # Schema remains KEEP; this covers private structured-record conversion helpers only.
 io.github.frikit.krandom.generator.schema.Schema
 
@@ -71,3 +74,4 @@ io.github.frikit.krandom.generator.object.ObjectGeneratorConfig$Builder
 # v2-provider-catalog.md and v2-public-api-inventory.md.
 io.github.frikit.krandom.generator.provider.ProviderCatalog
 io.github.frikit.krandom.generator.provider.ProviderDescriptor
+io.github.frikit.krandom.generator.provider.ProviderSchemaProjection

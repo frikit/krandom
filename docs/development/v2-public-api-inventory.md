@@ -86,11 +86,12 @@ Public provider interfaces and lookup operations remain **KEEP**. Static global 
 
 Global mutations must not be deprecated until the scoped replacement reaches feature parity. Once it does, the 1.6 bridge can deprecate the global entry points as thin legacy adapters.
 
-`ProviderCatalog` and `ProviderDescriptor` are additive **KEEP** APIs. They expose the immutable
-built-in provider definitions used by `ProviderHub`: canonical key, declared result type,
-config-aware factory, aliases, and object-field semantic mappings. They do not replace the
-existing per-hub runtime registration API. Catalog initialization rejects collisions, while each
-descriptor checks that its factory returns the declared provider type.
+`ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
+APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and
+object semantic inference: canonical key, declared result type, config-aware factory, aliases,
+typed schema extractors/metadata, and semantic mappings. They do not replace the existing
+per-hub runtime registration API. Catalog initialization rejects provider, schema-reference, and
+alias collisions, while each descriptor checks that its factory returns the declared provider type.
 
 ## Object-generation exceptions
 
@@ -159,6 +160,8 @@ boundaries where no generation source exists.
 the package-private non-throwing membership probe used by schema semantic resolution.
 `Schema` remains **KEEP** with no new public members; its exact class-level classification covers
 private structured-record conversion and contextual failure propagation.
+`FieldLookup` remains **KEEP** with no new public members; its exact class-level classification
+covers private catalog-driven registration and JSON Schema conversion helpers.
 
 ## Integration exceptions
 
