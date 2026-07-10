@@ -32,6 +32,8 @@ import io.github.frikit.krandom.generator.user.NationalityDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityDataRegistry;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
 import io.github.frikit.krandom.generator.user.ProfessionDataRegistry;
+import io.github.frikit.krandom.generator.user.PronounDataProvider;
+import io.github.frikit.krandom.generator.user.PronounDataRegistry;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.SuffixDataRegistry;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
@@ -79,6 +81,7 @@ public final class DataRegistryContext {
     private final Map<String, RestaurantTypeDataProvider> restaurantTypes;
     private final Map<String, HobbyDataProvider>          hobbies;
     private final Map<String, NationalityDataProvider>    nationalities;
+    private final Map<String, PronounDataProvider>        pronouns;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -99,6 +102,7 @@ public final class DataRegistryContext {
         this.restaurantTypes = Map.copyOf(builder.restaurantTypes);
         this.hobbies = Map.copyOf(builder.hobbies);
         this.nationalities = Map.copyOf(builder.nationalities);
+        this.pronouns = Map.copyOf(builder.pronouns);
     }
 
     /**
@@ -489,6 +493,39 @@ public final class DataRegistryContext {
         return mergeKeys(nationalities.keySet(), useGlobalFallback ? NationalityDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the pronoun provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public PronounDataProvider pronounProvider(Locale locale) {
+        PronounDataProvider provider = findWithFallback(pronouns, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return PronounDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve pronoun vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isPronounRegistered(Locale locale) {
+        return pronounProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable pronoun locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> pronounRegisteredKeys() {
+        return mergeKeys(pronouns.keySet(), useGlobalFallback ? PronounDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -568,6 +605,17 @@ public final class DataRegistryContext {
         }
     }
 
+    private static void validatePronounSets(java.util.List<String> pronounSets) {
+        validateTextValues("pronounSets", pronounSets);
+        for (int i = 0; i < pronounSets.size(); i++) {
+            String pronounSet = pronounSets.get(i);
+            int separator = pronounSet.indexOf('/');
+            if (separator <= 0 || separator == pronounSet.length() - 1 || separator != pronounSet.lastIndexOf('/')) {
+                throw new IllegalArgumentException("pronounSet at index " + i + " must use subject/object form");
+            }
+        }
+    }
+
     private static void validateProfessionArrays(String[] professions, int[] weights) {
         Objects.requireNonNull(professions, "professions");
         Objects.requireNonNull(weights, "weights");
@@ -611,6 +659,7 @@ public final class DataRegistryContext {
         private final Map<String, RestaurantTypeDataProvider> restaurantTypes = new LinkedHashMap<>();
         private final Map<String, HobbyDataProvider>          hobbies         = new LinkedHashMap<>();
         private final Map<String, NationalityDataProvider>    nationalities   = new LinkedHashMap<>();
+        private final Map<String, PronounDataProvider>        pronouns        = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -807,6 +856,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateTextValues("nationalities", provider.getNationalities());
             putWithLanguageFallback(nationalities, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific pronoun provider in this context.
+         *
+         * @param provider pronoun vocabulary provider
+         * @return this builder
+         */
+        public Builder registerPronounProvider(PronounDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validatePronounSets(provider.getPronounSets());
+            putWithLanguageFallback(pronouns, provider.getLocale(), provider);
             return this;
         }
 

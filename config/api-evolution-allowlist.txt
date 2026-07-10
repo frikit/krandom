@@ -107,6 +107,14 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerNationali
 # NationalityGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.user.NationalityGenerator
 
+# Config-scoped pronoun vocabulary; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext#pronounProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isPronounRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#pronounRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerPronounProvider(io.github.frikit.krandom.generator.user.PronounDataProvider)
+# PronounGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.user.PronounGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy

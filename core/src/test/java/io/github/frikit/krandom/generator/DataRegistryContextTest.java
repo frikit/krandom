@@ -24,6 +24,8 @@ import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityGenerator;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
+import io.github.frikit.krandom.generator.user.PronounDataProvider;
+import io.github.frikit.krandom.generator.user.PronounGenerator;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
@@ -323,6 +325,39 @@ class DataRegistryContextTest {
         assertNull(empty.nationalityProvider(Locale.US));
         assertFalse(empty.isNationalityRegistered(Locale.US));
         assertFalse(DataRegistryContext.globalDefault().nationalityRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("pronoun providers remain isolated between contexts")
+    void pronounProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerPronounProvider(pronounProvider(Locale.US, "she/her"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerPronounProvider(pronounProvider(Locale.US, "they/them"))
+                                                         .build();
+
+        assertEquals("she/her", new PronounGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
+        assertEquals("they/them", new PronounGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(Set.of("en", "en_US"), first.pronounRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isPronounRegistered(Locale.US));
+        assertNull(empty.pronounProvider(Locale.US));
+        assertFalse(empty.isPronounRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().pronounRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("pronoun providers reject values without one subject/object separator")
+    void pronounProvidersRejectMalformedSets() {
+        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
+                                                                             .registerPronounProvider(pronounProvider(Locale.US, "/them")));
+        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
+                                                                             .registerPronounProvider(pronounProvider(Locale.US, "they/")));
+        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
+                                                                             .registerPronounProvider(pronounProvider(Locale.US, "they/them/us")));
     }
 
     @Test
@@ -974,6 +1009,20 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<String> getNationalities() {
                 return java.util.List.of(nationality);
+            }
+        };
+    }
+
+    private static PronounDataProvider pronounProvider(Locale locale, String pronounSet) {
+        return new PronounDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getPronounSets() {
+                return java.util.List.of(pronounSet);
             }
         };
     }

@@ -115,6 +115,11 @@ APIs. They provide validated, locale-fallback-aware hobbies scoped to one `Gener
 `GeneratorConfig`; `NationalityDataRegistry.register(...)` remains the 1.6 compatibility adapter.
 `NationalityGenerator` remains **KEEP** with no new public member and now resolves demonyms through
 the configuration context.
+`DataRegistryContext` pronoun lookup, key snapshot, and builder registration are additive **KEEP**
+APIs. They provide validated, locale-fallback-aware `subject/object` pronoun sets scoped to one
+`GeneratorConfig`; `PronounDataRegistry.register(...)` remains the 1.6 compatibility adapter.
+`PronounGenerator` remains **KEEP** with no new public member and now resolves sets through the
+configuration context.
 
 `ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
 APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and

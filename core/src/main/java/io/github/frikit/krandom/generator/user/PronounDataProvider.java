@@ -12,8 +12,10 @@ import java.util.Locale;
  * Contract for a locale-specific set of personal-pronoun sets.
  *
  * <p>Each entry is a {@code subject/object} pair (e.g. {@code "they/them"}, {@code "он/его"}). Implement
- * this interface and register an instance with {@link PronounDataRegistry} to add or override the
- * pronoun sets for any locale.
+ * this interface and register an instance with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerPronounProvider(PronounDataProvider)}
+ * to add or override validated pronoun sets for one configuration. The global
+ * {@link PronounDataRegistry} remains a compatibility bridge.
  */
 public interface PronounDataProvider {
 
