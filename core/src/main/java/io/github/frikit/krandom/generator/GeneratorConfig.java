@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -107,6 +108,7 @@ public final class GeneratorConfig {
     private final String       generationProfile;
     private final String       safetyPolicy;
     private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
+    private final BankingSafetyPolicy bankingSafetyPolicy;
     private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
     private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private final String       providerDatasetVersion;
@@ -152,6 +154,7 @@ public final class GeneratorConfig {
         this.generationProfile = b.generationProfile;
         this.safetyPolicy = b.safetyPolicy;
         this.paymentCardSafetyPolicy = b.paymentCardSafetyPolicy;
+        this.bankingSafetyPolicy = b.bankingSafetyPolicy;
         this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
         this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
         this.providerDatasetVersion = b.providerDatasetVersion;
@@ -224,6 +227,17 @@ public final class GeneratorConfig {
      */
     public PaymentCardSafetyPolicy getPaymentCardSafetyPolicy() {
         return paymentCardSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated banking identifiers and account values.
+     *
+     * <p>The default fails closed because krandom has no portable non-routable banking-fixture
+     * contract. {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} is an explicit compatibility
+     * opt-in for isolated tests; it does not make values safe for production or external systems.
+     */
+    public BankingSafetyPolicy getBankingSafetyPolicy() {
+        return bankingSafetyPolicy;
     }
 
     /**
@@ -553,6 +567,7 @@ public final class GeneratorConfig {
                                                             .providerDatasetVersion(providerDatasetVersion)
                                                             .setting("payment.card-safety-policy",
                                                                      paymentCardSafetyPolicy.name())
+                                                            .setting("banking.safety-policy", bankingSafetyPolicy.name())
                                                             .setting("phone-number.safety-policy",
                                                                      phoneNumberSafetyPolicy.name())
                                                             .setting("national-id.safety-policy",
@@ -715,6 +730,7 @@ public final class GeneratorConfig {
         private String            generationProfile = GenerationRecipe.CUSTOM_PROFILE;
         private String            safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
         private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
+        private BankingSafetyPolicy bankingSafetyPolicy = BankingSafetyPolicy.DISABLED;
         private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
@@ -762,6 +778,7 @@ public final class GeneratorConfig {
             this.generationProfile = source.generationProfile;
             this.safetyPolicy = source.safetyPolicy;
             this.paymentCardSafetyPolicy = source.paymentCardSafetyPolicy;
+            this.bankingSafetyPolicy = source.bankingSafetyPolicy;
             this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
             this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
             this.providerDatasetVersion = source.providerDatasetVersion;
@@ -1182,6 +1199,22 @@ public final class GeneratorConfig {
         public Builder paymentCardSafetyPolicy(PaymentCardSafetyPolicy paymentCardSafetyPolicy) {
             this.paymentCardSafetyPolicy = Objects.requireNonNull(
                 paymentCardSafetyPolicy, "paymentCardSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated banking identifiers and account values.
+         *
+         * <p>The default is {@link BankingSafetyPolicy#DISABLED}. Select
+         * {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures that do
+         * not leave the test boundary.
+         *
+         * @param bankingSafetyPolicy banking generation policy
+         * @return this builder
+         */
+        public Builder bankingSafetyPolicy(BankingSafetyPolicy bankingSafetyPolicy) {
+            this.bankingSafetyPolicy = Objects.requireNonNull(
+                bankingSafetyPolicy, "bankingSafetyPolicy must not be null");
             return this;
         }
 

@@ -36,6 +36,7 @@ io.github.frikit.krandom.generator.GeneratorConfig#getGenerationProfile()
 io.github.frikit.krandom.generator.GeneratorConfig#getSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getProviderDatasetVersion()
 io.github.frikit.krandom.generator.GeneratorConfig#getPaymentCardSafetyPolicy()
+io.github.frikit.krandom.generator.GeneratorConfig#getBankingSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getPhoneNumberSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getNationalIdSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getGenerationRecipe()
@@ -44,12 +45,21 @@ io.github.frikit.krandom.generator.GeneratorConfig$Builder#safetyPolicy(java.lan
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#providerDatasetVersion(java.lang.String)
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#paymentCardSafetyPolicy(io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy)
 io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#bankingSafetyPolicy(io.github.frikit.krandom.generator.finance.BankingSafetyPolicy)
+io.github.frikit.krandom.generator.finance.BankingSafetyPolicy
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#phoneNumberSafetyPolicy(io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy)
 io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#nationalIdSafetyPolicy(io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy)
 io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy
 # Locale constructors retain their unsafe 1.6 compatibility behavior only as deprecated bridges.
 io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator
+# Banking constructors retain their unsafe 1.6 compatibility behavior only as deprecated bridges.
+io.github.frikit.krandom.generator.finance.AbaRoutingGenerator
+io.github.frikit.krandom.generator.finance.BankAccountGenerator
+io.github.frikit.krandom.generator.finance.BankInfoGenerator
+io.github.frikit.krandom.generator.finance.BbanGenerator
+io.github.frikit.krandom.generator.finance.BicGenerator
+io.github.frikit.krandom.generator.finance.IbanGenerator
 # PhoneNumberGenerator remains KEEP; this class-level entry covers private safety-policy selection.
 io.github.frikit.krandom.generator.location.PhoneNumberGenerator
 # ObjectGenerator remains KEEP; japicmp marks the public class modified when its private

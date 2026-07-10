@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
@@ -79,7 +80,11 @@ class FieldLookupTest {
     @Test
     @DisplayName("resolves and generates values for all built-in references")
     void resolveAllBuiltins() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(77L).locale(Locale.US).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(77L)
+                                                .locale(Locale.US)
+                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
         FieldLookup lookup = new FieldLookup(config);
         SchemaContext context = new SchemaContext(Locale.US, new Random(1L), 0);
 
@@ -135,6 +140,9 @@ class FieldLookupTest {
                      safetyMetadata(defaults, "finance.credit_card_number").get("policy"));
         assertEquals(Map.of("setting", "phone-number.safety-policy", "selected", "TEST_SAFE_WHERE_AVAILABLE"),
                      safetyMetadata(defaults, "address.phone_number").get("policy"));
+        assertEquals(Map.of("setting", "banking.safety-policy", "selected", "DISABLED"),
+                     safetyMetadata(defaults, "finance.bank_info").get("policy"));
+        assertEquals("UNCLASSIFIED", safetyMetadata(defaults, "finance.bank_info").get("testSafety"));
         assertEquals(Map.of("setting", "payment.card-safety-policy", "selected", "CHECKSUM_VALID"),
                      safetyMetadata(validatorFixtures, "finance.credit_card_number").get("policy"));
         assertEquals(Map.of("setting", "phone-number.safety-policy", "selected", "REALISTIC_UNCLASSIFIED"),

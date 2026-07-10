@@ -99,7 +99,11 @@ class Phase3FinanceGeneratorsTest {
     @Test
     @DisplayName("generators factory exposes phase 3 finance generators")
     void financeFactories() {
-        assertTrue(Generators.ofBankAccount().generate().matches("\\d+"));
+        assertThrows(IllegalStateException.class, () -> Generators.ofBankAccount().generate());
+        assertTrue(new BankAccountGenerator(GeneratorConfig.builder()
+                                                           .bankingSafetyPolicy(
+                                                               BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                           .build()).generate().matches("\\d+"));
         String chain = Generators.ofCryptoAddress().generate();
         assertTrue(Set.of('1', 'L').contains(chain.charAt(0)) || chain.startsWith("0x"));
     }

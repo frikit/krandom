@@ -2051,31 +2051,34 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces SWIFT/BIC codes.
+     * Returns a fail-closed generator for SWIFT/BIC codes.
+     *
+     * <p>Use the {@link BicGenerator#BicGenerator(GeneratorConfig)} constructor and explicitly
+     * select the banking safety policy when compatibility fixtures require plausible output.
      */
     public static BicGenerator ofBic() {
-        return new BicGenerator();
+        return new BicGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces BBAN values.
+     * Returns a fail-closed generator for BBAN values.
      */
     public static BbanGenerator ofBban() {
-        return new BbanGenerator();
+        return new BbanGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces IBAN values.
+     * Returns a fail-closed generator for IBAN values.
      */
     public static IbanGenerator ofIban() {
-        return new IbanGenerator();
+        return new IbanGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces ABA routing numbers.
+     * Returns a fail-closed generator for ABA routing numbers.
      */
     public static AbaRoutingGenerator ofAbaRouting() {
-        return new AbaRoutingGenerator();
+        return new AbaRoutingGenerator(GeneratorConfig.defaults());
     }
 
     /**
@@ -2086,24 +2089,24 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces account numbers/names/transaction types.
+     * Returns a fail-closed generator for account numbers, names, and transaction types.
      */
     public static BankAccountGenerator ofBankAccount() {
-        return new BankAccountGenerator();
+        return new BankAccountGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces structured bank payloads.
+     * Returns a fail-closed generator for structured bank payloads.
      */
     public static BankInfoGenerator ofBankInfo() {
-        return new BankInfoGenerator();
+        return new BankInfoGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces structured bank payloads for a specific locale.
+     * Returns a fail-closed generator for structured bank payloads in a specific locale.
      */
     public static BankInfoGenerator ofBankInfo(Locale locale) {
-        return new BankInfoGenerator(locale);
+        return new BankInfoGenerator(GeneratorConfig.builder().locale(locale).build());
     }
 
     /**

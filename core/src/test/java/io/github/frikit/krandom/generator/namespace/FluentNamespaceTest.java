@@ -20,6 +20,7 @@ import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.TimezoneGenerator;
 import io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator;
 import io.github.frikit.krandom.generator.finance.AbaRoutingGenerator;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.BankAccountGenerator;
 import io.github.frikit.krandom.generator.finance.BankCountryGenerator;
 import io.github.frikit.krandom.generator.finance.BankNameGenerator;
@@ -169,9 +170,12 @@ class FluentNamespaceTest {
     // ── Finance namespace ────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("finance namespace generates all values")
+    @DisplayName("finance namespace generates all values with explicit banking compatibility")
     void financeNamespace() {
-        FinanceGenerators f = Generators.finance();
+        FinanceGenerators f = Generators.finance(GeneratorConfig.builder()
+                                                                 .bankingSafetyPolicy(
+                                                                     BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .build());
         assertNotNull(f.creditCard().generate());
         assertNotNull(f.creditCardInfo().generate());
         assertNotNull(f.cardExpiration().generate());
@@ -332,6 +336,7 @@ class FluentNamespaceTest {
         GeneratorConfig seeded = GeneratorConfig.builder()
             .locale(Locale.GERMANY)
             .seed(987654321L)
+            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .build();
 
         DateTimeGenerators datetime = Generators.datetime(seeded);
@@ -423,6 +428,7 @@ class FluentNamespaceTest {
         GeneratorConfig seeded = GeneratorConfig.builder()
             .locale(Locale.US)
             .seed(2468L)
+            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .build();
         GeneratorConfig german = seeded.toBuilder().locale(Locale.GERMANY).build();

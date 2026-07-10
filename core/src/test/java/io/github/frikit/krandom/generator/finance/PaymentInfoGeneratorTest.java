@@ -89,6 +89,46 @@ class PaymentInfoGeneratorTest {
     }
 
     @Test
+    @DisplayName("bank methods use opaque references when banking identifiers are disabled")
+    void bankMethodsUseOpaqueReferencesWhenBankingIsDisabled() {
+        PaymentInfoGenerator generator = new PaymentInfoGenerator(
+            GeneratorConfig.builder().locale(Locale.US).seed(17L).build());
+        boolean sawBankMethod = false;
+
+        for (int i = 0; i < 192; i++) {
+            PaymentInfo info = generator.generate();
+            if (!"CARD".equals(info.method())) {
+                sawBankMethod = true;
+                assertTrue(info.instrumentReference().matches("ACCT-TEST-\\d{4}"));
+            }
+        }
+
+        assertTrue(sawBankMethod);
+    }
+
+    @Test
+    @DisplayName("explicit banking compatibility output retains a masked account reference")
+    void explicitBankingCompatibilityOutputRetainsMaskedReference() {
+        PaymentInfoGenerator generator = new PaymentInfoGenerator(GeneratorConfig.builder()
+                                                                                  .locale(Locale.US)
+                                                                                  .seed(19L)
+                                                                                  .bankingSafetyPolicy(
+                                                                                      BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                                  .build());
+        boolean sawBankMethod = false;
+
+        for (int i = 0; i < 192; i++) {
+            PaymentInfo info = generator.generate();
+            if (!"CARD".equals(info.method())) {
+                sawBankMethod = true;
+                assertTrue(info.instrumentReference().matches("ACCT-\\d{4}"));
+            }
+        }
+
+        assertTrue(sawBankMethod);
+    }
+
+    @Test
     @DisplayName("tailDigits returns all digits when input is shorter than requested count")
     void tailDigitsShortInput() throws Exception {
         PaymentInfoGenerator generator = new PaymentInfoGenerator(GeneratorConfig.defaults());

@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.base.DigitGenerator;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -174,6 +175,30 @@ class GenerationRecipeTest {
         assertEquals("REALISTIC_UNCLASSIFIED", recipe.getSettings().get("national-id.safety-policy"));
         assertEquals(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
                      recipe.toGeneratorConfig().getNationalIdSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays the configured banking safety policy")
+    void replaysBankingSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("REALISTIC_UNCLASSIFIED", recipe.getSettings().get("banking.safety-policy"));
+        assertEquals(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getBankingSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without a banking safety setting as unclassified")
+    void replaysLegacyRecipeWithoutBankingSafetyPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getBankingSafetyPolicy());
     }
 
     @Test

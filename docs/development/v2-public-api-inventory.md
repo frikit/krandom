@@ -223,6 +223,14 @@ defaults to `DISABLED` because national-ID shape or checksum validity cannot pro
 `NationalIdGenerator` constructors are **DEPRECATE 1.6** bridges that preserve prior behavior and
 are scheduled for v2 removal. Portable recipes store the typed policy as
 `national-id.safety-policy` and replay legacy recipes as unclassified output.
+`BankingSafetyPolicy`, `GeneratorConfig.getBankingSafetyPolicy()`, and
+`GeneratorConfig.Builder.bankingSafetyPolicy(...)` are additive **KEEP** APIs. Configuration
+defaults to `DISABLED` because account, routing, IBAN, or BIC structure cannot prove a safe
+fixture; `REALISTIC_UNCLASSIFIED` is an explicit isolated-test compatibility opt-in. The
+no-argument and locale constructors of `BankAccountGenerator`, `AbaRoutingGenerator`,
+`BbanGenerator`, `IbanGenerator`, `BicGenerator`, and `BankInfoGenerator` are **DEPRECATE 1.6**
+bridges that preserve prior behavior and are scheduled for v2 removal. Portable recipes store the
+typed policy as `banking.safety-policy` and replay legacy recipes as unclassified output.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay

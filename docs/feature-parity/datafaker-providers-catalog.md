@@ -74,7 +74,7 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Domain | `DomainGenerator` |
 | Fake Duration | `DurationGenerator` |
 | File | `FileNameGenerator`, `FileExtensionGenerator`, `MimeTypeGenerator`, path gens |
-| Finance | `IbanGenerator`, `BicGenerator`, `AbaRoutingGenerator`, `BankInfoGenerator` |
+| Finance | 🟡 Configured-only banking identifiers via `IbanGenerator`, `BicGenerator`, `AbaRoutingGenerator`, and `BankInfoGenerator`; canonical configuration fails closed |
 | Gender | `GenderGenerator` |
 | Hashing | `HashGenerator` |
 | Id Number | 🟡 `NationalIdGenerator` (US/UK/AU/FR/DE/JP/ES/IT/BR/CN) |

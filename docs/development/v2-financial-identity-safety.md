@@ -27,7 +27,7 @@ as safe merely because it passes a validator.
 | Family | Current behavior | v2 target |
 | --- | --- | --- |
 | Credit cards | Issuer-shaped, format-valid numbers that deliberately fail Luhn by default; `CHECKSUM_VALID` is an explicit opt-in | Default remains non-routable; processor-sandbox values require a separately named processor mode |
-| IBAN, ABA, BIC, bank account | Format/checksum behavior varies by generator | Do not claim test safety until each scheme has a non-routable or official sandbox contract |
+| IBAN, ABA, BIC, bank account | Canonical configuration fails closed; explicit compatibility mode restores plausible output without a safety claim | Do not invent a fictional range; add a safe mode only with a scheme-specific authoritative contract |
 | Payment payloads | Masked references derived from card or bank generators | Carry the selected policy metadata without exposing credential values |
 | National IDs, CPF/CNPJ, passport, driving licence | Country-specific shapes and algorithms | Fail closed unless a caller explicitly selects an unclassified compatibility policy; country-specific safe modes require separate proof |
 | Phone numbers | US locale-style output uses NANPA's fictional `555-0100` to `555-0199` range by default; other locales remain realistic but unclassified | Keep the NANPA mode scoped to its documented allocation; add another locale only with authoritative proof |
@@ -94,6 +94,15 @@ not leave a test boundary. The locale and seed constructors remain deprecated 1.
 old realistic behavior; portable recipes record `national-id.safety-policy`, while older recipes
 replay their historical realistic behavior when that setting is absent.
 
+Banking identifiers now fail closed through `GeneratorConfig` because neither checksum validity nor
+a realistic-looking account body proves non-routability. `BankingSafetyPolicy` controls bank account
+numbers, ABA routing numbers, BBANs, IBANs, BICs, and `BankInfoGenerator`. Select
+`REALISTIC_UNCLASSIFIED` only for isolated compatibility fixtures. The affected no-argument and
+locale constructors are deprecated 1.6 bridges; portable recipes record
+`banking.safety-policy`, while old recipes replay their historic realistic behavior when the setting
+is absent. `PaymentInfoGenerator` remains available with the default policy: bank-method payloads
+use an opaque `ACCT-TEST-####` reference and do not construct an account or routing number.
+
 ## Stage 4: Metadata, schemas, and guidance
 
 **Goal:** Expose safety metadata from the provider catalog and schema projections, and make the
@@ -117,8 +126,10 @@ Implemented provider-catalog metadata:
 - The generated [provider catalog reference](../reference/provider-catalog.md) renders the exact
   catalog metadata, and its snapshot test prevents documentation drift.
 - Each classified `FieldLookup` schema projection adds an `x-krandom-safety` extension with those
-  claims plus a nested `policy.setting` and the selected `policy.selected` value. `finance.cvv`
-  intentionally has no extension: the card-number policy does not change CVV generation.
+  claims plus a nested `policy.setting` and the selected `policy.selected` value. `finance.bank_info`
+  records the selected banking policy while keeping test safety explicitly `UNCLASSIFIED`.
+  `finance.cvv` intentionally has no extension: the card-number policy does not change CVV
+  generation.
 
 ## Sources
 
@@ -126,3 +137,6 @@ Implemented provider-catalog metadata:
   Stripe requires test API keys and cautions against using real card details.
 - [NANPA 555 line numbers](https://www.nanpa.com/numbering/555-line-numbers) — reserves
   `555-0100` through `555-0199` for fictional non-working use.
+- [Federal Reserve routing-directory guidance](https://www.frbservices.org/resources/routing-number-directory) — routing numbers identify payment participants; no portable fictional ABA range is claimed here.
+- [ECBS IBAN implementation guidance](https://www.ecbs.org/Download/Tr201v3.9.pdf) — IBANs identify accounts and country-specific BBAN structures.
+- [SWIFT BIC overview](https://www.swift.com/pt/node/301371) — even non-connected BICs remain valid identifiers; no random BIC is presented as safely non-routable.

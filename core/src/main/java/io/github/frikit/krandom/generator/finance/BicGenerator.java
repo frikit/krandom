@@ -8,33 +8,51 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
 /**
  * Generates SWIFT/BIC codes in 8 or 11-character form.
+ *
+ * <p>Use an explicit {@link GeneratorConfig} and select
+ * {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated compatibility fixtures.
+ * The default configured policy is {@link BankingSafetyPolicy#DISABLED}.
  */
 public final class BicGenerator implements Generator<String> {
 
     private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String ALNUM   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    private final GeneratorConfig config;
-    private final Random          random;
+    private final GeneratorConfig      config;
+    private final Random               random;
+    private final BankingSafetyPolicy bankingSafetyPolicy;
 
+    /**
+     * @deprecated Use {@link #BicGenerator(GeneratorConfig)}. This 1.6 bridge retains realistic
+     *             but unclassified output; v2 configuration fails closed by default.
+     */
+    @Deprecated(since = "1.6", forRemoval = true)
     public BicGenerator() {
-        this(GeneratorConfig.defaults());
+        this(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build());
     }
 
+    /**
+     * @deprecated Use {@link #BicGenerator(GeneratorConfig)}. This 1.6 bridge retains realistic
+     *             but unclassified output; v2 configuration fails closed by default.
+     */
+    @Deprecated(since = "1.6", forRemoval = true)
     public BicGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                            .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build());
     }
 
     public BicGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.bankingSafetyPolicy = config.getBankingSafetyPolicy();
     }
 
     @Override
@@ -81,6 +99,7 @@ public final class BicGenerator implements Generator<String> {
     }
 
     public String generate(Locale locale, boolean withBranch) {
+        bankingSafetyPolicy.requireRealisticOutput();
         Objects.requireNonNull(locale, "locale must not be null");
         String country = locale.getCountry();
         if (country.isBlank()) {

@@ -102,6 +102,10 @@ class ProviderCatalogTest {
         assertEquals(ProviderValidity.CONFIGURATION_DEPENDENT, phones.getSafetyMetadata().semanticPlausibility());
         assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, phones.getSafetyMetadata().testSafety());
         assertEquals(ProviderSafetyPolicy.PHONE_NUMBER, phones.getSafetyMetadata().safetyPolicy().orElseThrow());
+
+        ProviderDescriptor<?> banking = descriptorFor("finance.bank_info");
+        assertEquals(ProviderSafetyPolicy.BANKING, banking.getSafetyMetadata().safetyPolicy().orElseThrow());
+        assertEquals(ProviderTestSafety.UNCLASSIFIED, banking.getSafetyMetadata().testSafety());
     }
 
     @Test

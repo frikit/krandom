@@ -55,11 +55,58 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("seeded banking generators are reproducible")
     void seededBankingGenerators() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                                             .seed(123L)
+                                             .locale(Locale.US)
+                                             .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                             .build();
 
         assertEquals(new BbanGenerator(cfg).generate(), new BbanGenerator(cfg).generate());
         assertEquals(new IbanGenerator(cfg).generate(), new IbanGenerator(cfg).generate());
         assertEquals(new AbaRoutingGenerator(cfg).generate(), new AbaRoutingGenerator(cfg).generate());
+    }
+
+    @Test
+    @DisplayName("default configured banking identifiers fail closed")
+    void defaultConfiguredBankingIdentifiersFailClosed() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+
+        assertThrows(IllegalStateException.class, () -> new BankAccountGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new AbaRoutingGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new BbanGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new IbanGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new BicGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new BankInfoGenerator(config).generate());
+    }
+
+    @Test
+    @DisplayName("legacy no-argument BBAN constructor preserves compatibility output")
+    void legacyNoArgumentBbanConstructor() {
+        assertTrue(new BbanGenerator().generate().matches("\\d{16}"));
+    }
+
+    @Test
+    @DisplayName("legacy no-argument IBAN constructor preserves compatibility output")
+    void legacyNoArgumentIbanConstructor() {
+        assertTrue(new IbanGenerator().generate().matches("[A-Z]{2}\\d{2}\\d+"));
+    }
+
+    @Test
+    @DisplayName("legacy no-argument BIC constructor preserves compatibility output")
+    void legacyNoArgumentBicConstructor() {
+        assertTrue(new BicGenerator().generate().matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?"));
+    }
+
+    @Test
+    @DisplayName("legacy no-argument bank-account constructor preserves compatibility output")
+    void legacyNoArgumentBankAccountConstructor() {
+        assertTrue(new BankAccountGenerator().generate().matches("\\d{10}"));
+    }
+
+    @Test
+    @DisplayName("legacy no-argument bank-info constructor preserves compatibility output")
+    void legacyNoArgumentBankInfoConstructor() {
+        assertNotNull(new BankInfoGenerator().generate());
     }
 
     @Test

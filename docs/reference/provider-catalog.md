@@ -46,7 +46,7 @@ A classified schema reference exports the same claims through its `x-krandom-saf
 | `commerce.shipment_info` | `ShipmentInfoGenerator` | `shipment_info` |  | `unclassified` | `commerce.shipment_info` (aliases: `shipment_info`) |
 | `finance.money` | `MoneyGenerator` | `money` |  | `unclassified` | `finance.price` (aliases: `finance.money`, `money`); `finance` |
 | `finance.currency` | `CurrencyGenerator` | `currency` | `currency` | `unclassified` | `finance.currency_iso_code` (aliases: `currency`, `finance.currency`) |
-| `finance.bank_info` | `BankInfoGenerator` | `bank_info` |  | `unclassified` | `finance.bank_info` (aliases: `bank_info`) |
+| `finance.bank_info` | `BankInfoGenerator` | `bank_info` |  | format: `CONFIGURATION_DEPENDENT`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `UNCLASSIFIED` | `finance.bank_info` (aliases: `bank_info`) (safety: format: `CONFIGURATION_DEPENDENT`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `UNCLASSIFIED`) |
 | `finance.credit_card_info` | `CreditCardInfoGenerator` | `credit_card_info` |  | format: `GUARANTEED`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `GUARANTEED`; test safety: `CONFIGURATION_DEPENDENT` | `finance.credit_card_info` (aliases: `credit_card_info`) (safety: format: `GUARANTEED`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `GUARANTEED`; test safety: `CONFIGURATION_DEPENDENT`) |
 | `finance.invoice_info` | `InvoiceInfoGenerator` | `invoice_info` |  | `unclassified` | `finance.invoice_info` (aliases: `invoice_info`) |
 | `finance.payment_info` | `PaymentInfoGenerator` | `payment_info` |  | `unclassified` | `finance.payment_info` (aliases: `payment_info`) |

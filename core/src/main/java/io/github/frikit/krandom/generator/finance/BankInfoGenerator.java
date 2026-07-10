@@ -13,6 +13,10 @@ import java.util.Objects;
 
 /**
  * Generates structured bank and ACH-style payloads.
+ *
+ * <p>Use an explicit {@link GeneratorConfig} and select
+ * {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated compatibility fixtures.
+ * The default configured policy is {@link BankingSafetyPolicy#DISABLED}.
  */
 public final class BankInfoGenerator implements Generator<BankInfo> {
 
@@ -23,19 +27,24 @@ public final class BankInfoGenerator implements Generator<BankInfo> {
     private final BankTypeGenerator    bankTypeGenerator;
 
     /**
-     * Creates a bank-info generator using default configuration ({@link Locale#US}).
+     * @deprecated Use {@link #BankInfoGenerator(GeneratorConfig)}. This 1.6 bridge retains
+     *             realistic but unclassified output; v2 configuration fails closed by default.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public BankInfoGenerator() {
-        this(GeneratorConfig.defaults());
+        this(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build());
     }
 
     /**
-     * Creates a bank-info generator for the specified locale.
-     *
-     * @param locale locale to use
+     * @deprecated Use {@link #BankInfoGenerator(GeneratorConfig)}. This 1.6 bridge retains
+     *             realistic but unclassified output; v2 configuration fails closed by default.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public BankInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                            .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build());
     }
 
     /**
@@ -53,6 +62,7 @@ public final class BankInfoGenerator implements Generator<BankInfo> {
 
     @Override
     public BankInfo generate() {
+        config.getBankingSafetyPolicy().requireRealisticOutput();
         return new BankInfo(
             bankAccountGenerator.generateAccountNumber(),
             abaRoutingGenerator.generate(),

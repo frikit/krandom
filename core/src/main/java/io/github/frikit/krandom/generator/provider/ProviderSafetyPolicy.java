@@ -18,7 +18,10 @@ public enum ProviderSafetyPolicy {
     PAYMENT_CARD("payment.card-safety-policy"),
 
     /** The phone-number policy selected in {@link GeneratorConfig}. */
-    PHONE_NUMBER("phone-number.safety-policy");
+    PHONE_NUMBER("phone-number.safety-policy"),
+
+    /** The banking-identifier policy selected in {@link GeneratorConfig}. */
+    BANKING("banking.safety-policy");
 
     private final String setting;
 
@@ -46,6 +49,7 @@ public enum ProviderSafetyPolicy {
         return switch (this) {
             case PAYMENT_CARD -> selectedConfig.getPaymentCardSafetyPolicy().name();
             case PHONE_NUMBER -> selectedConfig.getPhoneNumberSafetyPolicy().name();
+            case BANKING -> selectedConfig.getBankingSafetyPolicy().name();
         };
     }
 }

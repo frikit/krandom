@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -80,6 +81,7 @@ class GeneratorConfigTest {
         assertEquals(ZoneId.systemDefault(), c.getClock().getZone());
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
         assertEquals(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE, c.getPaymentCardSafetyPolicy());
+        assertEquals(BankingSafetyPolicy.DISABLED, c.getBankingSafetyPolicy());
         assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
     }
@@ -121,6 +123,19 @@ class GeneratorConfigTest {
                      config.toBuilder().build().getNationalIdSafetyPolicy());
         assertThrows(NullPointerException.class,
                      () -> GeneratorConfig.builder().nationalIdSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("banking safety policy is configurable and retained by toBuilder")
+    void bankingSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getBankingSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().bankingSafetyPolicy(null));
     }
 
     @Test

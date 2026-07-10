@@ -76,6 +76,9 @@ without `phone-number.safety-policy` retain historic realistic-unclassified phon
 National-ID safety also follows this compatibility rule: new recipes record
 `national-id.safety-policy` and default to `DISABLED`, while recipes without that setting retain
 their historical realistic-unclassified replay behavior.
+Banking safety follows the same rule: new recipes record `banking.safety-policy` and default to
+`DISABLED`, while recipes without that setting retain their historical realistic-unclassified replay
+behavior.
 
 ## Stage 2: Derive structural child streams
 

@@ -154,9 +154,9 @@ Covered in the 100% contract:
 | Card expiry           | ✅ `creditCardExpiry()`                                                                        | ✅ Yes          | ✓ DONE                  | `CardExpirationGenerator` — MM/YY, future-only, locale-aware |
 | Security code         | ✅ `securityCode()` (CVV)                                                                      | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.getCvv()` — 3 or 4 digits               |
 | **Banking**           |
-| BIC/SWIFT             | ✅ `bic()`                                                                                     | ✅ Yes          | ✓ DONE                  | `BicGenerator`                                               |
-| IBAN                  | ✅ `iban()`                                                                                    | ✅ Yes          | ✓ DONE                  | `IbanGenerator`                                              |
-| US routing number     | ✅ `usRoutingNumber()`                                                                         | ✅ Yes          | ✓ DONE                  | `AbaRoutingGenerator`                                        |
+| BIC/SWIFT             | ✅ `bic()`                                                                                     | 🟡 Configured-only | ✓ DONE               | `BicGenerator` with explicit banking compatibility policy    |
+| IBAN                  | ✅ `iban()`                                                                                    | 🟡 Configured-only | ✓ DONE               | `IbanGenerator` with explicit banking compatibility policy   |
+| US routing number     | ✅ `usRoutingNumber()`                                                                         | 🟡 Configured-only | ✓ DONE               | `AbaRoutingGenerator` with explicit banking compatibility policy |
 | **Money & Currency**  |
 | Currency name         | ✅ `currency()`                                                                                | ✅ Yes          | ✓ DONE                  |                                                              |
 | Currency code         | ✅ `currencyCode()` (USD, EUR)                                                                 | ✅ Yes          | ✓ DONE                  |                                                              |

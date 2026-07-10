@@ -12,6 +12,7 @@ import io.github.frikit.krandom.generator.commerce.OrderInfo;
 import io.github.frikit.krandom.generator.commerce.ProductInfo;
 import io.github.frikit.krandom.generator.commerce.ShipmentInfo;
 import io.github.frikit.krandom.generator.finance.BankInfo;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardInfo;
 import io.github.frikit.krandom.generator.finance.InvoiceInfo;
@@ -172,6 +173,7 @@ class DocumentationSnippetsTest {
         GeneratorConfig cfg = GeneratorConfig.builder()
                                              .locale(Locale.US)
                                              .seed(20260303L)
+                                             .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                              .build();
 
         FullNameGenerator names = new FullNameGenerator(cfg);

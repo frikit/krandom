@@ -37,7 +37,7 @@ DataFaker documents **258** providers (Base / Entertainment / Food / Sport /
 Videogame). **~150 are pop-culture/fandom/sport/food novelty**; only **~100 are
 "Base" everyday data**, and krandom already covers most of the core Base set
 (names, address, internet, finance, company, job, text, date/time, phone,
-numbers/codes, color, hashing, UUID, IBAN/BIC, cards, templates, unique, schema
+numbers/codes, color, hashing, UUID, configured IBAN/BIC fixtures, cards, templates, unique, schema
 export). So the engineering gap is **locales + a curated ~20 Base providers +
 ergonomics**, not "200 missing providers." Headline-count parity is handled by
 the optional novelty module, not core.

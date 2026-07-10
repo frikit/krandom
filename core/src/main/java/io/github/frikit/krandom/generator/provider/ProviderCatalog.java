@@ -92,6 +92,12 @@ public final class ProviderCatalog {
         ProviderValidity.CONFIGURATION_DEPENDENT,
         ProviderTestSafety.CONFIGURATION_DEPENDENT,
         ProviderSafetyPolicy.PHONE_NUMBER);
+    private static final ProviderSafetyMetadata BANKING_SAFETY = new ProviderSafetyMetadata(
+        ProviderValidity.CONFIGURATION_DEPENDENT,
+        ProviderValidity.CONFIGURATION_DEPENDENT,
+        ProviderValidity.CONFIGURATION_DEPENDENT,
+        ProviderTestSafety.UNCLASSIFIED,
+        ProviderSafetyPolicy.BANKING);
     private static final List<ProviderDescriptor<?>> BUILT_INS = buildBuiltIns();
     private static final List<ProviderDescriptor<?>> SCHEMA_ONLY_BUILT_INS = buildSchemaOnlyBuiltIns();
     private static final List<ProviderDescriptor<?>> SCHEMA_BUILT_INS = buildSchemaBuiltIns();
@@ -398,11 +404,13 @@ public final class ProviderCatalog {
                                                           "currency"))),
             descriptor("finance.bank_info", BankInfoGenerator.class, BankInfoGenerator::new,
                        List.of("bank_info"))
-                .withSchemaProjections(projections(record("finance.bank_info",
+                .withSafetyMetadata(BANKING_SAFETY)
+                .withSchemaProjections(projections(ProviderCatalog.<BankInfoGenerator>record("finance.bank_info",
                                                           (provider, config) -> provider.generate(),
                                                           BankInfo.class,
                                                           List.of("bank_info"),
-                                                          Set.of()))),
+                                                          Set.of())
+                                           .withSafetyMetadata(BANKING_SAFETY))),
             descriptor("finance.credit_card_info", CreditCardInfoGenerator.class, CreditCardInfoGenerator::new,
                        List.of("credit_card_info"))
                 .withSafetyMetadata(PAYMENT_CARD_SAFETY)

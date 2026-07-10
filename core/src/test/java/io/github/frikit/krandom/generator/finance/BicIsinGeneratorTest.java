@@ -48,7 +48,12 @@ class BicIsinGeneratorTest {
 
     @Test
     void bicLocaleFallbackBranches() {
-        BicGenerator gen = new BicGenerator(GeneratorConfig.builder().seed(5L).locale(Locale.US).build());
+        BicGenerator gen = new BicGenerator(GeneratorConfig.builder()
+                                                               .seed(5L)
+                                                               .locale(Locale.US)
+                                                               .bankingSafetyPolicy(
+                                                                   BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                               .build());
         // no country => fallback to US
         String langOnly = gen.generate(Locale.ENGLISH, false);
         assertEquals("US", langOnly.substring(4, 6));

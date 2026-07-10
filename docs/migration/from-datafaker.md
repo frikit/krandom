@@ -31,7 +31,7 @@ dependencies {
 | `faker.name().fullName()` | `Generators.ofFullName(cfg).generate()` / `Generators.person(cfg).fullName().generate()` |
 | `faker.internet().emailAddress()` | `Generators.ofEmail(cfg).generate()` |
 | `faker.address().city()` | `Generators.location(cfg).city().generate()` |
-| `faker.finance().iban()` | `Generators.ofIban().generate()` |
+| `faker.finance().iban()` | `new IbanGenerator(cfg).generate()` where `cfg` is built with `.bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)` for an isolated compatibility fixture |
 | `faker.expression("#{Name.fullName}")` | `Generators.ofDataFakerExpression("#{Name.fullName}", cfg).generate()` |
 | `faker.numerify("###-###")` | `Generators.ofTemplate("###-###").generate()` (also `letterify`/`bothify`) |
 | `faker.regexify("[A-Z]{3}\\d{4}")` | `Generators.ofRegex("[A-Z]{3}\\d{4}").generate()` |
