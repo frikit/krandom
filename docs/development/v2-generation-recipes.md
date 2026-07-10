@@ -71,6 +71,8 @@ recipe identity. The typed payment-card safety policy is persisted separately as
 so a checksum-valid validator fixture cannot silently replay as the default non-routable output.
 Recipes without that new setting preserve their historic checksum-valid behavior for v1 replay
 compatibility; newly emitted recipes always record the policy explicitly.
+Phone-number safety follows the same rule: new recipes record the selected policy, while recipes
+without `phone-number.safety-policy` retain historic realistic-unclassified phone output.
 
 ## Stage 2: Derive structural child streams
 

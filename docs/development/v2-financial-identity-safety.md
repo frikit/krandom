@@ -30,7 +30,7 @@ as safe merely because it passes a validator.
 | IBAN, ABA, BIC, bank account | Format/checksum behavior varies by generator | Do not claim test safety until each scheme has a non-routable or official sandbox contract |
 | Payment payloads | Masked references derived from card or bank generators | Carry the selected policy metadata without exposing credential values |
 | National IDs, CPF/CNPJ, passport, driving licence | Country-specific shapes and algorithms | Default to non-production fixtures; country-specific valid modes require separate proof |
-| Phone numbers | Locale-formatted numbers using realistic prefixes | US/Canada safe mode may use NANPA's reserved fictional block; other locales remain unclassified until an authoritative allocation is implemented |
+| Phone numbers | US locale-style output uses NANPA's fictional `555-0100` to `555-0199` range by default; other locales remain realistic but unclassified | Keep the NANPA mode scoped to its documented allocation; add another locale only with authoritative proof |
 | Crypto addresses | Syntactically plausible destination strings | Never describe as safe for live transfers; use explicit non-production modes only after network-specific proof |
 
 ## Stage 2: Payment-card safety modes
@@ -72,7 +72,17 @@ material supports it.
 checksum alone. A policy that cannot be made safe fails closed or remains unavailable.
 **Tests:** Per-scheme validator and non-routability tests, plus property tests over every supported
 locale or country provider.
-**Status:** Not Started
+**Status:** In Progress
+
+Implemented phone-number scope:
+
+- `PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE` is the default. US locale-style output uses
+  a real area code plus `555-0100` through `555-0199`.
+- `PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED` preserves the prior realistic-looking output
+  without claiming that it is non-routable.
+- Other locales, custom phone-number templates, and synthetic MSISDN output are unclassified.
+- Portable recipes record the selected phone policy. Recipes recorded before the setting was added
+  retain their historic unclassified replay behavior.
 
 For North American phone fixtures, NANPA reserves the fictional non-working `555-0100` through
 `555-0199` line-number block. This allocation does not establish a safe range for other countries.

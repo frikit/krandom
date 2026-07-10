@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -406,6 +407,7 @@ public final class GenerationRecipe {
         applyBoolean(builder, "object.override-default-initialization", builder::objectOverrideDefaultInitialization);
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
         applyPaymentCardSafetyPolicy(builder);
+        applyPhoneNumberSafetyPolicy(builder);
         applyEnum(builder, "object.semantic-mode", builder::objectSemanticMode);
         applyDouble(builder, "object.null-probability", builder::objectNullProbability);
         applyDouble(builder, "object.optional-empty-probability", builder::objectOptionalEmptyProbability);
@@ -432,6 +434,14 @@ public final class GenerationRecipe {
             ? PaymentCardSafetyPolicy.CHECKSUM_VALID
             : PaymentCardSafetyPolicy.valueOf(value);
         builder.paymentCardSafetyPolicy(policy);
+    }
+
+    private void applyPhoneNumberSafetyPolicy(GeneratorConfig.Builder builder) {
+        String value = settings.get("phone-number.safety-policy");
+        PhoneNumberSafetyPolicy policy = value == null
+            ? PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED
+            : PhoneNumberSafetyPolicy.valueOf(value);
+        builder.phoneNumberSafetyPolicy(policy);
     }
 
     private void applyDateRange(GeneratorConfig.Builder builder) {
@@ -468,7 +478,7 @@ public final class GenerationRecipe {
                  "object.pool-size", "object.override-default-initialization", "object.ignore-errors",
                  "object.semantic-mode", "object.null-probability", "object.optional-empty-probability",
                  "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
-                 "payment.card-safety-policy" -> true;
+                 "payment.card-safety-policy", "phone-number.safety-policy" -> true;
             default -> false;
         };
     }

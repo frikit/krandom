@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.base.DigitGenerator;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -133,6 +134,30 @@ class GenerationRecipeTest {
 
         assertEquals(PaymentCardSafetyPolicy.CHECKSUM_VALID,
                      recipe.toGeneratorConfig().getPaymentCardSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays the configured phone number safety policy")
+    void replaysPhoneNumberSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("REALISTIC_UNCLASSIFIED", recipe.getSettings().get("phone-number.safety-policy"));
+        assertEquals(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getPhoneNumberSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without a phone number safety setting as unclassified")
+    void replaysLegacyRecipeWithoutPhoneNumberSafetyPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getPhoneNumberSafetyPolicy());
     }
 
     @Test

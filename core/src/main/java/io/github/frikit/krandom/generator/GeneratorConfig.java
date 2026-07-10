@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
@@ -105,6 +106,7 @@ public final class GeneratorConfig {
     private final String       generationProfile;
     private final String       safetyPolicy;
     private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
+    private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
     private final String       providerDatasetVersion;
 
     private GeneratorConfig(Builder b) {
@@ -148,6 +150,7 @@ public final class GeneratorConfig {
         this.generationProfile = b.generationProfile;
         this.safetyPolicy = b.safetyPolicy;
         this.paymentCardSafetyPolicy = b.paymentCardSafetyPolicy;
+        this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
         this.providerDatasetVersion = b.providerDatasetVersion;
     }
 
@@ -218,6 +221,17 @@ public final class GeneratorConfig {
      */
     public PaymentCardSafetyPolicy getPaymentCardSafetyPolicy() {
         return paymentCardSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for locale-style phone-number output.
+     *
+     * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for US locales.
+     * Other locales and custom phone-number templates remain unclassified rather than
+     * being presented as non-routable.
+     */
+    public PhoneNumberSafetyPolicy getPhoneNumberSafetyPolicy() {
+        return phoneNumberSafetyPolicy;
     }
 
     /**
@@ -525,6 +539,8 @@ public final class GeneratorConfig {
                                                             .providerDatasetVersion(providerDatasetVersion)
                                                             .setting("payment.card-safety-policy",
                                                                      paymentCardSafetyPolicy.name())
+                                                            .setting("phone-number.safety-policy",
+                                                                     phoneNumberSafetyPolicy.name())
                                                             .setting("charset", charset.name())
                                                             .setting("string.min", Integer.toString(minStringLength))
                                                             .setting("string.max", Integer.toString(maxStringLength))
@@ -683,6 +699,7 @@ public final class GeneratorConfig {
         private String            generationProfile = GenerationRecipe.CUSTOM_PROFILE;
         private String            safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
         private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
+        private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
         private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
 
         private Builder() {
@@ -728,6 +745,7 @@ public final class GeneratorConfig {
             this.generationProfile = source.generationProfile;
             this.safetyPolicy = source.safetyPolicy;
             this.paymentCardSafetyPolicy = source.paymentCardSafetyPolicy;
+            this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
             this.providerDatasetVersion = source.providerDatasetVersion;
         }
 
@@ -1146,6 +1164,21 @@ public final class GeneratorConfig {
         public Builder paymentCardSafetyPolicy(PaymentCardSafetyPolicy paymentCardSafetyPolicy) {
             this.paymentCardSafetyPolicy = Objects.requireNonNull(
                 paymentCardSafetyPolicy, "paymentCardSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for locale-style phone-number output.
+         *
+         * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for US locales.
+         * Other locales and custom templates remain unclassified.
+         *
+         * @param phoneNumberSafetyPolicy locale-style phone-number safety policy
+         * @return this builder
+         */
+        public Builder phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy phoneNumberSafetyPolicy) {
+            this.phoneNumberSafetyPolicy = Objects.requireNonNull(
+                phoneNumberSafetyPolicy, "phoneNumberSafetyPolicy must not be null");
             return this;
         }
 

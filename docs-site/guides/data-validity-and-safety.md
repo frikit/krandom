@@ -31,6 +31,17 @@ The selected policy is included in a portable generation recipe. `CHECKSUM_VALID
 that a number is real, processor-approved, or safe to send externally. Use the payment processor's
 documented sandbox values and test credentials for integration tests.
 
+## Phone-number contract
+
+`PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE` is the default for locale-style output. It
+uses [NANPA's fictional, non-working `555-0100` through `555-0199` line-number range](https://www.nanpa.com/numbering/555-line-numbers) for US
+locales, including the language-only English fallback. Other locales remain realistic but unclassified, as do custom phone-number
+templates and generated MSISDNs. `REALISTIC_UNCLASSIFIED` explicitly preserves the prior
+realistic-looking behavior without a safety claim.
+
+The NANPA allocation does not make the same range safe in countries outside its numbering plan.
+Use a country-specific official test allocation only when the generator documents it.
+
 ## Other finance and identity generators
 
 IBAN, bank-account, phone, crypto-address, and national-ID generators remain individually

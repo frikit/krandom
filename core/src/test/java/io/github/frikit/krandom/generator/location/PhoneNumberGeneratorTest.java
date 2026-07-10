@@ -163,7 +163,7 @@ class PhoneNumberGeneratorTest {
         String phone = gen.generate();
 
         assertNotNull(phone);
-        // Match (555) 123-4567 or 555-123-4567
+        // Match (212) 555-0100 or 212-555-0100.
         assertTrue(phone.matches("\\(\\d{3}\\) \\d{3}-\\d{4}|\\d{3}-\\d{3}-\\d{4}"),
                    "Expected US formatted phone, got: " + phone);
     }
@@ -176,6 +176,55 @@ class PhoneNumberGeneratorTest {
 
         assertNotNull(phone);
         assertTrue(phone.matches("\\d{10}"), "Expected 10-digit phone, got: " + phone);
+    }
+
+    @Test
+    @DisplayName("US locale-style output uses NANPA's fictional 555-01xx range by default")
+    void usOutputUsesFictionalNANPARangeByDefault() {
+        Locale[] locales = { Locale.US, Locale.of("en") };
+
+        for (Locale locale : locales) {
+            String phone = new PhoneNumberGenerator(
+                GeneratorConfig.builder().locale(locale).seed(42L).build()
+            ).generate(false);
+
+            assertTrue(phone.matches("\\d{3}55501\\d{2}"), "Expected NANPA fictional number, got: " + phone);
+        }
+    }
+
+    @Test
+    @DisplayName("realistic unclassified policy preserves non-fictitious NANPA output")
+    void realisticUnclassifiedPolicyPreservesNANPAOutput() {
+        Random zeroRandom = new Random() {
+            @Override
+            public int nextInt(int bound) {
+                return 0;
+            }
+        };
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .locale(Locale.US)
+                                                .random(zeroRandom)
+                                                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals("2122000000", new PhoneNumberGenerator(config).generate(false));
+    }
+
+    @Test
+    @DisplayName("unsupported locales remain unclassified under the default phone safety policy")
+    void unsupportedLocalesRemainUnclassifiedByDefault() {
+        Random zeroRandom = new Random() {
+            @Override
+            public int nextInt(int bound) {
+                return 0;
+            }
+        };
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .locale(Locale.of("zz"))
+                                                .random(zeroRandom)
+                                                .build();
+
+        assertEquals("2122000000", new PhoneNumberGenerator(config).generate(false));
     }
 
     @Test

@@ -206,6 +206,13 @@ also additive **KEEP** metadata required by the portable recipe contract.
 produces issuer-shaped card numbers that deliberately fail Luhn; `CHECKSUM_VALID` is an explicit
 validator-fixture opt-in, not a processor sandbox credential. Portable recipes store the typed
 selection as `payment.card-safety-policy`, independently of the legacy diagnostic safety label.
+`PhoneNumberSafetyPolicy`, `GeneratorConfig.getPhoneNumberSafetyPolicy()`, and
+`GeneratorConfig.Builder.phoneNumberSafetyPolicy(...)` are additive **KEEP** APIs. The default
+uses NANPA's fictional 555-0100 through 555-0199 range only for US locale-style
+output; other locales and custom formats remain explicitly unclassified. Recipes persist the typed
+selection as `phone-number.safety-policy` and preserve legacy unclassified replay when absent.
+`PhoneNumberGenerator` remains **KEEP** with no public-member change; its exact class-level
+classification covers the private policy-selection implementation.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay

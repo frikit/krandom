@@ -36,12 +36,17 @@ io.github.frikit.krandom.generator.GeneratorConfig#getGenerationProfile()
 io.github.frikit.krandom.generator.GeneratorConfig#getSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getProviderDatasetVersion()
 io.github.frikit.krandom.generator.GeneratorConfig#getPaymentCardSafetyPolicy()
+io.github.frikit.krandom.generator.GeneratorConfig#getPhoneNumberSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getGenerationRecipe()
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#generationProfile(java.lang.String)
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#safetyPolicy(java.lang.String)
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#providerDatasetVersion(java.lang.String)
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#paymentCardSafetyPolicy(io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy)
 io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#phoneNumberSafetyPolicy(io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy)
+io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy
+# PhoneNumberGenerator remains KEEP; this class-level entry covers private safety-policy selection.
+io.github.frikit.krandom.generator.location.PhoneNumberGenerator
 # ObjectGenerator remains KEEP; japicmp marks the public class modified when its private
 # construction-context helper changes class metadata. No public member is added or removed.
 io.github.frikit.krandom.generator.object.ObjectGenerator

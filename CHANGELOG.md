@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - `PaymentCardSafetyPolicy`, an enforceable configuration contract for generated card numbers.
+- `PhoneNumberSafetyPolicy`, an enforceable contract for locale-style phone-number fixtures.
 - `ProviderCatalog` definitions now centralize built-in provider keys, aliases, factories,
   schema extractors/metadata, and object-field semantic mappings for `ProviderHub` and
   `FieldLookup`.
@@ -27,6 +28,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Pinned GitHub/Sigstore build-provenance attestations for the signed Maven Central bundle, jars, and SBOMs before publication.
 
 ### Changed
+- `PhoneNumberGenerator` now uses NANPA's fictional `555-0100` through `555-0199` range by
+  default for US locale-style output. Other locales, custom templates, and MSISDN
+  output remain explicitly unclassified; `REALISTIC_UNCLASSIFIED` restores the prior behavior and
+  legacy recipes preserve that behavior when their phone-policy setting is absent.
 - `CreditCardGenerator` and `CreditCardInfoGenerator` now produce issuer-shaped numbers that
   deliberately fail Luhn by default. `CHECKSUM_VALID` is an explicit validator-fixture opt-in and
   is not a real or processor-sandbox credential; the selected policy is replayed in portable
