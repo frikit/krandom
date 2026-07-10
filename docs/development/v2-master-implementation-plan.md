@@ -377,7 +377,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Tests**
 
 - [x] Cover `List<List<String>>`, `Map<String,List<Integer>>`, nested optionals, generic arrays, upper/lower wildcards, inherited type variables, and recursive types.
-- [ ] Cover equivalent Java records and Kotlin generic data classes.
+- [x] Cover equivalent Java records and Kotlin generic data classes.
 - [x] Unsupported type shapes include the complete path and type signature.
 
 **Done when:** Nested generic values are generated with their declared element types or rejected explicitly.

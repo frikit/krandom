@@ -1605,10 +1605,11 @@ final class FieldGeneratorResolver {
         // via GeneratorConfig.objectSubtype / ObjectGeneratorConfig.subtype.
         Class<?> nestedType = config.resolveSubtype(rawType);
         if (isNestableType(nestedType)) {
-            if (pool.isInProgress(nestedType)) {
-                return pool.getCached(nestedType); // break circular reference
+            String poolTypeSignature = poolTypeSignature(resolvedType);
+            if (pool.isInProgress(nestedType, poolTypeSignature)) {
+                return pool.getCached(nestedType, poolTypeSignature); // break circular reference
             }
-            pool.begin(nestedType);
+            pool.begin(nestedType, poolTypeSignature);
             try {
                 Object instance = new ObjectGenerator<>(
                     nestedType,
@@ -1618,16 +1619,16 @@ final class FieldGeneratorResolver {
                     nextDeterministicSeed(generatorConfig, sequenceRandom),
                     uniqueFieldTracker,
                     nestedTypeBindings(resolvedType, nestedType)).generate();
-                pool.end(nestedType, instance);
+                pool.end(nestedType, poolTypeSignature, instance);
                 return instance;
             } catch (ObjectGenerationException e) {
-                pool.end(nestedType, null);
+                pool.end(nestedType, poolTypeSignature, null);
                 return failurePolicy.handle(
                     contextualizeNestedFailure(
                         e, nestedType, ownerType, fieldName, genericType, currentDepth),
                     null);
             } catch (Exception e) {
-                pool.end(nestedType, null);
+                pool.end(nestedType, poolTypeSignature, null);
                 return failurePolicy.handle(
                     nestedFailure(
                         GenerationFailureCategory.REFLECTION,
@@ -1670,6 +1671,11 @@ final class FieldGeneratorResolver {
         ResolvedType generationType = Objects.requireNonNullElse(resolvedType.effectiveType(), resolvedType);
         bindings.putAll(ResolvedType.bindingsFor(generationType.declaredType()));
         return Map.copyOf(bindings);
+    }
+
+    private static String poolTypeSignature(ResolvedType resolvedType) {
+        ResolvedType effectiveType = Objects.requireNonNullElse(resolvedType.effectiveType(), resolvedType);
+        return effectiveType.signature();
     }
 
     private static ObjectGenerationException contextualizeNestedFailure(ObjectGenerationException failure,

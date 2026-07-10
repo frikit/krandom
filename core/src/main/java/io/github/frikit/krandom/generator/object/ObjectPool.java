@@ -10,6 +10,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -29,8 +30,8 @@ import java.util.Set;
 final class ObjectPool {
 
     private final int                          maxCachedPerType;
-    private final Set<Class<?>>                inProgress = new HashSet<>();
-    private final Map<Class<?>, Deque<Object>> instances  = new HashMap<>();
+    private final Set<PoolKey>                 inProgress = new HashSet<>();
+    private final Map<PoolKey, Deque<Object>>  instances  = new HashMap<>();
 
     ObjectPool() {
         this(ObjectGeneratorConfig.DEFAULT_OBJECT_POOL_SIZE);
@@ -51,7 +52,22 @@ final class ObjectPool {
      * @return {@code true} if the type is currently being constructed
      */
     boolean isInProgress(Class<?> type) {
-        return inProgress.contains(type);
+        return isInProgress(type, type.getTypeName());
+    }
+
+    /**
+     * Returns whether construction of a resolved generic type has begun but not yet completed.
+     *
+     * <p>The raw class alone cannot distinguish {@code Box<String>} from {@code Box<List<Integer>>}
+     * in one object graph. Callers that retain generic resolution therefore provide the resolved
+     * type signature as part of the cycle key.
+     *
+     * @param type raw runtime type
+     * @param typeSignature resolved generic type signature
+     * @return {@code true} when the same resolved type is currently being constructed
+     */
+    boolean isInProgress(Class<?> type, String typeSignature) {
+        return inProgress.contains(key(type, typeSignature));
     }
 
     /**
@@ -60,7 +76,17 @@ final class ObjectPool {
      * @param type the type being constructed
      */
     void begin(Class<?> type) {
-        inProgress.add(type);
+        begin(type, type.getTypeName());
+    }
+
+    /**
+     * Marks a resolved generic type as in-progress.
+     *
+     * @param type raw runtime type
+     * @param typeSignature resolved generic type signature
+     */
+    void begin(Class<?> type, String typeSignature) {
+        inProgress.add(key(type, typeSignature));
     }
 
     /**
@@ -70,11 +96,23 @@ final class ObjectPool {
      * @param instance the constructed instance; ignored if {@code null}
      */
     void end(Class<?> type, Object instance) {
-        inProgress.remove(type);
+        end(type, type.getTypeName(), instance);
+    }
+
+    /**
+     * Marks a resolved generic type as complete and caches its result.
+     *
+     * @param type raw runtime type
+     * @param typeSignature resolved generic type signature
+     * @param instance completed instance; ignored if {@code null}
+     */
+    void end(Class<?> type, String typeSignature, Object instance) {
+        PoolKey key = key(type, typeSignature);
+        inProgress.remove(key);
         if (instance == null || maxCachedPerType == 0) {
             return;
         }
-        Deque<Object> perType = instances.computeIfAbsent(type, ignored -> new ArrayDeque<>());
+        Deque<Object> perType = instances.computeIfAbsent(key, ignored -> new ArrayDeque<>());
         perType.addLast(instance);
         while (perType.size() > maxCachedPerType) {
             perType.removeFirst();
@@ -89,7 +127,27 @@ final class ObjectPool {
      * @return a cached instance, or {@code null}
      */
     Object getCached(Class<?> type) {
-        Deque<Object> perType = instances.get(type);
+        return getCached(type, type.getTypeName());
+    }
+
+    /**
+     * Returns a completed instance matching a resolved generic type, if one is cached.
+     *
+     * @param type raw runtime type
+     * @param typeSignature resolved generic type signature
+     * @return a cached instance, or {@code null}
+     */
+    Object getCached(Class<?> type, String typeSignature) {
+        Deque<Object> perType = instances.get(key(type, typeSignature));
         return perType == null ? null : perType.peekLast();
+    }
+
+    private static PoolKey key(Class<?> type, String typeSignature) {
+        return new PoolKey(
+            Objects.requireNonNull(type, "type must not be null"),
+            Objects.requireNonNull(typeSignature, "typeSignature must not be null"));
+    }
+
+    private record PoolKey(Class<?> type, String typeSignature) {
     }
 }

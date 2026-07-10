@@ -111,6 +111,24 @@ class ObjectPoolTest {
     }
 
     @Test
+    @DisplayName("pool keeps distinct resolved generic types independent")
+    void resolvedGenericTypesAreIndependent() {
+        ObjectPool pool = new ObjectPool();
+        String stringBox = "string box";
+        String stringSignature = "example.Box<java.lang.String>";
+        String integerSignature = "example.Box<java.lang.Integer>";
+
+        pool.begin(Object.class, stringSignature);
+        pool.end(Object.class, stringSignature, stringBox);
+        pool.begin(Object.class, integerSignature);
+
+        assertTrue(pool.isInProgress(Object.class, integerSignature));
+        assertFalse(pool.isInProgress(Object.class, stringSignature));
+        assertSame(stringBox, pool.getCached(Object.class, stringSignature));
+        assertNull(pool.getCached(Object.class, integerSignature));
+    }
+
+    @Test
     @DisplayName("negative pool size throws IllegalArgumentException")
     void negativePoolSizeThrows() {
         assertThrows(IllegalArgumentException.class, () -> new ObjectPool(-1));

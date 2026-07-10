@@ -117,6 +117,12 @@ the final internal/public boundary intentionally.
 - Route constructor work in Step 2.4 and Kotlin immutable construction in Step 2.5 through the same
   model instead of creating parallel type systems.
 
+**In progress.** Kotlin primary-constructor generation now proves concrete bindings through nested
+generic data classes. Object-graph cycle detection and caching distinguish the raw class together
+with its resolved generic signature, so `Box<Inner<String>>` cannot reuse a completed
+`Box<List<Integer>>` instance merely because both erase to `Box`. A true same-signature recursive
+reference retains the existing cycle boundary.
+
 ## Completion gate
 
 - No nested parameterized argument is converted to `Object.class` merely because it is not a plain

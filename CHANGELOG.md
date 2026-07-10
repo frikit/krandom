@@ -80,6 +80,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; direct `IsinGenerator`
   and `CusipGenerator` constructors are deprecated 1.6 bridges, and portable recipes persist the
   selected policy.
+- Recursive object generation now distinguishes resolved generic signatures when detecting cycles
+  and reusing completed objects, so nested Kotlin generic data classes retain their concrete type
+  bindings instead of receiving a value from a different erased generic instantiation.
 - All 21 static data-registry `register(...)` methods and the two
   `ProfessionDataRegistry.append(...)` overloads are deprecated for removal in v2. They remain
   behavior-compatible 1.6 adapters; use the matching `DataRegistryContext.Builder` registration

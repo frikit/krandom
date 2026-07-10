@@ -28,6 +28,15 @@ class KotlinImmutableObjectGenerationTest : DescribeSpec({
             profile.optionalText shouldBe "preserved-default"
         }
 
+        it("resolves concrete generic bindings through nested primary constructors") {
+            val envelope = krandom<GenericEnvelope>()
+
+            envelope.label.value.shouldNotBeBlank()
+            envelope.counts.value.shouldNotBeEmpty()
+            envelope.counts.value.forEach { count -> count.inc() shouldBe count + 1 }
+            envelope.nested.value.value.shouldNotBeBlank()
+        }
+
         it("applies explicit field rules without discarding optional defaults by default") {
             val profile = krandom<ImmutableProfile> {
                 rule("code") { "1234" }
@@ -114,6 +123,14 @@ data class ImmutableProfile(
 )
 
 data class ImmutableLabel(val email: String)
+
+data class GenericEnvelope(
+    val label: GenericBox<String>,
+    val counts: GenericBox<List<Int>>,
+    val nested: GenericBox<GenericBox<String>>
+)
+
+data class GenericBox<T>(val value: T)
 
 data class NullableProfile(val note: String?)
 
