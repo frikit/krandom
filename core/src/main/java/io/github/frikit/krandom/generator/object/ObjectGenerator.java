@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.ServiceLoader;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -458,11 +459,92 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private T generateClass(FieldGeneratorResolver resolver,
                             SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
+        ObjectConstructionAdapter adapter = constructionAdapterFor(type);
+        if (adapter != null) {
+            return constructWithAdapter(adapter, resolver);
+        }
+        if (requiresKotlinConstructionAdapter(type)) {
+            throw new ReflectiveOperationException(
+                "Immutable Kotlin type " + type.getName()
+                + " requires the krandom-kotlin-dsl construction adapter");
+        }
         validateConstructibleType();
         List<Field> settableFields = collectSettableFields(type);
         T instance = instantiate(resolver); // may throw ReflectiveOperationException for throwing constructors
         populateClass(instance, resolver, coherenceAdjuster, settableFields, true);
         return instance;
+    }
+
+    private T constructWithAdapter(ObjectConstructionAdapter adapter, FieldGeneratorResolver resolver) {
+        try {
+            Object value = adapter.construct(new ObjectConstructionContext<>(
+                type,
+                typePath(),
+                type,
+                depth,
+                (genericType, rawType, memberName, element) -> resolver.resolveAndGenerate(
+                    genericType, rawType, memberName, type, depth, element),
+                this::hasExplicitConstructionOverride));
+            if (value == null) {
+                throw new IllegalStateException(adapter.getClass().getName() + " returned null");
+            }
+            if (!type.isInstance(value)) {
+                throw new IllegalArgumentException(
+                    adapter.getClass().getName() + " returned " + value.getClass().getName()
+                    + " for " + type.getName());
+            }
+            return type.cast(value);
+        } catch (ObjectGenerationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw constructionFailure(e);
+        }
+    }
+
+    private boolean hasExplicitConstructionOverride(String memberName, Class<?> rawType) {
+        return config.getContextualFieldOverride(type, memberName).isPresent()
+               || config.getFieldOverride(type, memberName).isPresent()
+               || config.getContextualTypeOverride(rawType).isPresent()
+               || config.getTypeOverride(rawType).isPresent();
+    }
+
+    private static ObjectConstructionAdapter constructionAdapterFor(Class<?> requestedType) {
+        for (ObjectConstructionAdapter adapter : ServiceLoader.load(ObjectConstructionAdapter.class)) {
+            if (adapter.supports(requestedType)) {
+                return adapter;
+            }
+        }
+        return null;
+    }
+
+    private static boolean requiresKotlinConstructionAdapter(Class<?> requestedType) {
+        if (!isKotlinType(requestedType)) {
+            return false;
+        }
+        if (Modifier.isAbstract(requestedType.getModifiers()) || hasKotlinObjectInstance(requestedType)) {
+            return true;
+        }
+        for (Field field : requestedType.getDeclaredFields()) {
+            int modifiers = field.getModifiers();
+            if (!Modifier.isStatic(modifiers) && !field.isSynthetic() && Modifier.isFinal(modifiers)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isKotlinType(Class<?> requestedType) {
+        return Arrays.stream(requestedType.getDeclaredAnnotations())
+                     .anyMatch(annotation -> annotation.annotationType().getName().equals("kotlin.Metadata"));
+    }
+
+    private static boolean hasKotlinObjectInstance(Class<?> requestedType) {
+        try {
+            Field instance = requestedType.getDeclaredField("INSTANCE");
+            return Modifier.isStatic(instance.getModifiers()) && instance.getType() == requestedType;
+        } catch (NoSuchFieldException ignored) {
+            return false;
+        }
     }
 
     private void populateClass(T instance,

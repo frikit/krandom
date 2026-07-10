@@ -35,6 +35,7 @@ class ObjectConstructionPolicyTest {
     void resetConstructorCounters() {
         UniqueConstructorFixture.constructorCalls = 0;
         AmbiguousConstructorFixture.constructorCalls = 0;
+        TestObjectConstructionAdapter.calls = 0;
     }
 
     @Test
@@ -157,6 +158,130 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("construction adapters resolve parameters through standard override handling")
+    void constructionAdapterResolvesParametersThroughCorePipeline() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectOverride(AdapterFixture.class, "value", () -> "configured")
+                                                .build();
+
+        AdapterFixture value = new ObjectGenerator<>(AdapterFixture.class, config).generate();
+
+        assertEquals(1, TestObjectConstructionAdapter.calls);
+        assertEquals("configured", value.value);
+        assertTrue(value.explicitlyOverridden);
+    }
+
+    @Test
+    @DisplayName("construction adapters report an absent explicit override")
+    void constructionAdapterReportsAbsentExplicitOverride() {
+        AdapterFixture value = new ObjectGenerator<>(AdapterFixture.class).generate();
+
+        assertNotNull(value.value);
+        assertFalse(value.explicitlyOverridden);
+        assertEquals(1, TestObjectConstructionAdapter.calls);
+    }
+
+    @Test
+    @DisplayName("construction adapters recognize contextual and type overrides")
+    void constructionAdapterRecognizesEveryExplicitOverrideKind() {
+        AdapterFixture contextualField = new ObjectGenerator<>(
+            AdapterFixture.class,
+            GeneratorConfig.builder()
+                           .objectOverride(
+                               AdapterFixture.class,
+                               "value",
+                               (ContextualGenerator<String>) context -> "contextual-field")
+                           .build()).generate();
+        AdapterFixture contextualType = new ObjectGenerator<>(
+            AdapterFixture.class,
+            GeneratorConfig.builder()
+                           .objectOverride(
+                               String.class,
+                               (ContextualGenerator<String>) context -> "contextual-type")
+                           .build()).generate();
+        AdapterFixture plainType = new ObjectGenerator<>(
+            AdapterFixture.class,
+            GeneratorConfig.builder().objectOverride(String.class, () -> "plain-type").build()).generate();
+
+        assertEquals("contextual-field", contextualField.value);
+        assertTrue(contextualField.explicitlyOverridden);
+        assertEquals("contextual-type", contextualType.value);
+        assertTrue(contextualType.explicitlyOverridden);
+        assertEquals("plain-type", plainType.value);
+        assertTrue(plainType.explicitlyOverridden);
+        assertEquals(3, TestObjectConstructionAdapter.calls);
+    }
+
+    @Test
+    @DisplayName("root factories remain stronger than construction adapters")
+    void rootFactoryWinsOverConstructionAdapter() {
+        AdapterFixture expected = new AdapterFixture("factory", true);
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectOverride(AdapterFixture.class, () -> expected)
+                                                .build();
+
+        AdapterFixture value = new ObjectGenerator<>(AdapterFixture.class, config).generate();
+
+        assertSame(expected, value);
+        assertEquals(0, TestObjectConstructionAdapter.calls);
+    }
+
+    @Test
+    @DisplayName("construction adapters validate output and preserve structured failures")
+    void constructionAdapterFailuresAreContextual() {
+        assertConstructionAdapterFailure(NullAdapterFixture.class, IllegalStateException.class);
+        assertConstructionAdapterFailure(WrongTypeAdapterFixture.class, IllegalArgumentException.class);
+        assertConstructionAdapterFailure(FailingAdapterFixture.class, IllegalStateException.class);
+
+        ObjectGenerationException structured = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(StructuredFailingAdapterFixture.class).generate());
+        assertEquals("structured adapter failure", structured.getMessage());
+    }
+
+    @Test
+    @DisplayName("immutable Kotlin metadata fails clearly without the Kotlin construction adapter")
+    void immutableKotlinTypeRequiresKotlinAdapter() {
+        ObjectGenerationException failure = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(MissingKotlinAdapterFixture.class).generate());
+
+        assertEquals(GenerationFailureCategory.CONSTRUCTION, failure.getContext().orElseThrow().category());
+        assertTrue(failure.getCause().getMessage().contains("krandom-kotlin-dsl"));
+    }
+
+    @Test
+    @DisplayName("Kotlin abstract and object shapes require the Kotlin construction adapter")
+    void KotlinAbstractAndObjectShapesRequireAdapter() {
+        assertKotlinAdapterRequired(MissingKotlinAbstractFixture.class);
+        assertKotlinAdapterRequired(MissingKotlinObjectFixture.class);
+    }
+
+    @Test
+    @DisplayName("mutable Kotlin metadata remains eligible for ordinary Java construction")
+    void mutableKotlinTypeUsesOrdinaryConstruction() {
+        KotlinMutableFixture value = new ObjectGenerator<>(KotlinMutableFixture.class).generate();
+        KotlinWrongInstanceFixture wrongInstance =
+            new ObjectGenerator<>(KotlinWrongInstanceFixture.class).generate();
+        KotlinInstanceFieldFixture instanceField =
+            new ObjectGenerator<>(KotlinInstanceFieldFixture.class).generate();
+
+        assertNotNull(value.value);
+        assertNotNull(wrongInstance.value);
+        assertNotNull(instanceField.value);
+    }
+
+    @Test
+    @DisplayName("synthetic Kotlin metadata fields do not make a mutable type immutable")
+    void syntheticKotlinFieldDoesNotRequireAdapter() {
+        ObjectGenerationException failure = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(KotlinSyntheticFieldFixture.class).generate());
+
+        assertFalse(failure.getCause().getMessage().contains("krandom-kotlin-dsl"));
+    }
+
+    @Test
     @DisplayName("plain type overrides act as root factories before reflection")
     void plainTypeOverrideActsAsRootFactory() {
         FactoryProduct expected = new FactoryProductValue("plain-factory");
@@ -247,6 +372,23 @@ class ObjectConstructionPolicyTest {
             "opens java.lang to io.github.frikit.krandom;"));
     }
 
+    private static void assertConstructionAdapterFailure(Class<?> type, Class<? extends Throwable> causeType) {
+        ObjectGenerationException failure = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(type).generate());
+
+        assertEquals(GenerationFailureCategory.CONSTRUCTION, failure.getContext().orElseThrow().category());
+        assertTrue(causeType.isInstance(failure.getCause()));
+    }
+
+    private static void assertKotlinAdapterRequired(Class<?> type) {
+        ObjectGenerationException failure = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(type).generate());
+
+        assertTrue(failure.getCause().getMessage().contains("krandom-kotlin-dsl"));
+    }
+
     private static void assertUnsupportedRoot(Class<?> type, ObjectConstructionPolicy policy) {
         ObjectGenerationException ex = assertThrows(
             ObjectGenerationException.class,
@@ -313,6 +455,81 @@ class ObjectConstructionPolicyTest {
     }
 
     record FactoryProductValue(String value) implements FactoryProduct {
+    }
+
+    static final class AdapterFixture {
+
+        final String  value;
+        final boolean explicitlyOverridden;
+
+        AdapterFixture(String value, boolean explicitlyOverridden) {
+            this.value = value;
+            this.explicitlyOverridden = explicitlyOverridden;
+        }
+    }
+
+    static final class NullAdapterFixture {
+    }
+
+    static final class WrongTypeAdapterFixture {
+    }
+
+    static final class FailingAdapterFixture {
+    }
+
+    static final class StructuredFailingAdapterFixture {
+    }
+
+    @kotlin.Metadata
+    static final class MissingKotlinAdapterFixture {
+
+        final String value;
+
+        MissingKotlinAdapterFixture(String value) {
+            this.value = value;
+        }
+    }
+
+    @kotlin.Metadata
+    abstract static class MissingKotlinAbstractFixture {
+    }
+
+    @kotlin.Metadata
+    static final class MissingKotlinObjectFixture {
+
+        static final MissingKotlinObjectFixture INSTANCE = new MissingKotlinObjectFixture();
+
+        private MissingKotlinObjectFixture() {
+        }
+    }
+
+    @kotlin.Metadata
+    static final class KotlinMutableFixture {
+
+        static final Object MARKER = new Object();
+
+        String value;
+    }
+
+    @kotlin.Metadata
+    static final class KotlinWrongInstanceFixture {
+
+        static final Object INSTANCE = new Object();
+
+        String value;
+    }
+
+    @kotlin.Metadata
+    static final class KotlinInstanceFieldFixture {
+
+        String INSTANCE;
+        String value;
+    }
+
+    @kotlin.Metadata
+    final class KotlinSyntheticFieldFixture {
+
+        String value = ObjectConstructionPolicyTest.this.toString();
     }
 
     final class NonStaticInnerFixture {

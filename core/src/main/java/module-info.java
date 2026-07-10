@@ -13,6 +13,8 @@ module io.github.frikit.krandom {
     requires org.slf4j;
     requires static transitive org.jspecify;
 
+    uses io.github.frikit.krandom.generator.object.ObjectConstructionAdapter;
+
     exports io.github.frikit.krandom.generator;
     exports io.github.frikit.krandom.generator.algorithms;
     exports io.github.frikit.krandom.generator.base;

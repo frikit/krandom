@@ -434,18 +434,18 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Keep Kotlin reflection/runtime support in the Kotlin module, not Java core.
-- [ ] Resolve the primary constructor, parameter names, nullability, defaults, optional parameters, and generic types.
-- [ ] Feed constructor parameters through the same constraints, provider rules, and type model as Java.
-- [ ] Make core fail with a clear support message when it encounters an immutable Kotlin class without the Kotlin integration.
-- [ ] Define behavior for value classes, sealed types, objects, secondary constructors, and delegated properties.
-- [ ] Correct KDoc and examples to match actual support.
+- [x] Keep Kotlin reflection/runtime support in the Kotlin module, not Java core.
+- [x] Resolve the primary constructor, parameter names, nullability, defaults, optional parameters, and generic types.
+- [x] Feed constructor parameters through the same constraints, provider rules, and type model as Java.
+- [x] Make core fail with a clear support message when it encounters an immutable Kotlin class without the Kotlin integration.
+- [x] Define behavior for value classes, sealed types, objects, secondary constructors, and delegated properties. (Objects return their singleton; value and sealed/abstract types fail clearly; primary constructors are selected, delegated properties initialize normally, and required cycles fail contextually.)
+- [x] Correct KDoc and examples to match actual support.
 
 **Tests**
 
-- [ ] Cover data classes with `val`, nullable/non-null types, defaults, nested generics, annotations, value classes, and constructor validation.
-- [ ] Assert that no non-null Kotlin property contains a runtime null.
-- [ ] Add locally published Kotlin consumer tests, not only module-classpath tests.
+- [x] Cover data classes with `val`, nullable/non-null types, defaults, nested generics, annotations, value classes, and constructor validation.
+- [x] Assert that no non-null Kotlin property contains a runtime null.
+- [x] Add locally published Kotlin consumer tests, not only module-classpath tests.
 
 **Done when:** Immutable Kotlin objects are validly constructed or rejected before a value escapes.
 

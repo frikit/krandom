@@ -49,6 +49,18 @@ class KotlinGradleUsageTest {
         assertEquals(2, fixtures.size)
         fixtures.forEach { assertEquals("Grace Hopper", it.name) }
     }
+
+    @Test
+    fun `kotlin dsl constructs immutable data classes`() {
+        val fixture = krandom<ImmutableDslUserFixture> {
+            rule("name") { "Ada Lovelace" }
+            rule("email") { "ada@example.test" }
+        }
+
+        assertEquals("Ada Lovelace", fixture.name)
+        assertEquals("ada@example.test", fixture.email)
+        assertEquals("preserved-default", fixture.source)
+    }
 }
 
 class DslUserFixture {
@@ -56,3 +68,9 @@ class DslUserFixture {
     var email: String = ""
     var country: String = ""
 }
+
+data class ImmutableDslUserFixture(
+    val name: String,
+    val email: String,
+    val source: String = "preserved-default"
+)

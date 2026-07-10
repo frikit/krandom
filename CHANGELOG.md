@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Structured, value-sanitized generation failure context shared by object and schema exceptions, with stable category, operation, path, type, depth, and record-index fields.
+- Immutable Kotlin primary-constructor generation in `krandom-kotlin-dsl`, including nullable/non-null parameters, defaults, nested generics, field/type rules, and Jakarta Validation. Java-only core remains free of Kotlin runtime dependencies and reports an actionable integration requirement instead of allocating an invalid Kotlin value.
 - An explicit `io.github.frikit.krandom` core module descriptor plus open/closed Java 21 named-module consumers. Missing reflective access now reports the exact qualified `opens` directive.
 - Optional `GenerationFailureListener` diagnostics configured through `GeneratorConfig`, exposing only structured context, cause class name, and an optional replay identity—never generated values or throwables.
 - `krandom-bom`, a Maven/Gradle platform that keeps all published kRandom modules on one version. Consumer examples now import the BOM and omit individual kRandom module versions.

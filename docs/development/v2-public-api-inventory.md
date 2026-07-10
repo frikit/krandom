@@ -92,6 +92,7 @@ Global mutations must not be deprecated until the scoped replacement reaches fea
 |:---|:---|:---|
 | `ObjectGenerator`, `ObjectFaker`, annotations, and public predicates | **KEEP** | Harden construction, constraints, type handling, and errors |
 | `ObjectConstructionPolicy` | **KEEP** | `SAFE_CONSTRUCTORS` is the v2 default; `UNSAFE_CONSTRUCTOR_BYPASS` is the explicit legacy opt-in |
+| `ObjectConstructionAdapter` / `ObjectConstructionContext` | **KEEP** | Service-loaded construction bridge; Kotlin support uses the existing resolver without adding Kotlin runtime to core |
 | `GeneratorConfig` object-generation methods | **KEEP** | Remove duplicated internal configuration state without changing the public path |
 | `ObjectGeneratorConfig` | Internal implementation, not public API | Remove its references from public Javadocs before refactoring |
 
@@ -102,6 +103,12 @@ Public Javadocs currently leak the package-private `ObjectGeneratorConfig` type 
 the safety boundary directly: safe mode invokes constructors, while the unsafe value preserves the
 1.5 Objenesis fallback only when a consumer opts in. The migration path is therefore one explicit
 builder call for consumers that temporarily require constructor bypass.
+
+`ObjectConstructionAdapter` and `ObjectConstructionContext` are additive **KEEP** extension APIs.
+They are intentionally Kotlin-free: core discovers adapters through `ServiceLoader`, and adapters
+generate every constructor argument through the same object-resolution pipeline. The Kotlin DSL's
+public provider class is implementation-only despite its JVM visibility, which ServiceLoader
+requires; consumers should use `krandom<T>`, not instantiate the provider.
 
 ## Structured failure context additions
 
