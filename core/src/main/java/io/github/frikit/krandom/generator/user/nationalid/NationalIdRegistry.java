@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user.nationalid;
 
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -145,7 +144,7 @@ public final class NationalIdRegistry {
      * string (e.g. {@code "en_US"}).
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
 
     /**

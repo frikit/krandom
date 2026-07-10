@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.location.CountryDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
+import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 import java.util.Random;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -176,6 +178,18 @@ class DataRegistryContextTest {
                                                          .build();
         assertTrue(context.countryRegisteredKeys().contains("en"));
         assertEquals("CountryOne", context.countryProvider(Locale.of("en", "GB")).getCountries()[0]);
+    }
+
+    @Test
+    @DisplayName("legacy registry key views are immutable snapshots")
+    void legacyRegistryKeyViewsAreImmutableSnapshots() {
+        Set<String> keys = FirstNameDataRegistry.registeredKeys();
+        Locale testLocale = Locale.of("zz", "ZX");
+
+        FirstNameDataRegistry.register(firstNameProvider(testLocale));
+
+        assertFalse(keys.contains("zz_ZX"));
+        assertThrows(UnsupportedOperationException.class, () -> keys.add("other"));
     }
 
     @Test

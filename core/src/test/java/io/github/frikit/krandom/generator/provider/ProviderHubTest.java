@@ -52,6 +52,8 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -169,6 +171,22 @@ class ProviderHubTest {
         assertInstanceOf(TextFormatProvider.class, hub.get("text.format"));
         assertInstanceOf(UUIDGenerator.class, hub.get("code"));
         assertInstanceOf(UUIDGenerator.class, hub.get("code.uuid"));
+    }
+
+    @Test
+    @DisplayName("provider and alias views are immutable snapshots")
+    void providerAndAliasViewsAreImmutableSnapshots() {
+        ProviderHub hub = new ProviderHub();
+        Set<String> providerNames = hub.providerNames();
+        Map<String, String> aliases = hub.aliases();
+
+        hub.register("custom.snapshot", cfg -> "snapshot");
+        hub.registerAlias("snapshot", "custom.snapshot");
+
+        assertFalse(providerNames.contains("custom.snapshot"));
+        assertFalse(aliases.containsKey("snapshot"));
+        assertThrows(UnsupportedOperationException.class, () -> providerNames.add("other"));
+        assertThrows(UnsupportedOperationException.class, () -> aliases.put("other", "custom.snapshot"));
     }
 
     @Test

@@ -126,6 +126,22 @@ class FieldLookupTest {
     }
 
     @Test
+    @DisplayName("reference and alias views are immutable snapshots")
+    void referenceAndAliasViewsAreImmutableSnapshots() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+        Set<String> references = lookup.supportedReferences();
+        Map<String, String> aliases = lookup.aliases();
+
+        lookup.register("custom.snapshot", ctx -> "snapshot");
+        lookup.registerAlias("snapshot", "custom.snapshot");
+
+        assertFalse(references.contains("custom.snapshot"));
+        assertFalse(aliases.containsKey("snapshot"));
+        assertThrows(UnsupportedOperationException.class, () -> references.add("other"));
+        assertThrows(UnsupportedOperationException.class, () -> aliases.put("other", "custom.snapshot"));
+    }
+
+    @Test
     @DisplayName("provider-backed references can be registered from provider factories")
     void providerBackedReferences() {
         FieldLookup lookup = new FieldLookup(GeneratorConfig.builder().seed(7L).locale(Locale.US).build());

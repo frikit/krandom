@@ -71,6 +71,7 @@ import io.github.frikit.krandom.generator.user.UsernameGenerator;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -287,7 +288,7 @@ public final class FieldLookup {
      * @return immutable reference set
      */
     public Set<String> supportedReferences() {
-        return Collections.unmodifiableSet(providers.keySet());
+        return Collections.unmodifiableSet(new LinkedHashSet<>(providers.keySet()));
     }
 
     /**
@@ -296,7 +297,7 @@ public final class FieldLookup {
      * @return immutable alias map (alias -&gt; canonical reference)
      */
     public Map<String, String> aliases() {
-        return Collections.unmodifiableMap(aliases);
+        return Collections.unmodifiableMap(new LinkedHashMap<>(aliases));
     }
 
     /**

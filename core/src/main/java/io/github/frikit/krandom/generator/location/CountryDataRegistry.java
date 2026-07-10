@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -93,7 +92,7 @@ public final class CountryDataRegistry {
      * string (e.g. {@code "en_US"}).
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
 
     /**

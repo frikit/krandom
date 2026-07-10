@@ -9,7 +9,6 @@ import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -112,7 +111,7 @@ public final class ProfessionDataRegistry {
      * Returns unmodifiable snapshot of registered locale keys.
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
 
     private static void putProvider(ProfessionDataProvider provider) {

@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -90,7 +89,7 @@ public final class FinancialTermDataRegistry {
      * Returns an unmodifiable snapshot of all currently registered locale keys.
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
 
     private static void putProvider(FinancialTermDataProvider provider) {

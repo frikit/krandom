@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -104,7 +103,7 @@ public final class TitleDataRegistry {
      * string (e.g. {@code "en_US"}).
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
 
     /**

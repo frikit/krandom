@@ -504,7 +504,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [ ] Generate lookup, semantic inference, schema metadata, and documentation from the catalog.
 - [ ] Move every provider registry into `DataRegistryContext` or its v2 replacement.
 - [ ] Validate registered keys and data arrays uniformly.
-- [ ] Return immutable snapshots rather than live unmodifiable concurrent-map views.
+- [x] Return immutable snapshots rather than live unmodifiable concurrent-map views.
 - [ ] Keep deprecated global registration as a 1.6 adapter only.
 
 **Tests**
