@@ -29,7 +29,7 @@ scalar configuration settings; it has a stable human-readable encoding and recre
 configuration.
 **Tests:** Round-trip encoding, malformed/unknown recipe rejection, replay configuration equality,
 and non-portable source rejection.
-**Status:** In Progress
+**Status:** Complete
 
 ### Coverage reassessment (2026-07-10)
 
@@ -63,6 +63,11 @@ The reassessment found three useful local alternatives:
 The revised approach therefore collapses portability checks into one explicit state scan and keeps
 the recipe as a value object. It will add only behavior-focused tests for the remaining parser
 boundaries, not test-only scaffolding for every short-circuit expression.
+
+The full pre-commit gate now covers the portable-state alternatives, stable serialization, replay,
+and malformed-boundary cases at the repository coverage threshold. The environment contract also
+proves that changing locale, clock, provider-dataset version, or safety-policy label changes the
+recipe identity.
 
 ## Stage 2: Derive structural child streams
 
