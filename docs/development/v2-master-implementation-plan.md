@@ -682,9 +682,9 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Add a global system property/environment variable for replay recipes.
-- [ ] Allow recipe/seed injection without editing test source.
-- [ ] Preserve string-seed metadata instead of reducing it invisibly to a number.
+- [x] Add a global system property/environment variable for replay recipes.
+- [x] Allow recipe/seed injection without editing test source.
+- [x] Preserve string-seed metadata instead of reducing it invisibly to a number.
 - [ ] Bridge jqwik random context where its API permits and document limitations.
 - [ ] Print one copyable replay command on failure.
 

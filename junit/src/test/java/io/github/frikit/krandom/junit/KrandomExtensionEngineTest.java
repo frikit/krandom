@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.junit;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,9 +20,12 @@ import org.junit.platform.testkit.engine.Event;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -33,6 +37,9 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
  * {@code @KrandomSeed} configuration validation.
  */
 class KrandomExtensionEngineTest {
+
+    private static final String REPLAY_RECIPE_PROPERTY = "krandom.junit.recipe";
+    private static final String REPLAY_SEED_PROPERTY = "krandom.junit.seed";
 
     @Test
     void failingUnpinnedTestReportsItsSeedWithAReproductionHint() {
@@ -84,6 +91,66 @@ class KrandomExtensionEngineTest {
         assertSingleConfigurationError(BlankTextSeedFixture.class, "must not be blank");
     }
 
+    @Test
+    void systemRecipeOverrideTakesPrecedenceAndPreservesTextSeedMetadata() throws Exception {
+        GenerationRecipe recipe = GenerationRecipe.builder()
+                                                    .seed(GeneratorConfig.deriveSeed("checkout-replay"))
+                                                    .seedText("checkout-replay")
+                                                    .locale(Locale.CANADA_FRENCH)
+                                                    .profile("ci-replay")
+                                                    .build();
+
+        withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () -> {
+            EngineExecutionResults results = runFixture(RecipeOverrideFixture.class);
+
+            results.testEvents().assertStatistics(statistics -> statistics.succeeded(1).failed(0));
+        });
+    }
+
+    @Test
+    void systemSeedOverrideWorksWithoutAnAnnotation() throws Exception {
+        withSystemProperty(REPLAY_SEED_PROPERTY, "24680", () -> {
+            EngineExecutionResults results = runFixture(NumericOverrideFixture.class);
+
+            results.testEvents().assertStatistics(statistics -> statistics.succeeded(1).failed(0));
+        });
+    }
+
+    @Test
+    void malformedSystemRecipeIsAConfigurationError() throws Exception {
+        withSystemProperty(REPLAY_RECIPE_PROPERTY, "base64:not-a-recipe", () ->
+            assertSingleConfigurationError(NumericOverrideFixture.class, "Invalid krandom.junit.recipe"));
+    }
+
+    @Test
+    void conflictingSystemOverridesAreAConfigurationError() throws Exception {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () ->
+            withSystemProperty(REPLAY_SEED_PROPERTY, "24680", () ->
+                assertSingleConfigurationError(NumericOverrideFixture.class, "Configure only one replay override")));
+    }
+
+    @Test
+    void failingTestPrintsSafeCopyableRecipeOverride() throws Exception {
+        GenerationRecipe recipe = GenerationRecipe.builder()
+                                                    .seed(GeneratorConfig.deriveSeed("private seed"))
+                                                    .seedText("private seed")
+                                                    .build();
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+
+        withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () -> {
+            EngineExecutionResults results = runFixtureCapturingStderr(ReplayOverrideFailingFixture.class, captured);
+
+            results.testEvents().assertStatistics(statistics -> statistics.failed(1));
+        });
+
+        String stderr = captured.toString(StandardCharsets.UTF_8);
+        assertTrue(stderr.contains("-Dkrandom.junit.recipe=base64:"),
+                   "stderr should carry a copyable replay override, was: " + stderr);
+        assertFalse(stderr.contains("private seed"), "stderr must not reveal textual seed material");
+    }
+
     private static void assertSingleConfigurationError(Class<?> fixture, String expectedMessagePart) {
         EngineExecutionResults results = runFixture(fixture);
 
@@ -98,6 +165,31 @@ class KrandomExtensionEngineTest {
                 "unexpected message: " + thrown.getMessage());
         // A configuration error aborts the test before a seed exists, so nothing is reported.
         assertEquals(0, results.allEvents().reportingEntryPublished().count());
+    }
+
+    private static String encodeRecipe(GenerationRecipe recipe) {
+        byte[] serialized = recipe.serialize().getBytes(StandardCharsets.UTF_8);
+        return "base64:" + Base64.getUrlEncoder().withoutPadding().encodeToString(serialized);
+    }
+
+    private static void withSystemProperty(String key, String value, ThrowingRunnable action) throws Exception {
+        String previous = System.getProperty(key);
+        System.setProperty(key, value);
+        try {
+            action.run();
+        } finally {
+            if (previous == null) {
+                System.clearProperty(key);
+            } else {
+                System.setProperty(key, previous);
+            }
+        }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable {
+
+        void run() throws Exception;
     }
 
     private static EngineExecutionResults runFixture(Class<?> fixture) {
@@ -184,6 +276,43 @@ class KrandomExtensionEngineTest {
         @KrandomSeed(text = "   ")
         @Test
         void invalid() {
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @KrandomSeed(99L)
+    static class RecipeOverrideFixture {
+
+        @Test
+        void configUsesSystemRecipe(GeneratorConfig config, GeneratorConfig.Builder builder) {
+            assertEquals(Locale.CANADA_FRENCH, config.getLocale());
+            assertEquals("checkout-replay", config.getStringSeed().orElseThrow());
+            assertEquals("ci-replay", config.getGenerationProfile());
+            GeneratorConfig rebuilt = builder.build();
+            assertEquals(config.getSeed(), rebuilt.getSeed());
+            assertEquals(config.getStringSeed(), rebuilt.getStringSeed());
+            assertEquals(config.getLocale(), rebuilt.getLocale());
+            assertEquals(config.getGenerationProfile(), rebuilt.getGenerationProfile());
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class NumericOverrideFixture {
+
+        @Test
+        void configUsesSystemSeed(GeneratorConfig config) {
+            assertEquals(24680L, config.getSeed().orElseThrow());
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class ReplayOverrideFailingFixture {
+
+        @Test
+        void boom() {
+            fail("intentional replay fixture failure");
         }
     }
 }

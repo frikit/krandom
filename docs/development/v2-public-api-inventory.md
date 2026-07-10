@@ -276,7 +276,9 @@ for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay
 seed but removes original textual seed material before a recipe is published to logs or test
 reports. `KrandomExtension.RECIPE_REPORT_ENTRY_KEY` is additive **KEEP** and carries that safe
-recipe in JUnit report entries.
+recipe in JUnit report entries. `KrandomExtension` accepts the non-API system-property/environment
+replay boundary documented in the JUnit guide; it adds no public members and injected configs retain
+textual-seed metadata without logging it.
 `SchemaGenerationException.getReplayRecipe()` is additive **KEEP**. It exposes the same safe
 recipe included in a schema-generation failure message, or remains empty for legacy and metadata
 boundaries where no generation source exists.
@@ -294,7 +296,7 @@ covers private catalog-driven registration and JSON Schema conversion helpers.
 | `Generator<T>.toArb()` and Kotest helpers | **KEEP** | Honor Kotest `RandomSource`; document/provide shrinking and edge cases |
 | Kotlin string-based field rules | **KEEP as bridge** | Add typed `KProperty1` rules before deciding v2 removal |
 | `@KrandomTest` | **KEEP** | Make it a standalone composed Spring test slice |
-| `KrandomExtension` and `@KrandomSeed` | **KEEP** | Add portable recipe replay without source edits |
+| `KrandomExtension` and `@KrandomSeed` | **KEEP** | JUnit recipe/seed override complete; jqwik bridge remains separate work |
 | Jackson helpers/module | **KEEP** | No current contract exception |
 
 ## APIs intentionally retained

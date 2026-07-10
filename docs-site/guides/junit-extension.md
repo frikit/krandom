@@ -36,12 +36,39 @@ class OrderServiceTest {
 Every test runs with a concrete per-test seed. When a test fails, the extension:
 
 - publishes the seed as a JUnit report entry under the `krandom.seed` key, and
-- prints a reproduction hint to `System.err`:
+- publishes a redacted portable recipe under the `krandom.recipe` key, and
+- prints a reproduction hint plus a copyable JVM replay option to `System.err`:
 
 ```text
 krandom: test 'totalsAreNonNegative(GeneratorConfig)' failed with seed 8155926046530546882.
 Annotate it with @KrandomSeed(8155926046530546882L) to reproduce this run.
+Replay option: -Dkrandom.junit.recipe=base64:...
 ```
+
+## Replay without editing the test source
+
+Use a JVM property when rerunning a CI failure. The reported `Replay option` contains the complete,
+redacted recipe in a shell-safe URL-safe Base64 value:
+
+```bash
+./gradlew test -Dkrandom.junit.recipe=base64:PASTE_THE_REPORTED_VALUE
+```
+
+For a seed-only replay, use a decimal signed 64-bit value:
+
+```bash
+./gradlew test -Dkrandom.junit.seed=8155926046530546882
+```
+
+The equivalent environment variables are `KRANDOM_JUNIT_RECIPE` and `KRANDOM_JUNIT_SEED`. A JVM
+property wins over its matching environment variable. Configure only one effective replay value:
+a recipe and seed together are a configuration error. Replay values override `@KrandomSeed`, so a
+CI runner can reproduce a failure without changing the test source.
+
+Recipes retain a textual seed internally when one was used, so injected `GeneratorConfig` values
+preserve that metadata. Failure output and report entries deliberately omit the original text and
+contain only the derived numeric seed. Literal recipe text is also accepted for local tooling when
+its line breaks are represented as `\n`.
 
 ## Pinning a seed with `@KrandomSeed`
 
@@ -71,7 +98,7 @@ Rules:
 | Parameter type | Resolves to |
 |:---|:---|
 | `GeneratorConfig` | A config pre-seeded with the test's seed |
-| `GeneratorConfig.Builder` | A builder pre-seeded with the test's seed, for adding locale or other options before `build()` |
+| `GeneratorConfig.Builder` | A builder copied from the test's recipe/config, for adding locale or other options before `build()` |
 
 All injections within one test share the same seed, so two injected configs generate identical
 sequences.
