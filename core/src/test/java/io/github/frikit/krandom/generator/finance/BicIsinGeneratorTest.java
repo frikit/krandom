@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Bic and Isin generators")
+@SuppressWarnings("removal")
 class BicIsinGeneratorTest {
 
     private static boolean isValidIsin(String isin) {
@@ -81,9 +83,29 @@ class BicIsinGeneratorTest {
 
     @Test
     void isinLocaleFallbackBranches() {
-        IsinGenerator gen = new IsinGenerator(GeneratorConfig.builder().seed(6L).locale(Locale.US).build());
+        IsinGenerator gen = new IsinGenerator(GeneratorConfig.builder()
+                                                              .seed(6L)
+                                                              .locale(Locale.US)
+                                                              .securitiesIdentifierSafetyPolicy(
+                                                                  SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                              .build());
         assertTrue(gen.generate(Locale.ENGLISH).startsWith("US"));
         Locale numericRegion = new Locale.Builder().setLanguage("en").setRegion("001").build();
         assertTrue(gen.generate(numericRegion).startsWith("US"));
+    }
+
+    @Test
+    void configuredIsinGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class,
+                     () -> new IsinGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class,
+                     () -> new IsinGenerator(GeneratorConfig.defaults()).generate(Locale.US));
+        assertThrows(IllegalStateException.class, () -> Generators.ofIsin().generate());
+
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                 .securitiesIdentifierSafetyPolicy(
+                                                     SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                 .build();
+        assertTrue(Generators.ofIsin(config).generate().matches("[A-Z]{2}[A-Z0-9]{9}\\d"));
     }
 }

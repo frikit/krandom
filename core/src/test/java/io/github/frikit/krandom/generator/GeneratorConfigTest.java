@@ -11,6 +11,7 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -86,6 +87,7 @@ class GeneratorConfigTest {
         assertEquals(BankingSafetyPolicy.DISABLED, c.getBankingSafetyPolicy());
         assertEquals(BusinessTaxIdentifierSafetyPolicy.DISABLED, c.getBusinessTaxIdentifierSafetyPolicy());
         assertEquals(CryptoAddressSafetyPolicy.DISABLED, c.getCryptoAddressSafetyPolicy());
+        assertEquals(SecuritiesIdentifierSafetyPolicy.DISABLED, c.getSecuritiesIdentifierSafetyPolicy());
         assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
         assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
@@ -183,6 +185,20 @@ class GeneratorConfigTest {
                      config.toBuilder().build().getCryptoAddressSafetyPolicy());
         assertThrows(NullPointerException.class,
                      () -> GeneratorConfig.builder().cryptoAddressSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("securities-identifier safety policy is configurable and retained by toBuilder")
+    void securitiesIdentifierSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .securitiesIdentifierSafetyPolicy(
+                                                    SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getSecuritiesIdentifierSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().securitiesIdentifierSafetyPolicy(null));
     }
 
     @Test

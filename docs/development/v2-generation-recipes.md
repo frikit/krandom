@@ -88,6 +88,9 @@ setting retain their historical realistic-unclassified replay behavior.
 Crypto-address safety follows the same rule: new recipes record `crypto-address.safety-policy` and
 default to `DISABLED`, while recipes without that setting retain their historical
 realistic-unclassified replay behavior.
+Securities-identifier safety follows the same rule: new recipes record
+`securities-identifier.safety-policy` and default to `DISABLED`, while recipes without that setting
+retain their historical realistic-unclassified replay behavior.
 
 ## Stage 2: Derive structural child streams
 

@@ -179,13 +179,33 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("cusip generator outputs 9 chars with valid check digit")
     void cusip() {
-        CusipGenerator generator = new CusipGenerator(GeneratorConfig.builder().seed(4L).build());
+        CusipGenerator generator = new CusipGenerator(GeneratorConfig.builder()
+                                                                      .seed(4L)
+                                                                      .securitiesIdentifierSafetyPolicy(
+                                                                          SecuritiesIdentifierSafetyPolicy
+                                                                              .REALISTIC_UNCLASSIFIED)
+                                                                      .build());
         String cusip = generator.generate();
         assertEquals(9, cusip.length());
         assertTrue(cusip.matches("[0-9A-Z]{9}"));
 
         int expected = CusipGenerator.computeCheckDigit(cusip.substring(0, 8));
         assertEquals(expected, cusip.charAt(8) - '0');
+    }
+
+    @Test
+    @DisplayName("configured CUSIP generation fails closed by default")
+    void cusipConfiguredGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class,
+                     () -> new CusipGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofCusip().generate());
+
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                 .securitiesIdentifierSafetyPolicy(
+                                                     SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                 .build();
+        assertTrue(Generators.ofCusip(config).generate().matches("[0-9A-Z]{9}"));
+        assertTrue(new CusipGenerator().generate().matches("[0-9A-Z]{9}"));
     }
 
     @Test

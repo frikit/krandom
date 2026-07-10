@@ -31,6 +31,7 @@ as safe merely because it passes a validator.
 | Payment payloads | Masked references derived from card or bank generators | Carry the selected policy metadata without exposing credential values |
 | National IDs, CPF | Country-specific shapes and algorithms | Fail closed unless a caller explicitly selects an unclassified compatibility policy; country-specific safe modes require separate proof |
 | CNPJ, EIN | Canonical configuration fails closed; deprecated direct constructors retain plausible output | Do not infer a portable safe range from a format or check digit; scheme-specific safe modes require separate proof |
+| ISIN, CUSIP | Canonical configuration fails closed; deprecated direct constructors retain plausible output with valid check digits | Do not infer a portable safe range from format or checksum validity; scheme-specific safe modes require separate proof |
 | Passport, driving licence | Canonical configuration fails closed; deprecated direct constructors retain generic plausible shapes | Do not infer a cross-country safe range from a generic shape; country-specific safe modes require separate proof |
 | Phone numbers | US locale-style output uses NANPA's fictional `555-0100` to `555-0199` range by default; other locales remain realistic but unclassified | Keep the NANPA mode scoped to its documented allocation; add another locale only with authoritative proof |
 | Crypto addresses | Canonical configuration fails closed; deprecated direct constructor retains plausible destination shapes | Never describe as safe for live transfers; add a non-production mode only with network-specific proof |
@@ -129,6 +130,15 @@ not leave a test boundary. The direct no-argument constructor is a deprecated 1.
 historic behavior; recipes record `crypto-address.safety-policy`, while old recipes retain
 realistic-unclassified replay when that setting is absent.
 
+Securities identifiers now fail closed through `SecuritiesIdentifierSafetyPolicy`.
+`GeneratorConfig`, `Generators.ofIsin()`, and `Generators.ofCusip()` refuse output by default
+because an ISIN or CUSIP's valid check digit does not establish that it is unassigned,
+non-routable, or safe for trading, custody, clearing, or settlement. Select
+`REALISTIC_UNCLASSIFIED` only for isolated compatibility fixtures that do not leave a test
+boundary. The direct `IsinGenerator` and `CusipGenerator` constructors are deprecated 1.6 bridges
+with their historic behavior; recipes record `securities-identifier.safety-policy`, while old
+recipes retain realistic-unclassified replay when that setting is absent.
+
 Banking identifiers now fail closed through `GeneratorConfig` because neither checksum validity nor
 a realistic-looking account body proves non-routability. `BankingSafetyPolicy` controls bank account
 numbers, ABA routing numbers, BBANs, IBANs, BICs, and `BankInfoGenerator`. Select
@@ -181,3 +191,5 @@ Implemented provider-catalog metadata:
   — official simulator generates fictitious numeric and alphanumeric CNPJ test values locally.
 - [Ethereum network guidance](https://ethereum.org/developers/docs/networks/) — test environments
   are network-specific, and even public testnet transactions use a distinct network context.
+- [CUSIP Global Services identifier guidance](https://www.cusip.com/identifiers.html) — CUSIPs and
+  ISINs are unique identifiers assigned to financial instruments for market operations.

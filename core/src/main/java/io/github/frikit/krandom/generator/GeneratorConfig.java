@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -113,6 +114,7 @@ public final class GeneratorConfig {
     private final BankingSafetyPolicy bankingSafetyPolicy;
     private final BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy;
     private final CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy;
+    private final SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy;
     private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
     private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
@@ -162,6 +164,7 @@ public final class GeneratorConfig {
         this.bankingSafetyPolicy = b.bankingSafetyPolicy;
         this.businessTaxIdentifierSafetyPolicy = b.businessTaxIdentifierSafetyPolicy;
         this.cryptoAddressSafetyPolicy = b.cryptoAddressSafetyPolicy;
+        this.securitiesIdentifierSafetyPolicy = b.securitiesIdentifierSafetyPolicy;
         this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
         this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
         this.identityDocumentSafetyPolicy = b.identityDocumentSafetyPolicy;
@@ -270,6 +273,19 @@ public final class GeneratorConfig {
      */
     public CryptoAddressSafetyPolicy getCryptoAddressSafetyPolicy() {
         return cryptoAddressSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated ISIN and CUSIP values.
+     *
+     * <p>The default fails closed because a valid check digit does not establish an assigned,
+     * non-routable, or test-safe securities identifier. {@link
+     * SecuritiesIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} is an explicit compatibility
+     * opt-in for isolated tests; it does not make values safe for a trading, custody, clearing,
+     * settlement, or other external system.
+     */
+    public SecuritiesIdentifierSafetyPolicy getSecuritiesIdentifierSafetyPolicy() {
+        return securitiesIdentifierSafetyPolicy;
     }
 
     /**
@@ -616,6 +632,8 @@ public final class GeneratorConfig {
                                                                      businessTaxIdentifierSafetyPolicy.name())
                                                             .setting("crypto-address.safety-policy",
                                                                      cryptoAddressSafetyPolicy.name())
+                                                            .setting("securities-identifier.safety-policy",
+                                                                     securitiesIdentifierSafetyPolicy.name())
                                                             .setting("phone-number.safety-policy",
                                                                      phoneNumberSafetyPolicy.name())
                                                             .setting("national-id.safety-policy",
@@ -784,6 +802,8 @@ public final class GeneratorConfig {
         private BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy =
             BusinessTaxIdentifierSafetyPolicy.DISABLED;
         private CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy = CryptoAddressSafetyPolicy.DISABLED;
+        private SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy =
+            SecuritiesIdentifierSafetyPolicy.DISABLED;
         private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
@@ -835,6 +855,7 @@ public final class GeneratorConfig {
             this.bankingSafetyPolicy = source.bankingSafetyPolicy;
             this.businessTaxIdentifierSafetyPolicy = source.businessTaxIdentifierSafetyPolicy;
             this.cryptoAddressSafetyPolicy = source.cryptoAddressSafetyPolicy;
+            this.securitiesIdentifierSafetyPolicy = source.securitiesIdentifierSafetyPolicy;
             this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
             this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
             this.identityDocumentSafetyPolicy = source.identityDocumentSafetyPolicy;
@@ -1305,6 +1326,23 @@ public final class GeneratorConfig {
         public Builder cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy) {
             this.cryptoAddressSafetyPolicy = Objects.requireNonNull(
                 cryptoAddressSafetyPolicy, "cryptoAddressSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated ISIN and CUSIP values.
+         *
+         * <p>The default is {@link SecuritiesIdentifierSafetyPolicy#DISABLED}. Select
+         * {@link SecuritiesIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated
+         * fixtures that do not leave the test boundary.
+         *
+         * @param securitiesIdentifierSafetyPolicy securities-identifier generation policy
+         * @return this builder
+         */
+        public Builder securitiesIdentifierSafetyPolicy(
+            SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy) {
+            this.securitiesIdentifierSafetyPolicy = Objects.requireNonNull(
+                securitiesIdentifierSafetyPolicy, "securitiesIdentifierSafetyPolicy must not be null");
             return this;
         }
 

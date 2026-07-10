@@ -260,6 +260,15 @@ bridge that preserves prior behavior and is scheduled for v2 removal.
 `Generators.ofCryptoAddress(GeneratorConfig)` is an additive **KEEP** canonical facade. Portable
 recipes store the typed policy as `crypto-address.safety-policy` and replay legacy recipes as
 unclassified output.
+`SecuritiesIdentifierSafetyPolicy`, `GeneratorConfig.getSecuritiesIdentifierSafetyPolicy()`, and
+`GeneratorConfig.Builder.securitiesIdentifierSafetyPolicy(...)` are additive **KEEP** APIs.
+Configuration defaults to `DISABLED` because an ISIN or CUSIP's format or check digit cannot prove
+a safe fixture; `REALISTIC_UNCLASSIFIED` is an explicit isolated-test compatibility opt-in. The
+no-argument and locale `IsinGenerator` constructors, and the no-argument `CusipGenerator`
+constructor, are **DEPRECATE 1.6** bridges that preserve prior behavior and are scheduled for v2
+removal. `Generators.ofIsin(GeneratorConfig)` and `Generators.ofCusip(GeneratorConfig)` are
+additive **KEEP** canonical facades. Portable recipes store the typed policy as
+`securities-identifier.safety-policy` and replay legacy recipes as unclassified output.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay

@@ -39,6 +39,7 @@ io.github.frikit.krandom.generator.GeneratorConfig#getPaymentCardSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getBankingSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getBusinessTaxIdentifierSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getCryptoAddressSafetyPolicy()
+io.github.frikit.krandom.generator.GeneratorConfig#getSecuritiesIdentifierSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getPhoneNumberSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getNationalIdSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getIdentityDocumentSafetyPolicy()
@@ -54,6 +55,8 @@ io.github.frikit.krandom.generator.GeneratorConfig$Builder#businessTaxIdentifier
 io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#cryptoAddressSafetyPolicy(io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy)
 io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#securitiesIdentifierSafetyPolicy(io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy)
+io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#phoneNumberSafetyPolicy(io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy)
 io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#nationalIdSafetyPolicy(io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy)
@@ -71,6 +74,11 @@ io.github.frikit.krandom.generator.finance.EinGenerator
 io.github.frikit.krandom.generator.Generators#ofEin(io.github.frikit.krandom.generator.GeneratorConfig)
 io.github.frikit.krandom.generator.finance.CryptoAddressGenerator
 io.github.frikit.krandom.generator.Generators#ofCryptoAddress(io.github.frikit.krandom.generator.GeneratorConfig)
+# Securities-identifier constructors retain their unsafe 1.6 compatibility behavior only as deprecated bridges.
+io.github.frikit.krandom.generator.finance.IsinGenerator
+io.github.frikit.krandom.generator.finance.CusipGenerator
+io.github.frikit.krandom.generator.Generators#ofIsin(io.github.frikit.krandom.generator.GeneratorConfig)
+io.github.frikit.krandom.generator.Generators#ofCusip(io.github.frikit.krandom.generator.GeneratorConfig)
 io.github.frikit.krandom.generator.commerce.CnpjGenerator#withAlphanumericFormat()
 # Banking constructors retain their unsafe 1.6 compatibility behavior only as deprecated bridges.
 io.github.frikit.krandom.generator.finance.AbaRoutingGenerator

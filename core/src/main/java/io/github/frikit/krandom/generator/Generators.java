@@ -2259,17 +2259,37 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces valid ISIN codes.
+     * Returns an ISIN generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit securities-identifier safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static IsinGenerator ofIsin() {
-        return new IsinGenerator();
+        return new IsinGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces CUSIP values with valid check digits.
+     * Returns an ISIN generator configured by the given {@link GeneratorConfig}.
+     */
+    public static IsinGenerator ofIsin(GeneratorConfig config) {
+        return new IsinGenerator(config);
+    }
+
+    /**
+     * Returns a CUSIP generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit securities-identifier safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static CusipGenerator ofCusip() {
-        return new CusipGenerator();
+        return new CusipGenerator(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Returns a CUSIP generator configured by the given {@link GeneratorConfig}.
+     */
+    public static CusipGenerator ofCusip(GeneratorConfig config) {
+        return new CusipGenerator(config);
     }
 
     /**

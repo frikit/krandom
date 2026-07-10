@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -414,6 +415,7 @@ public final class GenerationRecipe {
         applyBankingSafetyPolicy(builder);
         applyBusinessTaxIdentifierSafetyPolicy(builder);
         applyCryptoAddressSafetyPolicy(builder);
+        applySecuritiesIdentifierSafetyPolicy(builder);
         applyPhoneNumberSafetyPolicy(builder);
         applyNationalIdSafetyPolicy(builder);
         applyIdentityDocumentSafetyPolicy(builder);
@@ -467,6 +469,14 @@ public final class GenerationRecipe {
             ? CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED
             : CryptoAddressSafetyPolicy.valueOf(value);
         builder.cryptoAddressSafetyPolicy(policy);
+    }
+
+    private void applySecuritiesIdentifierSafetyPolicy(GeneratorConfig.Builder builder) {
+        String value = settings.get("securities-identifier.safety-policy");
+        SecuritiesIdentifierSafetyPolicy policy = value == null
+            ? SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED
+            : SecuritiesIdentifierSafetyPolicy.valueOf(value);
+        builder.securitiesIdentifierSafetyPolicy(policy);
     }
 
     private void applyPhoneNumberSafetyPolicy(GeneratorConfig.Builder builder) {
@@ -529,7 +539,8 @@ public final class GenerationRecipe {
                  "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
                  "payment.card-safety-policy", "banking.safety-policy", "phone-number.safety-policy",
                  "national-id.safety-policy", "identity-document.safety-policy",
-                 "business-tax-identifier.safety-policy", "crypto-address.safety-policy" -> true;
+                 "business-tax-identifier.safety-policy", "crypto-address.safety-policy",
+                 "securities-identifier.safety-policy" -> true;
             default -> false;
         };
     }

@@ -77,7 +77,7 @@ This section is the current source of truth for Java-core parity status. Some le
 | UUID                                                | ✅ Exists    | `UUIDGenerator` supports v4/v5/v7 (fake-rs commonly v4 via feature flag).              |
 | CurrencyCode / Name / Symbol                        | ✅ Exists    | `CurrencyGenerator` supports all three.                                                |
 | Credit card number / expiry / CVV                   | ✅ Exists    | `CreditCardGenerator` + `CardExpirationGenerator`.                                     |
-| BIC / ISIN                                          | 🟡 Configured-only BIC; ISIN exists | `BicGenerator` requires explicit banking compatibility policy; `IsinGenerator` remains unchanged. |
+| BIC / ISIN                                          | 🟡 Configured-only identifiers | `BicGenerator` requires explicit banking compatibility; `IsinGenerator` requires explicit securities-identifier compatibility. |
 | CompanyName / Industry / Profession                 | ✅ Exists    | Implemented; `ProfessionGenerator` is locale-extensible.                               |
 | JobField / JobSeniority / JobTitle(Position)        | ✅ Exists    | `JobFieldGenerator`, `SeniorityGenerator`, `PositionGenerator`.                        |
 | JobType                                             | ✅ Exists    | `JobTypeGenerator`.                                                                    |

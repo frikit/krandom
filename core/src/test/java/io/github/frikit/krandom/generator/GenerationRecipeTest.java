@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.base.DigitGenerator;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -244,6 +245,23 @@ class GenerationRecipeTest {
     }
 
     @Test
+    @DisplayName("replays the configured securities-identifier safety policy")
+    void replaysSecuritiesIdentifierSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .securitiesIdentifierSafetyPolicy(
+                                                    SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("REALISTIC_UNCLASSIFIED",
+                     recipe.getSettings().get("securities-identifier.safety-policy"));
+        assertEquals(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getSecuritiesIdentifierSafetyPolicy());
+    }
+
+    @Test
     @DisplayName("replays legacy recipes without a banking safety setting as unclassified")
     void replaysLegacyRecipeWithoutBankingSafetyPolicy() {
         GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
@@ -268,6 +286,15 @@ class GenerationRecipeTest {
 
         assertEquals(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED,
                      recipe.toGeneratorConfig().getCryptoAddressSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without a securities-identifier safety setting as unclassified")
+    void replaysLegacyRecipeWithoutSecuritiesIdentifierSafetyPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getSecuritiesIdentifierSafetyPolicy());
     }
 
     @Test

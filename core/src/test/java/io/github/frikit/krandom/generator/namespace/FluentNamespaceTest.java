@@ -38,6 +38,7 @@ import io.github.frikit.krandom.generator.finance.EinGenerator;
 import io.github.frikit.krandom.generator.finance.IbanGenerator;
 import io.github.frikit.krandom.generator.finance.IsinGenerator;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;
+import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.identifier.EanGenerator;
 import io.github.frikit.krandom.generator.identifier.HashGenerator;
 import io.github.frikit.krandom.generator.identifier.IdentifierMaskGenerator;
@@ -172,7 +173,7 @@ class FluentNamespaceTest {
     // ── Finance namespace ────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("finance namespace generates all values with explicit banking compatibility")
+    @DisplayName("finance namespace generates all values with explicit compatibility policies")
     void financeNamespace() {
         FinanceGenerators f = Generators.finance(GeneratorConfig.builder()
                                                                  .bankingSafetyPolicy(
@@ -181,6 +182,8 @@ class FluentNamespaceTest {
                                                                      BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                                  .cryptoAddressSafetyPolicy(
                                                                      CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .securitiesIdentifierSafetyPolicy(
+                                                                     SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                                  .build());
         assertNotNull(f.creditCard().generate());
         assertNotNull(f.creditCardInfo().generate());
@@ -345,6 +348,7 @@ class FluentNamespaceTest {
             .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .build();
 
         DateTimeGenerators datetime = Generators.datetime(seeded);
