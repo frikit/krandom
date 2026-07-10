@@ -40,9 +40,16 @@ import io.github.frikit.krandom.generator.weather.WeatherGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -457,6 +464,21 @@ class DataRegistryContextTest {
     void zodiacProvidersRejectIncompleteCycles() {
         assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
                                                                              .registerZodiacProvider(zodiacProvider(Locale.US, "only", 11)));
+    }
+
+    @Test
+    @DisplayName("concurrent isolated contexts do not leak provider data")
+    void concurrentIsolatedContextsDoNotLeakProviderData() throws Exception {
+        DataRegistryContext first = scopedVocabularyContext("first");
+        DataRegistryContext second = scopedVocabularyContext("second");
+
+        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+            Future<List<String>> firstOutput = executor.submit(() -> generateScopedVocabulary(first));
+            Future<List<String>> secondOutput = executor.submit(() -> generateScopedVocabulary(second));
+
+            assertEquals(Collections.nCopies(200, expectedScopedVocabulary("first")), firstOutput.get());
+            assertEquals(Collections.nCopies(200, expectedScopedVocabulary("second")), secondOutput.get());
+        }
     }
 
     @Test
@@ -1022,6 +1044,66 @@ class DataRegistryContextTest {
                 return "NID";
             }
         };
+    }
+
+    private static DataRegistryContext scopedVocabularyContext(String marker) {
+        return DataRegistryContext.builder()
+                                  .isolated()
+                                  .registerWeatherProvider(weatherProvider(Locale.US, marker + " weather"))
+                                  .registerMeasurementProvider(measurementProvider(Locale.US, marker + " unit"))
+                                  .registerFinancialTermProvider(financialTermProvider(Locale.US, marker + " term"))
+                                  .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, marker + " restaurant"))
+                                  .registerHobbyProvider(hobbyProvider(Locale.US, marker + " hobby"))
+                                  .registerNationalityProvider(nationalityProvider(Locale.US, marker + " nationality"))
+                                  .registerPronounProvider(pronounProvider(Locale.US, marker + "/pronoun"))
+                                  .registerBloodTypeProvider(bloodTypeProvider(Locale.US, List.of(marker + " blood"), List.of(1)))
+                                  .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, marker + " dragon"))
+                                  .registerZodiacProvider(zodiacProvider(Locale.US, marker + " aries"))
+                                  .build();
+    }
+
+    private static List<String> generateScopedVocabulary(DataRegistryContext context) {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).registryContext(context).build();
+        WeatherGenerator weather = new WeatherGenerator(config);
+        MeasurementGenerator measurement = new MeasurementGenerator(config);
+        FinancialTermGenerator financialTerm = new FinancialTermGenerator(config);
+        RestaurantTypeGenerator restaurantType = new RestaurantTypeGenerator(config);
+        HobbyGenerator hobby = new HobbyGenerator(config);
+        NationalityGenerator nationality = new NationalityGenerator(config);
+        PronounGenerator pronoun = new PronounGenerator(config);
+        BloodTypeGenerator bloodType = new BloodTypeGenerator(config);
+        ChineseZodiacGenerator chineseZodiac = new ChineseZodiacGenerator(config);
+        ZodiacGenerator zodiac = new ZodiacGenerator(config);
+        List<String> output = new ArrayList<>(200);
+
+        for (int index = 0; index < 200; index++) {
+            output.add(String.join("|",
+                                   weather.generate(),
+                                   measurement.generate(),
+                                   financialTerm.generate(),
+                                   restaurantType.generate(),
+                                   hobby.generate(),
+                                   nationality.generate(),
+                                   pronoun.generate(),
+                                   bloodType.generate(),
+                                   chineseZodiac.animalFor(2024),
+                                   zodiac.signFor(LocalDate.of(2024, 3, 21))));
+        }
+        return output;
+    }
+
+    private static String expectedScopedVocabulary(String marker) {
+        return String.join("|",
+                           marker + " weather",
+                           marker + " unit",
+                           marker + " term",
+                           marker + " restaurant",
+                           marker + " hobby",
+                           marker + " nationality",
+                           marker + "/pronoun",
+                           marker + " blood",
+                           marker + " dragon",
+                           marker + " aries");
     }
 
     private static WeatherDataProvider weatherProvider(Locale locale, String condition) {

@@ -72,13 +72,13 @@ registration only as a deprecated 1.6 compatibility adapter.
 array validation have one implementation; no context reads mutable global state when isolated.
 **Tests:** Per-family override isolation, locale fallback matrix, malformed provider data, and
 concurrent contexts without cross-contamination.
-**Status:** In Progress
+**Status:** Complete
 
 All generator-backed locale vocabulary now has validated context registration, locale fallback, and
 snapshot keys in `DataRegistryContext`; generators resolve it from `GeneratorConfig` rather than
 directly from process-wide state. The 23 static mutation methods are deprecated 1.6 compatibility
-adapters with exact context-builder replacement links. The remaining Stage 3 evidence is a focused
-concurrent-context non-leakage test.
+adapters with exact context-builder replacement links. A focused concurrent-context test exercises
+two isolated configurations across the scoped vocabulary families without cross-contamination.
 
 Measurement follows the same context boundary for its localized unit vocabulary. Its generator
 now resolves one config-scoped provider before using the legacy registry fallback.
