@@ -29,6 +29,14 @@ class PassportGeneratorTest {
     }
 
     @Test
+    @DisplayName("legacy constructor is scheduled for v2 removal")
+    void legacyConstructorIsScheduledForRemoval() throws NoSuchMethodException {
+        Deprecated annotation = PassportGenerator.class.getConstructor().getAnnotation(Deprecated.class);
+
+        assertTrue(annotation.forRemoval());
+    }
+
+    @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
         List<String> a = new PassportGenerator(realisticConfig(77L)).generateList(25);

@@ -34,7 +34,7 @@ public final class PassportGenerator implements Generator<String> {
      * @deprecated since 1.6; use {@link #PassportGenerator(GeneratorConfig)} and select an
      * explicit safety policy instead
      */
-    @Deprecated(since = "1.6", forRemoval = false)
+    @Deprecated(since = "1.6", forRemoval = true)
     public PassportGenerator() {
         this(GeneratorConfig.builder()
                             .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)

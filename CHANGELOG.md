@@ -67,7 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `GeneratorConfig`, `Generators.ofPassport()`, and `Generators.ofDrivingLicense()` now disable
   generic document identifiers by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility
   opt-in; the direct `PassportGenerator` and `DrivingLicenseGenerator` constructors are deprecated
-  1.6 bridges, and portable recipes persist the selected policy.
+  1.6 bridges scheduled for v2 removal, and portable recipes persist the selected policy.
 - `GeneratorConfig`, `Generators.ofCnpj()`, and `Generators.ofEin()` now disable corporate tax-ID
   generation by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; direct
   `CnpjGenerator` and `EinGenerator` constructors are deprecated 1.6 bridges, and portable

@@ -29,6 +29,14 @@ class DrivingLicenseGeneratorTest {
     }
 
     @Test
+    @DisplayName("legacy constructor is scheduled for v2 removal")
+    void legacyConstructorIsScheduledForRemoval() throws NoSuchMethodException {
+        Deprecated annotation = DrivingLicenseGenerator.class.getConstructor().getAnnotation(Deprecated.class);
+
+        assertTrue(annotation.forRemoval());
+    }
+
+    @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
         List<String> a = new DrivingLicenseGenerator(realisticConfig(77L)).generateList(25);
