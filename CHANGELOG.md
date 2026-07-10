@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add versioned, human-readable `GenerationRecipe` replay metadata for portable seeded configurations.
 
 ### Added
+
+- Kotest replay-safe factory and object `Arb` adapters now derive a fresh kRandom configuration
+  from each host random-source draw; older mutable adapters are deprecated as 1.6 bridges.
 - `PaymentCardSafetyPolicy.STRIPE_SANDBOX`, an explicit Stripe-only sandbox mode that maps each
   card type supported by kRandom to Stripe's published interactive test-card number. It requires
   Stripe sandbox/test API keys and is not portable to another processor; server-side Stripe tests

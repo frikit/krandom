@@ -31,6 +31,8 @@ io.github.frikit.krandom.generator.GenerationRecipe#deriveChildSeed(long,java.la
 io.github.frikit.krandom.generator.GenerationRecipe#serializeForDiagnostics()
 # Exact class classification covers the additive JUnit replay-report constant.
 io.github.frikit.krandom.junit.KrandomExtension
+# Kotest host-random-source adapters; legacy mutable adapters remain deprecated 1.6 bridges.
+io.github.frikit.krandom.kotest.KrandomArbKt
 io.github.frikit.krandom.generator.schema.SchemaGenerationException#getReplayRecipe()
 io.github.frikit.krandom.generator.GeneratorConfig#getGenerationProfile()
 io.github.frikit.krandom.generator.GeneratorConfig#getSafetyPolicy()

@@ -620,7 +620,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Adapt Kotest `RandomSource` into per-case kRandom generation.
+- [x] Adapt Kotest `RandomSource` into per-case kRandom generation.
 - [ ] Eliminate hidden mutable unseeded streams from `Arb` adapters.
 - [ ] Define meaningful edge cases and shrinkers for bounded primitives and selections.
 - [ ] Explicitly document types that cannot be structurally shrunk.

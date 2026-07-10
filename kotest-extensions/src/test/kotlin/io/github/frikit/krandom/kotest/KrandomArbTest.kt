@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig
 import io.github.frikit.krandom.generator.Generators
 import io.github.frikit.krandom.generator.base.IntGenerator
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -17,8 +18,10 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.property.Arb
+import io.kotest.property.RandomSource
 import io.kotest.property.arbitrary.take
 import io.kotest.property.checkAll
+import java.util.Random
 
 class KrandomArbTest : DescribeSpec({
 
@@ -55,6 +58,20 @@ class KrandomArbTest : DescribeSpec({
 
     describe("krandomArb factory") {
 
+        it("uses Kotest random-source draws to create fresh reproducible generators") {
+            var factoryCalls = 0
+            val arb = krandomArb(GeneratorConfig.defaults()) { config ->
+                factoryCalls++
+                io.github.frikit.krandom.generator.Generator { config.createRandom().nextInt() }
+            }
+
+            val first = arb.samples(RandomSource.seeded(314159L)).take(20).map { it.value }.toList()
+            val second = arb.samples(RandomSource.seeded(314159L)).take(20).map { it.value }.toList()
+
+            first shouldBe second
+            factoryCalls shouldBe 40
+        }
+
         it("creates an Arb from a generator factory") {
             val nameArb = krandomArb { Generators.ofFullName() }
             val samples = nameArb.take(20).toList()
@@ -86,7 +103,7 @@ class KrandomArbTest : DescribeSpec({
             val config = GeneratorConfig.builder()
                 .seed(42L)
                 .build()
-            val arb = krandomObjectArb<SamplePojo>(config)
+            val arb = krandomReplayObjectArb<SamplePojo>(config)
             val samples = arb.take(10).toList()
             samples shouldHaveSize 10
             samples.forEach {
@@ -123,11 +140,33 @@ class KrandomArbTest : DescribeSpec({
             first shouldBe second
         }
 
-        it("krandomObjectArb with a seeded config is deterministic across instances") {
+        it("krandomObjectArb with identical Kotest sources is deterministic across instances") {
             val config = GeneratorConfig.builder().seed(42L).build()
-            val first = krandomObjectArb<SamplePojo>(config).take(10).toList().map { it.name to it.age }
-            val second = krandomObjectArb<SamplePojo>(config).take(10).toList().map { it.name to it.age }
+            val first = krandomReplayObjectArb<SamplePojo>(config).samples(RandomSource.seeded(42L)).take(10)
+                .map { it.value.name to it.value.age }.toList()
+            val second = krandomReplayObjectArb<SamplePojo>(config).samples(RandomSource.seeded(42L)).take(10)
+                .map { it.value.name to it.value.age }.toList()
             first shouldBe second
+        }
+
+        it("krandomReplayObjectArb replays from the Kotest random source") {
+            val config = GeneratorConfig.builder().seed(42L).build()
+            val arb = krandomReplayObjectArb<SamplePojo>(config)
+
+            val first = arb.samples(RandomSource.seeded(271828L)).take(10)
+                .map { it.value.name to it.value.age }.toList()
+            val second = arb.samples(RandomSource.seeded(271828L)).take(10)
+                .map { it.value.name to it.value.age }.toList()
+
+            first shouldBe second
+        }
+
+        it("krandomObjectArb rejects a caller-owned random source") {
+            val config = GeneratorConfig.builder().random(Random(42L)).build()
+
+            shouldThrow<IllegalArgumentException> {
+                krandomReplayObjectArb<SamplePojo>(config).sample(RandomSource.seeded(1L))
+            }
         }
     }
 })
