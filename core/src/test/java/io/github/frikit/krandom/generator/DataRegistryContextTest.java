@@ -20,6 +20,8 @@ import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyGenerator;
+import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
+import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityGenerator;
@@ -358,6 +360,41 @@ class DataRegistryContextTest {
                                                                              .registerPronounProvider(pronounProvider(Locale.US, "they/")));
         assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
                                                                              .registerPronounProvider(pronounProvider(Locale.US, "they/them/us")));
+    }
+
+    @Test
+    @DisplayName("blood-type providers remain isolated between contexts")
+    void bloodTypeProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1)))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("AB-"), java.util.List.of(1)))
+                                                         .build();
+
+        assertEquals("O+", new BloodTypeGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
+        assertEquals("AB-", new BloodTypeGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(Set.of("en", "en_US"), first.bloodTypeRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isBloodTypeRegistered(Locale.US));
+        assertNull(empty.bloodTypeProvider(Locale.US));
+        assertFalse(empty.isBloodTypeRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().bloodTypeRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("blood-type providers require parallel positive weights")
+    void bloodTypeProvidersRejectInvalidDistributions() {
+        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
+                                                                             .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1, 2))));
+        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
+                                                                             .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(0))));
+        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
+                                                                             .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.Collections.singletonList(null))));
+        assertThrows(NullPointerException.class, () -> DataRegistryContext.builder()
+                                                                             .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), null)));
     }
 
     @Test
@@ -1023,6 +1060,26 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<String> getPronounSets() {
                 return java.util.List.of(pronounSet);
+            }
+        };
+    }
+
+    private static BloodTypeDataProvider bloodTypeProvider(
+        Locale locale, java.util.List<String> types, java.util.List<Integer> weights) {
+        return new BloodTypeDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getTypes() {
+                return types;
+            }
+
+            @Override
+            public java.util.List<Integer> getWeights() {
+                return weights;
             }
         };
     }

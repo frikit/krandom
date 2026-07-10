@@ -120,6 +120,11 @@ APIs. They provide validated, locale-fallback-aware `subject/object` pronoun set
 `GeneratorConfig`; `PronounDataRegistry.register(...)` remains the 1.6 compatibility adapter.
 `PronounGenerator` remains **KEEP** with no new public member and now resolves sets through the
 configuration context.
+`DataRegistryContext` blood-type lookup, key snapshot, and builder registration are additive
+**KEEP** APIs. They provide validated parallel, positive-weight distributions scoped to one
+`GeneratorConfig`; `BloodTypeDataRegistry.register(...)` remains the 1.6 compatibility adapter.
+`BloodTypeGenerator` remains **KEEP** with no new public member and now resolves distributions
+through the configuration context.
 
 `ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
 APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and

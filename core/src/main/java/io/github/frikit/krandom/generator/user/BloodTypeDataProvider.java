@@ -12,8 +12,10 @@ import java.util.Locale;
  * Contract for a locale-specific blood-type distribution.
  *
  * <p>ABO/Rh frequencies differ by population, so blood types are weighted per locale. Implement this
- * interface and register an instance with {@link BloodTypeDataRegistry} to add or override the
- * distribution for any locale — including locales not built into the library.
+ * interface and register an instance with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerBloodTypeProvider(BloodTypeDataProvider)}
+ * to add or override a validated distribution for one configuration. The global
+ * {@link BloodTypeDataRegistry} remains a compatibility bridge.
  *
  * <p>{@link #getTypes()} and {@link #getWeights()} are parallel lists: the type at index {@code i}
  * is generated with relative weight {@code getWeights().get(i)}.

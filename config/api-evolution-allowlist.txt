@@ -115,6 +115,14 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerPronounPr
 # PronounGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.user.PronounGenerator
 
+# Config-scoped blood-type distributions; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext#bloodTypeProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isBloodTypeRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#bloodTypeRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerBloodTypeProvider(io.github.frikit.krandom.generator.user.BloodTypeDataProvider)
+# BloodTypeGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.user.BloodTypeGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy

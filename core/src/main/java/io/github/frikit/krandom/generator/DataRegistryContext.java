@@ -24,6 +24,8 @@ import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.GenderDataRegistry;
+import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
+import io.github.frikit.krandom.generator.user.BloodTypeDataRegistry;
 import io.github.frikit.krandom.generator.user.HobbyDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyDataRegistry;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
@@ -82,6 +84,7 @@ public final class DataRegistryContext {
     private final Map<String, HobbyDataProvider>          hobbies;
     private final Map<String, NationalityDataProvider>    nationalities;
     private final Map<String, PronounDataProvider>        pronouns;
+    private final Map<String, BloodTypeDataProvider>      bloodTypes;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -103,6 +106,7 @@ public final class DataRegistryContext {
         this.hobbies = Map.copyOf(builder.hobbies);
         this.nationalities = Map.copyOf(builder.nationalities);
         this.pronouns = Map.copyOf(builder.pronouns);
+        this.bloodTypes = Map.copyOf(builder.bloodTypes);
     }
 
     /**
@@ -526,6 +530,39 @@ public final class DataRegistryContext {
         return mergeKeys(pronouns.keySet(), useGlobalFallback ? PronounDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the blood-type provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public BloodTypeDataProvider bloodTypeProvider(Locale locale) {
+        BloodTypeDataProvider provider = findWithFallback(bloodTypes, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return BloodTypeDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve a blood-type distribution for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isBloodTypeRegistered(Locale locale) {
+        return bloodTypeProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable blood-type locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> bloodTypeRegisteredKeys() {
+        return mergeKeys(bloodTypes.keySet(), useGlobalFallback ? BloodTypeDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -616,6 +653,21 @@ public final class DataRegistryContext {
         }
     }
 
+    private static void validateBloodTypeDistribution(
+        java.util.List<String> types, java.util.List<Integer> weights) {
+        validateTextValues("types", types);
+        Objects.requireNonNull(weights, "weights");
+        if (types.size() != weights.size()) {
+            throw new IllegalArgumentException("types and weights length must match");
+        }
+        for (int i = 0; i < weights.size(); i++) {
+            Integer weight = weights.get(i);
+            if (weight == null || weight <= 0) {
+                throw new IllegalArgumentException("weight at index " + i + " must be > 0");
+            }
+        }
+    }
+
     private static void validateProfessionArrays(String[] professions, int[] weights) {
         Objects.requireNonNull(professions, "professions");
         Objects.requireNonNull(weights, "weights");
@@ -660,6 +712,7 @@ public final class DataRegistryContext {
         private final Map<String, HobbyDataProvider>          hobbies         = new LinkedHashMap<>();
         private final Map<String, NationalityDataProvider>    nationalities   = new LinkedHashMap<>();
         private final Map<String, PronounDataProvider>        pronouns        = new LinkedHashMap<>();
+        private final Map<String, BloodTypeDataProvider>      bloodTypes      = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -870,6 +923,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validatePronounSets(provider.getPronounSets());
             putWithLanguageFallback(pronouns, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific blood-type distribution provider in this context.
+         *
+         * @param provider blood-type distribution provider
+         * @return this builder
+         */
+        public Builder registerBloodTypeProvider(BloodTypeDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateBloodTypeDistribution(provider.getTypes(), provider.getWeights());
+            putWithLanguageFallback(bloodTypes, provider.getLocale(), provider);
             return this;
         }
 
