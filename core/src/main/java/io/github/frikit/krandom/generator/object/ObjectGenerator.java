@@ -279,6 +279,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private ObjectGenerationException constructionFailure(Throwable cause) {
         String path = type.getSimpleName();
+        if (path.isBlank()) {
+            path = type.getName();
+        }
         GenerationFailureContext context = new GenerationFailureContext(
             GenerationFailureCategory.CONSTRUCTION,
             GenerationOperation.CONSTRUCT,
@@ -420,6 +423,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * @throws ReflectiveOperationException if the constructor is found but throws at runtime
      */
     private T instantiate(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
+        validateConstructibleType();
         try {
             Constructor<T> ctor = type.getDeclaredConstructor();
             ctor.setAccessible(true);
@@ -429,6 +433,24 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 return OBJENESIS.newInstance(type);
             }
             return invokeUniqueDeclaredConstructor(resolver);
+        }
+    }
+
+    private void validateConstructibleType() throws ReflectiveOperationException {
+        int modifiers = type.getModifiers();
+        boolean unsupported = type.isArray()
+                              || type.isPrimitive()
+                              || type.isEnum()
+                              || type.isAnnotation()
+                              || type.isInterface()
+                              || Modifier.isAbstract(modifiers)
+                              || type.isLocalClass()
+                              || type.isAnonymousClass()
+                              || (type.isMemberClass() && !Modifier.isStatic(modifiers));
+        if (unsupported) {
+            throw new ReflectiveOperationException(
+                "Construction policy " + config.getConstructionPolicy()
+                + " does not support root type " + type.getName());
         }
     }
 

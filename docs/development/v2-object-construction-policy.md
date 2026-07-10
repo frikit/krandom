@@ -1,6 +1,6 @@
 # V2 Object Construction Policy
 
-**Status:** Implementation in progress; Stage 1 complete, Stage 2 in progress
+**Status:** Implementation in progress; Stages 1–2 complete
 **Scope:** Java object construction in `ObjectGenerator`
 
 ## Goal
@@ -49,13 +49,18 @@ open; ambiguous, abstract, interface, local, anonymous, and non-static inner typ
 **Tests:** Constructor invariants, annotations on parameters, inherited mutable fields, private and
 throwing constructors, ambiguity, abstract/interface roots, and nested failures.
 
-**Status:** In Progress
+**Status:** Complete
 
 No-argument constructors remain first choice. When one is absent, safe mode invokes one declared
 constructor and resolves its parameters through `FieldGeneratorResolver`; private constructors and
 parameter annotations therefore use the same type and constraint rules as fields. Ambiguous
 constructor sets fail with root construction context naming `SAFE_CONSTRUCTORS`. Unsafe mode keeps
 the legacy no-constructor path and deliberately skips the declared constructor.
+
+Constructor parameter annotations are normalized through the same Bean Validation contract as
+fields. Abstract, interface, array, primitive, enum, annotation, local, anonymous, and non-static
+inner root types fail before allocation with the selected policy in their construction cause. The
+anonymous-type path uses its binary name so structured failure context is never blank.
 
 ## Stage 3: Factories and unwritable state
 

@@ -8,11 +8,14 @@ package io.github.frikit.krandom.generator.object;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -86,6 +89,62 @@ class ObjectConstructionPolicyTest {
         assertNull(value.required);
     }
 
+    @Test
+    @DisplayName("declared constructor parameters use Bean Validation normalization")
+    void constructorParametersUseConstraintNormalization() {
+        ConstrainedConstructorFixture value =
+            new ObjectGenerator<>(ConstrainedConstructorFixture.class).generate();
+
+        assertNotNull(value.code);
+        assertEquals(4, value.code.length());
+        assertFalse(value.code.isBlank());
+    }
+
+    @Test
+    @DisplayName("unsupported root shapes fail before allocation under the selected policy")
+    void unsupportedRootShapesFailBeforeAllocation() {
+        assertUnsupportedRoot(AbstractFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+        assertUnsupportedRoot(InterfaceFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+        assertUnsupportedRoot(NonStaticInnerFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+        assertUnsupportedRoot(String[].class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+        assertUnsupportedRoot(int.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+        assertUnsupportedRoot(EnumFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+        assertUnsupportedRoot(AnnotationFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+
+        class LocalFixture {
+        }
+        assertUnsupportedRoot(LocalFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+
+        Object anonymous = new Object() {};
+        assertUnsupportedRoot(anonymous.getClass(), ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
+    }
+
+    @Test
+    @DisplayName("unsafe policy is named when an unsupported root cannot be allocated")
+    void unsafeUnsupportedRootNamesPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectConstructionPolicy(
+                                                    ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
+                                                .build();
+
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(AbstractFixture.class, config).generate());
+
+        assertEquals(GenerationFailureCategory.CONSTRUCTION, ex.getContext().orElseThrow().category());
+        assertTrue(ex.getCause().getMessage().contains(
+            ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS.name()));
+    }
+
+    private static void assertUnsupportedRoot(Class<?> type, ObjectConstructionPolicy policy) {
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(type).generate());
+
+        assertEquals(GenerationFailureCategory.CONSTRUCTION, ex.getContext().orElseThrow().category());
+        assertTrue(ex.getCause().getMessage().contains(policy.name()));
+    }
+
     static final class UniqueConstructorFixture {
 
         static int constructorCalls;
@@ -115,5 +174,28 @@ class ObjectConstructionPolicyTest {
             constructorCalls++;
             this.value = Integer.toString(value);
         }
+    }
+
+    static final class ConstrainedConstructorFixture {
+
+        final String code;
+
+        ConstrainedConstructorFixture(@NotBlank @Size(min = 4, max = 4) String code) {
+            this.code = code;
+        }
+    }
+
+    abstract static class AbstractFixture {
+    }
+
+    interface InterfaceFixture {
+    }
+
+    enum EnumFixture { VALUE }
+
+    @interface AnnotationFixture {
+    }
+
+    final class NonStaticInnerFixture {
     }
 }
