@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `krandomIntArb`, `krandomLongArb`, `krandomDoubleArb`, and `krandomPickArb`, shrinking-aware
+  Kotest adapters for bounded primitives and selections with in-range edge cases and
+  range-bounded shrink candidates.
 - Kotest replay-safe factory and object `Arb` adapters now derive a fresh kRandom configuration
   from each host random-source draw; older mutable adapters are deprecated as 1.6 bridges.
 - `PaymentCardSafetyPolicy.STRIPE_SANDBOX`, an explicit Stripe-only sandbox mode that maps each

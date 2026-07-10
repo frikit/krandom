@@ -621,17 +621,17 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Actions**
 
 - [x] Adapt Kotest `RandomSource` into per-case kRandom generation.
-- [ ] Eliminate hidden mutable unseeded streams from `Arb` adapters.
-- [ ] Define meaningful edge cases and shrinkers for bounded primitives and selections.
-- [ ] Explicitly document types that cannot be structurally shrunk.
+- [ ] Eliminate hidden mutable unseeded streams from `Arb` adapters. (Deprecated 1.6 bridges remain; removal is scheduled with the Step 3.1 v2 removals.)
+- [x] Define meaningful edge cases and shrinkers for bounded primitives and selections.
+- [x] Explicitly document types that cannot be structurally shrunk.
 - [ ] Print a kRandom recipe alongside Kotest seed information on failure.
 - [ ] Test the published adapter with the supported Kotest version range.
 
 **Tests**
 
-- [ ] Re-running a failing Kotest seed reproduces the same fixture sequence.
-- [ ] Shrinking converges for supported primitives and selections.
-- [ ] Parallel property tests do not share mutable generator state.
+- [x] Re-running a failing Kotest seed reproduces the same fixture sequence.
+- [x] Shrinking converges for supported primitives and selections.
+- [x] Parallel property tests do not share mutable generator state.
 
 **Done when:** Kotest users can rely on Kotest's normal replay workflow.
 

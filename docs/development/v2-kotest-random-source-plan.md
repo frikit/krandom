@@ -37,3 +37,17 @@ claim structural shrinking for arbitrary object fixtures.
 **Tests:** Focused Kotest tests, full pre-commit gate, and local consumer examples.
 
 **Status:** Complete
+
+## Stage 4: Add bounded shrinking adapters
+
+**Goal:** Give bounded primitives and selections meaningful Kotest edge cases and range-bounded
+shrinkers without claiming structural shrinking for object or semantic fixtures.
+
+**Success Criteria:** `krandomIntArb`, `krandomLongArb`, `krandomDoubleArb`, and `krandomPickArb`
+stay inside their advertised ranges while sampling, in edge cases, and in every shrink candidate;
+failing properties converge to the boundary counterexample; concurrent sampling equals serial
+replay for each Kotest source.
+
+**Tests:** `KrandomShrinkingArbTest` and the full pre-commit gate.
+
+**Status:** Complete
