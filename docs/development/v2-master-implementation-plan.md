@@ -396,14 +396,14 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Detect impossible intersections before producing a value.
 - [x] Define precedence between explicit field rules, annotations, defaults, and null probability.
 - [x] Validate advertised output with a real Jakarta Validation implementation in tests.
-- [ ] Publish the exact supported-constraint table from code facts.
+- [x] Publish the exact supported-constraint table from code facts.
 
 **Tests**
 
-- [ ] Add red/green cases for every supported annotation, boundary, composition, and nullability interaction.
+- [x] Add red/green cases for every supported annotation, boundary, composition, and nullability interaction.
 - [x] Prove `@Min(10) @Max(5)` and `@Size(min=5,max=2)` fail fast.
 - [x] Prove null probability cannot violate `@NotNull`, `@NotEmpty`, or primitive requirements.
-- [ ] Validate generated objects through Hibernate Validator across many deterministic seeds.
+- [x] Validate generated objects through Hibernate Validator across many deterministic seeds.
 
 **Done when:** Generated fixtures satisfy every advertised constraint or generation fails before returning them.
 

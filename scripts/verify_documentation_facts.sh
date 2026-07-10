@@ -49,9 +49,11 @@ ACTUAL_NATIVE="$(( ACTUAL_TOTAL - ACTUAL_FALLBACK ))"
 [[ "${ACTUAL_FALLBACK}" == "${FALLBACK_LOCALE_COUNT}" ]] || fail "SupportedLocale has ${ACTUAL_FALLBACK} fallback variants, expected ${FALLBACK_LOCALE_COUNT}"
 
 BEAN_VALIDATION_FILE="${REPO_ROOT}/core/src/main/java/io/github/frikit/krandom/generator/object/BeanValidationSupport.java"
+BEAN_VALIDATION_GUIDE="${REPO_ROOT}/docs-site/guides/bean-validation.md"
 IFS=',' read -r -a constraints <<< "${BEAN_VALIDATION_CONSTRAINTS}"
 for constraint in "${constraints[@]}"; do
     grep -Fq "import jakarta.validation.constraints.${constraint};" "${BEAN_VALIDATION_FILE}" || fail "Bean Validation fact ${constraint} is not implemented"
+    grep -Fq "| \`@${constraint}\` |" "${BEAN_VALIDATION_GUIDE}" || fail "Bean Validation guide does not document ${constraint}"
 done
 ACTUAL_CONSTRAINT_COUNT="$(grep -Ec '^import jakarta\.validation\.constraints\.' "${BEAN_VALIDATION_FILE}")"
 [[ "${ACTUAL_CONSTRAINT_COUNT}" == "${#constraints[@]}" ]] || fail "BeanValidationSupport imports ${ACTUAL_CONSTRAINT_COUNT} constraints, facts list ${#constraints[@]}"

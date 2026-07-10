@@ -66,6 +66,12 @@ Configured object date ranges still apply to semantic temporal fields. If you se
 
 Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win.
 
+## Bean Validation
+
+Object population natively composes 21 Jakarta Validation constraints across fields, getters,
+records, and interface accessors. See the [Bean Validation support matrix]({{ '/guides/bean-validation/' | relative_url }})
+for exact target types, intersection rules, precedence, and exclusions.
+
 ## Fluent fixtures
 
 Use `ObjectFaker<T>` when the default object graph is close but you want a few explicit rules, including nested paths:

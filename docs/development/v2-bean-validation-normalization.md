@@ -1,6 +1,6 @@
 # V2 Bean Validation Normalization
 
-**Status:** Implementation in progress; Stages 1–3 complete
+**Status:** Complete
 **Scope:** Jakarta Validation annotations consumed by Java object generation
 
 ## Goal
@@ -145,7 +145,16 @@ getters, and interface accessor annotations across deterministic seeds.
 **Tests:** Full Java 21 pre-commit gate plus a deterministic validator matrix covering fields,
 getters, inherited accessors, and Java record components.
 
-**Status:** Not Started
+**Status:** Complete
+
+`BeanValidationSupportMatrixTest` validates all 21 advertised constraints over 64 deterministic
+seeds with the same fixed clock used by generation and Hibernate Validator. A second matrix covers
+field, record-component, JavaBean getter, and interface accessor discovery. `@Digits` is explicitly
+characterized as unsupported ordinary metadata. The public
+[`Bean Validation Support`](../../docs-site/guides/bean-validation.md) guide names every
+supported constraint, target family, composition rule, precedence decision, bounded-search limit,
+and known exclusion. Documentation verification now requires every constraint fact in
+`gradle.properties` to have both a production import and an exact support-table row.
 
 ## Completion gate
 
