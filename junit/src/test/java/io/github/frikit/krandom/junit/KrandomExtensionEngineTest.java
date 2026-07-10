@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
@@ -23,6 +27,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -149,6 +157,70 @@ class KrandomExtensionEngineTest {
         assertTrue(stderr.contains("-Dkrandom.junit.recipe=base64:"),
                    "stderr should carry a copyable replay override, was: " + stderr);
         assertFalse(stderr.contains("private seed"), "stderr must not reveal textual seed material");
+    }
+
+    @Test
+    void printedReplayOptionReproducesTheFailingGeneration() throws Exception {
+        RecordingFailingFixture.RECORDED.clear();
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+
+        EngineExecutionResults first = runFixtureCapturingStderr(RecordingFailingFixture.class, captured);
+        first.testEvents().assertStatistics(statistics -> statistics.failed(1));
+
+        String stderr = captured.toString(StandardCharsets.UTF_8);
+        Matcher replayOption = Pattern.compile("-Dkrandom\\.junit\\.recipe=(base64:[A-Za-z0-9_-]+)")
+                .matcher(stderr);
+        assertTrue(replayOption.find(), "stderr should print a copyable replay option, was: " + stderr);
+
+        withSystemProperty(REPLAY_RECIPE_PROPERTY, replayOption.group(1), () -> {
+            EngineExecutionResults replay = runFixture(RecordingFailingFixture.class);
+            replay.testEvents().assertStatistics(statistics -> statistics.failed(1));
+        });
+
+        assertEquals(2, RecordingFailingFixture.RECORDED.size());
+        assertEquals(RecordingFailingFixture.RECORDED.get(0), RecordingFailingFixture.RECORDED.get(1),
+                "the printed replay option must reproduce the failing run's generated value");
+    }
+
+    @Test
+    void parameterizedInvocationsGetIsolatedDeterministicSources() {
+        ParameterizedPinnedFixture.RECORDED.clear();
+
+        EngineExecutionResults results = runFixture(ParameterizedPinnedFixture.class);
+
+        results.testEvents().assertStatistics(statistics -> statistics.succeeded(3).failed(0));
+        assertEquals(3, ParameterizedPinnedFixture.RECORDED.size());
+        assertEquals(1, Set.copyOf(ParameterizedPinnedFixture.RECORDED).size(),
+                "each invocation must draw from its own source seeded with the pinned seed");
+    }
+
+    @Test
+    void concurrentTestsGetIsolatedDeterministicSources() {
+        ConcurrentPinnedFixture.RECORDED.clear();
+
+        EngineExecutionResults results = EngineTestKit.engine("junit-jupiter")
+                .selectors(selectClass(ConcurrentPinnedFixture.class))
+                .configurationParameter("junit.jupiter.conditions.deactivate", "org.junit.*")
+                .configurationParameter("junit.jupiter.execution.parallel.enabled", "true")
+                .configurationParameter("junit.jupiter.execution.parallel.mode.default", "concurrent")
+                .execute();
+
+        results.testEvents().assertStatistics(statistics -> statistics.succeeded(4).failed(0));
+        assertEquals(4, ConcurrentPinnedFixture.RECORDED.size());
+        assertEquals(1, Set.copyOf(ConcurrentPinnedFixture.RECORDED).size(),
+                "concurrent tests must not share or advance one another's random source");
+    }
+
+    @Test
+    void lifecycleCallbacksDoNotLeakSeedsBetweenTests() {
+        LeakProbeFixture.RECORDED_SEEDS.clear();
+
+        EngineExecutionResults results = runFixture(LeakProbeFixture.class);
+
+        results.testEvents().assertStatistics(statistics -> statistics.succeeded(2).failed(0));
+        assertEquals(2, LeakProbeFixture.RECORDED_SEEDS.size());
+        assertEquals(2, Set.copyOf(LeakProbeFixture.RECORDED_SEEDS).size(),
+                "unpinned tests must not reuse a previous test's stored seed");
     }
 
     private static void assertSingleConfigurationError(Class<?> fixture, String expectedMessagePart) {
@@ -313,6 +385,77 @@ class KrandomExtensionEngineTest {
         @Test
         void boom() {
             fail("intentional replay fixture failure");
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class RecordingFailingFixture {
+
+        static final List<Long> RECORDED = new CopyOnWriteArrayList<>();
+
+        @Test
+        void boom(GeneratorConfig config) {
+            RECORDED.add(config.createRandom().nextLong());
+            fail("intentional recording fixture failure");
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @KrandomSeed(4242L)
+    static class ParameterizedPinnedFixture {
+
+        static final List<Long> RECORDED = new CopyOnWriteArrayList<>();
+
+        @ParameterizedTest
+        @ValueSource(ints = {1, 2, 3})
+        void invocation(int ignored, GeneratorConfig config) {
+            RECORDED.add(config.createRandom().nextLong());
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @KrandomSeed(7L)
+    @Execution(ExecutionMode.CONCURRENT)
+    static class ConcurrentPinnedFixture {
+
+        static final List<Long> RECORDED = new CopyOnWriteArrayList<>();
+
+        @Test
+        void first(GeneratorConfig config) {
+            RECORDED.add(config.createRandom().nextLong());
+        }
+
+        @Test
+        void second(GeneratorConfig config) {
+            RECORDED.add(config.createRandom().nextLong());
+        }
+
+        @Test
+        void third(GeneratorConfig config) {
+            RECORDED.add(config.createRandom().nextLong());
+        }
+
+        @Test
+        void fourth(GeneratorConfig config) {
+            RECORDED.add(config.createRandom().nextLong());
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class LeakProbeFixture {
+
+        static final List<Long> RECORDED_SEEDS = new CopyOnWriteArrayList<>();
+
+        @Test
+        void firstProbe(GeneratorConfig config) {
+            RECORDED_SEEDS.add(config.getSeed().orElseThrow());
+        }
+
+        @Test
+        void secondProbe(GeneratorConfig config) {
+            RECORDED_SEEDS.add(config.getSeed().orElseThrow());
         }
     }
 }

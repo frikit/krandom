@@ -686,7 +686,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Add a global system property/environment variable for replay recipes.
 - [x] Allow recipe/seed injection without editing test source.
 - [x] Preserve string-seed metadata instead of reducing it invisibly to a number.
-- [ ] Print one copyable replay command on failure.
+- [x] Print one copyable replay command on failure.
 
 jqwik bridging is permanently out of scope (owner decision, 2026-07-10): jqwik is forbidden in
 this project and its integration module was removed in 1.1.0. Property-based replay is
@@ -694,9 +694,9 @@ Kotest-only (Step 3.3).
 
 **Tests**
 
-- [ ] A deliberately failing test replays via CLI property.
-- [ ] Parallel and parameterized tests get isolated deterministic sources.
-- [ ] JUnit lifecycle callbacks do not leak state between tests.
+- [x] A deliberately failing test replays via CLI property.
+- [x] Parallel and parameterized tests get isolated deterministic sources.
+- [x] JUnit lifecycle callbacks do not leak state between tests.
 
 **Done when:** A CI failure contains everything needed for local replay.
 

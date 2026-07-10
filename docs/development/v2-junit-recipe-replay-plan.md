@@ -40,3 +40,18 @@ permanently out of scope because jqwik is forbidden in this project.
 **Tests:** `:junit:test`, `./scripts/pre_commit_check.sh`, and local consumer verification.
 
 **Status:** Complete
+
+## Stage 4: Prove the replay round trip and source isolation
+
+**Goal:** Close the remaining Step 3.6 acceptance tests: the printed replay option must reproduce
+the failing generation end to end, and parallel, parameterized, and sequential tests must have
+isolated deterministic sources.
+
+**Success Criteria:** An engine test extracts the copyable `-Dkrandom.junit.recipe` option from a
+failing run's stderr and replays the identical generated value; pinned parameterized and
+concurrent tests each draw the same first value from isolated sources; unpinned sibling tests
+never reuse a stored seed.
+
+**Tests:** `KrandomExtensionEngineTest` replay/isolation cases and the full pre-commit gate.
+
+**Status:** Complete
