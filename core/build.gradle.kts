@@ -40,7 +40,19 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
     jvmArgs("-Xmx512m")
+    systemProperty("krandom.rootDir", rootProject.projectDir.absolutePath)
     finalizedBy(tasks.jacocoTestReport)
+}
+
+val providerCatalogDocumentationFile = rootProject.layout.projectDirectory.file("docs/reference/provider-catalog.md")
+
+tasks.register<JavaExec>("generateProviderCatalogDocumentation") {
+    group = "documentation"
+    description = "Generates the built-in provider reference from ProviderCatalog."
+    dependsOn(tasks.named("testClasses"))
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("io.github.frikit.krandom.generator.provider.ProviderCatalogDocumentation")
+    args(providerCatalogDocumentationFile.asFile.absolutePath)
 }
 
 jacoco {

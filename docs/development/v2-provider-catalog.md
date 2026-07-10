@@ -47,7 +47,7 @@ provider targets, invalid type/extractor pairs, and incomplete schema metadata. 
 keys and aliases retain their v1 meanings.
 **Tests:** Catalog completeness, duplicate/alias collision, provider type validation, schema
 metadata coverage, and semantic-provider target validation.
-**Status:** In Progress
+**Status:** Complete
 
 `ProviderCatalog` now owns the 49 built-in `ProviderDescriptor` definitions used by
 `ProviderHub`. Each descriptor binds the canonical key to its result type, config-aware factory,
@@ -61,8 +61,10 @@ shape, string format, record type, and nullable components. It supports the hub-
 as well as the six schema-only providers required for `finance.cvv`, `datetime.timezone`, and the
 EAN/UPC/ISBN/hash references. `FieldLookup` now registers its complete built-in map from those
 projections; the catalog-completeness test compares every resulting reference and alias against
-the catalog, while the existing schema tests cover all value and metadata shapes. The only
-remaining Stage 2 deliverable is generated user-facing provider documentation.
+the catalog, while the existing schema tests cover all value and metadata shapes. The generated
+[provider reference](../reference/provider-catalog.md) is rendered directly from the catalog by
+`./gradlew :core:generateProviderCatalogDocumentation`; its synchronization test rejects stale
+checked-in output.
 
 ## Stage 3: Config-scoped locale data
 

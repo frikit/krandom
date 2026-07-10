@@ -37,5 +37,6 @@ Architecture and implementation details:
 - [locale-support-investigation.md](ideas/locale-support-investigation.md) - Research on locale implementation patterns
 - [locale-implementation-phase1-summary.md](ideas/locale-implementation-phase1-summary.md) - Summary of locale field addition
 - [locale-contribution-guide.md](locale-contribution-guide.md) - Resource format, validation rules, and minimum dataset quality for built-in locales
+- [provider-catalog.md](reference/provider-catalog.md) - Generated reference for built-in provider keys, aliases, semantic mappings, and schema projections
 - [title-generator-implementation-summary.md](ideas/title-generator-implementation-summary.md) - TitleGenerator implementation details
 - [release-readiness-plan-2026-05-08.md](plans/release-readiness-plan-2026-05-08.md) - Checklist for docs, examples, migration notes, and performance before release

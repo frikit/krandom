@@ -501,7 +501,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [x] Inventory canonical provider keys, aliases, result types, factories, locale support, fallback, validation, and metadata across `ProviderHub`, `FieldLookup`, `SemanticFieldRegistry`, and all data registries.
 - [x] Define one typed provider descriptor/catalog.
-- [ ] Generate lookup, semantic inference, schema metadata, and documentation from the catalog.
+- [x] Generate lookup, semantic inference, schema metadata, and documentation from the catalog.
 - [x] Move every generator-backed locale provider registry into `DataRegistryContext`.
 - [ ] Validate registered keys and data arrays uniformly.
 - [x] Return immutable snapshots rather than live unmodifiable concurrent-map views.
