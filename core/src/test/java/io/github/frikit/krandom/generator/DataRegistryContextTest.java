@@ -21,6 +21,8 @@ import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
+import io.github.frikit.krandom.generator.user.NationalityDataProvider;
+import io.github.frikit.krandom.generator.user.NationalityGenerator;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
@@ -299,6 +301,28 @@ class DataRegistryContextTest {
         assertNull(empty.hobbyProvider(Locale.US));
         assertFalse(empty.isHobbyRegistered(Locale.US));
         assertFalse(DataRegistryContext.globalDefault().hobbyRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("nationality providers remain isolated between contexts")
+    void nationalityProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerNationalityProvider(nationalityProvider(Locale.US, "Canadian"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerNationalityProvider(nationalityProvider(Locale.US, "Brazilian"))
+                                                         .build();
+
+        assertEquals("Canadian", new NationalityGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
+        assertEquals("Brazilian", new NationalityGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(Set.of("en", "en_US"), first.nationalityRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isNationalityRegistered(Locale.US));
+        assertNull(empty.nationalityProvider(Locale.US));
+        assertFalse(empty.isNationalityRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().nationalityRegisteredKeys().isEmpty());
     }
 
     @Test
@@ -936,6 +960,20 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<String> getHobbies() {
                 return java.util.List.of(hobby);
+            }
+        };
+    }
+
+    private static NationalityDataProvider nationalityProvider(Locale locale, String nationality) {
+        return new NationalityDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getNationalities() {
+                return java.util.List.of(nationality);
             }
         };
     }

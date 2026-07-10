@@ -11,8 +11,10 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific list of nationality demonyms.
  *
- * <p>Implement this interface and register an instance with {@link NationalityDataRegistry} to add
- * or override the nationality vocabulary for any locale.
+ * <p>Implement this interface and register an instance with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerNationalityProvider(NationalityDataProvider)}
+ * to add or override nationality vocabulary for one configuration. The global
+ * {@link NationalityDataRegistry} remains a compatibility bridge.
  */
 public interface NationalityDataProvider {
 

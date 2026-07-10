@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,8 +18,10 @@ import java.util.Random;
  * Generates locale-aware nationality demonyms, e.g. {@code "French"} for English or
  * {@code "Француз"} for Russian.
  *
- * <p>Demonyms are resolved from {@link NationalityDataRegistry} for the configured locale; locales
- * without a built-in file fall back to the bundled English demonyms.
+ * <p>Demonyms are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link NationalityDataRegistry}. Locales without a built-in file fall back to bundled English
+ * demonyms.
  *
  * <pre>{@code
  *   String en = new NationalityGenerator().generate();                     // e.g. "American"
@@ -57,7 +60,8 @@ public final class NationalityGenerator implements Generator<String> {
      */
     public NationalityGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        NationalityDataProvider provider = NationalityDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        NationalityDataProvider provider = registryContext.nationalityProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

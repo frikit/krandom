@@ -110,6 +110,11 @@ the configuration context.
 APIs. They provide validated, locale-fallback-aware hobbies scoped to one `GeneratorConfig`;
 `HobbyDataRegistry.register(...)` remains the 1.6 compatibility adapter. `HobbyGenerator` remains
 **KEEP** with no new public member and now resolves hobbies through the configuration context.
+`DataRegistryContext` nationality lookup, key snapshot, and builder registration are additive
+**KEEP** APIs. They provide validated, locale-fallback-aware nationalities scoped to one
+`GeneratorConfig`; `NationalityDataRegistry.register(...)` remains the 1.6 compatibility adapter.
+`NationalityGenerator` remains **KEEP** with no new public member and now resolves demonyms through
+the configuration context.
 
 `ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
 APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and

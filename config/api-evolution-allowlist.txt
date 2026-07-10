@@ -99,6 +99,14 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerHobbyProv
 # HobbyGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.user.HobbyGenerator
 
+# Config-scoped nationality vocabulary; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext#nationalityProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isNationalityRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#nationalityRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerNationalityProvider(io.github.frikit.krandom.generator.user.NationalityDataProvider)
+# NationalityGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.user.NationalityGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy
