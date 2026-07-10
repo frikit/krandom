@@ -91,6 +91,11 @@ APIs. They provide validated, locale-fallback-aware weather vocabulary that is i
 `GeneratorConfig`; `WeatherDataRegistry.register(...)` remains the 1.6 compatibility adapter.
 `WeatherGenerator` remains **KEEP** with no new public member and now resolves vocabulary through
 the configuration context.
+`DataRegistryContext` measurement lookup, key snapshot, and builder registration are additive
+**KEEP** APIs. They provide validated, locale-fallback-aware measurement units scoped to one
+`GeneratorConfig`; `MeasurementDataRegistry.register(...)` remains the 1.6 compatibility adapter.
+`MeasurementGenerator` remains **KEEP** with no new public member and now resolves units through
+the configuration context.
 
 `ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
 APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and

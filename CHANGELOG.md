@@ -29,6 +29,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `WeatherGenerator` now resolves vocabulary through `DataRegistryContext`, so independent
   `GeneratorConfig` instances can safely use different validated weather providers for the same
   locale. The global weather registry remains a compatibility fallback.
+- `MeasurementGenerator` now resolves unit vocabulary through `DataRegistryContext`, so a custom
+  provider is isolated to its owning `GeneratorConfig`; the global registry remains a fallback.
 - `krandom-core` is now a Java-only build and no longer publishes an unused `kotlin-stdlib` runtime dependency. Kotlin remains confined to the Kotlin DSL and Kotest integration modules.
 - Redundant `Generators` aliases for constants, selection, shuffle, and uniqueness are deprecated for removal in v2. Canonical replacements are documented in `docs/migration/v1.6-to-v2.md`; the legacy methods remain thin behavior-compatible delegates in 1.6.
 - Maven Central publication now uses NMCP's explicit aggregation plugin and an exact seven-module graph, removing the convenience settings plugin's Gradle 10 deprecation.

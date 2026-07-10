@@ -9,6 +9,8 @@ import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
+import io.github.frikit.krandom.generator.measurement.MeasurementDataProvider;
+import io.github.frikit.krandom.generator.measurement.MeasurementGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
@@ -203,6 +205,28 @@ class DataRegistryContextTest {
         assertFalse(empty.isWeatherRegistered(Locale.US));
         assertTrue(DataRegistryContext.globalDefault().isWeatherRegistered(Locale.of("ru", "RU")));
         assertFalse(DataRegistryContext.globalDefault().weatherRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("measurement providers remain isolated between contexts")
+    void measurementProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerMeasurementProvider(measurementProvider(Locale.US, "Meter"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerMeasurementProvider(measurementProvider(Locale.US, "Yard"))
+                                                         .build();
+
+        assertEquals("Meter", new MeasurementGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
+        assertEquals("Yard", new MeasurementGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(Set.of("en", "en_US"), first.measurementRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isMeasurementRegistered(Locale.US));
+        assertNull(empty.measurementProvider(Locale.US));
+        assertFalse(empty.isMeasurementRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().measurementRegisteredKeys().isEmpty());
     }
 
     @Test
@@ -784,6 +808,20 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<String> getConditions() {
                 return conditions;
+            }
+        };
+    }
+
+    private static MeasurementDataProvider measurementProvider(Locale locale, String unit) {
+        return new MeasurementDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getUnits() {
+                return java.util.List.of(unit);
             }
         };
     }

@@ -79,6 +79,9 @@ snapshot keys now live in `DataRegistryContext`, and `WeatherGenerator` resolves
 `GeneratorConfig` rather than directly from process-wide state. The remaining vocabulary families
 will follow the same boundary before the legacy static registries are deprecated.
 
+Measurement follows the same context boundary for its localized unit vocabulary. Its generator
+now resolves one config-scoped provider before using the legacy registry fallback.
+
 ## Stage 4: Migration and release gate
 
 **Goal:** Migrate public consumers, publish the catalog semantics, and remove duplicated

@@ -14,6 +14,8 @@ import io.github.frikit.krandom.generator.location.StateDataRegistry;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressDataRegistry;
 import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
+import io.github.frikit.krandom.generator.measurement.MeasurementDataProvider;
+import io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
@@ -64,6 +66,7 @@ public final class DataRegistryContext {
     private final Map<String, StreetAddressDataProvider> streetAddresses;
     private final Map<String, NationalIdProvider>        nationalIds;
     private final Map<String, WeatherDataProvider>       weather;
+    private final Map<String, MeasurementDataProvider>   measurements;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -79,6 +82,7 @@ public final class DataRegistryContext {
         this.streetAddresses = Map.copyOf(builder.streetAddresses);
         this.nationalIds = Map.copyOf(builder.nationalIds);
         this.weather = Map.copyOf(builder.weather);
+        this.measurements = Map.copyOf(builder.measurements);
     }
 
     /**
@@ -304,6 +308,39 @@ public final class DataRegistryContext {
         return mergeKeys(weather.keySet(), useGlobalFallback ? WeatherDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the measurement provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public MeasurementDataProvider measurementProvider(Locale locale) {
+        MeasurementDataProvider provider = findWithFallback(measurements, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return MeasurementDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve a measurement vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isMeasurementRegistered(Locale locale) {
+        return measurementProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable measurement locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> measurementRegisteredKeys() {
+        return mergeKeys(measurements.keySet(), useGlobalFallback ? MeasurementDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -421,6 +458,7 @@ public final class DataRegistryContext {
         private final Map<String, StreetAddressDataProvider> streetAddresses = new LinkedHashMap<>();
         private final Map<String, NationalIdProvider>        nationalIds    = new LinkedHashMap<>();
         private final Map<String, WeatherDataProvider>       weather        = new LinkedHashMap<>();
+        private final Map<String, MeasurementDataProvider>   measurements   = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -547,6 +585,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateTextValues("conditions", provider.getConditions());
             putWithLanguageFallback(weather, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific measurement provider in this context.
+         *
+         * @param provider measurement vocabulary provider
+         * @return this builder
+         */
+        public Builder registerMeasurementProvider(MeasurementDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("units", provider.getUnits());
+            putWithLanguageFallback(measurements, provider.getLocale(), provider);
             return this;
         }
 

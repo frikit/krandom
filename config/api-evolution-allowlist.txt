@@ -67,6 +67,14 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerWeatherPr
 # WeatherGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.weather.WeatherGenerator
 
+# Config-scoped measurement vocabulary; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext#measurementProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isMeasurementRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#measurementRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerMeasurementProvider(io.github.frikit.krandom.generator.measurement.MeasurementDataProvider)
+# MeasurementGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.measurement.MeasurementGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy
