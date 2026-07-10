@@ -44,6 +44,32 @@ class NationalIdGeneratorTest {
     }
 
     @Test
+    @DisplayName("default configured national-ID generation fails closed")
+    void defaultConfiguredGenerationFailsClosed() {
+        NationalIdGenerator generator = new NationalIdGenerator(GeneratorConfig.builder()
+                                                                                .locale(Locale.US)
+                                                                                .seed(123L)
+                                                                                .build());
+
+        IllegalStateException error = assertThrows(IllegalStateException.class, generator::generate);
+
+        assertTrue(error.getMessage().contains("nationalIdSafetyPolicy"));
+    }
+
+    @Test
+    @DisplayName("explicit realistic policy preserves prior compatibility output")
+    void explicitRealisticPolicyPreservesCompatibilityOutput() {
+        NationalIdGenerator generator = new NationalIdGenerator(GeneratorConfig.builder()
+                                                                                .locale(Locale.US)
+                                                                                .seed(123L)
+                                                                                .nationalIdSafetyPolicy(
+                                                                                    NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                                .build());
+
+        assertNotNull(generator.generate());
+    }
+
+    @Test
     @DisplayName("additional SupportedLocale national IDs use documented fake formats")
     void additionalSupportedLocaleNationalIdFormats() {
         Map<Locale, Pattern> patterns = Map.ofEntries(
@@ -913,6 +939,7 @@ class NationalIdGeneratorTest {
                                                     .locale(locale)
                                                     .registryContext(context)
                                                     .seed(7L)
+                                                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                     .build();
             NationalIdGenerator generator = new NationalIdGenerator(config);
             assertEquals(locale, generator.getLocale());

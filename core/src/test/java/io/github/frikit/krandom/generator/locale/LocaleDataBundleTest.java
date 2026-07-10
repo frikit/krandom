@@ -20,6 +20,7 @@ import io.github.frikit.krandom.generator.user.SuffixGenerator;
 import io.github.frikit.krandom.generator.user.TitleGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -65,6 +66,7 @@ class LocaleDataBundleTest {
                                                 .locale(locale)
                                                 .registryContext(context)
                                                 .seed(7L)
+                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                 .build();
 
         assertEquals("Mateo", new FirstNameGenerator(config).generate(Gender.MALE));

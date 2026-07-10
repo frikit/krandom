@@ -72,7 +72,8 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
   - **Shipped:** Blood Type, Zodiac + Chinese Zodiac, NATO phonetic, Pronouns,
     Vehicle (VIN + make/model + plate), CNPJ, MBTI, Hobby, Programming Language,
     Measurement, Financial Terms, Nationality, Weather, Passport, Driving License,
-    AWS, Azure, Computer/Device, Restaurant; CPF exposed via `ofCpf()`.
+    AWS, Azure, Computer/Device, Restaurant; CPF requires an explicit national-ID compatibility
+    policy.
     **Curated Base backlog is now essentially cleared — only University remains
     (deprioritized).**
   - **Locale coverage:** Zodiac, Chinese Zodiac, Pronoun, Hobby, Measurement,

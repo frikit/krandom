@@ -121,6 +121,7 @@ import io.github.frikit.krandom.generator.user.SocialHandleGenerator;
 import io.github.frikit.krandom.generator.user.SocialProfileGenerator;
 import io.github.frikit.krandom.generator.user.UsernameGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -804,11 +805,19 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofNationalId(locale,seed) is reproducible")
+    @DisplayName("ofNationalId(locale,seed) fails closed while the explicit policy is reproducible")
     void ofNationalIdSeeded() {
         NationalIdGenerator a = Generators.ofNationalId(Locale.US, 42L);
         NationalIdGenerator b = Generators.ofNationalId(Locale.US, 42L);
-        assertEquals(a.generate(), b.generate());
+        assertThrows(IllegalStateException.class, a::generate);
+        assertThrows(IllegalStateException.class, b::generate);
+
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .locale(Locale.US)
+                                                .seed(42L)
+                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+        assertEquals(Generators.ofNationalId(config).generate(), Generators.ofNationalId(config).generate());
     }
 
     @Test
@@ -905,6 +914,12 @@ class GeneratorsTest {
         assertInstanceOf(BankTypeGenerator.class, Generators.ofBankType());
         assertInstanceOf(CusipGenerator.class, Generators.ofCusip());
         assertInstanceOf(EinGenerator.class, Generators.ofEin());
+    }
+
+    @Test
+    @DisplayName("person namespace factory returns a namespace")
+    void personNamespaceFactory() {
+        assertNotNull(Generators.person());
     }
 
     @Test

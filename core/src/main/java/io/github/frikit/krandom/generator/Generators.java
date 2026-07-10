@@ -1638,19 +1638,21 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces Brazilian individual tax IDs (CPF), e.g. {@code "123.456.789-09"}.
+     * Returns a fail-closed generator for Brazilian individual tax IDs (CPF).
      *
-     * <p>This is a convenience alias for {@link #ofNationalId(Locale)} with the {@code pt_BR} locale.
+     * <p>Use {@link #ofNationalId(GeneratorConfig)} with
+     * {@code nationalIdSafetyPolicy(REALISTIC_UNCLASSIFIED)} only for isolated compatibility
+     * fixtures.
      */
     public static NationalIdGenerator ofCpf() {
-        return new NationalIdGenerator(Locale.of("pt", "BR"));
+        return ofNationalId(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).build());
     }
 
     /**
-     * Returns a CPF generator with a fixed seed for reproducible output.
+     * Returns a fail-closed seeded CPF generator.
      */
     public static NationalIdGenerator ofCpf(long seed) {
-        return new NationalIdGenerator(Locale.of("pt", "BR"), seed);
+        return ofNationalId(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).seed(seed).build());
     }
 
     /**
@@ -2273,17 +2275,20 @@ public final class Generators {
     }
 
     /**
-     * Returns a locale-aware national-id generator.
+     * Returns a fail-closed locale-aware national-ID generator.
+     *
+     * <p>Use {@link #ofNationalId(GeneratorConfig)} and explicitly select the national-ID safety
+     * policy when compatibility fixtures require realistic-looking output.
      */
     public static NationalIdGenerator ofNationalId(Locale locale) {
-        return new NationalIdGenerator(locale);
+        return new NationalIdGenerator(GeneratorConfig.builder().locale(locale).build());
     }
 
     /**
-     * Returns a locale-aware seeded national-id generator.
+     * Returns a fail-closed seeded national-ID generator.
      */
     public static NationalIdGenerator ofNationalId(Locale locale, long seed) {
-        return new NationalIdGenerator(locale, seed);
+        return new NationalIdGenerator(GeneratorConfig.builder().locale(locale).seed(seed).build());
     }
 
     /**

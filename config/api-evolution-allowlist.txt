@@ -37,6 +37,7 @@ io.github.frikit.krandom.generator.GeneratorConfig#getSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getProviderDatasetVersion()
 io.github.frikit.krandom.generator.GeneratorConfig#getPaymentCardSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getPhoneNumberSafetyPolicy()
+io.github.frikit.krandom.generator.GeneratorConfig#getNationalIdSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getGenerationRecipe()
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#generationProfile(java.lang.String)
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#safetyPolicy(java.lang.String)
@@ -45,6 +46,10 @@ io.github.frikit.krandom.generator.GeneratorConfig$Builder#paymentCardSafetyPoli
 io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#phoneNumberSafetyPolicy(io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy)
 io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#nationalIdSafetyPolicy(io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy)
+io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy
+# Locale constructors retain their unsafe 1.6 compatibility behavior only as deprecated bridges.
+io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator
 # PhoneNumberGenerator remains KEEP; this class-level entry covers private safety-policy selection.
 io.github.frikit.krandom.generator.location.PhoneNumberGenerator
 # ObjectGenerator remains KEEP; japicmp marks the public class modified when its private

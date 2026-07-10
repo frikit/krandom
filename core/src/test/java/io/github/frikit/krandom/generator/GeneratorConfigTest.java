@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -80,6 +81,7 @@ class GeneratorConfigTest {
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
         assertEquals(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE, c.getPaymentCardSafetyPolicy());
         assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
+        assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
     }
 
     @Test
@@ -106,6 +108,19 @@ class GeneratorConfigTest {
                      config.toBuilder().build().getPhoneNumberSafetyPolicy());
         assertThrows(NullPointerException.class,
                      () -> GeneratorConfig.builder().phoneNumberSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("national-ID safety policy is configurable and retained by toBuilder")
+    void nationalIdSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getNationalIdSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().nationalIdSafetyPolicy(null));
     }
 
     @Test

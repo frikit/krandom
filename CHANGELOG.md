@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - `PaymentCardSafetyPolicy`, an enforceable configuration contract for generated card numbers.
 - `PhoneNumberSafetyPolicy`, an enforceable contract for locale-style phone-number fixtures.
+- `NationalIdSafetyPolicy`, an enforceable fail-closed configuration contract for national-ID
+  generation.
 - `ProviderSafetyMetadata`, `ProviderValidity`, and `ProviderTestSafety`, describing conservative
   format, checksum, semantic-plausibility, and test-safety claims from the provider catalog.
 - `ProviderSafetyPolicy` and an `x-krandom-safety` JSON Schema extension that carries the selected
@@ -41,6 +43,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   is not a real or processor-sandbox credential; the selected policy is replayed in portable
   generation recipes. Recipes recorded before the policy setting retain their historic
   checksum-valid replay behavior.
+- `GeneratorConfig` and `Generators.ofNationalId(...)` now disable national-ID generation by
+  default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; the locale and seeded
+  `NationalIdGenerator` constructors are deprecated 1.6 bridges and portable recipes persist the
+  selected policy.
 - All 21 static data-registry `register(...)` methods and the two
   `ProfessionDataRegistry.append(...)` overloads are deprecated for removal in v2. They remain
   behavior-compatible 1.6 adapters; use the matching `DataRegistryContext.Builder` registration

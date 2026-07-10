@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -408,6 +409,7 @@ public final class GenerationRecipe {
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
         applyPaymentCardSafetyPolicy(builder);
         applyPhoneNumberSafetyPolicy(builder);
+        applyNationalIdSafetyPolicy(builder);
         applyEnum(builder, "object.semantic-mode", builder::objectSemanticMode);
         applyDouble(builder, "object.null-probability", builder::objectNullProbability);
         applyDouble(builder, "object.optional-empty-probability", builder::objectOptionalEmptyProbability);
@@ -444,6 +446,14 @@ public final class GenerationRecipe {
         builder.phoneNumberSafetyPolicy(policy);
     }
 
+    private void applyNationalIdSafetyPolicy(GeneratorConfig.Builder builder) {
+        String value = settings.get("national-id.safety-policy");
+        NationalIdSafetyPolicy policy = value == null
+            ? NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED
+            : NationalIdSafetyPolicy.valueOf(value);
+        builder.nationalIdSafetyPolicy(policy);
+    }
+
     private void applyDateRange(GeneratorConfig.Builder builder) {
         String min = settings.get("object.date-min");
         String max = settings.get("object.date-max");
@@ -478,7 +488,7 @@ public final class GenerationRecipe {
                  "object.pool-size", "object.override-default-initialization", "object.ignore-errors",
                  "object.semantic-mode", "object.null-probability", "object.optional-empty-probability",
                  "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
-                 "payment.card-safety-policy", "phone-number.safety-policy" -> true;
+                 "payment.card-safety-policy", "phone-number.safety-policy", "national-id.safety-policy" -> true;
             default -> false;
         };
     }

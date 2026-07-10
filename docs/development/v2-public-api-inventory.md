@@ -216,6 +216,13 @@ output; other locales and custom formats remain explicitly unclassified. Recipes
 selection as `phone-number.safety-policy` and preserve legacy unclassified replay when absent.
 `PhoneNumberGenerator` remains **KEEP** with no public-member change; its exact class-level
 classification covers the private policy-selection implementation.
+`NationalIdSafetyPolicy`, `GeneratorConfig.getNationalIdSafetyPolicy()`, and
+`GeneratorConfig.Builder.nationalIdSafetyPolicy(...)` are additive **KEEP** APIs. Configuration
+defaults to `DISABLED` because national-ID shape or checksum validity cannot prove a safe fixture;
+`REALISTIC_UNCLASSIFIED` is an explicit isolated-test compatibility opt-in. The locale and seeded
+`NationalIdGenerator` constructors are **DEPRECATE 1.6** bridges that preserve prior behavior and
+are scheduled for v2 removal. Portable recipes store the typed policy as
+`national-id.safety-policy` and replay legacy recipes as unclassified output.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay

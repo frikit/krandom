@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator;
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
@@ -107,6 +108,7 @@ public final class GeneratorConfig {
     private final String       safetyPolicy;
     private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
     private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
+    private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private final String       providerDatasetVersion;
 
     private GeneratorConfig(Builder b) {
@@ -151,6 +153,7 @@ public final class GeneratorConfig {
         this.safetyPolicy = b.safetyPolicy;
         this.paymentCardSafetyPolicy = b.paymentCardSafetyPolicy;
         this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
+        this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
         this.providerDatasetVersion = b.providerDatasetVersion;
     }
 
@@ -232,6 +235,17 @@ public final class GeneratorConfig {
      */
     public PhoneNumberSafetyPolicy getPhoneNumberSafetyPolicy() {
         return phoneNumberSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated national identity numbers.
+     *
+     * <p>The default fails closed because the library has no cross-country non-routable fixture
+     * contract. {@link NationalIdSafetyPolicy#REALISTIC_UNCLASSIFIED} is an explicit compatibility
+     * opt-in for isolated tests; it does not make values safe for production or external systems.
+     */
+    public NationalIdSafetyPolicy getNationalIdSafetyPolicy() {
+        return nationalIdSafetyPolicy;
     }
 
     /**
@@ -541,6 +555,8 @@ public final class GeneratorConfig {
                                                                      paymentCardSafetyPolicy.name())
                                                             .setting("phone-number.safety-policy",
                                                                      phoneNumberSafetyPolicy.name())
+                                                            .setting("national-id.safety-policy",
+                                                                     nationalIdSafetyPolicy.name())
                                                             .setting("charset", charset.name())
                                                             .setting("string.min", Integer.toString(minStringLength))
                                                             .setting("string.max", Integer.toString(maxStringLength))
@@ -700,6 +716,7 @@ public final class GeneratorConfig {
         private String            safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
         private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
         private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
+        private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
 
         private Builder() {
@@ -746,6 +763,7 @@ public final class GeneratorConfig {
             this.safetyPolicy = source.safetyPolicy;
             this.paymentCardSafetyPolicy = source.paymentCardSafetyPolicy;
             this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
+            this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
             this.providerDatasetVersion = source.providerDatasetVersion;
         }
 
@@ -1179,6 +1197,22 @@ public final class GeneratorConfig {
         public Builder phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy phoneNumberSafetyPolicy) {
             this.phoneNumberSafetyPolicy = Objects.requireNonNull(
                 phoneNumberSafetyPolicy, "phoneNumberSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated national identity numbers.
+         *
+         * <p>The default is {@link NationalIdSafetyPolicy#DISABLED}. Select
+         * {@link NationalIdSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures that
+         * do not leave the test boundary.
+         *
+         * @param nationalIdSafetyPolicy national-ID generation policy
+         * @return this builder
+         */
+        public Builder nationalIdSafetyPolicy(NationalIdSafetyPolicy nationalIdSafetyPolicy) {
+            this.nationalIdSafetyPolicy = Objects.requireNonNull(
+                nationalIdSafetyPolicy, "nationalIdSafetyPolicy must not be null");
             return this;
         }
 

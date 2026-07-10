@@ -19,7 +19,11 @@ import java.util.Random;
  *     public Locale getLocale() { return Locale.of("ko", "KR"); }
  *     public String generate(Random random) { return "..."; }
  * });
- * NationalIdGenerator gen = new NationalIdGenerator(Locale.of("ko", "KR"));
+ * GeneratorConfig config = GeneratorConfig.builder()
+ *     .locale(Locale.of("ko", "KR"))
+ *     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+ *     .build();
+ * NationalIdGenerator gen = new NationalIdGenerator(config);
  * }</pre>
  *
  * <p>Implementations must be stateless with respect to the generation logic; all randomness is

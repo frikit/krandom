@@ -22,7 +22,11 @@ import java.util.Random;
  * the output format:
  *
  * <pre>{@code
- * NationalIdGenerator gen      = new NationalIdGenerator(Locale.US);
+ * GeneratorConfig config       = GeneratorConfig.builder()
+ *     .locale(Locale.US)
+ *     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+ *     .build();
+ * NationalIdGenerator gen      = new NationalIdGenerator(config);
  * String full     = gen.generate();                                     // "411-90-0070"
  * String noDashes = new UsNationalIdProvider().withoutDashes().generate(random); // "411900070"
  * String lastFour = new UsNationalIdProvider().lastFourOnly().generate(random);  // "2938"

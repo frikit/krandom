@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
@@ -92,11 +93,18 @@ class CnpjGeneratorTest {
     }
 
     @Test
-    @DisplayName("facade ofCpf produces formatted CPFs and is seed-reproducible")
+    @DisplayName("facade ofCpf fails closed while explicit fixtures remain reproducible")
     void facadeCpf() {
-        assertTrue(Generators.ofCpf().generate().matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}"));
+        assertThrows(IllegalStateException.class, () -> Generators.ofCpf().generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofCpf(5L).generate());
+
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .locale(java.util.Locale.of("pt", "BR"))
+                                                .seed(5L)
+                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
         assertEquals(
-            Generators.ofCpf(5L).generateList(10),
-            Generators.ofCpf(5L).generateList(10));
+            Generators.ofNationalId(config).generateList(10),
+            Generators.ofNationalId(config).generateList(10));
     }
 }

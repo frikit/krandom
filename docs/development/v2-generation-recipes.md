@@ -73,6 +73,9 @@ Recipes without that new setting preserve their historic checksum-valid behavior
 compatibility; newly emitted recipes always record the policy explicitly.
 Phone-number safety follows the same rule: new recipes record the selected policy, while recipes
 without `phone-number.safety-policy` retain historic realistic-unclassified phone output.
+National-ID safety also follows this compatibility rule: new recipes record
+`national-id.safety-policy` and default to `DISABLED`, while recipes without that setting retain
+their historical realistic-unclassified replay behavior.
 
 ## Stage 2: Derive structural child streams
 

@@ -94,6 +94,7 @@ import io.github.frikit.krandom.generator.user.SeniorityGenerator;
 import io.github.frikit.krandom.generator.user.UsernameGenerator;
 import io.github.frikit.krandom.generator.user.BirthdayGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -111,7 +112,10 @@ class FluentNamespaceTest {
     @Test
     @DisplayName("person namespace generates all values")
     void personNamespace() {
-        PersonGenerators p = Generators.person();
+        PersonGenerators p = Generators.person(GeneratorConfig.builder()
+                                                               .nationalIdSafetyPolicy(
+                                                                   NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                               .build());
         assertNotNull(p.fullName().generate());
         assertNotNull(p.firstName().generate());
         assertNotNull(p.lastName().generate());
@@ -419,6 +423,7 @@ class FluentNamespaceTest {
         GeneratorConfig seeded = GeneratorConfig.builder()
             .locale(Locale.US)
             .seed(2468L)
+            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .build();
         GeneratorConfig german = seeded.toBuilder().locale(Locale.GERMANY).build();
         GeneratorConfig french = seeded.toBuilder().locale(Locale.FRANCE).build();

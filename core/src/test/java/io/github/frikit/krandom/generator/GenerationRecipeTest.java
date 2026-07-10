@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.base.DigitGenerator;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -158,6 +159,30 @@ class GenerationRecipeTest {
 
         assertEquals(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED,
                      recipe.toGeneratorConfig().getPhoneNumberSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays the configured national-ID safety policy")
+    void replaysNationalIdSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("REALISTIC_UNCLASSIFIED", recipe.getSettings().get("national-id.safety-policy"));
+        assertEquals(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getNationalIdSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without a national-ID safety setting as unclassified")
+    void replaysLegacyRecipeWithoutNationalIdSafetyPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getNationalIdSafetyPolicy());
     }
 
     @Test

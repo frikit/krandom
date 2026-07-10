@@ -22,11 +22,9 @@ import java.util.Random;
  * built-in ones can be registered at runtime via
  * {@link NationalIdRegistry#register(NationalIdProvider)}.
  *
- * <pre>{@code
- * String ssn    = new NationalIdGenerator(Locale.US).generate();        // "411-90-0070"
- * String ni     = new NationalIdGenerator(Locale.UK).generate();        // "AB 12 34 56 C"
- * String seeded = new NationalIdGenerator(Locale.GERMANY, 42L).generate(); // reproducible
- * }</pre>
+ * <p>Use an explicit {@link GeneratorConfig} and select
+ * {@link NationalIdSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated compatibility fixtures.
+ * The default configured policy is {@link NationalIdSafetyPolicy#DISABLED}.
  */
 public final class NationalIdGenerator implements Generator<String> {
 
@@ -39,9 +37,14 @@ public final class NationalIdGenerator implements Generator<String> {
      *
      * @param locale the locale identifying which national ID format to use; must not be {@code null}
      * @throws UnsupportedOperationException if no provider is registered for the locale
+     * @deprecated Use {@link #NationalIdGenerator(GeneratorConfig)}. This 1.6 bridge retains
+     *             realistic but unclassified output; v2 configuration fails closed by default.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public NationalIdGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(locale).build());
+        this(GeneratorConfig.builder().locale(locale)
+                              .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build());
     }
 
     /**
@@ -50,9 +53,14 @@ public final class NationalIdGenerator implements Generator<String> {
      * @param locale the locale identifying which national ID format to use; must not be {@code null}
      * @param seed   PRNG seed for reproducible output
      * @throws UnsupportedOperationException if no provider is registered for the locale
+     * @deprecated Use {@link #NationalIdGenerator(GeneratorConfig)}. This 1.6 bridge retains
+     *             realistic but unclassified output; v2 configuration fails closed by default.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public NationalIdGenerator(Locale locale, long seed) {
-        this(GeneratorConfig.builder().locale(locale).seed(seed).build());
+        this(GeneratorConfig.builder().locale(locale).seed(seed)
+                              .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build());
     }
 
     /**
@@ -75,9 +83,15 @@ public final class NationalIdGenerator implements Generator<String> {
      * Generates a national ID string in the format appropriate for this generator's locale.
      *
      * @return a formatted national ID string; never {@code null}
+     * @throws IllegalStateException when the configured policy fails closed
      */
     @Override
     public String generate() {
+        if (config.getNationalIdSafetyPolicy() == NationalIdSafetyPolicy.DISABLED) {
+            throw new IllegalStateException(
+                "National-ID generation is disabled by default; select nationalIdSafetyPolicy(REALISTIC_UNCLASSIFIED) "
+                + "only for isolated fixtures");
+        }
         return provider.generate(random);
     }
 

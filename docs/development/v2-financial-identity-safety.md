@@ -29,7 +29,7 @@ as safe merely because it passes a validator.
 | Credit cards | Issuer-shaped, format-valid numbers that deliberately fail Luhn by default; `CHECKSUM_VALID` is an explicit opt-in | Default remains non-routable; processor-sandbox values require a separately named processor mode |
 | IBAN, ABA, BIC, bank account | Format/checksum behavior varies by generator | Do not claim test safety until each scheme has a non-routable or official sandbox contract |
 | Payment payloads | Masked references derived from card or bank generators | Carry the selected policy metadata without exposing credential values |
-| National IDs, CPF/CNPJ, passport, driving licence | Country-specific shapes and algorithms | Default to non-production fixtures; country-specific valid modes require separate proof |
+| National IDs, CPF/CNPJ, passport, driving licence | Country-specific shapes and algorithms | Fail closed unless a caller explicitly selects an unclassified compatibility policy; country-specific safe modes require separate proof |
 | Phone numbers | US locale-style output uses NANPA's fictional `555-0100` to `555-0199` range by default; other locales remain realistic but unclassified | Keep the NANPA mode scoped to its documented allocation; add another locale only with authoritative proof |
 | Crypto addresses | Syntactically plausible destination strings | Never describe as safe for live transfers; use explicit non-production modes only after network-specific proof |
 
@@ -86,6 +86,13 @@ Implemented phone-number scope:
 
 For North American phone fixtures, NANPA reserves the fictional non-working `555-0100` through
 `555-0199` line-number block. This allocation does not establish a safe range for other countries.
+
+National-ID generation now fails closed through `GeneratorConfig` because krandom has no
+cross-country non-routable identity-fixture standard. Select
+`NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED` only for isolated compatibility fixtures that do
+not leave a test boundary. The locale and seed constructors remain deprecated 1.6 bridges with the
+old realistic behavior; portable recipes record `national-id.safety-policy`, while older recipes
+replay their historical realistic behavior when that setting is absent.
 
 ## Stage 4: Metadata, schemas, and guidance
 
