@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and EIN values.
 - `CnpjGenerator.withAlphanumericFormat()`, an explicit unclassified compatibility mode for the
   Brazilian 14-character alphanumeric CNPJ shape and its official check-digit algorithm.
+- `CryptoAddressSafetyPolicy`, an enforceable fail-closed configuration contract for generated
+  cryptocurrency destination-address shapes.
 - `ProviderSafetyMetadata`, `ProviderValidity`, and `ProviderTestSafety`, describing conservative
   format, checksum, semantic-plausibility, and test-safety claims from the provider catalog.
 - `ProviderSafetyPolicy` and an `x-krandom-safety` JSON Schema extension that carries the selected
@@ -68,6 +70,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   generation by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; direct
   `CnpjGenerator` and `EinGenerator` constructors are deprecated 1.6 bridges, and portable
   recipes persist the selected policy.
+- `GeneratorConfig` and canonical crypto-address facades now disable plausible destination-address
+  output by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; the direct
+  `CryptoAddressGenerator` constructor is a deprecated 1.6 bridge, and portable recipes persist
+  the selected policy.
 - All 21 static data-registry `register(...)` methods and the two
   `ProfessionDataRegistry.append(...)` overloads are deprecated for removal in v2. They remain
   behavior-compatible 1.6 adapters; use the matching `DataRegistryContext.Builder` registration

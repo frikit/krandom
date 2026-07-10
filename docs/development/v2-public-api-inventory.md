@@ -251,6 +251,15 @@ an additive **KEEP** canonical facade. Portable recipes store the typed policy a
 `CnpjGenerator.withAlphanumericFormat()` is additive **KEEP**. It produces an explicitly
 unclassified alphanumeric CNPJ shape with the Receita Federal check-digit algorithm and does not
 claim that the resulting identifier is assigned or fictitious.
+`CryptoAddressSafetyPolicy`, `GeneratorConfig.getCryptoAddressSafetyPolicy()`, and
+`GeneratorConfig.Builder.cryptoAddressSafetyPolicy(...)` are additive **KEEP** APIs.
+Configuration defaults to `DISABLED` because a plausible address does not establish a test network,
+unspendability, or non-routability; `REALISTIC_UNCLASSIFIED` is an explicit isolated-test
+compatibility opt-in. The no-argument `CryptoAddressGenerator` constructor is a **DEPRECATE 1.6**
+bridge that preserves prior behavior and is scheduled for v2 removal.
+`Generators.ofCryptoAddress(GeneratorConfig)` is an additive **KEEP** canonical facade. Portable
+recipes store the typed policy as `crypto-address.safety-policy` and replay legacy recipes as
+unclassified output.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay

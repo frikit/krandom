@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.base.DigitGenerator;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
@@ -227,6 +228,22 @@ class GenerationRecipeTest {
     }
 
     @Test
+    @DisplayName("replays the configured crypto-address safety policy")
+    void replaysCryptoAddressSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .cryptoAddressSafetyPolicy(
+                                                    CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("REALISTIC_UNCLASSIFIED", recipe.getSettings().get("crypto-address.safety-policy"));
+        assertEquals(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getCryptoAddressSafetyPolicy());
+    }
+
+    @Test
     @DisplayName("replays legacy recipes without a banking safety setting as unclassified")
     void replaysLegacyRecipeWithoutBankingSafetyPolicy() {
         GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
@@ -242,6 +259,15 @@ class GenerationRecipeTest {
 
         assertEquals(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
                      recipe.toGeneratorConfig().getBusinessTaxIdentifierSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without a crypto-address safety setting as unclassified")
+    void replaysLegacyRecipeWithoutCryptoAddressSafetyPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getCryptoAddressSafetyPolicy());
     }
 
     @Test

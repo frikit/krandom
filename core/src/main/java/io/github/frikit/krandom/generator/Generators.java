@@ -2290,10 +2290,20 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces crypto wallet addresses.
+     * Returns a crypto-address generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit crypto-address safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static CryptoAddressGenerator ofCryptoAddress() {
-        return new CryptoAddressGenerator();
+        return new CryptoAddressGenerator(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Returns a crypto-address generator configured by the given {@link GeneratorConfig}.
+     */
+    public static CryptoAddressGenerator ofCryptoAddress(GeneratorConfig config) {
+        return new CryptoAddressGenerator(config);
     }
 
     /**

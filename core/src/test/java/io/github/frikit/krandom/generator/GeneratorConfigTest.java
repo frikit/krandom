@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
@@ -84,6 +85,7 @@ class GeneratorConfigTest {
         assertEquals(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE, c.getPaymentCardSafetyPolicy());
         assertEquals(BankingSafetyPolicy.DISABLED, c.getBankingSafetyPolicy());
         assertEquals(BusinessTaxIdentifierSafetyPolicy.DISABLED, c.getBusinessTaxIdentifierSafetyPolicy());
+        assertEquals(CryptoAddressSafetyPolicy.DISABLED, c.getCryptoAddressSafetyPolicy());
         assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
         assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
@@ -167,6 +169,20 @@ class GeneratorConfigTest {
                      config.toBuilder().build().getBusinessTaxIdentifierSafetyPolicy());
         assertThrows(NullPointerException.class,
                      () -> GeneratorConfig.builder().businessTaxIdentifierSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("crypto-address safety policy is configurable and retained by toBuilder")
+    void cryptoAddressSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .cryptoAddressSafetyPolicy(
+                                                    CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getCryptoAddressSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().cryptoAddressSafetyPolicy(null));
     }
 
     @Test

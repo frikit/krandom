@@ -22,42 +22,79 @@ public final class CryptoAddressGenerator implements Generator<String> {
     private static final String[] CHAINS    = { "btc", "eth", "ltc" };
 
     private final Random random;
+    private final CryptoAddressSafetyPolicy safetyPolicy;
 
+    /**
+     * Creates a generator with the historical realistic-output behavior.
+     *
+     * @deprecated since 1.6; use {@link #CryptoAddressGenerator(GeneratorConfig)} and select an
+     * explicit safety policy instead
+     */
+    @Deprecated(since = "1.6", forRemoval = true)
     public CryptoAddressGenerator() {
-        this(GeneratorConfig.defaults());
+        this(GeneratorConfig.builder()
+                            .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build());
     }
 
+    /**
+     * Creates a generator from explicit configuration.
+     *
+     * @param config the generator configuration; must not be {@code null}
+     */
     public CryptoAddressGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.safetyPolicy = config.getCryptoAddressSafetyPolicy();
     }
 
     @Override
     public String generate() {
+        safetyPolicy.requireRealisticOutput();
         String chain = CHAINS[random.nextInt(CHAINS.length)];
-        return generate(chain);
+        return generateForChain(chain);
     }
 
     public String generate(String chain) {
         Objects.requireNonNull(chain, "chain must not be null");
+        safetyPolicy.requireRealisticOutput();
+        return generateForChain(chain);
+    }
+
+    public String generateBitcoin() {
+        safetyPolicy.requireRealisticOutput();
+        return generateBitcoinUnchecked();
+    }
+
+    public String generateEthereum() {
+        safetyPolicy.requireRealisticOutput();
+        return generateEthereumUnchecked();
+    }
+
+    public String generateLitecoin() {
+        safetyPolicy.requireRealisticOutput();
+        return generateLitecoinUnchecked();
+    }
+
+    private String generateForChain(String chain) {
         return switch (chain.toLowerCase()) {
-            case "btc", "bitcoin" -> generateBitcoin();
-            case "eth", "ethereum" -> generateEthereum();
-            case "ltc", "litecoin" -> generateLitecoin();
+            case "btc", "bitcoin" -> generateBitcoinUnchecked();
+            case "eth", "ethereum" -> generateEthereumUnchecked();
+            case "ltc", "litecoin" -> generateLitecoinUnchecked();
             default -> throw new IllegalArgumentException("unsupported chain: " + chain);
         };
     }
 
-    public String generateBitcoin() {
+    private String generateBitcoinUnchecked() {
         // Legacy/base58 shape.
         return "1" + randomChars(BASE58, 33);
     }
 
-    public String generateEthereum() {
+    private String generateEthereumUnchecked() {
         return "0x" + randomChars(HEX_LOWER, 40);
     }
 
-    public String generateLitecoin() {
+    private String generateLitecoinUnchecked() {
         return "L" + randomChars(BASE58, 33);
     }
 

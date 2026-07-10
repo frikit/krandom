@@ -31,6 +31,7 @@ import io.github.frikit.krandom.generator.finance.BicGenerator;
 import io.github.frikit.krandom.generator.finance.CardExpirationGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
 import io.github.frikit.krandom.generator.finance.CryptoAddressGenerator;
+import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
 import io.github.frikit.krandom.generator.finance.CusipGenerator;
 import io.github.frikit.krandom.generator.finance.EinGenerator;
@@ -178,6 +179,8 @@ class FluentNamespaceTest {
                                                                      BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                                  .businessTaxIdentifierSafetyPolicy(
                                                                      BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .cryptoAddressSafetyPolicy(
+                                                                     CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                                  .build());
         assertNotNull(f.creditCard().generate());
         assertNotNull(f.creditCardInfo().generate());
@@ -341,6 +344,7 @@ class FluentNamespaceTest {
             .seed(987654321L)
             .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .build();
 
         DateTimeGenerators datetime = Generators.datetime(seeded);

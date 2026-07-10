@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
@@ -111,6 +112,7 @@ public final class GeneratorConfig {
     private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
     private final BankingSafetyPolicy bankingSafetyPolicy;
     private final BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy;
+    private final CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy;
     private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
     private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
@@ -159,6 +161,7 @@ public final class GeneratorConfig {
         this.paymentCardSafetyPolicy = b.paymentCardSafetyPolicy;
         this.bankingSafetyPolicy = b.bankingSafetyPolicy;
         this.businessTaxIdentifierSafetyPolicy = b.businessTaxIdentifierSafetyPolicy;
+        this.cryptoAddressSafetyPolicy = b.cryptoAddressSafetyPolicy;
         this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
         this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
         this.identityDocumentSafetyPolicy = b.identityDocumentSafetyPolicy;
@@ -255,6 +258,18 @@ public final class GeneratorConfig {
      */
     public BusinessTaxIdentifierSafetyPolicy getBusinessTaxIdentifierSafetyPolicy() {
         return businessTaxIdentifierSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated cryptocurrency destination-address shapes.
+     *
+     * <p>The default fails closed because a plausible address is not proof of a test network,
+     * unspendability, or non-routability. {@link CryptoAddressSafetyPolicy#REALISTIC_UNCLASSIFIED}
+     * is an explicit compatibility opt-in for isolated tests; it does not make values safe for a
+     * wallet, exchange, or other external system.
+     */
+    public CryptoAddressSafetyPolicy getCryptoAddressSafetyPolicy() {
+        return cryptoAddressSafetyPolicy;
     }
 
     /**
@@ -599,6 +614,8 @@ public final class GeneratorConfig {
                                                             .setting("banking.safety-policy", bankingSafetyPolicy.name())
                                                             .setting("business-tax-identifier.safety-policy",
                                                                      businessTaxIdentifierSafetyPolicy.name())
+                                                            .setting("crypto-address.safety-policy",
+                                                                     cryptoAddressSafetyPolicy.name())
                                                             .setting("phone-number.safety-policy",
                                                                      phoneNumberSafetyPolicy.name())
                                                             .setting("national-id.safety-policy",
@@ -766,6 +783,7 @@ public final class GeneratorConfig {
         private BankingSafetyPolicy bankingSafetyPolicy = BankingSafetyPolicy.DISABLED;
         private BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy =
             BusinessTaxIdentifierSafetyPolicy.DISABLED;
+        private CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy = CryptoAddressSafetyPolicy.DISABLED;
         private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
@@ -816,6 +834,7 @@ public final class GeneratorConfig {
             this.paymentCardSafetyPolicy = source.paymentCardSafetyPolicy;
             this.bankingSafetyPolicy = source.bankingSafetyPolicy;
             this.businessTaxIdentifierSafetyPolicy = source.businessTaxIdentifierSafetyPolicy;
+            this.cryptoAddressSafetyPolicy = source.cryptoAddressSafetyPolicy;
             this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
             this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
             this.identityDocumentSafetyPolicy = source.identityDocumentSafetyPolicy;
@@ -1270,6 +1289,22 @@ public final class GeneratorConfig {
             BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy) {
             this.businessTaxIdentifierSafetyPolicy = Objects.requireNonNull(
                 businessTaxIdentifierSafetyPolicy, "businessTaxIdentifierSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated cryptocurrency destination-address shapes.
+         *
+         * <p>The default is {@link CryptoAddressSafetyPolicy#DISABLED}. Select
+         * {@link CryptoAddressSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures that
+         * do not leave the test boundary.
+         *
+         * @param cryptoAddressSafetyPolicy cryptocurrency address generation policy
+         * @return this builder
+         */
+        public Builder cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy) {
+            this.cryptoAddressSafetyPolicy = Objects.requireNonNull(
+                cryptoAddressSafetyPolicy, "cryptoAddressSafetyPolicy must not be null");
             return this;
         }
 

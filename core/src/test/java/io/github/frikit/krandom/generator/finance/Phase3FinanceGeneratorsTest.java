@@ -76,7 +76,11 @@ class Phase3FinanceGeneratorsTest {
     @Test
     @DisplayName("crypto address generator supports common chains")
     void cryptoAddresses() {
-        CryptoAddressGenerator generator = new CryptoAddressGenerator(GeneratorConfig.builder().seed(7L).build());
+        CryptoAddressGenerator generator = new CryptoAddressGenerator(GeneratorConfig.builder()
+                                                                                      .seed(7L)
+                                                                                      .cryptoAddressSafetyPolicy(
+                                                                                          CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                                      .build());
         assertTrue(generator.generateBitcoin().matches("1[1-9A-HJ-NP-Za-km-z]{33}"));
         assertTrue(generator.generateEthereum().matches("0x[0-9a-f]{40}"));
         assertTrue(generator.generateLitecoin().matches("L[1-9A-HJ-NP-Za-km-z]{33}"));
@@ -87,6 +91,7 @@ class Phase3FinanceGeneratorsTest {
 
     @Test
     @DisplayName("crypto generator default and validation branches")
+    @SuppressWarnings("removal")
     void cryptoDefaultAndValidation() {
         CryptoAddressGenerator generator = new CryptoAddressGenerator();
         String any = generator.generate();
@@ -97,6 +102,14 @@ class Phase3FinanceGeneratorsTest {
     }
 
     @Test
+    @DisplayName("configured crypto-address generation fails closed by default")
+    void cryptoConfiguredGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class,
+                     () -> new CryptoAddressGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofCryptoAddress().generate());
+    }
+
+    @Test
     @DisplayName("generators factory exposes phase 3 finance generators")
     void financeFactories() {
         assertThrows(IllegalStateException.class, () -> Generators.ofBankAccount().generate());
@@ -104,7 +117,11 @@ class Phase3FinanceGeneratorsTest {
                                                            .bankingSafetyPolicy(
                                                                BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                            .build()).generate().matches("\\d+"));
-        String chain = Generators.ofCryptoAddress().generate();
+        assertThrows(IllegalStateException.class, () -> Generators.ofCryptoAddress().generate());
+        String chain = Generators.ofCryptoAddress(GeneratorConfig.builder()
+                                                                 .cryptoAddressSafetyPolicy(
+                                                                     CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .build()).generate();
         assertTrue(Set.of('1', 'L').contains(chain.charAt(0)) || chain.startsWith("0x"));
     }
 }

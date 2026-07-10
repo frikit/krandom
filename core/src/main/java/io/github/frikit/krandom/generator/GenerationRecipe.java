@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
@@ -412,6 +413,7 @@ public final class GenerationRecipe {
         applyPaymentCardSafetyPolicy(builder);
         applyBankingSafetyPolicy(builder);
         applyBusinessTaxIdentifierSafetyPolicy(builder);
+        applyCryptoAddressSafetyPolicy(builder);
         applyPhoneNumberSafetyPolicy(builder);
         applyNationalIdSafetyPolicy(builder);
         applyIdentityDocumentSafetyPolicy(builder);
@@ -457,6 +459,14 @@ public final class GenerationRecipe {
             ? BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED
             : BusinessTaxIdentifierSafetyPolicy.valueOf(value);
         builder.businessTaxIdentifierSafetyPolicy(policy);
+    }
+
+    private void applyCryptoAddressSafetyPolicy(GeneratorConfig.Builder builder) {
+        String value = settings.get("crypto-address.safety-policy");
+        CryptoAddressSafetyPolicy policy = value == null
+            ? CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED
+            : CryptoAddressSafetyPolicy.valueOf(value);
+        builder.cryptoAddressSafetyPolicy(policy);
     }
 
     private void applyPhoneNumberSafetyPolicy(GeneratorConfig.Builder builder) {
@@ -519,7 +529,7 @@ public final class GenerationRecipe {
                  "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
                  "payment.card-safety-policy", "banking.safety-policy", "phone-number.safety-policy",
                  "national-id.safety-policy", "identity-document.safety-policy",
-                 "business-tax-identifier.safety-policy" -> true;
+                 "business-tax-identifier.safety-policy", "crypto-address.safety-policy" -> true;
             default -> false;
         };
     }
