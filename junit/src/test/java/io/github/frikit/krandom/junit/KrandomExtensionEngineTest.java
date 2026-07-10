@@ -44,6 +44,8 @@ class KrandomExtensionEngineTest {
         String stderr = captured.toString(StandardCharsets.UTF_8);
         assertTrue(stderr.contains("Annotate it with @KrandomSeed(" + reportedSeed + "L)"),
                 "stderr should carry the reproduction hint, was: " + stderr);
+        assertTrue(stderr.contains("Replay recipe:"), "stderr should carry the replay recipe, was: " + stderr);
+        assertTrue(singleRecipeReportEntry(results).contains("seed=" + reportedSeed));
     }
 
     @Test
@@ -56,6 +58,7 @@ class KrandomExtensionEngineTest {
         String stderr = captured.toString(StandardCharsets.UTF_8);
         assertTrue(stderr.contains("failed with pinned seed 42"),
                 "stderr should mention the pinned seed, was: " + stderr);
+        assertTrue(singleRecipeReportEntry(results).contains("seed=42"));
     }
 
     @Test
@@ -115,12 +118,20 @@ class KrandomExtensionEngineTest {
     }
 
     private static String singleSeedReportEntry(EngineExecutionResults results) {
+        return singleReportEntry(results, KrandomExtension.REPORT_ENTRY_KEY);
+    }
+
+    private static String singleRecipeReportEntry(EngineExecutionResults results) {
+        return singleReportEntry(results, KrandomExtension.RECIPE_REPORT_ENTRY_KEY);
+    }
+
+    private static String singleReportEntry(EngineExecutionResults results, String key) {
         List<ReportEntry> entries = results.allEvents().reportingEntryPublished().stream()
                 .map(event -> event.getRequiredPayload(ReportEntry.class))
-                .filter(entry -> entry.getKeyValuePairs().containsKey(KrandomExtension.REPORT_ENTRY_KEY))
+                .filter(entry -> entry.getKeyValuePairs().containsKey(key))
                 .toList();
         assertEquals(1, entries.size());
-        return entries.get(0).getKeyValuePairs().get(KrandomExtension.REPORT_ENTRY_KEY);
+        return entries.get(0).getKeyValuePairs().get(key);
     }
 
     // ── Fixtures: disabled in the regular suite, executed only via EngineTestKit ────────────

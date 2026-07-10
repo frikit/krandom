@@ -106,6 +106,8 @@ class GenerationRecipeTest {
         assertEquals("provider-v2", recipe.getProviderDatasetVersion());
         assertEquals(Map.of("object.date-min", "2020-01-01"), recipe.getSettings());
         assertEquals(recipe, GenerationRecipe.parse(recipe.serialize()));
+        assertFalse(recipe.serializeForDiagnostics().contains(seedText));
+        assertFalse(recipe.serializeForDiagnostics().contains("seed-text="));
     }
 
     @Test

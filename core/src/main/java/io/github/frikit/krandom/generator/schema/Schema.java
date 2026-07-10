@@ -426,7 +426,11 @@ public final class Schema implements Generator<Map<String, Object>> {
                     config.getLocale(), randomForField(recordIndex, name), recordIndex);
                 record.put(name, provider.generate(context));
             } catch (RuntimeException ex) {
-                throw new SchemaGenerationException(name, recordIndex, ex);
+                throw new SchemaGenerationException(
+                    name,
+                    recordIndex,
+                    ex,
+                    generationRecipe.map(GenerationRecipe::serializeForDiagnostics).orElse(null));
             }
         }
         return record;

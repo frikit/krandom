@@ -98,4 +98,11 @@ compatibility promise.
 non-portable configurations say why without exposing values or source internals.
 **Tests:** Object/schema failure diagnostics, JUnit integration coverage, compatibility-policy
 tests, and published consumer examples.
-**Status:** Not Started
+**Status:** In Progress
+
+Object-generation listeners now receive `GenerationFailureDiagnostic.replayIdentity` when the
+source configuration is portable. JUnit publishes the safe recipe under `krandom.recipe` and prints
+it with the failure seed. Diagnostic recipes keep the derived numeric seed but omit `seed-text`, so
+user-provided textual seed material is not logged. Schema generation failures expose and print the
+same safe recipe. The remaining host-framework integrations are tracked in their dedicated Stage 3
+packages.

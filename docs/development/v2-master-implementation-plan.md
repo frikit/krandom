@@ -481,7 +481,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Make recipes serializable in a stable, human-readable form.
 - [x] Derive named child streams for object fields and schema columns so unrelated additions do not reorder all downstream values.
 - [x] Define how repeated fields, lists, maps, recursion, and parallel generation derive stream identities.
-- [ ] Make failure messages and test integrations print a safe replay recipe.
+- [x] Make failure messages and test integrations print a safe replay recipe.
 - [x] Add an explicit compatibility policy for recipe/algorithm changes.
 
 **Tests**

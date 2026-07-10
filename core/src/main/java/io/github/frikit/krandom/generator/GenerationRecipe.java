@@ -307,13 +307,29 @@ public final class GenerationRecipe {
      * @return stable human-readable recipe text
      */
     public String serialize() {
+        return serialize(true);
+    }
+
+    /**
+     * Serializes this recipe for logs, failure diagnostics, and test reports.
+     *
+     * <p>The numeric derived seed remains sufficient for exact replay, while original textual seed
+     * material is omitted so diagnostics cannot reveal user-provided text.
+     *
+     * @return safe stable recipe text
+     */
+    public String serializeForDiagnostics() {
+        return serialize(false);
+    }
+
+    private String serialize(boolean includeSeedText) {
         StringBuilder builder = new StringBuilder();
         append(builder, FORMAT_KEY, FORMAT);
         append(builder, RECIPE_VERSION_KEY, recipeVersion);
         append(builder, LIBRARY_VERSION_KEY, libraryVersion);
         append(builder, ALGORITHM_KEY, algorithm);
         append(builder, SEED_KEY, Long.toString(seed));
-        if (seedText != null) {
+        if (includeSeedText && seedText != null) {
             append(builder, SEED_TEXT_KEY, seedText);
         }
         append(builder, LOCALE_KEY, locale.toLanguageTag());

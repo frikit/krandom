@@ -218,7 +218,9 @@ final class FieldGeneratorResolver {
         this.semanticMode = config.getSemanticMode();
         this.uniqueFieldNames = config.getUniqueFieldNames();
         this.failurePolicy = new ObjectGenerationFailurePolicy(
-            config.isIgnoreErrors(), generatorConfig.getGenerationFailureListener());
+            config.isIgnoreErrors(),
+            generatorConfig.getGenerationFailureListener(),
+            generatorConfig.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics));
         this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
     }
 

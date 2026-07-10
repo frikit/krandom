@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,6 +94,17 @@ class ObjectGenerationFailurePolicyTest {
     }
 
     @Test
+    @DisplayName("listener receives the configured safe replay identity")
+    void listenerReceivesReplayIdentity() {
+        List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+
+        new ObjectGenerationFailurePolicy(true, diagnostics::add, Optional.of("safe-recipe"))
+            .handle(failure(), "fallback");
+
+        assertEquals(Optional.of("safe-recipe"), diagnostics.getFirst().replayIdentity());
+    }
+
+    @Test
     @DisplayName("lenient policy rejects failures without structured context")
     void lenientPolicyRejectsUnstructuredFailure() {
         ObjectGenerationException failure = new ObjectGenerationException("legacy");
@@ -144,6 +156,24 @@ class ObjectGenerationFailurePolicyTest {
         assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, diagnostic.context().category());
         assertEquals("UnsupportedHolder.task", diagnostic.context().path());
         assertEquals(UnsupportedOperationException.class.getName(), diagnostic.causeType());
+    }
+
+    @Test
+    @DisplayName("seeded portable resolver diagnostics carry a safe replay recipe")
+    void seededResolverFailureCarriesSafeReplayRecipe() {
+        List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed("do-not-log-this-text")
+                                                .generationFailureListener(diagnostics::add)
+                                                .build();
+
+        assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(UnsupportedHolder.class, config).generate());
+
+        String recipe = diagnostics.getFirst().replayIdentity().orElseThrow();
+        assertTrue(recipe.contains("format=krandom-recipe"));
+        assertFalse(recipe.contains("do-not-log-this-text"));
     }
 
     @Test

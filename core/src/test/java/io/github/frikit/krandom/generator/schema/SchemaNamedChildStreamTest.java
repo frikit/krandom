@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Schema named child streams")
 class SchemaNamedChildStreamTest {
@@ -51,6 +54,30 @@ class SchemaNamedChildStreamTest {
         Schema replay = new Schema(recipe.toGeneratorConfig(), orderedFields("first", "second"));
 
         assertEquals(original.generateBatch(4), replay.generateBatch(4));
+    }
+
+    @Test
+    @DisplayName("schema failures print a safe portable replay recipe")
+    void schemaFailureCarriesSafeReplayRecipe() {
+        Schema schema = new Schema(
+            GeneratorConfig.builder().seed("do-not-log-this-text").build(),
+            Map.of("broken", context -> { throw new IllegalStateException("fixture failure"); }));
+
+        SchemaGenerationException error = assertThrows(SchemaGenerationException.class, schema::generate);
+
+        String recipe = error.getReplayRecipe().orElseThrow();
+        assertTrue(error.getMessage().contains("Replay recipe:"));
+        assertTrue(recipe.contains("format=krandom-recipe"));
+        assertFalse(recipe.contains("do-not-log-this-text"));
+    }
+
+    @Test
+    @DisplayName("legacy schema failure constructor has no replay recipe")
+    void legacySchemaFailureHasNoReplayRecipe() {
+        SchemaGenerationException error = new SchemaGenerationException(
+            "broken", 0, new IllegalStateException("fixture failure"));
+
+        assertTrue(error.getReplayRecipe().isEmpty());
     }
 
     private static Map<String, SchemaValueProvider> orderedFields(String... names) {

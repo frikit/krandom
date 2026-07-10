@@ -23,14 +23,22 @@ final class ObjectGenerationFailurePolicy {
 
     private final boolean lenient;
     private final GenerationFailureListener listener;
+    private final Optional<String> replayIdentity;
 
     ObjectGenerationFailurePolicy(boolean lenient) {
         this(lenient, NOOP_LISTENER);
     }
 
     ObjectGenerationFailurePolicy(boolean lenient, GenerationFailureListener listener) {
+        this(lenient, listener, Optional.empty());
+    }
+
+    ObjectGenerationFailurePolicy(boolean lenient,
+                                  GenerationFailureListener listener,
+                                  Optional<String> replayIdentity) {
         this.lenient = lenient;
         this.listener = Objects.requireNonNull(listener, "listener must not be null");
+        this.replayIdentity = Objects.requireNonNull(replayIdentity, "replayIdentity must not be null");
     }
 
     <T> T handle(ObjectGenerationException failure, T fallback) {
@@ -39,7 +47,7 @@ final class ObjectGenerationFailurePolicy {
             () -> new IllegalArgumentException("Failure policy requires structured context", failure));
         Throwable cause = failure.getCause();
         String causeType = cause != null ? cause.getClass().getName() : failure.getClass().getName();
-        notifyListener(new GenerationFailureDiagnostic(context, causeType, Optional.empty()));
+        notifyListener(new GenerationFailureDiagnostic(context, causeType, replayIdentity));
         if (!lenient) {
             throw failure;
         }

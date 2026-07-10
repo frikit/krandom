@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.junit;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -29,8 +30,9 @@ import java.util.Random;
  * {@link GeneratorConfig.Builder} test parameter, both pre-seeded with the test's seed.
  *
  * <p>When a test fails, the seed is published as a JUnit report entry under the
- * {@value #REPORT_ENTRY_KEY} key and printed to {@code System.err} with a reproduction hint, so
- * a failing unpinned run can be replayed by annotating the test with
+ * {@value #REPORT_ENTRY_KEY} key and a safe portable recipe under {@value #RECIPE_REPORT_ENTRY_KEY}.
+ * Both are printed to {@code System.err} with a reproduction hint, so a failing unpinned run can
+ * be replayed by annotating the test with
  * {@code @KrandomSeed(<reported seed>L)} — no more unreproducible random-data failures.
  *
  * <p><b>Usage</b>
@@ -58,6 +60,9 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     /** Key under which the failing test's seed is published as a JUnit report entry. */
     public static final String REPORT_ENTRY_KEY = "krandom.seed";
+
+    /** Key under which the failing test's safe portable replay recipe is published. */
+    public static final String RECIPE_REPORT_ENTRY_KEY = "krandom.recipe";
 
     private static final Namespace NAMESPACE = Namespace.create(KrandomExtension.class);
     private static final String SEED_KEY = "seedInfo";
@@ -96,16 +101,19 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             return;
         }
         context.publishReportEntry(REPORT_ENTRY_KEY, Long.toString(info.seed()));
-        System.err.println(failureMessage(context.getDisplayName(), info));
+        String recipe = GenerationRecipe.builder().seed(info.seed()).build().serializeForDiagnostics();
+        context.publishReportEntry(RECIPE_REPORT_ENTRY_KEY, recipe);
+        System.err.println(failureMessage(context.getDisplayName(), info, recipe));
     }
 
-    private static String failureMessage(String displayName, SeedInfo info) {
+    private static String failureMessage(String displayName, SeedInfo info, String recipe) {
         if (info.pinned()) {
-            return "krandom: test '%s' failed with pinned seed %d.".formatted(displayName, info.seed());
+            return ("krandom: test '%s' failed with pinned seed %d. Replay recipe:%n%s")
+                .formatted(displayName, info.seed(), recipe);
         }
         return ("krandom: test '%s' failed with seed %d. "
-                + "Annotate it with @KrandomSeed(%dL) to reproduce this run.")
-                .formatted(displayName, info.seed(), info.seed());
+                + "Annotate it with @KrandomSeed(%dL) to reproduce this run. Replay recipe:%n%s")
+                .formatted(displayName, info.seed(), info.seed(), recipe);
     }
 
     /**

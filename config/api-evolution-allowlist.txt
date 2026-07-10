@@ -28,6 +28,10 @@ io.github.frikit.krandom.generator.GeneratorConfig$Builder
 io.github.frikit.krandom.generator.GenerationRecipe
 io.github.frikit.krandom.generator.GenerationRecipe$Builder
 io.github.frikit.krandom.generator.GenerationRecipe#deriveChildSeed(long,java.lang.String)
+io.github.frikit.krandom.generator.GenerationRecipe#serializeForDiagnostics()
+# Exact class classification covers the additive JUnit replay-report constant.
+io.github.frikit.krandom.junit.KrandomExtension
+io.github.frikit.krandom.generator.schema.SchemaGenerationException#getReplayRecipe()
 io.github.frikit.krandom.generator.GeneratorConfig#getGenerationProfile()
 io.github.frikit.krandom.generator.GeneratorConfig#getSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getProviderDatasetVersion()
