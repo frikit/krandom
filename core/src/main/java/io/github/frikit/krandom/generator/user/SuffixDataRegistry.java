@@ -48,8 +48,12 @@ public final class SuffixDataRegistry {
      * <p>If a provider already exists for the same exact locale key, it is replaced. A
      * language-only key (e.g. {@code "en"}) explicitly replaces the language-level fallback.
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerSuffixProvider(SuffixDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider to register; must not be {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(SuffixDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         validateProvider(provider);

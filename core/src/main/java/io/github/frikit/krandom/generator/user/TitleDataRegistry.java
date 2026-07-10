@@ -59,9 +59,13 @@ public final class TitleDataRegistry {
      * {@link TitleDataProvider#getLocale()} has no country component (e.g.
      * {@code Locale.of("en")}).
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerTitleProvider(TitleDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider to register; must not be {@code null}, and
      *                 {@link TitleDataProvider#getLocale()} must not be {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(TitleDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         validateProvider(provider);

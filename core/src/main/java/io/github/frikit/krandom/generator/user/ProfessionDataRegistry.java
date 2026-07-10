@@ -38,7 +38,12 @@ public final class ProfessionDataRegistry {
 
     /**
      * Registers (or overrides) a provider for its locale.
+     *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerProfessionProvider(ProfessionDataProvider)}
+     * for configuration-scoped registration.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(ProfessionDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         validateProvider(provider);
@@ -49,7 +54,11 @@ public final class ProfessionDataRegistry {
      * Appends profession entries to the existing locale provider, preserving existing entries.
      *
      * <p>If the locale is not yet registered, a new provider is created from the appended data.
+     *
+     * @deprecated Since 1.6, create a combined {@link ProfessionDataProvider} and use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerProfessionProvider(ProfessionDataProvider)}.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void append(Locale locale, String[] professions, int[] weights) {
         Objects.requireNonNull(locale, "locale");
         validateArrays(professions, weights);
@@ -74,7 +83,11 @@ public final class ProfessionDataRegistry {
 
     /**
      * Convenience overload: appended professions get uniform weight 1.
+     *
+     * @deprecated Since 1.6, create a combined {@link ProfessionDataProvider} and use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerProfessionProvider(ProfessionDataProvider)}.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void append(Locale locale, String[] professions) {
         Objects.requireNonNull(professions, "professions");
         int[] weights = new int[professions.length];

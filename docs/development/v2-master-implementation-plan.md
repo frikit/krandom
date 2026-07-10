@@ -213,7 +213,7 @@ Work may run in parallel only when the dependency table for its stage allows it.
 **Actions**
 
 - [x] Deprecate redundant facade aliases and point to one canonical name per operation.
-- [ ] Deprecate global registry mutations that will be replaced by scoped contexts.
+- [x] Deprecate global registry mutations that are replaced by scoped contexts.
 - [ ] Deprecate ambiguous reseeding fallbacks that cannot preserve the v2 contract.
 - [x] Add `@since`, `@Deprecated(since = "1.6", forRemoval = true)`, and migration examples.
 - [x] Keep deprecated methods as thin delegates; do not duplicate behavior.
@@ -499,18 +499,18 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Inventory canonical provider keys, aliases, result types, factories, locale support, fallback, validation, and metadata across `ProviderHub`, `FieldLookup`, `SemanticFieldRegistry`, and all data registries.
+- [x] Inventory canonical provider keys, aliases, result types, factories, locale support, fallback, validation, and metadata across `ProviderHub`, `FieldLookup`, `SemanticFieldRegistry`, and all data registries.
 - [x] Define one typed provider descriptor/catalog.
 - [ ] Generate lookup, semantic inference, schema metadata, and documentation from the catalog.
-- [ ] Move every provider registry into `DataRegistryContext` or its v2 replacement.
+- [x] Move every generator-backed locale provider registry into `DataRegistryContext`.
 - [ ] Validate registered keys and data arrays uniformly.
 - [x] Return immutable snapshots rather than live unmodifiable concurrent-map views.
-- [ ] Keep deprecated global registration as a 1.6 adapter only.
+- [x] Keep deprecated global registration as a 1.6 adapter only.
 
 **Tests**
 
-- [ ] A catalog completeness test finds missing/duplicate keys and alias collisions.
-- [ ] Every provider can be overridden in one context without affecting another.
+- [x] A catalog completeness test finds missing/duplicate keys and alias collisions.
+- [x] Every generator-backed locale provider can be overridden in one context without affecting another.
 - [ ] Locale fallback and registry validation are uniform across old and new provider families.
 - [ ] Concurrent context tests show no global leakage.
 

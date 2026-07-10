@@ -45,8 +45,12 @@ public final class FinancialTermDataRegistry {
     /**
      * Registers a custom financial-term data provider, replacing any provider for the same locale key.
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerFinancialTermProvider(FinancialTermDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider to register; must not be {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(FinancialTermDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         putProvider(provider);

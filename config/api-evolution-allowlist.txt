@@ -139,6 +139,32 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerZodiacPro
 # ZodiacGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.user.ZodiacGenerator
 
+# Deprecated global registry-mutation bridges; exact context-builder replacements are documented
+# in v1.6-to-v2.md and each method Javadoc.
+io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry#register(io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider)
+io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry#register(io.github.frikit.krandom.generator.finance.FinancialTermDataProvider)
+io.github.frikit.krandom.generator.location.CityDataRegistry#register(io.github.frikit.krandom.generator.location.CityDataProvider)
+io.github.frikit.krandom.generator.location.CountryDataRegistry#register(io.github.frikit.krandom.generator.location.CountryDataProvider)
+io.github.frikit.krandom.generator.location.StateDataRegistry#register(io.github.frikit.krandom.generator.location.StateDataProvider)
+io.github.frikit.krandom.generator.location.StreetAddressDataRegistry#register(io.github.frikit.krandom.generator.location.StreetAddressDataProvider)
+io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry#register(io.github.frikit.krandom.generator.measurement.MeasurementDataProvider)
+io.github.frikit.krandom.generator.user.BloodTypeDataRegistry#register(io.github.frikit.krandom.generator.user.BloodTypeDataProvider)
+io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry#register(io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider)
+io.github.frikit.krandom.generator.user.FirstNameDataRegistry#register(io.github.frikit.krandom.generator.user.FirstNameDataProvider)
+io.github.frikit.krandom.generator.user.GenderDataRegistry#register(io.github.frikit.krandom.generator.user.GenderDataProvider)
+io.github.frikit.krandom.generator.user.HobbyDataRegistry#register(io.github.frikit.krandom.generator.user.HobbyDataProvider)
+io.github.frikit.krandom.generator.user.LastNameDataRegistry#register(io.github.frikit.krandom.generator.user.LastNameDataProvider)
+io.github.frikit.krandom.generator.user.NationalityDataRegistry#register(io.github.frikit.krandom.generator.user.NationalityDataProvider)
+io.github.frikit.krandom.generator.user.ProfessionDataRegistry#register(io.github.frikit.krandom.generator.user.ProfessionDataProvider)
+io.github.frikit.krandom.generator.user.ProfessionDataRegistry#append(java.util.Locale,java.lang.String[],int[])
+io.github.frikit.krandom.generator.user.ProfessionDataRegistry#append(java.util.Locale,java.lang.String[])
+io.github.frikit.krandom.generator.user.PronounDataRegistry#register(io.github.frikit.krandom.generator.user.PronounDataProvider)
+io.github.frikit.krandom.generator.user.SuffixDataRegistry#register(io.github.frikit.krandom.generator.user.SuffixDataProvider)
+io.github.frikit.krandom.generator.user.TitleDataRegistry#register(io.github.frikit.krandom.generator.user.TitleDataProvider)
+io.github.frikit.krandom.generator.user.ZodiacDataRegistry#register(io.github.frikit.krandom.generator.user.ZodiacDataProvider)
+io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry#register(io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider)
+io.github.frikit.krandom.generator.weather.WeatherDataRegistry#register(io.github.frikit.krandom.generator.weather.WeatherDataProvider)
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy

@@ -76,8 +76,9 @@ concurrent contexts without cross-contamination.
 
 All generator-backed locale vocabulary now has validated context registration, locale fallback, and
 snapshot keys in `DataRegistryContext`; generators resolve it from `GeneratorConfig` rather than
-directly from process-wide state. The static registries remain 1.6 compatibility adapters and can be
-deprecated in a deliberate follow-up once migration guidance is published.
+directly from process-wide state. The 23 static mutation methods are deprecated 1.6 compatibility
+adapters with exact context-builder replacement links. The remaining Stage 3 evidence is a focused
+concurrent-context non-leakage test.
 
 Measurement follows the same context boundary for its localized unit vocabulary. Its generator
 now resolves one config-scoped provider before using the legacy registry fallback.

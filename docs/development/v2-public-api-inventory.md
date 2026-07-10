@@ -79,12 +79,14 @@ Public provider interfaces and lookup operations remain **KEEP**. Static global 
 
 | API family | Disposition | Required replacement |
 |:---|:---|:---|
-| Static `register(...)` methods on `*DataRegistry` and `NationalIdRegistry` | **REPLACE FIRST** | Context-scoped registration covering every provider family |
+| Static `register(...)` methods and profession `append(...)` on data registries | **DEPRECATE in 1.6 / REMOVE in v2** | Context-scoped registration covering every provider family |
 | Static registry reset/clear hooks, where public | **REPLACE FIRST** | Disposable scoped contexts |
 | `registeredKeys()` | **KEEP**, fix semantics | Return an immutable snapshot, not a live view |
 | Provider interfaces and locale keys | **KEEP** | Typed provider catalog becomes their single source of truth |
 
-Global mutations must not be deprecated until the scoped replacement reaches feature parity. Once it does, the 1.6 bridge can deprecate the global entry points as thin legacy adapters.
+All 23 global mutation methods are now deprecated in 1.6 as thin compatibility adapters. Their
+Javadocs link to the exact `DataRegistryContext.Builder` replacement and
+[`v1.6-to-v2.md`](../migration/v1.6-to-v2.md) explains configuration-scoped migration.
 
 `DataRegistryContext` weather lookup, key snapshot, and builder registration are additive **KEEP**
 APIs. They provide validated, locale-fallback-aware weather vocabulary that is isolated per

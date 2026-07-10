@@ -33,8 +33,12 @@ public final class StreetAddressDataRegistry {
     /**
      * Registers or replaces a provider.
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerStreetAddressProvider(StreetAddressDataProvider)}
+     * for configuration-scoped registration.
      * @param provider provider to register
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(StreetAddressDataProvider provider) {
         Objects.requireNonNull(provider, "provider must not be null");
         Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");

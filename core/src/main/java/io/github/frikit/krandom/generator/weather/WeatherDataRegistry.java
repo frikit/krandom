@@ -45,8 +45,12 @@ public final class WeatherDataRegistry {
     /**
      * Registers a custom weather data provider, replacing any provider for the same locale key.
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerWeatherProvider(WeatherDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider to register; must not be {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(WeatherDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         putProvider(provider);

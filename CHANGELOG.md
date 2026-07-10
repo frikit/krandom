@@ -26,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Pinned GitHub/Sigstore build-provenance attestations for the signed Maven Central bundle, jars, and SBOMs before publication.
 
 ### Changed
+- All 21 static data-registry `register(...)` methods and the two
+  `ProfessionDataRegistry.append(...)` overloads are deprecated for removal in v2. They remain
+  behavior-compatible 1.6 adapters; use the matching `DataRegistryContext.Builder` registration
+  method to isolate custom locale data to one `GeneratorConfig`.
 - `WeatherGenerator` now resolves vocabulary through `DataRegistryContext`, so independent
   `GeneratorConfig` instances can safely use different validated weather providers for the same
   locale. The global weather registry remains a compatibility fallback.

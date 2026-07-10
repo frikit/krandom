@@ -45,8 +45,12 @@ public final class ZodiacDataRegistry {
     /**
      * Registers a custom zodiac data provider, replacing any provider for the same locale key.
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerZodiacProvider(ZodiacDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider to register; must not be {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(ZodiacDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         putProvider(provider);

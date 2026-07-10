@@ -58,9 +58,13 @@ public final class CountryDataRegistry {
      * {@link CountryDataProvider#getLocale()} has no country component (e.g.
      * {@code Locale.of("en")}).
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerCountryProvider(CountryDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider to register; must not be {@code null}, and
      *                 {@link CountryDataProvider#getLocale()} must not be {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(CountryDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");

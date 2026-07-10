@@ -44,8 +44,12 @@ public final class PronounDataRegistry {
     /**
      * Registers a custom pronoun data provider, replacing any provider for the same locale key.
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerPronounProvider(PronounDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider to register; must not be {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(PronounDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         putProvider(provider);

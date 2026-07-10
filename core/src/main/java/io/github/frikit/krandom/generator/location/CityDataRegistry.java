@@ -42,9 +42,13 @@ public final class CityDataRegistry {
     /**
      * Registers or replaces the city data provider for a locale.
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerCityProvider(CityDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider; must not be {@code null}
      * @throws NullPointerException if {@code provider} is {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(CityDataProvider provider) {
         Objects.requireNonNull(provider, "provider must not be null");
         Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");

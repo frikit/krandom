@@ -49,8 +49,12 @@ public final class FirstNameDataRegistry {
      * A language-only locale (e.g. {@code Locale.of("en")}) explicitly replaces the
      * language-level fallback.
      *
+     * @deprecated Since 1.6, use
+     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerFirstNameProvider(FirstNameDataProvider)}
+     * for configuration-scoped registration.
      * @param provider the provider to register; must not be {@code null}
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public static void register(FirstNameDataProvider provider) {
         Objects.requireNonNull(provider, "provider");
         validateProvider(provider);
