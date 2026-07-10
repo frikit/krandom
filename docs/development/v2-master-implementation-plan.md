@@ -23,7 +23,7 @@ It is not a generator-count release. New providers, aliases, and speculative abs
 At the end of this plan:
 
 - Object generation either returns a valid fixture or reports a contextual failure; it never silently returns a partially initialized object by default.
-- Seeded generation has one documented, tested replay model across scalar, object, schema, JUnit, jqwik, Kotest, Kotlin, and Spring use.
+- Seeded generation has one documented, tested replay model across scalar, object, schema, JUnit, Kotest, Kotlin, and Spring use.
 - Public APIs are inventoried, intentionally versioned, and protected by binary/source compatibility checks.
 - Kotlin immutable types, nested generics, Jakarta Validation constraints, JPMS consumers, and framework adapters have explicit supported behavior.
 - Financial and identity generators state and enforce their safety and validity level.
@@ -41,7 +41,7 @@ Java and Kotlin developers need fixtures that are easy to compose, deterministic
 
 ### Test-framework consumers
 
-JUnit, jqwik, and Kotest users need kRandom to honor each framework's seed, replay, shrinking, and lifecycle conventions instead of hiding a separate mutable random stream.
+JUnit and Kotest users need kRandom to honor each framework's seed, replay, shrinking, and lifecycle conventions instead of hiding a separate mutable random stream. jqwik is forbidden in this project; its integration module was removed in 1.1.0 and must not return.
 
 ### Framework consumers
 
@@ -552,9 +552,10 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Tests**
 
-- [ ] All P0.1, P0.2, and P0.6 acceptance criteria from the audit pass. See
-  [`v2-foundation-acceptance.md`](v2-foundation-acceptance.md) for current executable evidence and
-  the jqwik replay work that remains in Step 3.6.
+- [x] All P0.1, P0.2, and P0.6 acceptance criteria from the audit pass for the supported
+  frameworks. See [`v2-foundation-acceptance.md`](v2-foundation-acceptance.md) for executable
+  evidence. The audit's jqwik replay expectation is out of scope by owner decision (2026-07-10):
+  jqwik is forbidden in this project and its module was removed in 1.1.0.
 - [x] No ignored assignment/insertion failure remains in default object generation. See
   [`v2-foundation-acceptance.md`](v2-foundation-acceptance.md) for the focused failure-policy tests.
 - [x] Reproducibility, validity, and safety tests pass across repeated clean runs. Run
@@ -676,7 +677,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Done when:** The annotation's example works exactly as written.
 
-### Step 3.6 — Complete JUnit and jqwik replay integration
+### Step 3.6 — Complete JUnit replay integration
 
 **Depends on:** 2.7, 3.1.
 
@@ -685,8 +686,11 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Add a global system property/environment variable for replay recipes.
 - [x] Allow recipe/seed injection without editing test source.
 - [x] Preserve string-seed metadata instead of reducing it invisibly to a number.
-- [ ] Bridge jqwik random context where its API permits and document limitations.
 - [ ] Print one copyable replay command on failure.
+
+jqwik bridging is permanently out of scope (owner decision, 2026-07-10): jqwik is forbidden in
+this project and its integration module was removed in 1.1.0. Property-based replay is
+Kotest-only (Step 3.3).
 
 **Tests**
 
@@ -814,7 +818,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [ ] Publish random-source, recipe, construction, error, safety, provider, locale, schema, and thread-use contracts.
 - [ ] Add known limitations for unsupported reflection, Kotlin, JPMS, schemas, shrinking, and production data use.
 - [ ] Update every quick-start and integration example to v2 canonical APIs.
-- [ ] Generate a compatibility matrix for Java/JDK, Kotlin, Spring Boot, Kotest, jqwik, Jackson, Maven, Gradle, sbt, and Mill.
+- [ ] Generate a compatibility matrix for Java/JDK, Kotlin, Spring Boot, Kotest, Jackson, Maven, Gradle, sbt, and Mill.
 - [ ] Add a release/adoption checklist for consumer projects.
 
 **Tests**
@@ -1064,7 +1068,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [ ] Define when random fixtures are appropriate versus builders, golden fixtures, or production-like datasets.
 - [ ] Forbid kRandom use for production identities, payments, account creation, or unreviewed external traffic.
 - [ ] Standardize CI replay output and failure retention.
-- [ ] Provide Java, Kotlin, Spring, JUnit, jqwik, Kotest, Maven, and Gradle templates.
+- [ ] Provide Java, Kotlin, Spring, JUnit, Kotest, Maven, and Gradle templates.
 - [ ] Define upgrade cadence and compatibility review ownership.
 
 **Tests**
@@ -1110,7 +1114,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 | Kotlin immutable types/DSL | 2.5, 3.4 | Stage 3 |
 | Kotest replay/shrinking | 3.3 | Stage 3 |
 | Spring slice/default mismatch | 3.5 | Stage 3 |
-| JUnit/jqwik replay | 3.6 | Stage 3 |
+| JUnit replay | 3.6 | Stage 3 |
 | Registry/provider duplication | 2.8 | Stage 2 |
 | Financial/identity safety | 2.9 | Stage 2 |
 | Core Kotlin dependency/BOM | 1.6 | Stage 1 |

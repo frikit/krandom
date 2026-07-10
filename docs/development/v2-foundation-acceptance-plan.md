@@ -33,7 +33,8 @@ regresses.
 the open cross-framework replay and internal type-model boundaries visible.
 
 **Success Criteria:** The master plan links to the command and evidence, and Stage 2 remains in
-progress until its outstanding implementation action and jqwik replay work are complete.
+progress until its outstanding implementation action is complete. (The jqwik replay expectation
+recorded here was later ruled out of scope: jqwik is forbidden in this project.)
 
 **Tests:** Run the acceptance command and `./scripts/pre_commit_check.sh`.
 

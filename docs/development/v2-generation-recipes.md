@@ -139,5 +139,6 @@ it with the failure seed. The JUnit extension also accepts a complete Base64 rec
 through documented JVM-property/environment overrides, so a CI replay does not require editing test
 source. Diagnostic recipes keep the derived numeric seed but omit `seed-text`, so user-provided
 textual seed material is not logged. Schema generation failures expose and print the same safe
-recipe. The remaining host-framework integrations are tracked in their dedicated Stage 3 packages;
-jqwik replay remains separate because the jqwik integration module is not currently published.
+recipe. The remaining host-framework integrations are tracked in their dedicated Stage 3 packages.
+jqwik replay is permanently out of scope: jqwik is forbidden in this project and its integration
+module was removed in 1.1.0.

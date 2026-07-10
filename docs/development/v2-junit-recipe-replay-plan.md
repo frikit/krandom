@@ -1,6 +1,6 @@
 # V2 JUnit Recipe Replay Plan
 
-**Master-plan link:** Step 3.6 — JUnit and jqwik replay integration
+**Master-plan link:** Step 3.6 — JUnit replay integration
 
 ## Stage 1: Define the JUnit replay boundary
 
@@ -34,8 +34,8 @@ body runs.
 **Goal:** Document copyable replay options, preserve the existing safe diagnostic behavior, and
 run the focused plus full release gates.
 
-**Success Criteria:** The guide names the accepted formats and precedence; the implementation
-remains explicit that jqwik bridging is separate work because the integration module is absent.
+**Success Criteria:** The guide names the accepted formats and precedence; jqwik bridging is
+permanently out of scope because jqwik is forbidden in this project.
 
 **Tests:** `:junit:test`, `./scripts/pre_commit_check.sh`, and local consumer verification.
 

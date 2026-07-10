@@ -34,11 +34,13 @@ examples.
 
 ## Scope boundary
 
-This evidence closes the repeated-clean-run and default-error-handling assertions in Step 2.10. It
-does not close the combined P0.1/P0.2/P0.6 assertion: the audit requires framework-native jqwik
-replay, while the jqwik integration is deliberately scheduled in [Step
-3.6](v2-master-implementation-plan.md#step-36--complete-junit-and-jqwik-replay-integration).
+This evidence closes the repeated-clean-run and default-error-handling assertions in Step 2.10,
+and — together with the JUnit replay overrides and Kotest host-seeded adapters — the combined
+P0.1/P0.2/P0.6 assertion for the supported frameworks. The audit's jqwik replay expectation is out
+of scope by owner decision (2026-07-10): jqwik is forbidden in this project and its integration
+module was removed in 1.1.0. JUnit replay work continues in [Step
+3.6](v2-master-implementation-plan.md#step-36--complete-junit-replay-integration).
 
-It also does not close Stage 2: the remaining internal schema/object type-model boundary is
+It does not close Stage 2: the remaining internal schema/object type-model boundary is
 documented in
 [`v2-foundation-integration-gate.md`](v2-foundation-integration-gate.md#intentional-remaining-limitation).
