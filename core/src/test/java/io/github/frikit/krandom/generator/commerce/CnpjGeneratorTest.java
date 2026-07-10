@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CnpjGenerator")
+@SuppressWarnings("removal")
 class CnpjGeneratorTest {
 
     private static final int[] WEIGHTS_1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
@@ -40,7 +42,7 @@ class CnpjGeneratorTest {
     }
 
     @RepeatedTest(200)
-    @DisplayName("formatted output matches the CNPJ mask and is valid")
+    @DisplayName("deprecated no-argument constructor preserves formatted valid output")
     void formattedValid() {
         String cnpj = new CnpjGenerator().generate();
         assertTrue(cnpj.matches("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}"), cnpj);
@@ -48,7 +50,7 @@ class CnpjGeneratorTest {
     }
 
     @RepeatedTest(200)
-    @DisplayName("unformatted output is 14 valid digits ending in branch + check digits")
+    @DisplayName("deprecated no-argument constructor preserves unformatted valid output")
     void unformattedValid() {
         String cnpj = new CnpjGenerator().withoutFormatting().generate();
         assertTrue(cnpj.matches("\\d{14}"), cnpj);
@@ -73,9 +75,17 @@ class CnpjGeneratorTest {
     @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
-        List<String> a = new CnpjGenerator(GeneratorConfig.builder().seed(77L).build()).generateList(25);
-        List<String> b = new CnpjGenerator(GeneratorConfig.builder().seed(77L).build()).generateList(25);
+        List<String> a = new CnpjGenerator(realisticConfig(77L)).generateList(25);
+        List<String> b = new CnpjGenerator(realisticConfig(77L)).generateList(25);
         assertEquals(a, b);
+    }
+
+    @Test
+    @DisplayName("configured generation fails closed by default")
+    void configuredGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class,
+                     () -> new CnpjGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofCnpj().generate());
     }
 
     @Test
@@ -85,11 +95,11 @@ class CnpjGeneratorTest {
     }
 
     @Test
-    @DisplayName("facade ofCnpj produces valid CNPJs")
+    @DisplayName("facade requires an explicit realistic compatibility policy")
     void facadeCnpj() {
-        assertTrue(Generators.ofCnpj().generate().matches("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}"));
+        assertThrows(IllegalStateException.class, () -> Generators.ofCnpj().generate());
         assertTrue(isValidCnpj(
-            Generators.ofCnpj(GeneratorConfig.builder().seed(1L).build()).generate().replaceAll("\\D", "")));
+            Generators.ofCnpj(realisticConfig(1L)).generate().replaceAll("\\D", "")));
     }
 
     @Test
@@ -106,5 +116,13 @@ class CnpjGeneratorTest {
         assertEquals(
             Generators.ofNationalId(config).generateList(10),
             Generators.ofNationalId(config).generateList(10));
+    }
+
+    private static GeneratorConfig realisticConfig(long seed) {
+        return GeneratorConfig.builder()
+                              .seed(seed)
+                              .businessTaxIdentifierSafetyPolicy(
+                                  BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build();
     }
 }

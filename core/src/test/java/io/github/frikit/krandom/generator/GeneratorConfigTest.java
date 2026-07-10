@@ -83,6 +83,7 @@ class GeneratorConfigTest {
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
         assertEquals(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE, c.getPaymentCardSafetyPolicy());
         assertEquals(BankingSafetyPolicy.DISABLED, c.getBankingSafetyPolicy());
+        assertEquals(BusinessTaxIdentifierSafetyPolicy.DISABLED, c.getBusinessTaxIdentifierSafetyPolicy());
         assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
         assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
@@ -152,6 +153,20 @@ class GeneratorConfigTest {
                      config.toBuilder().build().getBankingSafetyPolicy());
         assertThrows(NullPointerException.class,
                      () -> GeneratorConfig.builder().bankingSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("business tax-identifier safety policy is configurable and retained by toBuilder")
+    void businessTaxIdentifierSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .businessTaxIdentifierSafetyPolicy(
+                                                    BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getBusinessTaxIdentifierSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().businessTaxIdentifierSafetyPolicy(null));
     }
 
     @Test

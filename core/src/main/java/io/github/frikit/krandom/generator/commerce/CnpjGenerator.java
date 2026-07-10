@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -20,10 +21,8 @@ import java.util.Random;
  * The default form is dotted ({@code "NN.NNN.NNN/NNNN-NN"}); use {@link #withoutFormatting()} for the
  * bare 14-digit form.
  *
- * <pre>{@code
- *   String cnpj = new CnpjGenerator().generate();                    // "12.345.678/0001-95"
- *   String bare = new CnpjGenerator().withoutFormatting().generate(); // "12345678000195"
- * }</pre>
+ * <p>Configured generation is disabled by default. For an isolated compatibility fixture, select
+ * {@link BusinessTaxIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} explicitly.
  */
 public final class CnpjGenerator implements Generator<String> {
 
@@ -35,12 +34,20 @@ public final class CnpjGenerator implements Generator<String> {
 
     private final Random random;
     private final boolean formatted;
+    private final BusinessTaxIdentifierSafetyPolicy safetyPolicy;
 
     /**
-     * Creates a generator that produces formatted CNPJs using the default configuration.
+     * Creates a generator with the historical realistic-output behavior.
+     *
+     * @deprecated since 1.6; use {@link #CnpjGenerator(GeneratorConfig)} and select an explicit
+     * safety policy instead
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     public CnpjGenerator() {
-        this(GeneratorConfig.defaults());
+        this(GeneratorConfig.builder()
+                            .businessTaxIdentifierSafetyPolicy(
+                                BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build());
     }
 
     /**
@@ -52,11 +59,13 @@ public final class CnpjGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
         this.formatted = true;
+        this.safetyPolicy = config.getBusinessTaxIdentifierSafetyPolicy();
     }
 
-    private CnpjGenerator(Random random, boolean formatted) {
+    private CnpjGenerator(Random random, boolean formatted, BusinessTaxIdentifierSafetyPolicy safetyPolicy) {
         this.random = random;
         this.formatted = formatted;
+        this.safetyPolicy = safetyPolicy;
     }
 
     /**
@@ -66,7 +75,7 @@ public final class CnpjGenerator implements Generator<String> {
      * @return a new generator configured to omit formatting characters
      */
     public CnpjGenerator withoutFormatting() {
-        return new CnpjGenerator(this.random, false);
+        return new CnpjGenerator(this.random, false, this.safetyPolicy);
     }
 
     /**
@@ -87,6 +96,7 @@ public final class CnpjGenerator implements Generator<String> {
 
     @Override
     public String generate() {
+        requireRealisticOutput();
         int[] body = new int[12];
         for (int i = 0; i < 8; i++) {
             body[i] = random.nextInt(10);
@@ -114,5 +124,13 @@ public final class CnpjGenerator implements Generator<String> {
                 + '/' + s.substring(8, 12) + '-' + s.substring(12, 14);
         }
         return s;
+    }
+
+    private void requireRealisticOutput() {
+        if (safetyPolicy == BusinessTaxIdentifierSafetyPolicy.DISABLED) {
+            throw new IllegalStateException(
+                "Business tax-identifier generation is disabled by default; select "
+                + "businessTaxIdentifierSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
+        }
     }
 }

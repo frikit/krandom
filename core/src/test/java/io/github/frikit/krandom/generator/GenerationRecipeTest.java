@@ -210,12 +210,38 @@ class GenerationRecipeTest {
     }
 
     @Test
+    @DisplayName("replays the configured business tax-identifier safety policy")
+    void replaysBusinessTaxIdentifierSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .businessTaxIdentifierSafetyPolicy(
+                                                    BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("REALISTIC_UNCLASSIFIED",
+                     recipe.getSettings().get("business-tax-identifier.safety-policy"));
+        assertEquals(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getBusinessTaxIdentifierSafetyPolicy());
+    }
+
+    @Test
     @DisplayName("replays legacy recipes without a banking safety setting as unclassified")
     void replaysLegacyRecipeWithoutBankingSafetyPolicy() {
         GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
 
         assertEquals(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
                      recipe.toGeneratorConfig().getBankingSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without a business tax-identifier safety setting as unclassified")
+    void replaysLegacyRecipeWithoutBusinessTaxIdentifierSafetyPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getBusinessTaxIdentifierSafetyPolicy());
     }
 
     @Test

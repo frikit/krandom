@@ -50,7 +50,7 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Financial Terms | ✅ DONE | `FinancialTermGenerator` (finance) — finance vocabulary localized across all 35 locales |
 | Computer / Device | ✅ DONE | `ComputerGenerator` (tech) — universal OS/platform/deviceType |
 | Aws / Azure | ✅ DONE | `AwsGenerator` + `AzureGenerator` (tech) — universal regions/instanceId/s3Bucket, resourceGroup |
-| CNPJ (BR) | ✅ DONE | `CnpjGenerator` (commerce) — Brazilian company id, check-digit valid |
+| CNPJ (BR) | ✅ DONE | `CnpjGenerator` (commerce) — Brazilian company ID; canonical config fails closed and the deprecated bridge is check-digit valid |
 | CPF (BR) | 🟡 Configured-only | `NationalIdGenerator` with explicit `REALISTIC_UNCLASSIFIED` policy; the default fails closed |
 
 ### ✅ Already covered

@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.namespace;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
 import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
@@ -175,6 +176,8 @@ class FluentNamespaceTest {
         FinanceGenerators f = Generators.finance(GeneratorConfig.builder()
                                                                  .bankingSafetyPolicy(
                                                                      BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .businessTaxIdentifierSafetyPolicy(
+                                                                     BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                                  .build());
         assertNotNull(f.creditCard().generate());
         assertNotNull(f.creditCardInfo().generate());
@@ -337,6 +340,7 @@ class FluentNamespaceTest {
             .locale(Locale.GERMANY)
             .seed(987654321L)
             .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .build();
 
         DateTimeGenerators datetime = Generators.datetime(seeded);

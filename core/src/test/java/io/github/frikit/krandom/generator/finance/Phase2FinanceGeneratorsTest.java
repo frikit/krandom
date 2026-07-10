@@ -6,6 +6,8 @@
 package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
+import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Phase 2 finance generators")
+@SuppressWarnings("removal")
 class Phase2FinanceGeneratorsTest {
 
     @Test
@@ -140,7 +143,7 @@ class Phase2FinanceGeneratorsTest {
     }
 
     @Test
-    @DisplayName("ein generator supports formatted and unformatted output")
+    @DisplayName("deprecated no-argument constructor preserves formatted and unformatted output")
     void ein() {
         EinGenerator generator = new EinGenerator();
         String formatted = generator.generate();
@@ -153,11 +156,24 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("ein generator seeded output is deterministic")
     void einSeeded() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(777L).build();
+        GeneratorConfig config = realisticConfig(777L);
         EinGenerator a = new EinGenerator(config);
         EinGenerator b = new EinGenerator(config);
         assertEquals(a.generate(), b.generate());
         assertEquals(a.generateUnformatted(), b.generateUnformatted());
+    }
+
+    @Test
+    @DisplayName("configured EIN generation fails closed by default")
+    void einConfiguredGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class, () -> new EinGenerator(GeneratorConfig.defaults()).generate());
+    }
+
+    @Test
+    @DisplayName("EIN facade requires an explicit realistic compatibility policy")
+    void einFacadeRequiresExplicitPolicy() {
+        assertThrows(IllegalStateException.class, () -> Generators.ofEin().generate());
+        assertTrue(Generators.ofEin(realisticConfig(4L)).generate().matches("\\d{2}-\\d{7}"));
     }
 
     @Test
@@ -218,5 +234,13 @@ class Phase2FinanceGeneratorsTest {
         assertThrows(NullPointerException.class, () -> new BankTypeGenerator((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> new BankNameGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new BankTypeGenerator((Locale) null));
+    }
+
+    private static GeneratorConfig realisticConfig(long seed) {
+        return GeneratorConfig.builder()
+                              .seed(seed)
+                              .businessTaxIdentifierSafetyPolicy(
+                                  BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build();
     }
 }

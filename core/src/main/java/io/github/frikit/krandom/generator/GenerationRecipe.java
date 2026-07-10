@@ -411,6 +411,7 @@ public final class GenerationRecipe {
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
         applyPaymentCardSafetyPolicy(builder);
         applyBankingSafetyPolicy(builder);
+        applyBusinessTaxIdentifierSafetyPolicy(builder);
         applyPhoneNumberSafetyPolicy(builder);
         applyNationalIdSafetyPolicy(builder);
         applyIdentityDocumentSafetyPolicy(builder);
@@ -448,6 +449,14 @@ public final class GenerationRecipe {
             ? BankingSafetyPolicy.REALISTIC_UNCLASSIFIED
             : BankingSafetyPolicy.valueOf(value);
         builder.bankingSafetyPolicy(policy);
+    }
+
+    private void applyBusinessTaxIdentifierSafetyPolicy(GeneratorConfig.Builder builder) {
+        String value = settings.get("business-tax-identifier.safety-policy");
+        BusinessTaxIdentifierSafetyPolicy policy = value == null
+            ? BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED
+            : BusinessTaxIdentifierSafetyPolicy.valueOf(value);
+        builder.businessTaxIdentifierSafetyPolicy(policy);
     }
 
     private void applyPhoneNumberSafetyPolicy(GeneratorConfig.Builder builder) {
@@ -509,7 +518,8 @@ public final class GenerationRecipe {
                  "object.semantic-mode", "object.null-probability", "object.optional-empty-probability",
                  "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
                  "payment.card-safety-policy", "banking.safety-policy", "phone-number.safety-policy",
-                 "national-id.safety-policy", "identity-document.safety-policy" -> true;
+                 "national-id.safety-policy", "identity-document.safety-policy",
+                 "business-tax-identifier.safety-policy" -> true;
             default -> false;
         };
     }

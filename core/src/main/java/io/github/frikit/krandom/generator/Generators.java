@@ -1624,10 +1624,13 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces Brazilian company tax IDs (CNPJ), e.g. {@code "12.345.678/0001-95"}.
+     * Returns a CNPJ generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit corporate tax-identifier safety policy to generate
+     * an isolated compatibility fixture.
      */
     public static CnpjGenerator ofCnpj() {
-        return new CnpjGenerator();
+        return new CnpjGenerator(GeneratorConfig.defaults());
     }
 
     /**
@@ -2270,10 +2273,20 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces US EIN values.
+     * Returns an EIN generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit corporate tax-identifier safety policy to generate
+     * an isolated compatibility fixture.
      */
     public static EinGenerator ofEin() {
-        return new EinGenerator();
+        return new EinGenerator(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Returns an EIN generator configured by the given {@link GeneratorConfig}.
+     */
+    public static EinGenerator ofEin(GeneratorConfig config) {
+        return new EinGenerator(config);
     }
 
     /**

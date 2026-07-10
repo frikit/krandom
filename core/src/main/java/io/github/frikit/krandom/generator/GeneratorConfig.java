@@ -110,6 +110,7 @@ public final class GeneratorConfig {
     private final String       safetyPolicy;
     private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
     private final BankingSafetyPolicy bankingSafetyPolicy;
+    private final BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy;
     private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
     private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
@@ -157,6 +158,7 @@ public final class GeneratorConfig {
         this.safetyPolicy = b.safetyPolicy;
         this.paymentCardSafetyPolicy = b.paymentCardSafetyPolicy;
         this.bankingSafetyPolicy = b.bankingSafetyPolicy;
+        this.businessTaxIdentifierSafetyPolicy = b.businessTaxIdentifierSafetyPolicy;
         this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
         this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
         this.identityDocumentSafetyPolicy = b.identityDocumentSafetyPolicy;
@@ -241,6 +243,18 @@ public final class GeneratorConfig {
      */
     public BankingSafetyPolicy getBankingSafetyPolicy() {
         return bankingSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated corporate tax identifiers.
+     *
+     * <p>The default fails closed because krandom has no portable non-routable CNPJ or EIN
+     * fixture contract. {@link BusinessTaxIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} is an
+     * explicit compatibility opt-in for isolated tests; it does not make values safe for
+     * production or external systems.
+     */
+    public BusinessTaxIdentifierSafetyPolicy getBusinessTaxIdentifierSafetyPolicy() {
+        return businessTaxIdentifierSafetyPolicy;
     }
 
     /**
@@ -583,6 +597,8 @@ public final class GeneratorConfig {
                                                             .setting("payment.card-safety-policy",
                                                                      paymentCardSafetyPolicy.name())
                                                             .setting("banking.safety-policy", bankingSafetyPolicy.name())
+                                                            .setting("business-tax-identifier.safety-policy",
+                                                                     businessTaxIdentifierSafetyPolicy.name())
                                                             .setting("phone-number.safety-policy",
                                                                      phoneNumberSafetyPolicy.name())
                                                             .setting("national-id.safety-policy",
@@ -748,6 +764,8 @@ public final class GeneratorConfig {
         private String            safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
         private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
         private BankingSafetyPolicy bankingSafetyPolicy = BankingSafetyPolicy.DISABLED;
+        private BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy =
+            BusinessTaxIdentifierSafetyPolicy.DISABLED;
         private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
@@ -797,6 +815,7 @@ public final class GeneratorConfig {
             this.safetyPolicy = source.safetyPolicy;
             this.paymentCardSafetyPolicy = source.paymentCardSafetyPolicy;
             this.bankingSafetyPolicy = source.bankingSafetyPolicy;
+            this.businessTaxIdentifierSafetyPolicy = source.businessTaxIdentifierSafetyPolicy;
             this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
             this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
             this.identityDocumentSafetyPolicy = source.identityDocumentSafetyPolicy;
@@ -1234,6 +1253,23 @@ public final class GeneratorConfig {
         public Builder bankingSafetyPolicy(BankingSafetyPolicy bankingSafetyPolicy) {
             this.bankingSafetyPolicy = Objects.requireNonNull(
                 bankingSafetyPolicy, "bankingSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated corporate tax identifiers.
+         *
+         * <p>The default is {@link BusinessTaxIdentifierSafetyPolicy#DISABLED}. Select
+         * {@link BusinessTaxIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated
+         * fixtures that do not leave the test boundary.
+         *
+         * @param businessTaxIdentifierSafetyPolicy corporate tax-identifier generation policy
+         * @return this builder
+         */
+        public Builder businessTaxIdentifierSafetyPolicy(
+            BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy) {
+            this.businessTaxIdentifierSafetyPolicy = Objects.requireNonNull(
+                businessTaxIdentifierSafetyPolicy, "businessTaxIdentifierSafetyPolicy must not be null");
             return this;
         }
 

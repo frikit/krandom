@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and account values.
 - `IdentityDocumentSafetyPolicy`, an enforceable fail-closed configuration contract for generic
   passport and driving-license identifiers.
+- `BusinessTaxIdentifierSafetyPolicy`, an enforceable fail-closed configuration contract for CNPJ
+  and EIN values.
 - `ProviderSafetyMetadata`, `ProviderValidity`, and `ProviderTestSafety`, describing conservative
   format, checksum, semantic-plausibility, and test-safety claims from the provider catalog.
 - `ProviderSafetyPolicy` and an `x-krandom-safety` JSON Schema extension that carries the selected
@@ -60,6 +62,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   generic document identifiers by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility
   opt-in; the direct `PassportGenerator` and `DrivingLicenseGenerator` constructors are deprecated
   1.6 bridges, and portable recipes persist the selected policy.
+- `GeneratorConfig`, `Generators.ofCnpj()`, and `Generators.ofEin()` now disable corporate tax-ID
+  generation by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; direct
+  `CnpjGenerator` and `EinGenerator` constructors are deprecated 1.6 bridges, and portable
+  recipes persist the selected policy.
 - All 21 static data-registry `register(...)` methods and the two
   `ProfessionDataRegistry.append(...)` overloads are deprecated for removal in v2. They remain
   behavior-compatible 1.6 adapters; use the matching `DataRegistryContext.Builder` registration

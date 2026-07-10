@@ -29,7 +29,8 @@ as safe merely because it passes a validator.
 | Credit cards | Issuer-shaped, format-valid numbers that deliberately fail Luhn by default; `CHECKSUM_VALID` is an explicit opt-in | Default remains non-routable; processor-sandbox values require a separately named processor mode |
 | IBAN, ABA, BIC, bank account | Canonical configuration fails closed; explicit compatibility mode restores plausible output without a safety claim | Do not invent a fictional range; add a safe mode only with a scheme-specific authoritative contract |
 | Payment payloads | Masked references derived from card or bank generators | Carry the selected policy metadata without exposing credential values |
-| National IDs, CPF/CNPJ | Country-specific shapes and algorithms | Fail closed unless a caller explicitly selects an unclassified compatibility policy; country-specific safe modes require separate proof |
+| National IDs, CPF | Country-specific shapes and algorithms | Fail closed unless a caller explicitly selects an unclassified compatibility policy; country-specific safe modes require separate proof |
+| CNPJ, EIN | Canonical configuration fails closed; deprecated direct constructors retain plausible output | Do not infer a portable safe range from a format or check digit; scheme-specific safe modes require separate proof |
 | Passport, driving licence | Canonical configuration fails closed; deprecated direct constructors retain generic plausible shapes | Do not infer a cross-country safe range from a generic shape; country-specific safe modes require separate proof |
 | Phone numbers | US locale-style output uses NANPA's fictional `555-0100` to `555-0199` range by default; other locales remain realistic but unclassified | Keep the NANPA mode scoped to its documented allocation; add another locale only with authoritative proof |
 | Crypto addresses | Syntactically plausible destination strings | Never describe as safe for live transfers; use explicit non-production modes only after network-specific proof |
@@ -104,6 +105,20 @@ deprecated 1.6 bridges with their historic behavior; recipes record
 `identity-document.safety-policy`, while old recipes retain realistic-unclassified replay when
 that setting is absent.
 
+Corporate tax identifiers now fail closed through `BusinessTaxIdentifierSafetyPolicy`.
+`GeneratorConfig`, `Generators.ofCnpj()`, and `Generators.ofEin()` refuse output by default
+because a plausible CNPJ or EIN can identify a real organisation. Select
+`REALISTIC_UNCLASSIFIED` only for isolated compatibility fixtures that do not leave a test
+boundary. The direct no-argument constructors are deprecated 1.6 bridges with their historic
+behavior; recipes record `business-tax-identifier.safety-policy`, while older recipes retain
+realistic-unclassified replay when that setting is absent.
+
+Brazil's Receita Federal supplies a browser-local simulator that labels its numeric and
+alphanumeric CNPJ results as fictitious. krandom does not yet embed an official fixture corpus or
+implement the alphanumeric CNPJ format, so it does not claim that its legacy numeric algorithm is
+non-routable. A country-specific safe CNPJ mode belongs in a separate change with that updated
+format and fixture evidence.
+
 Banking identifiers now fail closed through `GeneratorConfig` because neither checksum validity nor
 a realistic-looking account body proves non-routability. `BankingSafetyPolicy` controls bank account
 numbers, ABA routing numbers, BBANs, IBANs, BICs, and `BankInfoGenerator`. Select
@@ -150,3 +165,7 @@ Implemented provider-catalog metadata:
 - [Federal Reserve routing-directory guidance](https://www.frbservices.org/resources/routing-number-directory) — routing numbers identify payment participants; no portable fictional ABA range is claimed here.
 - [ECBS IBAN implementation guidance](https://www.ecbs.org/Download/Tr201v3.9.pdf) — IBANs identify accounts and country-specific BBAN structures.
 - [SWIFT BIC overview](https://www.swift.com/pt/node/301371) — even non-connected BICs remain valid identifiers; no random BIC is presented as safely non-routable.
+- [IRS EIN guidance](https://www.irs.gov/businesses/employer-identification-number) — EINs are
+  federal tax identifiers for businesses and other entities.
+- [Receita Federal CNPJ simulator](https://servicos.receitafederal.gov.br/servico/cnpj-alfa)
+  — official simulator generates fictitious numeric and alphanumeric CNPJ test values locally.

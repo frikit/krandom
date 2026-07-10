@@ -239,6 +239,15 @@ The no-argument `PassportGenerator` and `DrivingLicenseGenerator` constructors a
 1.6** bridges that preserve prior behavior and are scheduled for v2 removal. Portable recipes
 store the typed policy as `identity-document.safety-policy` and replay legacy recipes as
 unclassified output.
+`BusinessTaxIdentifierSafetyPolicy`,
+`GeneratorConfig.getBusinessTaxIdentifierSafetyPolicy()`, and
+`GeneratorConfig.Builder.businessTaxIdentifierSafetyPolicy(...)` are additive **KEEP** APIs.
+Configuration defaults to `DISABLED` because CNPJ and EIN format or checksum validity cannot prove
+a safe fixture; `REALISTIC_UNCLASSIFIED` is an explicit isolated-test compatibility opt-in. The
+no-argument `CnpjGenerator` and `EinGenerator` constructors are **DEPRECATE 1.6** bridges that
+preserve prior behavior and are scheduled for v2 removal. `Generators.ofEin(GeneratorConfig)` is
+an additive **KEEP** canonical facade. Portable recipes store the typed policy as
+`business-tax-identifier.safety-policy` and replay legacy recipes as unclassified output.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay
