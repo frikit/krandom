@@ -120,7 +120,7 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | --- | --- |
 | `AssertFalse`, `AssertTrue` | Covered for `boolean`/`Boolean`; contradictory assertions fail before generation |
 | `DecimalMin`, `DecimalMax` | Covered for `BigDecimal`, `BigInteger`, primitive/wrapper numbers, `Number`, and numeric strings, including exact single-bound and inclusive/exclusive intersections |
-| `Email` | Covered for `String` |
+| `Email` | Covered for `String`; custom regex, pattern, size, numeric, and blankness rules are composed through a bounded search |
 | `Future`, `FutureOrPresent` | Covered for common Java temporal field types and intersected with past constraints against the configured clock |
 | `Max`, `Min` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, `BigDecimal`, and numeric strings; empty target domains fail before generation |
 | `Negative`, `NegativeOrZero` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, and `BigDecimal`; intersected with all other numeric bounds |
@@ -129,7 +129,7 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | `NotNull` | Covered for reference fields and Optional objects; does not require an Optional value to be present |
 | `Null` | Covered for reference fields; primitive or required intersections fail before generation |
 | `Past`, `PastOrPresent` | Covered for common Java temporal field types and intersected with future constraints against the configured clock |
-| `Pattern` | Covered for `String` |
+| `Pattern` | Covered for `String`, including repeatable patterns and Java regex flags; incompatible or unsupported compositions fail contextually |
 | `Positive`, `PositiveOrZero` | Covered for primitive/wrapper numbers, `Number`, `BigInteger`, and `BigDecimal`; intersected with all other numeric bounds |
 | `Size` | Covered for strings, arrays, lists, sets, queues, collections, and maps; empty intersections fail before generation |
 | Field annotations | Covered |

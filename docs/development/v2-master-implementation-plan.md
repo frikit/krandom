@@ -390,10 +390,10 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Build one normalized constraint model for nullability, size, numeric range, sign, time, pattern, email, and assertion constraints.
+- [x] Build one normalized constraint model for nullability, size, numeric range, sign, time, pattern, email, and assertion constraints.
 - [x] Add `@NotNull` and `@NotEmpty` alongside existing `@NotBlank` support.
-- [ ] Intersect multiple compatible constraints before generation.
-- [ ] Detect impossible intersections before producing a value.
+- [x] Intersect multiple compatible constraints before generation.
+- [x] Detect impossible intersections before producing a value.
 - [x] Define precedence between explicit field rules, annotations, defaults, and null probability.
 - [x] Validate advertised output with a real Jakarta Validation implementation in tests.
 - [ ] Publish the exact supported-constraint table from code facts.

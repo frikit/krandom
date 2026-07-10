@@ -64,7 +64,10 @@ import java.util.TimeZone;
 final class BeanValidationSupport {
 
     private static final int SIZE_UNBOUNDED_CAP = 255;
+    private static final int TEXT_GENERATION_ATTEMPTS = 256;
     private static final BigDecimal DECIMAL_DEFAULT_SPAN = new BigDecimal("1000000");
+    private static final java.util.regex.Pattern EMAIL_SHAPE =
+        java.util.regex.Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final Comparator<NumericBound> LOWER_BOUND_ORDER =
         Comparator.comparing(NumericBound::value).thenComparing(bound -> !bound.inclusive());
     private static final Comparator<NumericBound> UPPER_BOUND_ORDER =
@@ -77,15 +80,15 @@ final class BeanValidationSupport {
         boolean constrained,
         boolean nullOnly,
         boolean required,
-        boolean nonBlank,
         SizeRange size,
         NumericRange numeric,
         Boolean assertion,
-        TemporalConstraint temporal
+        TemporalConstraint temporal,
+        TextConstraint text
     ) {
 
         private static final ConstraintModel NONE =
-            new ConstraintModel(false, false, false, false, null, null, null, null);
+            new ConstraintModel(false, false, false, null, null, null, null, null);
     }
 
     static final class ConstraintConflictException extends IllegalArgumentException {
@@ -139,21 +142,8 @@ final class BeanValidationSupport {
         if (constraints.assertion() != null) {
             return () -> constraints.assertion();
         }
-        if (rawType == String.class) {
-            if (annotation(element, Email.class) != null) {
-                return new RegexGenerator("[a-z]{4,8}@[a-z]{3,8}\\.(com|net|org)");
-            }
-            Pattern pattern = annotation(element, Pattern.class);
-            if (pattern != null) {
-                return new RegexGenerator(pattern.regexp());
-            }
-            Generator<String> numericStringGenerator = numericStringGeneratorFor(constraints.numeric(), random);
-            if (numericStringGenerator != null) {
-                return numericStringGenerator;
-            }
-            if (constraints.size() != null) {
-                return stringGeneratorFor(constraints.size(), constraints.nonBlank(), random);
-            }
+        if (constraints.text() != null) {
+            return textGeneratorFor(constraints.text(), random);
         }
         Generator<?> numericGenerator = numericGeneratorFor(constraints.numeric(), rawType, random);
         if (numericGenerator != null) {
@@ -178,30 +168,31 @@ final class BeanValidationSupport {
         if ((annotation(element, Size.class) != null || notEmpty) && !supportsSize(rawType)) {
             throw conflict("@Size and @NotEmpty require a string, array, collection, or map target");
         }
-        if (notBlank && !CharSequence.class.isAssignableFrom(rawType)) {
-            throw conflict("@NotBlank requires a character-sequence target");
+        if (notBlank && rawType != String.class) {
+            throw conflict("@NotBlank requires a supported string target");
         }
 
         SizeRange size = sizeRangeFor(element);
         NumericRange numeric = numericRangeFor(element, rawType);
         Boolean assertion = assertionFor(element, rawType);
         TemporalConstraint temporal = temporalConstraintFor(element, rawType);
+        TextConstraint text = textConstraintFor(element, rawType, size, notBlank, numeric);
         boolean constrained = nullOnly
                               || requiredByAnnotation
                               || size != null
                               || numeric != null
                               || assertion != null
                               || temporal != null
-                              || hasTextGenerationConstraint(element);
+                              || text != null;
         return new ConstraintModel(
             constrained,
             nullOnly,
             rawType.isPrimitive() || requiredByAnnotation,
-            notBlank,
             size,
             numeric,
             assertion,
-            temporal);
+            temporal,
+            text);
     }
 
     static SizeRange sizeRangeFor(AnnotatedElement element) {
@@ -226,14 +217,139 @@ final class BeanValidationSupport {
     }
 
     private static boolean supportsSize(Class<?> rawType) {
-        return CharSequence.class.isAssignableFrom(rawType)
+        return rawType == String.class
                || rawType.isArray()
                || Collection.class.isAssignableFrom(rawType)
                || java.util.Map.class.isAssignableFrom(rawType);
     }
 
-    private static boolean hasTextGenerationConstraint(AnnotatedElement element) {
-        return annotation(element, Email.class) != null || annotation(element, Pattern.class) != null;
+    private static TextConstraint textConstraintFor(AnnotatedElement element,
+                                                    Class<?> rawType,
+                                                    SizeRange size,
+                                                    boolean nonBlank,
+                                                    NumericRange numeric) {
+        Email email = annotation(element, Email.class);
+        List<Pattern> patternAnnotations = annotations(element, Pattern.class);
+        boolean hasTextAnnotation = email != null || !patternAnnotations.isEmpty();
+        if (rawType != String.class) {
+            if (hasTextAnnotation) {
+                throw conflict("text constraints require a supported string target");
+            }
+            return null;
+        }
+        if (!hasTextAnnotation && size == null && numeric == null) {
+            return null;
+        }
+
+        List<TextPattern> patterns = new ArrayList<>();
+        for (Pattern pattern : patternAnnotations) {
+            patterns.add(compileTextPattern(pattern.regexp(), pattern.flags(), true));
+        }
+        if (email != null) {
+            boolean usefulSource = !".*".equals(email.regexp());
+            patterns.add(compileTextPattern(email.regexp(), email.flags(), usefulSource));
+        }
+        return new TextConstraint(email != null, List.copyOf(patterns), size, nonBlank, numeric);
+    }
+
+    private static TextPattern compileTextPattern(String expression,
+                                                  Pattern.Flag[] flags,
+                                                  boolean source) {
+        int compiledFlags = 0;
+        for (Pattern.Flag flag : flags) {
+            compiledFlags |= flag.getValue();
+        }
+        try {
+            return new TextPattern(
+                expression,
+                java.util.regex.Pattern.compile(expression, compiledFlags),
+                source);
+        } catch (java.util.regex.PatternSyntaxException invalidPattern) {
+            throw conflict("text constraint contains an invalid regular expression");
+        }
+    }
+
+    private static Generator<String> textGeneratorFor(TextConstraint constraints, Random random) {
+        List<Generator<String>> sources = new ArrayList<>();
+        for (TextPattern pattern : constraints.patterns()) {
+            if (pattern.source()) {
+                try {
+                    sources.add(new RegexGenerator(pattern.expression(), random.nextLong()));
+                } catch (IllegalArgumentException unsupportedPattern) {
+                    throw conflict("text constraint uses unsupported regular-expression syntax");
+                }
+            }
+        }
+        if (constraints.email()) {
+            sources.add(new RegexGenerator(
+                "[a-z]{4,8}@[a-z]{3,8}\\.(com|net|org)", random.nextLong()));
+        }
+        Generator<String> numericSource = numericStringGeneratorFor(constraints.numeric(), random);
+        if (numericSource != null) {
+            sources.add(numericSource);
+        }
+        if (constraints.size() != null) {
+            sources.add(stringGeneratorFor(constraints.size(), constraints.nonBlank(), random));
+        }
+
+        return () -> {
+            for (int attempt = 0; attempt < TEXT_GENERATION_ATTEMPTS; attempt++) {
+                String candidate = sources.get(attempt % sources.size()).generate();
+                if (constraints.accepts(candidate)) {
+                    return candidate;
+                }
+            }
+            throw conflict("text constraints did not produce a value in the bounded search budget");
+        };
+    }
+
+    record TextPattern(String expression, java.util.regex.Pattern compiled, boolean source) {}
+
+    record TextConstraint(boolean email,
+                          List<TextPattern> patterns,
+                          SizeRange size,
+                          boolean nonBlank,
+                          NumericRange numeric) {
+
+        boolean accepts(String candidate) {
+            if (size != null && (candidate.length() < size.min() || candidate.length() > size.max())) {
+                return false;
+            }
+            if (nonBlank && candidate.isBlank()) {
+                return false;
+            }
+            if (email && !EMAIL_SHAPE.matcher(candidate).matches()) {
+                return false;
+            }
+            for (TextPattern pattern : patterns) {
+                if (!pattern.compiled().matcher(candidate).matches()) {
+                    return false;
+                }
+            }
+            return numeric == null || numericAccepts(numeric, candidate);
+        }
+    }
+
+    private static boolean numericAccepts(NumericRange range, String candidate) {
+        final BigDecimal value;
+        try {
+            value = new BigDecimal(candidate);
+        } catch (NumberFormatException notNumeric) {
+            return false;
+        }
+        if (range.lower() != null) {
+            int comparison = value.compareTo(range.lower().value());
+            if (comparison < 0 || (comparison == 0 && !range.lower().inclusive())) {
+                return false;
+            }
+        }
+        if (range.upper() != null) {
+            int comparison = value.compareTo(range.upper().value());
+            if (comparison > 0 || (comparison == 0 && !range.upper().inclusive())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static int sizeFor(AnnotatedElement element, Random random, int defaultMin, int defaultMax) {
@@ -741,6 +857,79 @@ final class BeanValidationSupport {
             return accessorAnnotation(field, type);
         }
         return null;
+    }
+
+    private static <A extends java.lang.annotation.Annotation> List<A> annotations(AnnotatedElement element,
+                                                                                   Class<A> type) {
+        if (element instanceof RecordComponent component) {
+            return List.of(component.getAccessor().getAnnotationsByType(type));
+        }
+        List<A> direct = List.of(element.getAnnotationsByType(type));
+        if (!direct.isEmpty()) {
+            return direct;
+        }
+        if (element instanceof Field field) {
+            return accessorAnnotations(field, type);
+        }
+        return List.of();
+    }
+
+    private static <A extends java.lang.annotation.Annotation> List<A> accessorAnnotations(Field field,
+                                                                                            Class<A> type) {
+        String capitalized = Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
+        String[] names = field.getType() == boolean.class || field.getType() == Boolean.class
+                         ? new String[] { field.getName(), "is" + capitalized, "get" + capitalized }
+                         : new String[] { field.getName(), "get" + capitalized };
+        for (String name : names) {
+            List<A> declared = declaredMethodAnnotations(field.getDeclaringClass(), name, type);
+            if (!declared.isEmpty()) {
+                return declared;
+            }
+            List<A> inherited = interfaceMethodAnnotations(field.getDeclaringClass(), name, type);
+            if (!inherited.isEmpty()) {
+                return inherited;
+            }
+        }
+        return List.of();
+    }
+
+    private static <A extends java.lang.annotation.Annotation> List<A> interfaceMethodAnnotations(
+        Class<?> owner,
+        String name,
+        Class<A> type) {
+        for (Class<?> interfaceType : owner.getInterfaces()) {
+            try {
+                Method method = interfaceType.getMethod(name);
+                List<A> found = List.of(method.getAnnotationsByType(type));
+                if (!found.isEmpty()) {
+                    return found;
+                }
+            } catch (NoSuchMethodException ignored) {
+                // Try the next interface.
+            }
+        }
+        return List.of();
+    }
+
+    private static <A extends java.lang.annotation.Annotation> List<A> declaredMethodAnnotations(
+        Class<?> owner,
+        String name,
+        Class<A> type) {
+        Class<?> current = owner;
+        while (current != Object.class) {
+            try {
+                Method method = current.getDeclaredMethod(name);
+                method.setAccessible(true);
+                List<A> found = List.of(method.getAnnotationsByType(type));
+                if (!found.isEmpty()) {
+                    return found;
+                }
+            } catch (NoSuchMethodException ignored) {
+                // Try the next superclass.
+            }
+            current = current.getSuperclass();
+        }
+        return List.of();
     }
 
     private static <A extends java.lang.annotation.Annotation> A accessorAnnotation(Field field, Class<A> type) {

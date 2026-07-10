@@ -47,6 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Record JSON Schema inference now retains nested collections, maps, optionals, generic records, generic arrays, wildcard bounds, enums, and fixed generic collection subtypes; Optional values serialize as their contained value or `null`.
 - Bean Validation nullability and size rules now normalize `@Null`, `@NotNull`, `@NotEmpty`, `@NotBlank`, and `@Size`; required constraints override null/empty probabilities, while impossible intersections and unsupported targets fail contextually.
 - Numeric, sign, assertion, and temporal Bean Validation constraints now intersect before generation; empty real or target-type domains, contradictory assertions/directions, malformed bounds, and unsupported scalar targets fail through the structured generation policy.
+- String Bean Validation now composes email, repeatable pattern, numeric, size, and blankness rules through a bounded candidate search; incompatible combinations, malformed or unsupported regex syntax, and invalid targets fail contextually.
 
 ## [1.5.0] - 2026-06-22
 

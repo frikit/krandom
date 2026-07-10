@@ -1,6 +1,6 @@
 # V2 Bean Validation Normalization
 
-**Status:** Implementation in progress; Stages 1–2 complete
+**Status:** Implementation in progress; Stages 1–3 complete
 **Scope:** Jakarta Validation annotations consumed by Java object generation
 
 ## Goal
@@ -120,7 +120,16 @@ Validator using the identical fixed clock.
 **Tests:** Compatible and incompatible email/pattern/size compositions, repeatable patterns, numeric
 strings, and record/accessor annotations.
 
-**Status:** Not Started
+**Status:** Complete
+
+String constraints now normalize email, every repeatable `@Pattern`, numeric bounds, size, and
+blankness into one contract. Candidate generation rotates through pattern, email, numeric, and sized
+text sources, accepting only a value that satisfies the complete contract. Search is capped at 256
+candidates so incompatible compositions fail deterministically through structured strict/lenient
+handling. Java regex flags are honored during validation; malformed Java expressions and valid
+expressions outside `RegexGenerator`'s supported generation syntax fail contextually. Tests cover
+compatible and incompatible compositions, custom email regexes, record components, JavaBean
+getters, and interface accessor annotations across deterministic seeds.
 
 ## Stage 4: Validation matrix and published support table
 

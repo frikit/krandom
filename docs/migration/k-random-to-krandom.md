@@ -560,8 +560,8 @@ Supported native constraints include:
 | `@DecimalMin`, `@DecimalMax` | Intersects decimal bounds exactly, including single-sided and exclusive bounds |
 | `@Positive`, `@PositiveOrZero`, `@Negative`, `@NegativeOrZero` | Intersects sign rules with numeric bounds and rejects contradictions |
 | `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent` | Intersects temporal directions for common Java time types using the configured generation clock |
-| `@Pattern` | Generates strings matching the regexp |
-| `@Email` | Generates email-like strings |
+| `@Pattern` | Intersects repeatable regexes with email, numeric, size, and blankness rules through a bounded search |
+| `@Email` | Generates valid email text and intersects custom email regex, pattern, size, and blankness rules |
 
 Field annotations, JavaBean getters, boolean getters, record accessors, and interface accessor declarations are recognized.
 
