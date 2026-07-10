@@ -1733,10 +1733,13 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces generic passport numbers (e.g. {@code "A12345678"}).
+     * Returns a passport generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit identity-document safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static PassportGenerator ofPassport() {
-        return new PassportGenerator();
+        return new PassportGenerator(GeneratorConfig.defaults());
     }
 
     /**
@@ -1747,10 +1750,13 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces generic driving-license numbers (e.g. {@code "AB123456"}).
+     * Returns a driving-license generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit identity-document safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static DrivingLicenseGenerator ofDrivingLicense() {
-        return new DrivingLicenseGenerator();
+        return new DrivingLicenseGenerator(GeneratorConfig.defaults());
     }
 
     /**

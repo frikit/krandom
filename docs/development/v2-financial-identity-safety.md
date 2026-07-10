@@ -29,7 +29,8 @@ as safe merely because it passes a validator.
 | Credit cards | Issuer-shaped, format-valid numbers that deliberately fail Luhn by default; `CHECKSUM_VALID` is an explicit opt-in | Default remains non-routable; processor-sandbox values require a separately named processor mode |
 | IBAN, ABA, BIC, bank account | Canonical configuration fails closed; explicit compatibility mode restores plausible output without a safety claim | Do not invent a fictional range; add a safe mode only with a scheme-specific authoritative contract |
 | Payment payloads | Masked references derived from card or bank generators | Carry the selected policy metadata without exposing credential values |
-| National IDs, CPF/CNPJ, passport, driving licence | Country-specific shapes and algorithms | Fail closed unless a caller explicitly selects an unclassified compatibility policy; country-specific safe modes require separate proof |
+| National IDs, CPF/CNPJ | Country-specific shapes and algorithms | Fail closed unless a caller explicitly selects an unclassified compatibility policy; country-specific safe modes require separate proof |
+| Passport, driving licence | Canonical configuration fails closed; deprecated direct constructors retain generic plausible shapes | Do not infer a cross-country safe range from a generic shape; country-specific safe modes require separate proof |
 | Phone numbers | US locale-style output uses NANPA's fictional `555-0100` to `555-0199` range by default; other locales remain realistic but unclassified | Keep the NANPA mode scoped to its documented allocation; add another locale only with authoritative proof |
 | Crypto addresses | Syntactically plausible destination strings | Never describe as safe for live transfers; use explicit non-production modes only after network-specific proof |
 
@@ -93,6 +94,15 @@ cross-country non-routable identity-fixture standard. Select
 not leave a test boundary. The locale and seed constructors remain deprecated 1.6 bridges with the
 old realistic behavior; portable recipes record `national-id.safety-policy`, while older recipes
 replay their historical realistic behavior when that setting is absent.
+
+Generic passport and driving-license generation now follows the same contract through
+`IdentityDocumentSafetyPolicy`. `GeneratorConfig`, `Generators.ofPassport()`, and
+`Generators.ofDrivingLicense()` fail closed by default because the generic shapes cannot establish
+a portable non-routable document fixture. Select `REALISTIC_UNCLASSIFIED` only for isolated
+compatibility fixtures that do not leave a test boundary. The direct no-argument constructors are
+deprecated 1.6 bridges with their historic behavior; recipes record
+`identity-document.safety-policy`, while old recipes retain realistic-unclassified replay when
+that setting is absent.
 
 Banking identifiers now fail closed through `GeneratorConfig` because neither checksum validity nor
 a realistic-looking account body proves non-routability. `BankingSafetyPolicy` controls bank account

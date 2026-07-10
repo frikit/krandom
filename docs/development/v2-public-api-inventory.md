@@ -231,6 +231,14 @@ no-argument and locale constructors of `BankAccountGenerator`, `AbaRoutingGenera
 `BbanGenerator`, `IbanGenerator`, `BicGenerator`, and `BankInfoGenerator` are **DEPRECATE 1.6**
 bridges that preserve prior behavior and are scheduled for v2 removal. Portable recipes store the
 typed policy as `banking.safety-policy` and replay legacy recipes as unclassified output.
+`IdentityDocumentSafetyPolicy`, `GeneratorConfig.getIdentityDocumentSafetyPolicy()`, and
+`GeneratorConfig.Builder.identityDocumentSafetyPolicy(...)` are additive **KEEP** APIs.
+Configuration defaults to `DISABLED` because generic passport and driving-license shapes cannot
+prove a safe fixture; `REALISTIC_UNCLASSIFIED` is an explicit isolated-test compatibility opt-in.
+The no-argument `PassportGenerator` and `DrivingLicenseGenerator` constructors are **DEPRECATE
+1.6** bridges that preserve prior behavior and are scheduled for v2 removal. Portable recipes
+store the typed policy as `identity-document.safety-policy` and replay legacy recipes as
+unclassified output.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay

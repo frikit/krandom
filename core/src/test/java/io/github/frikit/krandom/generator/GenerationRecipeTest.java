@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.base.DigitGenerator;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -178,6 +179,22 @@ class GenerationRecipeTest {
     }
 
     @Test
+    @DisplayName("replays the configured identity-document safety policy")
+    void replaysIdentityDocumentSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .identityDocumentSafetyPolicy(
+                                                    IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("REALISTIC_UNCLASSIFIED", recipe.getSettings().get("identity-document.safety-policy"));
+        assertEquals(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getIdentityDocumentSafetyPolicy());
+    }
+
+    @Test
     @DisplayName("replays the configured banking safety policy")
     void replaysBankingSafetyPolicy() {
         GeneratorConfig config = GeneratorConfig.builder()
@@ -208,6 +225,15 @@ class GenerationRecipeTest {
 
         assertEquals(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
                      recipe.toGeneratorConfig().getNationalIdSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without an identity-document safety setting as unclassified")
+    void replaysLegacyRecipeWithoutIdentityDocumentSafetyPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     recipe.toGeneratorConfig().getIdentityDocumentSafetyPolicy());
     }
 
     @Test

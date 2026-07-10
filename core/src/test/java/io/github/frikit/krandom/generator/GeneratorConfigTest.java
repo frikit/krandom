@@ -11,6 +11,7 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,7 @@ class GeneratorConfigTest {
         assertEquals(BankingSafetyPolicy.DISABLED, c.getBankingSafetyPolicy());
         assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
+        assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
     }
 
     @Test
@@ -123,6 +125,20 @@ class GeneratorConfigTest {
                      config.toBuilder().build().getNationalIdSafetyPolicy());
         assertThrows(NullPointerException.class,
                      () -> GeneratorConfig.builder().nationalIdSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("identity-document safety policy is configurable and retained by toBuilder")
+    void identityDocumentSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .identityDocumentSafetyPolicy(
+                                                    IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getIdentityDocumentSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().identityDocumentSafetyPolicy(null));
     }
 
     @Test

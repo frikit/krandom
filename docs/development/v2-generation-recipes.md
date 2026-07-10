@@ -79,6 +79,9 @@ their historical realistic-unclassified replay behavior.
 Banking safety follows the same rule: new recipes record `banking.safety-policy` and default to
 `DISABLED`, while recipes without that setting retain their historical realistic-unclassified replay
 behavior.
+Identity-document safety follows the same rule: new recipes record
+`identity-document.safety-policy` and default to `DISABLED`, while recipes without that setting
+retain their historical realistic-unclassified replay behavior.
 
 ## Stage 2: Derive structural child streams
 

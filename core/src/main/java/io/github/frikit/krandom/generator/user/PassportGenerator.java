@@ -18,21 +18,27 @@ import java.util.Random;
  * <p>The format is a generic nine-character form; country-specific passport formats are a future
  * enhancement.
  *
- * <pre>{@code
- *   String passport = new PassportGenerator().generate(); // e.g. "A12345678"
- * }</pre>
+ * <p>Configured generation is disabled by default. For an isolated compatibility fixture, select
+ * {@link IdentityDocumentSafetyPolicy#REALISTIC_UNCLASSIFIED} explicitly.
  */
 public final class PassportGenerator implements Generator<String> {
 
     private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     private final Random random;
+    private final IdentityDocumentSafetyPolicy safetyPolicy;
 
     /**
-     * Creates a generator using the default configuration.
+     * Creates a generator with the historical realistic-output behavior.
+     *
+     * @deprecated since 1.6; use {@link #PassportGenerator(GeneratorConfig)} and select an
+     * explicit safety policy instead
      */
+    @Deprecated(since = "1.6", forRemoval = false)
     public PassportGenerator() {
-        this(GeneratorConfig.defaults());
+        this(GeneratorConfig.builder()
+                            .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build());
     }
 
     /**
@@ -43,6 +49,7 @@ public final class PassportGenerator implements Generator<String> {
     public PassportGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.safetyPolicy = config.getIdentityDocumentSafetyPolicy();
     }
 
     /**
@@ -52,6 +59,7 @@ public final class PassportGenerator implements Generator<String> {
      */
     @Override
     public String generate() {
+        safetyPolicy.requireRealisticOutput();
         StringBuilder sb = new StringBuilder(9);
         sb.append(LETTERS.charAt(random.nextInt(LETTERS.length())));
         for (int i = 0; i < 8; i++) {

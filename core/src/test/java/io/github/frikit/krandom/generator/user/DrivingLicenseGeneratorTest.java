@@ -18,10 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("DrivingLicenseGenerator")
+@SuppressWarnings("removal")
 class DrivingLicenseGeneratorTest {
 
     @RepeatedTest(200)
-    @DisplayName("output matches the generic driving-license format")
+    @DisplayName("deprecated no-argument constructor preserves the generic driving-license format")
     void formatMatches() {
         String license = new DrivingLicenseGenerator().generate();
         assertTrue(license.matches("[A-Z]{2}[0-9]{6}"), license);
@@ -30,9 +31,17 @@ class DrivingLicenseGeneratorTest {
     @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
-        List<String> a = new DrivingLicenseGenerator(GeneratorConfig.builder().seed(77L).build()).generateList(25);
-        List<String> b = new DrivingLicenseGenerator(GeneratorConfig.builder().seed(77L).build()).generateList(25);
+        List<String> a = new DrivingLicenseGenerator(realisticConfig(77L)).generateList(25);
+        List<String> b = new DrivingLicenseGenerator(realisticConfig(77L)).generateList(25);
         assertEquals(a, b);
+    }
+
+    @Test
+    @DisplayName("configured generation fails closed by default")
+    void configuredGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class,
+                     () -> new DrivingLicenseGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofDrivingLicense().generate());
     }
 
     @Test
@@ -42,11 +51,19 @@ class DrivingLicenseGeneratorTest {
     }
 
     @Test
-    @DisplayName("facade ofDrivingLicense produces valid license numbers and is seed-reproducible")
+    @DisplayName("facade requires an explicit realistic compatibility policy")
     void facade() {
-        assertTrue(Generators.ofDrivingLicense().generate().matches("[A-Z]{2}[0-9]{6}"));
+        assertThrows(IllegalStateException.class, () -> Generators.ofDrivingLicense().generate());
+        assertTrue(Generators.ofDrivingLicense(realisticConfig(1L)).generate().matches("[A-Z]{2}[0-9]{6}"));
         assertEquals(
-            Generators.ofDrivingLicense(GeneratorConfig.builder().seed(1L).build()).generateList(10),
-            Generators.ofDrivingLicense(GeneratorConfig.builder().seed(1L).build()).generateList(10));
+            Generators.ofDrivingLicense(realisticConfig(1L)).generateList(10),
+            Generators.ofDrivingLicense(realisticConfig(1L)).generateList(10));
+    }
+
+    private static GeneratorConfig realisticConfig(long seed) {
+        return GeneratorConfig.builder()
+                              .seed(seed)
+                              .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build();
     }
 }

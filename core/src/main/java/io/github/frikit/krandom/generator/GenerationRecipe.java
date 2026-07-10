@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 
 import java.net.URLDecoder;
@@ -412,6 +413,7 @@ public final class GenerationRecipe {
         applyBankingSafetyPolicy(builder);
         applyPhoneNumberSafetyPolicy(builder);
         applyNationalIdSafetyPolicy(builder);
+        applyIdentityDocumentSafetyPolicy(builder);
         applyEnum(builder, "object.semantic-mode", builder::objectSemanticMode);
         applyDouble(builder, "object.null-probability", builder::objectNullProbability);
         applyDouble(builder, "object.optional-empty-probability", builder::objectOptionalEmptyProbability);
@@ -464,6 +466,14 @@ public final class GenerationRecipe {
         builder.nationalIdSafetyPolicy(policy);
     }
 
+    private void applyIdentityDocumentSafetyPolicy(GeneratorConfig.Builder builder) {
+        String value = settings.get("identity-document.safety-policy");
+        IdentityDocumentSafetyPolicy policy = value == null
+            ? IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED
+            : IdentityDocumentSafetyPolicy.valueOf(value);
+        builder.identityDocumentSafetyPolicy(policy);
+    }
+
     private void applyDateRange(GeneratorConfig.Builder builder) {
         String min = settings.get("object.date-min");
         String max = settings.get("object.date-max");
@@ -499,7 +509,7 @@ public final class GenerationRecipe {
                  "object.semantic-mode", "object.null-probability", "object.optional-empty-probability",
                  "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
                  "payment.card-safety-policy", "banking.safety-policy", "phone-number.safety-policy",
-                 "national-id.safety-policy" -> true;
+                 "national-id.safety-policy", "identity-document.safety-policy" -> true;
             default -> false;
         };
     }

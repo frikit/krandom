@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
@@ -111,6 +112,7 @@ public final class GeneratorConfig {
     private final BankingSafetyPolicy bankingSafetyPolicy;
     private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
     private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
+    private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
     private final String       providerDatasetVersion;
 
     private GeneratorConfig(Builder b) {
@@ -157,6 +159,7 @@ public final class GeneratorConfig {
         this.bankingSafetyPolicy = b.bankingSafetyPolicy;
         this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
         this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
+        this.identityDocumentSafetyPolicy = b.identityDocumentSafetyPolicy;
         this.providerDatasetVersion = b.providerDatasetVersion;
     }
 
@@ -260,6 +263,18 @@ public final class GeneratorConfig {
      */
     public NationalIdSafetyPolicy getNationalIdSafetyPolicy() {
         return nationalIdSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated passport and driving-license identifiers.
+     *
+     * <p>The default fails closed because generic document-number shapes do not establish a
+     * portable non-routable fixture. {@link IdentityDocumentSafetyPolicy#REALISTIC_UNCLASSIFIED}
+     * is an explicit compatibility opt-in for isolated tests; it does not make values safe for
+     * production or external systems.
+     */
+    public IdentityDocumentSafetyPolicy getIdentityDocumentSafetyPolicy() {
+        return identityDocumentSafetyPolicy;
     }
 
     /**
@@ -572,6 +587,8 @@ public final class GeneratorConfig {
                                                                      phoneNumberSafetyPolicy.name())
                                                             .setting("national-id.safety-policy",
                                                                      nationalIdSafetyPolicy.name())
+                                                            .setting("identity-document.safety-policy",
+                                                                     identityDocumentSafetyPolicy.name())
                                                             .setting("charset", charset.name())
                                                             .setting("string.min", Integer.toString(minStringLength))
                                                             .setting("string.max", Integer.toString(maxStringLength))
@@ -733,6 +750,7 @@ public final class GeneratorConfig {
         private BankingSafetyPolicy bankingSafetyPolicy = BankingSafetyPolicy.DISABLED;
         private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
+        private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
         private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
 
         private Builder() {
@@ -781,6 +799,7 @@ public final class GeneratorConfig {
             this.bankingSafetyPolicy = source.bankingSafetyPolicy;
             this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
             this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
+            this.identityDocumentSafetyPolicy = source.identityDocumentSafetyPolicy;
             this.providerDatasetVersion = source.providerDatasetVersion;
         }
 
@@ -1246,6 +1265,22 @@ public final class GeneratorConfig {
         public Builder nationalIdSafetyPolicy(NationalIdSafetyPolicy nationalIdSafetyPolicy) {
             this.nationalIdSafetyPolicy = Objects.requireNonNull(
                 nationalIdSafetyPolicy, "nationalIdSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated passport and driving-license identifiers.
+         *
+         * <p>The default is {@link IdentityDocumentSafetyPolicy#DISABLED}. Select
+         * {@link IdentityDocumentSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures
+         * that do not leave the test boundary.
+         *
+         * @param identityDocumentSafetyPolicy identity-document generation policy
+         * @return this builder
+         */
+        public Builder identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy) {
+            this.identityDocumentSafetyPolicy = Objects.requireNonNull(
+                identityDocumentSafetyPolicy, "identityDocumentSafetyPolicy must not be null");
             return this;
         }
 

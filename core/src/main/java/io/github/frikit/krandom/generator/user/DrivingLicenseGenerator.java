@@ -18,21 +18,27 @@ import java.util.Random;
  * <p>The format is a generic eight-character form; country-specific driving-license formats are a
  * future enhancement.
  *
- * <pre>{@code
- *   String license = new DrivingLicenseGenerator().generate(); // e.g. "AB123456"
- * }</pre>
+ * <p>Configured generation is disabled by default. For an isolated compatibility fixture, select
+ * {@link IdentityDocumentSafetyPolicy#REALISTIC_UNCLASSIFIED} explicitly.
  */
 public final class DrivingLicenseGenerator implements Generator<String> {
 
     private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     private final Random random;
+    private final IdentityDocumentSafetyPolicy safetyPolicy;
 
     /**
-     * Creates a generator using the default configuration.
+     * Creates a generator with the historical realistic-output behavior.
+     *
+     * @deprecated since 1.6; use {@link #DrivingLicenseGenerator(GeneratorConfig)} and select an
+     * explicit safety policy instead
      */
+    @Deprecated(since = "1.6", forRemoval = false)
     public DrivingLicenseGenerator() {
-        this(GeneratorConfig.defaults());
+        this(GeneratorConfig.builder()
+                            .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build());
     }
 
     /**
@@ -43,6 +49,7 @@ public final class DrivingLicenseGenerator implements Generator<String> {
     public DrivingLicenseGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.safetyPolicy = config.getIdentityDocumentSafetyPolicy();
     }
 
     /**
@@ -52,6 +59,7 @@ public final class DrivingLicenseGenerator implements Generator<String> {
      */
     @Override
     public String generate() {
+        safetyPolicy.requireRealisticOutput();
         StringBuilder sb = new StringBuilder(8);
         sb.append(LETTERS.charAt(random.nextInt(LETTERS.length())));
         sb.append(LETTERS.charAt(random.nextInt(LETTERS.length())));
