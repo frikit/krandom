@@ -131,6 +131,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Redundant `Generators` aliases for constants, selection, shuffle, and uniqueness are deprecated for removal in v2. Canonical replacements are documented in `docs/migration/v1.6-to-v2.md`; the legacy methods remain thin behavior-compatible delegates in 1.6.
 - Maven Central publication now uses NMCP's explicit aggregation plugin and an exact seven-module graph, removing the convenience settings plugin's Gradle 10 deprecation.
 
+### Deprecated
+- `Generator.reseed(long)` and `Generator.reseed(String)` are deprecated for removal in v2: their
+  reflection fallback mutates `Random` state the generator does not own and cannot preserve the v2
+  replay contract. Reseed through the typed `Seedable` contract instead; see
+  `docs/migration/v1.6-to-v2.md`.
+
 ### Fixed
 - Recursive object generation now retains type-use annotations for optional values, array
   components, collection elements, and map keys/values. Nested Bean Validation constraints apply

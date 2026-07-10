@@ -87,13 +87,16 @@ public interface Generator<T extends @Nullable Object> {
      * non-static fields assignable to {@link Random} across the class hierarchy and applies
      * {@link Random#setSeed(long)}.
      *
-     * <p>New generators should implement {@link Seedable} directly instead of relying on
-     * the reflection fallback. The reflection fallback is a transitional mechanism and is
-     * planned for deprecation and removal in a future major release.
-     *
      * @param seed deterministic seed
      * @throws UnsupportedOperationException if no reseedable random field is present
+     * @deprecated since 1.6, for removal in v2. The reflection fallback mutates {@link Random}
+     * state this generator does not own, so it cannot preserve the v2 replay contract: it may
+     * reseed the wrong field, silently reseed a caller-owned or secure source, or throw for
+     * generators without an accessible {@code Random}. Reseed through the typed contract
+     * instead: {@code if (generator instanceof Seedable seedable) seedable.reseed(seed);}.
+     * Generators that do not implement {@link Seedable} are not reseedable in v2.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     default void reseed(long seed) {
         if (this instanceof Seedable seedable) {
             seedable.reseed(seed);
@@ -128,7 +131,12 @@ public interface Generator<T extends @Nullable Object> {
      * Reseeds using the same string-to-seed derivation contract as {@link GeneratorConfig}.
      *
      * @param seedText textual seed
+     * @deprecated since 1.6, for removal in v2; delegates to the deprecated
+     * {@link #reseed(long)} fallback. Use
+     * {@code seedable.reseed(GeneratorConfig.deriveSeed(seedText))} through the typed
+     * {@link Seedable} contract instead.
      */
+    @Deprecated(since = "1.6", forRemoval = true)
     default void reseed(String seedText) {
         reseed(GeneratorConfig.deriveSeed(seedText));
     }

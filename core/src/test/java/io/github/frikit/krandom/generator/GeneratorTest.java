@@ -81,6 +81,23 @@ class GeneratorTest {
     }
 
     @Test
+    @DisplayName("deprecated interface reseed and typed Seedable reseed produce identical sequences")
+    void deprecatedInterfaceReseedMatchesTypedContract() {
+        IntGenerator deprecatedPath = new IntGenerator(0, 1_000);
+        IntGenerator typedPath = new IntGenerator(0, 1_000);
+
+        reseedThroughInterface(deprecatedPath, 24680L);
+        ((Seedable) typedPath).reseed(24680L);
+
+        assertEquals(deprecatedPath.generateList(20), typedPath.generateList(20));
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void reseedThroughInterface(Generator<?> generator, long seed) {
+        generator.reseed(seed);
+    }
+
+    @Test
     @DisplayName("map preserves deterministic reseeding from a Seedable source")
     void mapPreservesSeedableReplay() {
         Generator<String> mapped = new IntGenerator(0, 1_000).map(value -> "value-" + value);

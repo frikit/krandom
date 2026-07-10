@@ -214,7 +214,7 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 - [x] Deprecate redundant facade aliases and point to one canonical name per operation.
 - [x] Deprecate global registry mutations that are replaced by scoped contexts.
-- [ ] Deprecate ambiguous reseeding fallbacks that cannot preserve the v2 contract.
+- [x] Deprecate ambiguous reseeding fallbacks that cannot preserve the v2 contract.
 - [x] Add `@since`, `@Deprecated(since = "1.6", forRemoval = true)`, and migration examples.
 - [x] Keep deprecated methods as thin delegates; do not duplicate behavior.
 - [x] Add a v1.6-to-v2 migration table organized by common use case.
