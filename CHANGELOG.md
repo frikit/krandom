@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add versioned, human-readable `GenerationRecipe` replay metadata for portable seeded configurations.
 
 ### Added
+- `ProviderCatalog` and typed `ProviderDescriptor` definitions now centralize built-in provider
+  keys, aliases, factories, and object-field semantic mappings for `ProviderHub`.
 - Structured, value-sanitized generation failure context shared by object and schema exceptions, with stable category, operation, path, type, depth, and record-index fields.
 - Immutable Kotlin primary-constructor generation in `krandom-kotlin-dsl`, including nullable/non-null parameters, defaults, nested generics, field/type rules, and Jakarta Validation. Java-only core remains free of Kotlin runtime dependencies and reports an actionable integration requirement instead of allocating an invalid Kotlin value.
 - An explicit `io.github.frikit.krandom` core module descriptor plus open/closed Java 21 named-module consumers. Missing reflective access now reports the exact qualified `opens` directive.

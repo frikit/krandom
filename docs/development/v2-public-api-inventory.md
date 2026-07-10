@@ -86,6 +86,12 @@ Public provider interfaces and lookup operations remain **KEEP**. Static global 
 
 Global mutations must not be deprecated until the scoped replacement reaches feature parity. Once it does, the 1.6 bridge can deprecate the global entry points as thin legacy adapters.
 
+`ProviderCatalog` and `ProviderDescriptor` are additive **KEEP** APIs. They expose the immutable
+built-in provider definitions used by `ProviderHub`: canonical key, declared result type,
+config-aware factory, aliases, and object-field semantic mappings. They do not replace the
+existing per-hub runtime registration API. Catalog initialization rejects collisions, while each
+descriptor checks that its factory returns the declared provider type.
+
 ## Object-generation exceptions
 
 | API | Disposition | Required work |

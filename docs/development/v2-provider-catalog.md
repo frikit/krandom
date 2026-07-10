@@ -47,7 +47,20 @@ provider targets, invalid type/extractor pairs, and incomplete schema metadata. 
 keys and aliases retain their v1 meanings.
 **Tests:** Catalog completeness, duplicate/alias collision, provider type validation, schema
 metadata coverage, and semantic-provider target validation.
-**Status:** Not Started
+**Status:** In Progress
+
+`ProviderCatalog` now owns the 49 built-in `ProviderDescriptor` definitions used by
+`ProviderHub`. Each descriptor binds the canonical key to its result type, config-aware factory,
+hub aliases, and any object-field semantic keys. Catalog initialization rejects a duplicate
+canonical key or alias before a hub is constructed. `SemanticFieldRegistry` now derives all 20
+provider-backed semantic mappings from those descriptors; it retains only field-vocabulary aliases
+of its own.
+
+`FieldLookup` is deliberately not migrated in this increment. Its references include generator
+methods that do not yet have a hub descriptor (for example `finance.cvv`, `code.ean13`, and
+`datetime.timestamp`), and its JSON Schema metadata needs to be represented by the descriptor
+rather than reconstructed ad hoc. The next increment extends the catalog with typed schema
+projections, then removes that second built-in list without changing any current token.
 
 ## Stage 3: Config-scoped locale data
 

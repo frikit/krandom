@@ -8,48 +8,7 @@ package io.github.frikit.krandom.generator.provider;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.GeneratorProfile;
-import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
-import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
-import io.github.frikit.krandom.generator.commerce.ShipmentInfoGenerator;
-import io.github.frikit.krandom.generator.datetime.DateGenerator;
-import io.github.frikit.krandom.generator.datetime.TimeGenerator;
-import io.github.frikit.krandom.generator.finance.BankInfoGenerator;
-import io.github.frikit.krandom.generator.finance.CreditCardInfoGenerator;
-import io.github.frikit.krandom.generator.finance.InvoiceInfoGenerator;
-import io.github.frikit.krandom.generator.finance.PaymentInfoGenerator;
-import io.github.frikit.krandom.generator.finance.MoneyGenerator;
-import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
-import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
-import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
-import io.github.frikit.krandom.generator.location.CityGenerator;
-import io.github.frikit.krandom.generator.location.CountryGenerator;
-import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
-import io.github.frikit.krandom.generator.location.PostalCodeGenerator;
-import io.github.frikit.krandom.generator.location.StateGenerator;
-import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
-import io.github.frikit.krandom.generator.network.DomainGenerator;
-import io.github.frikit.krandom.generator.network.HostnameGenerator;
-import io.github.frikit.krandom.generator.network.URLGenerator;
 import io.github.frikit.krandom.generator.selection.UniqueGenerator;
-import io.github.frikit.krandom.generator.text.ParagraphGenerator;
-import io.github.frikit.krandom.generator.text.SentenceGenerator;
-import io.github.frikit.krandom.generator.text.WordGenerator;
-import io.github.frikit.krandom.generator.user.CompanyBuzzwordGenerator;
-import io.github.frikit.krandom.generator.user.CompanyCatchPhraseGenerator;
-import io.github.frikit.krandom.generator.user.CompanyEmailGenerator;
-import io.github.frikit.krandom.generator.user.CompanyInfoGenerator;
-import io.github.frikit.krandom.generator.user.CompanyNameGenerator;
-import io.github.frikit.krandom.generator.user.CompanyUrlGenerator;
-import io.github.frikit.krandom.generator.user.ContactInfoGenerator;
-import io.github.frikit.krandom.generator.user.EmailGenerator;
-import io.github.frikit.krandom.generator.user.FirstNameGenerator;
-import io.github.frikit.krandom.generator.user.FullNameGenerator;
-import io.github.frikit.krandom.generator.user.IndustryGenerator;
-import io.github.frikit.krandom.generator.user.JobInfoGenerator;
-import io.github.frikit.krandom.generator.user.LastNameGenerator;
-import io.github.frikit.krandom.generator.user.PasswordGenerator;
-import io.github.frikit.krandom.generator.user.PersonInfoGenerator;
-import io.github.frikit.krandom.generator.user.UsernameGenerator;
 
 import java.util.function.BiPredicate;
 import java.util.Locale;
@@ -341,108 +300,13 @@ public final class ProviderHub {
     }
 
     private void registerBuiltIns() {
-        register("person.full_name", cfg -> new FullNameGenerator(cfg), ConflictPolicy.REPLACE);
-        register("person.first_name", cfg -> new FirstNameGenerator(cfg), ConflictPolicy.REPLACE);
-        register("person.last_name", cfg -> new LastNameGenerator(cfg), ConflictPolicy.REPLACE);
-        register("person.email", cfg -> new EmailGenerator(cfg), ConflictPolicy.REPLACE);
-        register("person.username", cfg -> new UsernameGenerator(cfg), ConflictPolicy.REPLACE);
-        register("person.contact_info", cfg -> new ContactInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("person.person_info", cfg -> new PersonInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("person.job_info", cfg -> new JobInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("person", cfg -> new FullNameGenerator(cfg), ConflictPolicy.REPLACE);
-
-        register("company.name", cfg -> new CompanyNameGenerator(cfg), ConflictPolicy.REPLACE);
-        register("company.email", cfg -> new CompanyEmailGenerator(cfg), ConflictPolicy.REPLACE);
-        register("company.url", cfg -> new CompanyUrlGenerator(cfg), ConflictPolicy.REPLACE);
-        register("company.buzzword", cfg -> new CompanyBuzzwordGenerator(cfg), ConflictPolicy.REPLACE);
-        register("company.catch_phrase", cfg -> new CompanyCatchPhraseGenerator(cfg), ConflictPolicy.REPLACE);
-        register("company.industry", cfg -> new IndustryGenerator(cfg), ConflictPolicy.REPLACE);
-        register("company.info", cfg -> new CompanyInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("security.password", cfg -> new PasswordGenerator(cfg), ConflictPolicy.REPLACE);
-
-        register("address.address_info", cfg -> new AddressInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("address.street_address", cfg -> new StreetAddressGenerator(cfg), ConflictPolicy.REPLACE);
-        register("address.city", cfg -> new CityGenerator(cfg), ConflictPolicy.REPLACE);
-        register("address.state", cfg -> new StateGenerator(cfg), ConflictPolicy.REPLACE);
-        register("address.postal_code", cfg -> new PostalCodeGenerator(cfg), ConflictPolicy.REPLACE);
-        register("address.country", cfg -> new CountryGenerator(cfg), ConflictPolicy.REPLACE);
-        register("address.phone_number", cfg -> new PhoneNumberGenerator(cfg), ConflictPolicy.REPLACE);
-        register("address", cfg -> new StreetAddressGenerator(cfg), ConflictPolicy.REPLACE);
-
-        register("internet.url", cfg -> new URLGenerator(cfg), ConflictPolicy.REPLACE);
-        register("internet.domain", cfg -> new DomainGenerator(cfg), ConflictPolicy.REPLACE);
-        register("internet.hostname", cfg -> new HostnameGenerator(cfg), ConflictPolicy.REPLACE);
-        register("internet", cfg -> new URLGenerator(cfg), ConflictPolicy.REPLACE);
-
-        register("commerce.product_info", cfg -> new ProductInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("commerce.order_info", cfg -> new OrderInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("commerce.shipment_info", cfg -> new ShipmentInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("finance.money", cfg -> new MoneyGenerator(cfg), ConflictPolicy.REPLACE);
-        register("finance.currency", cfg -> new CurrencyGenerator(cfg), ConflictPolicy.REPLACE);
-        register("finance.bank_info", cfg -> new BankInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("finance.credit_card_info", cfg -> new CreditCardInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("finance.invoice_info", cfg -> new InvoiceInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("finance.payment_info", cfg -> new PaymentInfoGenerator(cfg), ConflictPolicy.REPLACE);
-        register("finance", cfg -> new MoneyGenerator(cfg), ConflictPolicy.REPLACE);
-
-        register("datetime.date", cfg -> new DateGenerator(cfg), ConflictPolicy.REPLACE);
-        register("datetime.time", cfg -> new TimeGenerator(cfg), ConflictPolicy.REPLACE);
-        register("datetime", cfg -> new DateGenerator(cfg), ConflictPolicy.REPLACE);
-
-        register("text.word", cfg -> new WordGenerator(cfg), ConflictPolicy.REPLACE);
-        register("text.sentence", cfg -> new SentenceGenerator(cfg), ConflictPolicy.REPLACE);
-        register("text.paragraph", cfg -> new ParagraphGenerator(cfg), ConflictPolicy.REPLACE);
-        register("text.format", cfg -> new TextFormatProvider(cfg), ConflictPolicy.REPLACE);
-        register("text", cfg -> new WordGenerator(cfg), ConflictPolicy.REPLACE);
-
-        register("code.uuid", cfg -> new UUIDGenerator(cfg), ConflictPolicy.REPLACE);
-        register("code", cfg -> new UUIDGenerator(cfg), ConflictPolicy.REPLACE);
-
-        registerAlias("name", "person.full_name", ConflictPolicy.REPLACE);
-        registerAlias("full_name", "person.full_name", ConflictPolicy.REPLACE);
-        registerAlias("first_name", "person.first_name", ConflictPolicy.REPLACE);
-        registerAlias("last_name", "person.last_name", ConflictPolicy.REPLACE);
-        registerAlias("email", "person.email", ConflictPolicy.REPLACE);
-        registerAlias("username", "person.username", ConflictPolicy.REPLACE);
-        registerAlias("contact_info", "person.contact_info", ConflictPolicy.REPLACE);
-        registerAlias("person_info", "person.person_info", ConflictPolicy.REPLACE);
-        registerAlias("job_info", "person.job_info", ConflictPolicy.REPLACE);
-        registerAlias("company_name", "company.name", ConflictPolicy.REPLACE);
-        registerAlias("company_email", "company.email", ConflictPolicy.REPLACE);
-        registerAlias("company_url", "company.url", ConflictPolicy.REPLACE);
-        registerAlias("company_buzzword", "company.buzzword", ConflictPolicy.REPLACE);
-        registerAlias("company_catch_phrase", "company.catch_phrase", ConflictPolicy.REPLACE);
-        registerAlias("company_industry", "company.industry", ConflictPolicy.REPLACE);
-        registerAlias("company_info", "company.info", ConflictPolicy.REPLACE);
-        registerAlias("password", "security.password", ConflictPolicy.REPLACE);
-        registerAlias("address_info", "address.address_info", ConflictPolicy.REPLACE);
-        registerAlias("location", "address.street_address", ConflictPolicy.REPLACE);
-        registerAlias("street_address", "address.street_address", ConflictPolicy.REPLACE);
-        registerAlias("city", "address.city", ConflictPolicy.REPLACE);
-        registerAlias("state", "address.state", ConflictPolicy.REPLACE);
-        registerAlias("postal_code", "address.postal_code", ConflictPolicy.REPLACE);
-        registerAlias("country", "address.country", ConflictPolicy.REPLACE);
-        registerAlias("phone_number", "address.phone_number", ConflictPolicy.REPLACE);
-        registerAlias("network", "internet.url", ConflictPolicy.REPLACE);
-        registerAlias("url", "internet.url", ConflictPolicy.REPLACE);
-        registerAlias("domain", "internet.domain", ConflictPolicy.REPLACE);
-        registerAlias("hostname", "internet.hostname", ConflictPolicy.REPLACE);
-        registerAlias("money", "finance.money", ConflictPolicy.REPLACE);
-        registerAlias("currency", "finance.currency", ConflictPolicy.REPLACE);
-        registerAlias("bank_info", "finance.bank_info", ConflictPolicy.REPLACE);
-        registerAlias("credit_card_info", "finance.credit_card_info", ConflictPolicy.REPLACE);
-        registerAlias("product_info", "commerce.product_info", ConflictPolicy.REPLACE);
-        registerAlias("order_info", "commerce.order_info", ConflictPolicy.REPLACE);
-        registerAlias("shipment_info", "commerce.shipment_info", ConflictPolicy.REPLACE);
-        registerAlias("invoice_info", "finance.invoice_info", ConflictPolicy.REPLACE);
-        registerAlias("payment_info", "finance.payment_info", ConflictPolicy.REPLACE);
-        registerAlias("date", "datetime.date", ConflictPolicy.REPLACE);
-        registerAlias("time", "datetime.time", ConflictPolicy.REPLACE);
-        registerAlias("word", "text.word", ConflictPolicy.REPLACE);
-        registerAlias("sentence", "text.sentence", ConflictPolicy.REPLACE);
-        registerAlias("paragraph", "text.paragraph", ConflictPolicy.REPLACE);
-        registerAlias("format", "text.format", ConflictPolicy.REPLACE);
-        registerAlias("uuid", "code.uuid", ConflictPolicy.REPLACE);
-        registerAlias("identifier", "code.uuid", ConflictPolicy.REPLACE);
+        for (ProviderDescriptor<?> descriptor : ProviderCatalog.builtIns()) {
+            register(descriptor.getKey(), descriptor::create, ConflictPolicy.REPLACE);
+        }
+        for (ProviderDescriptor<?> descriptor : ProviderCatalog.builtIns()) {
+            for (String alias : descriptor.getAliases()) {
+                registerAlias(alias, descriptor.getKey(), ConflictPolicy.REPLACE);
+            }
+        }
     }
 }

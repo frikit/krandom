@@ -66,3 +66,8 @@ io.github.frikit.krandom.dsl.KotlinPrimaryConstructorAdapter
 # ObjectGeneratorConfig remains package-private; japicmp reports its nested builder's private
 # construction-policy projection as class-level evolution.
 io.github.frikit.krandom.generator.object.ObjectGeneratorConfig$Builder
+
+# Canonical built-in provider definitions shared by the hub and semantic object inference; see
+# v2-provider-catalog.md and v2-public-api-inventory.md.
+io.github.frikit.krandom.generator.provider.ProviderCatalog
+io.github.frikit.krandom.generator.provider.ProviderDescriptor

@@ -500,7 +500,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Actions**
 
 - [ ] Inventory canonical provider keys, aliases, result types, factories, locale support, fallback, validation, and metadata across `ProviderHub`, `FieldLookup`, `SemanticFieldRegistry`, and all data registries.
-- [ ] Define one typed provider descriptor/catalog.
+- [x] Define one typed provider descriptor/catalog.
 - [ ] Generate lookup, semantic inference, schema metadata, and documentation from the catalog.
 - [ ] Move every provider registry into `DataRegistryContext` or its v2 replacement.
 - [ ] Validate registered keys and data arrays uniformly.
