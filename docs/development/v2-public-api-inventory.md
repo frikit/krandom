@@ -248,6 +248,9 @@ no-argument `CnpjGenerator` and `EinGenerator` constructors are **DEPRECATE 1.6*
 preserve prior behavior and are scheduled for v2 removal. `Generators.ofEin(GeneratorConfig)` is
 an additive **KEEP** canonical facade. Portable recipes store the typed policy as
 `business-tax-identifier.safety-policy` and replay legacy recipes as unclassified output.
+`CnpjGenerator.withAlphanumericFormat()` is additive **KEEP**. It produces an explicitly
+unclassified alphanumeric CNPJ shape with the Receita Federal check-digit algorithm and does not
+claim that the resulting identifier is assigned or fictitious.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay

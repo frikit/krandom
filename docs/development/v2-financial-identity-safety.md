@@ -114,10 +114,12 @@ behavior; recipes record `business-tax-identifier.safety-policy`, while older re
 realistic-unclassified replay when that setting is absent.
 
 Brazil's Receita Federal supplies a browser-local simulator that labels its numeric and
-alphanumeric CNPJ results as fictitious. krandom does not yet embed an official fixture corpus or
-implement the alphanumeric CNPJ format, so it does not claim that its legacy numeric algorithm is
-non-routable. A country-specific safe CNPJ mode belongs in a separate change with that updated
-format and fixture evidence.
+alphanumeric CNPJ results as fictitious. `CnpjGenerator.withAlphanumericFormat()` supports the
+published 14-character shape and check digits when the caller explicitly selects
+`REALISTIC_UNCLASSIFIED`; it deliberately guarantees neither an assignment-valid CNPJ nor a
+fictitious one. Its generated body includes at least one uppercase letter, while the official
+issuer's prohibited-combination rules and fictitious fixture corpus remain outside krandom. Use
+the official simulator when a test specifically requires the authority's fictitious-value contract.
 
 Banking identifiers now fail closed through `GeneratorConfig` because neither checksum validity nor
 a realistic-looking account body proves non-routability. `BankingSafetyPolicy` controls bank account

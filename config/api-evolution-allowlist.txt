@@ -66,6 +66,7 @@ io.github.frikit.krandom.generator.user.DrivingLicenseGenerator
 io.github.frikit.krandom.generator.commerce.CnpjGenerator
 io.github.frikit.krandom.generator.finance.EinGenerator
 io.github.frikit.krandom.generator.Generators#ofEin(io.github.frikit.krandom.generator.GeneratorConfig)
+io.github.frikit.krandom.generator.commerce.CnpjGenerator#withAlphanumericFormat()
 # Banking constructors retain their unsafe 1.6 compatibility behavior only as deprecated bridges.
 io.github.frikit.krandom.generator.finance.AbaRoutingGenerator
 io.github.frikit.krandom.generator.finance.BankAccountGenerator

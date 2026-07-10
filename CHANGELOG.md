@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   passport and driving-license identifiers.
 - `BusinessTaxIdentifierSafetyPolicy`, an enforceable fail-closed configuration contract for CNPJ
   and EIN values.
+- `CnpjGenerator.withAlphanumericFormat()`, an explicit unclassified compatibility mode for the
+  Brazilian 14-character alphanumeric CNPJ shape and its official check-digit algorithm.
 - `ProviderSafetyMetadata`, `ProviderValidity`, and `ProviderTestSafety`, describing conservative
   format, checksum, semantic-plausibility, and test-safety claims from the provider catalog.
 - `ProviderSafetyPolicy` and an `x-krandom-safety` JSON Schema extension that carries the selected

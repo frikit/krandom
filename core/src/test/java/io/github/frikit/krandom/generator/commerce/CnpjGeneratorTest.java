@@ -41,6 +41,25 @@ class CnpjGeneratorTest {
         return d[12] == v1 && d[13] == v2;
     }
 
+    /** Independent implementation of the Receita Federal alphanumeric CNPJ check-digit rules. */
+    private static boolean isValidAlphanumericCnpj(String bare) {
+        if (!bare.matches("[0-9A-Z]{14}")) {
+            return false;
+        }
+        int v1 = alphanumericCheckDigit(bare.substring(0, 12), WEIGHTS_1);
+        int v2 = alphanumericCheckDigit(bare.substring(0, 12) + v1, WEIGHTS_2);
+        return bare.charAt(12) == (char) ('0' + v1) && bare.charAt(13) == (char) ('0' + v2);
+    }
+
+    private static int alphanumericCheckDigit(String body, int[] weights) {
+        int sum = 0;
+        for (int index = 0; index < body.length(); index++) {
+            sum += (body.charAt(index) - '0') * weights[index];
+        }
+        int remainder = sum % 11;
+        return remainder < 2 ? 0 : 11 - remainder;
+    }
+
     @RepeatedTest(200)
     @DisplayName("deprecated no-argument constructor preserves formatted valid output")
     void formattedValid() {
@@ -56,6 +75,32 @@ class CnpjGeneratorTest {
         assertTrue(cnpj.matches("\\d{14}"), cnpj);
         assertEquals("0001", cnpj.substring(8, 12), "headquarters branch");
         assertTrue(isValidCnpj(cnpj), cnpj);
+    }
+
+    @Test
+    @DisplayName("Receita Federal's fictitious alphanumeric simulator vector has valid check digits")
+    void officialFictitiousAlphanumericVectorValidates() {
+        String cnpj = "65.9BR.JGJ/0001-03";
+
+        assertTrue(isValidAlphanumericCnpj(cnpj.replaceAll("[./-]", "")), cnpj);
+    }
+
+    @Test
+    @DisplayName("explicit compatibility mode can generate formatted and bare alphanumeric CNPJs")
+    void alphanumericCompatibilityMode() {
+        CnpjGenerator alphanumeric = new CnpjGenerator(realisticConfig(123L)).withAlphanumericFormat();
+
+        String formatted = alphanumeric.generate();
+        String bare = alphanumeric.withoutFormatting().generate();
+
+        assertTrue(formatted.matches("[0-9A-Z]{2}\\.[0-9A-Z]{3}\\.[0-9A-Z]{3}/[0-9A-Z]{4}-\\d{2}"), formatted);
+        assertTrue(isValidAlphanumericCnpj(formatted.replaceAll("[./-]", "")), formatted);
+        assertTrue(bare.matches("[0-9A-Z]{14}"), bare);
+        assertTrue(bare.substring(0, 12).matches(".*[A-Z].*"), bare);
+        assertTrue(isValidAlphanumericCnpj(bare), bare);
+        assertEquals(
+            new CnpjGenerator(realisticConfig(456L)).withAlphanumericFormat().generateList(10),
+            new CnpjGenerator(realisticConfig(456L)).withAlphanumericFormat().generateList(10));
     }
 
     @Test
@@ -85,6 +130,8 @@ class CnpjGeneratorTest {
     void configuredGenerationFailsClosedByDefault() {
         assertThrows(IllegalStateException.class,
                      () -> new CnpjGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class,
+                     () -> new CnpjGenerator(GeneratorConfig.defaults()).withAlphanumericFormat().generate());
         assertThrows(IllegalStateException.class, () -> Generators.ofCnpj().generate());
     }
 
