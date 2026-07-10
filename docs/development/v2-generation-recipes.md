@@ -73,7 +73,13 @@ fields are added. Repeated collection/map elements and recursive objects have do
 deterministic identities.
 **Tests:** Object and schema stability fixtures, repeated-element replay, nested-object replay, and
 checked-in golden streams.
-**Status:** Not Started
+**Status:** In Progress
+
+Schema now derives the stream identity `schema|record=<index>|field=<length>:<name>` for every
+portable seeded field. The focused stability test proves that inserting an unrelated column before
+existing columns does not change their values, and that a serialized recipe replays several record
+indexes exactly. Object fields, collection elements, map entries, and recursive objects remain in
+this stage.
 
 ## Stage 3: Surface replay safely
 

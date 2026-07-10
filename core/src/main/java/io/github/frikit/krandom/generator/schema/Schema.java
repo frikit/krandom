@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 
@@ -30,6 +31,11 @@ import java.util.Random;
 
 /**
  * Declarative schema-based record generator.
+ *
+ * <p>When supplied a portable seeded {@link GeneratorConfig}, every value receives a named child
+ * stream derived from its record index and field name. Adding an unrelated schema column therefore
+ * does not perturb existing column values. Caller-owned, secure, and unseeded random sources retain
+ * their documented sequential behavior.
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
@@ -42,6 +48,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     private final GeneratorConfig                  config;
     private final Map<String, SchemaValueProvider> fields;
     private final Random                           random;
+    private final Optional<GenerationRecipe>       generationRecipe;
     private       int                              nextRecordIndex;
 
     @FunctionalInterface
@@ -83,6 +90,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
         this.fields = validateAndCopy(fields);
         this.random = config.createRandom();
+        this.generationRecipe = config.getGenerationRecipe();
         this.nextRecordIndex = 0;
     }
 
@@ -409,18 +417,30 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private Map<String, Object> generateAtIndex(int recordIndex) {
-        SchemaContext context = new SchemaContext(config.getLocale(), random, recordIndex);
         Map<String, Object> record = new LinkedHashMap<>(fields.size());
         for (Map.Entry<String, SchemaValueProvider> entry : fields.entrySet()) {
             String name = entry.getKey();
             SchemaValueProvider provider = entry.getValue();
             try {
+                SchemaContext context = new SchemaContext(
+                    config.getLocale(), randomForField(recordIndex, name), recordIndex);
                 record.put(name, provider.generate(context));
             } catch (RuntimeException ex) {
                 throw new SchemaGenerationException(name, recordIndex, ex);
             }
         }
         return record;
+    }
+
+    private Random randomForField(int recordIndex, String fieldName) {
+        if (generationRecipe.isEmpty()) {
+            return random;
+        }
+        return generationRecipe.orElseThrow().childRandom(schemaFieldStreamIdentity(recordIndex, fieldName));
+    }
+
+    private static String schemaFieldStreamIdentity(int recordIndex, String fieldName) {
+        return "schema|record=" + recordIndex + "|field=" + fieldName.length() + ':' + fieldName;
     }
 
     private static void validateCount(int count) {
