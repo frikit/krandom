@@ -28,6 +28,8 @@ import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataRegistry;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry;
+import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
+import io.github.frikit.krandom.generator.weather.WeatherDataRegistry;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -61,6 +63,7 @@ public final class DataRegistryContext {
     private final Map<String, CountryDataProvider>       countries;
     private final Map<String, StreetAddressDataProvider> streetAddresses;
     private final Map<String, NationalIdProvider>        nationalIds;
+    private final Map<String, WeatherDataProvider>       weather;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -75,6 +78,7 @@ public final class DataRegistryContext {
         this.countries = Map.copyOf(builder.countries);
         this.streetAddresses = Map.copyOf(builder.streetAddresses);
         this.nationalIds = Map.copyOf(builder.nationalIds);
+        this.weather = Map.copyOf(builder.weather);
     }
 
     /**
@@ -267,6 +271,39 @@ public final class DataRegistryContext {
         return mergeKeys(nationalIds.keySet(), useGlobalFallback ? NationalIdRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the weather provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public WeatherDataProvider weatherProvider(Locale locale) {
+        WeatherDataProvider provider = findWithFallback(weather, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return WeatherDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Returns whether this context can resolve weather data for a locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isWeatherRegistered(Locale locale) {
+        return weatherProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable weather locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> weatherRegisteredKeys() {
+        return mergeKeys(weather.keySet(), useGlobalFallback ? WeatherDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -333,6 +370,19 @@ public final class DataRegistryContext {
         }
     }
 
+    private static void validateTextValues(String name, java.util.List<String> values) {
+        Objects.requireNonNull(values, name);
+        if (values.isEmpty()) {
+            throw new IllegalArgumentException(name + " must not be empty");
+        }
+        for (int i = 0; i < values.size(); i++) {
+            String value = values.get(i);
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
+            }
+        }
+    }
+
     private static void validateProfessionArrays(String[] professions, int[] weights) {
         Objects.requireNonNull(professions, "professions");
         Objects.requireNonNull(weights, "weights");
@@ -370,6 +420,7 @@ public final class DataRegistryContext {
         private final Map<String, CountryDataProvider>       countries      = new LinkedHashMap<>();
         private final Map<String, StreetAddressDataProvider> streetAddresses = new LinkedHashMap<>();
         private final Map<String, NationalIdProvider>        nationalIds    = new LinkedHashMap<>();
+        private final Map<String, WeatherDataProvider>       weather        = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -482,6 +533,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider, "provider");
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             putWithLanguageFallback(nationalIds, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific weather provider in this context.
+         *
+         * @param provider weather vocabulary provider
+         * @return this builder
+         */
+        public Builder registerWeatherProvider(WeatherDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("conditions", provider.getConditions());
+            putWithLanguageFallback(weather, provider.getLocale(), provider);
             return this;
         }
 

@@ -86,6 +86,12 @@ Public provider interfaces and lookup operations remain **KEEP**. Static global 
 
 Global mutations must not be deprecated until the scoped replacement reaches feature parity. Once it does, the 1.6 bridge can deprecate the global entry points as thin legacy adapters.
 
+`DataRegistryContext` weather lookup, key snapshot, and builder registration are additive **KEEP**
+APIs. They provide validated, locale-fallback-aware weather vocabulary that is isolated per
+`GeneratorConfig`; `WeatherDataRegistry.register(...)` remains the 1.6 compatibility adapter.
+`WeatherGenerator` remains **KEEP** with no new public member and now resolves vocabulary through
+the configuration context.
+
 `ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
 APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and
 object semantic inference: canonical key, declared result type, config-aware factory, aliases,

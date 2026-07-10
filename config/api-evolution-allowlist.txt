@@ -57,6 +57,16 @@ io.github.frikit.krandom.generator.schema.FieldLookup
 # Schema remains KEEP; this covers private structured-record conversion helpers only.
 io.github.frikit.krandom.generator.schema.Schema
 
+# Config-scoped weather vocabulary; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext
+io.github.frikit.krandom.generator.DataRegistryContext$Builder
+io.github.frikit.krandom.generator.DataRegistryContext#weatherProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isWeatherRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#weatherRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerWeatherProvider(io.github.frikit.krandom.generator.weather.WeatherDataProvider)
+# WeatherGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.weather.WeatherGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy

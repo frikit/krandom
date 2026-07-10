@@ -72,7 +72,12 @@ registration only as a deprecated 1.6 compatibility adapter.
 array validation have one implementation; no context reads mutable global state when isolated.
 **Tests:** Per-family override isolation, locale fallback matrix, malformed provider data, and
 concurrent contexts without cross-contamination.
-**Status:** Not Started
+**Status:** In Progress
+
+Weather is the first migrated family: its validated provider registration, locale fallback, and
+snapshot keys now live in `DataRegistryContext`, and `WeatherGenerator` resolves it from the
+`GeneratorConfig` rather than directly from process-wide state. The remaining vocabulary families
+will follow the same boundary before the legacy static registries are deprecated.
 
 ## Stage 4: Migration and release gate
 

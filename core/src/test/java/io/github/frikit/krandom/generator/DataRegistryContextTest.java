@@ -17,6 +17,8 @@ import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
+import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
+import io.github.frikit.krandom.generator.weather.WeatherGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -178,6 +180,29 @@ class DataRegistryContextTest {
                                                          .build();
         assertTrue(context.countryRegisteredKeys().contains("en"));
         assertEquals("CountryOne", context.countryProvider(Locale.of("en", "GB")).getCountries()[0]);
+    }
+
+    @Test
+    @DisplayName("weather providers remain isolated between contexts")
+    void weatherProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerWeatherProvider(weatherProvider(Locale.US, "Sun"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerWeatherProvider(weatherProvider(Locale.US, "Rain"))
+                                                         .build();
+
+        assertEquals("Sun", new WeatherGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
+        assertEquals("Rain", new WeatherGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(Set.of("en", "en_US"), first.weatherRegisteredKeys());
+
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertNull(empty.weatherProvider(Locale.US));
+        assertFalse(empty.isWeatherRegistered(Locale.US));
+        assertTrue(DataRegistryContext.globalDefault().isWeatherRegistered(Locale.of("ru", "RU")));
+        assertFalse(DataRegistryContext.globalDefault().weatherRegisteredKeys().isEmpty());
     }
 
     @Test
@@ -550,6 +575,15 @@ class DataRegistryContextTest {
                                                                                    return new String[] { "f1" };
                                                                                }
                                                                            }));
+
+        assertThrows(NullPointerException.class, () -> builder.registerWeatherProvider(null));
+        assertThrows(IllegalArgumentException.class,
+                     () -> builder.registerWeatherProvider(weatherProvider(locale, java.util.List.of())));
+        assertThrows(IllegalArgumentException.class,
+                     () -> builder.registerWeatherProvider(weatherProvider(locale, java.util.List.of(" "))));
+        assertThrows(IllegalArgumentException.class,
+                     () -> builder.registerWeatherProvider(
+                         weatherProvider(locale, java.util.Collections.singletonList(null))));
     }
 
     private static FirstNameDataProvider firstNameProvider(Locale locale) {
@@ -732,6 +766,24 @@ class DataRegistryContextTest {
             @Override
             public String generate(Random random) {
                 return "NID";
+            }
+        };
+    }
+
+    private static WeatherDataProvider weatherProvider(Locale locale, String condition) {
+        return weatherProvider(locale, java.util.List.of(condition));
+    }
+
+    private static WeatherDataProvider weatherProvider(Locale locale, java.util.List<String> conditions) {
+        return new WeatherDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getConditions() {
+                return conditions;
             }
         };
     }
