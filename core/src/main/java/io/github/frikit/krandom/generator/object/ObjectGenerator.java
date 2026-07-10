@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -259,6 +261,17 @@ public final class ObjectGenerator<T> implements Generator<T> {
     // ── Class population ──────────────────────────────────────────────────────
 
     private T generateWithPool() {
+        var contextualFactory = config.getContextualTypeOverride(type);
+        if (contextualFactory.isPresent()) {
+            return generateFromRootFactory(
+                "contextual type override",
+                () -> contextualFactory.get().generate(new GenerationContext("$root", type, depth)));
+        }
+        var factory = config.getTypeOverride(type);
+        if (factory.isPresent()) {
+            return generateFromRootFactory("type override", factory.get()::generate);
+        }
+
         FieldGeneratorResolver resolver =
             new FieldGeneratorResolver(
                 config,
@@ -277,11 +290,43 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
-    private ObjectGenerationException constructionFailure(Throwable cause) {
-        String path = type.getSimpleName();
-        if (path.isBlank()) {
-            path = type.getName();
+    private T generateFromRootFactory(String factoryKind, Supplier<?> factory) {
+        try {
+            Object value = factory.get();
+            if (value == null) {
+                throw new IllegalStateException(factoryKind + " returned null");
+            }
+            if (!type.isInstance(value)) {
+                throw new IllegalArgumentException(
+                    factoryKind + " returned " + value.getClass().getName()
+                    + " for " + type.getName());
+            }
+            return type.cast(value);
+        } catch (RuntimeException factoryFailure) {
+            String path = typePath();
+            GenerationFailureContext context = new GenerationFailureContext(
+                GenerationFailureCategory.CUSTOM_GENERATOR,
+                GenerationOperation.CONSTRUCT,
+                path,
+                type,
+                type.getTypeName(),
+                depth,
+                -1);
+            ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
+                config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
+            Object fallback = failurePolicy.handle(
+                new ObjectGenerationException(
+                    "Root " + factoryKind + " failed for '" + path + "' (declared type "
+                    + type.getTypeName() + ", depth " + depth + ")",
+                    context,
+                    factoryFailure),
+                null);
+            return type.cast(fallback);
         }
+    }
+
+    private ObjectGenerationException constructionFailure(Throwable cause) {
+        String path = typePath();
         GenerationFailureContext context = new GenerationFailureContext(
             GenerationFailureCategory.CONSTRUCTION,
             GenerationOperation.CONSTRUCT,
@@ -297,6 +342,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
             cause);
     }
 
+    private String typePath() {
+        String simpleName = type.getSimpleName();
+        return simpleName.isBlank() ? type.getName() : simpleName;
+    }
+
     private T populateWithPool(T instance) {
         FieldGeneratorResolver resolver =
             new FieldGeneratorResolver(
@@ -308,6 +358,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         populateClass(instance,
                       resolver,
                       new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),
+                      collectSettableFields(type),
                       config.isOverrideDefaultInitialization());
         return instance;
     }
@@ -362,18 +413,20 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private T generateClass(FieldGeneratorResolver resolver,
                             SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
+        validateConstructibleType();
+        List<Field> settableFields = collectSettableFields(type);
         T instance = instantiate(resolver); // may throw ReflectiveOperationException for throwing constructors
-        populateClass(instance, resolver, coherenceAdjuster, true);
+        populateClass(instance, resolver, coherenceAdjuster, settableFields, true);
         return instance;
     }
 
     private void populateClass(T instance,
                                FieldGeneratorResolver resolver,
                                SemanticCoherenceAdjuster coherenceAdjuster,
+                               List<Field> settableFields,
                                boolean allowOverwriteExisting) {
         ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
             config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
-        List<Field> settableFields = collectSettableFields(type);
         for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check
             field.setAccessible(true);
@@ -423,7 +476,6 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * @throws ReflectiveOperationException if the constructor is found but throws at runtime
      */
     private T instantiate(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
-        validateConstructibleType();
         try {
             Constructor<T> ctor = type.getDeclaredConstructor();
             ctor.setAccessible(true);

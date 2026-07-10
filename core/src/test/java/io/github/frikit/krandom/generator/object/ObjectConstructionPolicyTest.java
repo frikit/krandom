@@ -5,14 +5,20 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.ContextualGenerator;
+import io.github.frikit.krandom.generator.GenerationContext;
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -136,6 +142,89 @@ class ObjectConstructionPolicyTest {
             ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS.name()));
     }
 
+    @Test
+    @DisplayName("plain type overrides act as root factories before reflection")
+    void plainTypeOverrideActsAsRootFactory() {
+        FactoryProduct expected = new FactoryProductValue("plain-factory");
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectOverride(FactoryProduct.class, () -> expected)
+                                                .build();
+
+        FactoryProduct value = new ObjectGenerator<>(FactoryProduct.class, config).generate();
+
+        assertSame(expected, value);
+    }
+
+    @Test
+    @DisplayName("contextual root factories receive root context and win over plain overrides")
+    void contextualRootFactoryReceivesContextAndWins() {
+        AtomicReference<GenerationContext> observed = new AtomicReference<>();
+        FactoryProduct contextual = new FactoryProductValue("contextual-factory");
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectOverride(
+                                                    FactoryProduct.class,
+                                                    () -> new FactoryProductValue("plain-factory"))
+                                                .objectOverride(
+                                                    FactoryProduct.class,
+                                                    (ContextualGenerator<FactoryProduct>) context -> {
+                                                        observed.set(context);
+                                                        return contextual;
+                                                    })
+                                                .build();
+
+        FactoryProduct value = new ObjectGenerator<>(FactoryProduct.class, config).generate();
+
+        assertSame(contextual, value);
+        assertEquals("$root", observed.get().getFieldName());
+        assertSame(FactoryProduct.class, observed.get().getOwnerType());
+        assertEquals(0, observed.get().getDepth());
+    }
+
+    @Test
+    @DisplayName("invalid root factory values fail with custom-generator context")
+    void invalidRootFactoryValuesFailContextually() {
+        GeneratorConfig nullConfig = GeneratorConfig.builder()
+                                                    .objectOverride(FactoryProduct.class, () -> null)
+                                                    .build();
+        ObjectGenerationException nullFailure = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(FactoryProduct.class, nullConfig).generate());
+
+        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR,
+                     nullFailure.getContext().orElseThrow().category());
+
+        ObjectGenerationException wrongTypeFailure = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(FactoryProduct.class, wrongTypeFactoryConfig()).generate());
+        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR,
+                     wrongTypeFailure.getContext().orElseThrow().category());
+    }
+
+    @Test
+    @DisplayName("lenient root factory failure returns null and emits a diagnostic")
+    void lenientRootFactoryFailureReturnsNullAndEmitsDiagnostic() {
+        AtomicReference<GenerationFailureDiagnostic> observed = new AtomicReference<>();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectOverride(FactoryProduct.class, () -> null)
+                                                .objectIgnoreErrors(true)
+                                                .generationFailureListener(observed::set)
+                                                .build();
+
+        FactoryProduct value = new ObjectGenerator<>(FactoryProduct.class, config).generate();
+
+        assertNull(value);
+        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR, observed.get().context().category());
+        assertEquals("FactoryProduct", observed.get().context().path());
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static GeneratorConfig wrongTypeFactoryConfig() {
+        Generator wrongType = () -> "wrong-type";
+        return GeneratorConfig.builder()
+                              .objectOverride((Class) FactoryProduct.class, wrongType)
+                              .build();
+    }
+
     private static void assertUnsupportedRoot(Class<?> type, ObjectConstructionPolicy policy) {
         ObjectGenerationException ex = assertThrows(
             ObjectGenerationException.class,
@@ -194,6 +283,14 @@ class ObjectConstructionPolicyTest {
     enum EnumFixture { VALUE }
 
     @interface AnnotationFixture {
+    }
+
+    interface FactoryProduct {
+
+        String value();
+    }
+
+    record FactoryProductValue(String value) implements FactoryProduct {
     }
 
     final class NonStaticInnerFixture {

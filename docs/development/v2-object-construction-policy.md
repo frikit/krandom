@@ -1,6 +1,6 @@
 # V2 Object Construction Policy
 
-**Status:** Implementation in progress; Stages 1–2 complete
+**Status:** Implementation in progress; Stages 1–3 complete
 **Scope:** Java object construction in `ObjectGenerator`
 
 ## Goal
@@ -74,7 +74,19 @@ existing override option is enabled; unsafe allocation is named in relevant diag
 **Tests:** Root/nested factories, final fields, initialized fields, unsafe compatibility behavior,
 strict/lenient diagnostics, and cycles.
 
-**Status:** Not Started
+**Status:** Complete
+
+Existing plain and contextual type overrides now serve as factories for root objects as well as
+nested fields. Contextual factories receive `"$root"`, the requested type, and depth zero and win
+over plain factories. Factory output must be non-null and assignable; failures are categorized as
+`CUSTOM_GENERATOR`, with strict throwing or lenient null plus a sanitized diagnostic. This permits
+safe construction of interface/abstract roots without adding a duplicate factory registry.
+
+Safe constructor paths preserve final state established by constructors, while factory-created
+immutable values bypass reflection entirely. Mutable-field accessibility is preflighted before
+constructor invocation. Constructor/default initializers remain untouched unless
+`objectOverrideDefaultInitialization(true)` is selected. Unsafe bypass remains an explicit policy
+that may skip final-state invariants.
 
 ## Stage 4: Consumer and JPMS contract
 

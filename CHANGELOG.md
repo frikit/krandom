@@ -51,6 +51,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The published Bean Validation guide now derives its 21-constraint matrix from repository facts, with deterministic Hibernate Validator coverage across fields, getters, records, and interface accessors.
 - Object generation now defaults to `SAFE_CONSTRUCTORS`: it invokes no-argument or one unambiguous declared constructor with generated arguments; legacy Objenesis allocation requires explicit `UNSAFE_CONSTRUCTOR_BYPASS` configuration.
 - Safe construction now rejects abstract, interface, array, primitive, enum, annotation, local, anonymous, and non-static inner roots before allocation; constructor parameters use the same type and Bean Validation resolver as fields.
+- Type and contextual object overrides now act as validated root factories before reflection, including for interfaces; null, wrong-type, and throwing factories use structured strict/lenient custom-generator handling, and field-access preflight runs before constructors.
 
 ## [1.5.0] - 2026-06-22
 
