@@ -203,3 +203,6 @@ io.github.frikit.krandom.generator.object.ObjectGeneratorConfig$Builder
 io.github.frikit.krandom.generator.provider.ProviderCatalog
 io.github.frikit.krandom.generator.provider.ProviderDescriptor
 io.github.frikit.krandom.generator.provider.ProviderSchemaProjection
+io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata
+io.github.frikit.krandom.generator.provider.ProviderValidity
+io.github.frikit.krandom.generator.provider.ProviderTestSafety

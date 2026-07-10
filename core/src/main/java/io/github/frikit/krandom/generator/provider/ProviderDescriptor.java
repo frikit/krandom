@@ -26,6 +26,7 @@ public final class ProviderDescriptor<T> {
     private final ProviderFactory   factory;
     private final List<String>      aliases;
     private final Set<String>       semanticKeys;
+    private final ProviderSafetyMetadata safetyMetadata;
     private final List<ProviderSchemaProjection<T>> schemaProjections;
 
     ProviderDescriptor(String key,
@@ -34,11 +35,28 @@ public final class ProviderDescriptor<T> {
                        List<String> aliases,
                        Set<String> semanticKeys,
                        List<ProviderSchemaProjection<T>> schemaProjections) {
+        this(key,
+             providerType,
+             factory,
+             aliases,
+             semanticKeys,
+             ProviderSafetyMetadata.unclassified(),
+             schemaProjections);
+    }
+
+    ProviderDescriptor(String key,
+                       Class<T> providerType,
+                       ProviderFactory factory,
+                       List<String> aliases,
+                       Set<String> semanticKeys,
+                       ProviderSafetyMetadata safetyMetadata,
+                       List<ProviderSchemaProjection<T>> schemaProjections) {
         this.key = Objects.requireNonNull(key, "key must not be null");
         this.providerType = Objects.requireNonNull(providerType, "providerType must not be null");
         this.factory = Objects.requireNonNull(factory, "factory must not be null");
         this.aliases = List.copyOf(Objects.requireNonNull(aliases, "aliases must not be null"));
         this.semanticKeys = Set.copyOf(Objects.requireNonNull(semanticKeys, "semanticKeys must not be null"));
+        this.safetyMetadata = Objects.requireNonNull(safetyMetadata, "safetyMetadata must not be null");
         this.schemaProjections = List.copyOf(
             Objects.requireNonNull(schemaProjections, "schemaProjections must not be null"));
     }
@@ -80,6 +98,19 @@ public final class ProviderDescriptor<T> {
     }
 
     /**
+     * Returns conservative validity and test-safety claims for this provider.
+     *
+     * <p>The metadata does not authorize external use of generated values. A
+     * {@link ProviderTestSafety#CONFIGURATION_DEPENDENT} value requires inspecting the selected
+     * {@link GeneratorConfig} policy.
+     *
+     * @return immutable provider safety metadata
+     */
+    public ProviderSafetyMetadata getSafetyMetadata() {
+        return safetyMetadata;
+    }
+
+    /**
      * Returns schema references that this provider projects.
      *
      * @return immutable schema projections
@@ -101,6 +132,22 @@ public final class ProviderDescriptor<T> {
     }
 
     ProviderDescriptor<T> withSchemaProjections(List<ProviderSchemaProjection<T>> projections) {
-        return new ProviderDescriptor<>(key, providerType, factory, aliases, semanticKeys, projections);
+        return new ProviderDescriptor<>(key,
+                                        providerType,
+                                        factory,
+                                        aliases,
+                                        semanticKeys,
+                                        safetyMetadata,
+                                        projections);
+    }
+
+    ProviderDescriptor<T> withSafetyMetadata(ProviderSafetyMetadata metadata) {
+        return new ProviderDescriptor<>(key,
+                                        providerType,
+                                        factory,
+                                        aliases,
+                                        semanticKeys,
+                                        metadata,
+                                        schemaProjections);
     }
 }

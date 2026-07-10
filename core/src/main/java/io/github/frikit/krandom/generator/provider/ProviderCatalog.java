@@ -80,6 +80,16 @@ import java.util.function.BiFunction;
  */
 public final class ProviderCatalog {
 
+    private static final ProviderSafetyMetadata PAYMENT_CARD_SAFETY = new ProviderSafetyMetadata(
+        ProviderValidity.GUARANTEED,
+        ProviderValidity.CONFIGURATION_DEPENDENT,
+        ProviderValidity.GUARANTEED,
+        ProviderTestSafety.CONFIGURATION_DEPENDENT);
+    private static final ProviderSafetyMetadata PHONE_NUMBER_SAFETY = new ProviderSafetyMetadata(
+        ProviderValidity.GUARANTEED,
+        ProviderValidity.NOT_APPLICABLE,
+        ProviderValidity.CONFIGURATION_DEPENDENT,
+        ProviderTestSafety.CONFIGURATION_DEPENDENT);
     private static final List<ProviderDescriptor<?>> BUILT_INS = buildBuiltIns();
     private static final List<ProviderDescriptor<?>> SCHEMA_ONLY_BUILT_INS = buildSchemaOnlyBuiltIns();
     private static final List<ProviderDescriptor<?>> SCHEMA_BUILT_INS = buildSchemaBuiltIns();
@@ -324,6 +334,7 @@ public final class ProviderCatalog {
                                                           "country"))),
             descriptor("address.phone_number", PhoneNumberGenerator.class, PhoneNumberGenerator::new,
                        List.of("phone_number"), "phone")
+                .withSafetyMetadata(PHONE_NUMBER_SAFETY)
                 .withSchemaProjections(projections(string("address.phone_number",
                                                           (provider, config) -> provider.generate(),
                                                           "phone_number"))),
@@ -391,6 +402,7 @@ public final class ProviderCatalog {
                                                           Set.of()))),
             descriptor("finance.credit_card_info", CreditCardInfoGenerator.class, CreditCardInfoGenerator::new,
                        List.of("credit_card_info"))
+                .withSafetyMetadata(PAYMENT_CARD_SAFETY)
                 .withSchemaProjections(projections(record("finance.credit_card_info",
                                                           (provider, config) -> provider.generate(),
                                                           CreditCardInfo.class,
@@ -452,6 +464,7 @@ public final class ProviderCatalog {
     private static List<ProviderDescriptor<?>> buildSchemaOnlyBuiltIns() {
         return List.of(
             descriptor("finance.credit_card", CreditCardGenerator.class, CreditCardGenerator::new, List.of())
+                .withSafetyMetadata(PAYMENT_CARD_SAFETY)
                 .withSchemaProjections(projections(string("finance.credit_card_number",
                                                           (provider, config) -> provider.generateNumber()),
                                                   string("finance.cvv", (provider, config) -> provider.generateCvv()))),

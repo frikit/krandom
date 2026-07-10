@@ -140,12 +140,14 @@ through the configuration context.
 `ZodiacDataRegistry.register(...)` remains the 1.6 compatibility adapter. `ZodiacGenerator` remains
 **KEEP** with no new public member and now resolves its cycle through the configuration context.
 
-`ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
-APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and
-object semantic inference: canonical key, declared result type, config-aware factory, aliases,
-typed schema extractors/metadata, and semantic mappings. They do not replace the existing
-per-hub runtime registration API. Catalog initialization rejects provider, schema-reference, and
-alias collisions, while each descriptor checks that its factory returns the declared provider type.
+`ProviderCatalog`, `ProviderDescriptor`, `ProviderSchemaProjection`, `ProviderSafetyMetadata`,
+`ProviderValidity`, and `ProviderTestSafety` are additive **KEEP** APIs. They expose the immutable
+built-in definitions used by `ProviderHub`, `FieldLookup`, and object semantic inference: canonical
+key, declared result type, config-aware factory, aliases, typed schema extractors/metadata,
+conservative validity and test-safety claims, and semantic mappings. They do not replace the
+existing per-hub runtime registration API. Catalog initialization rejects provider,
+schema-reference, and alias collisions, while each descriptor checks that its factory returns the
+declared provider type.
 
 ## Object-generation exceptions
 

@@ -95,7 +95,20 @@ forbidden uses impossible to miss in public documentation.
 policy and classification. Generated personal-looking or payment-looking values are never offered
 as credentials for production systems.
 **Tests:** Documentation/reference snapshot tests and catalog-metadata completeness checks.
-**Status:** Not Started
+**Status:** In Progress
+
+Implemented provider-catalog metadata:
+
+- Every `ProviderDescriptor` exposes immutable `ProviderSafetyMetadata` with independent format,
+  checksum, semantic-plausibility, and test-safety classifications. `UNCLASSIFIED` is explicit: it
+  means krandom makes no claim for that dimension.
+- `finance.credit_card` and `finance.credit_card_info` guarantee their documented shape and
+  issuer semantics, while checksum validity and test safety are configuration-dependent.
+- `address.phone_number` guarantees its documented output shape, has no checksum dimension, and
+  makes configuration-dependent semantic and test-safety claims because the fictional range is
+  deliberately limited to documented US locale-style output.
+- The generated [provider catalog reference](../reference/provider-catalog.md) renders the exact
+  catalog metadata, and its snapshot test prevents documentation drift.
 
 ## Sources
 

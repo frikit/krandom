@@ -526,7 +526,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Classify credit card, bank, IBAN, national ID, phone, crypto, and similar generators by validity and routability.
 - [ ] Select official processor test values/ranges or deliberately non-routable shapes where standards provide them.
 - [x] Make production-like checksum-valid output an explicit opt-in policy.
-- [ ] Add provider metadata for format validity, checksum validity, semantic plausibility, and test safety.
+- [x] Add provider metadata for format validity, checksum validity, semantic plausibility, and test safety.
 - [ ] Include the safety policy in generation recipes and schema metadata.
 - [x] Add prominent forbidden-use guidance for production identity, payment, KYC, or account creation.
 
@@ -534,7 +534,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [x] Default payment fixtures stay inside approved test/non-routable ranges.
 - [x] Opt-in validation-valid modes satisfy their advertised algorithms.
-- [ ] Documentation and metadata match implementation for every classified provider.
+- [x] Documentation and metadata match implementation for every classified provider.
 
 **Done when:** Consumers cannot confuse “passes a validator” with “safe test credential.”
 

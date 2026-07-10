@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - `PaymentCardSafetyPolicy`, an enforceable configuration contract for generated card numbers.
 - `PhoneNumberSafetyPolicy`, an enforceable contract for locale-style phone-number fixtures.
+- `ProviderSafetyMetadata`, `ProviderValidity`, and `ProviderTestSafety`, describing conservative
+  format, checksum, semantic-plausibility, and test-safety claims from the provider catalog.
 - `ProviderCatalog` definitions now centralize built-in provider keys, aliases, factories,
   schema extractors/metadata, and object-field semantic mappings for `ProviderHub` and
   `FieldLookup`.

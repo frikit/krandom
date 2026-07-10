@@ -84,6 +84,35 @@ class ProviderCatalogTest {
     }
 
     @Test
+    @DisplayName("sensitive built-in providers expose configuration-aware safety metadata")
+    void sensitiveProvidersExposeSafetyMetadata() {
+        ProviderDescriptor<?> cards = descriptorFor("finance.credit_card");
+        ProviderDescriptor<?> cardInfo = descriptorFor("finance.credit_card_info");
+        ProviderDescriptor<?> phones = descriptorFor("address.phone_number");
+
+        assertEquals(ProviderValidity.GUARANTEED, cards.getSafetyMetadata().formatValidity());
+        assertEquals(ProviderValidity.CONFIGURATION_DEPENDENT, cards.getSafetyMetadata().checksumValidity());
+        assertEquals(ProviderValidity.GUARANTEED, cards.getSafetyMetadata().semanticPlausibility());
+        assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, cards.getSafetyMetadata().testSafety());
+        assertEquals(cards.getSafetyMetadata(), cardInfo.getSafetyMetadata());
+        assertEquals(ProviderValidity.GUARANTEED, phones.getSafetyMetadata().formatValidity());
+        assertEquals(ProviderValidity.NOT_APPLICABLE, phones.getSafetyMetadata().checksumValidity());
+        assertEquals(ProviderValidity.CONFIGURATION_DEPENDENT, phones.getSafetyMetadata().semanticPlausibility());
+        assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, phones.getSafetyMetadata().testSafety());
+    }
+
+    @Test
+    @DisplayName("unclassified descriptors make no validity or test-safety claim")
+    void unclassifiedDescriptorsMakeNoSafetyClaim() {
+        ProviderSafetyMetadata metadata = descriptor("text", List.of()).getSafetyMetadata();
+
+        assertEquals(ProviderValidity.UNCLASSIFIED, metadata.formatValidity());
+        assertEquals(ProviderValidity.UNCLASSIFIED, metadata.checksumValidity());
+        assertEquals(ProviderValidity.UNCLASSIFIED, metadata.semanticPlausibility());
+        assertEquals(ProviderTestSafety.UNCLASSIFIED, metadata.testSafety());
+    }
+
+    @Test
     @DisplayName("utility catalog cannot be instantiated")
     void utilityCatalogCannotBeInstantiated() throws ReflectiveOperationException {
         Constructor<ProviderCatalog> constructor = ProviderCatalog.class.getDeclaredConstructor();
@@ -106,5 +135,12 @@ class ProviderCatalogTest {
                                               null,
                                               null,
                                               Set.of());
+    }
+
+    private static ProviderDescriptor<?> descriptorFor(String key) {
+        return ProviderCatalog.schemaBuiltIns().stream()
+                              .filter(descriptor -> descriptor.getKey().equals(key))
+                              .findFirst()
+                              .orElseThrow();
     }
 }
