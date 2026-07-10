@@ -73,7 +73,7 @@ fields are added. Repeated collection/map elements and recursive objects have do
 deterministic identities.
 **Tests:** Object and schema stability fixtures, repeated-element replay, nested-object replay, and
 checked-in golden streams.
-**Status:** In Progress
+**Status:** Complete
 
 Schema now derives the stream identity `schema|record=<index>|field=<length>:<name>` for every
 portable seeded field. The focused stability test proves that inserting an unrelated column before
@@ -89,6 +89,10 @@ pair's insertion order. Appending a repeated value preserves existing positions;
 before another intentionally changes its positional identity. Parallel calls remain memory-safe but
 the ordering of calls on one mutable generator is not a replay contract—use one generator per task
 or replay each task from a separate recipe.
+
+`GenerationRecipeGoldenStreamTest` is the checked-in v1 stream baseline. It pins a representative
+scalar sequence, a record fixture, and schema records. Any deliberate algorithm change must add a
+new recipe version and a new baseline rather than silently change this stream.
 
 ## Stage 3: Surface replay safely
 

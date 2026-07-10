@@ -486,7 +486,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Tests**
 
-- [ ] Add checked-in golden streams per representative generator family.
+- [x] Add checked-in golden streams per representative generator family.
 - [x] Prove recipes replay scalar, object, and schema outputs.
 - [ ] Prove adding an unrelated object field does not perturb existing named fields where the contract promises stability.
 - [ ] Prove locale, clock, provider data, and safety-policy changes appear in the recipe.
