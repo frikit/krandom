@@ -13,7 +13,10 @@ import java.util.Locale;
  *
  * <p>{@link #getAnimals()} must return exactly 12 names in the cycle order used by
  * {@code animals.get(year mod 12)}, starting with Monkey: {@code [Monkey, Rooster, Dog, Pig, Rat, Ox,
- * Tiger, Rabbit, Dragon, Snake, Horse, Goat]}.
+ * Tiger, Rabbit, Dragon, Snake, Horse, Goat]}. Register an instance with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerChineseZodiacProvider(ChineseZodiacDataProvider)}
+ * to override validated vocabulary for one configuration. The global {@link ChineseZodiacDataRegistry}
+ * remains a compatibility bridge.
  */
 public interface ChineseZodiacDataProvider {
 

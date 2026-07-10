@@ -22,6 +22,8 @@ import io.github.frikit.krandom.generator.user.HobbyDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
 import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityGenerator;
@@ -395,6 +397,35 @@ class DataRegistryContextTest {
                                                                              .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.Collections.singletonList(null))));
         assertThrows(NullPointerException.class, () -> DataRegistryContext.builder()
                                                                              .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), null)));
+    }
+
+    @Test
+    @DisplayName("Chinese-zodiac providers remain isolated between contexts")
+    void chineseZodiacProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "First Dragon"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "Second Dragon"))
+                                                         .build();
+
+        assertEquals("First Dragon", new ChineseZodiacGenerator(GeneratorConfig.builder().registryContext(first).build()).animalFor(2024));
+        assertEquals("Second Dragon", new ChineseZodiacGenerator(GeneratorConfig.builder().registryContext(second).build()).animalFor(2024));
+        assertEquals(Set.of("en", "en_US"), first.chineseZodiacRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isChineseZodiacRegistered(Locale.US));
+        assertNull(empty.chineseZodiacProvider(Locale.US));
+        assertFalse(empty.isChineseZodiacRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().chineseZodiacRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Chinese-zodiac providers require the complete ordered cycle")
+    void chineseZodiacProvidersRejectIncompleteCycles() {
+        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
+                                                                             .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "only", 11)));
     }
 
     @Test
@@ -1080,6 +1111,28 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<Integer> getWeights() {
                 return weights;
+            }
+        };
+    }
+
+    private static ChineseZodiacDataProvider chineseZodiacProvider(Locale locale, String dragon) {
+        return chineseZodiacProvider(locale, dragon, 12);
+    }
+
+    private static ChineseZodiacDataProvider chineseZodiacProvider(Locale locale, String dragon, int size) {
+        java.util.List<String> animals = new java.util.ArrayList<>();
+        for (int index = 0; index < size; index++) {
+            animals.add(index == 8 ? dragon : "animal-" + index);
+        }
+        return new ChineseZodiacDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getAnimals() {
+                return animals;
             }
         };
     }

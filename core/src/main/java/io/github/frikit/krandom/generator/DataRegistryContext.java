@@ -26,6 +26,8 @@ import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.GenderDataRegistry;
 import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
 import io.github.frikit.krandom.generator.user.BloodTypeDataRegistry;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.HobbyDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyDataRegistry;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
@@ -85,6 +87,7 @@ public final class DataRegistryContext {
     private final Map<String, NationalityDataProvider>    nationalities;
     private final Map<String, PronounDataProvider>        pronouns;
     private final Map<String, BloodTypeDataProvider>      bloodTypes;
+    private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -107,6 +110,7 @@ public final class DataRegistryContext {
         this.nationalities = Map.copyOf(builder.nationalities);
         this.pronouns = Map.copyOf(builder.pronouns);
         this.bloodTypes = Map.copyOf(builder.bloodTypes);
+        this.chineseZodiacs = Map.copyOf(builder.chineseZodiacs);
     }
 
     /**
@@ -563,6 +567,39 @@ public final class DataRegistryContext {
         return mergeKeys(bloodTypes.keySet(), useGlobalFallback ? BloodTypeDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the Chinese-zodiac provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public ChineseZodiacDataProvider chineseZodiacProvider(Locale locale) {
+        ChineseZodiacDataProvider provider = findWithFallback(chineseZodiacs, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return ChineseZodiacDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve Chinese-zodiac vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isChineseZodiacRegistered(Locale locale) {
+        return chineseZodiacProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable Chinese-zodiac locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> chineseZodiacRegisteredKeys() {
+        return mergeKeys(chineseZodiacs.keySet(), useGlobalFallback ? ChineseZodiacDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -668,6 +705,13 @@ public final class DataRegistryContext {
         }
     }
 
+    private static void validateTwelveTextValues(String name, java.util.List<String> values) {
+        validateTextValues(name, values);
+        if (values.size() != 12) {
+            throw new IllegalArgumentException(name + " must contain exactly 12 values");
+        }
+    }
+
     private static void validateProfessionArrays(String[] professions, int[] weights) {
         Objects.requireNonNull(professions, "professions");
         Objects.requireNonNull(weights, "weights");
@@ -713,6 +757,7 @@ public final class DataRegistryContext {
         private final Map<String, NationalityDataProvider>    nationalities   = new LinkedHashMap<>();
         private final Map<String, PronounDataProvider>        pronouns        = new LinkedHashMap<>();
         private final Map<String, BloodTypeDataProvider>      bloodTypes      = new LinkedHashMap<>();
+        private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs  = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -937,6 +982,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateBloodTypeDistribution(provider.getTypes(), provider.getWeights());
             putWithLanguageFallback(bloodTypes, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific Chinese-zodiac provider in this context.
+         *
+         * @param provider Chinese-zodiac vocabulary provider
+         * @return this builder
+         */
+        public Builder registerChineseZodiacProvider(ChineseZodiacDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTwelveTextValues("animals", provider.getAnimals());
+            putWithLanguageFallback(chineseZodiacs, provider.getLocale(), provider);
             return this;
         }
 

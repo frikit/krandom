@@ -123,6 +123,14 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerBloodType
 # BloodTypeGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.user.BloodTypeGenerator
 
+# Config-scoped Chinese-zodiac vocabulary; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext#chineseZodiacProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isChineseZodiacRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#chineseZodiacRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerChineseZodiacProvider(io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider)
+# ChineseZodiacGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.user.ChineseZodiacGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy

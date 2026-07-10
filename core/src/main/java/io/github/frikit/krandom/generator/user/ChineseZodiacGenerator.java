@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,9 +19,11 @@ import java.util.Random;
  * Generates locale-aware Chinese zodiac animals, e.g. {@code "Dragon"} for English or {@code "龙"}
  * for Chinese.
  *
- * <p>Animal names are resolved from {@link ChineseZodiacDataRegistry} for the configured locale;
- * locales without a built-in file fall back to the bundled English names. The 12-year cycle is
- * universal, so {@link #animalFor(int)} returns the animal in the configured language.
+ * <p>Animal names are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link ChineseZodiacDataRegistry}. Locales without a built-in file fall back to bundled English
+ * names. The 12-year cycle is universal, so {@link #animalFor(int)} returns the animal in the
+ * configured language.
  *
  * <p><b>Note:</b> the mapping is by Gregorian year, so dates between January 1 and the lunar New Year
  * are attributed to the Gregorian year's animal. This matches common fixture libraries and keeps the
@@ -63,7 +66,8 @@ public final class ChineseZodiacGenerator implements Generator<String> {
      */
     public ChineseZodiacGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        ChineseZodiacDataProvider provider = ChineseZodiacDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        ChineseZodiacDataProvider provider = registryContext.chineseZodiacProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }
