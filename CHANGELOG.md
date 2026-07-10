@@ -33,6 +33,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The ten later-added static data-registry bridges now validate through their matching
   `DataRegistryContext.Builder` registration before mutating global state, including vocabulary,
   pronoun-shape, weighted-distribution, and zodiac-cycle rules.
+- The Java + Gradle consumer example now demonstrates a custom weather provider scoped to one
+  `GeneratorConfig`, rather than process-wide static registry mutation.
 - `WeatherGenerator` now resolves vocabulary through `DataRegistryContext`, so independent
   `GeneratorConfig` instances can safely use different validated weather providers for the same
   locale. The global weather registry remains a compatibility fallback.

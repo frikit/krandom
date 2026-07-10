@@ -1,6 +1,6 @@
 # V2 Provider Catalog and Registry Scope
 
-**Status:** In Progress
+**Status:** Complete
 **Master plan:** [Step 2.8](v2-master-implementation-plan.md#step-28--unify-provider-catalogs-and-registry-scope)
 
 ## Inventory (2026-07-10)
@@ -97,4 +97,9 @@ derive from the catalog. The deprecated global adapter is clearly documented and
 compatibility tests.
 **Tests:** Full consumer matrix, API/binary compatibility checks, and public examples that use a
 context rather than static mutation.
-**Status:** Not Started
+**Status:** Complete
+
+The Java + Gradle consumer example configures an isolated `DataRegistryContext` with custom weather
+data and passes it through `GeneratorConfig`; no static registration occurs. Its test runs through
+the published-artifact consumer matrix alongside the API compatibility, documentation, and full
+repository verification gates.

@@ -17,3 +17,22 @@ To use a different artifact version:
 ```bash
 ./gradlew -PkrandomVersion=<version> test
 ```
+
+## Scoped locale overrides
+
+Keep application-specific locale data on `GeneratorConfig` instead of calling a static registry
+mutation method. The test suite includes the same working example:
+
+```java
+DataRegistryContext data = DataRegistryContext.builder()
+    .isolated()
+    .registerWeatherProvider(customWeather)
+    .build();
+
+GeneratorConfig config = GeneratorConfig.builder()
+    .locale(Locale.US)
+    .registryContext(data)
+    .build();
+
+String condition = new WeatherGenerator(config).generate();
+```
