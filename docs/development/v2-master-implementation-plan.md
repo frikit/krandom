@@ -414,16 +414,16 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Actions**
 
 - [ ] Specify constructor selection for records, explicit constructors, no-argument beans, factory hooks, and unsupported classes.
-- [ ] Prefer canonical/declared constructors where parameters can be resolved.
-- [ ] Move Objenesis/constructor bypass behind an explicit unsafe policy.
+- [x] Prefer canonical/declared constructors where parameters can be resolved.
+- [x] Move Objenesis/constructor bypass behind an explicit unsafe policy.
 - [ ] Detect final/unwritable fields before creating an instance that cannot be completed.
-- [ ] Respect default field initialization unless an explicit override policy says otherwise.
+- [x] Respect default field initialization unless an explicit override policy says otherwise.
 - [ ] Document required JPMS `opens` behavior until Step 3.8 provides full consumer coverage.
 
 **Tests**
 
 - [ ] Cover records, immutable constructor classes, mutable beans, inherited fields, final fields, private constructors, abstract/interface types, inner classes, cycles, and factory overrides.
-- [ ] Prove constructor invariants run in safe mode.
+- [x] Prove constructor invariants run in safe mode.
 - [ ] Prove unsafe mode is opt-in and named in diagnostics/recipes.
 
 **Done when:** “Generated object” means “constructed under a documented policy,” not merely allocated memory.

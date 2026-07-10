@@ -51,6 +51,7 @@ final class ObjectGeneratorConfig {
     private final int     maxDepth;
     private final int     objectPoolSize;
     private final boolean overrideDefaultInitialization;
+    private final ObjectConstructionPolicy constructionPolicy;
     private final boolean ignoreErrors;
     private final ObjectGenerationSemanticMode semanticMode;
     private final SemanticFieldRegistry        semanticRegistry;
@@ -116,6 +117,7 @@ final class ObjectGeneratorConfig {
         this.maxDepth = b.maxDepth;
         this.objectPoolSize = b.objectPoolSize;
         this.overrideDefaultInitialization = b.overrideDefaultInitialization;
+        this.constructionPolicy = b.constructionPolicy;
         this.ignoreErrors = b.ignoreErrors;
         this.semanticMode = b.semanticMode;
         this.semanticRegistry = b.semanticRegistry;
@@ -191,6 +193,13 @@ final class ObjectGeneratorConfig {
      */
     public boolean isOverrideDefaultInitialization() {
         return overrideDefaultInitialization;
+    }
+
+    /**
+     * Policy used to construct non-record classes.
+     */
+    public ObjectConstructionPolicy getConstructionPolicy() {
+        return constructionPolicy;
     }
 
     /**
@@ -387,6 +396,7 @@ final class ObjectGeneratorConfig {
                                                          .objectMaxDepth(maxDepth)
                                                          .objectPoolSize(objectPoolSize)
                                                          .objectOverrideDefaultInitialization(overrideDefaultInitialization)
+                                                         .objectConstructionPolicy(constructionPolicy)
                                                          .objectIgnoreErrors(ignoreErrors)
                                                          .objectSemanticMode(semanticMode)
                                                          .objectSemanticRegistry(semanticRegistry)
@@ -511,6 +521,8 @@ final class ObjectGeneratorConfig {
         private       int                                   maxDepth                      = DEFAULT_MAX_DEPTH;
         private       int                                   objectPoolSize                = DEFAULT_OBJECT_POOL_SIZE;
         private       boolean                               overrideDefaultInitialization = false;
+        private       ObjectConstructionPolicy              constructionPolicy            =
+            ObjectConstructionPolicy.SAFE_CONSTRUCTORS;
         private       boolean                               ignoreErrors                  = false;
         private       ObjectGenerationSemanticMode          semanticMode                  = ObjectGenerationSemanticMode.RELAXED;
         private       SemanticFieldRegistry                 semanticRegistry              = SemanticFieldRegistry.defaults();
@@ -542,6 +554,7 @@ final class ObjectGeneratorConfig {
             this.maxDepth = source.maxDepth;
             this.objectPoolSize = source.objectPoolSize;
             this.overrideDefaultInitialization = source.overrideDefaultInitialization;
+            this.constructionPolicy = source.constructionPolicy;
             this.ignoreErrors = source.ignoreErrors;
             this.semanticMode = source.semanticMode;
             this.semanticRegistry = source.semanticRegistry;
@@ -864,6 +877,7 @@ final class ObjectGeneratorConfig {
             if (!overrideDefaultInitializationExplicit) {
                 this.overrideDefaultInitialization = generatorConfig.isObjectOverrideDefaultInitialization();
             }
+            this.constructionPolicy = generatorConfig.getObjectConstructionPolicy();
             if (!ignoreErrorsExplicit) {
                 this.ignoreErrors = generatorConfig.isObjectIgnoreErrors();
             }

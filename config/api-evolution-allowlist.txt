@@ -38,3 +38,12 @@ io.github.frikit.krandom.generator.schema.SchemaGenerationException
 io.github.frikit.krandom.generator.schema.Field
 # Schema remains KEEP; this covers private structured-record conversion helpers only.
 io.github.frikit.krandom.generator.schema.Schema
+
+# V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
+# v2-public-api-inventory.md and v2-object-construction-policy.md.
+io.github.frikit.krandom.generator.object.ObjectConstructionPolicy
+io.github.frikit.krandom.generator.GeneratorConfig#getObjectConstructionPolicy()
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#objectConstructionPolicy(io.github.frikit.krandom.generator.object.ObjectConstructionPolicy)
+# ObjectGeneratorConfig remains package-private; japicmp reports its nested builder's private
+# construction-policy projection as class-level evolution.
+io.github.frikit.krandom.generator.object.ObjectGeneratorConfig$Builder

@@ -18,6 +18,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.RecordComponent;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -38,9 +39,10 @@ import java.util.stream.Collectors;
  * <p><b>Supported types</b>
  * <ul>
  *   <li><b>Records</b> — all components are populated and the canonical constructor is invoked.</li>
- *   <li><b>Plain classes</b> — instantiated via a public or package-private no-arg constructor
- *       when available; when absent, Objenesis bypasses the constructor entirely so that classes
- *       with only all-args constructors can still be populated via field reflection.</li>
+ *   <li><b>Plain classes</b> — constructors are invoked by default. A no-arg constructor is
+ *       preferred; otherwise one unambiguous declared constructor is populated through the same
+ *       resolver used for fields. Objenesis bypass is available only through {@link
+ *       ObjectConstructionPolicy#UNSAFE_CONSTRUCTOR_BYPASS}.</li>
  *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
@@ -357,7 +359,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private T generateClass(FieldGeneratorResolver resolver,
                             SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
-        T instance = instantiate(); // may throw ReflectiveOperationException for throwing constructors
+        T instance = instantiate(resolver); // may throw ReflectiveOperationException for throwing constructors
         populateClass(instance, resolver, coherenceAdjuster, true);
         return instance;
     }
@@ -407,9 +409,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
     /**
      * Instantiate {@code type} without populating fields.
      *
-     * <p>Attempts to use a no-arg constructor first (public or package-private).
-     * If none is found, falls back to Objenesis which bypasses the constructor entirely —
-     * allowing generation for classes that only have all-args constructors.
+     * <p>Attempts to use a no-arg constructor first (public or package-private). In safe mode, one
+     * unambiguous declared constructor is resolved when no no-arg constructor exists. The unsafe
+     * compatibility policy instead preserves the legacy Objenesis fallback.
      *
      * <p>Any {@link ReflectiveOperationException} thrown by {@link Constructor#newInstance}
      * (e.g. {@link java.lang.reflect.InvocationTargetException} when the constructor body
@@ -417,14 +419,44 @@ public final class ObjectGenerator<T> implements Generator<T> {
      *
      * @throws ReflectiveOperationException if the constructor is found but throws at runtime
      */
-    private T instantiate() throws ReflectiveOperationException {
+    private T instantiate(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
         try {
             Constructor<T> ctor = type.getDeclaredConstructor();
             ctor.setAccessible(true);
             return ctor.newInstance();
         } catch (NoSuchMethodException ignored) {
-            return OBJENESIS.newInstance(type);
+            if (config.getConstructionPolicy() == ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS) {
+                return OBJENESIS.newInstance(type);
+            }
+            return invokeUniqueDeclaredConstructor(resolver);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private T invokeUniqueDeclaredConstructor(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
+        Constructor<?>[] candidates = type.getDeclaredConstructors();
+        if (candidates.length != 1) {
+            throw new ReflectiveOperationException(
+                "Construction policy " + ObjectConstructionPolicy.SAFE_CONSTRUCTORS
+                + " requires one unambiguous declared constructor for " + type.getName()
+                + "; found " + candidates.length);
+        }
+
+        Constructor<T> constructor = (Constructor<T>) candidates[0];
+        constructor.setAccessible(true);
+        Parameter[] parameters = constructor.getParameters();
+        Object[] arguments = new Object[parameters.length];
+        for (int index = 0; index < parameters.length; index++) {
+            Parameter parameter = parameters[index];
+            arguments[index] = resolver.resolveAndGenerate(
+                parameter.getParameterizedType(),
+                parameter.getType(),
+                "constructorArg" + index,
+                type,
+                depth,
+                parameter);
+        }
+        return constructor.newInstance(arguments);
     }
 
     /**

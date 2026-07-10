@@ -87,11 +87,17 @@ Global mutations must not be deprecated until the scoped replacement reaches fea
 | API | Disposition | Required work |
 |:---|:---|:---|
 | `ObjectGenerator`, `ObjectFaker`, annotations, and public predicates | **KEEP** | Harden construction, constraints, type handling, and errors |
-| Objenesis-backed constructor bypass behavior | **DECISION REQUIRED** | Safe/default construction policy plus explicit unsafe opt-in |
+| `ObjectConstructionPolicy` | **KEEP** | `SAFE_CONSTRUCTORS` is the v2 default; `UNSAFE_CONSTRUCTOR_BYPASS` is the explicit legacy opt-in |
 | `GeneratorConfig` object-generation methods | **KEEP** | Remove duplicated internal configuration state without changing the public path |
 | `ObjectGeneratorConfig` | Internal implementation, not public API | Remove its references from public Javadocs before refactoring |
 
 Public Javadocs currently leak the package-private `ObjectGeneratorConfig` type through `Fake`, `FakeRange`, `Exclude`, `FieldPredicates`, and `TypePredicates`. Those links must be rewritten to the public `GeneratorConfig`/`ObjectFaker` path.
+
+`GeneratorConfig.getObjectConstructionPolicy()` and
+`GeneratorConfig.Builder.objectConstructionPolicy(...)` are additive **KEEP** APIs. The enum names
+the safety boundary directly: safe mode invokes constructors, while the unsafe value preserves the
+1.5 Objenesis fallback only when a consumer opts in. The migration path is therefore one explicit
+builder call for consumers that temporarily require constructor bypass.
 
 ## Structured failure context additions
 

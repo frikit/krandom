@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
+import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import org.jspecify.annotations.Nullable;
 
@@ -74,6 +75,7 @@ public final class GeneratorConfig {
     private final int          objectMaxDepth;
     private final int          objectPoolSize;
     private final boolean      objectOverrideDefaultInitialization;
+    private final ObjectConstructionPolicy objectConstructionPolicy;
     private final boolean      objectIgnoreErrors;
     private final GenerationFailureListener generationFailureListener;
     private final LocalDate    objectDateMin;
@@ -111,6 +113,7 @@ public final class GeneratorConfig {
         this.objectMaxDepth = b.objectMaxDepth;
         this.objectPoolSize = b.objectPoolSize;
         this.objectOverrideDefaultInitialization = b.objectOverrideDefaultInitialization;
+        this.objectConstructionPolicy = b.objectConstructionPolicy;
         this.objectIgnoreErrors = b.objectIgnoreErrors;
         this.generationFailureListener = b.generationFailureListener;
         this.objectDateMin = b.objectDateMin;
@@ -219,6 +222,13 @@ public final class GeneratorConfig {
      */
     public boolean isObjectOverrideDefaultInitialization() {
         return objectOverrideDefaultInitialization;
+    }
+
+    /**
+     * Construction policy used for non-record object generation.
+     */
+    public ObjectConstructionPolicy getObjectConstructionPolicy() {
+        return objectConstructionPolicy;
     }
 
     /**
@@ -518,6 +528,7 @@ public final class GeneratorConfig {
         private int               objectMaxDepth    = DEFAULT_OBJECT_MAX_DEPTH;
         private int               objectPoolSize    = DEFAULT_OBJECT_POOL_SIZE;
         private boolean           objectOverrideDefaultInitialization;
+        private ObjectConstructionPolicy objectConstructionPolicy = ObjectConstructionPolicy.SAFE_CONSTRUCTORS;
         private boolean           objectIgnoreErrors;
         private GenerationFailureListener generationFailureListener = NO_FAILURE_LISTENER;
         private LocalDate         objectDateMin;
@@ -560,6 +571,7 @@ public final class GeneratorConfig {
             this.objectMaxDepth = source.objectMaxDepth;
             this.objectPoolSize = source.objectPoolSize;
             this.objectOverrideDefaultInitialization = source.objectOverrideDefaultInitialization;
+            this.objectConstructionPolicy = source.objectConstructionPolicy;
             this.objectIgnoreErrors = source.objectIgnoreErrors;
             this.generationFailureListener = source.generationFailureListener;
             this.objectDateMin = source.objectDateMin;
@@ -711,6 +723,15 @@ public final class GeneratorConfig {
          */
         public Builder objectOverrideDefaultInitialization(boolean objectOverrideDefaultInitialization) {
             this.objectOverrideDefaultInitialization = objectOverrideDefaultInitialization;
+            return this;
+        }
+
+        /**
+         * Selects how non-record classes are constructed. The default invokes constructors safely.
+         */
+        public Builder objectConstructionPolicy(ObjectConstructionPolicy objectConstructionPolicy) {
+            this.objectConstructionPolicy = Objects.requireNonNull(
+                objectConstructionPolicy, "objectConstructionPolicy must not be null");
             return this;
         }
 
