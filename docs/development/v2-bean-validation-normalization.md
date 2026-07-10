@@ -1,6 +1,6 @@
 # V2 Bean Validation Normalization
 
-**Status:** Implementation in progress; Stage 1 complete
+**Status:** Implementation in progress; Stages 1–2 complete
 **Scope:** Jakarta Validation annotations consumed by Java object generation
 
 ## Goal
@@ -94,7 +94,17 @@ take precedence over default strict semantic-name generation.
 **Tests:** Every supported scalar type, exact endpoints, exclusive endpoints, contradictory pairs,
 and deterministic multi-seed Hibernate validation.
 
-**Status:** Not Started
+**Status:** Complete
+
+Numeric annotations now normalize into inclusive/exclusive decimal endpoints before being projected
+onto integral, arbitrary-precision, floating-point, or numeric-string target domains. Empty real
+intervals, integral gaps, floating-point representability gaps, malformed decimal bounds, and
+unsupported targets fail contextually instead of collapsing to a plausible value. Boolean
+assertions normalize to one value or fail on contradiction. Temporal annotations intersect past,
+present, and future domains; present-only intersections use the configured clock for every
+supported target, while strict `LocalTime` and `MonthDay` clock-boundary failures follow the same
+strict/lenient structured policy. A deterministic 32-seed fixture matrix is verified by Hibernate
+Validator using the identical fixed clock.
 
 ## Stage 3: Text composition
 

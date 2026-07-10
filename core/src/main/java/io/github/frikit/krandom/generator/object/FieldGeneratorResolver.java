@@ -1416,7 +1416,8 @@ final class FieldGeneratorResolver {
 
         // ── 3aa. Configured null/optional behavior ────────────────────────────
         if (bvConstraints.nullOnly()) {
-            return bvGen.generate();
+            return generateConstraintValue(
+                bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
         if (Optional.class == rawType) {
             if (!hasResolvedArguments(genericType, Optional.class)) {
@@ -1450,7 +1451,8 @@ final class FieldGeneratorResolver {
 
         // ── 3c. Bean Validation constraint override ───────────────────────────
         if (bvGen != null) {
-            return bvGen.generate();
+            return generateConstraintValue(
+                bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 4. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
@@ -1754,6 +1756,21 @@ final class FieldGeneratorResolver {
                 context,
                 cause),
             PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
+    }
+
+    private Object generateConstraintValue(Generator<?> generator,
+                                           Class<?> rawType,
+                                           Type declaredType,
+                                           Class<?> ownerType,
+                                           String fieldName,
+                                           int depth) {
+        try {
+            return generator.generate();
+        } catch (BeanValidationSupport.ConstraintConflictException conflict) {
+            Object fallback = handleConstraintConflict(
+                rawType, declaredType, ownerType, fieldName, depth, conflict);
+            return fallback;
+        }
     }
 
     private Object handleCollectionInsertionFailure(Class<?> ownerType,

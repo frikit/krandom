@@ -550,16 +550,16 @@ Supported native constraints include:
 
 | Bean Validation constraint | krandom object-generation behavior |
 | --- | --- |
-| `@AssertFalse`, `@AssertTrue` | Generates matching `boolean`/`Boolean` values |
+| `@AssertFalse`, `@AssertTrue` | Generates matching `boolean`/`Boolean` values; contradictory assertions fail before generation |
 | `@Null` | Generates `null` for reference fields |
 | `@NotNull` | Prevents nullable object-generation policies from returning `null` |
 | `@NotEmpty` | Generates non-empty strings, arrays, collections, and maps |
 | `@NotBlank` | Generates non-blank strings |
 | `@Size` | Respects string, array, list, set, queue, collection, and map sizes |
-| `@Min`, `@Max` | Respects numeric bounds for primitive/wrapper numbers, `Number`, `BigInteger`, `BigDecimal`, and numeric strings |
-| `@DecimalMin`, `@DecimalMax` | Respects decimal bounds, including single-sided and exclusive bounds |
-| `@Positive`, `@PositiveOrZero`, `@Negative`, `@NegativeOrZero` | Generates matching signed numeric values |
-| `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent` | Generates valid common Java temporal values |
+| `@Min`, `@Max` | Intersects numeric bounds for primitive/wrapper numbers, `Number`, `BigInteger`, `BigDecimal`, and numeric strings; empty target domains fail before generation |
+| `@DecimalMin`, `@DecimalMax` | Intersects decimal bounds exactly, including single-sided and exclusive bounds |
+| `@Positive`, `@PositiveOrZero`, `@Negative`, `@NegativeOrZero` | Intersects sign rules with numeric bounds and rejects contradictions |
+| `@Past`, `@PastOrPresent`, `@Future`, `@FutureOrPresent` | Intersects temporal directions for common Java time types using the configured generation clock |
 | `@Pattern` | Generates strings matching the regexp |
 | `@Email` | Generates email-like strings |
 

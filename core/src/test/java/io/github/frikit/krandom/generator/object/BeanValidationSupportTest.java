@@ -115,8 +115,9 @@ class BeanValidationSupportTest {
         assertTrue(decimalMaxWithMin.compareTo(new BigDecimal("1.00")) >= 0);
         assertTrue(decimalMaxWithMin.compareTo(new BigDecimal("2.00")) <= 0);
 
-        BigDecimal invertedDecimal = (BigDecimal) generatorFor("invertedDecimal", BigDecimal.class).generate();
-        assertEquals(0, invertedDecimal.compareTo(new BigDecimal("4.00")));
+        assertThrows(
+            BeanValidationSupport.ConstraintConflictException.class,
+            () -> generatorFor("invertedDecimal", BigDecimal.class));
 
         assertEquals(5L, generatorFor("exactLong", long.class).generate());
         assertThrows(
@@ -127,13 +128,17 @@ class BeanValidationSupportTest {
         assertTrue((Long) generatorFor("boxedLong", Long.class).generate() >= 5L);
         assertTrue(((Number) generatorFor("boundedNumber", Number.class).generate()).longValue() >= 5L);
         assertEquals(BigInteger.valueOf(5L), generatorFor("exactBigInteger", BigInteger.class).generate());
-        assertEquals(BigInteger.valueOf(4L), generatorFor("invertedBigInteger", BigInteger.class).generate());
+        assertThrows(
+            BeanValidationSupport.ConstraintConflictException.class,
+            () -> generatorFor("invertedBigInteger", BigInteger.class));
         assertTrue(((BigInteger) generatorFor("positiveBigInteger", BigInteger.class).generate()).signum() > 0);
         assertTrue((Float) generatorFor("positivePrimitiveFloat", float.class).generate() > 0.0f);
         assertTrue((Float) generatorFor("positiveFloat", Float.class).generate() > 0.0f);
         assertEquals(2.0d, (Double) generatorFor("exactDouble", Double.class).generate());
         assertTrue((Double) generatorFor("negativeDouble", Double.class).generate() < 0.0d);
-        assertNull(generatorFor("numericUnsupported", Object.class));
+        assertThrows(
+            BeanValidationSupport.ConstraintConflictException.class,
+            () -> generatorFor("numericUnsupported", Object.class));
         assertNull(generatorFor("unconstrained", Object.class));
     }
 
@@ -154,7 +159,9 @@ class BeanValidationSupportTest {
         assertNotNull(generatorFor("futureYearMonth", YearMonth.class).generate());
         assertNotNull(generatorFor("pastYearMonth", YearMonth.class).generate());
         assertNotNull(generatorFor("futureMonthDay", MonthDay.class).generate());
-        assertNull(generatorFor("futureUnsupported", Object.class).generate());
+        assertThrows(
+            BeanValidationSupport.ConstraintConflictException.class,
+            () -> generatorFor("futureUnsupported", Object.class));
     }
 
     @Test

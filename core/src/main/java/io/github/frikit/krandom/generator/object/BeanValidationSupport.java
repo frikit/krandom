@@ -50,7 +50,10 @@ import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.TimeZone;
@@ -62,9 +65,10 @@ final class BeanValidationSupport {
 
     private static final int SIZE_UNBOUNDED_CAP = 255;
     private static final BigDecimal DECIMAL_DEFAULT_SPAN = new BigDecimal("1000000");
-    private static final BigDecimal DECIMAL_STEP = new BigDecimal("0.01");
-    private static final BigDecimal BIG_DECIMAL_LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
-    private static final BigDecimal BIG_DECIMAL_LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
+    private static final Comparator<NumericBound> LOWER_BOUND_ORDER =
+        Comparator.comparing(NumericBound::value).thenComparing(bound -> !bound.inclusive());
+    private static final Comparator<NumericBound> UPPER_BOUND_ORDER =
+        Comparator.comparing(NumericBound::value).thenComparing(NumericBound::inclusive);
 
     private BeanValidationSupport() {
     }
@@ -74,11 +78,14 @@ final class BeanValidationSupport {
         boolean nullOnly,
         boolean required,
         boolean nonBlank,
-        SizeRange size
+        SizeRange size,
+        NumericRange numeric,
+        Boolean assertion,
+        TemporalConstraint temporal
     ) {
 
         private static final ConstraintModel NONE =
-            new ConstraintModel(false, false, false, false, null);
+            new ConstraintModel(false, false, false, false, null, null, null, null);
     }
 
     static final class ConstraintConflictException extends IllegalArgumentException {
@@ -129,13 +136,8 @@ final class BeanValidationSupport {
         if (constraints.nullOnly()) {
             return () -> null;
         }
-        if (rawType == boolean.class || rawType == Boolean.class) {
-            if (annotation(element, AssertTrue.class) != null) {
-                return () -> Boolean.TRUE;
-            }
-            if (annotation(element, AssertFalse.class) != null) {
-                return () -> Boolean.FALSE;
-            }
+        if (constraints.assertion() != null) {
+            return () -> constraints.assertion();
         }
         if (rawType == String.class) {
             if (annotation(element, Email.class) != null) {
@@ -145,7 +147,7 @@ final class BeanValidationSupport {
             if (pattern != null) {
                 return new RegexGenerator(pattern.regexp());
             }
-            Generator<String> numericStringGenerator = numericStringGeneratorFor(element, random);
+            Generator<String> numericStringGenerator = numericStringGeneratorFor(constraints.numeric(), random);
             if (numericStringGenerator != null) {
                 return numericStringGenerator;
             }
@@ -153,11 +155,11 @@ final class BeanValidationSupport {
                 return stringGeneratorFor(constraints.size(), constraints.nonBlank(), random);
             }
         }
-        Generator<?> numericGenerator = numericGeneratorFor(element, rawType, random);
+        Generator<?> numericGenerator = numericGeneratorFor(constraints.numeric(), rawType, random);
         if (numericGenerator != null) {
             return numericGenerator;
         }
-        return temporalGeneratorFor(element, rawType, random, clock);
+        return temporalGeneratorFor(constraints.temporal(), rawType, random, clock);
     }
 
     static ConstraintModel constraintModelFor(AnnotatedElement element, Class<?> rawType) {
@@ -181,16 +183,25 @@ final class BeanValidationSupport {
         }
 
         SizeRange size = sizeRangeFor(element);
+        NumericRange numeric = numericRangeFor(element, rawType);
+        Boolean assertion = assertionFor(element, rawType);
+        TemporalConstraint temporal = temporalConstraintFor(element, rawType);
         boolean constrained = nullOnly
                               || requiredByAnnotation
                               || size != null
-                              || hasNonSizeGenerationConstraint(element);
+                              || numeric != null
+                              || assertion != null
+                              || temporal != null
+                              || hasTextGenerationConstraint(element);
         return new ConstraintModel(
             constrained,
             nullOnly,
             rawType.isPrimitive() || requiredByAnnotation,
             notBlank,
-            size);
+            size,
+            numeric,
+            assertion,
+            temporal);
     }
 
     static SizeRange sizeRangeFor(AnnotatedElement element) {
@@ -221,13 +232,8 @@ final class BeanValidationSupport {
                || java.util.Map.class.isAssignableFrom(rawType);
     }
 
-    private static boolean hasNonSizeGenerationConstraint(AnnotatedElement element) {
-        return annotation(element, AssertTrue.class) != null
-               || annotation(element, AssertFalse.class) != null
-               || annotation(element, Email.class) != null
-               || annotation(element, Pattern.class) != null
-               || hasNumericConstraint(element)
-               || temporalConstraintFor(element) != null;
+    private static boolean hasTextGenerationConstraint(AnnotatedElement element) {
+        return annotation(element, Email.class) != null || annotation(element, Pattern.class) != null;
     }
 
     static int sizeFor(AnnotatedElement element, Random random, int defaultMin, int defaultMax) {
@@ -262,70 +268,56 @@ final class BeanValidationSupport {
         };
     }
 
-    private static Generator<String> numericStringGeneratorFor(AnnotatedElement element, Random random) {
-        if (!hasNumericConstraint(element)) {
+    private static Generator<String> numericStringGeneratorFor(NumericRange range, Random random) {
+        if (range == null) {
             return null;
         }
-        BigDecimalBounds bounds = decimalBoundsFor(element);
-        if (hasDecimalConstraint(element)) {
-            return () -> randomBigDecimal(random, bounds).stripTrailingZeros().toPlainString();
+        if (range.decimal()) {
+            return () -> randomBigDecimal(random, range).stripTrailingZeros().toPlainString();
         }
-        long min = clampToLong(bounds.min().setScale(0, RoundingMode.CEILING), Long.MIN_VALUE, Long.MAX_VALUE);
-        long max = clampToLong(bounds.max().setScale(0, RoundingMode.FLOOR), Long.MIN_VALUE, Long.MAX_VALUE);
-        return () -> Long.toString(randomLongInclusive(random, min, Math.max(min, max)));
+        IntegralRange integral = integralRangeFor(range, String.class);
+        return () -> randomBigInteger(random, integral.min(), integral.max()).toString();
     }
 
-    private static Generator<?> numericGeneratorFor(AnnotatedElement element, Class<?> rawType, Random random) {
-        if (!hasNumericConstraint(element)) {
+    private static Generator<?> numericGeneratorFor(NumericRange range, Class<?> rawType, Random random) {
+        if (range == null) {
             return null;
         }
-        BigDecimalBounds bounds = decimalBoundsFor(element);
         if (rawType == byte.class || rawType == Byte.class) {
-            long min = clampToLong(bounds.min().setScale(0, RoundingMode.CEILING), Byte.MIN_VALUE, Byte.MAX_VALUE);
-            long max = clampToLong(bounds.max().setScale(0, RoundingMode.FLOOR), Byte.MIN_VALUE, Byte.MAX_VALUE);
-            return () -> (byte) randomLongInclusive(random, min, Math.max(min, max));
+            IntegralRange integral = integralRangeFor(range, rawType);
+            return () -> randomBigInteger(random, integral.min(), integral.max()).byteValueExact();
         }
         if (rawType == short.class || rawType == Short.class) {
-            long min = clampToLong(bounds.min().setScale(0, RoundingMode.CEILING), Short.MIN_VALUE, Short.MAX_VALUE);
-            long max = clampToLong(bounds.max().setScale(0, RoundingMode.FLOOR), Short.MIN_VALUE, Short.MAX_VALUE);
-            return () -> (short) randomLongInclusive(random, min, Math.max(min, max));
+            IntegralRange integral = integralRangeFor(range, rawType);
+            return () -> randomBigInteger(random, integral.min(), integral.max()).shortValueExact();
         }
         if (rawType == int.class || rawType == Integer.class) {
-            long min = clampToLong(bounds.min().setScale(0, RoundingMode.CEILING), Integer.MIN_VALUE, Integer.MAX_VALUE);
-            long max = clampToLong(bounds.max().setScale(0, RoundingMode.FLOOR), Integer.MIN_VALUE, Integer.MAX_VALUE);
-            return () -> (int) randomLongInclusive(random, min, Math.max(min, max));
+            IntegralRange integral = integralRangeFor(range, rawType);
+            return () -> randomBigInteger(random, integral.min(), integral.max()).intValueExact();
         }
         if (rawType == long.class || rawType == Long.class || rawType == Number.class) {
-            long min = clampToLong(bounds.min().setScale(0, RoundingMode.CEILING), Long.MIN_VALUE, Long.MAX_VALUE);
-            long max = clampToLong(bounds.max().setScale(0, RoundingMode.FLOOR), Long.MIN_VALUE, Long.MAX_VALUE);
-            return () -> randomLongInclusive(random, min, Math.max(min, max));
+            IntegralRange integral = integralRangeFor(range, rawType);
+            return () -> randomLongInclusive(random, integral.min().longValueExact(), integral.max().longValueExact());
         }
         if (rawType == float.class || rawType == Float.class) {
-            double min = Math.max(bounds.min().doubleValue(), -Float.MAX_VALUE);
-            double max = Math.min(bounds.max().doubleValue(), Float.MAX_VALUE);
-            return () -> (float) randomDouble(random, min, Math.max(min, max));
+            FloatingRange floating = floatingRangeFor(range, true);
+            return () -> (float) randomDouble(random, floating.min(), floating.max());
         }
         if (rawType == double.class || rawType == Double.class) {
-            double min = bounds.min().max(BigDecimal.valueOf(-Double.MAX_VALUE)).doubleValue();
-            double max = bounds.max().min(BigDecimal.valueOf(Double.MAX_VALUE)).doubleValue();
-            return () -> randomDouble(random, min, Math.max(min, max));
+            FloatingRange floating = floatingRangeFor(range, false);
+            return () -> randomDouble(random, floating.min(), floating.max());
         }
         if (rawType == BigInteger.class) {
-            BigInteger min = bounds.min().setScale(0, RoundingMode.CEILING).toBigInteger();
-            BigInteger max = bounds.max().setScale(0, RoundingMode.FLOOR).toBigInteger();
-            return () -> randomBigInteger(random, min, max);
+            IntegralRange integral = integralRangeFor(range, rawType);
+            return () -> randomBigInteger(random, integral.min(), integral.max());
         }
-        if (rawType == BigDecimal.class) {
-            return () -> randomBigDecimal(random, bounds);
-        }
-        return null;
+        return () -> randomBigDecimal(random, range);
     }
 
-    private static Generator<?> temporalGeneratorFor(AnnotatedElement element,
+    private static Generator<?> temporalGeneratorFor(TemporalConstraint constraint,
                                                      Class<?> rawType,
                                                      Random random,
                                                      Clock clock) {
-        TemporalConstraint constraint = temporalConstraintFor(element);
         if (constraint == null) {
             return null;
         }
@@ -336,56 +328,139 @@ final class BeanValidationSupport {
                                            TemporalConstraint constraint,
                                            Random random,
                                            Clock clock) {
+        if (constraint.direction() == TemporalDirection.PRESENT) {
+            return presentTemporalValueFor(rawType, clock);
+        }
+        boolean future = constraint.direction() == TemporalDirection.FUTURE;
         long seconds = random.nextLong(60, 3650L * 24L * 60L * 60L + 1L);
         Instant instantNow = clock.instant();
-        Instant instant = constraint.future() ? instantNow.plusSeconds(seconds) : instantNow.minusSeconds(seconds);
+        Instant instant = future ? instantNow.plusSeconds(seconds) : instantNow.minusSeconds(seconds);
         LocalDate today = LocalDate.now(clock);
-        LocalDate date = constraint.future()
-                         ? today.plusDays(random.nextLong(1, 3651))
-                         : today.minusDays(random.nextLong(1, 3651));
+        LocalDate date = future ? today.plusDays(1) : today.minusDays(1);
         LocalDateTime dateTimeNow = LocalDateTime.now(clock);
-        LocalDateTime dateTime = constraint.future()
-                                 ? dateTimeNow.plusSeconds(seconds)
-                                 : dateTimeNow.minusSeconds(seconds);
+        LocalDateTime dateTime = future ? dateTimeNow.plusSeconds(seconds) : dateTimeNow.minusSeconds(seconds);
         if (rawType == Instant.class) return instant;
         if (rawType == LocalDate.class) return date;
         if (rawType == LocalDateTime.class) return dateTime;
         if (rawType == ZonedDateTime.class) return ZonedDateTime.ofInstant(instant, clock.getZone());
         if (rawType == OffsetDateTime.class) return OffsetDateTime.ofInstant(instant, clock.getZone());
         if (rawType == Date.class) return Date.from(instant);
-        if (rawType == java.sql.Date.class) return java.sql.Date.valueOf(date);
+        if (rawType == java.sql.Date.class) return new java.sql.Date(instant.toEpochMilli());
         if (rawType == Timestamp.class) return Timestamp.from(instant);
         if (rawType == Calendar.class) {
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
             calendar.setTime(Date.from(instant));
             return calendar;
         }
-        if (rawType == LocalTime.class) return localTimeFor(constraint, clock);
-        if (rawType == OffsetTime.class) return localTimeFor(constraint, clock).atOffset(OffsetDateTime.now(clock).getOffset());
-        if (rawType == Year.class) return constraint.future() ? Year.now(clock).plusYears(1) : Year.now(clock).minusYears(1);
-        if (rawType == YearMonth.class) return constraint.future() ? YearMonth.now(clock).plusMonths(1) : YearMonth.now(clock).minusMonths(1);
-        if (rawType == MonthDay.class) {
-            return MonthDay.from(date);
-        }
-        return null;
+        if (rawType == LocalTime.class) return localTimeFor(future, clock);
+        if (rawType == OffsetTime.class) return localTimeFor(future, clock).atOffset(OffsetDateTime.now(clock).getOffset());
+        if (rawType == Year.class) return future ? Year.now(clock).plusYears(1) : Year.now(clock).minusYears(1);
+        if (rawType == YearMonth.class) return future ? YearMonth.now(clock).plusMonths(1) : YearMonth.now(clock).minusMonths(1);
+        return monthDayFor(future, clock);
     }
 
-    private static LocalTime localTimeFor(TemporalConstraint constraint, Clock clock) {
+    private static Object presentTemporalValueFor(Class<?> rawType, Clock clock) {
+        Instant instant = clock.instant();
+        LocalDate date = LocalDate.now(clock);
+        if (rawType == Instant.class) return instant;
+        if (rawType == LocalDate.class) return date;
+        if (rawType == LocalDateTime.class) return LocalDateTime.now(clock);
+        if (rawType == ZonedDateTime.class) return ZonedDateTime.now(clock);
+        if (rawType == OffsetDateTime.class) return OffsetDateTime.now(clock);
+        if (rawType == Date.class) return Date.from(instant);
+        if (rawType == java.sql.Date.class) return new java.sql.Date(instant.toEpochMilli());
+        if (rawType == Timestamp.class) return Timestamp.from(instant);
+        if (rawType == Calendar.class) {
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
+            calendar.setTime(Date.from(instant));
+            return calendar;
+        }
+        if (rawType == LocalTime.class) return LocalTime.now(clock);
+        if (rawType == OffsetTime.class) return OffsetTime.now(clock);
+        if (rawType == Year.class) return Year.now(clock);
+        if (rawType == YearMonth.class) return YearMonth.now(clock);
+        return MonthDay.now(clock);
+    }
+
+    private static LocalTime localTimeFor(boolean future, Clock clock) {
         LocalTime now = LocalTime.now(clock);
-        return constraint.future() ? now.plusNanos(1) : now.minusNanos(1);
+        if (future && now.equals(LocalTime.MAX)) {
+            throw conflict("@Future has no representable LocalTime after the configured clock");
+        }
+        if (!future && now.equals(LocalTime.MIN)) {
+            throw conflict("@Past has no representable LocalTime before the configured clock");
+        }
+        return future ? LocalTime.MAX : LocalTime.MIN;
     }
 
-    private static TemporalConstraint temporalConstraintFor(AnnotatedElement element) {
-        if (annotation(element, Future.class) != null || annotation(element, FutureOrPresent.class) != null) {
-            return new TemporalConstraint(true);
+    private static MonthDay monthDayFor(boolean future, Clock clock) {
+        MonthDay today = MonthDay.now(clock);
+        MonthDay boundary = future ? MonthDay.of(12, 31) : MonthDay.of(1, 1);
+        if (today.equals(boundary)) {
+            throw conflict("temporal constraint has no representable MonthDay at the configured clock");
         }
-        if (annotation(element, Past.class) != null || annotation(element, PastOrPresent.class) != null) {
-            return new TemporalConstraint(false);
-        }
-        return null;
+        return boundary;
     }
 
-    private record TemporalConstraint(boolean future) {}
+    private static TemporalConstraint temporalConstraintFor(AnnotatedElement element, Class<?> rawType) {
+        boolean futureOnly = annotation(element, Future.class) != null;
+        boolean futureOrPresent = annotation(element, FutureOrPresent.class) != null;
+        boolean pastOnly = annotation(element, Past.class) != null;
+        boolean pastOrPresent = annotation(element, PastOrPresent.class) != null;
+        if (!futureOnly && !futureOrPresent && !pastOnly && !pastOrPresent) {
+            return null;
+        }
+        if (!supportsTemporal(rawType)) {
+            throw conflict("temporal constraints require a supported date or time target");
+        }
+
+        boolean allowsPast = !futureOnly && !futureOrPresent;
+        boolean allowsPresent = !futureOnly && !pastOnly;
+        boolean allowsFuture = !pastOnly && !pastOrPresent;
+        if (!allowsPast && !allowsPresent && !allowsFuture) {
+            throw conflict("temporal constraints have an empty intersection");
+        }
+        TemporalDirection direction = allowsFuture
+                                      ? TemporalDirection.FUTURE
+                                      : allowsPast ? TemporalDirection.PAST : TemporalDirection.PRESENT;
+        return new TemporalConstraint(direction);
+    }
+
+    private static boolean supportsTemporal(Class<?> rawType) {
+        return rawType == Instant.class
+               || rawType == LocalDate.class
+               || rawType == LocalDateTime.class
+               || rawType == ZonedDateTime.class
+               || rawType == OffsetDateTime.class
+               || rawType == Date.class
+               || rawType == java.sql.Date.class
+               || rawType == Timestamp.class
+               || rawType == Calendar.class
+               || rawType == LocalTime.class
+               || rawType == OffsetTime.class
+               || rawType == Year.class
+               || rawType == YearMonth.class
+               || rawType == MonthDay.class;
+    }
+
+    private enum TemporalDirection { PAST, PRESENT, FUTURE }
+
+    record TemporalConstraint(TemporalDirection direction) {}
+
+    private static Boolean assertionFor(AnnotatedElement element, Class<?> rawType) {
+        boolean assertedTrue = annotation(element, AssertTrue.class) != null;
+        boolean assertedFalse = annotation(element, AssertFalse.class) != null;
+        if (!assertedTrue && !assertedFalse) {
+            return null;
+        }
+        if (rawType != boolean.class && rawType != Boolean.class) {
+            throw conflict("boolean assertions require a boolean target");
+        }
+        if (assertedTrue && assertedFalse) {
+            throw conflict("@AssertTrue and @AssertFalse have an empty intersection");
+        }
+        return assertedTrue;
+    }
 
     private static boolean hasNumericConstraint(AnnotatedElement element) {
         return annotation(element, Min.class) != null
@@ -398,69 +473,233 @@ final class BeanValidationSupport {
                || annotation(element, NegativeOrZero.class) != null;
     }
 
-    private static boolean hasDecimalConstraint(AnnotatedElement element) {
-        return annotation(element, DecimalMin.class) != null || annotation(element, DecimalMax.class) != null;
-    }
-
-    private static BigDecimalBounds decimalBoundsFor(AnnotatedElement element) {
-        BigDecimal min = BIG_DECIMAL_LONG_MIN;
-        BigDecimal max = BIG_DECIMAL_LONG_MAX;
-
+    private static NumericRange numericRangeFor(AnnotatedElement element, Class<?> rawType) {
+        if (!hasNumericConstraint(element)) {
+            return null;
+        }
+        List<NumericBound> lowerBounds = new ArrayList<>();
+        List<NumericBound> upperBounds = new ArrayList<>();
         Min integralMin = annotation(element, Min.class);
         if (integralMin != null) {
-            min = min.max(BigDecimal.valueOf(integralMin.value()));
+            lowerBounds.add(new NumericBound(BigDecimal.valueOf(integralMin.value()), true));
         }
         Max integralMax = annotation(element, Max.class);
         if (integralMax != null) {
-            max = max.min(BigDecimal.valueOf(integralMax.value()));
+            upperBounds.add(new NumericBound(BigDecimal.valueOf(integralMax.value()), true));
         }
         DecimalMin decimalMin = annotation(element, DecimalMin.class);
-        if (decimalMin != null) {
-            BigDecimal value = new BigDecimal(decimalMin.value());
-            min = min.max(decimalMin.inclusive() ? value : value.add(DECIMAL_STEP));
-        }
         DecimalMax decimalMax = annotation(element, DecimalMax.class);
-        if (decimalMax != null) {
-            BigDecimal value = new BigDecimal(decimalMax.value());
-            max = max.min(decimalMax.inclusive() ? value : value.subtract(DECIMAL_STEP));
+        try {
+            if (decimalMin != null) {
+                lowerBounds.add(new NumericBound(new BigDecimal(decimalMin.value()), decimalMin.inclusive()));
+            }
+            if (decimalMax != null) {
+                upperBounds.add(new NumericBound(new BigDecimal(decimalMax.value()), decimalMax.inclusive()));
+            }
+        } catch (NumberFormatException invalidBound) {
+            throw conflict("decimal constraint contains an invalid numeric bound");
         }
         if (annotation(element, Positive.class) != null) {
-            min = min.max(DECIMAL_STEP);
+            lowerBounds.add(new NumericBound(BigDecimal.ZERO, false));
         }
         if (annotation(element, PositiveOrZero.class) != null) {
-            min = min.max(BigDecimal.ZERO);
+            lowerBounds.add(new NumericBound(BigDecimal.ZERO, true));
         }
         if (annotation(element, Negative.class) != null) {
-            max = max.min(DECIMAL_STEP.negate());
+            upperBounds.add(new NumericBound(BigDecimal.ZERO, false));
         }
         if (annotation(element, NegativeOrZero.class) != null) {
-            max = max.min(BigDecimal.ZERO);
+            upperBounds.add(new NumericBound(BigDecimal.ZERO, true));
         }
-        if (min.compareTo(max) > 0) {
-            max = min;
-        }
-        if (decimalMin != null && decimalMax == null && max.equals(BIG_DECIMAL_LONG_MAX)) {
-            max = min.add(DECIMAL_DEFAULT_SPAN);
-        }
-        if (decimalMax != null && decimalMin == null && min.equals(BIG_DECIMAL_LONG_MIN)) {
-            min = max.subtract(DECIMAL_DEFAULT_SPAN);
-        }
-        return new BigDecimalBounds(min, max);
+
+        NumericBound lower = lowerBounds.stream().max(LOWER_BOUND_ORDER).orElse(null);
+        NumericBound upper = upperBounds.stream().min(UPPER_BOUND_ORDER).orElse(null);
+        NumericRange range = new NumericRange(lower, upper, decimalMin != null || decimalMax != null);
+        validateContinuousRange(range);
+        validateNumericTarget(range, rawType);
+        return range;
     }
 
-    private record BigDecimalBounds(BigDecimal min, BigDecimal max) {}
-
-    private static BigDecimal randomBigDecimal(Random random, BigDecimalBounds bounds) {
-        BigDecimal min = bounds.min();
-        BigDecimal max = bounds.max();
-        if (min.compareTo(max) >= 0) {
-            return min;
+    private static void validateContinuousRange(NumericRange range) {
+        if (range.lower() == null || range.upper() == null) {
+            return;
         }
-        int scale = Math.max(2, Math.max(min.scale(), max.scale()));
-        BigDecimal span = max.subtract(min);
-        BigDecimal sample = BigDecimal.valueOf(random.nextDouble());
-        BigDecimal value = min.add(span.multiply(sample));
-        return value.setScale(scale, RoundingMode.DOWN);
+        int comparison = range.lower().value().compareTo(range.upper().value());
+        if (comparison > 0
+            || (comparison == 0 && (!range.lower().inclusive() || !range.upper().inclusive()))) {
+            throw conflict("numeric constraints have an empty intersection");
+        }
+    }
+
+    private static void validateNumericTarget(NumericRange range, Class<?> rawType) {
+        if (isIntegralTarget(rawType) || (rawType == String.class && !range.decimal())) {
+            integralRangeFor(range, rawType);
+            return;
+        }
+        if (rawType == float.class || rawType == Float.class) {
+            floatingRangeFor(range, true);
+            return;
+        }
+        if (rawType == double.class || rawType == Double.class) {
+            floatingRangeFor(range, false);
+            return;
+        }
+        if (rawType != BigDecimal.class && rawType != String.class) {
+            throw conflict("numeric constraints require a supported numeric or numeric-string target");
+        }
+    }
+
+    private static boolean isIntegralTarget(Class<?> rawType) {
+        return rawType == byte.class
+               || rawType == Byte.class
+               || rawType == short.class
+               || rawType == Short.class
+               || rawType == int.class
+               || rawType == Integer.class
+               || rawType == long.class
+               || rawType == Long.class
+               || rawType == Number.class
+               || rawType == BigInteger.class;
+    }
+
+    private static IntegralRange integralRangeFor(NumericRange range, Class<?> rawType) {
+        BigInteger domainMin = null;
+        BigInteger domainMax = null;
+        if (rawType == byte.class || rawType == Byte.class) {
+            domainMin = BigInteger.valueOf(Byte.MIN_VALUE);
+            domainMax = BigInteger.valueOf(Byte.MAX_VALUE);
+        } else if (rawType == short.class || rawType == Short.class) {
+            domainMin = BigInteger.valueOf(Short.MIN_VALUE);
+            domainMax = BigInteger.valueOf(Short.MAX_VALUE);
+        } else if (rawType == int.class || rawType == Integer.class) {
+            domainMin = BigInteger.valueOf(Integer.MIN_VALUE);
+            domainMax = BigInteger.valueOf(Integer.MAX_VALUE);
+        } else if (rawType != BigInteger.class) {
+            domainMin = BigInteger.valueOf(Long.MIN_VALUE);
+            domainMax = BigInteger.valueOf(Long.MAX_VALUE);
+        }
+
+        BigInteger min = smallestInteger(range.lower());
+        BigInteger max = largestInteger(range.upper());
+        if (domainMin != null) {
+            min = min == null ? domainMin : min.max(domainMin);
+            max = max == null ? domainMax : max.min(domainMax);
+        } else if (min == null) {
+            min = Objects.requireNonNull(max).subtract(DECIMAL_DEFAULT_SPAN.toBigIntegerExact());
+        } else if (max == null) {
+            max = min.add(DECIMAL_DEFAULT_SPAN.toBigIntegerExact());
+        }
+        if (min.compareTo(max) > 0) {
+            throw conflict("numeric constraints have no value in the target integral domain");
+        }
+        return new IntegralRange(min, max);
+    }
+
+    private static BigInteger smallestInteger(NumericBound lower) {
+        if (lower == null) {
+            return null;
+        }
+        BigInteger value = lower.value().setScale(0, RoundingMode.CEILING).toBigIntegerExact();
+        if (!lower.inclusive() && lower.value().compareTo(new BigDecimal(value)) == 0) {
+            return value.add(BigInteger.ONE);
+        }
+        return value;
+    }
+
+    private static BigInteger largestInteger(NumericBound upper) {
+        if (upper == null) {
+            return null;
+        }
+        BigInteger value = upper.value().setScale(0, RoundingMode.FLOOR).toBigIntegerExact();
+        if (!upper.inclusive() && upper.value().compareTo(new BigDecimal(value)) == 0) {
+            return value.subtract(BigInteger.ONE);
+        }
+        return value;
+    }
+
+    private static FloatingRange floatingRangeFor(NumericRange range, boolean singlePrecision) {
+        double magnitude = singlePrecision ? Float.MAX_VALUE : Double.MAX_VALUE;
+        Double min = floatingLower(range.lower(), singlePrecision, magnitude);
+        Double max = floatingUpper(range.upper(), singlePrecision, magnitude);
+        if (min == null) {
+            min = Math.max(-magnitude, Objects.requireNonNull(max) - DECIMAL_DEFAULT_SPAN.doubleValue());
+        }
+        if (max == null) {
+            max = Math.min(magnitude, min + DECIMAL_DEFAULT_SPAN.doubleValue());
+        }
+        if (Double.compare(min, max) > 0) {
+            throw conflict("numeric constraints have no value in the target floating-point domain");
+        }
+        return new FloatingRange(min, max);
+    }
+
+    private static Double floatingLower(NumericBound lower, boolean singlePrecision, double magnitude) {
+        if (lower == null) {
+            return null;
+        }
+        BigDecimal domainMax = BigDecimal.valueOf(magnitude);
+        BigDecimal domainMin = domainMax.negate();
+        if (lower.value().compareTo(domainMax) > 0) {
+            throw conflict("numeric lower bound exceeds the target floating-point domain");
+        }
+        if (lower.value().compareTo(domainMin) < 0) {
+            return -magnitude;
+        }
+        double candidate = singlePrecision ? lower.value().floatValue() : lower.value().doubleValue();
+        BigDecimal represented = representedFloating(candidate, singlePrecision);
+        if (represented.compareTo(lower.value()) < 0
+            || (!lower.inclusive() && represented.compareTo(lower.value()) == 0)) {
+            candidate = singlePrecision ? Math.nextUp((float) candidate) : Math.nextUp(candidate);
+        }
+        return candidate;
+    }
+
+    private static Double floatingUpper(NumericBound upper, boolean singlePrecision, double magnitude) {
+        if (upper == null) {
+            return null;
+        }
+        BigDecimal domainMax = BigDecimal.valueOf(magnitude);
+        BigDecimal domainMin = domainMax.negate();
+        if (upper.value().compareTo(domainMin) < 0) {
+            throw conflict("numeric upper bound precedes the target floating-point domain");
+        }
+        if (upper.value().compareTo(domainMax) > 0) {
+            return magnitude;
+        }
+        double candidate = singlePrecision ? upper.value().floatValue() : upper.value().doubleValue();
+        BigDecimal represented = representedFloating(candidate, singlePrecision);
+        if (represented.compareTo(upper.value()) > 0
+            || (!upper.inclusive() && represented.compareTo(upper.value()) == 0)) {
+            candidate = singlePrecision ? Math.nextDown((float) candidate) : Math.nextDown(candidate);
+        }
+        return candidate;
+    }
+
+    private static BigDecimal representedFloating(double value, boolean singlePrecision) {
+        return new BigDecimal(singlePrecision ? Float.toString((float) value) : Double.toString(value));
+    }
+
+    record NumericBound(BigDecimal value, boolean inclusive) {}
+
+    record NumericRange(NumericBound lower, NumericBound upper, boolean decimal) {}
+
+    private record IntegralRange(BigInteger min, BigInteger max) {}
+
+    private record FloatingRange(double min, double max) {}
+
+    private static BigDecimal randomBigDecimal(Random random, NumericRange range) {
+        NumericBound lower = range.lower();
+        NumericBound upper = range.upper();
+        if (lower != null && upper != null) {
+            if (lower.value().compareTo(upper.value()) == 0) {
+                return lower.value();
+            }
+            BigDecimal fraction = BigDecimal.valueOf(0.25d + random.nextDouble() * 0.5d);
+            return lower.value().add(upper.value().subtract(lower.value()).multiply(fraction));
+        }
+        BigDecimal offset = DECIMAL_DEFAULT_SPAN.multiply(
+            BigDecimal.valueOf(0.25d + random.nextDouble() * 0.5d));
+        return lower != null ? lower.value().add(offset) : Objects.requireNonNull(upper).value().subtract(offset);
     }
 
     private static BigInteger randomBigInteger(Random random, BigInteger min, BigInteger max) {
@@ -485,16 +724,6 @@ final class BeanValidationSupport {
         }
         double value = min + random.nextDouble() * (max - min);
         return Math.min(value, max);
-    }
-
-    private static long clampToLong(BigDecimal value, long min, long max) {
-        if (value.compareTo(BigDecimal.valueOf(min)) < 0) {
-            return min;
-        }
-        if (value.compareTo(BigDecimal.valueOf(max)) > 0) {
-            return max;
-        }
-        return value.longValue();
     }
 
     private static <A extends java.lang.annotation.Annotation> A annotation(AnnotatedElement element, Class<A> type) {

@@ -401,7 +401,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Tests**
 
 - [ ] Add red/green cases for every supported annotation, boundary, composition, and nullability interaction.
-- [ ] Prove `@Min(10) @Max(5)` and `@Size(min=5,max=2)` fail fast.
+- [x] Prove `@Min(10) @Max(5)` and `@Size(min=5,max=2)` fail fast.
 - [x] Prove null probability cannot violate `@NotNull`, `@NotEmpty`, or primitive requirements.
 - [ ] Validate generated objects through Hibernate Validator across many deterministic seeds.
 
