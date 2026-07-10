@@ -24,6 +24,8 @@ import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.GenderDataRegistry;
+import io.github.frikit.krandom.generator.user.HobbyDataProvider;
+import io.github.frikit.krandom.generator.user.HobbyDataRegistry;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.LastNameDataRegistry;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
@@ -73,6 +75,7 @@ public final class DataRegistryContext {
     private final Map<String, MeasurementDataProvider>   measurements;
     private final Map<String, FinancialTermDataProvider> financialTerms;
     private final Map<String, RestaurantTypeDataProvider> restaurantTypes;
+    private final Map<String, HobbyDataProvider>          hobbies;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -91,6 +94,7 @@ public final class DataRegistryContext {
         this.measurements = Map.copyOf(builder.measurements);
         this.financialTerms = Map.copyOf(builder.financialTerms);
         this.restaurantTypes = Map.copyOf(builder.restaurantTypes);
+        this.hobbies = Map.copyOf(builder.hobbies);
     }
 
     /**
@@ -415,6 +419,39 @@ public final class DataRegistryContext {
         return mergeKeys(restaurantTypes.keySet(), useGlobalFallback ? RestaurantTypeDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the hobby provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public HobbyDataProvider hobbyProvider(Locale locale) {
+        HobbyDataProvider provider = findWithFallback(hobbies, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return HobbyDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve hobby vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isHobbyRegistered(Locale locale) {
+        return hobbyProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable hobby locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> hobbyRegisteredKeys() {
+        return mergeKeys(hobbies.keySet(), useGlobalFallback ? HobbyDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -535,6 +572,7 @@ public final class DataRegistryContext {
         private final Map<String, MeasurementDataProvider>   measurements   = new LinkedHashMap<>();
         private final Map<String, FinancialTermDataProvider> financialTerms = new LinkedHashMap<>();
         private final Map<String, RestaurantTypeDataProvider> restaurantTypes = new LinkedHashMap<>();
+        private final Map<String, HobbyDataProvider>          hobbies         = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -703,6 +741,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateTextValues("types", provider.getTypes());
             putWithLanguageFallback(restaurantTypes, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific hobby provider in this context.
+         *
+         * @param provider hobby vocabulary provider
+         * @return this builder
+         */
+        public Builder registerHobbyProvider(HobbyDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("hobbies", provider.getHobbies());
+            putWithLanguageFallback(hobbies, provider.getLocale(), provider);
             return this;
         }
 

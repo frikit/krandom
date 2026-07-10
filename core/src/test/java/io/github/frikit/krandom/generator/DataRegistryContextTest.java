@@ -18,6 +18,8 @@ import io.github.frikit.krandom.generator.measurement.MeasurementGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
+import io.github.frikit.krandom.generator.user.HobbyDataProvider;
+import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
@@ -275,6 +277,28 @@ class DataRegistryContextTest {
         assertNull(empty.restaurantTypeProvider(Locale.US));
         assertFalse(empty.isRestaurantTypeRegistered(Locale.US));
         assertFalse(DataRegistryContext.globalDefault().restaurantTypeRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("hobby providers remain isolated between contexts")
+    void hobbyProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerHobbyProvider(hobbyProvider(Locale.US, "Chess"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerHobbyProvider(hobbyProvider(Locale.US, "Running"))
+                                                         .build();
+
+        assertEquals("Chess", new HobbyGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
+        assertEquals("Running", new HobbyGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(Set.of("en", "en_US"), first.hobbyRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isHobbyRegistered(Locale.US));
+        assertNull(empty.hobbyProvider(Locale.US));
+        assertFalse(empty.isHobbyRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().hobbyRegisteredKeys().isEmpty());
     }
 
     @Test
@@ -898,6 +922,20 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<String> getTypes() {
                 return java.util.List.of(type);
+            }
+        };
+    }
+
+    private static HobbyDataProvider hobbyProvider(Locale locale, String hobby) {
+        return new HobbyDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getHobbies() {
+                return java.util.List.of(hobby);
             }
         };
     }

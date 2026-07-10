@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,8 +18,9 @@ import java.util.Random;
  * Generates locale-aware hobby names, e.g. {@code "Photography"} for English or {@code "Фотография"}
  * for Russian.
  *
- * <p>Names are resolved from {@link HobbyDataRegistry} for the configured locale; locales without a
- * built-in file fall back to the bundled English hobbies.
+ * <p>Names are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link HobbyDataRegistry}. Locales without a built-in file fall back to bundled English hobbies.
  *
  * <pre>{@code
  *   String en = new HobbyGenerator().generate();                    // e.g. "Gardening"
@@ -57,7 +59,8 @@ public final class HobbyGenerator implements Generator<String> {
      */
     public HobbyGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        HobbyDataProvider provider = HobbyDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        HobbyDataProvider provider = registryContext.hobbyProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

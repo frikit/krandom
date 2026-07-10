@@ -11,8 +11,10 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific list of hobby names.
  *
- * <p>Implement this interface and register an instance with {@link HobbyDataRegistry} to add or
- * override the hobby vocabulary for any locale.
+ * <p>Implement this interface and register an instance with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerHobbyProvider(HobbyDataProvider)}
+ * to add or override hobby vocabulary for one configuration. The global {@link HobbyDataRegistry}
+ * remains a compatibility bridge.
  */
 public interface HobbyDataProvider {
 
