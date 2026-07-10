@@ -83,6 +83,14 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerFinancial
 # FinancialTermGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.finance.FinancialTermGenerator
 
+# Config-scoped restaurant-type vocabulary; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext#restaurantTypeProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isRestaurantTypeRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#restaurantTypeRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerRestaurantTypeProvider(io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider)
+# RestaurantTypeGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.commerce.RestaurantTypeGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy

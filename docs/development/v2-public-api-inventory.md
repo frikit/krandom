@@ -101,6 +101,11 @@ the configuration context.
 `GeneratorConfig`; `FinancialTermDataRegistry.register(...)` remains the 1.6 compatibility adapter.
 `FinancialTermGenerator` remains **KEEP** with no new public member and now resolves terms through
 the configuration context.
+`DataRegistryContext` restaurant-type lookup, key snapshot, and builder registration are additive
+**KEEP** APIs. They provide validated, locale-fallback-aware restaurant types scoped to one
+`GeneratorConfig`; `RestaurantTypeDataRegistry.register(...)` remains the 1.6 compatibility adapter.
+`RestaurantTypeGenerator` remains **KEEP** with no new public member and now resolves types through
+the configuration context.
 
 `ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
 APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and

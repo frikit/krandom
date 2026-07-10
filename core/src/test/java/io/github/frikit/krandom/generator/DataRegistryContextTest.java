@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider;
+import io.github.frikit.krandom.generator.commerce.RestaurantTypeGenerator;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
 import io.github.frikit.krandom.generator.finance.FinancialTermGenerator;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
@@ -251,6 +253,28 @@ class DataRegistryContextTest {
         assertNull(empty.financialTermProvider(Locale.US));
         assertFalse(empty.isFinancialTermRegistered(Locale.US));
         assertFalse(DataRegistryContext.globalDefault().financialTermRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("restaurant-type providers remain isolated between contexts")
+    void restaurantTypeProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, "Italian"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, "Steakhouse"))
+                                                         .build();
+
+        assertEquals("Italian", new RestaurantTypeGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
+        assertEquals("Steakhouse", new RestaurantTypeGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(Set.of("en", "en_US"), first.restaurantTypeRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isRestaurantTypeRegistered(Locale.US));
+        assertNull(empty.restaurantTypeProvider(Locale.US));
+        assertFalse(empty.isRestaurantTypeRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().restaurantTypeRegisteredKeys().isEmpty());
     }
 
     @Test
@@ -860,6 +884,20 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<String> getTerms() {
                 return java.util.List.of(term);
+            }
+        };
+    }
+
+    private static RestaurantTypeDataProvider restaurantTypeProvider(Locale locale, String type) {
+        return new RestaurantTypeDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getTypes() {
+                return java.util.List.of(type);
             }
         };
     }

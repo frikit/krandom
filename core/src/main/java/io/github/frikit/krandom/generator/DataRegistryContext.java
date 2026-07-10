@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider;
+import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
@@ -70,6 +72,7 @@ public final class DataRegistryContext {
     private final Map<String, WeatherDataProvider>       weather;
     private final Map<String, MeasurementDataProvider>   measurements;
     private final Map<String, FinancialTermDataProvider> financialTerms;
+    private final Map<String, RestaurantTypeDataProvider> restaurantTypes;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -87,6 +90,7 @@ public final class DataRegistryContext {
         this.weather = Map.copyOf(builder.weather);
         this.measurements = Map.copyOf(builder.measurements);
         this.financialTerms = Map.copyOf(builder.financialTerms);
+        this.restaurantTypes = Map.copyOf(builder.restaurantTypes);
     }
 
     /**
@@ -378,6 +382,39 @@ public final class DataRegistryContext {
         return mergeKeys(financialTerms.keySet(), useGlobalFallback ? FinancialTermDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the restaurant-type provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public RestaurantTypeDataProvider restaurantTypeProvider(Locale locale) {
+        RestaurantTypeDataProvider provider = findWithFallback(restaurantTypes, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return RestaurantTypeDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve restaurant-type vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isRestaurantTypeRegistered(Locale locale) {
+        return restaurantTypeProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable restaurant-type locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> restaurantTypeRegisteredKeys() {
+        return mergeKeys(restaurantTypes.keySet(), useGlobalFallback ? RestaurantTypeDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -497,6 +534,7 @@ public final class DataRegistryContext {
         private final Map<String, WeatherDataProvider>       weather        = new LinkedHashMap<>();
         private final Map<String, MeasurementDataProvider>   measurements   = new LinkedHashMap<>();
         private final Map<String, FinancialTermDataProvider> financialTerms = new LinkedHashMap<>();
+        private final Map<String, RestaurantTypeDataProvider> restaurantTypes = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -651,6 +689,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateTextValues("terms", provider.getTerms());
             putWithLanguageFallback(financialTerms, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific restaurant-type provider in this context.
+         *
+         * @param provider restaurant-type vocabulary provider
+         * @return this builder
+         */
+        public Builder registerRestaurantTypeProvider(RestaurantTypeDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("types", provider.getTypes());
+            putWithLanguageFallback(restaurantTypes, provider.getLocale(), provider);
             return this;
         }
 

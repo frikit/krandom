@@ -13,7 +13,7 @@ Provider identity is currently defined in three independent places:
 | `FieldLookup` | Schema tokens, aliases, factories/extractors, JSON Schema fragments | A second embedded built-in registration list | Duplicates hub keys and result-type knowledge |
 | `SemanticFieldRegistry` | Object field-name inference and a subset of provider names | 32 semantic keys and 20 provider mappings | Names can point at providers not checked against the hub |
 | Global data registries | Locale provider values, locale fallback, input validation | 23 static registry classes across user, location, commerce, finance, measurement, and weather | Mutable process-wide state and uneven snapshot behavior |
-| `DataRegistryContext` | Per-configuration override/fallback | 14 locale families: names, gender/title/suffix/profession, location, national IDs, weather, measurement, and financial terms | Does not yet cover the other global registries |
+| `DataRegistryContext` | Per-configuration override/fallback | 15 locale families: names, gender/title/suffix/profession, location, national IDs, weather, measurement, financial terms, and restaurant types | Does not yet cover the other global registries |
 
 The canonical catalog must carry canonical key, aliases, provider type, factory, optional schema
 extractor/metadata, semantic aliases, locale requirement and fallback policy, data validation
@@ -74,10 +74,10 @@ array validation have one implementation; no context reads mutable global state 
 concurrent contexts without cross-contamination.
 **Status:** In Progress
 
-Weather, measurement, and financial terms now have validated context registration, locale
-fallback, and snapshot keys in `DataRegistryContext`; their generators resolve vocabulary from
-`GeneratorConfig` rather than directly from process-wide state. The remaining vocabulary families
-will follow the same boundary before the legacy static registries are deprecated.
+Weather, measurement, financial terms, and restaurant types now have validated context
+registration, locale fallback, and snapshot keys in `DataRegistryContext`; their generators resolve
+vocabulary from `GeneratorConfig` rather than directly from process-wide state. The remaining
+vocabulary families will follow the same boundary before the legacy static registries are deprecated.
 
 Measurement follows the same context boundary for its localized unit vocabulary. Its generator
 now resolves one config-scoped provider before using the legacy registry fallback.
