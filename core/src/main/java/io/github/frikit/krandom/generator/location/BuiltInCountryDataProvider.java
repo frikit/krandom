@@ -28,7 +28,7 @@ final class BuiltInCountryDataProvider implements CountryDataProvider {
         this.locale = supportedLocale.locale();
         String resourcePrefix = supportedLocale.resourcePrefix();
         String path = "krandom/countries/" + resourcePrefix + "_countries.txt";
-        InputStream is = BuiltInCountryDataProvider.class.getClassLoader().getResourceAsStream(path);
+        InputStream is = BuiltInCountryDataProvider.class.getResourceAsStream("/" + path);
         if (is != null) {
             this.countries = CountryResourceLoader.load(is, path);
         } else {

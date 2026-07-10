@@ -1,6 +1,6 @@
 # V2 Object Construction Policy
 
-**Status:** Implementation in progress; Stages 1–3 complete
+**Status:** Complete
 **Scope:** Java object construction in `ObjectGenerator`
 
 ## Goal
@@ -99,4 +99,15 @@ master plan and migration notes match implementation.
 **Tests:** Full Java 21 pre-commit gate, API compatibility, JPMS consumer compilation/runtime checks,
 and deterministic construction-policy matrix.
 
-**Status:** Not Started
+**Status:** Complete
+
+The public object-generation guide now publishes the full selection matrix, factory contract,
+unsafe risk, initializer behavior, and qualified `opens` requirement. `krandom-core` has an
+explicit `io.github.frikit.krandom` descriptor so its Java/platform/runtime requirements resolve
+without leaking implementation dependencies into consumer module descriptors.
+
+Two executable Java 21 named-module consumers verify the boundary against the locally published
+artifact. The open consumer runs a private constructor and populates a private field. The closed
+consumer receives sanitized `REFLECTION` context and the exact
+`opens <package> to io.github.frikit.krandom;` directive. Core resource access is anchored to the
+owning class, so packaged locale datasets remain readable under strong encapsulation.

@@ -143,6 +143,20 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("closed Java modules fail with an actionable qualified opens directive")
+    void closedModuleFailsWithActionableOpensDirective() {
+        ObjectGenerationException generationFailure = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(Thread.class).generate());
+        ObjectGenerationException populationFailure = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(Thread.class).populate(new Thread()));
+
+        assertClosedJavaBaseFailure(generationFailure);
+        assertClosedJavaBaseFailure(populationFailure);
+    }
+
+    @Test
     @DisplayName("plain type overrides act as root factories before reflection")
     void plainTypeOverrideActsAsRootFactory() {
         FactoryProduct expected = new FactoryProductValue("plain-factory");
@@ -223,6 +237,14 @@ class ObjectConstructionPolicyTest {
         return GeneratorConfig.builder()
                               .objectOverride((Class) FactoryProduct.class, wrongType)
                               .build();
+    }
+
+    private static void assertClosedJavaBaseFailure(ObjectGenerationException failure) {
+        assertEquals(GenerationFailureCategory.REFLECTION,
+                     failure.getContext().orElseThrow().category());
+        assertSame(Thread.class, failure.getContext().orElseThrow().ownerType());
+        assertTrue(failure.getMessage().contains(
+            "opens java.lang to io.github.frikit.krandom;"));
     }
 
     private static void assertUnsupportedRoot(Class<?> type, ObjectConstructionPolicy policy) {

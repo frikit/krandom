@@ -34,7 +34,7 @@ public final class WeatherDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/weather/" + supportedLocale.resourcePrefix() + ".txt";
-            if (WeatherDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (WeatherDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInWeatherDataProvider(supportedLocale));
             }
         }

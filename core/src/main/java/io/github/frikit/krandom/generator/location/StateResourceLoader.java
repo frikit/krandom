@@ -46,7 +46,7 @@ final class StateResourceLoader {
      * @throws IllegalStateException if the resource cannot be found or read
      */
     static StateData load(String resourcePath) {
-        InputStream is = StateResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = StateResourceLoader.class.getResourceAsStream("/" + resourcePath);
         if (is == null) {
             throw new IllegalStateException("State resource not found: " + resourcePath);
         }

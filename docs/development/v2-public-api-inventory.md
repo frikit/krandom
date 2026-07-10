@@ -49,7 +49,11 @@ The allowed dispositions are:
 | `krandom-kotest-extensions` | `io.github.frikit.krandom.kotest` | **KEEP**, behavior hardening required |
 | `krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` | **KEEP**, typed additions required |
 
-The automatic module names are part of the compatibility contract. The BOM deliberately has no Java module identity.
+The Java module names are part of the compatibility contract. `krandom-core` now carries an
+explicit descriptor named `io.github.frikit.krandom`; this preserves its established automatic
+module name while declaring its runtime module graph. The remaining published jars retain their
+listed automatic module names until their named-module consumer contracts are completed. The BOM
+deliberately has no Java module identity.
 
 ## `Generators` facade exceptions
 

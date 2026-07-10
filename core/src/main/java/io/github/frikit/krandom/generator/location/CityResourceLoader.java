@@ -32,7 +32,7 @@ final class CityResourceLoader {
      * @throws IllegalStateException if the resource cannot be found or read
      */
     static String[] load(String resourcePath) {
-        InputStream is = CityResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = CityResourceLoader.class.getResourceAsStream("/" + resourcePath);
         if (is == null) {
             throw new IllegalStateException("City resource not found: " + resourcePath);
         }

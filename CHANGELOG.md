@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Structured, value-sanitized generation failure context shared by object and schema exceptions, with stable category, operation, path, type, depth, and record-index fields.
+- An explicit `io.github.frikit.krandom` core module descriptor plus open/closed Java 21 named-module consumers. Missing reflective access now reports the exact qualified `opens` directive.
 - Optional `GenerationFailureListener` diagnostics configured through `GeneratorConfig`, exposing only structured context, cause class name, and an optional replay identity—never generated values or throwables.
 - `krandom-bom`, a Maven/Gradle platform that keeps all published kRandom modules on one version. Consumer examples now import the BOM and omit individual kRandom module versions.
 - Japicmp compatibility and evolution gates check every published jar module against the configured latest-GA baseline (`1.5.0`) in local pre-commit checks, CI, and releases. Binary/source breaks fail independently, while additions or other public changes require exact reviewed classification.
@@ -52,6 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Object generation now defaults to `SAFE_CONSTRUCTORS`: it invokes no-argument or one unambiguous declared constructor with generated arguments; legacy Objenesis allocation requires explicit `UNSAFE_CONSTRUCTOR_BYPASS` configuration.
 - Safe construction now rejects abstract, interface, array, primitive, enum, annotation, local, anonymous, and non-static inner roots before allocation; constructor parameters use the same type and Bean Validation resolver as fields.
 - Type and contextual object overrides now act as validated root factories before reflection, including for interfaces; null, wrong-type, and throwing factories use structured strict/lenient custom-generator handling, and field-access preflight runs before constructors.
+- Core locale and provider datasets now load through their owning classes so resources remain available when `krandom-core` runs as a strongly encapsulated named module.
 
 ## [1.5.0] - 2026-06-22
 

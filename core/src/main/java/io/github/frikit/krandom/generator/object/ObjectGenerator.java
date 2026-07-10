@@ -15,6 +15,7 @@ import io.github.frikit.krandom.generator.object.exception.ObjectGenerationExcep
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -105,6 +106,22 @@ public final class ObjectGenerator<T> implements Generator<T> {
     };
 
     private record RecordMeta(RecordComponent[] components, Field[] backingFields, Class<?>[] paramTypes) {}
+
+    private static final class ModuleAccessException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        private final Class<?> declaringType;
+
+        private ModuleAccessException(Class<?> declaringType) {
+            super("Module does not open " + declaringType.getPackageName());
+            this.declaringType = declaringType;
+        }
+
+        private Class<?> getDeclaringType() {
+            return declaringType;
+        }
+    }
 
     private final Class<T>              type;
     private final ObjectGeneratorConfig config;
@@ -287,6 +304,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
             throw constructionFailure(e.getTargetException());
         } catch (ReflectiveOperationException e) {
             throw constructionFailure(e);
+        } catch (ModuleAccessException e) {
+            throw moduleAccessFailure(e.getDeclaringType(), e);
         }
     }
 
@@ -342,6 +361,28 @@ public final class ObjectGenerator<T> implements Generator<T> {
             cause);
     }
 
+    private ObjectGenerationException moduleAccessFailure(Class<?> declaringType, Throwable cause) {
+        String path = typePath();
+        String packageName = declaringType.getPackageName();
+        String sourceModuleName = declaringType.getModule().getName();
+        String directive = "opens " + packageName + " to io.github.frikit.krandom;";
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.REFLECTION,
+            GenerationOperation.CONSTRUCT,
+            path,
+            declaringType,
+            type.getTypeName(),
+            depth,
+            -1);
+        return new ObjectGenerationException(
+            "Could not access reflective members of type at '" + path + "' (declared type "
+            + type.getTypeName() + ", depth " + depth + "). Module '" + sourceModuleName
+            + "' must open package '" + packageName + "' to kRandom; add '" + directive
+            + "' to module-info.java",
+            context,
+            cause);
+    }
+
     private String typePath() {
         String simpleName = type.getSimpleName();
         return simpleName.isBlank() ? type.getName() : simpleName;
@@ -355,12 +396,16 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 uniqueFieldTracker,
                 generationSeed,
                 typeBindings);
-        populateClass(instance,
-                      resolver,
-                      new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),
-                      collectSettableFields(type),
-                      config.isOverrideDefaultInitialization());
-        return instance;
+        try {
+            populateClass(instance,
+                          resolver,
+                          new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),
+                          collectSettableFields(type),
+                          config.isOverrideDefaultInitialization());
+            return instance;
+        } catch (ModuleAccessException e) {
+            throw moduleAccessFailure(e.getDeclaringType(), e);
+        }
     }
 
     private Long nextGenerationSeed() {
@@ -393,7 +438,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         coherenceAdjuster.adjustRecordArguments(type, components, backingFields, args);
 
         Constructor<T> canonical = type.getDeclaredConstructor(meta.paramTypes());
-        canonical.setAccessible(true);
+        ensureAccessible(canonical, type);
         return canonical.newInstance(args);
     }
 
@@ -429,7 +474,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
             config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
         for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check
-            field.setAccessible(true);
+            ensureAccessible(field, field.getDeclaringClass());
             if (!config.isOverrideDefaultInitialization() && hasNonDefaultValue(instance, field)) {
                 continue;
             }
@@ -478,7 +523,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private T instantiate(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
         try {
             Constructor<T> ctor = type.getDeclaredConstructor();
-            ctor.setAccessible(true);
+            ensureAccessible(ctor, type);
             return ctor.newInstance();
         } catch (NoSuchMethodException ignored) {
             if (config.getConstructionPolicy() == ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS) {
@@ -517,7 +562,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
 
         Constructor<T> constructor = (Constructor<T>) candidates[0];
-        constructor.setAccessible(true);
+        ensureAccessible(constructor, type);
         Parameter[] parameters = constructor.getParameters();
         Object[] arguments = new Object[parameters.length];
         for (int index = 0; index < parameters.length; index++) {
@@ -556,12 +601,18 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 int mods = f.getModifiers();
                 if (Modifier.isStatic(mods)) continue;  // class-level, not instance
                 if (Modifier.isFinal(mods)) continue;  // immutable after construction
-                f.setAccessible(true);
+                ensureAccessible(f, f.getDeclaringClass());
                 fields.add(f);
             }
             current = current.getSuperclass();
         }
         return Collections.unmodifiableList(fields);
+    }
+
+    private static void ensureAccessible(AccessibleObject member, Class<?> declaringType) {
+        if (!member.trySetAccessible()) {
+            throw new ModuleAccessException(declaringType);
+        }
     }
 
     private boolean hasNonDefaultValue(T instance, Field field) {

@@ -34,7 +34,7 @@ public final class RestaurantTypeDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/restaurant_types/" + supportedLocale.resourcePrefix() + ".txt";
-            if (RestaurantTypeDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (RestaurantTypeDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInRestaurantTypeDataProvider(supportedLocale));
             }
         }

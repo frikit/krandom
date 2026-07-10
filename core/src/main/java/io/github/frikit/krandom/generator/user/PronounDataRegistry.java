@@ -33,7 +33,7 @@ public final class PronounDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/pronouns/" + supportedLocale.resourcePrefix() + ".txt";
-            if (PronounDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (PronounDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInPronounDataProvider(supportedLocale));
             }
         }

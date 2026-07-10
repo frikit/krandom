@@ -33,7 +33,7 @@ public final class HobbyDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/hobbies/" + supportedLocale.resourcePrefix() + ".txt";
-            if (HobbyDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (HobbyDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInHobbyDataProvider(supportedLocale));
             }
         }

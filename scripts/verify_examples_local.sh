@@ -61,6 +61,9 @@ step "Verify Java + Maven integration modules example"
     mvn -q -Dkrandom.version="${VERSION}" test
 )
 
+step "Verify Java 21 named-module example"
+"${GRADLEW}" -p "${REPO_ROOT}/examples/java-jpms" -PkrandomVersion="${VERSION}" verifyJpms --no-daemon --console=plain
+
 step "Verify Kotlin + Gradle example"
 (
     cd "${REPO_ROOT}/examples/kotlin-gradle"

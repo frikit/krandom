@@ -34,7 +34,7 @@ public final class FinancialTermDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/financial_terms/" + supportedLocale.resourcePrefix() + ".txt";
-            if (FinancialTermDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (FinancialTermDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInFinancialTermDataProvider(supportedLocale));
             }
         }

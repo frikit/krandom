@@ -34,7 +34,7 @@ public final class ZodiacDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/zodiac/" + supportedLocale.resourcePrefix() + ".txt";
-            if (ZodiacDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (ZodiacDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInZodiacDataProvider(supportedLocale));
             }
         }

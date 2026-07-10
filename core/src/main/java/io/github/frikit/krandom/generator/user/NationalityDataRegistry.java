@@ -34,7 +34,7 @@ public final class NationalityDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/nationalities/" + supportedLocale.resourcePrefix() + ".txt";
-            if (NationalityDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (NationalityDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInNationalityDataProvider(supportedLocale));
             }
         }

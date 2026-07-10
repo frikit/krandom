@@ -37,6 +37,65 @@ OrderDto order = orders.generate();
 There is no separate public object-only config path to learn: object defaults, overrides, exclusions,
 semantic controls, and registry wiring all live on the root `GeneratorConfig` builder.
 
+## Construction policy
+
+`SAFE_CONSTRUCTORS` is the default. It runs constructors instead of manufacturing partially
+initialized instances, and it preserves field initializers unless
+`objectOverrideDefaultInitialization(true)` is selected.
+
+| Target | Safe construction path | If unavailable |
+|:---|:---|:---|
+| Java record | Canonical constructor | Contextual construction failure |
+| Mutable class with a no-argument constructor | No-argument constructor, then mutable fields | Contextual construction/access failure |
+| Class with exactly one declared constructor | Generated constructor arguments, then mutable fields | Contextual construction/access failure |
+| Class with multiple declared constructors | No implicit choice | Register a type factory |
+| Interface or abstract root | No reflective allocation | Register a type factory |
+| Local, anonymous, non-static inner, enum, annotation, array, or primitive root | Unsupported | Use a supported wrapper/factory design |
+
+A type override is also a root factory and runs before reflection. Contextual factories win over
+plain factories and receive `"$root"`, the requested type, and depth zero:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .objectOverride(PaymentMethod.class, CardPayment::new)
+    .build();
+
+PaymentMethod payment = new ObjectGenerator<>(PaymentMethod.class, config).generate();
+```
+
+Factories must return a non-null value assignable to the registered type. They are the preferred
+escape hatch for third-party, abstract, or deliberately immutable types.
+
+`UNSAFE_CONSTRUCTOR_BYPASS` is a temporary compatibility option for classes that relied on the
+legacy Objenesis fallback:
+
+```java
+GeneratorConfig legacy = GeneratorConfig.builder()
+    .objectConstructionPolicy(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
+    .build();
+```
+
+Unsafe bypass can skip constructor invariants and initializers. It still needs reflective access to
+mutable fields, so it is not a JPMS workaround.
+
+### Named modules and `opens`
+
+`krandom-core` has the explicit module name `io.github.frikit.krandom`. A named consumer needs one
+qualified `opens` clause for each package whose non-public constructors or mutable fields kRandom
+populates:
+
+```java
+module com.example.fixtures {
+    requires io.github.frikit.krandom;
+
+    opens com.example.fixtures.model to io.github.frikit.krandom;
+}
+```
+
+An exported package is not automatically open for reflection. If the clause is missing, object
+generation fails with `REFLECTION` context and an error containing the exact directive to add. A
+root factory avoids reflective construction and therefore does not require `opens` for that value.
+
 Semantic modes:
 
 - `RELAXED`: use semantic field names when available, but let annotations and bean validation win.

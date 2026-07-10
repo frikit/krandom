@@ -32,7 +32,7 @@ final class CountryResourceLoader {
      * @throws IllegalStateException if the resource cannot be found or read
      */
     static String[] load(String resourcePath) {
-        InputStream is = CountryResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = CountryResourceLoader.class.getResourceAsStream("/" + resourcePath);
         if (is == null) {
             throw new IllegalStateException("Country resource not found: " + resourcePath);
         }

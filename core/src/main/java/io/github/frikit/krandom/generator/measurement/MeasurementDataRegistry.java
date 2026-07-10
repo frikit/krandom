@@ -34,7 +34,7 @@ public final class MeasurementDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/measurement/" + supportedLocale.resourcePrefix() + ".txt";
-            if (MeasurementDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (MeasurementDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInMeasurementDataProvider(supportedLocale));
             }
         }

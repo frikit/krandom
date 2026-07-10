@@ -153,10 +153,10 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 Public artifacts on Maven Central (group `io.github.frikit`):
 
-| Artifact | Automatic module name |
+| Artifact | Java module name |
 |:---|:---|
 | `io.github.frikit:krandom-bom` (from 1.6.0) | — (Maven/Gradle platform) |
-| `io.github.frikit:krandom-core` | `io.github.frikit.krandom` |
+| `io.github.frikit:krandom-core` | `io.github.frikit.krandom` (explicit descriptor) |
 | `io.github.frikit:krandom-jackson` | `io.github.frikit.krandom.jackson` |
 | `io.github.frikit:krandom-junit` | `io.github.frikit.krandom.junit` |
 | `io.github.frikit:krandom-spring-boot-starter` | `io.github.frikit.krandom.spring.boot.starter` |

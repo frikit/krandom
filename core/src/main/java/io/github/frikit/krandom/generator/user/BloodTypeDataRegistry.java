@@ -38,7 +38,7 @@ public final class BloodTypeDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/bloodtypes/" + supportedLocale.resourcePrefix() + ".txt";
-            if (BloodTypeDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (BloodTypeDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInBloodTypeDataProvider(supportedLocale));
             }
         }

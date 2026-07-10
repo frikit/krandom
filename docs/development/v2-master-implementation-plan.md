@@ -418,13 +418,13 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Move Objenesis/constructor bypass behind an explicit unsafe policy.
 - [x] Detect final/unwritable fields before creating an instance that cannot be completed.
 - [x] Respect default field initialization unless an explicit override policy says otherwise.
-- [ ] Document required JPMS `opens` behavior until Step 3.8 provides full consumer coverage.
+- [x] Document required JPMS `opens` behavior until Step 3.8 provides full consumer coverage.
 
 **Tests**
 
 - [x] Cover records, immutable constructor classes, mutable beans, inherited fields, final fields, private constructors, abstract/interface types, inner classes, cycles, and factory overrides.
 - [x] Prove constructor invariants run in safe mode.
-- [ ] Prove unsafe mode is opt-in and named in diagnostics/recipes.
+- [ ] Prove unsafe mode is opt-in and named in diagnostics/recipes. (Opt-in and construction diagnostics are covered; recipe integration remains in Step 2.7.)
 
 **Done when:** “Generated object” means “constructed under a documented policy,” not merely allocated memory.
 
@@ -719,16 +719,16 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Decide whether automatic module names remain sufficient or explicit descriptors are warranted.
+- [x] Decide whether automatic module names remain sufficient or explicit descriptors are warranted for core. Core now has an explicit descriptor; integration modules remain to classify.
 - [ ] Add named-module consumers for core and each integration.
-- [ ] Document required `opens` clauses for reflection-based object generation.
-- [ ] Fail with a JPMS-specific diagnostic when access is denied.
+- [x] Document required `opens` clauses for reflection-based object generation.
+- [x] Fail with a JPMS-specific diagnostic when access is denied.
 - [ ] Verify split packages and module names across all artifacts.
 
 **Tests**
 
 - [ ] Named-module examples compile and run on the minimum and current tested JDKs.
-- [ ] Missing `opens` produces the documented actionable error.
+- [x] Missing `opens` produces the documented actionable error.
 - [ ] Artifact module names remain stable under compatibility checks.
 
 **Done when:** JPMS use is supported explicitly rather than accidentally.

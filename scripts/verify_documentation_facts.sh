@@ -76,6 +76,14 @@ for module in "${modules[@]}"; do
     grep -Fq "krandom-${module}" "${REPO_ROOT}/README.md" || fail "README does not list krandom-${module}"
 done
 
+CORE_MODULE_NAME="io.github.frikit.krandom"
+CORE_MODULE_DESCRIPTOR="${REPO_ROOT}/core/src/main/java/module-info.java"
+OBJECT_GENERATION_GUIDE="${REPO_ROOT}/docs-site/guides/object-generation.md"
+grep -Fq "module ${CORE_MODULE_NAME} {" "${CORE_MODULE_DESCRIPTOR}" || fail "core module descriptor name changed"
+grep -Fq "opens com.example.fixtures.model to ${CORE_MODULE_NAME};" "${OBJECT_GENERATION_GUIDE}" || fail "object guide is missing the qualified opens contract"
+grep -Fq "opens io.github.frikit.krandom.examples.jpms.openconsumer to ${CORE_MODULE_NAME};" \
+    "${REPO_ROOT}/examples/java-jpms/open-consumer/src/main/java/module-info.java" || fail "JPMS open consumer does not exercise the documented core module name"
+
 grep -Fq "The latest released version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/README.md" || fail "README latest GA version is stale"
 grep -Fq "The current version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started latest GA version is stale"
 grep -Fq "${NATIVE_LOCALE_COUNT} native locale datasets" "${REPO_ROOT}/docs-site/guides/locale-aware-data.md" || fail "native locale documentation is stale"

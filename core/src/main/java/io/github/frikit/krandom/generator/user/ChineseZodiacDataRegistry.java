@@ -34,7 +34,7 @@ public final class ChineseZodiacDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/chinese_zodiac/" + supportedLocale.resourcePrefix() + ".txt";
-            if (ChineseZodiacDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (ChineseZodiacDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInChineseZodiacDataProvider(supportedLocale));
             }
         }

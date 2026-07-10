@@ -865,7 +865,11 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Register a type-level override for object generation.
+         * Registers a type-level override for object generation.
+         *
+         * <p>The override is also the factory for a root object of {@code type}, so it can safely
+         * construct interfaces, abstract types, or immutable values without reflective access.
+         * Root factory results must be non-null and assignable to {@code type}.
          */
         public <T> Builder objectOverride(Class<T> type, Generator<? extends T> generator) {
             Objects.requireNonNull(type, "type must not be null");
@@ -886,7 +890,11 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Register a contextual type-level override for object generation.
+         * Registers a contextual type-level override for object generation.
+         *
+         * <p>For a root object, the context uses field name {@code "$root"}, the requested type as
+         * owner, and depth zero. Contextual type overrides take precedence over plain type
+         * overrides. Results must be non-null and assignable to {@code type}.
          */
         public <T> Builder objectOverride(Class<T> type, ContextualGenerator<? extends T> generator) {
             Objects.requireNonNull(type, "type must not be null");

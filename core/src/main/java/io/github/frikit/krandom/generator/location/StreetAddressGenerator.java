@@ -83,7 +83,7 @@ public final class StreetAddressGenerator implements Generator<String> {
     private static String[] loadSecondaryUnits(Locale locale) {
         String key = locale.getLanguage() + "_" + locale.getCountry();
         String resourcePath = "krandom/streets/secondary_units/" + key + ".txt";
-        InputStream is = StreetAddressGenerator.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = StreetAddressGenerator.class.getResourceAsStream("/" + resourcePath);
         if (is != null) {
             return StreetAddressResourceLoader.load(is, resourcePath);
         }
