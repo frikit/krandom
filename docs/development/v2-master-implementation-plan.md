@@ -150,17 +150,17 @@ Work may run in parallel only when the dependency table for its stage allows it.
 
 **Actions**
 
-- [ ] Convert every numbered work package in this plan into one trackable issue or equivalent backlog item.
-- [ ] Create milestones for `1.6 bridge`, `v2 foundation`, `v2 integrations`, `v2 RC`, and `v2 GA`.
-- [ ] Add labels for `contract`, `correctness`, `compatibility`, `integration`, `release`, `documentation`, `performance`, and `adoption`.
-- [ ] Link each item to its decision gate, acceptance tests, and dependent work packages.
-- [ ] Record a short decision note when D1–D10 are accepted or changed.
-- [ ] Keep this document authoritative for ordering and stage status.
+- [x] Convert every numbered work package in this plan into one trackable issue or equivalent backlog item. See [`v2-backlog.md`](v2-backlog.md).
+- [x] Create milestones for `1.6 bridge`, `v2 foundation`, `v2 integrations`, `v2 RC`, and `v2 GA`.
+- [x] Add labels for `contract`, `correctness`, `compatibility`, `integration`, `release`, `documentation`, `performance`, and `adoption`.
+- [x] Link each item to its decision gate, acceptance tests, and dependent work packages.
+- [x] Record a short decision note when D1–D10 are accepted or changed. (Current notes: D1–D10 accepted as written; jqwik ruled out of scope 2026-07-10.)
+- [x] Keep this document authoritative for ordering and stage status.
 
 **Tests**
 
-- [ ] Every audit P0/P1 finding maps to at least one work package and one milestone.
-- [ ] No issue has an undefined success criterion.
+- [x] Every audit P0/P1 finding maps to at least one work package and one milestone.
+- [x] No issue has an undefined success criterion.
 
 **Done when:** The full v2 scope is visible, traceable, ordered, and has no orphaned release blocker.
 
