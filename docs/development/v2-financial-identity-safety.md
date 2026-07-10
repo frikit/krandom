@@ -26,7 +26,7 @@ as safe merely because it passes a validator.
 
 | Family | Current behavior | v2 target |
 | --- | --- | --- |
-| Credit cards | Random issuer-shaped numbers with a valid Luhn check digit | Non-routable by default; checksum-valid or processor-sandbox values are explicit modes |
+| Credit cards | Issuer-shaped, format-valid numbers that deliberately fail Luhn by default; `CHECKSUM_VALID` is an explicit opt-in | Default remains non-routable; processor-sandbox values require a separately named processor mode |
 | IBAN, ABA, BIC, bank account | Format/checksum behavior varies by generator | Do not claim test safety until each scheme has a non-routable or official sandbox contract |
 | Payment payloads | Masked references derived from card or bank generators | Carry the selected policy metadata without exposing credential values |
 | National IDs, CPF/CNPJ, passport, driving licence | Country-specific shapes and algorithms | Default to non-production fixtures; country-specific valid modes require separate proof |
@@ -42,7 +42,23 @@ choose checksum-valid or a named processor sandbox mode. The card's metadata say
 hold.
 **Tests:** Default values fail Luhn without losing the selected card format; checksum-valid mode
 passes Luhn; each supported sandbox value is fixed, documented, and deterministic under a seed.
-**Status:** Not Started
+**Status:** In Progress
+
+Implemented on the 1.6 bridge:
+
+- `PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE` is the default. It keeps issuer prefix and
+  length rules, then deliberately changes the Luhn check digit so the generated number fails Luhn.
+- `PaymentCardSafetyPolicy.CHECKSUM_VALID` is an explicit `GeneratorConfig` opt-in for isolated
+  validator fixtures. It is not an official processor sandbox mode or a usable credential.
+- Portable recipes persist the selected policy as
+  `setting.payment.card-safety-policy`, so replay retains the same card contract.
+
+Recipes created before that setting existed replay their historic checksum-valid behavior. Newly
+created recipes always write the setting explicitly and therefore preserve the new default.
+
+Processor-sandbox support remains unimplemented until the library can name the processor, its
+documented test values, and the required sandbox credential boundary without implying portability
+between processors.
 
 The processor-sandbox mode must name the processor and never imply that its values are accepted by
 another processor. Stripe documents sandbox card values and requires test API keys; use a processor

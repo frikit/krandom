@@ -61,6 +61,9 @@ System.out.println(new CountryGenerator(config).generate());
 
 ## Finance data
 
+The default card number is issuer-shaped but intentionally fails Luhn. Select
+`PaymentCardSafetyPolicy.CHECKSUM_VALID` explicitly only for isolated validator fixtures.
+
 ```java
 import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;

@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add versioned, human-readable `GenerationRecipe` replay metadata for portable seeded configurations.
 
 ### Added
+- `PaymentCardSafetyPolicy`, an enforceable configuration contract for generated card numbers.
 - `ProviderCatalog` definitions now centralize built-in provider keys, aliases, factories,
   schema extractors/metadata, and object-field semantic mappings for `ProviderHub` and
   `FieldLookup`.
@@ -26,6 +27,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Pinned GitHub/Sigstore build-provenance attestations for the signed Maven Central bundle, jars, and SBOMs before publication.
 
 ### Changed
+- `CreditCardGenerator` and `CreditCardInfoGenerator` now produce issuer-shaped numbers that
+  deliberately fail Luhn by default. `CHECKSUM_VALID` is an explicit validator-fixture opt-in and
+  is not a real or processor-sandbox credential; the selected policy is replayed in portable
+  generation recipes. Recipes recorded before the policy setting retain their historic
+  checksum-valid replay behavior.
 - All 21 static data-registry `register(...)` methods and the two
   `ProfessionDataRegistry.append(...)` overloads are deprecated for removal in v2. They remain
   behavior-compatible 1.6 adapters; use the matching `DataRegistryContext.Builder` registration

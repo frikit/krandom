@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.base.DigitGenerator;
+import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -108,6 +109,30 @@ class GenerationRecipeTest {
         assertEquals(recipe, GenerationRecipe.parse(recipe.serialize()));
         assertFalse(recipe.serializeForDiagnostics().contains(seedText));
         assertFalse(recipe.serializeForDiagnostics().contains("seed-text="));
+    }
+
+    @Test
+    @DisplayName("replays the configured payment card safety policy")
+    void replaysPaymentCardSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("CHECKSUM_VALID", recipe.getSettings().get("payment.card-safety-policy"));
+        assertEquals(PaymentCardSafetyPolicy.CHECKSUM_VALID,
+                     recipe.toGeneratorConfig().getPaymentCardSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without a payment card safety setting as checksum-valid")
+    void replaysLegacyRecipeWithoutPaymentCardSafetyPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(PaymentCardSafetyPolicy.CHECKSUM_VALID,
+                     recipe.toGeneratorConfig().getPaymentCardSafetyPolicy());
     }
 
     @Test

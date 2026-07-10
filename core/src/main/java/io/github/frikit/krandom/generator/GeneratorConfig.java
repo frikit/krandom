@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
+import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
@@ -103,6 +104,7 @@ public final class GeneratorConfig {
     private final boolean      secureRandom;
     private final String       generationProfile;
     private final String       safetyPolicy;
+    private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
     private final String       providerDatasetVersion;
 
     private GeneratorConfig(Builder b) {
@@ -145,6 +147,7 @@ public final class GeneratorConfig {
         this.secureRandom = b.secureRandom;
         this.generationProfile = b.generationProfile;
         this.safetyPolicy = b.safetyPolicy;
+        this.paymentCardSafetyPolicy = b.paymentCardSafetyPolicy;
         this.providerDatasetVersion = b.providerDatasetVersion;
     }
 
@@ -204,6 +207,17 @@ public final class GeneratorConfig {
      */
     public String getSafetyPolicy() {
         return safetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated payment-card numbers.
+     *
+     * <p>The default produces issuer-shaped numbers that deliberately fail Luhn. Select
+     * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} only for isolated validator fixtures; it is
+     * not a processor sandbox credential or authorization to contact external systems.
+     */
+    public PaymentCardSafetyPolicy getPaymentCardSafetyPolicy() {
+        return paymentCardSafetyPolicy;
     }
 
     /**
@@ -509,6 +523,8 @@ public final class GeneratorConfig {
                                                             .safetyPolicy(safetyPolicy)
                                                             .constructionPolicy(objectConstructionPolicy)
                                                             .providerDatasetVersion(providerDatasetVersion)
+                                                            .setting("payment.card-safety-policy",
+                                                                     paymentCardSafetyPolicy.name())
                                                             .setting("charset", charset.name())
                                                             .setting("string.min", Integer.toString(minStringLength))
                                                             .setting("string.max", Integer.toString(maxStringLength))
@@ -666,6 +682,7 @@ public final class GeneratorConfig {
         private boolean           secureRandom;
         private String            generationProfile = GenerationRecipe.CUSTOM_PROFILE;
         private String            safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
+        private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
         private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
 
         private Builder() {
@@ -710,6 +727,7 @@ public final class GeneratorConfig {
             this.secureRandom = source.secureRandom;
             this.generationProfile = source.generationProfile;
             this.safetyPolicy = source.safetyPolicy;
+            this.paymentCardSafetyPolicy = source.paymentCardSafetyPolicy;
             this.providerDatasetVersion = source.providerDatasetVersion;
         }
 
@@ -1112,6 +1130,22 @@ public final class GeneratorConfig {
          */
         public Builder safetyPolicy(String safetyPolicy) {
             this.safetyPolicy = requireRecipeToken("safetyPolicy", safetyPolicy);
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated payment-card numbers.
+         *
+         * <p>The default deliberately fails Luhn while preserving issuer shape and length. Choose
+         * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} only for isolated validator fixtures; it
+         * does not make generated data safe to send to a processor or another external system.
+         *
+         * @param paymentCardSafetyPolicy card-number safety policy
+         * @return this builder
+         */
+        public Builder paymentCardSafetyPolicy(PaymentCardSafetyPolicy paymentCardSafetyPolicy) {
+            this.paymentCardSafetyPolicy = Objects.requireNonNull(
+                paymentCardSafetyPolicy, "paymentCardSafetyPolicy must not be null");
             return this;
         }
 

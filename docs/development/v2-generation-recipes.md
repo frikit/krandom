@@ -67,7 +67,10 @@ boundaries, not test-only scaffolding for every short-circuit expression.
 The full pre-commit gate now covers the portable-state alternatives, stable serialization, replay,
 and malformed-boundary cases at the repository coverage threshold. The environment contract also
 proves that changing locale, clock, provider-dataset version, or safety-policy label changes the
-recipe identity.
+recipe identity. The typed payment-card safety policy is persisted separately as a replay setting,
+so a checksum-valid validator fixture cannot silently replay as the default non-routable output.
+Recipes without that new setting preserve their historic checksum-valid behavior for v1 replay
+compatibility; newly emitted recipes always record the policy explicitly.
 
 ## Stage 2: Derive structural child streams
 

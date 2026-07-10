@@ -18,12 +18,13 @@ import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates valid credit card numbers conforming to the Luhn algorithm and industry standards.
+ * Generates issuer-shaped synthetic payment-card numbers.
  *
- * <p>This generator produces realistic credit card numbers for testing purposes, supporting major
- * card types including Visa, Mastercard, American Express, Discover, JCB, and Diners Club.
- * All generated card numbers pass Luhn checksum validation and follow proper IIN (Issuer
- * Identification Number) and length rules.
+ * <p>By default, generated numbers preserve the selected issuer shape and length but deliberately
+ * fail Luhn validation, so format fixtures do not become checksum-valid payment-card numbers.
+ * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} is an explicit validator-fixture opt-in; it does
+ * not make a number a processor sandbox value, usable payment instrument, or safe external input.
+ * Never submit generated values to payment, account-creation, identity, or production systems.
  *
  * <p><strong>Supported Card Types:</strong>
  * <ul>
@@ -93,9 +94,9 @@ import java.util.Random;
  *      .forEach(System.out::println);
  * }</pre>
  *
- * <p><strong>Note:</strong> All generated card numbers are for testing purposes only and should
- * not be used for real financial transactions. They pass Luhn validation but are not associated
- * with any real accounts.
+ * <p><strong>Note:</strong> All generated card numbers are synthetic test data. The default
+ * {@link PaymentCardSafetyPolicy#TEST_SAFE_NON_ROUTABLE} output deliberately fails Luhn.
+ * Checksum-valid output requires an explicit policy and is not a real or sandbox credential.
  */
 public final class CreditCardGenerator implements Generator<String> {
 
@@ -406,8 +407,11 @@ public final class CreditCardGenerator implements Generator<String> {
             builder.append(random.nextInt(10));
         }
 
-        // Calculate and append Luhn check digit
+        // Calculate a valid Luhn check digit before applying the selected safety policy.
         int checkDigit = calculateLuhnCheckDigit(builder.toString());
+        if (config.getPaymentCardSafetyPolicy() == PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE) {
+            checkDigit = (checkDigit + 1) % 10;
+        }
         builder.append(checkDigit);
 
         return builder.toString();

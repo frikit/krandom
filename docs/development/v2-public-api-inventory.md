@@ -201,6 +201,11 @@ fixed clock. `GeneratorConfig.getGenerationRecipe()` is intentionally optional: 
 secure, callback-backed, and custom-registry configurations do not expose a misleading partial
 recipe. The `generationProfile`, `safetyPolicy`, and `providerDatasetVersion` config labels are
 also additive **KEEP** metadata required by the portable recipe contract.
+`PaymentCardSafetyPolicy`, `GeneratorConfig.getPaymentCardSafetyPolicy()`, and
+`GeneratorConfig.Builder.paymentCardSafetyPolicy(...)` are additive **KEEP** APIs. The default
+produces issuer-shaped card numbers that deliberately fail Luhn; `CHECKSUM_VALID` is an explicit
+validator-fixture opt-in, not a processor sandbox credential. Portable recipes store the typed
+selection as `payment.card-safety-policy`, independently of the legacy diagnostic safety label.
 `GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
 for named structural streams, and its algorithm is pinned by the recipe version.
 `GenerationRecipe.serializeForDiagnostics()` is additive **KEEP**: it retains the numeric replay

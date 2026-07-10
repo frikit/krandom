@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,7 +29,7 @@ class CreditCardInfoGeneratorTest {
         assertNotNull(info);
         String unformatted = info.number().replaceAll("\\s", "");
         assertTrue(unformatted.matches("\\d+"));
-        assertTrue(CreditCardGenerator.isValidLuhn(unformatted));
+        assertFalse(CreditCardGenerator.isValidLuhn(unformatted));
         assertTrue(!info.type().isBlank());
         assertTrue(info.exp().matches("\\d{2}/\\d{2}"));
         assertTrue(info.cvv().matches("\\d{3,4}"));

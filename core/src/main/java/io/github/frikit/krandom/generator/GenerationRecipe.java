@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
+import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -404,6 +405,7 @@ public final class GenerationRecipe {
         applyInteger(builder, "object.pool-size", builder::objectPoolSize);
         applyBoolean(builder, "object.override-default-initialization", builder::objectOverrideDefaultInitialization);
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
+        applyPaymentCardSafetyPolicy(builder);
         applyEnum(builder, "object.semantic-mode", builder::objectSemanticMode);
         applyDouble(builder, "object.null-probability", builder::objectNullProbability);
         applyDouble(builder, "object.optional-empty-probability", builder::objectOptionalEmptyProbability);
@@ -422,6 +424,14 @@ public final class GenerationRecipe {
         if (value != null) {
             builder.objectUniqueFields(value.split(",", -1));
         }
+    }
+
+    private void applyPaymentCardSafetyPolicy(GeneratorConfig.Builder builder) {
+        String value = settings.get("payment.card-safety-policy");
+        PaymentCardSafetyPolicy policy = value == null
+            ? PaymentCardSafetyPolicy.CHECKSUM_VALID
+            : PaymentCardSafetyPolicy.valueOf(value);
+        builder.paymentCardSafetyPolicy(policy);
     }
 
     private void applyDateRange(GeneratorConfig.Builder builder) {
@@ -457,7 +467,8 @@ public final class GenerationRecipe {
             case "charset", "string.min", "string.max", "collection.min", "collection.max", "object.max-depth",
                  "object.pool-size", "object.override-default-initialization", "object.ignore-errors",
                  "object.semantic-mode", "object.null-probability", "object.optional-empty-probability",
-                 "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max" -> true;
+                 "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
+                 "payment.card-safety-policy" -> true;
             default -> false;
         };
     }

@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
+import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -76,6 +77,20 @@ class GeneratorConfigTest {
         assertEquals(Locale.US, c.getLocale());
         assertEquals(ZoneId.systemDefault(), c.getClock().getZone());
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
+        assertEquals(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE, c.getPaymentCardSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("payment card safety policy is configurable and retained by toBuilder")
+    void paymentCardSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                                                .build();
+
+        assertEquals(PaymentCardSafetyPolicy.CHECKSUM_VALID,
+                     config.toBuilder().build().getPaymentCardSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().paymentCardSafetyPolicy(null));
     }
 
     @Test

@@ -17,11 +17,23 @@ Generated values are test fixtures, not production identities or credentials. Us
 
 These levels are not interchangeable. A checksum-valid credit-card number, IBAN, or national ID is not automatically test-safe and must not be sent to payment processors, identity systems, KYC services, account-creation endpoints, or other external production systems.
 
-## Current 1.x rule
+## Payment-card contract
 
-- Treat generated finance and identity values as local test data only.
-- Check the individual generator's Javadoc/tests before relying on checksum validity.
-- Do not claim a value is test-safe unless its generator explicitly documents an official test/non-routable range.
-- Keep generated personal-looking values out of logs and failure reports.
+`CreditCardGenerator` and `CreditCardInfoGenerator` use the typed
+`PaymentCardSafetyPolicy` in `GeneratorConfig`:
 
-The v2 plan introduces explicit validity/safety metadata and safer defaults. Until that work lands, isolate these fixtures inside tests and use official sandbox credentials for external integrations.
+| Policy | Properties | Intended use |
+|:---|:---|:---|
+| `TEST_SAFE_NON_ROUTABLE` (default) | Issuer-shaped and format-valid; deliberately fails Luhn | Formatting, UI, and validation-rejection fixtures |
+| `CHECKSUM_VALID` | Issuer-shaped and Luhn-valid; not a sandbox credential | Isolated validator fixtures only |
+
+The selected policy is included in a portable generation recipe. `CHECKSUM_VALID` never means
+that a number is real, processor-approved, or safe to send externally. Use the payment processor's
+documented sandbox values and test credentials for integration tests.
+
+## Other finance and identity generators
+
+IBAN, bank-account, phone, crypto-address, and national-ID generators remain individually
+classified. Do not infer test safety from format or checksum validity. Keep generated
+personal-looking values out of logs and failure reports, and use official sandbox credentials for
+all external integrations.

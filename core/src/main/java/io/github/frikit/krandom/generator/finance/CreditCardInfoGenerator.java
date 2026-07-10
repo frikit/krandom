@@ -13,6 +13,10 @@ import java.util.Objects;
 
 /**
  * Generates structured credit-card payloads.
+ *
+ * <p>The contained card number follows the configured {@link PaymentCardSafetyPolicy}. The
+ * default deliberately fails Luhn; checksum-valid output is an explicit validator-fixture opt-in
+ * and is never a real or processor-sandbox credential.
  */
 public final class CreditCardInfoGenerator implements Generator<CreditCardInfo> {
 
