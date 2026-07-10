@@ -86,7 +86,9 @@ Safe constructor paths preserve final state established by constructors, while f
 immutable values bypass reflection entirely. Mutable-field accessibility is preflighted before
 constructor invocation. Constructor/default initializers remain untouched unless
 `objectOverrideDefaultInitialization(true)` is selected. Unsafe bypass remains an explicit policy
-that may skip final-state invariants.
+that may skip final-state invariants. Portable recipes record the selected construction policy and
+replay `UNSAFE_CONSTRUCTOR_BYPASS` into the same constructor-skipping behavior; a serialized label
+alone is not treated as sufficient evidence.
 
 ## Stage 4: Consumer and JPMS contract
 

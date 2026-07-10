@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.ContextualGenerator;
 import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
@@ -92,6 +93,24 @@ class ObjectConstructionPolicyTest {
         UniqueConstructorFixture value =
             new ObjectGenerator<>(UniqueConstructorFixture.class, config).generate();
 
+        assertEquals(0, UniqueConstructorFixture.constructorCalls);
+        assertNull(value.required);
+    }
+
+    @Test
+    @DisplayName("unsafe construction policy replays from a portable recipe")
+    void unsafeModeReplaysFromPortableRecipe() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(17L)
+                                                .objectConstructionPolicy(
+                                                    ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
+                                                .build();
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        UniqueConstructorFixture value =
+            new ObjectGenerator<>(UniqueConstructorFixture.class, recipe.toGeneratorConfig()).generate();
+
+        assertSame(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS, recipe.getConstructionPolicy());
         assertEquals(0, UniqueConstructorFixture.constructorCalls);
         assertNull(value.required);
     }

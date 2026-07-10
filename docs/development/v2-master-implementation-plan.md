@@ -424,7 +424,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [x] Cover records, immutable constructor classes, mutable beans, inherited fields, final fields, private constructors, abstract/interface types, inner classes, cycles, and factory overrides.
 - [x] Prove constructor invariants run in safe mode.
-- [ ] Prove unsafe mode is opt-in and named in diagnostics/recipes. (Opt-in and construction diagnostics are covered; recipe integration remains in Step 2.7.)
+- [x] Prove unsafe mode is opt-in and named in diagnostics/recipes.
 
 **Done when:** “Generated object” means “constructed under a documented policy,” not merely allocated memory.
 
