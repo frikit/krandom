@@ -519,6 +519,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 ### Step 2.9 — Add explicit financial and identity safety modes
 
 **Depends on:** D7, 2.7, 2.8.
+**Characterization:** [`v2-financial-identity-safety.md`](v2-financial-identity-safety.md)
 
 **Actions**
 

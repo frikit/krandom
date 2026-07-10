@@ -1,0 +1,79 @@
+# V2 Financial and Identity Safety Contract
+
+**Status:** In Progress
+**Master plan:** [Step 2.9](v2-master-implementation-plan.md#step-29--add-explicit-financial-and-identity-safety-modes)
+
+## Scope and vocabulary
+
+This contract distinguishes four independent properties:
+
+- **Format-valid:** the value has the expected textual structure.
+- **Checksum-valid:** the value passes its published checksum, when one exists.
+- **Semantically plausible:** the value has realistic-looking issuer, country, or regional fields.
+- **Test-safe/non-routable:** the value is either deliberately invalid for a real network or is an
+  official sandbox value used only with that processor's sandbox credentials.
+
+Neither checksum validity nor semantic plausibility means a value is safe to use in production,
+KYC, account creation, payment authorization, or live network calls.
+
+## Stage 1: Classification inventory
+
+**Goal:** Classify all sensitive generators by their current behavior before changing defaults.
+**Success Criteria:** Every generator below has one documented status and no default is described
+as safe merely because it passes a validator.
+**Tests:** Classification tests and provider metadata must agree with the table.
+**Status:** In Progress
+
+| Family | Current behavior | v2 target |
+| --- | --- | --- |
+| Credit cards | Random issuer-shaped numbers with a valid Luhn check digit | Non-routable by default; checksum-valid or processor-sandbox values are explicit modes |
+| IBAN, ABA, BIC, bank account | Format/checksum behavior varies by generator | Do not claim test safety until each scheme has a non-routable or official sandbox contract |
+| Payment payloads | Masked references derived from card or bank generators | Carry the selected policy metadata without exposing credential values |
+| National IDs, CPF/CNPJ, passport, driving licence | Country-specific shapes and algorithms | Default to non-production fixtures; country-specific valid modes require separate proof |
+| Phone numbers | Locale-formatted numbers using realistic prefixes | US/Canada safe mode may use NANPA's reserved fictional block; other locales remain unclassified until an authoritative allocation is implemented |
+| Crypto addresses | Syntactically plausible destination strings | Never describe as safe for live transfers; use explicit non-production modes only after network-specific proof |
+
+## Stage 2: Payment-card safety modes
+
+**Goal:** Make the selected card-output mode enforceable through `GeneratorConfig` and visible in
+the recipe.
+**Success Criteria:** The default card output is non-routable, while a caller must explicitly
+choose checksum-valid or a named processor sandbox mode. The card's metadata says which properties
+hold.
+**Tests:** Default values fail Luhn without losing the selected card format; checksum-valid mode
+passes Luhn; each supported sandbox value is fixed, documented, and deterministic under a seed.
+**Status:** Not Started
+
+The processor-sandbox mode must name the processor and never imply that its values are accepted by
+another processor. Stripe documents sandbox card values and requires test API keys; use a processor
+token rather than a raw number in server-side test code when that integration supports tokens.
+
+## Stage 3: Bank, phone, and identity contracts
+
+**Goal:** Add a scheme-specific non-routable or sandbox strategy only when authoritative source
+material supports it.
+**Success Criteria:** No generator is upgraded from "unclassified" on the strength of format or
+checksum alone. A policy that cannot be made safe fails closed or remains unavailable.
+**Tests:** Per-scheme validator and non-routability tests, plus property tests over every supported
+locale or country provider.
+**Status:** Not Started
+
+For North American phone fixtures, NANPA reserves the fictional non-working `555-0100` through
+`555-0199` line-number block. This allocation does not establish a safe range for other countries.
+
+## Stage 4: Metadata, schemas, and guidance
+
+**Goal:** Expose safety metadata from the provider catalog and schema projections, and make the
+forbidden uses impossible to miss in public documentation.
+**Success Criteria:** Provider reference, schema metadata, recipes, and guides name the same
+policy and classification. Generated personal-looking or payment-looking values are never offered
+as credentials for production systems.
+**Tests:** Documentation/reference snapshot tests and catalog-metadata completeness checks.
+**Status:** Not Started
+
+## Sources
+
+- [Stripe testing guidance and card values](https://docs.stripe.com/testing) — sandbox values only;
+  Stripe requires test API keys and cautions against using real card details.
+- [NANPA 555 line numbers](https://www.nanpa.com/numbering/555-line-numbers) — reserves
+  `555-0100` through `555-0199` for fictional non-working use.
