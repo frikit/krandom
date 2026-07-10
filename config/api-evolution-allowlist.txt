@@ -24,6 +24,16 @@ io.github.frikit.krandom.generator.GeneratorConfig$Builder#generationFailureList
 # the two public additions above remain the complete listener configuration surface.
 io.github.frikit.krandom.generator.GeneratorConfig
 io.github.frikit.krandom.generator.GeneratorConfig$Builder
+# Versioned portable replay recipe; see v2-generation-recipes.md.
+io.github.frikit.krandom.generator.GenerationRecipe
+io.github.frikit.krandom.generator.GenerationRecipe$Builder
+io.github.frikit.krandom.generator.GeneratorConfig#getGenerationProfile()
+io.github.frikit.krandom.generator.GeneratorConfig#getSafetyPolicy()
+io.github.frikit.krandom.generator.GeneratorConfig#getProviderDatasetVersion()
+io.github.frikit.krandom.generator.GeneratorConfig#getGenerationRecipe()
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#generationProfile(java.lang.String)
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#safetyPolicy(java.lang.String)
+io.github.frikit.krandom.generator.GeneratorConfig$Builder#providerDatasetVersion(java.lang.String)
 # ObjectGenerator remains KEEP; japicmp marks the public class modified when its private
 # construction-context helper changes class metadata. No public member is added or removed.
 io.github.frikit.krandom.generator.object.ObjectGenerator

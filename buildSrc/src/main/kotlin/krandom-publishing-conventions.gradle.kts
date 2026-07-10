@@ -65,7 +65,10 @@ afterEvaluate {
 
         tasks.named<Jar>("jar").configure {
             manifest {
-                attributes("Automatic-Module-Name" to moduleNames.getValue(project.name))
+                attributes(
+                    "Automatic-Module-Name" to moduleNames.getValue(project.name),
+                    "Implementation-Version" to project.version
+                )
             }
         }
     }

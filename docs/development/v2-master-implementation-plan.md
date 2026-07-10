@@ -477,8 +477,8 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Define `GenerationRecipe` fields: library version, recipe version, algorithm, seed, locale, clock, profile, safety policy, construction policy, and provider dataset version.
-- [ ] Make recipes serializable in a stable, human-readable form.
+- [x] Define `GenerationRecipe` fields: library version, recipe version, algorithm, seed, locale, clock, profile, safety policy, construction policy, and provider dataset version.
+- [x] Make recipes serializable in a stable, human-readable form.
 - [ ] Derive named child streams for object fields and schema columns so unrelated additions do not reorder all downstream values.
 - [ ] Define how repeated fields, lists, maps, recursion, and parallel generation derive stream identities.
 - [ ] Make failure messages and test integrations print a safe replay recipe.

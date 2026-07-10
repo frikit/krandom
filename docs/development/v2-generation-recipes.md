@@ -1,0 +1,86 @@
+# V2 Generation Recipes and Named Child Streams
+
+**Status:** In Progress
+**Master plan:** [Step 2.7](v2-master-implementation-plan.md#step-27--add-versioned-deterministic-recipes-and-child-streams)
+
+## Contract decisions
+
+- A portable recipe is available only for a seed-owned configuration. Caller-owned random
+  instances, random factories, secure random mode, and executable object rules have state that
+  cannot be represented safely, so they deliberately report no portable recipe.
+- Recipe format and algorithm identifiers are independently versioned. Version `v1` uses
+  `java.util.Random` plus a stable, named-child-stream derivation. Patch releases preserve both;
+  a changed algorithm requires a new recipe version.
+- Recipes capture a clock instant and zone, then replay with a fixed clock. This turns a
+  time-relative failure into a reproducible configuration without pretending that a live clock is
+  stable.
+- Child identities are structural: object fields use their declared owner and field path; schema
+  values use the field name and record index; list, set, array, map, and recursive values append
+  an explicit index or key/value segment. A field added elsewhere must not change an existing
+  identity.
+
+## Stage 1: Define and serialize the recipe
+
+**Goal:** Add one public, portable recipe representation and make seed-owned configurations expose
+it.
+**Success Criteria:** A recipe contains library/recipe/algorithm versions, seed, locale, captured
+clock, profile, safety policy, construction policy, provider-dataset version, and all supported
+scalar configuration settings; it has a stable human-readable encoding and recreates an equivalent
+configuration.
+**Tests:** Round-trip encoding, malformed/unknown recipe rejection, replay configuration equality,
+and non-portable source rejection.
+**Status:** In Progress
+
+### Coverage reassessment (2026-07-10)
+
+The first recipe implementation passed its focused tests but missed the repository-wide 99.9%
+coverage gate three times:
+
+1. The first full-core run reported 99.6% instruction coverage and 98.6% branch coverage after
+   introducing the recipe model.
+2. Adding parser, configuration, and serialization edge cases raised that to 99.8% instructions
+   and 99.2% branches, but still failed the same gate.
+3. Covering portable-state alternatives raised branch coverage to 99.7%, while instruction
+   coverage remained 99.8%; it still failed the required 99.9% threshold.
+
+The failure is structural, not a reason to weaken the gate: the first design spreads parsing,
+replay setting application, and portability checks across many short-circuit branches. Before a
+fourth attempt, compare it with the existing compact value-object patterns (`GenerationFailureDiagnostic`
+and `LocaleDataBundle`) and the existing configuration-copy pattern (`GeneratorConfig.toBuilder()`),
+then reduce the recipe's branching surface. The revised design must retain strict rejection of
+non-portable state and preserve the documented replay contract.
+
+The reassessment found three useful local alternatives:
+
+1. `GenerationFailureDiagnostic` is a narrow validated record: recipe diagnostics should keep one
+   structured value rather than duplicate validation across integrations.
+2. `LocaleDataBundle` keeps mutable builder concerns at its edge and exposes immutable snapshots;
+   recipe settings should likewise be normalized once, not rechecked by each consumer.
+3. `GeneratorConfig.toBuilder()` already defines the library's configuration-copy boundary; recipe
+   replay should remain a conversion through that boundary rather than create a second object
+   configuration system.
+
+The revised approach therefore collapses portability checks into one explicit state scan and keeps
+the recipe as a value object. It will add only behavior-focused tests for the remaining parser
+boundaries, not test-only scaffolding for every short-circuit expression.
+
+## Stage 2: Derive structural child streams
+
+**Goal:** Replace positional seeded draws at object and schema structural boundaries with named
+child streams.
+**Success Criteria:** Existing named fields and schema columns retain their values when unrelated
+fields are added. Repeated collection/map elements and recursive objects have documented,
+deterministic identities.
+**Tests:** Object and schema stability fixtures, repeated-element replay, nested-object replay, and
+checked-in golden streams.
+**Status:** Not Started
+
+## Stage 3: Surface replay safely
+
+**Goal:** Attach safe recipes to failure diagnostics and framework integrations, and document the
+compatibility promise.
+**Success Criteria:** Failures expose one copyable recipe when the configuration is portable;
+non-portable configurations say why without exposing values or source internals.
+**Tests:** Object/schema failure diagnostics, JUnit integration coverage, compatibility-policy
+tests, and published consumer examples.
+**Status:** Not Started

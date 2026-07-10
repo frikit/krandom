@@ -101,6 +101,9 @@ public final class GeneratorConfig {
     private final DataRegistryContext registryContext;
     private final Clock        clock;
     private final boolean      secureRandom;
+    private final String       generationProfile;
+    private final String       safetyPolicy;
+    private final String       providerDatasetVersion;
 
     private GeneratorConfig(Builder b) {
         this.seed = effectiveSeed(b.numericSeed, b.stringSeed);
@@ -140,6 +143,9 @@ public final class GeneratorConfig {
         this.registryContext = b.registryContext;
         this.clock = b.clock;
         this.secureRandom = b.secureRandom;
+        this.generationProfile = b.generationProfile;
+        this.safetyPolicy = b.safetyPolicy;
+        this.providerDatasetVersion = b.providerDatasetVersion;
     }
 
     /**
@@ -181,6 +187,30 @@ public final class GeneratorConfig {
      */
     public String getSeedDerivationVersion() {
         return STRING_SEED_DERIVATION;
+    }
+
+    /**
+     * Label of the profile that supplied this configuration, or {@code "custom"}.
+     */
+    public String getGenerationProfile() {
+        return generationProfile;
+    }
+
+    /**
+     * Requested output-safety policy label recorded in portable recipes.
+     *
+     * <p>The initial value is {@value GenerationRecipe#LEGACY_UNCLASSIFIED_SAFETY_POLICY}; the
+     * dedicated safety contract defines stricter policies without changing recipe shape.
+     */
+    public String getSafetyPolicy() {
+        return safetyPolicy;
+    }
+
+    /**
+     * Version label for the provider datasets used by this configuration.
+     */
+    public String getProviderDatasetVersion() {
+        return providerDatasetVersion;
     }
 
     public Charset getCharset() {
@@ -460,10 +490,88 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Returns a portable replay recipe when every output-affecting input is serializable.
+     *
+     * <p>Unseeded, secure, caller-owned, callback-backed, or custom-registry configurations have
+     * state that cannot be replayed safely, so they return an empty result rather than a partial
+     * recipe that would misrepresent the generated fixture.
+     */
+    public Optional<GenerationRecipe> getGenerationRecipe() {
+        if (!isPortableRecipeConfiguration()) {
+            return Optional.empty();
+        }
+        GenerationRecipe.Builder recipe = GenerationRecipe.builder()
+                                                            .libraryVersion(GenerationRecipe.currentLibraryVersion())
+                                                            .seed(seed.getAsLong())
+                                                            .locale(locale)
+                                                            .clock(clock.instant(), clock.getZone())
+                                                            .profile(generationProfile)
+                                                            .safetyPolicy(safetyPolicy)
+                                                            .constructionPolicy(objectConstructionPolicy)
+                                                            .providerDatasetVersion(providerDatasetVersion)
+                                                            .setting("charset", charset.name())
+                                                            .setting("string.min", Integer.toString(minStringLength))
+                                                            .setting("string.max", Integer.toString(maxStringLength))
+                                                            .setting("collection.min", Integer.toString(minCollectionSize))
+                                                            .setting("collection.max", Integer.toString(maxCollectionSize))
+                                                            .setting("object.max-depth", Integer.toString(objectMaxDepth))
+                                                            .setting("object.pool-size", Integer.toString(objectPoolSize))
+                                                            .setting("object.override-default-initialization",
+                                                                     Boolean.toString(objectOverrideDefaultInitialization))
+                                                            .setting("object.ignore-errors", Boolean.toString(objectIgnoreErrors))
+                                                            .setting("object.semantic-mode", objectSemanticMode.name())
+                                                            .setting("object.null-probability",
+                                                                     Double.toString(objectNullProbability))
+                                                            .setting("object.optional-empty-probability",
+                                                                     Double.toString(objectOptionalEmptyProbability))
+                                                            .setting("object.unique-fields",
+                                                                     String.join(",", objectUniqueFieldNames))
+                                                            .setting("object.uniqueness-max-attempts",
+                                                                     Integer.toString(objectUniquenessMaxAttempts));
+        if (stringSeed.isPresent()) {
+            recipe.seedText(stringSeed.get());
+        }
+        if (objectDateMin != null) {
+            recipe.setting("object.date-min", objectDateMin.toString())
+                  .setting("object.date-max", Objects.requireNonNull(objectDateMax).toString());
+        }
+        return Optional.of(recipe.build());
+    }
+
+    /**
      * Scoped registry context used by locale-aware generators.
      */
     public DataRegistryContext getRegistryContext() {
         return registryContext;
+    }
+
+    private boolean isPortableRecipeConfiguration() {
+        // Builder validation makes a present seed mutually exclusive with caller-owned and secure
+        // sources, so seed ownership is the only random-source condition required here.
+        return seed.isPresent()
+            && registryContext == DataRegistryContext.globalDefault()
+            && objectSemanticRegistry == SemanticFieldRegistry.defaults()
+            && hasNoCustomObjectGenerationState();
+    }
+
+    private boolean hasNoCustomObjectGenerationState() {
+        boolean[] emptyStates = {
+            objectTypeOverrides.isEmpty(),
+            objectFieldOverrides.isEmpty(),
+            objectContextualTypeOverrides.isEmpty(),
+            objectContextualFieldOverrides.isEmpty(),
+            objectPredicateFieldOverrides.isEmpty(),
+            objectContextualPredicateFieldOverrides.isEmpty(),
+            objectExclusionPredicates.isEmpty(),
+            objectTypeExclusionPredicates.isEmpty(),
+            objectSubtypes.isEmpty()
+        };
+        for (boolean emptyState : emptyStates) {
+            if (!emptyState) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -556,6 +664,9 @@ public final class GeneratorConfig {
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
         private Clock             clock             = Clock.systemDefaultZone();
         private boolean           secureRandom;
+        private String            generationProfile = GenerationRecipe.CUSTOM_PROFILE;
+        private String            safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
+        private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
 
         private Builder() {
         }
@@ -597,6 +708,9 @@ public final class GeneratorConfig {
             this.registryContext = source.registryContext;
             this.clock = source.clock;
             this.secureRandom = source.secureRandom;
+            this.generationProfile = source.generationProfile;
+            this.safetyPolicy = source.safetyPolicy;
+            this.providerDatasetVersion = source.providerDatasetVersion;
         }
 
         /**
@@ -986,6 +1100,30 @@ public final class GeneratorConfig {
         }
 
         /**
+         * Labels this configuration with a named profile for replay diagnostics.
+         */
+        public Builder generationProfile(String generationProfile) {
+            this.generationProfile = requireRecipeToken("generationProfile", generationProfile);
+            return this;
+        }
+
+        /**
+         * Labels the requested output-safety policy for replay diagnostics.
+         */
+        public Builder safetyPolicy(String safetyPolicy) {
+            this.safetyPolicy = requireRecipeToken("safetyPolicy", safetyPolicy);
+            return this;
+        }
+
+        /**
+         * Labels the provider dataset version for deterministic replay diagnostics.
+         */
+        public Builder providerDatasetVersion(String providerDatasetVersion) {
+            this.providerDatasetVersion = requireRecipeToken("providerDatasetVersion", providerDatasetVersion);
+            return this;
+        }
+
+        /**
          * Registry context used by locale-aware generators.
          */
         public Builder registryContext(DataRegistryContext registryContext) {
@@ -1013,6 +1151,14 @@ public final class GeneratorConfig {
                 throw new IllegalArgumentException("fieldName must contain at least one letter or digit");
             }
             return normalized.toString();
+        }
+
+        private static String requireRecipeToken(String name, String value) {
+            Objects.requireNonNull(value, name + " must not be null");
+            if (value.isBlank() || value.indexOf('\n') >= 0 || value.indexOf('\r') >= 0) {
+                throw new IllegalArgumentException(name + " must be a non-blank single-line value");
+            }
+            return value;
         }
 
         public GeneratorConfig build() {
