@@ -96,6 +96,11 @@ the configuration context.
 `GeneratorConfig`; `MeasurementDataRegistry.register(...)` remains the 1.6 compatibility adapter.
 `MeasurementGenerator` remains **KEEP** with no new public member and now resolves units through
 the configuration context.
+`DataRegistryContext` financial-term lookup, key snapshot, and builder registration are additive
+**KEEP** APIs. They provide validated, locale-fallback-aware financial terms scoped to one
+`GeneratorConfig`; `FinancialTermDataRegistry.register(...)` remains the 1.6 compatibility adapter.
+`FinancialTermGenerator` remains **KEEP** with no new public member and now resolves terms through
+the configuration context.
 
 `ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
 APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and

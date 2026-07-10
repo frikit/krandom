@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
+import io.github.frikit.krandom.generator.finance.FinancialTermGenerator;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
@@ -227,6 +229,28 @@ class DataRegistryContextTest {
         assertNull(empty.measurementProvider(Locale.US));
         assertFalse(empty.isMeasurementRegistered(Locale.US));
         assertFalse(DataRegistryContext.globalDefault().measurementRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("financial-term providers remain isolated between contexts")
+    void financialTermProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerFinancialTermProvider(financialTermProvider(Locale.US, "Asset"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerFinancialTermProvider(financialTermProvider(Locale.US, "Dividend"))
+                                                         .build();
+
+        assertEquals("Asset", new FinancialTermGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
+        assertEquals("Dividend", new FinancialTermGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(Set.of("en", "en_US"), first.financialTermRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isFinancialTermRegistered(Locale.US));
+        assertNull(empty.financialTermProvider(Locale.US));
+        assertFalse(empty.isFinancialTermRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().financialTermRegisteredKeys().isEmpty());
     }
 
     @Test
@@ -822,6 +846,20 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<String> getUnits() {
                 return java.util.List.of(unit);
+            }
+        };
+    }
+
+    private static FinancialTermDataProvider financialTermProvider(Locale locale, String term) {
+        return new FinancialTermDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getTerms() {
+                return java.util.List.of(term);
             }
         };
     }

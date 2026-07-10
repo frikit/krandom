@@ -75,6 +75,14 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerMeasureme
 # MeasurementGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.measurement.MeasurementGenerator
 
+# Config-scoped financial-term vocabulary; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext#financialTermProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isFinancialTermRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#financialTermRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerFinancialTermProvider(io.github.frikit.krandom.generator.finance.FinancialTermDataProvider)
+# FinancialTermGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.finance.FinancialTermGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy

@@ -11,8 +11,10 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific list of financial-term names.
  *
- * <p>Implement this interface and register an instance with {@link FinancialTermDataRegistry} to add
- * or override the financial-term vocabulary for any locale.
+ * <p>Implement this interface and register an instance with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerFinancialTermProvider(FinancialTermDataProvider)}
+ * to add or override financial-term vocabulary for one configuration. The global
+ * {@link FinancialTermDataRegistry} remains a compatibility bridge.
  */
 public interface FinancialTermDataProvider {
 

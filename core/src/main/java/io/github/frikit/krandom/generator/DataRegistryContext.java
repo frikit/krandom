@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
+import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CityDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
@@ -67,6 +69,7 @@ public final class DataRegistryContext {
     private final Map<String, NationalIdProvider>        nationalIds;
     private final Map<String, WeatherDataProvider>       weather;
     private final Map<String, MeasurementDataProvider>   measurements;
+    private final Map<String, FinancialTermDataProvider> financialTerms;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -83,6 +86,7 @@ public final class DataRegistryContext {
         this.nationalIds = Map.copyOf(builder.nationalIds);
         this.weather = Map.copyOf(builder.weather);
         this.measurements = Map.copyOf(builder.measurements);
+        this.financialTerms = Map.copyOf(builder.financialTerms);
     }
 
     /**
@@ -341,6 +345,39 @@ public final class DataRegistryContext {
         return mergeKeys(measurements.keySet(), useGlobalFallback ? MeasurementDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the financial-term provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public FinancialTermDataProvider financialTermProvider(Locale locale) {
+        FinancialTermDataProvider provider = findWithFallback(financialTerms, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return FinancialTermDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve financial-term vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isFinancialTermRegistered(Locale locale) {
+        return financialTermProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable financial-term locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> financialTermRegisteredKeys() {
+        return mergeKeys(financialTerms.keySet(), useGlobalFallback ? FinancialTermDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -459,6 +496,7 @@ public final class DataRegistryContext {
         private final Map<String, NationalIdProvider>        nationalIds    = new LinkedHashMap<>();
         private final Map<String, WeatherDataProvider>       weather        = new LinkedHashMap<>();
         private final Map<String, MeasurementDataProvider>   measurements   = new LinkedHashMap<>();
+        private final Map<String, FinancialTermDataProvider> financialTerms = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -599,6 +637,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateTextValues("units", provider.getUnits());
             putWithLanguageFallback(measurements, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific financial-term provider in this context.
+         *
+         * @param provider financial-term vocabulary provider
+         * @return this builder
+         */
+        public Builder registerFinancialTermProvider(FinancialTermDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("terms", provider.getTerms());
+            putWithLanguageFallback(financialTerms, provider.getLocale(), provider);
             return this;
         }
 
