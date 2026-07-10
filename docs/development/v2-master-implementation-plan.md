@@ -552,9 +552,13 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Tests**
 
-- [ ] All P0.1, P0.2, and P0.6 acceptance criteria from the audit pass.
-- [ ] No ignored assignment/insertion failure remains in default object generation.
-- [ ] Reproducibility, validity, and safety tests pass across repeated clean runs.
+- [ ] All P0.1, P0.2, and P0.6 acceptance criteria from the audit pass. See
+  [`v2-foundation-acceptance.md`](v2-foundation-acceptance.md) for current executable evidence and
+  the jqwik replay work that remains in Step 3.6.
+- [x] No ignored assignment/insertion failure remains in default object generation. See
+  [`v2-foundation-acceptance.md`](v2-foundation-acceptance.md) for the focused failure-policy tests.
+- [x] Reproducibility, validity, and safety tests pass across repeated clean runs. Run
+  `./scripts/verify_foundation_acceptance.sh` with its default two clean passes.
 
 **Done when:** Higher-level integrations can build on a stable, explicit core contract.
 
