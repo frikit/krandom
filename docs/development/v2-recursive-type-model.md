@@ -121,7 +121,10 @@ the final internal/public boundary intentionally.
 generic data classes. Object-graph cycle detection and caching distinguish the raw class together
 with its resolved generic signature, so `Box<Inner<String>>` cannot reuse a completed
 `Box<List<Integer>>` instance merely because both erase to `Box`. A true same-signature recursive
-reference retains the existing cycle boundary.
+reference retains the existing cycle boundary. Resolved child types now retain their matching
+`AnnotatedType` node through optional values, array components, collection elements, and map
+keys/values. Type-use constraints therefore apply at every supported container depth and report
+the existing composed child path; declaration annotations remain on the owning field/component.
 
 ## Completion gate
 

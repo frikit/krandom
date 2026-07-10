@@ -207,6 +207,39 @@ class FieldGeneratorResolverCoverageTest {
     }
 
     @Test
+    @DisplayName("annotated type helpers retain field, record, and constructor child nodes")
+    void annotatedTypeHelpersRetainNestedChildNodes() throws Exception {
+        Class<?>[] typeArgumentParameters = { java.lang.reflect.AnnotatedElement.class, int.class };
+        Field listField = TypeUseContextFixture.class.getDeclaredField("labels");
+
+        java.lang.reflect.AnnotatedElement fieldArgument =
+            invokeStatic("typeArgumentElement", typeArgumentParameters, listField, 0);
+        assertTrue(fieldArgument.isAnnotationPresent(Size.class));
+        assertNull(invokeStatic("typeArgumentElement", typeArgumentParameters, listField, 1));
+
+        Field arrayField = TypeUseContextFixture.class.getDeclaredField("codes");
+        java.lang.reflect.AnnotatedElement arrayComponent =
+            invokeStatic("arrayComponentElement", new Class<?>[]{ java.lang.reflect.AnnotatedElement.class }, arrayField);
+        assertTrue(arrayComponent.isAnnotationPresent(Size.class));
+        assertNull(invokeStatic("arrayComponentElement",
+                                new Class<?>[]{ java.lang.reflect.AnnotatedElement.class },
+                                listField));
+
+        var recordComponent = TypeUseContextRecord.class.getRecordComponents()[0];
+        java.lang.reflect.AnnotatedElement recordArgument =
+            invokeStatic("typeArgumentElement", typeArgumentParameters, recordComponent, 0);
+        assertTrue(recordArgument.isAnnotationPresent(Size.class));
+
+        var constructorParameter = TypeUseContextFixture.class.getDeclaredConstructor(List.class).getParameters()[0];
+        java.lang.reflect.AnnotatedElement parameterArgument =
+            invokeStatic("typeArgumentElement", typeArgumentParameters, constructorParameter, 0);
+        assertTrue(parameterArgument.isAnnotationPresent(Size.class));
+
+        Method method = TypeUseContextFixture.class.getDeclaredMethod("marker");
+        assertNull(invokeStatic("typeArgumentElement", typeArgumentParameters, method, 0));
+    }
+
+    @Test
     @DisplayName("semantic resolver covers typed coordinates, missing lookups, constrained strict mode, and float rounding")
     void semanticResolverCoversTypedCoordinatesMissingLookupsConstrainedStrictModeAndFloatRounding() throws Exception {
         FieldGeneratorResolver relaxedResolver = resolver(ObjectGeneratorConfig.builder()
@@ -297,6 +330,22 @@ class FieldGeneratorResolverCoverageTest {
 
     abstract static class AbstractCustomList<E> extends java.util.AbstractList<E> {
 
+    }
+
+    static final class TypeUseContextFixture {
+
+        List<@Size(min = 3, max = 3) String> labels;
+        @Size(min = 4, max = 4) String[] codes;
+
+        TypeUseContextFixture(List<@Size(min = 5, max = 5) String> labels) {
+            this.labels = labels;
+        }
+
+        void marker() {
+        }
+    }
+
+    record TypeUseContextRecord(List<@Size(min = 6, max = 6) String> labels) {
     }
 
 

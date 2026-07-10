@@ -122,6 +122,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maven Central publication now uses NMCP's explicit aggregation plugin and an exact seven-module graph, removing the convenience settings plugin's Gradle 10 deprecation.
 
 ### Fixed
+- Recursive object generation now retains type-use annotations for optional values, array
+  components, collection elements, and map keys/values. Nested Bean Validation constraints apply
+  at the corresponding type node and failures retain the composed child path.
 - `Generator.map(...)` and `Generator.filter(...)` now preserve deterministic reseeding when their source implements `Seedable`; non-seedable sources remain honest and do not claim that capability.
 - Object generation no longer swallows custom-map insertion failures and returns a partial map: strict mode reports sanitized indexed context, while explicit lenient mode discards the whole map.
 - Concrete list, set, and queue insertion failures no longer return partial or unexplained values: strict mode reports sanitized field context, while explicit lenient mode discards the whole collection.

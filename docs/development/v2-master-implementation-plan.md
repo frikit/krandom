@@ -369,7 +369,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [x] Characterize the current `Class<?>`/`Type` conversion paths.
 - [x] Model classes, parameterized types, generic arrays, wildcards, and type variables recursively.
-- [ ] Carry annotations and the full field path into nested resolution.
+- [x] Carry annotations and the full field path into nested resolution.
 - [x] Define supported wildcard/type-variable bounds and fail clearly for unsupported ambiguity.
 - [ ] Reuse one resolver for fields, records, constructors, collections, maps, arrays, and schema inference.
 - [x] Remove silent conversion to `Object.class` for nested parameterized types.

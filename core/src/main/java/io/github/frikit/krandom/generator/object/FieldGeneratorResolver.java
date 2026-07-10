@@ -43,10 +43,15 @@ import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 
+import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.AnnotatedParameterizedType;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.RecordComponent;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
@@ -954,7 +959,7 @@ final class FieldGeneratorResolver {
                                      Generator<?> annotationGenerator,
                                      Generator<?> bvGen,
                                      boolean requiredConstraint) {
-        if (element == null || rawType.isPrimitive() || rawType == Optional.class) {
+        if (element == null || element instanceof AnnotatedType || rawType.isPrimitive() || rawType == Optional.class) {
             return false;
         }
         if (annotationGenerator != null || bvGen != null || requiredConstraint) {
@@ -972,7 +977,7 @@ final class FieldGeneratorResolver {
     }
 
     private boolean shouldReturnEmptyOptional(AnnotatedElement element) {
-        if (element == null) {
+        if (element == null || element instanceof AnnotatedType) {
             return false;
         }
         double probability = config.getOptionalEmptyProbability();
@@ -1339,8 +1344,8 @@ final class FieldGeneratorResolver {
      * @param fieldName    name of the field (used for field-level override lookup)
      * @param ownerType    class that declares the field
      * @param currentDepth nesting depth of the parent {@link ObjectGenerator} (0 = root)
-     * @param element      the annotated element (field or record component) for BV constraint lookup;
-     *                     {@code null} for synthetic recursive calls (collection elements etc.)
+     * @param element      the declaration or annotated type node for annotation-based resolution;
+     *                     {@code null} when no reflection metadata is available
      * @return generated value, or a safe default / {@code null} when the type is unsupported
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -1434,7 +1439,8 @@ final class FieldGeneratorResolver {
                 return Optional.empty();
             }
             ResolvedType valueType = containerArgument(genericType, Optional.class, 0);
-            Object value = resolveAndGenerate(valueType, fieldName + ".value", ownerType, currentDepth);
+            Object value = resolveAndGenerate(
+                valueType, fieldName + ".value", ownerType, currentDepth, typeArgumentElement(element, 0));
             return Optional.ofNullable(value);
         }
         if (shouldReturnNull(element, rawType, annotationGenerator, bvGen, bvConstraints.required())) {
@@ -1498,7 +1504,8 @@ final class FieldGeneratorResolver {
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (values.size() < elementCount && attempts++ < maxAttempts) {
-                values.add(resolveAndGenerate(elem, fieldName + "[]", ownerType, currentDepth));
+                values.add(resolveAndGenerate(
+                    elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
             }
             try {
                 return toSetType(rawType, new ArrayList<>(values));
@@ -1521,7 +1528,8 @@ final class FieldGeneratorResolver {
             int elementCount = nextCollectionSize(element);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
-                els.add(resolveAndGenerate(elem, fieldName + "[]", ownerType, currentDepth));
+                els.add(resolveAndGenerate(
+                    elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
             }
             try {
                 if (List.class.isAssignableFrom(rawType)) {
@@ -1558,8 +1566,10 @@ final class FieldGeneratorResolver {
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (map.size() < elementCount && attempts++ < maxAttempts) {
-                Object key = resolveAndGenerate(k, fieldName + ".key", ownerType, currentDepth);
-                Object val = resolveAndGenerate(v, fieldName + ".value", ownerType, currentDepth);
+                Object key = resolveAndGenerate(
+                    k, fieldName + ".key", ownerType, currentDepth, typeArgumentElement(element, 0));
+                Object val = resolveAndGenerate(
+                    v, fieldName + ".value", ownerType, currentDepth, typeArgumentElement(element, 1));
                 if (key != null) {
                     String entryPath = ownerType.getSimpleName() + "." + fieldName + "[" + map.size() + "]";
                     try {
@@ -1856,10 +1866,12 @@ final class FieldGeneratorResolver {
     private Object resolveAndGenerate(ResolvedType type,
                                       String fieldName,
                                       Class<?> ownerType,
-                                      int currentDepth) {
+                                      int currentDepth,
+                                      AnnotatedElement element) {
         ResolvedType generationType = Objects.requireNonNullElse(type.effectiveType(), type);
         Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
-        return resolveAndGenerate(generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, null);
+        return resolveAndGenerate(
+            generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, element);
     }
 
     private Object generateArray(ResolvedType declaredArrayType,
@@ -1871,7 +1883,12 @@ final class FieldGeneratorResolver {
         int elementCount = nextCollectionSize(element);
         Object arr = Array.newInstance(comp, elementCount);
         for (int i = 0; i < elementCount; i++) {
-            Object el = resolveAndGenerate(declaredComponentType, fieldName + "[]", ownerType, depth);
+            Object el = resolveAndGenerate(
+                declaredComponentType,
+                fieldName + "[]",
+                ownerType,
+                depth,
+                arrayComponentElement(element));
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
@@ -1895,6 +1912,36 @@ final class FieldGeneratorResolver {
             }
         }
         return arr;
+    }
+
+    private static AnnotatedElement typeArgumentElement(AnnotatedElement element, int index) {
+        AnnotatedType type = annotatedTypeFor(element);
+        if (!(type instanceof AnnotatedParameterizedType parameterizedType)) {
+            return null;
+        }
+        AnnotatedType[] arguments = parameterizedType.getAnnotatedActualTypeArguments();
+        return index < arguments.length ? arguments[index] : null;
+    }
+
+    private static AnnotatedElement arrayComponentElement(AnnotatedElement element) {
+        AnnotatedType type = annotatedTypeFor(element);
+        return type instanceof AnnotatedArrayType arrayType ? arrayType.getAnnotatedGenericComponentType() : null;
+    }
+
+    private static AnnotatedType annotatedTypeFor(AnnotatedElement element) {
+        if (element instanceof AnnotatedType annotatedType) {
+            return annotatedType;
+        }
+        if (element instanceof java.lang.reflect.Field field) {
+            return field.getAnnotatedType();
+        }
+        if (element instanceof RecordComponent recordComponent) {
+            return recordComponent.getAnnotatedType();
+        }
+        if (element instanceof Parameter parameter) {
+            return parameter.getAnnotatedType();
+        }
+        return null;
     }
 
     private int nextCollectionSize(AnnotatedElement element) {
