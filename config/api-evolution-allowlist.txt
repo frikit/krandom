@@ -131,6 +131,14 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerChineseZo
 # ChineseZodiacGenerator remains KEEP; this class-level entry covers private context lookup wiring.
 io.github.frikit.krandom.generator.user.ChineseZodiacGenerator
 
+# Config-scoped Western-zodiac vocabulary; global registration remains the 1.6 compatibility adapter.
+io.github.frikit.krandom.generator.DataRegistryContext#zodiacProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isZodiacRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#zodiacRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerZodiacProvider(io.github.frikit.krandom.generator.user.ZodiacDataProvider)
+# ZodiacGenerator remains KEEP; this class-level entry covers private context lookup wiring.
+io.github.frikit.krandom.generator.user.ZodiacGenerator
+
 # V2 safe-by-default object construction with an explicit legacy unsafe opt-in; see
 # v2-public-api-inventory.md and v2-object-construction-policy.md.
 io.github.frikit.krandom.generator.object.ObjectConstructionPolicy

@@ -48,6 +48,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `ChineseZodiacGenerator` now resolves its validated, ordered twelve-animal cycle through
   `DataRegistryContext`, so per-configuration vocabulary preserves year-to-animal mapping; the
   global registry remains a fallback.
+- `ZodiacGenerator` now resolves its validated, ordered twelve-sign cycle through
+  `DataRegistryContext`, so per-configuration vocabulary preserves date-to-sign mapping; the
+  global registry remains a fallback.
 - `krandom-core` is now a Java-only build and no longer publishes an unused `kotlin-stdlib` runtime dependency. Kotlin remains confined to the Kotlin DSL and Kotest integration modules.
 - Redundant `Generators` aliases for constants, selection, shuffle, and uniqueness are deprecated for removal in v2. Canonical replacements are documented in `docs/migration/v1.6-to-v2.md`; the legacy methods remain thin behavior-compatible delegates in 1.6.
 - Maven Central publication now uses NMCP's explicit aggregation plugin and an exact seven-module graph, removing the convenience settings plugin's Gradle 10 deprecation.

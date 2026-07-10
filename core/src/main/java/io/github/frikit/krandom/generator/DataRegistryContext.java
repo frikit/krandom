@@ -42,6 +42,8 @@ import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.SuffixDataRegistry;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataRegistry;
+import io.github.frikit.krandom.generator.user.ZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry;
 import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
@@ -88,6 +90,7 @@ public final class DataRegistryContext {
     private final Map<String, PronounDataProvider>        pronouns;
     private final Map<String, BloodTypeDataProvider>      bloodTypes;
     private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs;
+    private final Map<String, ZodiacDataProvider>         zodiacs;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -111,6 +114,7 @@ public final class DataRegistryContext {
         this.pronouns = Map.copyOf(builder.pronouns);
         this.bloodTypes = Map.copyOf(builder.bloodTypes);
         this.chineseZodiacs = Map.copyOf(builder.chineseZodiacs);
+        this.zodiacs = Map.copyOf(builder.zodiacs);
     }
 
     /**
@@ -600,6 +604,39 @@ public final class DataRegistryContext {
         return mergeKeys(chineseZodiacs.keySet(), useGlobalFallback ? ChineseZodiacDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the Western-zodiac provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public ZodiacDataProvider zodiacProvider(Locale locale) {
+        ZodiacDataProvider provider = findWithFallback(zodiacs, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return ZodiacDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve Western-zodiac vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isZodiacRegistered(Locale locale) {
+        return zodiacProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable Western-zodiac locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> zodiacRegisteredKeys() {
+        return mergeKeys(zodiacs.keySet(), useGlobalFallback ? ZodiacDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -758,6 +795,7 @@ public final class DataRegistryContext {
         private final Map<String, PronounDataProvider>        pronouns        = new LinkedHashMap<>();
         private final Map<String, BloodTypeDataProvider>      bloodTypes      = new LinkedHashMap<>();
         private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs  = new LinkedHashMap<>();
+        private final Map<String, ZodiacDataProvider>         zodiacs        = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -996,6 +1034,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateTwelveTextValues("animals", provider.getAnimals());
             putWithLanguageFallback(chineseZodiacs, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific Western-zodiac provider in this context.
+         *
+         * @param provider Western-zodiac vocabulary provider
+         * @return this builder
+         */
+        public Builder registerZodiacProvider(ZodiacDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTwelveTextValues("signs", provider.getSigns());
+            putWithLanguageFallback(zodiacs, provider.getLocale(), provider);
             return this;
         }
 

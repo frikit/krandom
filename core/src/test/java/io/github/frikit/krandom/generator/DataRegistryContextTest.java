@@ -32,6 +32,8 @@ import io.github.frikit.krandom.generator.user.PronounDataProvider;
 import io.github.frikit.krandom.generator.user.PronounGenerator;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
+import io.github.frikit.krandom.generator.user.ZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ZodiacGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
 import io.github.frikit.krandom.generator.weather.WeatherGenerator;
@@ -426,6 +428,35 @@ class DataRegistryContextTest {
     void chineseZodiacProvidersRejectIncompleteCycles() {
         assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
                                                                              .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "only", 11)));
+    }
+
+    @Test
+    @DisplayName("Western-zodiac providers remain isolated between contexts")
+    void zodiacProvidersRemainIsolatedBetweenContexts() {
+        DataRegistryContext first = DataRegistryContext.builder()
+                                                        .isolated()
+                                                        .registerZodiacProvider(zodiacProvider(Locale.US, "First Aries"))
+                                                        .build();
+        DataRegistryContext second = DataRegistryContext.builder()
+                                                         .isolated()
+                                                         .registerZodiacProvider(zodiacProvider(Locale.US, "Second Aries"))
+                                                         .build();
+
+        assertEquals("First Aries", new ZodiacGenerator(GeneratorConfig.builder().registryContext(first).build()).signFor(java.time.LocalDate.of(2024, 3, 21)));
+        assertEquals("Second Aries", new ZodiacGenerator(GeneratorConfig.builder().registryContext(second).build()).signFor(java.time.LocalDate.of(2024, 3, 21)));
+        assertEquals(Set.of("en", "en_US"), first.zodiacRegisteredKeys());
+        DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
+        assertTrue(first.isZodiacRegistered(Locale.US));
+        assertNull(empty.zodiacProvider(Locale.US));
+        assertFalse(empty.isZodiacRegistered(Locale.US));
+        assertFalse(DataRegistryContext.globalDefault().zodiacRegisteredKeys().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Western-zodiac providers require the complete ordered cycle")
+    void zodiacProvidersRejectIncompleteCycles() {
+        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
+                                                                             .registerZodiacProvider(zodiacProvider(Locale.US, "only", 11)));
     }
 
     @Test
@@ -1133,6 +1164,28 @@ class DataRegistryContextTest {
             @Override
             public java.util.List<String> getAnimals() {
                 return animals;
+            }
+        };
+    }
+
+    private static ZodiacDataProvider zodiacProvider(Locale locale, String aries) {
+        return zodiacProvider(locale, aries, 12);
+    }
+
+    private static ZodiacDataProvider zodiacProvider(Locale locale, String aries, int size) {
+        java.util.List<String> signs = new java.util.ArrayList<>();
+        for (int index = 0; index < size; index++) {
+            signs.add(index == 0 ? aries : "sign-" + index);
+        }
+        return new ZodiacDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public java.util.List<String> getSigns() {
+                return signs;
             }
         };
     }

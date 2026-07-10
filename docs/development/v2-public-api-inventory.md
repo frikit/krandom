@@ -130,6 +130,10 @@ through the configuration context.
 `ChineseZodiacDataRegistry.register(...)` remains the 1.6 compatibility adapter.
 `ChineseZodiacGenerator` remains **KEEP** with no new public member and now resolves its cycle
 through the configuration context.
+`DataRegistryContext` Western-zodiac lookup, key snapshot, and builder registration are additive
+**KEEP** APIs. They provide validated twelve-item cycles scoped to one `GeneratorConfig`;
+`ZodiacDataRegistry.register(...)` remains the 1.6 compatibility adapter. `ZodiacGenerator` remains
+**KEEP** with no new public member and now resolves its cycle through the configuration context.
 
 `ProviderCatalog`, `ProviderDescriptor`, and `ProviderSchemaProjection` are additive **KEEP**
 APIs. They expose the immutable built-in definitions used by `ProviderHub`, `FieldLookup`, and

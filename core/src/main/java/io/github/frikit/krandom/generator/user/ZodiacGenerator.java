@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.time.LocalDate;
 import java.time.MonthDay;
@@ -19,9 +20,11 @@ import java.util.Random;
  * Generates locale-aware Western (tropical) zodiac signs, e.g. {@code "Scorpio"} for English or
  * {@code "Скорпион"} for Russian.
  *
- * <p>The sign names are resolved from {@link ZodiacDataRegistry} for the configured locale; locales
- * without a built-in file fall back to the bundled English names. The date boundaries themselves are
- * universal, so {@link #signFor(LocalDate)} returns the correct sign in the configured language.
+ * <p>The sign names are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link ZodiacDataRegistry}. Locales without a built-in file fall back to bundled English names.
+ * The date boundaries themselves are universal, so {@link #signFor(LocalDate)} returns the correct
+ * sign in the configured language.
  *
  * <pre>{@code
  *   String en = new ZodiacGenerator().signFor(LocalDate.of(1990, 11, 5));            // "Scorpio"
@@ -69,7 +72,8 @@ public final class ZodiacGenerator implements Generator<String> {
      */
     public ZodiacGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        ZodiacDataProvider provider = ZodiacDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        ZodiacDataProvider provider = registryContext.zodiacProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }
