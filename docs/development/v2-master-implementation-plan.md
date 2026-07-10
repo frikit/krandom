@@ -544,11 +544,11 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Run all focused correctness suites and the full pre-commit gate.
-- [ ] Run Java/Kotlin consumer examples against locally published artifacts.
-- [ ] Compare public API changes with the 1.6 baseline.
-- [ ] Review every new exception and migration note for clarity.
-- [ ] Update Stage 2 decisions and unresolved limitations.
+- [x] Run all focused correctness suites and the full pre-commit gate.
+- [x] Run Java/Kotlin consumer examples against locally published artifacts.
+- [x] Compare public API changes with the 1.6 baseline.
+- [x] Review every new exception and migration note for clarity.
+- [x] Update Stage 2 decisions and unresolved limitations.
 
 **Tests**
 
