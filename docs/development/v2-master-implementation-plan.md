@@ -524,7 +524,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Actions**
 
 - [x] Classify credit card, bank, IBAN, national ID, phone, crypto, and similar generators by validity and routability.
-- [ ] Select official processor test values/ranges or deliberately non-routable shapes where standards provide them.
+- [x] Select official processor test values/ranges or deliberately non-routable shapes where standards provide them.
 - [x] Make production-like checksum-valid output an explicit opt-in policy.
 - [x] Add provider metadata for format validity, checksum validity, semantic plausibility, and test safety.
 - [x] Include the safety policy in generation recipes and schema metadata.

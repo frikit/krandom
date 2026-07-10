@@ -133,6 +133,21 @@ class GenerationRecipeTest {
     }
 
     @Test
+    @DisplayName("replays the configured Stripe sandbox payment card policy")
+    void replaysStripeSandboxPaymentCardSafetyPolicy() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.STRIPE_SANDBOX)
+                                                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals("STRIPE_SANDBOX", recipe.getSettings().get("payment.card-safety-policy"));
+        assertEquals(PaymentCardSafetyPolicy.STRIPE_SANDBOX,
+                     recipe.toGeneratorConfig().getPaymentCardSafetyPolicy());
+    }
+
+    @Test
     @DisplayName("replays legacy recipes without a payment card safety setting as checksum-valid")
     void replaysLegacyRecipeWithoutPaymentCardSafetyPolicy() {
         GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();

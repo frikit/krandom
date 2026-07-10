@@ -16,7 +16,8 @@ import java.util.Objects;
  *
  * <p>The contained card number follows the configured {@link PaymentCardSafetyPolicy}. The
  * default deliberately fails Luhn; checksum-valid output is an explicit validator-fixture opt-in
- * and is never a real or processor-sandbox credential.
+ * and is never a real or processor-sandbox credential. {@link PaymentCardSafetyPolicy#STRIPE_SANDBOX}
+ * selects fixed Stripe sandbox values and requires Stripe sandbox/test API keys.
  */
 public final class CreditCardInfoGenerator implements Generator<CreditCardInfo> {
 

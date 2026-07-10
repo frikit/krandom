@@ -49,6 +49,9 @@ io.github.frikit.krandom.generator.GeneratorConfig$Builder#safetyPolicy(java.lan
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#providerDatasetVersion(java.lang.String)
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#paymentCardSafetyPolicy(io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy)
 io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy
+# CreditCardGenerator remains KEEP; this class-level entry covers the private Stripe sandbox
+# number mapping selected by the reviewed payment-card safety policy.
+io.github.frikit.krandom.generator.finance.CreditCardGenerator
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#bankingSafetyPolicy(io.github.frikit.krandom.generator.finance.BankingSafetyPolicy)
 io.github.frikit.krandom.generator.finance.BankingSafetyPolicy
 io.github.frikit.krandom.generator.GeneratorConfig$Builder#businessTaxIdentifierSafetyPolicy(io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy)

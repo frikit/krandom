@@ -1,6 +1,6 @@
 # V2 Financial and Identity Safety Contract
 
-**Status:** In Progress
+**Status:** Implementation in progress
 **Master plan:** [Step 2.9](v2-master-implementation-plan.md#step-29--add-explicit-financial-and-identity-safety-modes)
 
 ## Scope and vocabulary
@@ -22,7 +22,7 @@ KYC, account creation, payment authorization, or live network calls.
 **Success Criteria:** Every generator below has one documented status and no default is described
 as safe merely because it passes a validator.
 **Tests:** Classification tests and provider metadata must agree with the table.
-**Status:** In Progress
+**Status:** Complete
 
 | Family | Current behavior | v2 target |
 | --- | --- | --- |
@@ -45,7 +45,7 @@ choose checksum-valid or a named processor sandbox mode. The card's metadata say
 hold.
 **Tests:** Default values fail Luhn without losing the selected card format; checksum-valid mode
 passes Luhn; each supported sandbox value is fixed, documented, and deterministic under a seed.
-**Status:** In Progress
+**Status:** Complete
 
 Implemented on the 1.6 bridge:
 
@@ -53,19 +53,21 @@ Implemented on the 1.6 bridge:
   length rules, then deliberately changes the Luhn check digit so the generated number fails Luhn.
 - `PaymentCardSafetyPolicy.CHECKSUM_VALID` is an explicit `GeneratorConfig` opt-in for isolated
   validator fixtures. It is not an official processor sandbox mode or a usable credential.
+- `PaymentCardSafetyPolicy.STRIPE_SANDBOX` is an explicit processor mode for Stripe sandbox use.
+  It maps the supported Visa, Mastercard, American Express, Discover, JCB, and Diners Club types
+  to Stripe's published interactive test-card values. It requires Stripe sandbox/test API keys;
+  use Stripe `PaymentMethod` values such as `pm_card_visa` rather than raw card numbers in
+  server-side test code.
 - Portable recipes persist the selected policy as
   `setting.payment.card-safety-policy`, so replay retains the same card contract.
 
 Recipes created before that setting existed replay their historic checksum-valid behavior. Newly
 created recipes always write the setting explicitly and therefore preserve the new default.
 
-Processor-sandbox support remains unimplemented until the library can name the processor, its
-documented test values, and the required sandbox credential boundary without implying portability
-between processors.
-
-The processor-sandbox mode must name the processor and never imply that its values are accepted by
-another processor. Stripe documents sandbox card values and requires test API keys; use a processor
-token rather than a raw number in server-side test code when that integration supports tokens.
+The processor-specific policy is deliberately named and does not imply acceptance by another
+processor. It is not a live credential, payment method, token, or authorization to contact a live
+Stripe API. Stripe documents the sandbox values and requires test API keys; use a processor token
+or `PaymentMethod` in server-side test code when the integration supports one.
 
 ## Stage 3: Bank, phone, and identity contracts
 
@@ -165,6 +167,9 @@ Implemented provider-catalog metadata:
   means krandom makes no claim for that dimension.
 - `finance.credit_card` and `finance.credit_card_info` guarantee their documented shape and
   issuer semantics, while checksum validity and test safety are configuration-dependent.
+- Their `x-krandom-safety.policy.selected` schema metadata reports `STRIPE_SANDBOX` when selected,
+  alongside the existing payment-card policy setting. The value remains processor-specific and
+  requires Stripe sandbox/test API keys.
 - `address.phone_number` guarantees its documented output shape, has no checksum dimension, and
   makes configuration-dependent semantic and test-safety claims because the fictional range is
   deliberately limited to documented US locale-style output.

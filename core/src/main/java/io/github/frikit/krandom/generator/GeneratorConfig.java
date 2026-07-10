@@ -233,8 +233,9 @@ public final class GeneratorConfig {
      * Enforceable policy for generated payment-card numbers.
      *
      * <p>The default produces issuer-shaped numbers that deliberately fail Luhn. Select
-     * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} only for isolated validator fixtures; it is
-     * not a processor sandbox credential or authorization to contact external systems.
+     * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} only for isolated validator fixtures.
+     * {@link PaymentCardSafetyPolicy#STRIPE_SANDBOX} selects Stripe's fixed sandbox values and
+     * requires Stripe sandbox/test API keys; it is not portable to other processors.
      */
     public PaymentCardSafetyPolicy getPaymentCardSafetyPolicy() {
         return paymentCardSafetyPolicy;
@@ -1268,8 +1269,9 @@ public final class GeneratorConfig {
          * Selects the enforceable policy for generated payment-card numbers.
          *
          * <p>The default deliberately fails Luhn while preserving issuer shape and length. Choose
-         * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} only for isolated validator fixtures; it
-         * does not make generated data safe to send to a processor or another external system.
+         * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} only for isolated validator fixtures.
+         * {@link PaymentCardSafetyPolicy#STRIPE_SANDBOX} selects Stripe's fixed sandbox values
+         * and requires Stripe sandbox/test API keys; it is not portable to another processor.
          *
          * @param paymentCardSafetyPolicy card-number safety policy
          * @return this builder

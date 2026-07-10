@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add versioned, human-readable `GenerationRecipe` replay metadata for portable seeded configurations.
 
 ### Added
+- `PaymentCardSafetyPolicy.STRIPE_SANDBOX`, an explicit Stripe-only sandbox mode that maps each
+  card type supported by kRandom to Stripe's published interactive test-card number. It requires
+  Stripe sandbox/test API keys and is not portable to another processor; server-side Stripe tests
+  should use named `PaymentMethod` values instead of raw card numbers.
 - `PaymentCardSafetyPolicy`, an enforceable configuration contract for generated card numbers.
 - `PhoneNumberSafetyPolicy`, an enforceable contract for locale-style phone-number fixtures.
 - `NationalIdSafetyPolicy`, an enforceable fail-closed configuration contract for national-ID

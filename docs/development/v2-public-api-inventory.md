@@ -207,8 +207,10 @@ also additive **KEEP** metadata required by the portable recipe contract.
 `PaymentCardSafetyPolicy`, `GeneratorConfig.getPaymentCardSafetyPolicy()`, and
 `GeneratorConfig.Builder.paymentCardSafetyPolicy(...)` are additive **KEEP** APIs. The default
 produces issuer-shaped card numbers that deliberately fail Luhn; `CHECKSUM_VALID` is an explicit
-validator-fixture opt-in, not a processor sandbox credential. Portable recipes store the typed
-selection as `payment.card-safety-policy`, independently of the legacy diagnostic safety label.
+validator-fixture opt-in, not a processor sandbox credential. `STRIPE_SANDBOX` selects Stripe's
+published sandbox numbers for the card types kRandom supports and requires Stripe sandbox/test API
+keys; it is not portable to another processor. Portable recipes store the typed selection as
+`payment.card-safety-policy`, independently of the legacy diagnostic safety label.
 `PhoneNumberSafetyPolicy`, `GeneratorConfig.getPhoneNumberSafetyPolicy()`, and
 `GeneratorConfig.Builder.phoneNumberSafetyPolicy(...)` are additive **KEEP** APIs. The default
 uses NANPA's fictional 555-0100 through 555-0199 range only for US locale-style

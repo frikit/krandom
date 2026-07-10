@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -47,6 +48,28 @@ class CreditCardInfoGeneratorTest {
         CreditCardInfoGenerator two = new CreditCardInfoGenerator(config);
 
         assertEquals(one.generate(), two.generate());
+    }
+
+    @Test
+    @DisplayName("Stripe sandbox policy produces a published supported card in structured payloads")
+    void stripeSandboxStructuredPayloadUsesPublishedCard() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.STRIPE_SANDBOX)
+                                                .build();
+
+        CreditCardInfo info = new CreditCardInfoGenerator(config).generate();
+        String number = info.number().replaceAll("\\s", "");
+
+        assertTrue(Set.of(
+            "4242424242424242",
+            "5555555555554444",
+            "378282246310005",
+            "6011111111111117",
+            "3566002020360505",
+            "3056930009020004"
+        ).contains(number));
+        assertTrue(CreditCardGenerator.isValidLuhn(number));
     }
 
     @Test

@@ -22,6 +22,15 @@ public enum PaymentCardSafetyPolicy {
     TEST_SAFE_NON_ROUTABLE,
 
     /**
+     * Produces fixed card numbers published by Stripe for its sandbox.
+     *
+     * <p>Use this only with Stripe sandbox/test API keys. Stripe recommends its named
+     * {@code PaymentMethod} values instead of raw numbers for server-side test code. This policy
+     * does not make the values portable to another processor or safe for live payment APIs.
+     */
+    STRIPE_SANDBOX,
+
+    /**
      * Produces issuer-shaped numbers that pass Luhn validation.
      *
      * <p>This opt-in supports validator fixtures only. It does not make a number a processor

@@ -24,6 +24,9 @@ import java.util.Random;
  * fail Luhn validation, so format fixtures do not become checksum-valid payment-card numbers.
  * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} is an explicit validator-fixture opt-in; it does
  * not make a number a processor sandbox value, usable payment instrument, or safe external input.
+ * {@link PaymentCardSafetyPolicy#STRIPE_SANDBOX} selects fixed Stripe sandbox values and requires
+ * Stripe sandbox/test API keys; server-side Stripe tests should use a named {@code PaymentMethod}
+ * rather than a raw card number.
  * Never submit generated values to payment, account-creation, identity, or production systems.
  *
  * <p><strong>Supported Card Types:</strong>
@@ -101,6 +104,15 @@ import java.util.Random;
 public final class CreditCardGenerator implements Generator<String> {
 
     private static final DateTimeFormatter EXPIRY_FORMATTER = DateTimeFormatter.ofPattern("MM/yy");
+
+    private static final Map<CardType, String> STRIPE_SANDBOX_NUMBERS = Map.of(
+        CardType.VISA, "4242424242424242",
+        CardType.MASTERCARD, "5555555555554444",
+        CardType.AMEX, "378282246310005",
+        CardType.DISCOVER, "6011111111111117",
+        CardType.JCB, "3566002020360505",
+        CardType.DINERS_CLUB, "3056930009020004"
+    );
 
     private final GeneratorConfig config;
     private final Random          random;
@@ -393,6 +405,10 @@ public final class CreditCardGenerator implements Generator<String> {
     }
 
     private String generateCardNumber(CardType type) {
+        if (config.getPaymentCardSafetyPolicy() == PaymentCardSafetyPolicy.STRIPE_SANDBOX) {
+            return STRIPE_SANDBOX_NUMBERS.get(type);
+        }
+
         // Select a prefix pattern
         String prefix = selectPrefix(type);
 

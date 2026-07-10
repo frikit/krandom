@@ -102,6 +102,33 @@ class CreditCardGeneratorTest {
     }
 
     @Test
+    @DisplayName("Stripe sandbox policy returns documented card numbers for every supported type")
+    void stripeSandboxPolicyReturnsDocumentedCardNumbers() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.STRIPE_SANDBOX)
+                                                .build();
+        Map<CardType, String> expectedNumbers = Map.of(
+            CardType.VISA, "4242424242424242",
+            CardType.MASTERCARD, "5555555555554444",
+            CardType.AMEX, "378282246310005",
+            CardType.DISCOVER, "6011111111111117",
+            CardType.JCB, "3566002020360505",
+            CardType.DINERS_CLUB, "3056930009020004"
+        );
+
+        expectedNumbers.forEach((type, expectedNumber) -> {
+            String number = new CreditCardGenerator(config, type).generate(false);
+
+            assertEquals(expectedNumber, number);
+            assertTrue(CreditCardGenerator.isValidLuhn(number));
+        });
+
+        CreditCardInfo info = new CreditCardGenerator(config, CardType.VISA).generateCreditCardInfo();
+        assertEquals("4242424242424242", info.number().replaceAll("\\s", ""));
+        assertEquals("Visa", info.type());
+    }
+
+    @Test
     @DisplayName("faker-style credit-card API aliases are available")
     void fakerStyleAliases() {
         CreditCardGenerator gen = new CreditCardGenerator(
