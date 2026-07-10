@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `PhoneNumberSafetyPolicy`, an enforceable contract for locale-style phone-number fixtures.
 - `ProviderSafetyMetadata`, `ProviderValidity`, and `ProviderTestSafety`, describing conservative
   format, checksum, semantic-plausibility, and test-safety claims from the provider catalog.
+- `ProviderSafetyPolicy` and an `x-krandom-safety` JSON Schema extension that carries the selected
+  payment-card or phone-number safety policy for classified schema references.
 - `ProviderCatalog` definitions now centralize built-in provider keys, aliases, factories,
   schema extractors/metadata, and object-field semantic mappings for `ProviderHub` and
   `FieldLookup`.

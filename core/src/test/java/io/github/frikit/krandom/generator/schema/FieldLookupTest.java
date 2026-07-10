@@ -6,6 +6,8 @@
 package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
@@ -24,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -113,6 +116,36 @@ class FieldLookupTest {
                                                                              .jsonSchema()
                                                                              .get("properties");
         assertTrue(allowsNull((Map<?, ?>) shipmentProperties.get("deliveredOn")));
+    }
+
+    @Test
+    @DisplayName("classified schema references expose their selected safety policy")
+    void classifiedReferencesExposeSelectedSafetyPolicy() {
+        FieldLookup defaults = new FieldLookup(GeneratorConfig.defaults());
+        FieldLookup validatorFixtures = new FieldLookup(GeneratorConfig.builder()
+                                                                      .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                                                                      .phoneNumberSafetyPolicy(
+                                                                          PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                      .build());
+
+        assertEquals("GUARANTEED", safetyMetadata(defaults, "finance.credit_card_number").get("formatValidity"));
+        assertEquals("CONFIGURATION_DEPENDENT",
+                     safetyMetadata(defaults, "finance.credit_card_number").get("checksumValidity"));
+        assertEquals(Map.of("setting", "payment.card-safety-policy", "selected", "TEST_SAFE_NON_ROUTABLE"),
+                     safetyMetadata(defaults, "finance.credit_card_number").get("policy"));
+        assertEquals(Map.of("setting", "phone-number.safety-policy", "selected", "TEST_SAFE_WHERE_AVAILABLE"),
+                     safetyMetadata(defaults, "address.phone_number").get("policy"));
+        assertEquals(Map.of("setting", "payment.card-safety-policy", "selected", "CHECKSUM_VALID"),
+                     safetyMetadata(validatorFixtures, "finance.credit_card_number").get("policy"));
+        assertEquals(Map.of("setting", "phone-number.safety-policy", "selected", "REALISTIC_UNCLASSIFIED"),
+                     safetyMetadata(validatorFixtures, "address.phone_number").get("policy"));
+        assertNull(defaults.resolve("finance.cvv").jsonSchema().get("x-krandom-safety"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) new Schema(Map.of(
+            "card", defaults.resolve("finance.credit_card_number"))).toJsonSchema().get("properties");
+        assertEquals(safetyMetadata(defaults, "finance.credit_card_number"),
+                     ((Map<?, ?>) properties.get("card")).get("x-krandom-safety"));
     }
 
     @Test
@@ -289,6 +322,11 @@ class FieldLookupTest {
     private static boolean allowsNull(Map<?, ?> schema) {
         Object type = schema.get("type");
         return type instanceof Iterable<?> types && contains(types, "null");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> safetyMetadata(FieldLookup lookup, String reference) {
+        return (Map<String, Object>) lookup.resolve(reference).jsonSchema().get("x-krandom-safety");
     }
 
     private static boolean contains(Iterable<?> values, Object expected) {

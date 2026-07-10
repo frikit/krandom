@@ -84,12 +84,14 @@ public final class ProviderCatalog {
         ProviderValidity.GUARANTEED,
         ProviderValidity.CONFIGURATION_DEPENDENT,
         ProviderValidity.GUARANTEED,
-        ProviderTestSafety.CONFIGURATION_DEPENDENT);
+        ProviderTestSafety.CONFIGURATION_DEPENDENT,
+        ProviderSafetyPolicy.PAYMENT_CARD);
     private static final ProviderSafetyMetadata PHONE_NUMBER_SAFETY = new ProviderSafetyMetadata(
         ProviderValidity.GUARANTEED,
         ProviderValidity.NOT_APPLICABLE,
         ProviderValidity.CONFIGURATION_DEPENDENT,
-        ProviderTestSafety.CONFIGURATION_DEPENDENT);
+        ProviderTestSafety.CONFIGURATION_DEPENDENT,
+        ProviderSafetyPolicy.PHONE_NUMBER);
     private static final List<ProviderDescriptor<?>> BUILT_INS = buildBuiltIns();
     private static final List<ProviderDescriptor<?>> SCHEMA_ONLY_BUILT_INS = buildSchemaOnlyBuiltIns();
     private static final List<ProviderDescriptor<?>> SCHEMA_BUILT_INS = buildSchemaBuiltIns();
@@ -335,9 +337,10 @@ public final class ProviderCatalog {
             descriptor("address.phone_number", PhoneNumberGenerator.class, PhoneNumberGenerator::new,
                        List.of("phone_number"), "phone")
                 .withSafetyMetadata(PHONE_NUMBER_SAFETY)
-                .withSchemaProjections(projections(string("address.phone_number",
+                .withSchemaProjections(projections(ProviderCatalog.<PhoneNumberGenerator>string("address.phone_number",
                                                           (provider, config) -> provider.generate(),
-                                                          "phone_number"))),
+                                                          "phone_number")
+                                           .withSafetyMetadata(PHONE_NUMBER_SAFETY))),
             descriptor("address", StreetAddressGenerator.class, StreetAddressGenerator::new, List.of()),
             descriptor("internet.url", URLGenerator.class, URLGenerator::new,
                        List.of("network", "url"), "url")
@@ -403,11 +406,12 @@ public final class ProviderCatalog {
             descriptor("finance.credit_card_info", CreditCardInfoGenerator.class, CreditCardInfoGenerator::new,
                        List.of("credit_card_info"))
                 .withSafetyMetadata(PAYMENT_CARD_SAFETY)
-                .withSchemaProjections(projections(record("finance.credit_card_info",
+                .withSchemaProjections(projections(ProviderCatalog.<CreditCardInfoGenerator>record("finance.credit_card_info",
                                                           (provider, config) -> provider.generate(),
                                                           CreditCardInfo.class,
                                                           List.of("credit_card_info"),
-                                                          Set.of()))),
+                                                          Set.of())
+                                           .withSafetyMetadata(PAYMENT_CARD_SAFETY))),
             descriptor("finance.invoice_info", InvoiceInfoGenerator.class, InvoiceInfoGenerator::new,
                        List.of("invoice_info"))
                 .withSchemaProjections(projections(record("finance.invoice_info",
@@ -465,9 +469,11 @@ public final class ProviderCatalog {
         return List.of(
             descriptor("finance.credit_card", CreditCardGenerator.class, CreditCardGenerator::new, List.of())
                 .withSafetyMetadata(PAYMENT_CARD_SAFETY)
-                .withSchemaProjections(projections(string("finance.credit_card_number",
-                                                          (provider, config) -> provider.generateNumber()),
-                                                  string("finance.cvv", (provider, config) -> provider.generateCvv()))),
+                .withSchemaProjections(projections(ProviderCatalog.<CreditCardGenerator>string("finance.credit_card_number",
+                                                          (provider, config) -> provider.generateNumber())
+                                           .withSafetyMetadata(PAYMENT_CARD_SAFETY),
+                                                  ProviderCatalog.<CreditCardGenerator>string("finance.cvv",
+                                                                                                (provider, config) -> provider.generateCvv()))),
             descriptor("datetime.timezone", TimezoneGenerator.class, TimezoneGenerator::new, List.of())
                 .withSchemaProjections(projections(string("datetime.timezone",
                                                           (provider, config) -> provider.generateTimezone()))),

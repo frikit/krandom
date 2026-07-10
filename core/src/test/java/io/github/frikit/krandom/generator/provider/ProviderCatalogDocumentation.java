@@ -45,6 +45,8 @@ public final class ProviderCatalogDocumentation {
         documentation.append("local to that hub.\n\n");
         documentation.append("Safety metadata is conservative: `unclassified` means no claim. A configuration-dependent ");
         documentation.append("claim must be evaluated against the selected `GeneratorConfig` policy.\n\n");
+        documentation.append("A classified schema reference exports the same claims through its `x-krandom-safety` ");
+        documentation.append("JSON Schema extension, including the selected policy value.\n\n");
         documentation.append("## Hub providers\n\n");
         documentation.append("| Canonical key | Provider type | Hub aliases | Semantic keys | Safety metadata | Schema projections |\n");
         documentation.append("| --- | --- | --- | --- | --- | --- |\n");
@@ -94,18 +96,26 @@ public final class ProviderCatalogDocumentation {
 
     private static String schemaProjections(ProviderDescriptor<?> descriptor) {
         return descriptor.getSchemaProjections().stream()
-                         .map(projection -> "`" + projection.getReference() + "`" + aliases(projection.getAliases()))
+                         .map(projection -> "`" + projection.getReference() + "`" + aliases(projection.getAliases())
+                                            + safetySuffix(projection.getSafetyMetadata()))
                          .collect(Collectors.joining("; ", "", ""));
     }
 
     private static String safetyMetadata(ProviderDescriptor<?> descriptor) {
-        ProviderSafetyMetadata metadata = descriptor.getSafetyMetadata();
+        return safetyMetadata(descriptor.getSafetyMetadata());
+    }
+
+    private static String safetyMetadata(ProviderSafetyMetadata metadata) {
         if (metadata.equals(ProviderSafetyMetadata.unclassified())) {
             return "`unclassified`";
         }
         return "format: `" + metadata.formatValidity() + "`; checksum: `" + metadata.checksumValidity()
                + "`; semantics: `" + metadata.semanticPlausibility() + "`; test safety: `"
                + metadata.testSafety() + "`";
+    }
+
+    private static String safetySuffix(ProviderSafetyMetadata metadata) {
+        return metadata.safetyPolicy().isEmpty() ? "" : " (safety: " + safetyMetadata(metadata) + ")";
     }
 
     private static String aliases(List<String> aliases) {

@@ -9,6 +9,8 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
+import io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata;
+import io.github.frikit.krandom.generator.provider.ProviderSafetyPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderFactory;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
 
@@ -290,14 +292,34 @@ public final class FieldLookup {
         }
     }
 
-    private static Map<String, ?> jsonSchemaFor(ProviderSchemaProjection<?> projection) {
+    private Map<String, ?> jsonSchemaFor(ProviderSchemaProjection<?> projection) {
+        Map<String, Object> schema;
         if (projection.getRecordType().isPresent()) {
-            return JsonSchemaSupport.record(projection.getRecordType().orElseThrow(), projection.getNullableComponents());
+            schema = JsonSchemaSupport.record(projection.getRecordType().orElseThrow(), projection.getNullableComponents());
+        } else if (projection.isInteger()) {
+            schema = JsonSchemaSupport.integer();
+        } else {
+            schema = projection.getFormat().map(JsonSchemaSupport::stringFormat).orElseGet(JsonSchemaSupport::string);
         }
-        if (projection.isInteger()) {
-            return JsonSchemaSupport.integer();
+        return withSafetyMetadata(schema, projection.getSafetyMetadata());
+    }
+
+    private Map<String, Object> withSafetyMetadata(Map<String, Object> schema, ProviderSafetyMetadata metadata) {
+        if (metadata.safetyPolicy().isEmpty()) {
+            return schema;
         }
-        return projection.getFormat().map(JsonSchemaSupport::stringFormat).orElseGet(JsonSchemaSupport::string);
+        ProviderSafetyPolicy safetyPolicy = metadata.safetyPolicy().orElseThrow();
+        Map<String, Object> policy = Map.of("setting", safetyPolicy.getSetting(),
+                                            "selected", safetyPolicy.selectedValue(config));
+        Map<String, Object> safety = new LinkedHashMap<>();
+        safety.put("formatValidity", metadata.formatValidity().name());
+        safety.put("checksumValidity", metadata.checksumValidity().name());
+        safety.put("semanticPlausibility", metadata.semanticPlausibility().name());
+        safety.put("testSafety", metadata.testSafety().name());
+        safety.put("policy", policy);
+        Map<String, Object> extended = new LinkedHashMap<>(schema);
+        extended.put("x-krandom-safety", Collections.unmodifiableMap(safety));
+        return Collections.unmodifiableMap(extended);
     }
 
     private void registerBuiltIns() {

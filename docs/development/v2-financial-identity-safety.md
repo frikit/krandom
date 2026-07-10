@@ -109,6 +109,9 @@ Implemented provider-catalog metadata:
   deliberately limited to documented US locale-style output.
 - The generated [provider catalog reference](../reference/provider-catalog.md) renders the exact
   catalog metadata, and its snapshot test prevents documentation drift.
+- Each classified `FieldLookup` schema projection adds an `x-krandom-safety` extension with those
+  claims plus a nested `policy.setting` and the selected `policy.selected` value. `finance.cvv`
+  intentionally has no extension: the card-number policy does not change CVV generation.
 
 ## Sources
 

@@ -16,8 +16,8 @@ import java.util.function.BiFunction;
 /**
  * Typed schema reference produced from a provider instance.
  *
- * <p>The projection describes a schema token, its aliases, extractor, and JSON Schema shape.
- * `FieldLookup` turns this descriptor into a config-scoped value provider.
+ * <p>The projection describes a schema token, its aliases, extractor, JSON Schema shape, and
+ * safety metadata. `FieldLookup` turns this descriptor into a config-scoped value provider.
  *
  * @param <T> provider implementation type
  */
@@ -30,6 +30,7 @@ public final class ProviderSchemaProjection<T> {
     private final String                        format;
     private final Class<?>                      recordType;
     private final Set<String>                   nullableComponents;
+    private final ProviderSafetyMetadata        safetyMetadata;
 
     ProviderSchemaProjection(String reference,
                              List<String> aliases,
@@ -38,6 +39,24 @@ public final class ProviderSchemaProjection<T> {
                              String format,
                              Class<?> recordType,
                              Set<String> nullableComponents) {
+        this(reference,
+             aliases,
+             extractor,
+             integer,
+             format,
+             recordType,
+             nullableComponents,
+             ProviderSafetyMetadata.unclassified());
+    }
+
+    ProviderSchemaProjection(String reference,
+                             List<String> aliases,
+                             BiFunction<? super T, GeneratorConfig, ?> extractor,
+                             boolean integer,
+                             String format,
+                             Class<?> recordType,
+                             Set<String> nullableComponents,
+                             ProviderSafetyMetadata safetyMetadata) {
         this.reference = Objects.requireNonNull(reference, "reference must not be null");
         this.aliases = List.copyOf(Objects.requireNonNull(aliases, "aliases must not be null"));
         this.extractor = Objects.requireNonNull(extractor, "extractor must not be null");
@@ -46,6 +65,7 @@ public final class ProviderSchemaProjection<T> {
         this.recordType = recordType;
         this.nullableComponents = Set.copyOf(
             Objects.requireNonNull(nullableComponents, "nullableComponents must not be null"));
+        this.safetyMetadata = Objects.requireNonNull(safetyMetadata, "safetyMetadata must not be null");
     }
 
     /**
@@ -103,6 +123,15 @@ public final class ProviderSchemaProjection<T> {
     }
 
     /**
+     * Returns validity and test-safety claims for this specific schema reference.
+     *
+     * @return immutable schema-reference safety metadata
+     */
+    public ProviderSafetyMetadata getSafetyMetadata() {
+        return safetyMetadata;
+    }
+
+    /**
      * Extracts one schema value from a typed provider and configuration.
      *
      * @param provider provider instance
@@ -111,5 +140,16 @@ public final class ProviderSchemaProjection<T> {
      */
     public Object extract(T provider, GeneratorConfig config) {
         return extractor.apply(provider, config);
+    }
+
+    ProviderSchemaProjection<T> withSafetyMetadata(ProviderSafetyMetadata metadata) {
+        return new ProviderSchemaProjection<>(reference,
+                                              aliases,
+                                              extractor,
+                                              integer,
+                                              format,
+                                              recordType,
+                                              nullableComponents,
+                                              metadata);
     }
 }

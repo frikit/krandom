@@ -19,6 +19,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ProviderCatalog")
 class ProviderCatalogTest {
@@ -94,11 +95,13 @@ class ProviderCatalogTest {
         assertEquals(ProviderValidity.CONFIGURATION_DEPENDENT, cards.getSafetyMetadata().checksumValidity());
         assertEquals(ProviderValidity.GUARANTEED, cards.getSafetyMetadata().semanticPlausibility());
         assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, cards.getSafetyMetadata().testSafety());
+        assertEquals(ProviderSafetyPolicy.PAYMENT_CARD, cards.getSafetyMetadata().safetyPolicy().orElseThrow());
         assertEquals(cards.getSafetyMetadata(), cardInfo.getSafetyMetadata());
         assertEquals(ProviderValidity.GUARANTEED, phones.getSafetyMetadata().formatValidity());
         assertEquals(ProviderValidity.NOT_APPLICABLE, phones.getSafetyMetadata().checksumValidity());
         assertEquals(ProviderValidity.CONFIGURATION_DEPENDENT, phones.getSafetyMetadata().semanticPlausibility());
         assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, phones.getSafetyMetadata().testSafety());
+        assertEquals(ProviderSafetyPolicy.PHONE_NUMBER, phones.getSafetyMetadata().safetyPolicy().orElseThrow());
     }
 
     @Test
@@ -110,6 +113,7 @@ class ProviderCatalogTest {
         assertEquals(ProviderValidity.UNCLASSIFIED, metadata.checksumValidity());
         assertEquals(ProviderValidity.UNCLASSIFIED, metadata.semanticPlausibility());
         assertEquals(ProviderTestSafety.UNCLASSIFIED, metadata.testSafety());
+        assertTrue(metadata.safetyPolicy().isEmpty());
     }
 
     @Test

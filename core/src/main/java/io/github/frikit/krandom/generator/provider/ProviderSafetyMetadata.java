@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.provider;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Capability claims for a provider's format, checksum, semantics, and test safety.
@@ -18,17 +19,56 @@ import java.util.Objects;
  * @param checksumValidity whether checksum behavior is guaranteed
  * @param semanticPlausibility whether the output is semantically plausible
  * @param testSafety whether the output is non-routable or otherwise suitable as a test fixture
+ * @param safetyPolicy optional configuration policy that determines the safety contract
  */
 public record ProviderSafetyMetadata(ProviderValidity formatValidity,
                                      ProviderValidity checksumValidity,
                                      ProviderValidity semanticPlausibility,
-                                     ProviderTestSafety testSafety) {
+                                     ProviderTestSafety testSafety,
+                                     Optional<ProviderSafetyPolicy> safetyPolicy) {
+
+    /**
+     * Creates metadata without a configuration-dependent safety policy.
+     *
+     * @param formatValidity whether the documented output format is guaranteed
+     * @param checksumValidity whether checksum behavior is guaranteed
+     * @param semanticPlausibility whether the output is semantically plausible
+     * @param testSafety whether the output is suitable as a test fixture
+     */
+    public ProviderSafetyMetadata(ProviderValidity formatValidity,
+                                  ProviderValidity checksumValidity,
+                                  ProviderValidity semanticPlausibility,
+                                  ProviderTestSafety testSafety) {
+        this(formatValidity, checksumValidity, semanticPlausibility, testSafety, Optional.empty());
+    }
+
+    /**
+     * Creates metadata controlled by one configuration safety policy.
+     *
+     * @param formatValidity whether the documented output format is guaranteed
+     * @param checksumValidity whether checksum behavior is guaranteed
+     * @param semanticPlausibility whether the output is semantically plausible
+     * @param testSafety whether the output is suitable as a test fixture
+     * @param safetyPolicy policy that determines the safety contract
+     */
+    public ProviderSafetyMetadata(ProviderValidity formatValidity,
+                                  ProviderValidity checksumValidity,
+                                  ProviderValidity semanticPlausibility,
+                                  ProviderTestSafety testSafety,
+                                  ProviderSafetyPolicy safetyPolicy) {
+        this(formatValidity,
+             checksumValidity,
+             semanticPlausibility,
+             testSafety,
+             Optional.of(Objects.requireNonNull(safetyPolicy, "safetyPolicy must not be null")));
+    }
 
     public ProviderSafetyMetadata {
         Objects.requireNonNull(formatValidity, "formatValidity must not be null");
         Objects.requireNonNull(checksumValidity, "checksumValidity must not be null");
         Objects.requireNonNull(semanticPlausibility, "semanticPlausibility must not be null");
         Objects.requireNonNull(testSafety, "testSafety must not be null");
+        safetyPolicy = Objects.requireNonNull(safetyPolicy, "safetyPolicy must not be null");
     }
 
     static ProviderSafetyMetadata unclassified() {

@@ -6,6 +6,8 @@
 
 Safety metadata is conservative: `unclassified` means no claim. A configuration-dependent claim must be evaluated against the selected `GeneratorConfig` policy.
 
+A classified schema reference exports the same claims through its `x-krandom-safety` JSON Schema extension, including the selected policy value.
+
 ## Hub providers
 
 | Canonical key | Provider type | Hub aliases | Semantic keys | Safety metadata | Schema projections |
@@ -33,7 +35,7 @@ Safety metadata is conservative: `unclassified` means no claim. A configuration-
 | `address.state` | `StateGenerator` | `state` | `state` | `unclassified` | `address.state` (aliases: `state`) |
 | `address.postal_code` | `PostalCodeGenerator` | `postal_code` | `postalcode` | `unclassified` | `address.postal_code` (aliases: `postal_code`) |
 | `address.country` | `CountryGenerator` | `country` | `country` | `unclassified` | `address.country` (aliases: `country`) |
-| `address.phone_number` | `PhoneNumberGenerator` | `phone_number` | `phone` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `address.phone_number` (aliases: `phone_number`) |
+| `address.phone_number` | `PhoneNumberGenerator` | `phone_number` | `phone` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `address.phone_number` (aliases: `phone_number`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
 | `address` | `StreetAddressGenerator` |  |  | `unclassified` |  |
 | `internet.url` | `URLGenerator` | `network`, `url` | `url` | `unclassified` | `internet.url` (aliases: `network`, `url`) |
 | `internet.domain` | `DomainGenerator` | `domain` | `domain` | `unclassified` | `internet.domain` (aliases: `domain`) |
@@ -45,7 +47,7 @@ Safety metadata is conservative: `unclassified` means no claim. A configuration-
 | `finance.money` | `MoneyGenerator` | `money` |  | `unclassified` | `finance.price` (aliases: `finance.money`, `money`); `finance` |
 | `finance.currency` | `CurrencyGenerator` | `currency` | `currency` | `unclassified` | `finance.currency_iso_code` (aliases: `currency`, `finance.currency`) |
 | `finance.bank_info` | `BankInfoGenerator` | `bank_info` |  | `unclassified` | `finance.bank_info` (aliases: `bank_info`) |
-| `finance.credit_card_info` | `CreditCardInfoGenerator` | `credit_card_info` |  | format: `GUARANTEED`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `GUARANTEED`; test safety: `CONFIGURATION_DEPENDENT` | `finance.credit_card_info` (aliases: `credit_card_info`) |
+| `finance.credit_card_info` | `CreditCardInfoGenerator` | `credit_card_info` |  | format: `GUARANTEED`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `GUARANTEED`; test safety: `CONFIGURATION_DEPENDENT` | `finance.credit_card_info` (aliases: `credit_card_info`) (safety: format: `GUARANTEED`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `GUARANTEED`; test safety: `CONFIGURATION_DEPENDENT`) |
 | `finance.invoice_info` | `InvoiceInfoGenerator` | `invoice_info` |  | `unclassified` | `finance.invoice_info` (aliases: `invoice_info`) |
 | `finance.payment_info` | `PaymentInfoGenerator` | `payment_info` |  | `unclassified` | `finance.payment_info` (aliases: `payment_info`) |
 | `finance` | `MoneyGenerator` |  |  | `unclassified` |  |
@@ -66,7 +68,7 @@ These projections are available through `FieldLookup` but are not registered in 
 
 | Canonical key | Provider type | Safety metadata | Schema projections |
 | --- | --- | --- | --- |
-| `finance.credit_card` | `CreditCardGenerator` | format: `GUARANTEED`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `GUARANTEED`; test safety: `CONFIGURATION_DEPENDENT` | `finance.credit_card_number`; `finance.cvv` |
+| `finance.credit_card` | `CreditCardGenerator` | format: `GUARANTEED`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `GUARANTEED`; test safety: `CONFIGURATION_DEPENDENT` | `finance.credit_card_number` (safety: format: `GUARANTEED`; checksum: `CONFIGURATION_DEPENDENT`; semantics: `GUARANTEED`; test safety: `CONFIGURATION_DEPENDENT`); `finance.cvv` |
 | `datetime.timezone` | `TimezoneGenerator` | `unclassified` | `datetime.timezone` |
 | `code.ean13` | `EanGenerator` | `unclassified` | `code.ean13` |
 | `code.upc` | `UpcGenerator` | `unclassified` | `code.upc` |
