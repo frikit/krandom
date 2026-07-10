@@ -27,6 +27,7 @@ io.github.frikit.krandom.generator.GeneratorConfig$Builder
 # Versioned portable replay recipe; see v2-generation-recipes.md.
 io.github.frikit.krandom.generator.GenerationRecipe
 io.github.frikit.krandom.generator.GenerationRecipe$Builder
+io.github.frikit.krandom.generator.GenerationRecipe#deriveChildSeed(long,java.lang.String)
 io.github.frikit.krandom.generator.GeneratorConfig#getGenerationProfile()
 io.github.frikit.krandom.generator.GeneratorConfig#getSafetyPolicy()
 io.github.frikit.krandom.generator.GeneratorConfig#getProviderDatasetVersion()

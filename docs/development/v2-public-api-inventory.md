@@ -140,6 +140,8 @@ fixed clock. `GeneratorConfig.getGenerationRecipe()` is intentionally optional: 
 secure, callback-backed, and custom-registry configurations do not expose a misleading partial
 recipe. The `generationProfile`, `safetyPolicy`, and `providerDatasetVersion` config labels are
 also additive **KEEP** metadata required by the portable recipe contract.
+`GenerationRecipe.deriveChildSeed(...)` is additive **KEEP**: object and schema internals use it
+for named structural streams, and its algorithm is pinned by the recipe version.
 `Field` remains **KEEP** with no new public members; its exact class-level classification covers
 the package-private non-throwing membership probe used by schema semantic resolution.
 `Schema` remains **KEEP** with no new public members; its exact class-level classification covers

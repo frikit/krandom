@@ -57,6 +57,11 @@ import java.util.stream.Collectors;
  *       returning a previously cached instance (or {@code null}) instead of recursing.</li>
  * </ul>
  *
+ * <p>With a portable seeded {@link GeneratorConfig}, each field, record component, and
+ * constructor argument receives a named child stream. Adding an unrelated member therefore does
+ * not perturb existing members; nested objects establish their own member streams from the parent
+ * member seed. Caller-owned, secure, and unseeded configurations retain sequential behavior.
+ *
  * <p><b>Usage</b>
  * <pre>{@code
  *   // Minimal
@@ -427,13 +432,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (config.shouldExclude(backingFields[i])) {
                 args[i] = defaultForType(comp.getType());
             } else {
-                args[i] = resolver.resolveAndGenerate(
+                args[i] = resolver.resolveAndGenerateMember(
                     comp.getGenericType(),
                     comp.getType(),
                     comp.getName(),
                     type,
                     depth,
-                    backingFields[i]);
+                    backingFields[i],
+                    memberStreamIdentity(type, "record", comp.getName()));
             }
         }
         coherenceAdjuster.adjustRecordArguments(type, components, backingFields, args);
@@ -482,8 +488,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 typePath(),
                 type,
                 depth,
-                (genericType, rawType, memberName, element) -> resolver.resolveAndGenerate(
-                    genericType, rawType, memberName, type, depth, element),
+                (genericType, rawType, memberName, element) -> resolver.resolveAndGenerateMember(
+                    genericType,
+                    rawType,
+                    memberName,
+                    type,
+                    depth,
+                    element,
+                    memberStreamIdentity(type, "constructor", memberName)),
                 this::hasExplicitConstructionOverride));
             if (value == null) {
                 throw new IllegalStateException(adapter.getClass().getName() + " returned null");
@@ -560,13 +572,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (!config.isOverrideDefaultInitialization() && hasNonDefaultValue(instance, field)) {
                 continue;
             }
-            Object value = resolver.resolveAndGenerate(
+            Object value = resolver.resolveAndGenerateMember(
                 field.getGenericType(),
                 field.getType(),
                 field.getName(),
                 field.getDeclaringClass(),
                 depth,
-                field);
+                field,
+                memberStreamIdentity(field.getDeclaringClass(), "field", field.getName()));
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -649,13 +662,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
         Object[] arguments = new Object[parameters.length];
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
-            arguments[index] = resolver.resolveAndGenerate(
+            arguments[index] = resolver.resolveAndGenerateMember(
                 parameter.getParameterizedType(),
                 parameter.getType(),
                 "constructorArg" + index,
                 type,
                 depth,
-                parameter);
+                parameter,
+                memberStreamIdentity(type, "constructor", Integer.toString(index)));
         }
         return constructor.newInstance(arguments);
     }
@@ -667,6 +681,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
      */
     private List<Field> collectSettableFields(Class<?> clazz) {
         return SETTABLE_FIELDS.get(clazz);
+    }
+
+    private static String memberStreamIdentity(Class<?> ownerType, String kind, String memberName) {
+        return "object|owner=" + ownerType.getName().length() + ':' + ownerType.getName()
+               + "|kind=" + kind + "|member=" + memberName.length() + ':' + memberName;
     }
 
     private static List<Field> doCollectSettableFields(Class<?> clazz) {

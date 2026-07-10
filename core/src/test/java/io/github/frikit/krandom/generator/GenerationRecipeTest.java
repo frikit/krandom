@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
+import io.github.frikit.krandom.generator.base.DigitGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -238,6 +239,16 @@ class GenerationRecipeTest {
         assertEquals(original.getObjectOptionalEmptyProbability(), replay.getObjectOptionalEmptyProbability());
         assertEquals(original.getObjectUniqueFieldNames(), replay.getObjectUniqueFieldNames());
         assertEquals(original.getObjectUniquenessMaxAttempts(), replay.getObjectUniquenessMaxAttempts());
+    }
+
+    @Test
+    @DisplayName("a recipe replays a representative scalar generator sequence")
+    void recipeReplaysScalarGenerator() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(101L).build();
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals(new DigitGenerator(config).generateList(12),
+                     new DigitGenerator(recipe.toGeneratorConfig()).generateList(12));
     }
 
     @Test

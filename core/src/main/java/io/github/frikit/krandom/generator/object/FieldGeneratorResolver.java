@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.object;
 import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
@@ -186,6 +187,8 @@ final class FieldGeneratorResolver {
     private final GeneratorConfig       generatorConfig;
     private final ObjectPool            pool;
     private final UniqueFieldTracker    uniqueFieldTracker;
+    private final Long                  generationSeed;
+    private final boolean               namedChildStreams;
     private final Random                sequenceRandom;
     private final Map<Class<?>, Generator<?>> builtins;
     private final Map<String, Generator<?>>   semanticStringGenerators;
@@ -205,6 +208,8 @@ final class FieldGeneratorResolver {
         this.generatorConfig = config.getGeneratorConfig();
         this.pool = pool;
         this.uniqueFieldTracker = uniqueFieldTracker;
+        this.generationSeed = generationSeed;
+        this.namedChildStreams = generationSeed != null && this.generatorConfig.getGenerationRecipe().isPresent();
         this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
         this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
         this.semanticRegistry = config.getSemanticRegistry();
@@ -1636,6 +1641,25 @@ final class FieldGeneratorResolver {
 
         // ── 9. Unsupported type ───────────────────────────────────────────────
         return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+    }
+
+    Object resolveAndGenerateMember(Type genericType,
+                                    Class<?> rawType,
+                                    String fieldName,
+                                    Class<?> ownerType,
+                                    int currentDepth,
+                                    AnnotatedElement element,
+                                    String streamIdentity) {
+        if (!namedChildStreams) {
+            return resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element);
+        }
+        FieldGeneratorResolver childResolver = new FieldGeneratorResolver(
+            config,
+            pool,
+            uniqueFieldTracker,
+            GenerationRecipe.deriveChildSeed(Objects.requireNonNull(generationSeed), streamIdentity),
+            typeBindings);
+        return childResolver.resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element);
     }
 
     private Map<TypeVariable<?>, Type> nestedTypeBindings(ResolvedType resolvedType, Class<?> nestedType) {

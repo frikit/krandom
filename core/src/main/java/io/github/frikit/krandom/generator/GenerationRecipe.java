@@ -276,7 +276,7 @@ public final class GenerationRecipe {
      * @return fresh child random source
      */
     public Random childRandom(String streamIdentity) {
-        return new Random(deriveChildSeed(streamIdentity));
+        return new Random(deriveChildSeed(seed, streamIdentity));
     }
 
     /**
@@ -344,11 +344,21 @@ public final class GenerationRecipe {
         return serialize().hashCode();
     }
 
-    private long deriveChildSeed(String streamIdentity) {
+    /**
+     * Derives the stable child seed used by recipe version {@value #RECIPE_VERSION}.
+     *
+     * <p>This is the low-level form of {@link #childRandom(String)} for internal generation
+     * boundaries that already hold a deterministic parent seed.
+     *
+     * @param parentSeed parent stream seed
+     * @param streamIdentity non-blank structural stream identity
+     * @return deterministic child seed
+     */
+    public static long deriveChildSeed(long parentSeed, String streamIdentity) {
         String identity = requireToken("streamIdentity", streamIdentity);
         long hash = FNV1A_64_OFFSET_BASIS;
         for (int shift = 0; shift < Long.SIZE; shift += Byte.SIZE) {
-            hash ^= (seed >>> shift) & 0xffL;
+            hash ^= (parentSeed >>> shift) & 0xffL;
             hash *= FNV1A_64_PRIME;
         }
         for (byte value : identity.getBytes(StandardCharsets.UTF_8)) {

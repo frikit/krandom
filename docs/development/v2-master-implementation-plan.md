@@ -479,15 +479,15 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [x] Define `GenerationRecipe` fields: library version, recipe version, algorithm, seed, locale, clock, profile, safety policy, construction policy, and provider dataset version.
 - [x] Make recipes serializable in a stable, human-readable form.
-- [ ] Derive named child streams for object fields and schema columns so unrelated additions do not reorder all downstream values.
-- [ ] Define how repeated fields, lists, maps, recursion, and parallel generation derive stream identities.
+- [x] Derive named child streams for object fields and schema columns so unrelated additions do not reorder all downstream values.
+- [x] Define how repeated fields, lists, maps, recursion, and parallel generation derive stream identities.
 - [ ] Make failure messages and test integrations print a safe replay recipe.
-- [ ] Add an explicit compatibility policy for recipe/algorithm changes.
+- [x] Add an explicit compatibility policy for recipe/algorithm changes.
 
 **Tests**
 
 - [ ] Add checked-in golden streams per representative generator family.
-- [ ] Prove recipes replay scalar, object, and schema outputs.
+- [x] Prove recipes replay scalar, object, and schema outputs.
 - [ ] Prove adding an unrelated object field does not perturb existing named fields where the contract promises stability.
 - [ ] Prove locale, clock, provider data, and safety-policy changes appear in the recipe.
 

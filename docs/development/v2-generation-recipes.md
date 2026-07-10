@@ -78,8 +78,17 @@ checked-in golden streams.
 Schema now derives the stream identity `schema|record=<index>|field=<length>:<name>` for every
 portable seeded field. The focused stability test proves that inserting an unrelated column before
 existing columns does not change their values, and that a serialized recipe replays several record
-indexes exactly. Object fields, collection elements, map entries, and recursive objects remain in
-this stage.
+indexes exactly.
+
+Object members use `object|owner=<length>:<owner>|kind=<kind>|member=<length>:<member>`. The
+member's child seed creates its resolver, so another field cannot consume its random values. Nested
+objects receive the parent member's deterministic child seed and establish their own member streams.
+Arrays, lists, sets, and maps consume their member stream in deterministic encounter order; array
+and list entries use their zero-based index, sets use insertion order, and maps use each key/value
+pair's insertion order. Appending a repeated value preserves existing positions; inserting one
+before another intentionally changes its positional identity. Parallel calls remain memory-safe but
+the ordering of calls on one mutable generator is not a replay contract—use one generator per task
+or replay each task from a separate recipe.
 
 ## Stage 3: Surface replay safely
 
