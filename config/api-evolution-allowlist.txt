@@ -254,3 +254,18 @@ io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata
 io.github.frikit.krandom.generator.provider.ProviderSafetyPolicy
 io.github.frikit.krandom.generator.provider.ProviderValidity
 io.github.frikit.krandom.generator.provider.ProviderTestSafety
+
+# Reflective reseeding fallbacks are deprecated 1.6 bridges pending v2 removal; see
+# docs/migration/v1.6-to-v2.md "Typed reseeding".
+io.github.frikit.krandom.generator.Generator#reseed(long)
+io.github.frikit.krandom.generator.Generator#reseed(java.lang.String)
+
+# Deprecated 1.6 facade aliases pending v2 removal; canonical names are classified above and
+# migration rows exist in docs/migration/v1.6-to-v2.md. Classified late: the evolution gate
+# compared a stale core jar when these were deprecated.
+io.github.frikit.krandom.generator.Generators#constant(java.lang.Object)
+io.github.frikit.krandom.generator.Generators#pickFrom(java.util.List)
+io.github.frikit.krandom.generator.Generators#pickset(java.util.List,int)
+io.github.frikit.krandom.generator.Generators#pickSetFrom(java.util.List,int)
+io.github.frikit.krandom.generator.Generators#shuffleOf(java.util.List)
+io.github.frikit.krandom.generator.Generators#uniqueValues(io.github.frikit.krandom.generator.Generator)
