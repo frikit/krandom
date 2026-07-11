@@ -39,8 +39,8 @@ public final class AtomicLongGenerator implements Generator<AtomicLong>, Seedabl
     }
 
     private AtomicLongGenerator(long min, long max, GeneratorConfig config) {
-        if (min == max) {
-            throw new IllegalArgumentException("min and max must differ, both were: " + min);
+        if (min >= max) {
+            throw new IllegalArgumentException("min must be less than max, got: min=" + min + ", max=" + max);
         }
         this.min = min;
         this.max = max;

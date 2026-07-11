@@ -20,8 +20,8 @@ import java.util.random.RandomGenerator;
  *   <li>Owns the {@link RandomGenerator} instance ({@link Random}).</li>
  *   <li>Stores the default {@code min} / {@code max} bounds.</li>
  *   <li>Delegates no-arg {@link #generate()} to {@link #generate(Comparable, Comparable)}.</li>
- *   <li>Provides {@link #validate(Number, Number)}, {@link #lo(Number, Number)}, and
- *       {@link #hi(Number, Number)} helpers to concrete subclasses.</li>
+ *   <li>Provides the strict {@link #validate(Number, Number)} bound check to concrete
+ *       subclasses; reversed bounds are rejected, never swapped.</li>
  * </ul>
  *
  * @param <T> numeric type; must extend {@link Number} and implement {@link Comparable}
@@ -80,29 +80,20 @@ public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
     // ── Helpers for subclasses ────────────────────────────────────────────────
 
     /**
-     * Assert that {@code a} and {@code b} are not equal.
+     * Assert that {@code min} is strictly less than {@code max}.
      * Called inside each {@code generate(min, max)} implementation.
+     *
+     * <p>v2 never swaps reversed bounds: a caller mistake fails immediately instead of silently
+     * producing values from a range the caller did not write.
+     *
+     * @throws IllegalArgumentException if {@code min >= max}
      */
-    protected void validate(T a, T b) {
-        Objects.requireNonNull(a, "min must not be null");
-        Objects.requireNonNull(b, "max must not be null");
-        if (a.compareTo(b) == 0) {
+    protected void validate(T min, T max) {
+        Objects.requireNonNull(min, "min must not be null");
+        Objects.requireNonNull(max, "max must not be null");
+        if (min.compareTo(max) >= 0) {
             throw new IllegalArgumentException(
-                "min and max must differ, both were: " + a);
+                "min must be less than max, got: min=" + min + ", max=" + max);
         }
-    }
-
-    /**
-     * Return the lesser of two comparable values.
-     */
-    protected T lo(T a, T b) {
-        return a.compareTo(b) <= 0 ? a : b;
-    }
-
-    /**
-     * Return the greater of two comparable values.
-     */
-    protected T hi(T a, T b) {
-        return a.compareTo(b) >= 0 ? a : b;
     }
 }

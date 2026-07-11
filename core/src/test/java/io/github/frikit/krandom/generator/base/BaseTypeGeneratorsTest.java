@@ -204,14 +204,21 @@ class BaseTypeGeneratorsTest {
         }
 
         @Test
-        @DisplayName("generate(high, low) swaps bounds via lo/hi helpers")
-        void reversedBoundsAreSwapped() {
-            // Exercises the lo() "return b" and hi() "return a" branches in AbstractBoundedGenerator
+        @DisplayName("reversed and equal bounds fail with one consistent message")
+        void reversedAndEqualBoundsAreRejected() {
             IntGenerator gen = new IntGenerator();
-            for (int i = 0; i < SAMPLES; i++) {
-                int v = gen.generate(20, 10);
-                assertTrue(v >= 10 && v < 20, "Expected [10, 20) after swap, got: " + v);
-            }
+            IllegalArgumentException reversed =
+                assertThrows(IllegalArgumentException.class, () -> gen.generate(20, 10));
+            assertTrue(reversed.getMessage().contains("min must be less than max"), reversed.getMessage());
+            IllegalArgumentException equal =
+                assertThrows(IllegalArgumentException.class, () -> gen.generate(10, 10));
+            assertTrue(equal.getMessage().contains("min must be less than max"), equal.getMessage());
+
+            assertThrows(IllegalArgumentException.class, () -> new LongGenerator().generate(20L, 10L));
+            assertThrows(IllegalArgumentException.class, () -> new DoubleGenerator().generate(2.0, 1.0));
+            assertThrows(IllegalArgumentException.class, () -> new FloatGenerator().generate(2.0f, 1.0f));
+            assertThrows(IllegalArgumentException.class, () -> new ShortGenerator().generate((short) 9, (short) 3));
+            assertThrows(IllegalArgumentException.class, () -> new ByteGenerator().generate((byte) 9, (byte) 3));
         }
 
         @Test

@@ -34,13 +34,11 @@ public final class IntGenerator extends AbstractBoundedGenerator<Integer> {
     /**
      * Generate an int in the half-open range [{@code min}, {@code max}).
      *
-     * @throws IllegalArgumentException if {@code min == max}
+     * @throws IllegalArgumentException if {@code min >= max}
      */
     @Override
     public Integer generate(Integer min, Integer max) {
         validate(min, max);
-        int lo = lo(min, max);
-        int hi = hi(min, max);
-        return random.nextInt(lo, hi);
+                return random.nextInt(min, max);
     }
 }

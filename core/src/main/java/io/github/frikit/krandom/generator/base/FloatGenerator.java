@@ -73,14 +73,12 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
      * <p>If precision is set via {@link #withPrecision(int)}, the result is rounded
      * to the specified number of decimal places.
      *
-     * @throws IllegalArgumentException if {@code min == max}
+     * @throws IllegalArgumentException if {@code min >= max}
      */
     @Override
     public Float generate(Float min, Float max) {
         validate(min, max);
-        float lo = lo(min, max);
-        float hi = hi(min, max);
-        float value = random.nextFloat(lo, hi);
+                float value = random.nextFloat(min, max);
 
         if (precision != null) {
             BigDecimal bd = BigDecimal.valueOf(value);

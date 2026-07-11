@@ -304,3 +304,7 @@ io.github.frikit.krandom.generator.user.LastNameDataRegistry
 io.github.frikit.krandom.generator.user.ProfessionDataRegistry
 io.github.frikit.krandom.generator.user.SuffixDataRegistry
 io.github.frikit.krandom.generator.user.TitleDataRegistry
+
+# v2 strict bound semantics (D5): validate rejects min >= max and the protected lo/hi swap
+# helpers are removed; reversed bounds now fail instead of silently swapping.
+io.github.frikit.krandom.generator.base.AbstractBoundedGenerator

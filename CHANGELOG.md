@@ -143,6 +143,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   replay contract. Reseed through the typed `Seedable` contract instead; see
   `docs/migration/v1.6-to-v2.md`.
 
+### Changed (breaking)
+- Bounded generators enforce strict bound semantics: `min >= max` now throws
+  `IllegalArgumentException` with one consistent message across int, long, double, float, short,
+  byte, prime, number, and atomic generators. Reversed bounds were previously swapped silently;
+  v2 never swaps a caller mistake. The protected `lo`/`hi` helpers on
+  `AbstractBoundedGenerator` are removed.
+
 ### Removed
 - The 1.6-deprecated `Generators` facade aliases `constant`, `pickFrom`, `pickset`,
   `pickSetFrom`, `shuffleOf`, and `uniqueValues`. Use the canonical `ofConstant`, `pick`,

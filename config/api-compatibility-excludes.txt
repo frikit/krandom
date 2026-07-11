@@ -69,3 +69,6 @@ io.github.frikit.krandom.generator.finance.IsinGenerator
 io.github.frikit.krandom.generator.user.DrivingLicenseGenerator
 io.github.frikit.krandom.generator.user.PassportGenerator
 io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator
+
+# v2 strict bound semantics (D5): protected lo/hi swap helpers removed from the bounded base.
+io.github.frikit.krandom.generator.base.AbstractBoundedGenerator

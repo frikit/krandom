@@ -32,13 +32,13 @@ public final class ByteGenerator extends AbstractBoundedGenerator<Byte> {
     /**
      * Generate a byte in the half-open range [{@code min}, {@code max}).
      *
-     * @throws IllegalArgumentException if {@code min == max}
+     * @throws IllegalArgumentException if {@code min >= max}
      */
     @Override
     public Byte generate(Byte min, Byte max) {
         validate(min, max);
-        int lo = lo(min, max).intValue();
-        int hi = hi(min, max).intValue();
+        int lo = min.intValue();
+        int hi = max.intValue();
         return (byte) random.nextInt(lo, hi);
     }
 }

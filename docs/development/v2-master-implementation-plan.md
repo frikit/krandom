@@ -611,14 +611,14 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [ ] Make `map`, `filter`, and other decorators preserve seed/replay behavior when their source supports it.
 - [ ] Replace runtime-optional reseeding with a clearer type/adapter contract where possible.
-- [ ] Enforce strict bound semantics consistently.
+- [x] Enforce strict bound semantics consistently.
 - [x] Optimize the default equality path of `UniqueGenerator` with a set and define memory/exhaustion behavior.
 - [ ] Review selection, weighted, shuffle, retry, and uniqueness combinators for overflow and non-termination policies.
 
 **Tests**
 
 - [ ] Composed generators replay from recipes.
-- [ ] Equal/reversed bounds fail with consistent messages.
+- [x] Equal/reversed bounds fail with consistent messages.
 - [x] Uniqueness has deterministic exhaustion tests and does not degrade quadratically on ordinary values.
 
 **Done when:** Generator composition does not discard the contracts established in Stage 2.

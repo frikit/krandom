@@ -71,14 +71,12 @@ public final class DoubleGenerator extends AbstractBoundedGenerator<Double> {
      * <p>If precision is set via {@link #withPrecision(int)}, the result is rounded
      * to the specified number of decimal places.
      *
-     * @throws IllegalArgumentException if {@code min == max}
+     * @throws IllegalArgumentException if {@code min >= max}
      */
     @Override
     public Double generate(Double min, Double max) {
         validate(min, max);
-        double lo = lo(min, max);
-        double hi = hi(min, max);
-        double value = random.nextDouble(lo, hi);
+                double value = random.nextDouble(min, max);
 
         if (precision != null) {
             BigDecimal bd = BigDecimal.valueOf(value);

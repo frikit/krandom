@@ -57,12 +57,12 @@ inline fun <reified T : Any> krandomReplayObjectArb(
  * values. Edge cases cover the attainable bounds plus `-1`, `0`, and `1` when they fall inside the
  * range, and shrinking proposes only in-range values.
  *
- * @throws IllegalArgumentException when [min] equals [max]
+ * @throws IllegalArgumentException when [min] is not less than [max]
  */
 fun krandomIntArb(min: Int, max: Int): Arb<Int> {
-    require(min != max) { "min and max must differ, both were: $min" }
-    val lo = minOf(min, max)
-    val hi = maxOf(min, max) - 1
+    require(min < max) { "min must be less than max, got: min=$min, max=$max" }
+    val lo = min
+    val hi = max - 1
     val edges = listOf(lo, hi, -1, 0, 1).filter { it in lo..hi }.distinct()
     return arbitrary(edges, IntShrinker(lo..hi)) { randomSource ->
         IntGenerator(min, max, kotestChildSeed(randomSource)).generate()
@@ -76,12 +76,12 @@ fun krandomIntArb(min: Int, max: Int): Arb<Int> {
  * values. Edge cases cover the attainable bounds plus `-1`, `0`, and `1` when they fall inside the
  * range, and shrinking proposes only in-range values.
  *
- * @throws IllegalArgumentException when [min] equals [max]
+ * @throws IllegalArgumentException when [min] is not less than [max]
  */
 fun krandomLongArb(min: Long, max: Long): Arb<Long> {
-    require(min != max) { "min and max must differ, both were: $min" }
-    val lo = minOf(min, max)
-    val hi = maxOf(min, max) - 1
+    require(min < max) { "min must be less than max, got: min=$min, max=$max" }
+    val lo = min
+    val hi = max - 1
     val edges = listOf(lo, hi, -1L, 0L, 1L).filter { it in lo..hi }.distinct()
     return arbitrary(edges, LongShrinker(lo..hi)) { randomSource ->
         LongGenerator(min, max, kotestChildSeed(randomSource)).generate()
@@ -96,12 +96,12 @@ fun krandomLongArb(min: Long, max: Long): Arb<Long> {
  * inside the range, and shrink candidates outside the range are discarded so a reported
  * counterexample is always a value this [Arb] can generate.
  *
- * @throws IllegalArgumentException when [min] equals [max]
+ * @throws IllegalArgumentException when [min] is not less than [max]
  */
 fun krandomDoubleArb(min: Double, max: Double): Arb<Double> {
-    require(min != max) { "min and max must differ, both were: $min" }
-    val lo = minOf(min, max)
-    val hiExclusive = maxOf(min, max)
+    require(min < max) { "min must be less than max, got: min=$min, max=$max" }
+    val lo = min
+    val hiExclusive = max
     val edges = listOf(lo, hiExclusive.nextDown(), -1.0, 0.0, 1.0)
         .filter { it >= lo && it < hiExclusive }
         .distinct()

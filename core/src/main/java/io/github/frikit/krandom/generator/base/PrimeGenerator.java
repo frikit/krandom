@@ -41,13 +41,15 @@ public final class PrimeGenerator extends AbstractBoundedGenerator<Integer> {
 
     public PrimeGenerator(int min, int max) {
         super(min, max, null);
-        this.primes = computePrimesInRange(lo(min, max), hi(min, max));
+        validate(min, max);
+        this.primes = computePrimesInRange(min, max);
         validatePrimes();
     }
 
     public PrimeGenerator(int min, int max, long seed) {
         super(min, max, seed);
-        this.primes = computePrimesInRange(lo(min, max), hi(min, max));
+        validate(min, max);
+        this.primes = computePrimesInRange(min, max);
         validatePrimes();
     }
 
