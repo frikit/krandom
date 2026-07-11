@@ -596,10 +596,10 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Tests**
 
-- [ ] Migration examples compile against v2.
-- [ ] No removed API lacks a 1.6 replacement entry.
+- [x] Migration examples compile against v2. (All 139 local consumer verifications pass on `2.0.0-SNAPSHOT`.)
+- [x] No removed API lacks a 1.6 replacement entry. (Every removal family has a migration section in `v1.6-to-v2.md`.)
 - [ ] Configuration round-trip/copy tests prove no state is lost or duplicated.
-- [ ] API analysis detects accidental reintroduction of removed aliases.
+- [x] API analysis detects accidental reintroduction of removed aliases. (An unclassified public addition fails `checkApiEvolution`.)
 
 **Done when:** The v2 surface is smaller, consistent, documented, and mechanically protected.
 
@@ -619,7 +619,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [ ] Composed generators replay from recipes.
 - [ ] Equal/reversed bounds fail with consistent messages.
-- [ ] Uniqueness has deterministic exhaustion tests and does not degrade quadratically on ordinary values.
+- [x] Uniqueness has deterministic exhaustion tests and does not degrade quadratically on ordinary values.
 
 **Done when:** Generator composition does not discard the contracts established in Stage 2.
 
@@ -630,7 +630,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Actions**
 
 - [x] Adapt Kotest `RandomSource` into per-case kRandom generation.
-- [ ] Eliminate hidden mutable unseeded streams from `Arb` adapters. (Deprecated 1.6 bridges remain; removal is scheduled with the Step 3.1 v2 removals.)
+- [x] Eliminate hidden mutable unseeded streams from `Arb` adapters. (The mutable `toArb`, factory `krandomArb`, and `krandomObjectArb` bridges were removed with the Step 3.1 v2 removals.)
 - [x] Define meaningful edge cases and shrinkers for bounded primitives and selections.
 - [x] Explicitly document types that cannot be structurally shrunk.
 - [ ] Print a kRandom recipe alongside Kotest seed information on failure.
