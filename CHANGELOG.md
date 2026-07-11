@@ -150,6 +150,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `Generator.reseed(long)` and `Generator.reseed(String)`, including the reflection-based
   fallback that mutated discovered `Random` fields. Reseeding is now exclusively the typed
   `Seedable` contract; see the "Typed reseeding" migration section.
+- The mutable Kotest bridges `Generator.toArb()`, the no-argument `krandomArb { ... }` factory,
+  and `krandomObjectArb`. Use `krandomArb(config) { ... }`, `krandomReplayObjectArb`, and the
+  shrinking-aware bounded arbs, which derive fresh generators from Kotest's `RandomSource`.
 
 ### Fixed
 - Recursive object generation now retains type-use annotations for optional values, array

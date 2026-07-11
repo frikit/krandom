@@ -41,9 +41,9 @@ checkAll(emailArb) { email ->
 
 `krandomArb(config) { ... }` creates a fresh generator for every Kotest random-source draw. A
 failing Kotest seed therefore reproduces the same fixture sequence without sharing mutable
-kRandom generator state between cases. The older `Generator.toArb()` and no-argument
-`krandomArb { ... }` bridges are deprecated: they reuse one mutable generator and are unsuitable
-for host-controlled replay or parallel property tests.
+kRandom generator state between cases. The 1.6-era `Generator.toArb()`, no-argument
+`krandomArb { ... }`, and `krandomObjectArb` bridges are removed in v2: they reused one mutable
+generator and could not support host-controlled replay or parallel property tests.
 
 For object generation:
 

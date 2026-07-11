@@ -3,7 +3,9 @@ package io.github.frikit.krandom.examples
 import io.github.frikit.krandom.generator.Generators
 import io.github.frikit.krandom.dsl.krandom
 import io.github.frikit.krandom.dsl.krandomList
-import io.github.frikit.krandom.kotest.toArb
+import io.github.frikit.krandom.generator.GeneratorConfig
+import io.github.frikit.krandom.generator.user.EmailGenerator
+import io.github.frikit.krandom.kotest.krandomArb
 import io.kotest.property.arbitrary.take
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -26,7 +28,8 @@ class KotlinGradleUsageTest {
 
     @Test
     fun `kotest extension is consumable from kotlin example`() {
-        val samples = Generators.ofEmail().toArb().take(10).toList()
+        val samples = krandomArb(GeneratorConfig.defaults()) { config -> EmailGenerator(config) }
+            .take(10).toList()
 
         assertEquals(10, samples.size)
         samples.forEach { assertTrue(it.contains("@")) }

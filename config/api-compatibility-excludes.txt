@@ -21,3 +21,7 @@ io.github.frikit.krandom.generator.Generators#uniqueValues(io.github.frikit.kran
 # (docs/migration/v1.6-to-v2.md "Typed reseeding").
 io.github.frikit.krandom.generator.Generator#reseed(long)
 io.github.frikit.krandom.generator.Generator#reseed(java.lang.String)
+
+# v2 removal of mutable Kotest bridges (toArb, factory krandomArb, krandomObjectArb); the
+# replay-safe host-seeded adapters replace them (docs-site/guides/property-testing-integrations.md).
+io.github.frikit.krandom.kotest.KrandomArbKt

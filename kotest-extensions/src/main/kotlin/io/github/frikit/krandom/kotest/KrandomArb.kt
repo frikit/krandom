@@ -23,24 +23,6 @@ import io.kotest.property.arbitrary.arbitrary
 import kotlin.math.nextDown
 
 /**
- * Converts a krandom [Generator] into a Kotest [Arb] for property-based testing.
- *
- * Usage:
- * ```kotlin
- * val emailArb: Arb<String> = Generators.ofEmail().toArb()
- *
- * checkAll(emailArb) { email ->
- *     email shouldContain "@"
- * }
- * ```
- */
-@Deprecated(
-    message = "This bridge reuses mutable generator state. Use krandomArb { config -> ... } instead.",
-    replaceWith = ReplaceWith("krandomArb { config -> createGenerator(config) }")
-)
-fun <T> Generator<T>.toArb(): Arb<T> = arbitrary { generate() }
-
-/**
  * Creates a Kotest [Arb] from a factory that receives a fresh, host-seeded kRandom configuration
  * for every sample.
  *
@@ -56,51 +38,6 @@ fun <T> krandomArb(
     factory: (GeneratorConfig) -> Generator<T>
 ): Arb<T> = arbitrary { randomSource ->
     factory(config.forKotestSample(randomSource)).generate()
-}
-
-/**
- * Creates a Kotest [Arb] from a krandom [Generator] supplier.
- *
- * The supplier is called once when the [Arb] is created, and the returned
- * generator is reused for subsequent samples. This preserves the generator's
- * normal sequence progression for seeded and stateful generators.
- *
- * Usage:
- * ```kotlin
- * val nameArb = krandomArb { Generators.ofFirstName() }
- * ```
- */
-@Deprecated(
-    message = "This bridge reuses mutable generator state. Use krandomArb(config) { sampleConfig -> ... } instead.",
-    replaceWith = ReplaceWith("krandomArb(GeneratorConfig.defaults()) { config -> createGenerator(config) }")
-)
-fun <T> krandomArb(factory: () -> Generator<T>): Arb<T> {
-    val gen = factory()
-    return arbitrary { gen.generate() }
-}
-
-/**
- * Creates a Kotest [Arb] that generates random instances of the given class
- * using krandom's [ObjectGenerator].
- *
- * Usage:
- * ```kotlin
- * val personArb = krandomObjectArb<Person>()
- *
- * checkAll(personArb) { person ->
- *     person.firstName shouldNotBe null
- * }
- * ```
- */
-@Deprecated(
-    message = "This bridge reuses mutable generator state. Use krandomReplayObjectArb instead.",
-    replaceWith = ReplaceWith("krandomReplayObjectArb<T>(config)")
-)
-inline fun <reified T : Any> krandomObjectArb(
-    config: GeneratorConfig = GeneratorConfig.defaults()
-): Arb<T> {
-    val generator = ObjectGenerator(T::class.java, config)
-    return arbitrary { generator.generate() }
 }
 
 /**

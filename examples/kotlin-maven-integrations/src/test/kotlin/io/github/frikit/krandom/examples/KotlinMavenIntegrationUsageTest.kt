@@ -2,8 +2,9 @@ package io.github.frikit.krandom.examples
 
 import io.github.frikit.krandom.dsl.krandom
 import io.github.frikit.krandom.dsl.krandomList
-import io.github.frikit.krandom.generator.Generators
-import io.github.frikit.krandom.kotest.toArb
+import io.github.frikit.krandom.generator.GeneratorConfig
+import io.github.frikit.krandom.generator.user.EmailGenerator
+import io.github.frikit.krandom.kotest.krandomArb
 import io.kotest.property.arbitrary.take
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,7 +14,8 @@ class KotlinMavenIntegrationUsageTest {
 
     @Test
     fun `kotest extension is consumable from maven`() {
-        val emails = Generators.ofEmail().toArb().take(5).toList()
+        val emails = krandomArb(GeneratorConfig.defaults()) { config -> EmailGenerator(config) }
+            .take(5).toList()
 
         assertEquals(5, emails.size)
         emails.forEach { email -> assertTrue(email.contains("@")) }
