@@ -308,3 +308,8 @@ io.github.frikit.krandom.generator.user.TitleDataRegistry
 # v2 strict bound semantics (D5): validate rejects min >= max and the protected lo/hi swap
 # helpers are removed; reversed bounds now fail instead of silently swapping.
 io.github.frikit.krandom.generator.base.AbstractBoundedGenerator
+
+# v2 Spring starter replay/clock/safety property binding (Step 3.5); see the spring-boot-starter
+# guide and CHANGELOG.
+io.github.frikit.krandom.spring.KrandomAutoConfiguration
+io.github.frikit.krandom.spring.KrandomProperties

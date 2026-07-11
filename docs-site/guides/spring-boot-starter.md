@@ -41,6 +41,26 @@ krandom.max-collection-size=4
 
 `krandom.locale` accepts BCP 47 tags such as `en-US` and underscore tags such as `en_US`.
 
+### Replay, clock, and safety properties
+
+```properties
+# replay a recorded recipe (mutually exclusive with krandom.seed / krandom.locale)
+krandom.recipe=base64:Zm9ybWF0PWtyYW5kb20t...
+
+# pin generation time
+krandom.clock=2026-01-01T00:00:00Z
+krandom.clock-zone=Europe/Berlin
+
+# explicit safety and construction policies (relaxed enum names)
+krandom.banking-safety-policy=realistic-unclassified
+krandom.national-id-safety-policy=realistic-unclassified
+krandom.object-construction-policy=safe
+```
+
+Invalid combinations fail at context startup with an actionable message: a recipe combined with
+`krandom.seed`/`krandom.locale`, a `krandom.clock-zone` without `krandom.clock`, or malformed
+recipe/clock values.
+
 ## Injected Beans
 
 The starter registers these beans only when the application has not already provided one:

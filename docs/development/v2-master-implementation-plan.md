@@ -675,15 +675,15 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Compose the required Spring test extension/bootstrap annotations.
 - [x] Limit the context to the documented kRandom beans.
 - [ ] Align property defaults and metadata with core configuration facts.
-- [ ] Verify property binding for seed/recipe, locale, clock, safety, and construction policies. (Seed and locale binding are verified in the slice; recipe/clock/safety/construction properties are not yet bindable.)
-- [ ] Add failure diagnostics for invalid property combinations.
+- [x] Verify property binding for seed/recipe, locale, clock, safety, and construction policies.
+- [x] Add failure diagnostics for invalid property combinations.
 - [ ] Test against the supported Spring Boot line using published artifacts.
 
 **Tests**
 
 - [x] A consumer test using only `@KrandomTest` starts the promised context.
 - [ ] Full `@SpringBootTest` and slice tests produce equivalent configured generators.
-- [ ] Invalid properties fail fast with actionable messages.
+- [x] Invalid properties fail fast with actionable messages.
 
 **Done when:** The annotation's example works exactly as written.
 

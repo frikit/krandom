@@ -127,4 +127,132 @@ public class KrandomProperties {
     public void setMaxCollectionSize(Integer maxCollectionSize) {
         this.maxCollectionSize = maxCollectionSize;
     }
+
+    /**
+     * Serialized replay recipe ({@code base64:<url-safe base64>} or the literal serialized form
+     * with {@code \n} escapes). Mutually exclusive with {@code krandom.seed} and
+     * {@code krandom.locale}.
+     */
+    private String recipe;
+
+    /** ISO-8601 instant for a fixed clock, e.g. {@code 2026-01-01T00:00:00Z}. */
+    private String clock;
+
+    /** Zone ID for the fixed clock; defaults to UTC when only {@code krandom.clock} is set. */
+    private String clockZone;
+
+    private io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy paymentCardSafetyPolicy;
+    private io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
+    private io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy nationalIdSafetyPolicy;
+    private io.github.frikit.krandom.generator.finance.BankingSafetyPolicy bankingSafetyPolicy;
+    private io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy;
+    private io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy;
+    private io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy;
+    private io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
+    private io.github.frikit.krandom.generator.object.ObjectConstructionPolicy objectConstructionPolicy;
+
+    public String getRecipe() {
+        return recipe;
+    }
+
+    public void setRecipe(String recipe) {
+        this.recipe = recipe;
+    }
+
+    public String getClock() {
+        return clock;
+    }
+
+    public void setClock(String clock) {
+        this.clock = clock;
+    }
+
+    public String getClockZone() {
+        return clockZone;
+    }
+
+    public void setClockZone(String clockZone) {
+        this.clockZone = clockZone;
+    }
+
+    public io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy getPaymentCardSafetyPolicy() {
+        return paymentCardSafetyPolicy;
+    }
+
+    public void setPaymentCardSafetyPolicy(
+            io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy paymentCardSafetyPolicy) {
+        this.paymentCardSafetyPolicy = paymentCardSafetyPolicy;
+    }
+
+    public io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy getPhoneNumberSafetyPolicy() {
+        return phoneNumberSafetyPolicy;
+    }
+
+    public void setPhoneNumberSafetyPolicy(
+            io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy phoneNumberSafetyPolicy) {
+        this.phoneNumberSafetyPolicy = phoneNumberSafetyPolicy;
+    }
+
+    public io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy getNationalIdSafetyPolicy() {
+        return nationalIdSafetyPolicy;
+    }
+
+    public void setNationalIdSafetyPolicy(
+            io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy nationalIdSafetyPolicy) {
+        this.nationalIdSafetyPolicy = nationalIdSafetyPolicy;
+    }
+
+    public io.github.frikit.krandom.generator.finance.BankingSafetyPolicy getBankingSafetyPolicy() {
+        return bankingSafetyPolicy;
+    }
+
+    public void setBankingSafetyPolicy(
+            io.github.frikit.krandom.generator.finance.BankingSafetyPolicy bankingSafetyPolicy) {
+        this.bankingSafetyPolicy = bankingSafetyPolicy;
+    }
+
+    public io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy getSecuritiesIdentifierSafetyPolicy() {
+        return securitiesIdentifierSafetyPolicy;
+    }
+
+    public void setSecuritiesIdentifierSafetyPolicy(
+            io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy) {
+        this.securitiesIdentifierSafetyPolicy = securitiesIdentifierSafetyPolicy;
+    }
+
+    public io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy getCryptoAddressSafetyPolicy() {
+        return cryptoAddressSafetyPolicy;
+    }
+
+    public void setCryptoAddressSafetyPolicy(
+            io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy) {
+        this.cryptoAddressSafetyPolicy = cryptoAddressSafetyPolicy;
+    }
+
+    public io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy getBusinessTaxIdentifierSafetyPolicy() {
+        return businessTaxIdentifierSafetyPolicy;
+    }
+
+    public void setBusinessTaxIdentifierSafetyPolicy(
+            io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy) {
+        this.businessTaxIdentifierSafetyPolicy = businessTaxIdentifierSafetyPolicy;
+    }
+
+    public io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy getIdentityDocumentSafetyPolicy() {
+        return identityDocumentSafetyPolicy;
+    }
+
+    public void setIdentityDocumentSafetyPolicy(
+            io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy) {
+        this.identityDocumentSafetyPolicy = identityDocumentSafetyPolicy;
+    }
+
+    public io.github.frikit.krandom.generator.object.ObjectConstructionPolicy getObjectConstructionPolicy() {
+        return objectConstructionPolicy;
+    }
+
+    public void setObjectConstructionPolicy(
+            io.github.frikit.krandom.generator.object.ObjectConstructionPolicy objectConstructionPolicy) {
+        this.objectConstructionPolicy = objectConstructionPolicy;
+    }
 }

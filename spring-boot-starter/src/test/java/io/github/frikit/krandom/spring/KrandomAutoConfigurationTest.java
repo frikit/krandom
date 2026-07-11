@@ -228,4 +228,109 @@ class KrandomAutoConfigurationTest {
         }
         return false;
     }
+
+    @Test
+    @DisplayName("recipe property replays seed, locale, and profile")
+    void recipePropertyReplaysConfiguration() {
+        io.github.frikit.krandom.generator.GenerationRecipe recipe =
+            io.github.frikit.krandom.generator.GenerationRecipe.builder()
+                .seed(24680L)
+                .locale(Locale.CANADA_FRENCH)
+                .profile("spring-replay")
+                .build();
+        String encoded = "base64:" + java.util.Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(recipe.serialize().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        runner.withPropertyValues("krandom.recipe=" + encoded)
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(24680L, config.getSeed().getAsLong());
+                  assertEquals(Locale.CANADA_FRENCH, config.getLocale());
+                  assertEquals("spring-replay", config.getGenerationProfile());
+              });
+    }
+
+    @Test
+    @DisplayName("recipe conflicts with seed and locale properties")
+    void recipeConflictsWithSeedProperty() {
+        runner.withPropertyValues("krandom.recipe=base64:xxx", "krandom.seed=1")
+              .run(context -> {
+                  assertNotNull(context.getStartupFailure());
+                  assertTrue(rootMessage(context.getStartupFailure())
+                      .contains("krandom.recipe or the individual krandom.seed/krandom.locale"));
+              });
+    }
+
+    @Test
+    @DisplayName("malformed recipe fails with an actionable message")
+    void malformedRecipeFails() {
+        runner.withPropertyValues("krandom.recipe=base64:not-a-recipe")
+              .run(context -> {
+                  assertNotNull(context.getStartupFailure());
+                  assertTrue(rootMessage(context.getStartupFailure()).contains("Invalid krandom.recipe"));
+              });
+    }
+
+    @Test
+    @DisplayName("clock and clock-zone bind to a fixed clock")
+    void clockPropertyBindsFixedClock() {
+        runner.withPropertyValues("krandom.clock=2026-01-01T00:00:00Z",
+                                  "krandom.clock-zone=Europe/Berlin")
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(java.time.Instant.parse("2026-01-01T00:00:00Z"),
+                               config.getClock().instant());
+                  assertEquals(java.time.ZoneId.of("Europe/Berlin"), config.getClock().getZone());
+              });
+    }
+
+    @Test
+    @DisplayName("clock-zone without clock fails fast")
+    void clockZoneWithoutClockFails() {
+        runner.withPropertyValues("krandom.clock-zone=Europe/Berlin")
+              .run(context -> {
+                  assertNotNull(context.getStartupFailure());
+                  assertTrue(rootMessage(context.getStartupFailure())
+                      .contains("krandom.clock-zone requires krandom.clock"));
+              });
+    }
+
+    @Test
+    @DisplayName("invalid clock instant fails with an actionable message")
+    void invalidClockFails() {
+        runner.withPropertyValues("krandom.clock=not-a-time")
+              .run(context -> {
+                  assertNotNull(context.getStartupFailure());
+                  assertTrue(rootMessage(context.getStartupFailure()).contains("Invalid krandom.clock"));
+              });
+    }
+
+    @Test
+    @DisplayName("safety and construction policies bind by relaxed enum name")
+    void safetyAndConstructionPoliciesBind() {
+        runner.withPropertyValues(
+                  "krandom.banking-safety-policy=realistic-unclassified",
+                  "krandom.national-id-safety-policy=realistic-unclassified",
+                  "krandom.object-construction-policy=" +
+                      io.github.frikit.krandom.generator.object.ObjectConstructionPolicy.values()[0].name())
+              .run(context -> {
+                  GeneratorConfig config = context.getBean(GeneratorConfig.class);
+                  assertEquals(io.github.frikit.krandom.generator.finance.BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                               config.getBankingSafetyPolicy());
+                  assertEquals(io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                               config.getNationalIdSafetyPolicy());
+                  assertEquals(io.github.frikit.krandom.generator.object.ObjectConstructionPolicy.values()[0],
+                               config.getObjectConstructionPolicy());
+              });
+    }
+
+    private static String rootMessage(Throwable failure) {
+        Throwable current = failure;
+        StringBuilder all = new StringBuilder();
+        while (current != null) {
+            all.append(current.getMessage()).append(' ');
+            current = current.getCause();
+        }
+        return all.toString();
+    }
 }

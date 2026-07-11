@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Spring starter properties for replay and safety: `krandom.recipe` (serialized replay recipe),
+  `krandom.clock`/`krandom.clock-zone` (fixed generation clock), the eight `*-safety-policy`
+  properties, and `krandom.object-construction-policy`. Invalid combinations fail at context
+  startup with actionable messages.
 - `@KrandomTest` is now a self-contained Spring test slice: it bootstraps the TestContext
   framework itself, disables full application auto-configuration, and starts only the documented
   kRandom beans; `krandom.*` properties bind as in the full context.
