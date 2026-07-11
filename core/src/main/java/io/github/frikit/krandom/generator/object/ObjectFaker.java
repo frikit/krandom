@@ -695,7 +695,8 @@ public final class ObjectFaker<T> implements Generator<T> {
         if (matches.size() > 1) {
             throw new IllegalArgumentException(
                 "Field '" + fieldName + "' is ambiguous on " + ownerType.getName()
-                + "; use ObjectGeneratorConfig for owner-specific overrides");
+                + "; use GeneratorConfig.Builder.objectOverride(ownerType, fieldName, generator) "
+                + "for owner-specific overrides");
         }
         Field field = matches.getFirst();
         return new RuleTarget(field.getDeclaringClass(), field.getName(), field.getType(), field, null);

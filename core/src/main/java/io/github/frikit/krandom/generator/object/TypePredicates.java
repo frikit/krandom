@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 
 /**
  * Factory methods for common {@link Class}-based predicates used with
- * {@link ObjectGeneratorConfig.Builder#excludeType(Predicate)}.
+ * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder#objectExcludeType(java.util.function.Predicate)}.
  */
 public final class TypePredicates {
 

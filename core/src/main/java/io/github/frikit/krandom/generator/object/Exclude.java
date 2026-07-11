@@ -33,11 +33,11 @@ import java.lang.annotation.Target;
  * }</pre>
  *
  * <p>Exclusions can also be registered programmatically via
- * {@link ObjectGeneratorConfig.Builder#exclude(java.util.function.Predicate)},
- * {@link ObjectGeneratorConfig.Builder#excludeField(String)}, and
- * {@link ObjectGeneratorConfig.Builder#excludeType(Class)}.
+ * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder#objectExclude(java.util.function.Predicate)},
+ * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder#objectExcludeField(String)}, and
+ * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder#objectExcludeType(Class)}.
  *
- * @see ObjectGeneratorConfig
+ * @see io.github.frikit.krandom.generator.GeneratorConfig
  * @see FieldPredicates
  */
 @Target(ElementType.FIELD)

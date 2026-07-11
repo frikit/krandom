@@ -13,18 +13,18 @@ import java.util.regex.Pattern;
 
 /**
  * Factory methods for common {@link Field}-based predicates used with
- * {@link ObjectGeneratorConfig.Builder#exclude(Predicate)}.
+ * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder#objectExclude(java.util.function.Predicate)}.
  *
  * <p><b>Usage</b>
  * <pre>{@code
- *   ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+ *   GeneratorConfig config = GeneratorConfig.builder()
  *       .exclude(FieldPredicates.named("password"))
  *       .exclude(FieldPredicates.ofType(String.class))
  *       .exclude(FieldPredicates.inClass(SensitiveData.class))
  *       .build();
  * }</pre>
  *
- * @see ObjectGeneratorConfig
+ * @see io.github.frikit.krandom.generator.GeneratorConfig
  * @see Exclude
  */
 public final class FieldPredicates {

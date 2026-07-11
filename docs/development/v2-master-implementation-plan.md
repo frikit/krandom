@@ -591,7 +591,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [ ] Split the giant facade only into small domain namespaces justified by the inventory; avoid speculative abstraction.
 - [ ] Collapse duplicated `ObjectGeneratorConfig` state into `GeneratorConfig` or one composed public object policy.
 - [ ] Make configuration structurally immutable by defensively copying/wrapping mutable collections and clearly documenting ownership of caller callbacks/factories.
-- [ ] Remove public documentation references to package-private types.
+- [x] Remove public documentation references to package-private types.
 - [ ] Generate the new v2 API baseline.
 
 **Tests**

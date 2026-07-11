@@ -160,7 +160,7 @@ while each descriptor checks that its factory returns the declared provider type
 | `GeneratorConfig` object-generation methods | **KEEP** | Remove duplicated internal configuration state without changing the public path |
 | `ObjectGeneratorConfig` | Internal implementation, not public API | Remove its references from public Javadocs before refactoring |
 
-Public Javadocs currently leak the package-private `ObjectGeneratorConfig` type through `Fake`, `FakeRange`, `Exclude`, `FieldPredicates`, and `TypePredicates`. Those links must be rewritten to the public `GeneratorConfig`/`ObjectFaker` path.
+The former public-Javadoc leaks of the package-private `ObjectGeneratorConfig` type (`Fake`, `FakeRange`, `Exclude`, `FieldPredicates`, `TypePredicates`, and the ambiguous-field error message) are rewritten to the public `GeneratorConfig.Builder`/`ObjectFaker` path.
 
 `GeneratorConfig.getObjectConstructionPolicy()` and
 `GeneratorConfig.Builder.objectConstructionPolicy(...)` are additive **KEEP** APIs. The enum names
