@@ -313,3 +313,8 @@ io.github.frikit.krandom.generator.base.AbstractBoundedGenerator
 # guide and CHANGELOG.
 io.github.frikit.krandom.spring.KrandomAutoConfiguration
 io.github.frikit.krandom.spring.KrandomProperties
+
+# v2 idiomatic Kotlin configuration entry points (Step 3.4): krandomConfig plus ConfigScope
+# construction-policy and textual-seed setters.
+io.github.frikit.krandom.dsl.ConfigScope
+io.github.frikit.krandom.dsl.KrandomDslKt

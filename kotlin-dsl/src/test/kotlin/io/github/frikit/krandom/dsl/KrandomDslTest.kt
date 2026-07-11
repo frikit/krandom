@@ -16,6 +16,45 @@ import io.kotest.matchers.string.shouldNotBeBlank
 
 class KrandomDslTest : DescribeSpec({
 
+    describe("configuration alignment and recipes") {
+
+        it("krandomConfig exposes a portable replay recipe") {
+            val config = krandomConfig { seed(42L) }
+            config.seed.asLong shouldBe 42L
+            config.generationRecipe.isPresent shouldBe true
+        }
+
+        it("seed text and construction policy apply through the config scope") {
+            val config = krandomConfig {
+                seed("checkout-fixtures")
+                constructionPolicy(
+                    io.github.frikit.krandom.generator.`object`.ObjectConstructionPolicy.values()[0]
+                )
+            }
+            config.stringSeed.get() shouldBe "checkout-fixtures"
+            config.objectConstructionPolicy shouldBe
+                io.github.frikit.krandom.generator.`object`.ObjectConstructionPolicy.values()[0]
+        }
+
+        it("Kotlin DSL and Java builder produce equivalent seeded fixtures") {
+            val javaConfig = io.github.frikit.krandom.generator.GeneratorConfig.builder()
+                .seed(4242L)
+                .objectOverrideDefaultInitialization(true)
+                .build()
+            val javaFixture = io.github.frikit.krandom.generator.`object`.ObjectGenerator(
+                SamplePerson::class.java, javaConfig).generate()
+
+            val dslFixture = krandom<SamplePerson> {
+                config { seed(4242L) }
+            }
+
+            dslFixture.firstName shouldBe javaFixture.firstName
+            dslFixture.lastName shouldBe javaFixture.lastName
+            dslFixture.email shouldBe javaFixture.email
+            dslFixture.age shouldBe javaFixture.age
+        }
+    }
+
     describe("typed property rules") {
 
         it("applies a property-reference rule") {

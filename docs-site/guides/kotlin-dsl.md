@@ -112,3 +112,36 @@ core-only application also rejects immutable Kotlin types with a message naming
 The adapter always invokes the primary constructor; secondary constructors are never selected.
 Delegated properties initialize normally as part of that construction. A required recursive
 immutable graph fails contextually rather than returning a value with a runtime null.
+
+## Immutable Data Classes, Generics, Defaults, and Constraints
+
+```kotlin
+// Immutable data classes construct through the primary constructor
+data class Account(val owner: String, val balance: Long)
+val account = krandom<Account> { rule(Account::owner) { "grace" } }
+
+// Nested generics keep their declared element types
+data class Ledger(val entries: List<Map<String, Long>>)
+val ledger = krandom<Ledger>()
+
+// Kotlin default parameter values are honored unless a rule overrides them
+data class Invoice(val currency: String = "EUR", val amount: Long)
+val invoice = krandom<Invoice>()          // currency == "EUR"
+
+// Jakarta Validation constraints on constructor parameters are satisfied
+data class Customer(@field:jakarta.validation.constraints.Email val contact: String)
+val customer = krandom<Customer>()
+```
+
+## Standalone Configuration and Replay Recipes
+
+```kotlin
+val config = krandomConfig {
+    seed("checkout-fixtures")   // textual seeds use the shared derivation contract
+    constructionPolicy(ObjectConstructionPolicy.SAFE)
+}
+val recipe = config.generationRecipe.orElseThrow().serialize()  // portable replay recipe
+```
+
+The DSL matches the Java builder defaults with one intentional, documented difference:
+`objectOverrideDefaultInitialization` is enabled so `rule(...)` replaces property initializers.

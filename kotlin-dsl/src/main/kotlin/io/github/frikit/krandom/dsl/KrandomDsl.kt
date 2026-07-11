@@ -61,7 +61,29 @@ inline fun <reified T : Any> krandomGenerator(block: KrandomBuilder<T>.() -> Uni
 }
 
 /**
+ * Builds a standalone [GeneratorConfig] with the DSL's [ConfigScope].
+ *
+ * The returned configuration exposes its portable replay recipe through
+ * [GeneratorConfig.getGenerationRecipe] when it is seed-owned:
+ *
+ * ```kotlin
+ * val config = krandomConfig { seed(42L) }
+ * val recipe = config.generationRecipe.orElseThrow().serialize()
+ * ```
+ */
+fun krandomConfig(block: ConfigScope.() -> Unit): GeneratorConfig {
+    val builder = GeneratorConfig.builder()
+    ConfigScope(builder).block()
+    return builder.build()
+}
+
+/**
  * Builder for configuring krandom object generation via DSL.
+ *
+ * Defaults match the Java `ObjectGenerator` with one intentional, documented difference:
+ * the DSL enables `objectOverrideDefaultInitialization` so field rules and generated values
+ * replace Kotlin/Java field initializers; without it, `rule(...)` on an initialized property
+ * would be ignored, which surprises DSL users.
  */
 @KrandomDslMarker
 class KrandomBuilder<T : Any>(private val type: Class<T>) {
@@ -262,6 +284,16 @@ class ConfigScope(private val builder: GeneratorConfig.Builder) {
 
     fun objectMaxDepth(depth: Int) {
         builder.objectMaxDepth(depth)
+    }
+
+    /** Selects the explicit object construction policy (safe by default in v2). */
+    fun constructionPolicy(policy: io.github.frikit.krandom.generator.`object`.ObjectConstructionPolicy) {
+        builder.objectConstructionPolicy(policy)
+    }
+
+    /** Sets a textual seed using the same derivation contract as `GeneratorConfig`. */
+    fun seed(seedText: String) {
+        builder.seed(seedText)
     }
 }
 

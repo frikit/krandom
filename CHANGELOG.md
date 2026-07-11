@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `krandomConfig { }`, an idiomatic Kotlin builder for standalone `GeneratorConfig` values with
+  textual seeds and explicit construction policies; the DSL's one intentional default difference
+  (`objectOverrideDefaultInitialization`) is now documented and covered by a Java/Kotlin
+  equivalence test.
 - Spring starter properties for replay and safety: `krandom.recipe` (serialized replay recipe),
   `krandom.clock`/`krandom.clock-zone` (fixed generation clock), the eight `*-safety-policy`
   properties, and `krandom.object-construction-policy`. Invalid combinations fail at context
