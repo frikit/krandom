@@ -728,11 +728,11 @@ Kotest-only (Step 3.3).
 
 **Actions**
 
-- [x] Decide whether automatic module names remain sufficient or explicit descriptors are warranted for core. Core now has an explicit descriptor; integration modules remain to classify.
+- [x] Decide whether automatic module names remain sufficient or explicit descriptors are warranted for core. Core has an explicit descriptor; integration modules intentionally stay on `Automatic-Module-Name` until a named-module consumer requires more.
 - [ ] Add named-module consumers for core and each integration.
 - [x] Document required `opens` clauses for reflection-based object generation.
 - [x] Fail with a JPMS-specific diagnostic when access is denied.
-- [ ] Verify split packages and module names across all artifacts.
+- [x] Verify split packages and module names across all artifacts. Run `./scripts/verify_module_boundaries.sh`.
 
 **Tests**
 
