@@ -3,7 +3,7 @@
 **Created:** 2026-07-09
 **Status:** In progress
 **Source review:** [`../reviews/v2-release-readiness-review-2026-07-09.md`](../reviews/v2-release-readiness-review-2026-07-09.md)
-**Current line:** `1.6.0-SNAPSHOT`
+**Current line:** `2.0.0-SNAPSHOT`
 **Target:** A stable v2 contract followed by controlled adoption across consumer projects
 
 ## 1. Purpose
@@ -306,6 +306,10 @@ while keeping the seven published modules explicit.
 
 **Depends on:** 1.3–1.7.
 
+**Owner decision (2026-07-11):** the 1.6 bridge release is skipped; the line moves directly to
+`2.0.0-SNAPSHOT` and Step 3.1 removals proceed without a published deprecation window. The 1.6
+deprecations and migration guide remain in history and documentation as the migration reference.
+
 **Actions**
 
 - [ ] Freeze the 1.6 changelog around migration enablement and corrected contracts.
@@ -578,7 +582,9 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Remove only APIs classified for v2 removal after the 1.6 bridge exists.
+- [ ] Remove only APIs classified for v2 removal after the 1.6 bridge exists. (Owner decision
+  2026-07-11: the published-1.6 precondition is waived; removals proceed against the in-repo
+  deprecation record.)
 - [ ] Keep one canonical name and consistent overload pattern for each operation.
 - [ ] Split the giant facade only into small domain namespaces justified by the inventory; avoid speculative abstraction.
 - [ ] Collapse duplicated `ObjectGeneratorConfig` state into `GeneratorConfig` or one composed public object policy.

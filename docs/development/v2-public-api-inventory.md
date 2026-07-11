@@ -1,7 +1,7 @@
 # kRandom v2 Public API Inventory
 
 **Baseline:** `1.5.0`
-**Development line:** `1.6.0-SNAPSHOT`
+**Development line:** `2.0.0-SNAPSHOT`
 **Status:** Classified for the 1.6 bridge
 
 ## Machine-readable inventory

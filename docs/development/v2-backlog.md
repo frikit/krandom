@@ -23,7 +23,7 @@ the master plan), `open` (not started), `blocked` (needs a release action or ext
 | 1.5 Documentation facts source | documentation | — | 1.1 | done |
 | 1.6 Dependency cleanup and BOM | compatibility, release | — | 1.3 | done |
 | 1.7 Build and supply-chain baseline | release | — | 1.1 | done |
-| 1.8 Publish and validate the 1.6 bridge | release | — | 1.3–1.7 | blocked: needs a maintainer-triggered Maven Central release |
+| 1.8 Publish and validate the 1.6 bridge | release | — | 1.3–1.7 | out of scope: owner skipped the 1.6 release (2026-07-11); the line moved to 2.0.0-SNAPSHOT |
 
 ## Milestone: v2 foundation
 
@@ -44,7 +44,7 @@ the master plan), `open` (not started), `blocked` (needs a release action or ext
 
 | Work package | Labels | Gates | Depends on | Status |
 |:---|:---|:---|:---|:---|
-| 3.1 Simplify the v2 API | contract, compatibility | D9 | Stage 2, 1.2–1.4, published 1.6 | blocked: removals need the released 1.6 bridge (1.8) |
+| 3.1 Simplify the v2 API | contract, compatibility | D9 | Stage 2, 1.2–1.4 | in progress: published-1.6 precondition waived by owner (2026-07-11) |
 | 3.2 Combinator and boundary contracts | correctness | D5 | 2.6, 3.1 | partial: bounds/uniqueness/termination work is unblocked; alias removal waits on 3.1 |
 | 3.3 Kotest replay and shrinking | integration | — | 2.5–2.7 | partial: recipe-on-failure printing and Kotest version-range tests remain |
 | 3.4 Typed Kotlin DSL | integration, contract | — | 2.5 | open (additive `KProperty1` rules are unblocked) |
