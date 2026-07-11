@@ -151,44 +151,6 @@ public final class LocaleDataBundle {
         return builder;
     }
 
-    /**
-     * Registers the bundle into the global static registries.
-     */
-    public void registerGlobal() {
-        if (hasFirstNames()) {
-            FirstNameDataRegistry.register(firstNameProvider());
-        }
-        if (hasLastNames()) {
-            LastNameDataRegistry.register(lastNameProvider());
-        }
-        if (hasGenderLabels()) {
-            GenderDataRegistry.register(genderProvider());
-        }
-        if (hasTitles()) {
-            TitleDataRegistry.register(titleProvider());
-        }
-        if (hasSuffixes()) {
-            SuffixDataRegistry.register(suffixProvider());
-        }
-        if (hasProfessions()) {
-            ProfessionDataRegistry.register(professionProvider());
-        }
-        if (hasCities()) {
-            CityDataRegistry.register(cityProvider());
-        }
-        if (hasStates()) {
-            StateDataRegistry.register(stateProvider());
-        }
-        if (hasCountries()) {
-            CountryDataRegistry.register(countryProvider());
-        }
-        if (hasStreetAddress()) {
-            StreetAddressDataRegistry.register(streetAddressProvider());
-        }
-        if (nationalIdProvider != null) {
-            NationalIdRegistry.register(nationalIdProvider);
-        }
-    }
 
     private boolean hasFirstNames() {
         return maleFirstNames != null;

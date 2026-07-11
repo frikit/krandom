@@ -103,30 +103,6 @@ class CountryGeneratorTest {
     }
 
     @Test
-    @DisplayName("currentCountryCodeAlpha3 throws for unsupported country code")
-    void currentCountryCodeAlpha3UnsupportedCountry() {
-        Locale locale = Locale.of("en", "ZZ");
-        CountryDataRegistry.register(new CountryDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return new String[] { "Nowhere" };
-            }
-        });
-        CountryGenerator generator = new CountryGenerator(locale);
-        assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeAlpha3);
-        assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeNumeric);
-        assertThrows(UnsupportedOperationException.class, generator::currentContinent);
-        assertThrows(UnsupportedOperationException.class, generator::currentCallingCode);
-        assertThrows(UnsupportedOperationException.class, generator::currentTimezone);
-    }
-
-    @Test
     @DisplayName("continent, calling code and timezone helpers are available")
     void continentCallingTimezone() {
         CountryGenerator us = new CountryGenerator(Locale.US);
@@ -451,157 +427,6 @@ class CountryGeneratorTest {
     // ── CountryDataRegistry extensibility ────────────────────────────────────
 
     @Test
-    @DisplayName("custom provider registered for new locale is used by CountryGenerator")
-    void customLocaleRegistration() {
-        Locale korean = Locale.of("ko", "KR");
-        String[] koreanCountries = { "미국", "독일", "프랑스", "일본" };
-
-        CountryDataRegistry.register(new CountryDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return korean;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return koreanCountries;
-            }
-        });
-
-        CountryGenerator gen = new CountryGenerator(korean);
-        assertEquals(4, gen.getCountryCount());
-
-        Set<String> seen = new HashSet<>();
-        for (int i = 0; i < 200; i++) seen.add(gen.generate());
-        assertTrue(seen.containsAll(Arrays.asList(koreanCountries)));
-    }
-
-    @Test
-    @DisplayName("custom provider overrides built-in locale")
-    void customProviderOverridesBuiltIn() {
-        Locale us = Locale.US;
-        String[] custom = { "Foo Land", "Bar Republic" };
-
-        CountryDataRegistry.register(new CountryDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return us;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return custom;
-            }
-        });
-
-        CountryGenerator gen = new CountryGenerator(us);
-        assertEquals(2, gen.getCountryCount());
-
-        Set<String> seen = new HashSet<>();
-        for (int i = 0; i < 100; i++) seen.add(gen.generate());
-        assertTrue(seen.containsAll(Arrays.asList(custom)));
-
-        // Restore built-in US data so other tests are unaffected.
-        CountryDataRegistry.register(new BuiltInCountryDataProvider(SupportedLocale.EN_US));
-    }
-
-    @Test
-    @DisplayName("registered custom locale appears in registeredKeys()")
-    void customLocaleAppearsInKeys() {
-        Locale swahili = Locale.of("sw", "TZ");
-        CountryDataRegistry.register(new CountryDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return swahili;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return new String[] { "Marekani", "Ujerumani" };
-            }
-        });
-
-        assertTrue(CountryDataRegistry.registeredKeys().contains("sw_TZ"));
-        assertTrue(CountryDataRegistry.isRegistered(swahili));
-    }
-
-    @Test
-    @DisplayName("language-only registration serves as fallback for any country variant")
-    void languageOnlyFallback() {
-        Locale arabic = Locale.of("ar");
-        CountryDataRegistry.register(new CountryDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return arabic;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return new String[] { "الولايات المتحدة", "ألمانيا" };
-            }
-        });
-
-        // ar_EG should fall back to the "ar" language entry.
-        Locale arabicEgypt = Locale.of("ar", "EG");
-        assertTrue(CountryDataRegistry.isRegistered(arabicEgypt));
-
-        CountryGenerator gen = new CountryGenerator(arabicEgypt);
-        assertEquals(2, gen.getCountryCount());
-    }
-
-    @Test
-    @DisplayName("register rejects null provider")
-    void registerRejectsNull() {
-        assertThrows(NullPointerException.class, () -> CountryDataRegistry.register(null));
-    }
-
-    @Test
-    @DisplayName("register rejects empty and blank country arrays")
-    void registerRejectsInvalidCountryArrays() {
-        Locale locale = Locale.of("zz", "CY");
-
-        assertThrows(IllegalArgumentException.class, () -> CountryDataRegistry.register(new CountryDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return new String[0];
-            }
-        }));
-
-        assertThrows(IllegalArgumentException.class, () -> CountryDataRegistry.register(new CountryDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return new String[] { "" };
-            }
-        }));
-
-        assertThrows(IllegalArgumentException.class, () -> CountryDataRegistry.register(new CountryDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return new String[] { null };
-            }
-        }));
-    }
-
-    @Test
     @DisplayName("isRegistered returns false for null locale")
     void isRegisteredNullReturnsFalse() {
         assertFalse(CountryDataRegistry.isRegistered(null));
@@ -633,44 +458,6 @@ class CountryGeneratorTest {
         CountryDataProvider provider = CountryDataRegistry.forLocale(Locale.of("en", "ZZ"));
         assertNotNull(provider);
         assertTrue(provider.getCountries().length > 0);
-    }
-
-    @Test
-    @DisplayName("language-only registration (register) updates language fallback key")
-    void registerLanguageOnlyLocale() {
-        Locale langOnly = Locale.of("en");
-        String[] custom = { "Testland" };
-
-        CountryDataRegistry.register(new CountryDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return langOnly;
-            }
-
-            @Override
-            public String[] getCountries() {
-                return custom;
-            }
-        });
-
-        CountryDataProvider found = CountryDataRegistry.forLocale(langOnly);
-        assertNotNull(found);
-        assertArrayEquals(custom, found.getCountries());
-
-        // Restore the language-level "en" fallback.
-        CountryDataRegistry.register(new CountryDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return Locale.of("en");
-            }
-
-            @Override
-            public String[] getCountries() {
-                return new BuiltInCountryDataProvider(SupportedLocale.EN_US).getCountries();
-            }
-        });
     }
 
     @Test
@@ -714,5 +501,34 @@ class CountryGeneratorTest {
             () -> CountryResourceLoader.load("krandom/countries/nonexistent.txt")
         );
         assertTrue(ex.getMessage().contains("Country resource not found"));
+    }
+
+    @Test
+    @DisplayName("current country code lookups fail clearly for a context-scoped unknown country")
+    void currentCountryCodesUnsupportedForContextScopedCountry() {
+        Locale locale = Locale.of("en", "ZZ");
+        io.github.frikit.krandom.generator.DataRegistryContext context =
+            io.github.frikit.krandom.generator.DataRegistryContext.builder()
+                .registerCountryProvider(new CountryDataProvider() {
+
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
+
+                    @Override
+                    public String[] getCountries() {
+                        return new String[] { "Nowhere" };
+                    }
+                })
+                .build();
+        CountryGenerator generator = new CountryGenerator(
+            GeneratorConfig.builder().locale(locale).registryContext(context).build());
+
+        assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeAlpha3);
+        assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeNumeric);
+        assertThrows(UnsupportedOperationException.class, generator::currentContinent);
+        assertThrows(UnsupportedOperationException.class, generator::currentCallingCode);
+        assertThrows(UnsupportedOperationException.class, generator::currentTimezone);
     }
 }

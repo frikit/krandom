@@ -20,7 +20,7 @@ import java.util.Random;
  * <p>Built-in support covers every locale in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Additional locales and overrides of
  * built-in ones can be registered at runtime via
- * {@link NationalIdRegistry#register(NationalIdProvider)}.
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p>Use an explicit {@link GeneratorConfig} and select
  * {@link NationalIdSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated compatibility fixtures.
@@ -32,36 +32,7 @@ public final class NationalIdGenerator implements Generator<String> {
     private final Random             random;
     private final NationalIdProvider provider;
 
-    /**
-     * Creates a generator for the given locale using the default fast PRNG.
-     *
-     * @param locale the locale identifying which national ID format to use; must not be {@code null}
-     * @throws UnsupportedOperationException if no provider is registered for the locale
-     * @deprecated Use {@link #NationalIdGenerator(GeneratorConfig)}. This 1.6 bridge retains
-     *             realistic but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public NationalIdGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(locale)
-                              .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                              .build());
-    }
 
-    /**
-     * Creates a generator for the given locale with a fixed seed for reproducible output.
-     *
-     * @param locale the locale identifying which national ID format to use; must not be {@code null}
-     * @param seed   PRNG seed for reproducible output
-     * @throws UnsupportedOperationException if no provider is registered for the locale
-     * @deprecated Use {@link #NationalIdGenerator(GeneratorConfig)}. This 1.6 bridge retains
-     *             realistic but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public NationalIdGenerator(Locale locale, long seed) {
-        this(GeneratorConfig.builder().locale(locale).seed(seed)
-                              .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                              .build());
-    }
 
     /**
      * Creates a generator with explicit configuration (locale + optional seed + registry context).

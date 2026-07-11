@@ -24,16 +24,14 @@ class PassportGeneratorTest {
     @RepeatedTest(200)
     @DisplayName("deprecated no-argument constructor preserves the generic passport format")
     void formatMatches() {
-        String passport = new PassportGenerator().generate();
+        String passport = new PassportGenerator(GeneratorConfig.builder() .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(passport.matches("[A-Z][0-9]{8}"), passport);
     }
 
     @Test
-    @DisplayName("legacy constructor is scheduled for v2 removal")
-    void legacyConstructorIsScheduledForRemoval() throws NoSuchMethodException {
-        Deprecated annotation = PassportGenerator.class.getConstructor().getAnnotation(Deprecated.class);
-
-        assertTrue(annotation.forRemoval());
+    @DisplayName("legacy no-argument constructor is removed in v2")
+    void legacyConstructorIsRemoved() {
+        assertThrows(NoSuchMethodException.class, () -> PassportGenerator.class.getConstructor());
     }
 
     @Test

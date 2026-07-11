@@ -24,18 +24,6 @@ public final class CryptoAddressGenerator implements Generator<String> {
     private final Random random;
     private final CryptoAddressSafetyPolicy safetyPolicy;
 
-    /**
-     * Creates a generator with the historical realistic-output behavior.
-     *
-     * @deprecated since 1.6; use {@link #CryptoAddressGenerator(GeneratorConfig)} and select an
-     * explicit safety policy instead
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public CryptoAddressGenerator() {
-        this(GeneratorConfig.builder()
-                            .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
     /**
      * Creates a generator from explicit configuration.

@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Pre-seeded at class-load time with every built-in locale from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
- * Custom providers can be added at any time via {@link #register(CountryDataProvider)}, replacing
+ * Custom providers can be added at any time via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}, replacing
  * any existing provider for the same locale key.
  *
  * <p><b>Lookup order</b>
@@ -46,30 +46,6 @@ public final class CountryDataRegistry {
     }
 
     private CountryDataRegistry() {
-    }
-
-    /**
-     * Registers a custom country data provider, making it available to {@link CountryGenerator}.
-     *
-     * <p>If a provider already exists for the same exact locale key, it is replaced. A
-     * language-only key (e.g. {@code "en"}) is set only when no prior entry exists for that
-     * language — meaning the first registration for a language becomes its language-level fallback.
-     * To explicitly override the language-level fallback, register a provider whose
-     * {@link CountryDataProvider#getLocale()} has no country component (e.g.
-     * {@code Locale.of("en")}).
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerCountryProvider(CountryDataProvider)}
-     * for configuration-scoped registration.
-     * @param provider the provider to register; must not be {@code null}, and
-     *                 {@link CountryDataProvider#getLocale()} must not be {@code null}
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(CountryDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        validateArray("countries", provider.getCountries());
-        RegistryLookup.putWithLanguageFallback(REGISTRY, provider.getLocale(), provider);
     }
 
     /**
@@ -105,18 +81,5 @@ public final class CountryDataRegistry {
      */
     private static void seedInternal(CountryDataProvider provider) {
         RegistryLookup.putWithLanguageFallback(REGISTRY, provider.getLocale(), provider);
-    }
-
-    private static void validateArray(String name, String[] values) {
-        Objects.requireNonNull(values, name + " must not be null");
-        if (values.length == 0) {
-            throw new IllegalArgumentException(name + " must not be empty");
-        }
-        for (int i = 0; i < values.length; i++) {
-            String value = values[i];
-            if (value == null || value.isBlank()) {
-                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
-            }
-        }
     }
 }

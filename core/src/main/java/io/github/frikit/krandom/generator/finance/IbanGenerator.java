@@ -26,25 +26,7 @@ public final class IbanGenerator implements Generator<String> {
     private final BbanGenerator        bbanGenerator;
     private final BankingSafetyPolicy  bankingSafetyPolicy;
 
-    /**
-     * @deprecated Use {@link #IbanGenerator(GeneratorConfig)}. This 1.6 bridge retains realistic
-     *             but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public IbanGenerator() {
-        this(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build());
-    }
 
-    /**
-     * @deprecated Use {@link #IbanGenerator(GeneratorConfig)}. This 1.6 bridge retains realistic
-     *             but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public IbanGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(locale)
-                            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
     public IbanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");

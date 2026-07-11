@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Seeded at class-load time with every built-in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale} that has a
  * {@code krandom/hobbies/<locale>.txt} resource. Locales without a file fall back to the bundled
- * default (English) hobbies. Custom providers can be added via {@link #register(HobbyDataProvider)}.
+ * default (English) hobbies. Custom providers can be added via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p><b>Lookup order:</b> exact {@code language_COUNTRY} match, then language-only match, then
  * {@code null}.
@@ -39,20 +39,6 @@ public final class HobbyDataRegistry {
     }
 
     private HobbyDataRegistry() {
-    }
-
-    /**
-     * Registers a custom hobby data provider, replacing any provider for the same locale key.
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerHobbyProvider(HobbyDataProvider)}
-     * for configuration-scoped registration.
-     * @param provider the provider to register; must not be {@code null}
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(HobbyDataProvider provider) {
-        validateProvider(provider);
-        putProvider(provider);
     }
 
     /**
@@ -95,18 +81,10 @@ public final class HobbyDataRegistry {
         return Set.copyOf(REGISTRY.keySet());
     }
 
-    private static void validateProvider(HobbyDataProvider provider) {
-        DataRegistryContext.builder().isolated().registerHobbyProvider(provider);
-    }
-
     private static void putProvider(HobbyDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 }

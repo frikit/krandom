@@ -20,10 +20,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("BankInfoGenerator")
 class BankInfoGeneratorTest {
 
+    private static GeneratorConfig usConfig() {
+        return GeneratorConfig.builder()
+                              .locale(Locale.US)
+                              .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build();
+    }
+
     @Test
     @DisplayName("generates a coherent structured bank payload")
     void generateBankInfo() {
-        BankInfo info = new BankInfoGenerator(Locale.US).generate();
+        BankInfo info = new BankInfoGenerator(usConfig()).generate();
 
         assertNotNull(info);
         assertTrue(info.accountNumber().matches("\\d+"));
@@ -53,9 +60,8 @@ class BankInfoGeneratorTest {
     @Test
     @DisplayName("constructors and factories reject nulls and expose locale")
     void constructorValidation() {
-        assertThrows(NullPointerException.class, () -> new BankInfoGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new BankInfoGenerator((GeneratorConfig) null));
-        assertEquals(Locale.US, new BankInfoGenerator(Locale.US).getLocale());
+        assertEquals(Locale.US, new BankInfoGenerator(usConfig()).getLocale());
         assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo().generate());
         assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo(Locale.US).generate());
         assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo(GeneratorConfig.defaults()).generate());

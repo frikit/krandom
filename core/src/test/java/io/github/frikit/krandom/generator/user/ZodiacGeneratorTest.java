@@ -156,27 +156,6 @@ class ZodiacGeneratorTest {
 
             assertTrue(ZodiacDataRegistry.registeredKeys().contains("ru_RU"));
         }
-
-        @Test
-        @DisplayName("register adds a custom provider; null is rejected")
-        void registerCustom() {
-            List<String> signs = List.of(
-                "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12");
-            ZodiacDataRegistry.register(new ZodiacDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getSigns() {
-                    return signs;
-                }
-            });
-            assertTrue(ZodiacDataRegistry.isRegistered(Locale.of("zz")));
-            assertTrue(signs.contains(new ZodiacGenerator(Locale.of("zz")).generate()));
-            assertThrows(NullPointerException.class, () -> ZodiacDataRegistry.register(null));
-        }
     }
 
     @Nested
@@ -250,34 +229,6 @@ class ZodiacGeneratorTest {
         @DisplayName("unmapped locale falls back to English animals")
         void unmappedFallsBackToEnglish() {
             assertEquals("Dragon", new ChineseZodiacGenerator(Locale.of("is", "IS")).animalFor(2024));
-        }
-
-        @Test
-        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
-        void registry() {
-            assertTrue(ChineseZodiacDataRegistry.isRegistered(Locale.CHINA));
-            assertTrue(ChineseZodiacDataRegistry.isRegistered(Locale.of("zh"))); // language-only
-            assertFalse(ChineseZodiacDataRegistry.isRegistered(Locale.of("is", "IS")));
-            assertFalse(ChineseZodiacDataRegistry.isRegistered(null));
-            assertNotNull(ChineseZodiacDataRegistry.forLocale(Locale.CHINA));
-            assertNull(ChineseZodiacDataRegistry.forLocale(null));
-            assertTrue(ChineseZodiacDataRegistry.registeredKeys().contains("zh_CN"));
-
-            List<String> animals = List.of(
-                "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12");
-            ChineseZodiacDataRegistry.register(new ChineseZodiacDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getAnimals() {
-                    return animals;
-                }
-            });
-            assertTrue(animals.contains(new ChineseZodiacGenerator(Locale.of("zz")).generate()));
-            assertThrows(NullPointerException.class, () -> ChineseZodiacDataRegistry.register(null));
         }
 
         @Test

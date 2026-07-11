@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale} that <em>has</em> a
  * {@code krandom/bloodtypes/<locale>.txt} resource. Locales without a file are intentionally not
  * registered, so {@link BloodTypeGenerator} falls back to the bundled global distribution. Custom
- * providers can be added at any time via {@link #register(BloodTypeDataProvider)}.
+ * providers can be added at any time via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p><b>Lookup order</b>
  * <ol>
@@ -44,20 +44,6 @@ public final class BloodTypeDataRegistry {
     }
 
     private BloodTypeDataRegistry() {
-    }
-
-    /**
-     * Registers a custom blood-type data provider, replacing any provider for the same locale key.
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerBloodTypeProvider(BloodTypeDataProvider)}
-     * for configuration-scoped registration.
-     * @param provider the provider to register; must not be {@code null}
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(BloodTypeDataProvider provider) {
-        validateProvider(provider);
-        putProvider(provider);
     }
 
     /**
@@ -100,18 +86,10 @@ public final class BloodTypeDataRegistry {
         return Set.copyOf(REGISTRY.keySet());
     }
 
-    private static void validateProvider(BloodTypeDataProvider provider) {
-        DataRegistryContext.builder().isolated().registerBloodTypeProvider(provider);
-    }
-
     private static void putProvider(BloodTypeDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 }

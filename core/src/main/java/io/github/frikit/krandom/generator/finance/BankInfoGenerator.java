@@ -26,26 +26,7 @@ public final class BankInfoGenerator implements Generator<BankInfo> {
     private final BankNameGenerator    bankNameGenerator;
     private final BankTypeGenerator    bankTypeGenerator;
 
-    /**
-     * @deprecated Use {@link #BankInfoGenerator(GeneratorConfig)}. This 1.6 bridge retains
-     *             realistic but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public BankInfoGenerator() {
-        this(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build());
-    }
 
-    /**
-     * @deprecated Use {@link #BankInfoGenerator(GeneratorConfig)}. This 1.6 bridge retains
-     *             realistic but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public BankInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder()
-                            .locale(Objects.requireNonNull(locale, "locale must not be null"))
-                            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
     /**
      * Creates a bank-info generator using explicit configuration.

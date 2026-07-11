@@ -87,36 +87,6 @@ class RestaurantTypeGeneratorTest {
     @Nested
     @DisplayName("RestaurantTypeDataRegistry")
     class Registry {
-
-        @Test
-        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
-        void registry() {
-            assertTrue(RestaurantTypeDataRegistry.isRegistered(RU));
-            assertTrue(RestaurantTypeDataRegistry.isRegistered(Locale.of("ru"))); // language-only
-            assertFalse(RestaurantTypeDataRegistry.isRegistered(Locale.of("is", "IS")));
-            assertFalse(RestaurantTypeDataRegistry.isRegistered(null));
-
-            assertNotNull(RestaurantTypeDataRegistry.forLocale(RU));
-            assertNotNull(RestaurantTypeDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
-            assertNull(RestaurantTypeDataRegistry.forLocale(Locale.of("is")));
-            assertNull(RestaurantTypeDataRegistry.forLocale(null));
-            assertTrue(RestaurantTypeDataRegistry.registeredKeys().contains("ru_RU"));
-
-            RestaurantTypeDataProvider custom = new RestaurantTypeDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getTypes() {
-                    return List.of("Gastropub");
-                }
-            };
-            RestaurantTypeDataRegistry.register(custom);
-            assertEquals("Gastropub", new RestaurantTypeGenerator(Locale.of("zz")).generate());
-            assertThrows(NullPointerException.class, () -> RestaurantTypeDataRegistry.register(null));
-        }
     }
 
     @Nested

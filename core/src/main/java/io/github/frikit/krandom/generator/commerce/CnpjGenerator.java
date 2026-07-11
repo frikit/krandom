@@ -40,19 +40,6 @@ public final class CnpjGenerator implements Generator<String> {
     private final boolean alphanumericFormat;
     private final BusinessTaxIdentifierSafetyPolicy safetyPolicy;
 
-    /**
-     * Creates a generator with the historical realistic-output behavior.
-     *
-     * @deprecated since 1.6; use {@link #CnpjGenerator(GeneratorConfig)} and select an explicit
-     * safety policy instead
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public CnpjGenerator() {
-        this(GeneratorConfig.builder()
-                            .businessTaxIdentifierSafetyPolicy(
-                                BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
     /**
      * Creates a generator from explicit configuration (optional seed).

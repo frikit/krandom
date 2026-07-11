@@ -29,7 +29,7 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("IBAN generator returns country+check+body format")
     void iban() {
-        String iban = new IbanGenerator(Locale.GERMANY).generate();
+        String iban = new IbanGenerator(GeneratorConfig.builder().locale(Locale.GERMANY) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(iban.matches("[A-Z]{2}\\d{2}\\d+"));
         assertTrue(iban.length() >= 16);
     }
@@ -37,21 +37,21 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("BBAN generator returns numeric account body")
     void bban() {
-        assertTrue(new BbanGenerator(Locale.FRANCE).generate().matches("\\d+"));
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().locale(Locale.FRANCE) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("\\d+"));
     }
 
     @Test
     @DisplayName("BBAN length varies by locale country")
     void bbanLengths() {
-        assertEquals(18, new BbanGenerator(Locale.UK).generate().length());
-        assertEquals(20, new BbanGenerator(Locale.of("pt", "BR")).generate().length());
-        assertEquals(16, new BbanGenerator(Locale.CANADA).generate().length());
+        assertEquals(18, new BbanGenerator(GeneratorConfig.builder().locale(Locale.UK) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(20, new BbanGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(16, new BbanGenerator(GeneratorConfig.builder().locale(Locale.CANADA) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
     }
 
     @Test
     @DisplayName("ABA routing generator returns 9 digits")
     void aba() {
-        String aba = new AbaRoutingGenerator().generate();
+        String aba = new AbaRoutingGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate();
         assertTrue(aba.matches("\\d{9}"));
     }
 
@@ -85,31 +85,31 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("legacy no-argument BBAN constructor preserves compatibility output")
     void legacyNoArgumentBbanConstructor() {
-        assertTrue(new BbanGenerator().generate().matches("\\d{16}"));
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("\\d{16}"));
     }
 
     @Test
     @DisplayName("legacy no-argument IBAN constructor preserves compatibility output")
     void legacyNoArgumentIbanConstructor() {
-        assertTrue(new IbanGenerator().generate().matches("[A-Z]{2}\\d{2}\\d+"));
+        assertTrue(new IbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("[A-Z]{2}\\d{2}\\d+"));
     }
 
     @Test
     @DisplayName("legacy no-argument BIC constructor preserves compatibility output")
     void legacyNoArgumentBicConstructor() {
-        assertTrue(new BicGenerator().generate().matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?"));
+        assertTrue(new BicGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?"));
     }
 
     @Test
     @DisplayName("legacy no-argument bank-account constructor preserves compatibility output")
     void legacyNoArgumentBankAccountConstructor() {
-        assertTrue(new BankAccountGenerator().generate().matches("\\d{10}"));
+        assertTrue(new BankAccountGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("\\d{10}"));
     }
 
     @Test
     @DisplayName("legacy no-argument bank-info constructor preserves compatibility output")
     void legacyNoArgumentBankInfoConstructor() {
-        assertNotNull(new BankInfoGenerator().generate());
+        assertNotNull(new BankInfoGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate());
     }
 
     @Test
@@ -145,7 +145,7 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("deprecated no-argument constructor preserves formatted and unformatted output")
     void ein() {
-        EinGenerator generator = new EinGenerator();
+        EinGenerator generator = new EinGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
         String formatted = generator.generate();
         assertTrue(formatted.matches("\\d{2}-\\d{7}"));
 
@@ -205,7 +205,7 @@ class Phase2FinanceGeneratorsTest {
                                                      SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                  .build();
         assertTrue(Generators.ofCusip(config).generate().matches("[0-9A-Z]{9}"));
-        assertTrue(new CusipGenerator().generate().matches("[0-9A-Z]{9}"));
+        assertTrue(new CusipGenerator(GeneratorConfig.builder() .securitiesIdentifierSafetyPolicy( SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("[0-9A-Z]{9}"));
     }
 
     @Test

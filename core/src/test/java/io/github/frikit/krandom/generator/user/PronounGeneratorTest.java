@@ -85,36 +85,6 @@ class PronounGeneratorTest {
     @Nested
     @DisplayName("PronounDataRegistry")
     class Registry {
-
-        @Test
-        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
-        void registry() {
-            assertTrue(PronounDataRegistry.isRegistered(RU));
-            assertTrue(PronounDataRegistry.isRegistered(Locale.of("ru"))); // language-only
-            assertFalse(PronounDataRegistry.isRegistered(Locale.of("is", "IS")));
-            assertFalse(PronounDataRegistry.isRegistered(null));
-
-            assertNotNull(PronounDataRegistry.forLocale(RU));
-            assertNotNull(PronounDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
-            assertNull(PronounDataRegistry.forLocale(Locale.of("is")));
-            assertNull(PronounDataRegistry.forLocale(null));
-            assertTrue(PronounDataRegistry.registeredKeys().contains("ru_RU"));
-
-            PronounDataProvider custom = new PronounDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getPronounSets() {
-                    return List.of("zz/zz");
-                }
-            };
-            PronounDataRegistry.register(custom);
-            assertEquals("zz/zz", new PronounGenerator(Locale.of("zz")).generate());
-            assertThrows(NullPointerException.class, () -> PronounDataRegistry.register(null));
-        }
     }
 
     @Nested

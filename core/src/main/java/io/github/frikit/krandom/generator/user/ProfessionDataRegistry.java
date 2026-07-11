@@ -18,9 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Global registry mapping locales to {@link ProfessionDataProvider} instances.
  *
  * <p>Pre-seeded with built-in locales from
- * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Custom providers can override any
- * locale via {@link #register(ProfessionDataProvider)}. Additional profession entries can be
- * appended via {@link #append(Locale, String[], int[])}.
+ * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Custom providers and
+ * additional profession entries are registered per configuration via
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  */
 public final class ProfessionDataRegistry {
 
@@ -34,65 +34,6 @@ public final class ProfessionDataRegistry {
     }
 
     private ProfessionDataRegistry() {
-    }
-
-    /**
-     * Registers (or overrides) a provider for its locale.
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerProfessionProvider(ProfessionDataProvider)}
-     * for configuration-scoped registration.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(ProfessionDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
-        validateProvider(provider);
-        putProvider(provider);
-    }
-
-    /**
-     * Appends profession entries to the existing locale provider, preserving existing entries.
-     *
-     * <p>If the locale is not yet registered, a new provider is created from the appended data.
-     *
-     * @deprecated Since 1.6, create a combined {@link ProfessionDataProvider} and use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerProfessionProvider(ProfessionDataProvider)}.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void append(Locale locale, String[] professions, int[] weights) {
-        Objects.requireNonNull(locale, "locale");
-        validateArrays(professions, weights);
-
-        ProfessionDataProvider existing = forLocale(locale);
-        String[] mergedProfessions;
-        int[] mergedWeights;
-        if (existing == null || !localeMatches(existing.getLocale(), locale)) {
-            mergedProfessions = professions.clone();
-            mergedWeights = weights.clone();
-        } else {
-            String[] baseProfessions = existing.getProfessions();
-            int[] baseWeights = existing.getWeights();
-            mergedProfessions = Arrays.copyOf(baseProfessions, baseProfessions.length + professions.length);
-            System.arraycopy(professions, 0, mergedProfessions, baseProfessions.length, professions.length);
-            mergedWeights = Arrays.copyOf(baseWeights, baseWeights.length + weights.length);
-            System.arraycopy(weights, 0, mergedWeights, baseWeights.length, weights.length);
-        }
-
-        putProvider(new BasicProfessionDataProvider(locale, mergedProfessions, mergedWeights));
-    }
-
-    /**
-     * Convenience overload: appended professions get uniform weight 1.
-     *
-     * @deprecated Since 1.6, create a combined {@link ProfessionDataProvider} and use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerProfessionProvider(ProfessionDataProvider)}.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void append(Locale locale, String[] professions) {
-        Objects.requireNonNull(professions, "professions");
-        int[] weights = new int[professions.length];
-        Arrays.fill(weights, 1);
-        append(locale, professions, weights);
     }
 
     /**
@@ -130,73 +71,12 @@ public final class ProfessionDataRegistry {
     private static void putProvider(ProfessionDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 
     private static void seedInternal(ProfessionDataProvider provider) {
         putProvider(provider);
     }
 
-    private static void validateProvider(ProfessionDataProvider provider) {
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        validateArrays(provider.getProfessions(), provider.getWeights());
-    }
-
-    private static void validateArrays(String[] professions, int[] weights) {
-        Objects.requireNonNull(professions, "professions");
-        Objects.requireNonNull(weights, "weights");
-        if (professions.length == 0) {
-            throw new IllegalArgumentException("professions must not be empty");
-        }
-        if (professions.length != weights.length) {
-            throw new IllegalArgumentException("professions and weights length must match");
-        }
-        for (int i = 0; i < professions.length; i++) {
-            String profession = professions[i];
-            if (profession == null || profession.isBlank()) {
-                throw new IllegalArgumentException("profession at index " + i + " must not be blank");
-            }
-            if (weights[i] <= 0) {
-                throw new IllegalArgumentException("weight at index " + i + " must be > 0");
-            }
-        }
-    }
-
-    private static boolean localeMatches(Locale a, Locale b) {
-        return a.getLanguage().equals(b.getLanguage())
-               && a.getCountry().equals(b.getCountry());
-    }
-
-    private static final class BasicProfessionDataProvider implements ProfessionDataProvider {
-
-        private final Locale   locale;
-        private final String[] professions;
-        private final int[]    weights;
-
-        private BasicProfessionDataProvider(Locale locale, String[] professions, int[] weights) {
-            this.locale = locale;
-            this.professions = professions;
-            this.weights = weights;
-        }
-
-        @Override
-        public Locale getLocale() {
-            return locale;
-        }
-
-        @Override
-        public String[] getProfessions() {
-            return professions.clone();
-        }
-
-        @Override
-        public int[] getWeights() {
-            return weights.clone();
-        }
-    }
 }

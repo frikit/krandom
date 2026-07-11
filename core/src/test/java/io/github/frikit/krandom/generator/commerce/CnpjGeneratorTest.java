@@ -63,7 +63,7 @@ class CnpjGeneratorTest {
     @RepeatedTest(200)
     @DisplayName("deprecated no-argument constructor preserves formatted valid output")
     void formattedValid() {
-        String cnpj = new CnpjGenerator().generate();
+        String cnpj = new CnpjGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(cnpj.matches("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}"), cnpj);
         assertTrue(isValidCnpj(cnpj.replaceAll("\\D", "")), cnpj);
     }
@@ -71,7 +71,7 @@ class CnpjGeneratorTest {
     @RepeatedTest(200)
     @DisplayName("deprecated no-argument constructor preserves unformatted valid output")
     void unformattedValid() {
-        String cnpj = new CnpjGenerator().withoutFormatting().generate();
+        String cnpj = new CnpjGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).withoutFormatting().generate();
         assertTrue(cnpj.matches("\\d{14}"), cnpj);
         assertEquals("0001", cnpj.substring(8, 12), "headquarters branch");
         assertTrue(isValidCnpj(cnpj), cnpj);

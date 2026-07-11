@@ -25,25 +25,7 @@ public final class BbanGenerator implements Generator<String> {
     private final Random                random;
     private final BankingSafetyPolicy bankingSafetyPolicy;
 
-    /**
-     * @deprecated Use {@link #BbanGenerator(GeneratorConfig)}. This 1.6 bridge retains realistic
-     *             but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public BbanGenerator() {
-        this(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build());
-    }
 
-    /**
-     * @deprecated Use {@link #BbanGenerator(GeneratorConfig)}. This 1.6 bridge retains realistic
-     *             but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public BbanGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(locale)
-                            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
     public BbanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");

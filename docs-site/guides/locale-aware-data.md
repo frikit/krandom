@@ -61,7 +61,7 @@ String city = new CityGenerator(mx).generate();
 String street = new StreetAddressGenerator(mx).generate();
 ```
 
-Use `bundle.registerGlobal()` only when you want to extend the process-wide static registries. Prefer `DataRegistryContext.builder().registerLocaleData(...)` for isolated tests and embedded runtimes.
+Register bundles through `DataRegistryContext.builder().registerLocaleData(...)` on the `GeneratorConfig` that consumes them. v2 removed process-wide registration (`registerGlobal()` and the per-registry `register(...)` methods): custom vocabulary is always scoped to a configuration and cannot leak between tests.
 
 ## Locale quality tiers
 

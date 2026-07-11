@@ -28,18 +28,6 @@ public final class PassportGenerator implements Generator<String> {
     private final Random random;
     private final IdentityDocumentSafetyPolicy safetyPolicy;
 
-    /**
-     * Creates a generator with the historical realistic-output behavior.
-     *
-     * @deprecated since 1.6; use {@link #PassportGenerator(GeneratorConfig)} and select an
-     * explicit safety policy instead
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public PassportGenerator() {
-        this(GeneratorConfig.builder()
-                            .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
     /**
      * Creates a generator from explicit configuration (optional seed).

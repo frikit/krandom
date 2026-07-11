@@ -153,6 +153,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The mutable Kotest bridges `Generator.toArb()`, the no-argument `krandomArb { ... }` factory,
   and `krandomObjectArb`. Use `krandomArb(config) { ... }`, `krandomReplayObjectArb`, and the
   shrinking-aware bounded arbs, which derive fresh generators from Kotest's `RandomSource`.
+- All process-wide registry mutation: the 23 deprecated static `register(...)`/`append(...)`
+  methods on the data registries and `LocaleDataBundle.registerGlobal()`. Register custom
+  vocabulary on the consuming configuration via `DataRegistryContext.builder()` instead; built-in
+  locale data still loads automatically and read-only lookups are unchanged.
+- The 21 deprecated no-argument and `Locale`-based constructors on the finance and identity
+  generators (ABA routing, bank account/info, BBAN, BIC, IBAN, ISIN, CUSIP, EIN, CNPJ, crypto
+  address, passport, driving license, national ID). Construct them with a `GeneratorConfig`
+  carrying an explicit safety policy; the removed bridges' exact replacement expressions are in
+  `docs/migration/v1.6-to-v2.md`.
 
 ### Fixed
 - Recursive object generation now retains type-use annotations for optional values, array

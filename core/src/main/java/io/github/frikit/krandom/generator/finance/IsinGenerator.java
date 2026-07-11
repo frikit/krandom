@@ -23,34 +23,7 @@ public final class IsinGenerator implements Generator<String> {
     private final Random          random;
     private final SecuritiesIdentifierSafetyPolicy safetyPolicy;
 
-    /**
-     * Creates a generator with the historical realistic-output behavior.
-     *
-     * @deprecated since 1.6; use {@link #IsinGenerator(GeneratorConfig)} and select an explicit
-     * safety policy instead
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public IsinGenerator() {
-        this(GeneratorConfig.builder()
-                            .securitiesIdentifierSafetyPolicy(
-                                SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
-    /**
-     * Creates a generator with the historical realistic-output behavior for the supplied locale.
-     *
-     * @deprecated since 1.6; use {@link #IsinGenerator(GeneratorConfig)} and select an explicit
-     * safety policy instead
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public IsinGenerator(Locale locale) {
-        this(GeneratorConfig.builder()
-                            .locale(Objects.requireNonNull(locale, "locale must not be null"))
-                            .securitiesIdentifierSafetyPolicy(
-                                SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
     /**
      * Creates a generator from explicit configuration.

@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Built-in support is auto-loaded at class init from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
  *
- * <p>Custom providers registered via {@link #register(StateDataProvider)} override built-in data
+ * <p>Custom providers registered via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder} override built-in data
  * for the same locale and enable support for additional locales.
  */
 public final class StateDataRegistry {
@@ -31,30 +31,12 @@ public final class StateDataRegistry {
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
-            register(new BuiltInStateDataProvider(supportedLocale));
+            registerProvider(new BuiltInStateDataProvider(supportedLocale));
         }
     }
 
     private StateDataRegistry() {
         throw new UnsupportedOperationException("Utility class");
-    }
-
-    /**
-     * Registers or replaces the state data provider for a locale.
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerStateProvider(StateDataProvider)}
-     * for configuration-scoped registration.
-     * @param provider the provider; must not be {@code null}
-     * @throws NullPointerException if {@code provider} is {@code null}
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(StateDataProvider provider) {
-        Objects.requireNonNull(provider, "provider must not be null");
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
-        validateStates(provider.getStates());
-        validateAbbreviations(provider.getAbbreviations());
-        RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
     }
 
     /**
@@ -86,26 +68,11 @@ public final class StateDataRegistry {
         return Set.copyOf(providers.keySet());
     }
 
-    private static void validateStates(String[] states) {
-        Objects.requireNonNull(states, "states must not be null");
-        if (states.length == 0) {
-            throw new IllegalArgumentException("states must not be empty");
-        }
-        for (int i = 0; i < states.length; i++) {
-            String value = states[i];
-            if (value == null || value.isBlank()) {
-                throw new IllegalArgumentException("states at index " + i + " must not be blank");
-            }
-        }
-    }
 
-    private static void validateAbbreviations(String[] abbreviations) {
-        Objects.requireNonNull(abbreviations, "abbreviations must not be null");
-        for (int i = 0; i < abbreviations.length; i++) {
-            if (abbreviations[i] == null) {
-                throw new IllegalArgumentException("abbreviations at index " + i + " must not be null");
-            }
-        }
-    }
 
+    private static void registerProvider(StateDataProvider provider) {
+        Objects.requireNonNull(provider, "provider must not be null");
+        Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
+        RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
+    }
 }

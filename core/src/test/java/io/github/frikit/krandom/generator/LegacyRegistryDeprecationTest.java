@@ -51,24 +51,34 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("Legacy data-registry deprecations")
 class LegacyRegistryDeprecationTest {
 
     @Test
-    @DisplayName("all process-wide mutation entry points are 1.6 compatibility bridges")
-    void globalMutationMethodsAreDeprecatedForV2Removal() throws ReflectiveOperationException {
+    @DisplayName("no process-wide mutation entry point survives the v2 removal")
+    void globalMutationMethodsAreRemovedInV2() {
         for (LegacyMutation mutation : mutations()) {
-            Deprecated annotation = mutation.method().getAnnotation(Deprecated.class);
-            assertNotNull(annotation, mutation::description);
-            assertEquals("1.6", annotation.since(), mutation::description);
-            assertTrue(annotation.forRemoval(), mutation::description);
+            assertThrows(NoSuchMethodException.class, mutation::method, mutation::description);
+        }
+    }
+
+    @Test
+    @DisplayName("registries expose no public static register or append methods at all")
+    void registriesExposeNoPublicMutationMethods() {
+        for (LegacyMutation mutation : mutations()) {
+            for (Method method : mutation.registry().getMethods()) {
+                boolean mutator = Modifier.isStatic(method.getModifiers())
+                    && (method.getName().equals("register") || method.getName().equals("append"));
+                assertFalse(mutator,
+                    () -> mutation.registry().getSimpleName() + " must not expose " + method.getName());
+            }
         }
     }
 

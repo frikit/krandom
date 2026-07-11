@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Pre-seeded at class-load time with every built-in locale from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
- * Custom providers can be added at any time via {@link #register(LastNameDataProvider)},
+ * Custom providers can be added at any time via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder},
  * replacing any existing provider for the same locale key.
  *
  * <p><b>Lookup order</b>
@@ -40,25 +40,6 @@ public final class LastNameDataRegistry {
     }
 
     private LastNameDataRegistry() {
-    }
-
-    /**
-     * Registers a custom last-name data provider.
-     *
-     * <p>If a provider already exists for the same exact locale key, it is replaced.
-     * A language-only locale (e.g. {@code Locale.of("en")}) explicitly replaces the
-     * language-level fallback.
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerLastNameProvider(LastNameDataProvider)}
-     * for configuration-scoped registration.
-     * @param provider the provider to register; must not be {@code null}
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(LastNameDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
-        validateProvider(provider);
-        putProvider(provider);
     }
 
     /**
@@ -102,29 +83,9 @@ public final class LastNameDataRegistry {
     private static void putProvider(LastNameDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 
-    private static void validateProvider(LastNameDataProvider provider) {
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        validateArray("lastNames", provider.getLastNames());
-    }
 
-    private static void validateArray(String name, String[] values) {
-        Objects.requireNonNull(values, name);
-        if (values.length == 0) {
-            throw new IllegalArgumentException(name + " must not be empty");
-        }
-        for (int i = 0; i < values.length; i++) {
-            String value = values[i];
-            if (value == null || value.isBlank()) {
-                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
-            }
-        }
-    }
 }

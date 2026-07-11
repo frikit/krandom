@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Pre-seeded at class-load time with every locale in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Custom providers can be added at
- * any time via {@link #register(NationalIdProvider)}, replacing any existing provider for the same
+ * any time via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}, replacing any existing provider for the same
  * locale key.
  *
  * <p><b>Lookup order</b>
@@ -81,36 +81,6 @@ public final class NationalIdRegistry {
     }
 
     private NationalIdRegistry() {
-    }
-
-    /**
-     * Registers a custom national ID provider, making it available to {@link NationalIdGenerator}.
-     *
-     * <p>If a provider already exists for the same exact locale key, it is replaced. A
-     * language-only key (e.g. {@code "en"}) is set only when no prior entry exists for that
-     * language — meaning the first registration for a language becomes its language-level fallback.
-     * To explicitly override the language-level fallback, register a provider whose
-     * {@link NationalIdProvider#getLocale()} has no country component (e.g.
-     * {@code Locale.of("en")}).
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerNationalIdProvider(NationalIdProvider)}
-     * for configuration-scoped registration.
-     * @param provider the provider to register; must not be {@code null}, and
-     *                 {@link NationalIdProvider#getLocale()} must not be {@code null}
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(NationalIdProvider provider) {
-        Objects.requireNonNull(provider, "provider");
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        String lang = provider.getLocale().getLanguage();
-        String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
-            REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 
     /**

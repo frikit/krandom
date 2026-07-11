@@ -52,69 +52,6 @@ class StateGeneratorTest {
     }
 
     @Test
-    @DisplayName("abbreviation mode falls back to full state when abbreviation missing")
-    void abbreviationFallbackWhenMissing() {
-        Locale locale = Locale.of("zz", "ZZ");
-        StateDataRegistry.register(new StateDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getStates() {
-                return new String[] { "Alpha", "Beta" };
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "AA" };
-            }
-        });
-
-        StateGenerator gen = new StateGenerator(GeneratorConfig.builder().locale(locale).seed(1L).build());
-        assertDoesNotThrow(() -> {
-            Field randomField = StateGenerator.class.getDeclaredField("random");
-            randomField.setAccessible(true);
-            randomField.set(gen, new Random(0L) {
-
-                @Override
-                public int nextInt(int bound) {
-                    return 1;
-                }
-            });
-        });
-        assertEquals("Beta", gen.generate(true));
-    }
-
-    @Test
-    @DisplayName("abbreviation mode falls back when locale has no abbreviation list")
-    void abbreviationFallbackWhenNoAbbreviationList() {
-        Locale locale = Locale.of("zy", "ZY");
-        StateDataRegistry.register(new StateDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getStates() {
-                return new String[] { "OnlyState" };
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return new String[0];
-            }
-        });
-
-        StateGenerator gen = new StateGenerator(GeneratorConfig.builder().locale(locale).seed(2L).build());
-        assertEquals("OnlyState", gen.generate(true));
-    }
-
-    @Test
     @DisplayName("US locale returns US state names")
     void usLocaleUSStates() {
         StateGenerator gen = new StateGenerator(Locale.US);
@@ -657,193 +594,6 @@ class StateGeneratorTest {
     // ── StateDataRegistry extensibility ────────────────────────────────────
 
     @Test
-    @DisplayName("custom provider registered for new locale is used by StateGenerator")
-    void customLocaleRegistration() {
-        Locale indian = Locale.of("en", "IN");
-        String[] indianStates = { "Maharashtra", "Karnataka", "Tamil Nadu", "Gujarat" };
-        String[] indianAbbrevs = { "MH", "KA", "TN", "GJ" };
-
-        StateDataRegistry.register(new StateDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return indian;
-            }
-
-            @Override
-            public String[] getStates() {
-                return indianStates;
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return indianAbbrevs;
-            }
-        });
-
-        StateGenerator gen = new StateGenerator(indian);
-        assertEquals(4, gen.getStateCount());
-
-        Set<String> seenStates = new HashSet<>();
-        Set<String> seenAbbrevs = new HashSet<>();
-        for (int i = 0; i < 200; i++) {
-            seenStates.add(gen.generate(false));
-            seenAbbrevs.add(gen.generate(true));
-        }
-
-        assertTrue(seenStates.containsAll(Arrays.asList(indianStates)));
-        assertTrue(seenAbbrevs.containsAll(Arrays.asList(indianAbbrevs)));
-    }
-
-    @Test
-    @DisplayName("custom provider overrides built-in locale")
-    void customProviderOverridesBuiltIn() {
-        Locale us = Locale.US;
-        String[] custom = { "Foo State", "Bar State" };
-        String[] customAbbrevs = { "FS", "BS" };
-
-        StateDataRegistry.register(new StateDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return us;
-            }
-
-            @Override
-            public String[] getStates() {
-                return custom;
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return customAbbrevs;
-            }
-        });
-
-        StateGenerator gen = new StateGenerator(us);
-        assertEquals(2, gen.getStateCount());
-
-        Set<String> seenStates = new HashSet<>();
-        Set<String> seenAbbrevs = new HashSet<>();
-        for (int i = 0; i < 100; i++) {
-            seenStates.add(gen.generate(false));
-            seenAbbrevs.add(gen.generate(true));
-        }
-
-        assertTrue(seenStates.containsAll(Arrays.asList(custom)));
-        assertTrue(seenAbbrevs.containsAll(Arrays.asList(customAbbrevs)));
-
-        // Restore built-in US data so other tests are unaffected.
-        StateDataRegistry.register(new BuiltInStateDataProvider(SupportedLocale.EN_US));
-    }
-
-    @Test
-    @DisplayName("registered custom locale appears in registeredKeys()")
-    void customLocaleAppearsInKeys() {
-        Locale brazilian = Locale.of("pt", "BR");
-        StateDataRegistry.register(new StateDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return brazilian;
-            }
-
-            @Override
-            public String[] getStates() {
-                return new String[] { "São Paulo", "Rio de Janeiro" };
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "SP", "RJ" };
-            }
-        });
-
-        assertTrue(StateDataRegistry.registeredKeys().contains("pt_BR"));
-        assertTrue(StateDataRegistry.isRegistered(brazilian));
-    }
-
-    @Test
-    @DisplayName("register rejects null provider")
-    void registerRejectsNull() {
-        assertThrows(NullPointerException.class, () -> StateDataRegistry.register(null));
-    }
-
-    @Test
-    @DisplayName("register rejects invalid state arrays and null abbreviations")
-    void registerRejectsInvalidStateProviderData() {
-        Locale locale = Locale.of("zz", "ST");
-
-        assertThrows(IllegalArgumentException.class, () -> StateDataRegistry.register(new StateDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getStates() {
-                return new String[0];
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return new String[0];
-            }
-        }));
-
-        assertThrows(IllegalArgumentException.class, () -> StateDataRegistry.register(new StateDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getStates() {
-                return new String[] { " " };
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "A" };
-            }
-        }));
-
-        assertThrows(IllegalArgumentException.class, () -> StateDataRegistry.register(new StateDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getStates() {
-                return new String[] { null };
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "A" };
-            }
-        }));
-
-        assertThrows(IllegalArgumentException.class, () -> StateDataRegistry.register(new StateDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getStates() {
-                return new String[] { "Alpha" };
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { null };
-            }
-        }));
-    }
-
-    @Test
     @DisplayName("isRegistered returns false for unregistered locale")
     void isRegisteredUnknownLocale() {
         assertFalse(StateDataRegistry.isRegistered(Locale.of("xx", "YY")));
@@ -944,62 +694,39 @@ class StateGeneratorTest {
     }
 
     @Test
-    @DisplayName("abbreviation mode falls back when abbreviation entry is blank")
-    void abbreviationFallbackWhenBlankEntry() {
-        Locale locale = Locale.of("zz", "BL");
-        StateDataRegistry.register(new StateDataProvider() {
+    @DisplayName("abbreviation mode falls back to the full state name when no abbreviation exists")
+    void abbreviationFallbackForContextScopedProvider() {
+        Locale locale = Locale.of("zz", "ZZ");
+        io.github.frikit.krandom.generator.DataRegistryContext context =
+            io.github.frikit.krandom.generator.DataRegistryContext.builder()
+                .registerStateProvider(new StateDataProvider() {
 
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getStates() {
-                return new String[] { "Alpha" };
-            }
+                    @Override
+                    public String[] getStates() {
+                        return new String[] { "Alpha", "Beta" };
+                    }
 
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "" };
-            }
-        });
+                    @Override
+                    public String[] getAbbreviations() {
+                        return new String[] { "AA" };
+                    }
+                })
+                .build();
+        StateGenerator generator = new StateGenerator(
+            GeneratorConfig.builder().locale(locale).seed(7L).registryContext(context).build());
 
-        StateGenerator gen = new StateGenerator(
-            GeneratorConfig.builder().locale(locale).seed(1L).build()
-        );
-        assertEquals("Alpha", gen.generate(true));
-    }
-
-    @Test
-    @DisplayName("abbreviation mode falls back when index exceeds abbreviation array length")
-    void abbreviationFallbackWhenIndexOutOfBounds() {
-        Locale locale = Locale.of("zz", "SH");
-        StateDataRegistry.register(new StateDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
-
-            @Override
-            public String[] getStates() {
-                return new String[] { "First", "Second" };
-            }
-
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "F" };
-            }
-        });
-
-        StateGenerator gen = new StateGenerator(
-            GeneratorConfig.builder().locale(locale).seed(2L).build()
-        );
-        Set<String> seen = new HashSet<>();
-        for (int i = 0; i < 50; i++) {
-            seen.add(gen.generate(true));
+        java.util.Set<String> produced = new java.util.HashSet<>();
+        for (int i = 0; i < 100; i++) {
+            produced.add(generator.generate(true));
         }
-        assertTrue(seen.contains("Second"), "Expected fallback to full state for missing abbreviation index");
+        org.junit.jupiter.api.Assertions.assertTrue(produced.contains("AA"),
+            "abbreviated state expected: " + produced);
+        org.junit.jupiter.api.Assertions.assertTrue(produced.contains("Beta"),
+            "full-name fallback expected: " + produced);
     }
 }

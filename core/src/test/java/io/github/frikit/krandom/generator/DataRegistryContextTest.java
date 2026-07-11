@@ -478,25 +478,6 @@ class DataRegistryContextTest {
     }
 
     @Test
-    @DisplayName("legacy registry bridges apply context validation")
-    @SuppressWarnings("removal")
-    void legacyRegistryBridgesApplyContextValidation() {
-        Locale locale = Locale.of("zz", "WW");
-
-        assertThrows(IllegalArgumentException.class, () -> WeatherDataRegistry.register(weatherProvider(locale, List.of())));
-        assertThrows(IllegalArgumentException.class, () -> MeasurementDataRegistry.register(measurementProvider(locale, " ")));
-        assertThrows(IllegalArgumentException.class, () -> FinancialTermDataRegistry.register(financialTermProvider(locale, " ")));
-        assertThrows(IllegalArgumentException.class, () -> RestaurantTypeDataRegistry.register(restaurantTypeProvider(locale, " ")));
-        assertThrows(IllegalArgumentException.class, () -> HobbyDataRegistry.register(hobbyProvider(locale, " ")));
-        assertThrows(IllegalArgumentException.class, () -> NationalityDataRegistry.register(nationalityProvider(locale, " ")));
-        assertThrows(IllegalArgumentException.class, () -> PronounDataRegistry.register(pronounProvider(locale, "they/them/us")));
-        assertThrows(IllegalArgumentException.class,
-                     () -> BloodTypeDataRegistry.register(bloodTypeProvider(locale, List.of("O+"), List.of(0))));
-        assertThrows(IllegalArgumentException.class, () -> ChineseZodiacDataRegistry.register(chineseZodiacProvider(locale, "dragon", 11)));
-        assertThrows(IllegalArgumentException.class, () -> ZodiacDataRegistry.register(zodiacProvider(locale, "aries", 11)));
-    }
-
-    @Test
     @DisplayName("locale provider families prefer exact values then language fallbacks")
     void localeProviderFamiliesPreferExactValuesThenLanguageFallbacks() {
         FirstNameDataProvider languageFirstNames = firstNameProvider(Locale.ENGLISH);
@@ -543,18 +524,6 @@ class DataRegistryContextTest {
             assertEquals(Collections.nCopies(200, expectedScopedVocabulary("first")), firstOutput.get());
             assertEquals(Collections.nCopies(200, expectedScopedVocabulary("second")), secondOutput.get());
         }
-    }
-
-    @Test
-    @DisplayName("legacy registry key views are immutable snapshots")
-    void legacyRegistryKeyViewsAreImmutableSnapshots() {
-        Set<String> keys = FirstNameDataRegistry.registeredKeys();
-        Locale testLocale = Locale.of("zz", "ZX");
-
-        FirstNameDataRegistry.register(firstNameProvider(testLocale));
-
-        assertFalse(keys.contains("zz_ZX"));
-        assertThrows(UnsupportedOperationException.class, () -> keys.add("other"));
     }
 
     @Test

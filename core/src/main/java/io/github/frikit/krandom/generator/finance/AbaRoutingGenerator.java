@@ -23,14 +23,6 @@ public final class AbaRoutingGenerator implements Generator<String> {
     private final Random                random;
     private final BankingSafetyPolicy bankingSafetyPolicy;
 
-    /**
-     * @deprecated Use {@link #AbaRoutingGenerator(GeneratorConfig)}. This 1.6 bridge retains
-     *             realistic but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public AbaRoutingGenerator() {
-        this(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build());
-    }
 
     public AbaRoutingGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");

@@ -28,26 +28,7 @@ public final class BicGenerator implements Generator<String> {
     private final Random               random;
     private final BankingSafetyPolicy bankingSafetyPolicy;
 
-    /**
-     * @deprecated Use {@link #BicGenerator(GeneratorConfig)}. This 1.6 bridge retains realistic
-     *             but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public BicGenerator() {
-        this(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build());
-    }
 
-    /**
-     * @deprecated Use {@link #BicGenerator(GeneratorConfig)}. This 1.6 bridge retains realistic
-     *             but unclassified output; v2 configuration fails closed by default.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public BicGenerator(Locale locale) {
-        this(GeneratorConfig.builder()
-                            .locale(Objects.requireNonNull(locale, "locale must not be null"))
-                            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                            .build());
-    }
 
     public BicGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");

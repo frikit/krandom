@@ -24,7 +24,7 @@ class Phase3FinanceGeneratorsTest {
     @Test
     @DisplayName("bank account supports account number/name/transaction type")
     void bankAccountBasics() {
-        BankAccountGenerator us = new BankAccountGenerator(Locale.US);
+        BankAccountGenerator us = new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.US) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
         assertTrue(us.generate().matches("\\d{10}"));
         assertFalse(us.generateAccountName().isBlank());
         assertFalse(us.generateTransactionType().isBlank());
@@ -34,17 +34,17 @@ class Phase3FinanceGeneratorsTest {
     @Test
     @DisplayName("bank account length follows locale country")
     void bankAccountLocaleLengths() {
-        assertEquals(8, new BankAccountGenerator(Locale.UK).generate().length());
-        assertEquals(7, new BankAccountGenerator(Locale.JAPAN).generate().length());
-        assertEquals(12, new BankAccountGenerator(Locale.ITALY).generate().length());
-        assertEquals(10, new BankAccountGenerator(Locale.US).generate().length());
-        assertEquals(10, new BankAccountGenerator(Locale.GERMANY).generate().length());
-        assertEquals(10, new BankAccountGenerator(Locale.of("es", "ES")).generate().length());
-        assertEquals(11, new BankAccountGenerator(Locale.FRANCE).generate().length());
-        assertEquals(12, new BankAccountGenerator(Locale.CHINA).generate().length());
-        assertEquals(9, new BankAccountGenerator(Locale.of("pt", "BR")).generate().length());
-        assertEquals(9, new BankAccountGenerator(Locale.of("en", "AU")).generate().length());
-        assertEquals(10, new BankAccountGenerator(Locale.CANADA).generate().length());
+        assertEquals(8, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.UK) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(7, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.JAPAN) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(12, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.ITALY) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(10, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.US) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(10, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.GERMANY) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(10, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.of("es", "ES")) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(11, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.FRANCE) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(12, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.CHINA) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(9, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.of("pt", "BR")) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(9, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.of("en", "AU")) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(10, new BankAccountGenerator(GeneratorConfig.builder() .locale(Locale.CANADA) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
     }
 
     @Test
@@ -69,7 +69,6 @@ class Phase3FinanceGeneratorsTest {
     @Test
     @DisplayName("bank account validates null arguments")
     void bankAccountValidation() {
-        assertThrows(NullPointerException.class, () -> new BankAccountGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new BankAccountGenerator((GeneratorConfig) null));
     }
 
@@ -93,7 +92,7 @@ class Phase3FinanceGeneratorsTest {
     @DisplayName("crypto generator default and validation branches")
     @SuppressWarnings("removal")
     void cryptoDefaultAndValidation() {
-        CryptoAddressGenerator generator = new CryptoAddressGenerator();
+        CryptoAddressGenerator generator = new CryptoAddressGenerator(GeneratorConfig.builder() .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
         String any = generator.generate();
         assertTrue(any.startsWith("1") || any.startsWith("0x") || any.startsWith("L"));
         assertThrows(NullPointerException.class, () -> generator.generate(null));

@@ -25,7 +25,7 @@ DataRegistryContext context = DataRegistryContext.builder()
         .build();
 ```
 
-That path keeps overrides local to one `GeneratorConfig` / runtime instead of mutating the global static registries. Use `bundle.registerGlobal()` only when you deliberately want process-wide registration.
+That path keeps overrides local to one `GeneratorConfig` / runtime. v2 removed process-wide registration (`registerGlobal()` and the per-registry `register(...)` methods), so configuration-scoped registration is the only way to supply custom locale data.
 
 ## Required resource families
 

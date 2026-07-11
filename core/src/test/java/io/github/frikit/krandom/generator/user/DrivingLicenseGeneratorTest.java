@@ -24,16 +24,14 @@ class DrivingLicenseGeneratorTest {
     @RepeatedTest(200)
     @DisplayName("deprecated no-argument constructor preserves the generic driving-license format")
     void formatMatches() {
-        String license = new DrivingLicenseGenerator().generate();
+        String license = new DrivingLicenseGenerator(GeneratorConfig.builder() .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(license.matches("[A-Z]{2}[0-9]{6}"), license);
     }
 
     @Test
-    @DisplayName("legacy constructor is scheduled for v2 removal")
-    void legacyConstructorIsScheduledForRemoval() throws NoSuchMethodException {
-        Deprecated annotation = DrivingLicenseGenerator.class.getConstructor().getAnnotation(Deprecated.class);
-
-        assertTrue(annotation.forRemoval());
+    @DisplayName("legacy no-argument constructor is removed in v2")
+    void legacyConstructorIsRemoved() {
+        assertThrows(NoSuchMethodException.class, () -> DrivingLicenseGenerator.class.getConstructor());
     }
 
     @Test

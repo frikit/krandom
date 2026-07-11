@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale} that has a
  * {@code krandom/chinese_zodiac/<locale>.txt} resource. Locales without a file fall back to the
  * bundled default (English) names. Custom providers can be added via
- * {@link #register(ChineseZodiacDataProvider)}.
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p><b>Lookup order:</b> exact {@code language_COUNTRY} match, then language-only match, then
  * {@code null}.
@@ -40,20 +40,6 @@ public final class ChineseZodiacDataRegistry {
     }
 
     private ChineseZodiacDataRegistry() {
-    }
-
-    /**
-     * Registers a custom Chinese zodiac data provider, replacing any provider for the same locale key.
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerChineseZodiacProvider(ChineseZodiacDataProvider)}
-     * for configuration-scoped registration.
-     * @param provider the provider to register; must not be {@code null}
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(ChineseZodiacDataProvider provider) {
-        validateProvider(provider);
-        putProvider(provider);
     }
 
     /**
@@ -96,18 +82,10 @@ public final class ChineseZodiacDataRegistry {
         return Set.copyOf(REGISTRY.keySet());
     }
 
-    private static void validateProvider(ChineseZodiacDataProvider provider) {
-        DataRegistryContext.builder().isolated().registerChineseZodiacProvider(provider);
-    }
-
     private static void putProvider(ChineseZodiacDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 }

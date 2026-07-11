@@ -287,3 +287,20 @@ io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator
 io.github.frikit.krandom.generator.datetime.UtilDateGenerator
 io.github.frikit.krandom.generator.datetime.SqlDateGenerator
 io.github.frikit.krandom.generator.datetime.SqlTimestampGenerator
+
+# v2 removal of process-wide mutation entry points from these classes; context-scoped
+# registration replaces them (docs/migration/v1.6-to-v2.md "Config-scoped locale data").
+io.github.frikit.krandom.generator.locale.LocaleDataBundle
+io.github.frikit.krandom.generator.location.CityDataRegistry
+io.github.frikit.krandom.generator.location.CountryDataRegistry
+io.github.frikit.krandom.generator.location.StateDataRegistry
+io.github.frikit.krandom.generator.location.StreetAddressDataRegistry
+
+# v2 removal of process-wide mutation from the person-name registries; context-scoped
+# registration replaces it (docs/migration/v1.6-to-v2.md "Config-scoped locale data").
+io.github.frikit.krandom.generator.user.FirstNameDataRegistry
+io.github.frikit.krandom.generator.user.GenderDataRegistry
+io.github.frikit.krandom.generator.user.LastNameDataRegistry
+io.github.frikit.krandom.generator.user.ProfessionDataRegistry
+io.github.frikit.krandom.generator.user.SuffixDataRegistry
+io.github.frikit.krandom.generator.user.TitleDataRegistry

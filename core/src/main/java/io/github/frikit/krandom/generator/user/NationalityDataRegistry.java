@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale} that has a
  * {@code krandom/nationalities/<locale>.txt} resource. Locales without a file fall back to the
  * bundled default (English) demonyms. Custom providers can be added via
- * {@link #register(NationalityDataProvider)}.
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p><b>Lookup order:</b> exact {@code language_COUNTRY} match, then language-only match, then
  * {@code null}.
@@ -40,20 +40,6 @@ public final class NationalityDataRegistry {
     }
 
     private NationalityDataRegistry() {
-    }
-
-    /**
-     * Registers a custom nationality data provider, replacing any provider for the same locale key.
-     *
-     * @deprecated Since 1.6, use
-     * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerNationalityProvider(NationalityDataProvider)}
-     * for configuration-scoped registration.
-     * @param provider the provider to register; must not be {@code null}
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static void register(NationalityDataProvider provider) {
-        validateProvider(provider);
-        putProvider(provider);
     }
 
     /**
@@ -96,18 +82,10 @@ public final class NationalityDataRegistry {
         return Set.copyOf(REGISTRY.keySet());
     }
 
-    private static void validateProvider(NationalityDataProvider provider) {
-        DataRegistryContext.builder().isolated().registerNationalityProvider(provider);
-    }
-
     private static void putProvider(NationalityDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 }
