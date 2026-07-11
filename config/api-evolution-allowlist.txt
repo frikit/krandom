@@ -273,3 +273,7 @@ io.github.frikit.krandom.generator.Generators#uniqueValues(io.github.frikit.kran
 # Set-backed default-equality uniqueness with documented memory/exhaustion behavior (Step 3.2);
 # public constructors and behavior are unchanged.
 io.github.frikit.krandom.generator.selection.UniqueGenerator
+
+# Typed KProperty1 rule/exclude overloads with duplicate/unknown-rule validation (Step 3.4);
+# see the kotlin-dsl guide and v2-public-api-inventory.md.
+io.github.frikit.krandom.dsl.KrandomBuilder

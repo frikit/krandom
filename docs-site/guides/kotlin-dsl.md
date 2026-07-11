@@ -27,8 +27,27 @@ import io.github.frikit.krandom.dsl.krandom
 
 val user = krandom<UserDto> {
     config { seed(42L) }
-    rule("firstName") { "Ada" }
-    rule("email") { "ada@example.test" }
+    rule(UserDto::firstName) { "Ada" }
+    rule(UserDto::email) { "ada@example.test" }
+}
+```
+
+## Typed Rules and Validation
+
+Prefer property references over string names: they survive renames, and the compiler checks that
+the rule value matches the property type. The string form remains as a compatibility bridge for
+fields that cannot be referenced as Kotlin properties.
+
+Rules are validated before generation:
+
+- registering two rules for the same field or the same type fails immediately;
+- a rule naming a field that does not exist on the target class fails when the generator is
+  built, listing the known field names.
+
+```kotlin
+val account = krandom<Account> {
+    rule(Account::owner) { "grace" }   // type-safe; survives refactoring
+    exclude(Account::internalNotes)    // type-safe exclusion
 }
 ```
 

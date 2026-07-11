@@ -642,16 +642,16 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Add `KProperty1`-based field rules and keep string rules only as an explicit compatibility bridge if needed.
-- [ ] Validate duplicate, unused, incompatible, and unknown rules at DSL build time.
+- [x] Add `KProperty1`-based field rules and keep string rules only as an explicit compatibility bridge if needed.
+- [x] Validate duplicate, unused, incompatible, and unknown rules at DSL build time. (Duplicates fail at registration; unknown/unused names fail at build; incompatible values are prevented at compile time by the typed overload and remain unchecked only for bridge string rules.)
 - [ ] Align Kotlin defaults with Java defaults unless a documented Kotlin-specific behavior is intentional.
 - [ ] Expose safe construction and generation recipes idiomatically.
 - [ ] Add examples for immutable data classes, nested generics, defaults, and constraints.
 
 **Tests**
 
-- [ ] Property-reference rules survive Kotlin refactoring/compiler checks.
-- [ ] Invalid rules fail before generation.
+- [x] Property-reference rules survive Kotlin refactoring/compiler checks.
+- [x] Invalid rules fail before generation.
 - [ ] Java and Kotlin configurations produce equivalent documented behavior.
 
 **Done when:** The Kotlin DSL is type-safe, predictable, and no longer implies unsupported behavior.
