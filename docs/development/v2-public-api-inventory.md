@@ -61,12 +61,12 @@ The facade currently has hundreds of public static declarations. Domain namespac
 
 | Current API | Disposition | Canonical/replacement API | Reason |
 |:---|:---|:---|:---|
-| `constant(value)` | **DEPRECATE 1.6** | `ofConstant(value)` | Align with the established `ofX` factory family |
-| `pickFrom(list)` | **DEPRECATE 1.6** | `pick(list)` | One concise selection verb is sufficient |
-| `pickSetFrom(list, count)` | **DEPRECATE 1.6** | `pickSet(list, count)` | Align pick and pick-set factory naming |
-| `pickset(list, count)` | **DEPRECATE 1.6** | `pickSet(list, count)` | Existing spelling violates Java casing |
-| `shuffleOf(list)` | **DEPRECATE 1.6** | `shuffle(list)` | Redundant alias |
-| `uniqueValues(generator)` | **DEPRECATE 1.6** | `unique(generator)` | Redundant alias |
+| `constant(value)` | **REMOVED in v2** | `ofConstant(value)` | Align with the established `ofX` factory family |
+| `pickFrom(list)` | **REMOVED in v2** | `pick(list)` | One concise selection verb is sufficient |
+| `pickSetFrom(list, count)` | **REMOVED in v2** | `pickSet(list, count)` | Align pick and pick-set factory naming |
+| `pickset(list, count)` | **REMOVED in v2** | `pickSet(list, count)` | Existing spelling violates Java casing |
+| `shuffleOf(list)` | **REMOVED in v2** | `shuffle(list)` | Redundant alias |
+| `uniqueValues(generator)` | **REMOVED in v2** | `unique(generator)` | Redundant alias |
 | `ofUrl()` / `ofURL()` | **DECISION REQUIRED** | One acronym convention | Current overload sets differ |
 | `ofUri()` / `ofURI()` | **DECISION REQUIRED** | One acronym convention | Current overload sets differ |
 | `ofUuid()` | **DECISION REQUIRED** | Keep or add `ofUUID()` bridge | Must use the same acronym rule as URL/URI |

@@ -322,19 +322,6 @@ public final class Generators {
      * @param value value returned by every generated call; may be {@code null}
      * @param <T> generated value type
      * @return constant generator
-     * @deprecated use {@link #ofConstant(Object)}; this compatibility alias is removed in v2
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static <T> ConstantGenerator<T> constant(T value) {
-        return ofConstant(value);
-    }
-
-    /**
-     * Returns a generator that always returns the same value.
-     *
-     * @param value value returned by every generated call; may be {@code null}
-     * @param <T> generated value type
-     * @return constant generator
      */
     public static <T> ConstantGenerator<T> ofConstant(T value) {
         return new ConstantGenerator<>(value);
@@ -2716,29 +2703,9 @@ public final class Generators {
 
     /**
      * Returns a generator that picks one random element from the given source list.
-     *
-     * @deprecated use {@link #pick(List)}; this compatibility alias is removed in v2
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static <T> PickGenerator<T> pickFrom(List<T> source) {
-        return pick(source);
-    }
-
-    /**
-     * Returns a generator that picks one random element from the given source list.
      */
     public static <T> PickGenerator<T> pick(List<T> source) {
         return new PickGenerator<>(source);
-    }
-
-    /**
-     * Returns a generator that picks {@code count} distinct elements without replacement.
-     *
-     * @deprecated use {@link #pickSet(List, int)}; this compatibility alias is removed in v2
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static <T> PickSetGenerator<T> pickSetFrom(List<T> source, int count) {
-        return pickSet(source, count);
     }
 
     /**
@@ -2748,26 +2715,6 @@ public final class Generators {
      */
     public static <T> PickSetGenerator<T> pickSet(List<T> source, int count) {
         return new PickSetGenerator<>(source, count);
-    }
-
-    /**
-     * Chance-style compatibility alias for {@link #pickSet(List, int)}.
-     *
-     * @deprecated use {@link #pickSet(List, int)}; this incorrectly cased alias is removed in v2
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static <T> PickSetGenerator<T> pickset(List<T> source, int count) {
-        return pickSet(source, count);
-    }
-
-    /**
-     * Returns a generator that returns a shuffled copy of the given list.
-     *
-     * @deprecated use {@link #shuffle(List)}; this compatibility alias is removed in v2
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static <T> ShuffleGenerator<T> shuffleOf(List<T> source) {
-        return shuffle(source);
     }
 
     /**
@@ -2789,16 +2736,6 @@ public final class Generators {
      */
     public static <T> UniqueGenerator<T> unique(Generator<T> source) {
         return new UniqueGenerator<>(source);
-    }
-
-    /**
-     * DataFaker-style alias for {@link #unique(Generator)}.
-     *
-     * @deprecated use {@link #unique(Generator)}; this compatibility alias is removed in v2
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    public static <T> UniqueGenerator<T> uniqueValues(Generator<T> source) {
-        return unique(source);
     }
 
     /**

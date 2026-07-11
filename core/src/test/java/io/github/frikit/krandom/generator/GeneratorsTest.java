@@ -412,39 +412,15 @@ class GeneratorsTest {
     }
 
     @Test
-    @SuppressWarnings("removal")
-    @DisplayName("pickFrom(source) delegates to canonical pick behavior")
-    void pickFromAlias() {
-        assertEquals("only", Generators.pickFrom(List.of("only")).generate());
-    }
-
-    @Test
     @DisplayName("pickSet(source, count) returns PickSetGenerator")
     void pickSet() {
         assertInstanceOf(PickSetGenerator.class, Generators.pickSet(List.of(1, 2, 3), 2));
     }
 
     @Test
-    @SuppressWarnings("removal")
-    @DisplayName("legacy pick-set aliases delegate to canonical pickSet behavior")
-    void pickSetAliases() {
-        assertAll(
-            () -> assertEquals(List.of(1), Generators.pickSetFrom(List.of(1), 1).generate()),
-            () -> assertEquals(List.of(1), Generators.pickset(List.of(1), 1).generate())
-        );
-    }
-
-    @Test
     @DisplayName("shuffle(source) returns ShuffleGenerator")
     void shuffle() {
         assertInstanceOf(ShuffleGenerator.class, Generators.shuffle(List.of(1, 2, 3)));
-    }
-
-    @Test
-    @SuppressWarnings("removal")
-    @DisplayName("shuffleOf(source) delegates to canonical shuffle behavior")
-    void shuffleOfAlias() {
-        assertEquals(List.of(1), Generators.shuffleOf(List.of(1)).generate());
     }
 
     @Test

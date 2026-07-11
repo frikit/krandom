@@ -228,7 +228,7 @@ class SelectionGeneratorsTest {
                 return n++ % 2;
             }
         };
-        UniqueGenerator<Integer> unique = Generators.uniqueValues(bounded);
+        UniqueGenerator<Integer> unique = Generators.unique(bounded);
         assertDoesNotThrow(unique::generate);
         assertDoesNotThrow(unique::generate);
     }

@@ -143,6 +143,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   replay contract. Reseed through the typed `Seedable` contract instead; see
   `docs/migration/v1.6-to-v2.md`.
 
+### Removed
+- The 1.6-deprecated `Generators` facade aliases `constant`, `pickFrom`, `pickset`,
+  `pickSetFrom`, `shuffleOf`, and `uniqueValues`. Use the canonical `ofConstant`, `pick`,
+  `pickSet`, `shuffle`, and `unique`; the migration table is in `docs/migration/v1.6-to-v2.md`.
+
 ### Fixed
 - Recursive object generation now retains type-use annotations for optional values, array
   components, collection elements, and map keys/values. Nested Bean Validation constraints apply
