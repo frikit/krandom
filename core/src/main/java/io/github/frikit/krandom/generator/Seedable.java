@@ -6,13 +6,12 @@
 package io.github.frikit.krandom.generator;
 
 /**
- * Marker interface for generators that support deterministic reseeding.
+ * Contract for generators that support deterministic reseeding.
  *
- * <p>Implementing this interface signals that a generator holds mutable PRNG state
- * that can be reset to produce a deterministic sequence. Prefer implementing this
- * interface over relying on the reflection-based fallback in {@link Generator#reseed(long)}.
- *
- * @see Generator#reseed(long)
+ * <p>Implementing this interface signals that a generator holds mutable PRNG state that can be
+ * reset to produce a deterministic sequence. This is the only reseeding contract in v2: callers
+ * check {@code generator instanceof Seedable} and reseed through this interface; generators that
+ * do not implement it are not reseedable.
  */
 public interface Seedable {
 

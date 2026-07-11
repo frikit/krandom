@@ -147,6 +147,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The 1.6-deprecated `Generators` facade aliases `constant`, `pickFrom`, `pickset`,
   `pickSetFrom`, `shuffleOf`, and `uniqueValues`. Use the canonical `ofConstant`, `pick`,
   `pickSet`, `shuffle`, and `unique`; the migration table is in `docs/migration/v1.6-to-v2.md`.
+- `Generator.reseed(long)` and `Generator.reseed(String)`, including the reflection-based
+  fallback that mutated discovered `Random` fields. Reseeding is now exclusively the typed
+  `Seedable` contract; see the "Typed reseeding" migration section.
 
 ### Fixed
 - Recursive object generation now retains type-use annotations for optional values, array

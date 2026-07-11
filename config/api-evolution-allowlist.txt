@@ -277,3 +277,13 @@ io.github.frikit.krandom.generator.selection.UniqueGenerator
 # Typed KProperty1 rule/exclude overloads with duplicate/unknown-rule validation (Step 3.4);
 # see the kotlin-dsl guide and v2-public-api-inventory.md.
 io.github.frikit.krandom.dsl.KrandomBuilder
+
+# v2 typed reseeding: date/time generators implement Seedable directly, replacing the removed
+# reflective Generator.reseed fallback.
+io.github.frikit.krandom.generator.datetime.DateGenerator
+io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator
+io.github.frikit.krandom.generator.datetime.InstantGenerator
+io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator
+io.github.frikit.krandom.generator.datetime.UtilDateGenerator
+io.github.frikit.krandom.generator.datetime.SqlDateGenerator
+io.github.frikit.krandom.generator.datetime.SqlTimestampGenerator

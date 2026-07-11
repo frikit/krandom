@@ -7,13 +7,10 @@ package io.github.frikit.krandom.generator;
 
 import org.jspecify.annotations.Nullable;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -33,7 +30,7 @@ import java.util.stream.Stream;
  *
  * <p><strong>Thread safety:</strong> Instances of {@code Generator} are <em>not thread-safe</em>. Each
  * generator usually holds a mutable random source whose state advances on every call to
- * {@link #generate()}. The JDK's {@link Random} is memory-safe when shared, but concurrent
+ * {@link #generate()}. The JDK's {@link java.util.Random} is memory-safe when shared, but concurrent
  * calls contend and interleave its sequence, so call order and seeded replay are no longer
  * deterministic. Other generator state may not be safe to share. Use
  * {@code Generators.threadLocal()} to obtain a thread-confined generator when concurrent
@@ -77,68 +74,6 @@ public interface Generator<T extends @Nullable Object> {
      */
     default Stream<T> stream() {
         return Stream.generate(this::generate);
-    }
-
-    /**
-     * Reseeds underlying mutable random sources for stateful generators.
-     *
-     * <p>If this generator implements {@link Seedable}, the seed is applied directly via
-     * {@link Seedable#reseed(long)}. Otherwise, a reflection-based fallback discovers
-     * non-static fields assignable to {@link Random} across the class hierarchy and applies
-     * {@link Random#setSeed(long)}.
-     *
-     * @param seed deterministic seed
-     * @throws UnsupportedOperationException if no reseedable random field is present
-     * @deprecated since 1.6, for removal in v2. The reflection fallback mutates {@link Random}
-     * state this generator does not own, so it cannot preserve the v2 replay contract: it may
-     * reseed the wrong field, silently reseed a caller-owned or secure source, or throw for
-     * generators without an accessible {@code Random}. Reseed through the typed contract
-     * instead: {@code if (generator instanceof Seedable seedable) seedable.reseed(seed);}.
-     * Generators that do not implement {@link Seedable} are not reseedable in v2.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    default void reseed(long seed) {
-        if (this instanceof Seedable seedable) {
-            seedable.reseed(seed);
-            return;
-        }
-        // Reflection fallback for generators that do not implement Seedable
-        boolean reseeded = false;
-        for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
-            for (Field field : type.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    continue;
-                }
-                try {
-                    field.setAccessible(true);
-                    Object value = field.get(this);
-                    if (value instanceof Random random) {
-                        random.setSeed(seed);
-                        reseeded = true;
-                    }
-                } catch (RuntimeException | IllegalAccessException e) {
-                    throw new IllegalStateException("Unable to access field '" + field.getName() + "'", e);
-                }
-            }
-        }
-        if (!reseeded) {
-            throw new UnsupportedOperationException(
-                "Generator " + getClass().getName() + " does not expose a reseedable Random field");
-        }
-    }
-
-    /**
-     * Reseeds using the same string-to-seed derivation contract as {@link GeneratorConfig}.
-     *
-     * @param seedText textual seed
-     * @deprecated since 1.6, for removal in v2; delegates to the deprecated
-     * {@link #reseed(long)} fallback. Use
-     * {@code seedable.reseed(GeneratorConfig.deriveSeed(seedText))} through the typed
-     * {@link Seedable} contract instead.
-     */
-    @Deprecated(since = "1.6", forRemoval = true)
-    default void reseed(String seedText) {
-        reseed(GeneratorConfig.deriveSeed(seedText));
     }
 
     /**

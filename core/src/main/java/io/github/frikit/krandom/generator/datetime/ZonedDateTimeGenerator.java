@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.time.LocalDate;
@@ -46,7 +47,7 @@ import java.util.Random;
  * @see LocalDateTimeGenerator
  * @see InstantGenerator
  */
-public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime> {
+public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime>, Seedable {
 
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
@@ -130,5 +131,13 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime> {
         LocalDateTime ldt = LocalDateTime.of(date, LocalTime.of(hour, minute, second));
         ZoneId zone = ZONE_IDS.get(random.nextInt(ZONE_IDS.size()));
         return ZonedDateTime.of(ldt, zone);
+    }
+
+    /**
+     * Reseeds this generator's owned random source for deterministic replay.
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
     }
 }

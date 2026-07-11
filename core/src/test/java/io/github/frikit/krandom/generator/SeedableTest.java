@@ -56,24 +56,44 @@ class SeedableTest {
     }
 
     @Test
-    @DisplayName("Generator.reseed dispatches to Seedable implementation")
-    void generatorReseedDispatchesToSeedable() {
+    @DisplayName("typed Seedable reseed restores a generator's sequence")
+    void typedSeedableReseedRestoresSequence() {
         IntGenerator gen = new IntGenerator(1, 1000, 42L);
         int first = gen.generate();
 
-        // Call through Generator.reseed which should dispatch to Seedable
         Generator<Integer> asGenerator = gen;
-        asGenerator.reseed(42L);
+        assertInstanceOf(Seedable.class, asGenerator);
+        ((Seedable) asGenerator).reseed(42L);
         assertEquals(first, gen.generate());
     }
 
     @Test
-    @DisplayName("Generator.reseed falls back to reflection for non-Seedable generators")
-    void generatorReseedReflectionFallback() {
-        // StringGenerator uses reflection-based reseed (not Seedable)
-        // Reflection path should not throw
-        StringGenerator gen = StringGenerator.builder().seed(42L).build();
-        assertDoesNotThrow(() -> gen.reseed(42L));
+    @DisplayName("date and time generators reseed through the typed Seedable contract")
+    void dateTimeGeneratorsReseedThroughTypedContract() {
+        java.util.List<Seedable> seedables = java.util.List.of(
+            new io.github.frikit.krandom.generator.datetime.DateGenerator(),
+            new io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator(),
+            new io.github.frikit.krandom.generator.datetime.InstantGenerator(),
+            new io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator(),
+            new io.github.frikit.krandom.generator.datetime.UtilDateGenerator(),
+            new io.github.frikit.krandom.generator.datetime.SqlDateGenerator(),
+            new io.github.frikit.krandom.generator.datetime.SqlTimestampGenerator());
+
+        for (Seedable seedable : seedables) {
+            Generator<?> generator = (Generator<?>) seedable;
+            seedable.reseed(24680L);
+            Object first = generator.generate();
+            seedable.reseed(24680L);
+            assertEquals(first, generator.generate(),
+                seedable.getClass().getSimpleName() + " must replay after typed reseed");
+        }
+    }
+
+    @Test
+    @DisplayName("non-Seedable generators expose no reseeding contract")
+    void nonSeedableGeneratorsAreNotReseedable() {
+        Generator<String> gen = StringGenerator.builder().seed(42L).build();
+        assertFalse(gen instanceof Seedable);
         assertNotNull(gen.generate());
     }
 
@@ -103,7 +123,7 @@ class SeedableTest {
         IntGenerator fromNumeric = new IntGenerator(1, 1000, derived);
 
         IntGenerator fromText = new IntGenerator(1, 1000, 1L);
-        fromText.reseed("regression-seed");
+        fromText.reseed(GeneratorConfig.deriveSeed("regression-seed"));
 
         assertEquals(fromNumeric.generateList(25), fromText.generateList(25));
     }

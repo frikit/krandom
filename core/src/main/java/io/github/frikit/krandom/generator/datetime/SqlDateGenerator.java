@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.time.LocalDate;
@@ -15,7 +16,7 @@ import java.util.Random;
 /**
  * Generates random {@link java.sql.Date} values.
  */
-public final class SqlDateGenerator implements Generator<java.sql.Date> {
+public final class SqlDateGenerator implements Generator<java.sql.Date>, Seedable {
 
     private static final LocalDate DEFAULT_MIN = LocalDate.of(1970, 1, 1);
     private static final LocalDate DEFAULT_MAX = LocalDate.of(2100, 12, 31);
@@ -49,5 +50,13 @@ public final class SqlDateGenerator implements Generator<java.sql.Date> {
         long lo = min.toEpochDay();
         long hi = max.toEpochDay();
         return java.sql.Date.valueOf(LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1)));
+    }
+
+    /**
+     * Reseeds this generator's owned random source for deterministic replay.
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
     }
 }
