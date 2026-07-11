@@ -604,7 +604,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [ ] Make `map`, `filter`, and other decorators preserve seed/replay behavior when their source supports it.
 - [ ] Replace runtime-optional reseeding with a clearer type/adapter contract where possible.
 - [ ] Enforce strict bound semantics consistently.
-- [ ] Optimize the default equality path of `UniqueGenerator` with a set and define memory/exhaustion behavior.
+- [x] Optimize the default equality path of `UniqueGenerator` with a set and define memory/exhaustion behavior.
 - [ ] Review selection, weighted, shuffle, retry, and uniqueness combinators for overflow and non-termination policies.
 
 **Tests**

@@ -269,3 +269,7 @@ io.github.frikit.krandom.generator.Generators#pickset(java.util.List,int)
 io.github.frikit.krandom.generator.Generators#pickSetFrom(java.util.List,int)
 io.github.frikit.krandom.generator.Generators#shuffleOf(java.util.List)
 io.github.frikit.krandom.generator.Generators#uniqueValues(io.github.frikit.krandom.generator.Generator)
+
+# Set-backed default-equality uniqueness with documented memory/exhaustion behavior (Step 3.2);
+# public constructors and behavior are unchanged.
+io.github.frikit.krandom.generator.selection.UniqueGenerator

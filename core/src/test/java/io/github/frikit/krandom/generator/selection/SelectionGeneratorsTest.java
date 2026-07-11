@@ -124,6 +124,26 @@ class SelectionGeneratorsTest {
     }
 
     @Test
+    @DisplayName("UniqueGenerator default equality stays distinct across a large volume")
+    void uniqueDefaultEqualityHandlesLargeVolumes() {
+        Generator<Integer> sequential = new Generator<>() {
+
+            private int n = 0;
+
+            @Override
+            public Integer generate() {
+                return n++;
+            }
+        };
+
+        UniqueGenerator<Integer> unique = new UniqueGenerator<>(sequential);
+        List<Integer> generated = unique.generateList(10_000);
+
+        assertEquals(10_000, generated.size());
+        assertEquals(10_000, Set.copyOf(generated).size());
+    }
+
+    @Test
     @DisplayName("UniqueGenerator supports custom comparator")
     void uniqueSupportsCustomComparator() {
         Generator<String> source = new Generator<>() {
@@ -144,6 +164,25 @@ class SelectionGeneratorsTest {
 
         assertEquals("Alice", unique.generate());
         assertThrows(IllegalStateException.class, unique::generate);
+    }
+
+    @Test
+    @DisplayName("UniqueGenerator custom comparator accepts distinct values after remembered ones")
+    void uniqueCustomComparatorAcceptsDistinctValues() {
+        Generator<String> source = new Generator<>() {
+
+            private int i = 0;
+
+            @Override
+            public String generate() {
+                return (i++ % 2 == 0) ? "Alice" : "Bob";
+            }
+        };
+
+        UniqueGenerator<String> unique = new UniqueGenerator<>(source, String::equalsIgnoreCase, 5);
+
+        assertEquals("Alice", unique.generate());
+        assertEquals("Bob", unique.generate());
     }
 
     @Test
