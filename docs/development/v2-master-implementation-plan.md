@@ -598,7 +598,9 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [x] Migration examples compile against v2. (All 139 local consumer verifications pass on `2.0.0-SNAPSHOT`.)
 - [x] No removed API lacks a 1.6 replacement entry. (Every removal family has a migration section in `v1.6-to-v2.md`.)
-- [ ] Configuration round-trip/copy tests prove no state is lost or duplicated.
+- [x] Configuration round-trip/copy tests prove no state is lost or duplicated. (A
+  reflection-guarded test asserts every public `GeneratorConfig` getter survives
+  `toBuilder().build()`, so new properties are covered automatically.)
 - [x] API analysis detects accidental reintroduction of removed aliases. (An unclassified public addition fails `checkApiEvolution`.)
 
 **Done when:** The v2 surface is smaller, consistent, documented, and mechanically protected.

@@ -748,6 +748,52 @@ class GeneratorConfigTest {
         LocalDate createdAt;
     }
 
+
+    @Test
+    @DisplayName("toBuilder round-trip preserves every public property")
+    void toBuilderRoundTripPreservesEveryPublicProperty() throws Exception {
+        GeneratorConfig original = GeneratorConfig.builder()
+            .seed(4242L)
+            .clock(java.time.Clock.fixed(java.time.Instant.parse("2026-01-01T00:00:00Z"),
+                java.time.ZoneOffset.UTC))
+            .locale(java.util.Locale.GERMANY)
+            .stringLength(3, 9)
+            .collectionSize(2, 4)
+            .objectMaxDepth(3)
+            .objectNullProbability(0.25)
+            .generationProfile("round-trip-profile")
+            .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE)
+            .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE)
+            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .build();
+
+        GeneratorConfig copy = original.toBuilder().build();
+
+        for (java.lang.reflect.Method getter : GeneratorConfig.class.getMethods()) {
+            if (getter.getParameterCount() != 0 || getter.getDeclaringClass() != GeneratorConfig.class) {
+                continue;
+            }
+            String name = getter.getName();
+            if (!name.startsWith("get") && !name.startsWith("is")) {
+                continue;
+            }
+            Object expected = getter.invoke(original);
+            Object actual = getter.invoke(copy);
+            if (expected instanceof java.util.Optional<?> expectedOptional
+                && expectedOptional.orElse(null) instanceof GenerationRecipe expectedRecipe) {
+                GenerationRecipe actualRecipe =
+                    (GenerationRecipe) ((java.util.Optional<?>) actual).orElseThrow();
+                assertEquals(expectedRecipe.serialize(), actualRecipe.serialize(), name);
+                continue;
+            }
+            assertEquals(expected, actual, name + " must survive the toBuilder round-trip");
+        }
+    }
+
     private record RandomSourceConfiguration(String name, Consumer<GeneratorConfig.Builder> configure) {
     }
 }
