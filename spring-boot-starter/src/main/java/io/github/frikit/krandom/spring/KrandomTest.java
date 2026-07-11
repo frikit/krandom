@@ -5,7 +5,12 @@
  */
 package io.github.frikit.krandom.spring;
 
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.OverrideAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
+import org.springframework.test.context.BootstrapWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,15 +20,21 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Test slice annotation that loads only the krandom auto-configuration beans.
+ * Test slice annotation that starts a Spring test context containing only the krandom
+ * auto-configuration beans.
  *
- * <p>Annotating a test class with {@code @KrandomTest} enables a lightweight
- * Spring application context containing only {@link io.github.frikit.krandom.generator.GeneratorConfig},
+ * <p>Annotating a test class with {@code @KrandomTest} bootstraps the Spring TestContext
+ * framework (no extra {@code @ExtendWith} or {@code @SpringBootTest} required), disables full
+ * application auto-configuration, and imports only
+ * {@link io.github.frikit.krandom.generator.GeneratorConfig},
  * {@link io.github.frikit.krandom.generator.provider.ProviderHub}, and
- * {@link KrandomObjectFakerFactory} — without pulling in the full application context.
+ * {@link KrandomObjectFakerFactory}.
  *
  * <p>This is the krandom equivalent of Spring Boot's test slice annotations like
- * {@code @DataJpaTest} or {@code @WebMvcTest}.
+ * {@code @DataJpaTest} or {@code @WebMvcTest}. Like those slices, it looks for the test's
+ * {@code @SpringBootConfiguration} class (a nested {@code @SpringBootConfiguration} or the
+ * application class in a parent package) and requires the Spring Boot test libraries on the test
+ * classpath, which {@code spring-boot-starter-test} provides.
  *
  * <p><b>Usage</b>
  * <pre>{@code
@@ -56,6 +67,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
+@BootstrapWith(SpringBootTestContextBootstrapper.class)
+@ExtendWith(SpringExtension.class)
+@OverrideAutoConfiguration(enabled = false)
 @ImportAutoConfiguration(KrandomAutoConfiguration.class)
 public @interface KrandomTest {
 }

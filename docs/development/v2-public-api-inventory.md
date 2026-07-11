@@ -295,7 +295,7 @@ covers private catalog-driven registration and JSON Schema conversion helpers.
 |:---|:---|:---|
 | `Generator<T>.toArb()` and Kotest helpers | **KEEP** | Factory/replay-object paths honor Kotest `RandomSource`; bounded primitive/selection arbs add in-range edge cases and shrinkers; mutable bridges are deprecated pending v2 removal |
 | Kotlin string-based field rules | **KEEP as bridge** | Typed `KProperty1` rule/exclude overloads shipped; duplicate and unknown rules fail before generation; string rules remain the documented bridge |
-| `@KrandomTest` | **KEEP** | Make it a standalone composed Spring test slice |
+| `@KrandomTest` | **KEEP** | Standalone composed Spring test slice: bootstraps the TestContext framework, disables full auto-configuration, imports only kRandom beans |
 | `KrandomExtension` and `@KrandomSeed` | **KEEP** | JUnit recipe/seed override complete; jqwik is forbidden in this project (module removed in 1.1.0) |
 | Jackson helpers/module | **KEEP** | No current contract exception |
 

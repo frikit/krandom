@@ -79,3 +79,35 @@ class DemoDataService {
 ```
 
 Override any bean when an application needs a custom `GeneratorConfig`, `ProviderHub`, or object faker factory.
+
+## The `@KrandomTest` Slice
+
+`@KrandomTest` is a self-contained test slice: it bootstraps the Spring TestContext framework by
+itself (no extra `@ExtendWith` or `@SpringBootTest`), disables full application
+auto-configuration, and starts a context containing only the three kRandom beans above.
+
+```java
+import io.github.frikit.krandom.spring.KrandomTest;
+import io.github.frikit.krandom.spring.KrandomObjectFakerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
+
+@KrandomTest
+@TestPropertySource(properties = "krandom.seed=42")
+class UserFixtureTest {
+
+    @Autowired
+    KrandomObjectFakerFactory factory;
+
+    @Test
+    void generatesSeededUsers() {
+        UserDto user = factory.generator(UserDto.class).generate();
+        assertNotNull(user.getFirstName());
+    }
+}
+```
+
+Like Spring Boot's own slices, `@KrandomTest` needs a `@SpringBootConfiguration` class — your
+application class in a parent package, or a nested `@SpringBootConfiguration` in the test — and
+the Spring Boot test libraries on the test classpath (`spring-boot-starter-test` provides them).
+`krandom.*` properties bind the same way as in the full application context.

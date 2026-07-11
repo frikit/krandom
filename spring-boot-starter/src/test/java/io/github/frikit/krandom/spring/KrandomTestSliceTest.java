@@ -9,17 +9,23 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @KrandomTest
-@ExtendWith(SpringExtension.class)
-@TestPropertySource(properties = "krandom.seed=42")
+@TestPropertySource(properties = {"krandom.seed=42", "krandom.locale=fr-FR"})
 class KrandomTestSliceTest {
+
+    @SpringBootConfiguration
+    static class SliceConfiguration {
+    }
+
+    @Autowired
+    ApplicationContext applicationContext;
 
     @Autowired
     GeneratorConfig generatorConfig;
@@ -62,6 +68,22 @@ class KrandomTestSliceTest {
     void seedPropertyApplied() {
         assertTrue(generatorConfig.getSeed().isPresent());
         assertEquals(42L, generatorConfig.getSeed().getAsLong());
+    }
+
+    @Test
+    @DisplayName("locale property is applied")
+    void localePropertyApplied() {
+        assertEquals("fr", generatorConfig.getLocale().getLanguage());
+        assertEquals("FR", generatorConfig.getLocale().getCountry());
+    }
+
+    @Test
+    @DisplayName("slice does not run unrelated auto-configuration")
+    void sliceExcludesUnrelatedAutoConfiguration() {
+        assertTrue(applicationContext
+                        .getBeansOfType(org.springframework.core.task.TaskExecutor.class)
+                        .isEmpty(),
+                "full auto-configuration must stay disabled inside the slice");
     }
 
     public static class SampleEntity {

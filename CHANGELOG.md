@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `@KrandomTest` is now a self-contained Spring test slice: it bootstraps the TestContext
+  framework itself, disables full application auto-configuration, and starts only the documented
+  kRandom beans; `krandom.*` properties bind as in the full context.
 - Type-safe Kotlin DSL rules: `rule(Type::property)` and `exclude(Type::property)` accept
   `KProperty1` references, duplicate field/type rules fail at registration, and unknown field
   rules fail before generation with the known field names.
