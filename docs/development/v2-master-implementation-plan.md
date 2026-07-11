@@ -582,9 +582,11 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Remove only APIs classified for v2 removal after the 1.6 bridge exists. (Owner decision
+- [x] Remove only APIs classified for v2 removal after the 1.6 bridge exists. (Owner decision
   2026-07-11: the published-1.6 precondition is waived; removals proceed against the in-repo
-  deprecation record.)
+  deprecation record. Removed: six facade aliases, the reflective reseeding fallbacks, the mutable
+  Kotest bridges, all 23 registry mutators plus `LocaleDataBundle.registerGlobal()`, and the 21
+  finance/identity safety-bridge constructors.)
 - [ ] Keep one canonical name and consistent overload pattern for each operation.
 - [ ] Split the giant facade only into small domain namespaces justified by the inventory; avoid speculative abstraction.
 - [ ] Collapse duplicated `ObjectGeneratorConfig` state into `GeneratorConfig` or one composed public object policy.
