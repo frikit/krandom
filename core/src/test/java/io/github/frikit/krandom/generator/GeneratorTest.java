@@ -57,6 +57,23 @@ class GeneratorTest {
     }
 
     @Test
+    @DisplayName("composed generators replay from a portable recipe")
+    void composedGeneratorsReplayFromRecipe() {
+        GeneratorConfig original = GeneratorConfig.builder().seed(24680L).build();
+        String serialized = original.getGenerationRecipe().orElseThrow().serialize();
+        GeneratorConfig replayed = GenerationRecipe.parse(serialized).toGeneratorConfig();
+
+        Generator<String> first = new IntGenerator(0, 1_000, original.getSeed().getAsLong())
+            .map(value -> "v-" + value)
+            .filter(value -> !value.endsWith("7"));
+        Generator<String> second = new IntGenerator(0, 1_000, replayed.getSeed().getAsLong())
+            .map(value -> "v-" + value)
+            .filter(value -> !value.endsWith("7"));
+
+        assertEquals(first.generateList(25), second.generateList(25));
+    }
+
+    @Test
     @DisplayName("combinators do not claim Seedable for a non-Seedable source")
     void combinatorsDoNotInventSeedability() {
         Generator<Integer> source = () -> 7;

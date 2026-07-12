@@ -71,6 +71,18 @@ for module in "${MODULES[@]}"; do
         done
 done
 
+EXPECTED_NAMES="io.github.frikit.krandom core
+io.github.frikit.krandom.jackson jackson
+io.github.frikit.krandom.junit junit
+io.github.frikit.krandom.kotlin.dsl kotlin-dsl
+io.github.frikit.krandom.kotest kotest-extensions
+io.github.frikit.krandom.spring.boot.starter spring-boot-starter"
+if ! diff <(printf '%s\n' "${EXPECTED_NAMES}" | sort) <(sort "${NAMES_FILE}") > /dev/null; then
+    echo "FAIL: module names changed; they are part of the compatibility contract:" >&2
+    diff <(printf '%s\n' "${EXPECTED_NAMES}" | sort) <(sort "${NAMES_FILE}") >&2 || true
+    fail=1
+fi
+
 duplicate_names=$(awk '{print $1}' "${NAMES_FILE}" | sort | uniq -d)
 if [[ -n "${duplicate_names}" ]]; then
     echo "FAIL: duplicate module names:" >&2

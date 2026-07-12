@@ -353,7 +353,7 @@ deprecations and migration guide remain in history and documentation as the migr
 
 **Tests**
 
-- [ ] Map, queue, array, constructor, reflection, JPMS-access, and custom-generator failures report full paths.
+- [x] Map, queue, array, constructor, reflection, JPMS-access, and custom-generator failures report full paths. (Failure-policy and collection-fallback tests plus the JPMS closed-consumer, which asserts the documented actionable `opens` error.)
 - [x] Strict mode never returns a partial fixture after an assignment failure.
 - [x] Lenient mode has explicit, documented fallback assertions.
 - [x] Diagnostic listeners receive structured sanitized failures and cannot observe generated field values by default.
@@ -611,15 +611,15 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 **Actions**
 
-- [ ] Make `map`, `filter`, and other decorators preserve seed/replay behavior when their source supports it.
-- [ ] Replace runtime-optional reseeding with a clearer type/adapter contract where possible.
+- [x] Make `map`, `filter`, and other decorators preserve seed/replay behavior when their source supports it. (`SeedableGeneratorDecorator` plus replay tests.)
+- [x] Replace runtime-optional reseeding with a clearer type/adapter contract where possible. (`Seedable` is the only reseeding contract in v2; the reflective fallback is removed.)
 - [x] Enforce strict bound semantics consistently.
 - [x] Optimize the default equality path of `UniqueGenerator` with a set and define memory/exhaustion behavior.
-- [ ] Review selection, weighted, shuffle, retry, and uniqueness combinators for overflow and non-termination policies.
+- [x] Review selection, weighted, shuffle, retry, and uniqueness combinators for overflow and non-termination policies. (Weighted sums guard overflow with a long accumulator; uniqueness bounds attempts; pick/shuffle copy inputs and cannot loop; no retry combinator exists in v2.)
 
 **Tests**
 
-- [ ] Composed generators replay from recipes.
+- [x] Composed generators replay from recipes.
 - [x] Equal/reversed bounds fail with consistent messages.
 - [x] Uniqueness has deterministic exhaustion tests and does not degrade quadratically on ordinary values.
 
@@ -748,7 +748,7 @@ Kotest-only (Step 3.3).
 
 - [ ] Named-module examples compile and run on the minimum and current tested JDKs. (They run on the minimum JDK 21; the current-JDK matrix belongs to the Step 3.9 CI work.)
 - [x] Missing `opens` produces the documented actionable error.
-- [ ] Artifact module names remain stable under compatibility checks.
+- [x] Artifact module names remain stable under compatibility checks. (`verify_module_boundaries.sh` pins the expected module-name set.)
 
 **Done when:** JPMS use is supported explicitly rather than accidentally.
 
