@@ -635,8 +635,8 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 - [x] Eliminate hidden mutable unseeded streams from `Arb` adapters. (The mutable `toArb`, factory `krandomArb`, and `krandomObjectArb` bridges were removed with the Step 3.1 v2 removals.)
 - [x] Define meaningful edge cases and shrinkers for bounded primitives and selections.
 - [x] Explicitly document types that cannot be structurally shrunk.
-- [ ] Print a kRandom recipe alongside Kotest seed information on failure.
-- [ ] Test the published adapter with the supported Kotest version range.
+- [x] Print a kRandom recipe alongside Kotest seed information on failure. (`checkAllWithRecipe` and `krandomKotestRecipe`.)
+- [x] Test the published adapter with the supported Kotest version range. (Verified on 6.1.11 and 6.2.1 via `-PkotestVersion`; pinned checksums cover both lines.)
 
 **Tests**
 

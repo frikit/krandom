@@ -90,3 +90,16 @@ them as opaque values, so there is no meaningful "smaller" fixture to propose. O
 adapters rely on Kotest seed replay instead of shrinking.
 
 The module depends on `krandom-core` transitively.
+
+## Failure Recipes and Supported Versions
+
+`checkAllWithRecipe(config, arb) { ... }` rethrows a failing property with the portable kRandom
+recipe of the configuration appended below Kotest's own seed report, so a CI failure carries both
+replay halves; `krandomKotestRecipe(config)` returns the same value-free recipe directly.
+
+The adapters are verified against the current and previous Kotest minor lines. To run the module
+tests against another version in the supported range:
+
+```bash
+./gradlew :kotest-extensions:test -PkotestVersion=6.1.11
+```

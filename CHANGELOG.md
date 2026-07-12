@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `checkAllWithRecipe` and `krandomKotestRecipe`: Kotest property failures can now carry the
+  portable kRandom configuration recipe alongside Kotest's seed report, and the adapter suite is
+  verified against the current and previous Kotest minor via `-PkotestVersion`.
 - `krandomConfig { }`, an idiomatic Kotlin builder for standalone `GeneratorConfig` values with
   textual seeds and explicit construction policies; the DSL's one intentional default difference
   (`objectOverrideDefaultInitialization`) is now documented and covered by a Java/Kotlin

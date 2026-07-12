@@ -22,6 +22,30 @@ import java.util.Random
 
 class KrandomArbTest : DescribeSpec({
 
+    describe("failure recipes") {
+
+        it("krandomKotestRecipe serializes the portable configuration") {
+            val recipe = krandomKotestRecipe(GeneratorConfig.builder().locale(java.util.Locale.GERMANY).build())
+            recipe shouldContain "locale=de-DE"
+        }
+
+        it("checkAllWithRecipe appends the recipe to a failing property") {
+            val failure = shouldThrow<AssertionError> {
+                checkAllWithRecipe(GeneratorConfig.defaults(), krandomIntArb(0, 10)) { value ->
+                    value shouldBeGreaterThan 100
+                }
+            }
+            (failure.message ?: "") shouldContain "kRandom recipe"
+            (failure.message ?: "") shouldContain "format=krandom-recipe"
+        }
+
+        it("checkAllWithRecipe stays silent for passing properties") {
+            checkAllWithRecipe(GeneratorConfig.defaults(), krandomIntArb(0, 10)) { value ->
+                value shouldBeGreaterThan -1
+            }
+        }
+    }
+
     describe("krandomArb factory") {
 
         it("uses Kotest random-source draws to create fresh reproducible generators") {

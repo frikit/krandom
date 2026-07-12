@@ -130,6 +130,54 @@ fun <T : Any> krandomPickArb(source: List<T>): Arb<T> {
     }
 }
 
+/**
+ * Returns the portable, value-free kRandom recipe for [config] as used by the Kotest adapters.
+ *
+ * The Kotest seed printed on failure fully determines the generated values; this recipe carries
+ * the configuration portion (locale, clock, profile, safety and construction policies) needed to
+ * reconstruct the same [GeneratorConfig] on another machine.
+ *
+ * @throws IllegalArgumentException when [config] cannot be converted into a portable
+ * seed-owned configuration
+ */
+fun krandomKotestRecipe(config: GeneratorConfig = GeneratorConfig.defaults()): String {
+    val portable = try {
+        config.toBuilder().seed(0L).build()
+    } catch (exception: IllegalStateException) {
+        throw IllegalArgumentException(
+            "Kotest integration requires a seed-owned GeneratorConfig; caller-owned, secure, " +
+                "factory-backed, and custom-registry random sources are not replayable",
+            exception
+        )
+    }
+    val recipe = portable.generationRecipe.orElseThrow {
+        IllegalArgumentException("Kotest integration requires a portable seed-owned GeneratorConfig")
+    }
+    return recipe.serializeForDiagnostics()
+}
+
+/**
+ * Runs [io.kotest.property.checkAll] over [arb] and, when the property fails, rethrows the
+ * assertion error with the kRandom recipe of [config] appended alongside Kotest's own seed
+ * report, so a CI failure carries both replay halves.
+ */
+suspend fun <A> checkAllWithRecipe(
+    config: GeneratorConfig,
+    arb: Arb<A>,
+    property: suspend (A) -> Unit
+) {
+    try {
+        io.kotest.property.checkAll(arb) { value -> property(value) }
+    } catch (failure: AssertionError) {
+        throw AssertionError(
+            (failure.message ?: "Property failed") +
+                "\n\nkRandom recipe (configuration portion; combine with the Kotest seed above):\n" +
+                krandomKotestRecipe(config),
+            failure
+        )
+    }
+}
+
 private class PickShrinker<T>(private val source: List<T>) : Shrinker<T> {
     override fun shrink(value: T): List<T> {
         val index = source.indexOf(value)
