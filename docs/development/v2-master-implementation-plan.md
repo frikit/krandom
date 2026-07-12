@@ -142,7 +142,7 @@ Work may run in parallel only when the dependency table for its stage allows it.
 **Goal**: Stop uncontrolled API growth, establish compatibility tooling, correct public claims, and give current consumers a migration path before v2 removes or changes behavior.
 **Success Criteria**: A released 1.6.x bridge contains the v2 deprecations, BOM, accurate documentation, compatibility baseline, and supply-chain baseline without introducing v2 breaking behavior.
 **Tests**: API baseline comparison against 1.5.0, full pre-commit gate, all consumer examples, generated POM inspection, documentation facts checks, and a release dry-run.
-**Status**: In Progress
+**Status**: Complete (the 1.6 release itself was skipped by the 2026-07-11 owner decision; every other step is done)
 
 ### Step 1.1 — Establish the v2 backlog and change protocol
 
@@ -310,23 +310,12 @@ while keeping the seven published modules explicit.
 `2.0.0-SNAPSHOT` and Step 3.1 removals proceed without a published deprecation window. The 1.6
 deprecations and migration guide remain in history and documentation as the migration reference.
 
-**Actions**
+**Resolution: SKIPPED.** All publication actions and tests of this step are closed without
+execution: no 1.6 artifact is ever released. The 1.6 deprecation record, migration guide, and
+compatibility baselines remain in history and feed the v2 migration documentation directly.
+Publication mechanics move to Step 3.11 and the Stage 4/5 v2 releases.
 
-- [ ] Freeze the 1.6 changelog around migration enablement and corrected contracts.
-- [ ] Run the full pre-commit and consumer-example suites from a clean checkout.
-- [ ] Run API compatibility against 1.5.0.
-- [ ] Inspect POMs, module metadata, signatures, sources, Javadocs, BOM, SBOM, and provenance.
-- [ ] Publish using the current recoverable flow or complete Step 3.11 first if the current flow cannot be safely recovered.
-- [ ] Smoke-test every artifact from Maven Central, not `mavenLocal()`.
-- [ ] Announce the deprecation window and v2 migration guide.
-
-**Tests**
-
-- [ ] Clean Maven and Gradle consumers resolve 1.6 from Central.
-- [ ] Existing 1.5-style examples still compile and run through deprecated delegates.
-- [ ] Canonical 1.6 examples compile without deprecation warnings.
-
-**Done when:** 1.6 is a stable bridge that consumers can adopt before v2.
+**Done when:** closed by the owner decision above.
 
 ---
 
@@ -1157,7 +1146,7 @@ Coverage remains a quality signal, but it is not the primary v2 success metric. 
 ## 10. Program completion checklist
 
 - [ ] All D1–D10 decisions are recorded.
-- [ ] The 1.6 bridge is released and verified.
+- [x] The 1.6 bridge is released and verified. (Closed as SKIPPED: the owner decision of 2026-07-11 moved the line directly to `2.0.0-SNAPSHOT`; the deprecation record replaced the published bridge as the migration reference.)
 - [ ] Every Stage 2 correctness gate passes.
 - [ ] Every integration honors its host framework's replay/configuration model.
 - [ ] The v2 API and recipe format are frozen and compatibility-protected.

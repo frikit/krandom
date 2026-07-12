@@ -23,7 +23,7 @@ the master plan), `open` (not started), `blocked` (needs a release action or ext
 | 1.5 Documentation facts source | documentation | — | 1.1 | done |
 | 1.6 Dependency cleanup and BOM | compatibility, release | — | 1.3 | done |
 | 1.7 Build and supply-chain baseline | release | — | 1.1 | done |
-| 1.8 Publish and validate the 1.6 bridge | release | — | 1.3–1.7 | out of scope: owner skipped the 1.6 release (2026-07-11); the line moved to 2.0.0-SNAPSHOT |
+| 1.8 Publish and validate the 1.6 bridge | release | — | 1.3–1.7 | closed as skipped: owner decision (2026-07-11); the line moved to 2.0.0-SNAPSHOT and the 1.6 bridge exists only as the in-repo migration record |
 
 ## Milestone: v2 foundation
 
@@ -44,14 +44,14 @@ the master plan), `open` (not started), `blocked` (needs a release action or ext
 
 | Work package | Labels | Gates | Depends on | Status |
 |:---|:---|:---|:---|:---|
-| 3.1 Simplify the v2 API | contract, compatibility | D9 | Stage 2, 1.2–1.4 | in progress: published-1.6 precondition waived by owner (2026-07-11) |
-| 3.2 Combinator and boundary contracts | correctness | D5 | 2.6, 3.1 | partial: bounds/uniqueness/termination work is unblocked; alias removal waits on 3.1 |
-| 3.3 Kotest replay and shrinking | integration | — | 2.5–2.7 | partial: recipe-on-failure printing and Kotest version-range tests remain |
-| 3.4 Typed Kotlin DSL | integration, contract | — | 2.5 | open (additive `KProperty1` rules are unblocked) |
-| 3.5 `@KrandomTest` Spring slice | integration | — | 2.6–2.8 | open |
+| 3.1 Simplify the v2 API | contract, compatibility | D9 | Stage 2, 1.2–1.4 | partial: all classified removals, round-trip tests, and doc cleanup done; acronym decision, facade split, config collapse, immutability, and the new baseline remain |
+| 3.2 Combinator and boundary contracts | correctness | D5 | 2.6, 3.1 | done: strict bounds, set-backed uniqueness, replay-preserving decorators, and combinator review complete |
+| 3.3 Kotest replay and shrinking | integration | — | 2.5–2.7 | done: host-seeded adapters, bounded shrinking, failure recipes, and 6.1/6.2 version-range verification |
+| 3.4 Typed Kotlin DSL | integration, contract | — | 2.5 | done: typed rules with validation, aligned defaults, and idiomatic configs |
+| 3.5 `@KrandomTest` Spring slice | integration | — | 2.6–2.8 | partial: standalone slice plus recipe/clock/safety binding done; defaults fact-alignment and published-line testing remain |
 | 3.6 JUnit replay integration | integration | — | 2.7 | done (jqwik out of scope) |
 | 3.7 Schema contract | contract, correctness | D10 | 2.2, 2.3, 2.8 | open |
-| 3.8 JPMS consumers | compatibility, integration | — | 2.4 | partial: named-module consumers and split-package checks remain |
+| 3.8 JPMS consumers | compatibility, integration | — | 2.4 | partial: core/jackson/junit named consumers and boundary/name pinning done; the JDK matrix belongs to 3.9 CI |
 | 3.9 Contract-confidence quality gates | correctness, performance | — | 2.10 | open |
 | 3.10 Honest performance budgets | performance, documentation | — | 2.10, stable 3.x APIs | open |
 | 3.11 Immutable resumable releases | release | — | 1.7, stable 3.x artifacts | open |
