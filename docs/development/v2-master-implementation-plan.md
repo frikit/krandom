@@ -739,14 +739,14 @@ Kotest-only (Step 3.3).
 **Actions**
 
 - [x] Decide whether automatic module names remain sufficient or explicit descriptors are warranted for core. Core has an explicit descriptor; integration modules intentionally stay on `Automatic-Module-Name` until a named-module consumer requires more.
-- [ ] Add named-module consumers for core and each integration.
+- [x] Add named-module consumers for core and each integration. (Core open/closed plus jackson and junit named consumers; the Kotlin modules and Spring starter are classpath-first with verified automatic module names.)
 - [x] Document required `opens` clauses for reflection-based object generation.
 - [x] Fail with a JPMS-specific diagnostic when access is denied.
 - [x] Verify split packages and module names across all artifacts. Run `./scripts/verify_module_boundaries.sh`.
 
 **Tests**
 
-- [ ] Named-module examples compile and run on the minimum and current tested JDKs.
+- [ ] Named-module examples compile and run on the minimum and current tested JDKs. (They run on the minimum JDK 21; the current-JDK matrix belongs to the Step 3.9 CI work.)
 - [x] Missing `opens` produces the documented actionable error.
 - [ ] Artifact module names remain stable under compatibility checks.
 
