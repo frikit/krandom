@@ -13,10 +13,10 @@ permalink: /getting-started/
 
 ## Dependency
 
-Public coordinates on Maven Central:
+Module coordinates (Maven Central group `io.github.frikit`):
 
 - `io.github.frikit:krandom-core`
-- `io.github.frikit:krandom-bom` (from `1.6.0`, aligns all module versions)
+- `io.github.frikit:krandom-bom` (from v2, aligns all module versions)
 - `io.github.frikit:krandom-jackson`
 - `io.github.frikit:krandom-junit` (from `1.2.0`)
 - `io.github.frikit:krandom-spring-boot-starter`
@@ -55,7 +55,7 @@ Maven:
 </dependency>
 ```
 
-Starting with 1.6.0, import `io.github.frikit:krandom-bom` in Gradle or Maven and omit versions from individual kRandom modules. The repository consumer examples verify that development path.
+Starting with v2, import `io.github.frikit:krandom-bom` in Gradle or Maven and omit versions from individual kRandom modules. Until v2 is available on Maven Central, use the matching explicit `1.5.0` versions shown above. The repository consumer examples verify the BOM path against the development snapshot.
 
 ## First usage
 
@@ -153,3 +153,4 @@ See also:
 - [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }})
 - [Property Testing Integrations]({{ '/guides/property-testing-integrations/' | relative_url }})
 - [Kotlin DSL]({{ '/guides/kotlin-dsl/' | relative_url }})
+- [Migrating to v2]({{ '/guides/migration-to-v2/' | relative_url }})

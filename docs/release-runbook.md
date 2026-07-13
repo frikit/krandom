@@ -27,7 +27,7 @@ The GPG public key must be uploaded to a public keyserver (for example
 
 ## Cutting a release
 
-1. **Decide the version.** SemVer; for example `1.0.0`. Confirm the
+1. **Decide the version.** SemVer; for example `2.0.0`. Confirm the
    `[Unreleased]` section in `CHANGELOG.md` is final.
 2. **Land any last commits on `main`.** Run `./scripts/pre_commit_check.sh`
    and `./scripts/verify_examples_local.sh` locally; both must pass.
@@ -66,10 +66,14 @@ The GPG public key must be uploaded to a public keyserver (for example
   metadata component version matches the release tag.
 - Verify a downloaded jar, SBOM, or `aggregation.zip` with
   `gh attestation verify --repo frikit/krandom <path>`.
-- Update README install snippets to the new version if you keep concrete
-  versions there (currently we use `<version>` placeholders).
-- Bump the in-repo version back to a `*-SNAPSHOT` for ongoing development
-  if appropriate.
+- Land a follow-up documentation and version-facts commit on `main`. Update
+  `latestGaVersion` and `apiBaselineVersion` in `gradle.properties` to the
+  released version, set `developmentVersion` to the next `*-SNAPSHOT`, and
+  update the concrete install versions in `README.md` and `docs-site/`.
+  Then run `./scripts/verify_documentation_facts.sh`; this keeps the public
+  installation guidance and the next API-compatibility baseline aligned.
+- Confirm the GitHub Pages deployment includes that follow-up documentation
+  commit before announcing the release broadly.
 
 ## Troubleshooting
 

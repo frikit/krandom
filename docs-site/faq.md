@@ -28,4 +28,4 @@ Use `ProviderHub.register(...)` and optional aliases via `registerAlias(...)`.
 
 ## Can Kotlin or Scala consume the library?
 
-Yes. Use the Java `core` artifact directly from Kotlin or Scala. Dedicated wrapper modules are not part of the current repository.
+Yes. Kotlin and Scala can use the Java `krandom-core` artifact directly. Kotlin projects can also use `krandom-kotlin-dsl` for typed fixture rules, while Kotest projects can use `krandom-kotest-extensions` for property-testing adapters. See [Kotlin DSL]({{ '/guides/kotlin-dsl/' | relative_url }}) and [Property Testing Integrations]({{ '/guides/property-testing-integrations/' | relative_url }}).

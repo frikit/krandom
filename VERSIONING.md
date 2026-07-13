@@ -9,7 +9,8 @@ published artifacts (`io.github.frikit:krandom-*`).
 
 - **Major** (`X.0.0`): may remove or change public API. Migration notes are
   published in the changelog and, for larger changes, as a guide under
-  `docs/migration/`.
+  `docs/migration/`. The v2 migration path is documented in
+  [`docs/migration/v1.6-to-v2.md`](docs/migration/v1.6-to-v2.md).
 - **Minor** (`1.X.0`): additive only. Existing public API keeps compiling and
   behaving as documented. New generators, locales, and configuration options
   may be added.
@@ -32,16 +33,17 @@ carry no compatibility guarantee.
 
 ## Platform support window
 
-**Java 21 is the deliberate baseline for the entire 1.x line.** This is a
-positioning decision, not an oversight: it will not be lowered within 1.x,
-and any future change to the Java baseline would only happen in a major
-release.
+**Java 21 is the deliberate baseline for the 1.x and 2.x lines.** This is a
+positioning decision, not an oversight: it will not be lowered within either
+major line, and any future change to the Java baseline would only happen in a
+major release.
 
 ### Compatibility table
 
 | kRandom | Java | Spring Boot (`krandom-spring-boot-starter`) | Kotlin modules (`krandom-kotlin-dsl`, `krandom-kotest-extensions`) |
 |:---|:---|:---|:---|
 | 1.x | 21+ | 4.x | Kotlin version pinned in `gradle/libs.versions.toml` |
+| 2.x | 21+ | 4.x | Kotlin version pinned in `gradle/libs.versions.toml` |
 
 - **Java**: 21 or later (toolchain-enforced at build time).
 - **Spring Boot**: the `krandom-spring-boot-starter` module targets Spring

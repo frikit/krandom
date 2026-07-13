@@ -27,4 +27,5 @@ permalink: /guides/
 - [Migration from easy-random]({{ '/guides/migration-from-easy-random/' | relative_url }})
 - [Migration from Instancio]({{ '/guides/migration-from-instancio/' | relative_url }})
 - [Migration from k-random]({{ '/guides/k-random-migration/' | relative_url }})
+- [Migrating to v2]({{ '/guides/migration-to-v2/' | relative_url }})
 - [Performance and Observability]({{ '/guides/performance-and-observability/' | relative_url }})
