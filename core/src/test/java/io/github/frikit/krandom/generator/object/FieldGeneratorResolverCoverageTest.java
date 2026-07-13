@@ -12,8 +12,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -28,9 +30,11 @@ import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("FieldGeneratorResolver edge coverage")
@@ -81,6 +85,54 @@ class FieldGeneratorResolverCoverageTest {
         List<Object> copyOnWrite = invokeToListType(CopyOnWriteArrayList.class, values);
         assertEquals(CopyOnWriteArrayList.class, copyOnWrite.getClass());
         assertEquals(values, copyOnWrite);
+    }
+
+    @Test
+    @DisplayName("seeded float generators round values to the requested precision")
+    void seededFloatGeneratorRoundsToRequestedPrecision() throws Exception {
+        Generator<Float> generator = invokeStatic(
+            "floatGenerator",
+            new Class<?>[] { Long.class, Random.class, float.class, float.class, Integer.class },
+            42L,
+            new Random(3L),
+            1.0f,
+            10.0f,
+            2);
+
+        float value = generator.generate();
+
+        assertEquals(
+            (float) BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue(),
+            value);
+    }
+
+    @Test
+    @DisplayName("inaccessible JDK collection constructors are reported as construction failures")
+    void inaccessibleCollectionConstructorIsWrapped() throws Exception {
+        Method method = FieldGeneratorResolver.class.getDeclaredMethod(
+            "instantiateCollectionType", Class.class, Class.class);
+        method.setAccessible(true);
+        Class<?> emptySet = Class.forName("java.util.Collections$EmptySet");
+
+        InvocationTargetException error = assertThrows(
+            InvocationTargetException.class,
+            () -> method.invoke(null, emptySet, java.util.Set.class));
+
+        RuntimeException failure = assertInstanceOf(RuntimeException.class, error.getCause());
+        assertEquals("CollectionConstructionFailure", failure.getClass().getSimpleName());
+        assertInstanceOf(java.lang.reflect.InaccessibleObjectException.class, failure.getCause());
+    }
+
+    @Test
+    @DisplayName("lenient generation ignores unbound generic object types before nested construction")
+    void lenientGenerationIgnoresUnboundGenericObjectType() {
+        FieldGeneratorResolver resolver = resolver(ObjectGeneratorConfig.builder()
+                                                                         .nullProbability(0.0)
+                                                                         .ignoreErrors(true)
+                                                                         .build());
+        java.lang.reflect.Type unboundType = GenericHolder.class.getTypeParameters()[0];
+
+        assertNull(resolver.resolveAndGenerate(unboundType, Object.class, "value", GenericHolder.class, 0, null));
     }
 
     @Test
@@ -364,5 +416,9 @@ class FieldGeneratorResolverCoverageTest {
 
         @Size(min = 40, max = 40)
         String username;
+    }
+
+    static final class GenericHolder<T> {
+
     }
 }

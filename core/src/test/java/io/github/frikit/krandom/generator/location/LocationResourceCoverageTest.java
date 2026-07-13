@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -94,6 +98,22 @@ class LocationResourceCoverageTest {
     @DisplayName("street loader wraps IO failures")
     void streetLoaderIoFailure() {
         assertThrows(IllegalStateException.class, () -> StreetAddressResourceLoader.load(closeFailingStream(), "broken-street"));
+    }
+
+    @Test
+    @DisplayName("street loader ignores comment lines")
+    void streetLoaderIgnoresCommentLines() {
+        InputStream input = new java.io.ByteArrayInputStream("# comment\n\nMain Street\n".getBytes(StandardCharsets.UTF_8));
+
+        assertArrayEquals(new String[] { "Main Street" }, StreetAddressResourceLoader.load(input, "commented-street"));
+    }
+
+    @Test
+    @DisplayName("country provider falls back to JDK-localized country names when no resource exists")
+    void countryProviderFallsBackWhenResourceIsUnavailable() {
+        BuiltInCountryDataProvider provider = new BuiltInCountryDataProvider(SupportedLocale.EN_US, null);
+
+        assertTrue(java.util.Arrays.asList(provider.getCountries()).contains(Locale.US.getDisplayCountry(Locale.US)));
     }
 
     @Test

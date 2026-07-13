@@ -122,6 +122,19 @@ class ObjectGeneratorCollectionTest {
     }
 
     @Test
+    @DisplayName("raw generic object fields fail with complete field context")
+    void rawGenericObjectFieldFailsWithContext() {
+        ObjectGenerationException ex = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(WithRawGenericObject.class).generate());
+
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+        assertEquals("WithRawGenericObject.value", context.path());
+        assertEquals(GenericObject.class.getTypeName(), context.declaredType());
+    }
+
+    @Test
     @DisplayName("lenient raw List handling discards the whole value and emits context")
     void lenientRawListReturnsNullAndEmitsDiagnostic() {
         AtomicReference<GenerationFailureDiagnostic> observed = new AtomicReference<>();
@@ -218,6 +231,16 @@ class ObjectGeneratorCollectionTest {
     static class WithRawMap {
 
         Map data;
+    }
+
+    static class WithRawGenericObject {
+
+        GenericObject value;
+    }
+
+    static class GenericObject<T> {
+
+        T value;
     }
 
     @SuppressWarnings("rawtypes")

@@ -82,6 +82,22 @@ class ObjectGeneratorRandomizerAnnotationTest {
     }
 
     @Test
+    @DisplayName("throwing @Randomizer constructors report sanitized field context")
+    void throwingRandomizerConstructorIsContextual() {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(ThrowingConstructorRandomizerTarget.class).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR, context.category());
+        assertEquals(GenerationOperation.CONSTRUCT, context.operation());
+        assertEquals("ThrowingConstructorRandomizerTarget.value", context.path());
+        assertEquals(ThrowingConstructorGenerator.class.getName(), context.declaredType());
+        assertTrue(error.getCause() instanceof IllegalStateException);
+        assertFalse(error.getMessage().contains("personal-looking-value"));
+    }
+
+    @Test
     @DisplayName("throwing @Randomizer generator reports sanitized field context")
     void throwingRandomizerIsContextual() {
         ObjectGenerationException error = assertThrows(
@@ -196,6 +212,19 @@ class ObjectGeneratorRandomizerAnnotationTest {
         @Override
         public String generate() {
             throw new IllegalStateException("personal-looking-value");
+        }
+    }
+
+
+    public static class ThrowingConstructorGenerator implements Generator<String> {
+
+        public ThrowingConstructorGenerator() {
+            throw new IllegalStateException("personal-looking-value");
+        }
+
+        @Override
+        public String generate() {
+            return "UNREACHABLE";
         }
     }
 
@@ -325,6 +354,13 @@ class ObjectGeneratorRandomizerAnnotationTest {
     static class ThrowingRandomizerTarget {
 
         @Randomizer(ThrowingGenerator.class)
+        private String value;
+    }
+
+
+    static class ThrowingConstructorRandomizerTarget {
+
+        @Randomizer(ThrowingConstructorGenerator.class)
         private String value;
     }
 

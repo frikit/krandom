@@ -25,15 +25,24 @@ final class BuiltInCountryDataProvider implements CountryDataProvider {
     private final String[] countries;
 
     BuiltInCountryDataProvider(SupportedLocale supportedLocale) {
+        this(supportedLocale, openCountryResource(supportedLocale));
+    }
+
+    BuiltInCountryDataProvider(SupportedLocale supportedLocale, InputStream resource) {
         this.locale = supportedLocale.locale();
         String resourcePrefix = supportedLocale.resourcePrefix();
         String path = "krandom/countries/" + resourcePrefix + "_countries.txt";
-        InputStream is = BuiltInCountryDataProvider.class.getResourceAsStream("/" + path);
-        if (is != null) {
-            this.countries = CountryResourceLoader.load(is, path);
+        if (resource != null) {
+            this.countries = CountryResourceLoader.load(resource, path);
         } else {
             this.countries = localizedCountryNames(locale);
         }
+    }
+
+    private static InputStream openCountryResource(SupportedLocale supportedLocale) {
+        String resourcePrefix = supportedLocale.resourcePrefix();
+        String path = "krandom/countries/" + resourcePrefix + "_countries.txt";
+        return BuiltInCountryDataProvider.class.getResourceAsStream("/" + path);
     }
 
     @Override
