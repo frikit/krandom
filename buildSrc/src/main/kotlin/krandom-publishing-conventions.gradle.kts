@@ -7,8 +7,8 @@
  * only when GPG_SIGNING_KEY and GPG_SIGNING_PASSWORD are present in the
  * environment (CI release workflow).
  *
- * Maven Central uploads are aggregated by the com.gradleup.nmcp.settings
- * plugin (configured in settings.gradle.kts). Run
+ * Maven Central uploads are exposed to the root com.gradleup.nmcp.aggregation
+ * plugin. Run
  * `./gradlew publishAggregationToCentralPortal` to push the signed bundle
  * to https://central.sonatype.com.
  */
@@ -20,7 +20,10 @@ plugins {
     signing
 }
 
+apply(plugin = "com.gradleup.nmcp")
+
 val moduleDescriptions = mapOf(
+    "bom" to "kRandom bill of materials for aligning all published kRandom module versions.",
     "core" to "kRandom core: Java 21 random and fake-data generation toolkit with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
     "jackson" to "Jackson serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
     "junit" to "JUnit 5 extension for kRandom — per-test seed management with @KrandomSeed pinning, seeded GeneratorConfig parameter injection, and failure-seed reporting for reproducible test runs.",
@@ -41,20 +44,32 @@ afterEvaluate {
     val componentName = when {
         components.names.contains("java") -> "java"
         components.names.contains("kotlin") -> "kotlin"
+        components.names.contains("javaPlatform") -> "javaPlatform"
         else -> null
     }
     if (componentName == null || project.name !in moduleDescriptions.keys) {
         return@afterEvaluate
     }
 
-    extensions.findByType(JavaPluginExtension::class.java)?.apply {
-        withSourcesJar()
-        withJavadocJar()
-    }
+    if (componentName != "javaPlatform") {
+        extensions.findByType(JavaPluginExtension::class.java)?.apply {
+            withSourcesJar()
+            withJavadocJar()
+        }
 
-    tasks.named<Jar>("jar").configure {
-        manifest {
-            attributes("Automatic-Module-Name" to moduleNames.getValue(project.name))
+        tasks.withType<Jar>().configureEach {
+            from(rootProject.file("LICENSE")) {
+                into("META-INF")
+            }
+        }
+
+        tasks.named<Jar>("jar").configure {
+            manifest {
+                attributes(
+                    "Automatic-Module-Name" to moduleNames.getValue(project.name),
+                    "Implementation-Version" to project.version
+                )
+            }
         }
     }
 

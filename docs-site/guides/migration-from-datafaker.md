@@ -15,7 +15,7 @@ its successor, so both columns read the same.
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.0.0")
+    implementation("io.github.frikit:krandom-core:1.5.0")
 }
 ```
 

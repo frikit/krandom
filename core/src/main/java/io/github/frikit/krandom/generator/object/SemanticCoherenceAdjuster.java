@@ -6,6 +6,10 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
@@ -48,20 +52,29 @@ final class SemanticCoherenceAdjuster {
     private final UniqueFieldTracker uniqueFieldTracker;
     private final SemanticFieldRegistry semanticRegistry;
     private final Long generationSeed;
+    private final int depth;
     private       AddressInfo addressInfo;
     private       boolean     addressInfoResolved;
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker) {
-        this(config, uniqueFieldTracker, null);
+        this(config, uniqueFieldTracker, null, 0);
     }
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
                               UniqueFieldTracker uniqueFieldTracker,
                               Long generationSeed) {
+        this(config, uniqueFieldTracker, generationSeed, 0);
+    }
+
+    SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
+                              UniqueFieldTracker uniqueFieldTracker,
+                              Long generationSeed,
+                              int depth) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
         this.semanticRegistry = config.getSemanticRegistry();
         this.generationSeed = generationSeed;
+        this.depth = depth;
     }
 
     void adjustInstance(Class<?> ownerType, Object instance, List<Field> fields, boolean allowOverwriteExisting) {
@@ -77,7 +90,13 @@ final class SemanticCoherenceAdjuster {
                 continue;
             }
             field.setAccessible(true);
-            slots.add(new ReflectionSlot(ownerType, field, instance, config.isIgnoreErrors()));
+            slots.add(new ReflectionSlot(
+                ownerType,
+                field,
+                instance,
+                config.isIgnoreErrors(),
+                depth,
+                config.getGeneratorConfig().getGenerationFailureListener()));
         }
         apply(slots, allowOverwriteExisting);
     }
@@ -948,13 +967,32 @@ final class SemanticCoherenceAdjuster {
         private final Class<?> ownerType;
         private final Field field;
         private final Object instance;
-        private final boolean ignoreErrors;
+        private final ObjectGenerationFailurePolicy failurePolicy;
+        private final int depth;
 
         private ReflectionSlot(Class<?> ownerType, Field field, Object instance, boolean ignoreErrors) {
+            this(ownerType, field, instance, ignoreErrors, 0);
+        }
+
+        private ReflectionSlot(Class<?> ownerType,
+                               Field field,
+                               Object instance,
+                               boolean ignoreErrors,
+                               int depth) {
+            this(ownerType, field, instance, ignoreErrors, depth, diagnostic -> {});
+        }
+
+        private ReflectionSlot(Class<?> ownerType,
+                               Field field,
+                               Object instance,
+                               boolean ignoreErrors,
+                               int depth,
+                               GenerationFailureListener listener) {
             this.ownerType = ownerType;
             this.field = field;
             this.instance = instance;
-            this.ignoreErrors = ignoreErrors;
+            this.failurePolicy = new ObjectGenerationFailurePolicy(ignoreErrors, listener);
+            this.depth = depth;
         }
 
         @Override
@@ -982,8 +1020,15 @@ final class SemanticCoherenceAdjuster {
             try {
                 return field.get(instance);
             } catch (IllegalAccessException e) {
-                throw new ObjectGenerationException(
-                    "Could not read field '" + ownerType.getSimpleName() + "." + field.getName() + "'", e);
+                GenerationFailureContext context = failureContext(
+                    GenerationFailureCategory.REFLECTION, GenerationOperation.READ);
+                return failurePolicy.handle(
+                    new ObjectGenerationException(
+                        "Could not read semantic field at '" + context.path() + "' (declared type "
+                        + context.declaredType() + ", depth " + depth + ")",
+                        context,
+                        e),
+                    null);
             }
         }
 
@@ -992,12 +1037,30 @@ final class SemanticCoherenceAdjuster {
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
-                if (!ignoreErrors) {
-                    throw new ObjectGenerationException(
-                        "Could not align field '" + ownerType.getSimpleName() + "." + field.getName() + "'", e);
-                }
+                GenerationFailureContext context = failureContext(
+                    GenerationFailureCategory.ASSIGNMENT, GenerationOperation.ALIGN_SEMANTICS);
+                failurePolicy.handle(
+                    new ObjectGenerationException(
+                        "Could not align semantic field at '" + context.path() + "' (declared type "
+                        + context.declaredType() + ", depth " + depth + ")",
+                        context,
+                        e),
+                    null);
             }
         }
+
+        private GenerationFailureContext failureContext(GenerationFailureCategory category,
+                                                        GenerationOperation operation) {
+            return new GenerationFailureContext(
+                category,
+                operation,
+                ownerType.getSimpleName() + "." + field.getName(),
+                ownerType,
+                field.getGenericType().getTypeName(),
+                depth,
+                -1);
+        }
+
     }
 
     private static final class RecordSlot implements Slot {

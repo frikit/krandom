@@ -5,8 +5,15 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
@@ -19,10 +26,12 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("FieldGeneratorResolver collection fallback coverage")
@@ -56,13 +65,6 @@ class FieldGeneratorResolverCollectionFallbackTest {
         return (Map<Object, Object>) method.invoke(null, rawType);
     }
 
-    private static void invokePutSafely(Map<Object, Object> target, Object key, Object value) throws Exception {
-        Method method = FieldGeneratorResolver.class.getDeclaredMethod(
-            "putSafely", Map.class, Object.class, Object.class);
-        method.setAccessible(true);
-        method.invoke(null, target, key, value);
-    }
-
     private static Object invokeInstantiateCollectionType(Class<?> rawType, Class<?> expectedType) throws Exception {
         Method method = FieldGeneratorResolver.class.getDeclaredMethod(
             "instantiateCollectionType", Class.class, Class.class);
@@ -76,13 +78,10 @@ class FieldGeneratorResolverCollectionFallbackTest {
         List<Object> values = new ArrayList<>(List.of("a", "b", "c"));
         List<Object> generated = invokeToListType(NoDefaultCtorList.class, values);
         assertNull(generated);
-
-        List<Object> rejecting = invokeToListType(RejectingList.class, values);
-        assertNull(rejecting);
     }
 
     @Test
-    @DisplayName("toSetType handles concrete subtype and rejecting concrete set")
+    @DisplayName("toSetType handles interface, abstract, concrete, and non-constructible subtypes")
     void toSetTypeConcreteAndRejectingBranches() throws Exception {
         List<Object> values = new ArrayList<>(List.of("a", "b", "c"));
         Set<Object> interfaceFallback = invokeToSetType(CustomSet.class, values);
@@ -97,8 +96,8 @@ class FieldGeneratorResolverCollectionFallbackTest {
         assertEquals(ConcreteCustomSet.class, concrete.getClass());
         assertEquals(new LinkedHashSet<>(values), concrete);
 
-        Set<Object> rejecting = invokeToSetType(RejectingSet.class, values);
-        assertNull(rejecting);
+        Set<Object> noDefaultCtor = invokeToSetType(NoDefaultCtorSet.class, values);
+        assertNull(noDefaultCtor);
     }
 
     @Test
@@ -124,9 +123,6 @@ class FieldGeneratorResolverCollectionFallbackTest {
         Queue<Object> abstractQueue = invokeToQueueType(AbstractCustomQueue.class, List.of("a", "b"));
         assertEquals(ArrayDeque.class, abstractQueue.getClass());
 
-        Queue<Object> exploding = invokeToQueueType(ExplodingQueue.class, Arrays.asList("a", null));
-        assertNull(exploding);
-
         Queue<Object> noDefaultCtor = invokeToQueueType(NoDefaultCtorQueue.class, List.of("x"));
         assertNull(noDefaultCtor);
     }
@@ -148,11 +144,146 @@ class FieldGeneratorResolverCollectionFallbackTest {
     }
 
     @Test
-    @DisplayName("putSafely swallows runtime exceptions from custom maps")
-    void putSafelySwallowsRuntimeException() throws Exception {
-        Map<Object, Object> throwing = new ThrowingPutMap<>();
-        assertDoesNotThrow(() -> invokePutSafely(throwing, "k", "v"));
-        assertTrue(throwing.isEmpty());
+    @DisplayName("strict map insertion failure reports sanitized indexed context")
+    void strictMapInsertionFailureIsContextual() {
+        GeneratorConfig config = mapFailureConfig(false);
+
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(ThrowingMapHolder.class, config).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.COLLECTION_INSERTION, context.category());
+        assertEquals(GenerationOperation.INSERT, context.operation());
+        assertEquals("ThrowingMapHolder.values[0]", context.path());
+        assertTrue(error.getCause() instanceof UnsupportedOperationException);
+        assertFalse(error.getMessage().contains("reject put"));
+    }
+
+    @Test
+    @DisplayName("lenient map insertion failure discards the whole map")
+    void lenientMapInsertionFailureReturnsNull() {
+        ThrowingMapHolder holder = new ObjectGenerator<>(ThrowingMapHolder.class, mapFailureConfig(true)).generate();
+
+        assertNull(holder.values);
+    }
+
+    @Test
+    @DisplayName("strict primitive-array insertion failure reports indexed context")
+    void strictPrimitiveArrayInsertionFailureIsContextual() {
+        GeneratorConfig config = arrayFailureConfig(false);
+
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(PrimitiveArrayHolder.class, config).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.COLLECTION_INSERTION, context.category());
+        assertEquals(GenerationOperation.INSERT, context.operation());
+        assertEquals("PrimitiveArrayHolder.values[0]", context.path());
+        assertEquals("int[]", context.declaredType());
+    }
+
+    @Test
+    @DisplayName("lenient primitive-array insertion failure keeps the JVM default")
+    void lenientPrimitiveArrayInsertionFailureUsesDefault() {
+        PrimitiveArrayHolder holder = new ObjectGenerator<>(PrimitiveArrayHolder.class, arrayFailureConfig(true)).generate();
+
+        assertEquals(1, holder.values.length);
+        assertEquals(0, holder.values[0]);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("rejectingCollectionHolders")
+    @DisplayName("strict concrete-collection insertion failure reports field context")
+    void strictCollectionInsertionFailureIsContextual(String expectedPath, Class<?> holderType) {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(holderType, collectionFailureConfig(false)).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.COLLECTION_INSERTION, context.category());
+        assertEquals(GenerationOperation.INSERT, context.operation());
+        assertEquals(expectedPath, context.path());
+        assertTrue(error.getCause() instanceof UnsupportedOperationException);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("rejectingCollectionHolders")
+    @DisplayName("lenient concrete-collection insertion failure discards the whole collection")
+    void lenientCollectionInsertionFailureReturnsNull(String expectedPath, Class<?> holderType) throws Exception {
+        Object holder = new ObjectGenerator<>(holderType, collectionFailureConfig(true)).generate();
+        var field = holderType.getDeclaredField("values");
+        field.setAccessible(true);
+
+        assertNull(field.get(holder), expectedPath);
+    }
+
+    private static Stream<Arguments> rejectingCollectionHolders() {
+        return Stream.of(
+            Arguments.of("RejectingListHolder.values", RejectingListHolder.class),
+            Arguments.of("RejectingSetHolder.values", RejectingSetHolder.class),
+            Arguments.of("RejectingQueueHolder.values", RejectingQueueHolder.class));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("failingCollectionConstructorHolders")
+    @DisplayName("strict collection-constructor failure reports field context")
+    void strictCollectionConstructorFailureIsContextual(String expectedPath, Class<?> holderType) {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(holderType, collectionFailureConfig(false)).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
+        assertEquals(GenerationOperation.CONSTRUCT, context.operation());
+        assertEquals(expectedPath, context.path());
+        assertTrue(error.getCause() instanceof IllegalStateException);
+        assertFalse(error.getMessage().contains("personal-looking-value"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("failingCollectionConstructorHolders")
+    @DisplayName("lenient collection-constructor failure returns null")
+    void lenientCollectionConstructorFailureReturnsNull(String expectedPath, Class<?> holderType) throws Exception {
+        Object holder = new ObjectGenerator<>(holderType, collectionFailureConfig(true)).generate();
+        var field = holderType.getDeclaredField("values");
+        field.setAccessible(true);
+
+        assertNull(field.get(holder), expectedPath);
+    }
+
+    private static Stream<Arguments> failingCollectionConstructorHolders() {
+        return Stream.of(
+            Arguments.of("ThrowingListHolder.values", ThrowingListHolder.class),
+            Arguments.of("ThrowingSetHolder.values", ThrowingSetHolder.class),
+            Arguments.of("ThrowingQueueHolder.values", ThrowingQueueHolder.class),
+            Arguments.of("FailingMapConstructorHolder.values", FailingMapConstructorHolder.class));
+    }
+
+    private static GeneratorConfig mapFailureConfig(boolean ignoreErrors) {
+        return GeneratorConfig.builder()
+                              .collectionSize(1, 1)
+                              .objectIgnoreErrors(ignoreErrors)
+                              .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                              .build();
+    }
+
+    private static GeneratorConfig arrayFailureConfig(boolean ignoreErrors) {
+        return GeneratorConfig.builder()
+                              .collectionSize(1, 1)
+                              .objectIgnoreErrors(ignoreErrors)
+                              .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                              .objectOverride(int.class, () -> null)
+                              .build();
+    }
+
+    private static GeneratorConfig collectionFailureConfig(boolean ignoreErrors) {
+        return GeneratorConfig.builder()
+                              .collectionSize(1, 1)
+                              .objectIgnoreErrors(ignoreErrors)
+                              .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                              .build();
     }
 
     @Test
@@ -176,6 +307,13 @@ class FieldGeneratorResolverCollectionFallbackTest {
         }
     }
 
+    static final class ThrowingList<E> extends ArrayList<E> {
+
+        ThrowingList() {
+            throw new IllegalStateException("personal-looking-value");
+        }
+    }
+
     interface CustomSet<E> extends Set<E> {
     }
 
@@ -185,11 +323,24 @@ class FieldGeneratorResolverCollectionFallbackTest {
     static final class ConcreteCustomSet<E> extends LinkedHashSet<E> {
     }
 
+    static final class NoDefaultCtorSet<E> extends LinkedHashSet<E> {
+
+        private NoDefaultCtorSet(String ignored) {
+        }
+    }
+
     static final class RejectingSet<E> extends LinkedHashSet<E> {
 
         @Override
         public boolean add(E element) {
             throw new UnsupportedOperationException("reject");
+        }
+    }
+
+    static final class ThrowingSet<E> extends LinkedHashSet<E> {
+
+        ThrowingSet() {
+            throw new IllegalStateException("personal-looking-value");
         }
     }
 
@@ -207,6 +358,26 @@ class FieldGeneratorResolverCollectionFallbackTest {
         @Override
         public void clear() {
             throw new UnsupportedOperationException("reject clear");
+        }
+    }
+
+    static final class RejectingQueue<E> extends ArrayDeque<E> {
+
+        @Override
+        public boolean addAll(java.util.Collection<? extends E> collection) {
+            throw new UnsupportedOperationException("reject addAll");
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException("reject clear");
+        }
+    }
+
+    static final class ThrowingQueue<E> extends ArrayDeque<E> {
+
+        ThrowingQueue() {
+            throw new IllegalStateException("personal-looking-value");
         }
     }
 
@@ -231,5 +402,57 @@ class FieldGeneratorResolverCollectionFallbackTest {
         public V put(K key, V value) {
             throw new UnsupportedOperationException("reject put");
         }
+    }
+
+    static final class ThrowingMap<K, V> extends LinkedHashMap<K, V> {
+
+        ThrowingMap() {
+            throw new IllegalStateException("personal-looking-value");
+        }
+    }
+
+    static final class ThrowingMapHolder {
+
+        ThrowingPutMap<String, Integer> values;
+    }
+
+    static final class PrimitiveArrayHolder {
+
+        int[] values;
+    }
+
+    static final class RejectingListHolder {
+
+        RejectingList<String> values;
+    }
+
+    static final class RejectingSetHolder {
+
+        RejectingSet<String> values;
+    }
+
+    static final class RejectingQueueHolder {
+
+        RejectingQueue<String> values;
+    }
+
+    static final class ThrowingListHolder {
+
+        ThrowingList<String> values;
+    }
+
+    static final class ThrowingSetHolder {
+
+        ThrowingSet<String> values;
+    }
+
+    static final class ThrowingQueueHolder {
+
+        ThrowingQueue<String> values;
+    }
+
+    static final class FailingMapConstructorHolder {
+
+        ThrowingMap<String, String> values;
     }
 }

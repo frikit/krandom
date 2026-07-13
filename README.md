@@ -11,6 +11,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 
 | Module | Purpose |
 |:---|:---|
+| `bom` | Maven/Gradle bill of materials for aligning published module versions |
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
 | `jackson` | Jackson integration on top of `core` |
 | `junit` | JUnit 5 extension: per-test seeds, `@KrandomSeed` pinning, failure-seed reporting |
@@ -26,6 +27,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 
 - Java-first architecture.
 - `core` is the only behavior source of truth.
+- `bom` aligns the versions of all published modules.
 - `jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`, and `kotlin-dsl` are published integration modules.
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs tests and coverage on Java 21.
@@ -99,7 +101,7 @@ krandom's `ObjectGenerator` trades throughput for semantic realism — every fie
 
 ## Randomness model
 
-Unseeded generators use the JDK's fast `Random` by default, which is appropriate for fixture and fake-data generation. Use `GeneratorConfig.builder().seed(...)` when output must be reproducible, `GeneratorConfig.builder().random(myRandom)` when a client owns the PRNG instance, or `GeneratorConfig.builder().secureRandom()` when a consumer explicitly needs a `SecureRandom` source.
+Unseeded generators use the JDK's fast `Random` by default, which is appropriate for fixture and fake-data generation. Use `GeneratorConfig.builder().seed(...)` when output must be reproducible, `GeneratorConfig.builder().random(myRandom)` when a client owns the PRNG instance, `randomFactory(...)` for a fresh custom source per generator, or `secureRandom()` when a consumer explicitly needs a `SecureRandom` source. These source choices are mutually exclusive; `build()` rejects mixed configurations instead of applying call-order precedence.
 
 `Generator.filter(predicate)` is bounded by default and throws if no generated value matches after 10,000 attempts. Use `filter(predicate, maxAttempts)` when a domain-specific predicate is intentionally rare.
 
@@ -115,7 +117,7 @@ Generator<String> emails = Generators.threadLocal(() -> Generators.ofEmail(confi
 
 `Generators.threadLocal(Supplier)` gives each thread its own instance from the supplied factory. What *is* safe to share:
 
-- **`GeneratorConfig`** is immutable and safe to share across threads as configuration (it is not itself a generator).
+- **`GeneratorConfig`** has immutable value fields and is safe to share when its caller-owned `Random`, factory, registry, and other extension objects are also used according to their own concurrency contracts. A configured caller-owned `Random` remains shared mutable state.
 - **`ProviderHub`** registration is thread-safe; complete all registration before sharing the hub for lookups.
 - **`ObjectGenerator` / `ObjectFaker` / `Schema`** are stateful per generation call and must be confined to one thread (one instance per thread).
 
@@ -151,9 +153,10 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 Public artifacts on Maven Central (group `io.github.frikit`):
 
-| Artifact | Automatic module name |
+| Artifact | Java module name |
 |:---|:---|
-| `io.github.frikit:krandom-core` | `io.github.frikit.krandom` |
+| `io.github.frikit:krandom-bom` (from 1.6.0) | — (Maven/Gradle platform) |
+| `io.github.frikit:krandom-core` | `io.github.frikit.krandom` (explicit descriptor) |
 | `io.github.frikit:krandom-jackson` | `io.github.frikit.krandom.jackson` |
 | `io.github.frikit:krandom-junit` | `io.github.frikit.krandom.junit` |
 | `io.github.frikit:krandom-spring-boot-starter` | `io.github.frikit.krandom.spring.boot.starter` |
@@ -161,7 +164,7 @@ Public artifacts on Maven Central (group `io.github.frikit`):
 | `io.github.frikit:krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` |
 
 The latest released version is `1.5.0` (the in-repo development build defaults to
-`1.6.0-SNAPSHOT`). The released version is always
+`2.0.0-SNAPSHOT`). The released version is always
 shown on [GitHub Releases](https://github.com/frikit/krandom/releases) and
 [Maven Central](https://central.sonatype.com/artifact/io.github.frikit/krandom-core).
 
@@ -190,6 +193,8 @@ dependencies {
   <version>1.5.0</version>
 </dependency>
 ```
+
+Starting with 1.6.0, multi-module consumers can import `krandom-bom` once and omit versions from individual kRandom dependencies. The consumer examples already exercise this path against the development snapshot.
 
 For local consumer verification against an unpublished snapshot, use
 `./scripts/verify_examples_local.sh` or

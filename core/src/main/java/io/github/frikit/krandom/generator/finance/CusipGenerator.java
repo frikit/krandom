@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -20,14 +19,18 @@ public final class CusipGenerator implements Generator<String> {
     private static final String ALNUM = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     private final Random random;
+    private final SecuritiesIdentifierSafetyPolicy safetyPolicy;
 
-    public CusipGenerator() {
-        this(GeneratorConfig.defaults());
-    }
 
+    /**
+     * Creates a generator from explicit configuration.
+     *
+     * @param config the generator configuration; must not be {@code null}
+     */
     public CusipGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.safetyPolicy = config.getSecuritiesIdentifierSafetyPolicy();
     }
 
     static int computeCheckDigit(String valueWithoutCheck) {
@@ -42,6 +45,7 @@ public final class CusipGenerator implements Generator<String> {
 
     @Override
     public String generate() {
+        safetyPolicy.requireRealisticOutput();
         StringBuilder base = new StringBuilder(8);
         for (int i = 0; i < 8; i++) {
             base.append(ALNUM.charAt(random.nextInt(ALNUM.length())));

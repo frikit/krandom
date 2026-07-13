@@ -83,36 +83,6 @@ class HobbyGeneratorTest {
     @Nested
     @DisplayName("HobbyDataRegistry")
     class Registry {
-
-        @Test
-        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
-        void registry() {
-            assertTrue(HobbyDataRegistry.isRegistered(RU));
-            assertTrue(HobbyDataRegistry.isRegistered(Locale.of("ru"))); // language-only
-            assertFalse(HobbyDataRegistry.isRegistered(Locale.of("is", "IS")));
-            assertFalse(HobbyDataRegistry.isRegistered(null));
-
-            assertNotNull(HobbyDataRegistry.forLocale(RU));
-            assertNotNull(HobbyDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
-            assertNull(HobbyDataRegistry.forLocale(Locale.of("is")));
-            assertNull(HobbyDataRegistry.forLocale(null));
-            assertTrue(HobbyDataRegistry.registeredKeys().contains("ru_RU"));
-
-            HobbyDataProvider custom = new HobbyDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getHobbies() {
-                    return List.of("Zzzz");
-                }
-            };
-            HobbyDataRegistry.register(custom);
-            assertEquals("Zzzz", new HobbyGenerator(Locale.of("zz")).generate());
-            assertThrows(NullPointerException.class, () -> HobbyDataRegistry.register(null));
-        }
     }
 
     @Nested

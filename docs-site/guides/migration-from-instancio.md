@@ -16,7 +16,7 @@ directly; the honest-gaps section lists what does not (yet).
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.0.0")
+    implementation("io.github.frikit:krandom-core:1.5.0")
 }
 ```
 
@@ -29,7 +29,7 @@ dependencies {
 | `Instancio.of(User.class).set(field("email"), v).create()` | `ObjectFaker.of(User.class).ruleFor("email", () -> v).generate()` or `GeneratorConfig.builder().objectOverride(User.class, "email", () -> v)` |
 | `.supply(field("id"), gen)` | `.ruleFor("id", gen)` (any `Generator<T>` or lambda) |
 | `.ignore(field("password"))` | `.ignore("password")` / `.objectExcludeField("password")` |
-| `.withNullable(field(...))` | `ObjectGeneratorConfig.builder().nullProbability(0.1)` |
+| `.withNullable(field(...))` | `GeneratorConfig.builder().objectNullProbability(0.1)` |
 | `.onComplete(...)` | `ObjectFaker.afterGenerate(consumer)` / `.postProcess(operator)` |
 | `.withSeed(42)` | `GeneratorConfig.builder().seed(42L)` |
 | `.withMaxDepth(3)` | `.objectMaxDepth(3)` |
@@ -65,7 +65,7 @@ User user = new ObjectFaker<>(User.class, config)
 - **Semantic field values** — `firstName`, `email`, `city` resolve to
   realistic domain data, not arbitrary strings (this is the documented
   throughput-for-realism trade-off; see the README performance section).
-- **Bean Validation awareness** — 19 Jakarta constraints (`@Email`, `@Min`,
+- **Bean Validation awareness** — 21 Jakarta constraints (`@Email`, `@Min`,
   `@Pattern`, `@Size`, …) are honored during population without extra setup.
 - **Bulk structured export** — `Field` + `Schema` produce CSV, JSONL, XML,
   and SQL output; Instancio has no export story.

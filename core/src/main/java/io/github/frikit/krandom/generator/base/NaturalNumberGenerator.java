@@ -82,35 +82,33 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
      *
      * <p>Excluded values within the range will be skipped.
      *
-     * @throws IllegalArgumentException if {@code min == max}
+     * @throws IllegalArgumentException if {@code min >= max}
      * @throws IllegalStateException    if all values in range are excluded
      */
     @Override
     public Integer generate(Integer min, Integer max) {
         validate(min, max);
-        int lo = lo(min, max);
-        int hi = hi(min, max);
-
+        
         // If no exclusions, use simple generation
         if (excludedValues.isEmpty()) {
-            return random.nextInt(lo, hi);
+            return random.nextInt(min, max);
         }
 
         // Count how many values in range are excluded
-        long rangeSize = (long) hi - lo;
+        long rangeSize = (long) max - min;
         long excludedInRange = excludedValues.stream()
-                                             .filter(v -> v >= lo && v < hi)
+                                             .filter(v -> v >= min && v < max)
                                              .count();
 
         if (excludedInRange >= rangeSize) {
             throw new IllegalStateException(
-                "All values in range [" + lo + ", " + hi + ") are excluded");
+                "All values in range [" + min + ", " + max + ") are excluded");
         }
 
         // Generate with retry for excluded values
         int attempts = 0;
         while (attempts < MAX_RETRY_ATTEMPTS) {
-            int value = random.nextInt(lo, hi);
+            int value = random.nextInt(min, max);
             if (!excludedValues.contains(value)) {
                 return value;
             }

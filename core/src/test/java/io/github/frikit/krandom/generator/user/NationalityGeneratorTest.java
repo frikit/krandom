@@ -87,36 +87,6 @@ class NationalityGeneratorTest {
     @Nested
     @DisplayName("NationalityDataRegistry")
     class Registry {
-
-        @Test
-        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
-        void registry() {
-            assertTrue(NationalityDataRegistry.isRegistered(RU));
-            assertTrue(NationalityDataRegistry.isRegistered(Locale.of("ru"))); // language-only
-            assertFalse(NationalityDataRegistry.isRegistered(Locale.of("is", "IS")));
-            assertFalse(NationalityDataRegistry.isRegistered(null));
-
-            assertNotNull(NationalityDataRegistry.forLocale(RU));
-            assertNotNull(NationalityDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
-            assertNull(NationalityDataRegistry.forLocale(Locale.of("is")));
-            assertNull(NationalityDataRegistry.forLocale(null));
-            assertTrue(NationalityDataRegistry.registeredKeys().contains("ru_RU"));
-
-            NationalityDataProvider custom = new NationalityDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getNationalities() {
-                    return List.of("Atlantean");
-                }
-            };
-            NationalityDataRegistry.register(custom);
-            assertEquals("Atlantean", new NationalityGenerator(Locale.of("zz")).generate());
-            assertThrows(NullPointerException.class, () -> NationalityDataRegistry.register(null));
-        }
     }
 
     @Nested

@@ -93,6 +93,13 @@ public final class Field {
     }
 
     /**
+     * Checks reference membership without using resolution exceptions as control flow.
+     */
+    boolean hasReference(String reference) {
+        return reference != null && !reference.isBlank() && lookup.has(reference);
+    }
+
+    /**
      * Creates a string template provider backed by the current field registry.
      *
      * <p>{@code {{token}}} placeholders resolve through {@link FieldLookup}, while literal

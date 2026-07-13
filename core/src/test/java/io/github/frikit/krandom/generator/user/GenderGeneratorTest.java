@@ -261,97 +261,6 @@ class GenderGeneratorTest {
     // ── GenderDataRegistry extensibility ─────────────────────────────────────
 
     @Test
-    @DisplayName("custom provider registered for new locale is used by GenderGenerator")
-    void customLocaleRegistration() {
-        Locale korean = Locale.of("ko", "KR");
-        GenderDataRegistry.register(new GenderDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return korean;
-            }
-
-            @Override
-            public String getMaleLabel() {
-                return "남성";
-            }
-
-            @Override
-            public String getFemaleLabel() {
-                return "여성";
-            }
-        });
-
-        GenderGenerator gen = new GenderGenerator(korean);
-        assertEquals("남성", gen.generate(Gender.MALE));
-        assertEquals("여성", gen.generate(Gender.FEMALE));
-    }
-
-    @Test
-    @DisplayName("custom provider overrides built-in locale")
-    void customProviderOverridesBuiltIn() {
-        Locale us = Locale.US;
-        GenderDataRegistry.register(new GenderDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return us;
-            }
-
-            @Override
-            public String getMaleLabel() {
-                return "M";
-            }
-
-            @Override
-            public String getFemaleLabel() {
-                return "F";
-            }
-        });
-
-        GenderGenerator gen = new GenderGenerator(us);
-        assertEquals("M", gen.generate(Gender.MALE));
-        assertEquals("F", gen.generate(Gender.FEMALE));
-
-        // Restore built-in data so other tests are unaffected
-        GenderDataRegistry.register(new BuiltInGenderDataProvider(SupportedLocale.EN_US));
-    }
-
-    @Test
-    @DisplayName("language-only registration serves as fallback for any country variant")
-    void languageOnlyFallback() {
-        Locale arabic = Locale.of("ar");
-        GenderDataRegistry.register(new GenderDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return arabic;
-            }
-
-            @Override
-            public String getMaleLabel() {
-                return "ذكر";
-            }
-
-            @Override
-            public String getFemaleLabel() {
-                return "أنثى";
-            }
-        });
-
-        Locale arabicEgypt = Locale.of("ar", "EG");
-        assertTrue(GenderDataRegistry.isRegistered(arabicEgypt));
-        GenderGenerator gen = new GenderGenerator(arabicEgypt);
-        assertEquals("ذكر", gen.getMaleLabel());
-    }
-
-    @Test
-    @DisplayName("register rejects null provider")
-    void registerRejectsNull() {
-        assertThrows(NullPointerException.class, () -> GenderDataRegistry.register(null));
-    }
-
-    @Test
     @DisplayName("isRegistered returns false for null locale")
     void isRegisteredNullReturnsFalse() {
         assertFalse(GenderDataRegistry.isRegistered(null));
@@ -409,52 +318,6 @@ class GenderGeneratorTest {
     }
 
     @Test
-    @DisplayName("explicit language-only registration replaces language fallback")
-    void languageOnlyRegistrationReplacesFallback() {
-        Locale plain = Locale.of("en");
-        GenderDataRegistry.register(new GenderDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return plain;
-            }
-
-            @Override
-            public String getMaleLabel() {
-                return "M2";
-            }
-
-            @Override
-            public String getFemaleLabel() {
-                return "F2";
-            }
-        });
-
-        GenderDataProvider found = GenderDataRegistry.forLocale(plain);
-        assertNotNull(found);
-        assertEquals("M2", found.getMaleLabel());
-
-        // Restore
-        GenderDataRegistry.register(new GenderDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return Locale.of("en");
-            }
-
-            @Override
-            public String getMaleLabel() {
-                return new BuiltInGenderDataProvider(SupportedLocale.EN_US).getMaleLabel();
-            }
-
-            @Override
-            public String getFemaleLabel() {
-                return new BuiltInGenderDataProvider(SupportedLocale.EN_US).getFemaleLabel();
-            }
-        });
-    }
-
-    @Test
     @DisplayName("isLocaleExplicitlySupported returns true for all built-in locales")
     void localeSupported() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -477,30 +340,5 @@ class GenderGeneratorTest {
         // Labels are locale-specific
         assertNotEquals(us.getMaleLabel(), de.getMaleLabel());
         assertNotEquals(fr.getMaleLabel(), de.getMaleLabel());
-    }
-
-    @Test
-    @DisplayName("custom locale appears in registeredKeys")
-    void customLocaleAppearsInKeys() {
-        Locale swahili = Locale.of("sw");
-        GenderDataRegistry.register(new GenderDataProvider() {
-
-            @Override
-            public Locale getLocale() {
-                return swahili;
-            }
-
-            @Override
-            public String getMaleLabel() {
-                return "Mwanaume";
-            }
-
-            @Override
-            public String getFemaleLabel() {
-                return "Mwanamke";
-            }
-        });
-        assertTrue(GenderDataRegistry.registeredKeys().contains("sw"));
-        assertTrue(GenderDataRegistry.isRegistered(swahili));
     }
 }

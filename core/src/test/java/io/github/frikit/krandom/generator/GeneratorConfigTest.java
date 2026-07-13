@@ -7,8 +7,19 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
+import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
+import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +33,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -52,6 +66,7 @@ class GeneratorConfigTest {
         assertEquals(GeneratorConfig.DEFAULT_OBJECT_POOL_SIZE, c.getObjectPoolSize());
         assertFalse(c.isObjectOverrideDefaultInitialization());
         assertFalse(c.isObjectIgnoreErrors());
+        assertTrue(c.getGenerationFailureListener() != null);
         assertNull(c.getObjectDateMin());
         assertNull(c.getObjectDateMax());
         assertEquals(ObjectGenerationSemanticMode.RELAXED, c.getObjectSemanticMode());
@@ -68,6 +83,122 @@ class GeneratorConfigTest {
         assertEquals(Locale.US, c.getLocale());
         assertEquals(ZoneId.systemDefault(), c.getClock().getZone());
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
+        assertEquals(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE, c.getPaymentCardSafetyPolicy());
+        assertEquals(BankingSafetyPolicy.DISABLED, c.getBankingSafetyPolicy());
+        assertEquals(BusinessTaxIdentifierSafetyPolicy.DISABLED, c.getBusinessTaxIdentifierSafetyPolicy());
+        assertEquals(CryptoAddressSafetyPolicy.DISABLED, c.getCryptoAddressSafetyPolicy());
+        assertEquals(SecuritiesIdentifierSafetyPolicy.DISABLED, c.getSecuritiesIdentifierSafetyPolicy());
+        assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
+        assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
+        assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("payment card safety policy is configurable and retained by toBuilder")
+    void paymentCardSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                                                .build();
+
+        assertEquals(PaymentCardSafetyPolicy.CHECKSUM_VALID,
+                     config.toBuilder().build().getPaymentCardSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().paymentCardSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("phone number safety policy is configurable and retained by toBuilder")
+    void phoneNumberSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getPhoneNumberSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().phoneNumberSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("national-ID safety policy is configurable and retained by toBuilder")
+    void nationalIdSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getNationalIdSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().nationalIdSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("identity-document safety policy is configurable and retained by toBuilder")
+    void identityDocumentSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .identityDocumentSafetyPolicy(
+                                                    IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getIdentityDocumentSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().identityDocumentSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("banking safety policy is configurable and retained by toBuilder")
+    void bankingSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getBankingSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().bankingSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("business tax-identifier safety policy is configurable and retained by toBuilder")
+    void businessTaxIdentifierSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .businessTaxIdentifierSafetyPolicy(
+                                                    BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getBusinessTaxIdentifierSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().businessTaxIdentifierSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("crypto-address safety policy is configurable and retained by toBuilder")
+    void cryptoAddressSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .cryptoAddressSafetyPolicy(
+                                                    CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getCryptoAddressSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().cryptoAddressSafetyPolicy(null));
+    }
+
+    @Test
+    @DisplayName("securities-identifier safety policy is configurable and retained by toBuilder")
+    void securitiesIdentifierSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .securitiesIdentifierSafetyPolicy(
+                                                    SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                     config.toBuilder().build().getSecuritiesIdentifierSafetyPolicy());
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().securitiesIdentifierSafetyPolicy(null));
     }
 
     @Test
@@ -126,17 +257,6 @@ class GeneratorConfigTest {
     }
 
     @Test
-    @DisplayName("random(Random) wins over seed and secure random opt-in")
-    void randomInstanceWinsOverSeedAndSecureRandom() {
-        Random random = new Random(99L);
-        Random expected = new Random(99L);
-        GeneratorConfig c = GeneratorConfig.builder().seed(42L).secureRandom().random(random).build();
-
-        assertSame(random, c.createRandom());
-        assertEquals(expected.nextInt(), c.createRandom().nextInt());
-    }
-
-    @Test
     @DisplayName("random(null) throws NullPointerException")
     void randomNullThrows() {
         assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().random(null));
@@ -155,26 +275,45 @@ class GeneratorConfigTest {
         assertSame(second, swapped.createRandom());
     }
 
-    @Test
-    @DisplayName("random source methods use the latest explicit source")
-    void randomSourceMethodsUseLatestExplicitSource() {
-        Random random = new Random(3L);
+    @ParameterizedTest(name = "{0} then {2}")
+    @MethodSource("conflictingRandomSources")
+    @DisplayName("build rejects conflicting random sources regardless of call order")
+    void conflictingRandomSourcesRejected(String firstName,
+                                           Consumer<GeneratorConfig.Builder> first,
+                                           String secondName,
+                                           Consumer<GeneratorConfig.Builder> second) {
+        GeneratorConfig.Builder builder = GeneratorConfig.builder();
+        first.accept(builder);
+        second.accept(builder);
 
-        GeneratorConfig first = GeneratorConfig.builder().secureRandom().random(random).build();
-        GeneratorConfig second = GeneratorConfig.builder().random(random).secureRandom().build();
+        IllegalStateException error = assertThrows(IllegalStateException.class, builder::build);
+        assertEquals("Configure only one random source: seed, random, randomFactory, or secureRandom",
+                     error.getMessage());
+    }
 
-        assertSame(random, first.createRandom());
-        assertFalse(first.isSecureRandom());
-        assertTrue(second.createRandom() instanceof SecureRandom);
-        assertTrue(second.getRandom().isEmpty());
+    private static Stream<Arguments> conflictingRandomSources() {
+        var sources = java.util.List.of(
+            new RandomSourceConfiguration("seed", builder -> builder.seed(42L)),
+            new RandomSourceConfiguration("random", builder -> builder.random(new Random(7L))),
+            new RandomSourceConfiguration("randomFactory", builder -> builder.randomFactory(() -> new Random(11L))),
+            new RandomSourceConfiguration("secureRandom", GeneratorConfig.Builder::secureRandom));
+
+        return IntStream.range(0, sources.size())
+                        .boxed()
+                        .flatMap(first -> IntStream.range(0, sources.size())
+                                                   .filter(second -> second != first)
+                                                   .mapToObj(second -> Arguments.of(
+                                                       sources.get(first).name(),
+                                                       sources.get(first).configure(),
+                                                       sources.get(second).name(),
+                                                       sources.get(second).configure())));
     }
 
     @Test
-    @DisplayName("randomFactory is used and receives configured seed")
+    @DisplayName("randomFactory is used without mutating the returned random source")
     void randomFactoryUsed() {
         AtomicInteger calls = new AtomicInteger();
         GeneratorConfig c = GeneratorConfig.builder()
-                                           .seed("phase2-seed")
                                            .randomFactory(() -> {
                                                calls.incrementAndGet();
                                                return new Random(1L);
@@ -182,7 +321,7 @@ class GeneratorConfigTest {
                                            .build();
 
         Random actual = c.createRandom();
-        Random expected = new Random(c.getSeed().orElseThrow());
+        Random expected = new Random(1L);
         assertEquals(expected.nextInt(), actual.nextInt());
         assertEquals(1, calls.get());
     }
@@ -231,15 +370,6 @@ class GeneratorConfigTest {
 
         assertTrue(derived.isSecureRandom());
         assertTrue(derived.createRandom() instanceof SecureRandom);
-    }
-
-    @Test
-    @DisplayName("seeded generation stays deterministic even with secure random opt-in")
-    void seedWinsOverSecureRandomOptIn() {
-        GeneratorConfig c = GeneratorConfig.builder().seed(42L).secureRandom().build();
-
-        assertEquals(-1170105035, c.createRandom().nextInt());
-        assertFalse(c.createRandom() instanceof SecureRandom);
     }
 
     @Test
@@ -317,11 +447,13 @@ class GeneratorConfigTest {
     void objectGenerationSettingsStored() {
         LocalDate min = LocalDate.of(2021, 1, 1);
         LocalDate max = LocalDate.of(2021, 12, 31);
+        GenerationFailureListener listener = diagnostic -> {};
         GeneratorConfig c = GeneratorConfig.builder()
                                            .objectMaxDepth(3)
                                            .objectPoolSize(2)
                                            .objectOverrideDefaultInitialization(true)
                                            .objectIgnoreErrors(true)
+                                           .generationFailureListener(listener)
                                            .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
                                            .objectNullProbability(0.25)
                                            .objectOptionalEmptyProbability(0.5)
@@ -333,6 +465,7 @@ class GeneratorConfigTest {
         assertEquals(2, c.getObjectPoolSize());
         assertTrue(c.isObjectOverrideDefaultInitialization());
         assertTrue(c.isObjectIgnoreErrors());
+        assertSame(listener, c.getGenerationFailureListener());
         assertEquals(ObjectGenerationSemanticMode.STRICT, c.getObjectSemanticMode());
         assertEquals(0.25, c.getObjectNullProbability());
         assertEquals(0.5, c.getObjectOptionalEmptyProbability());
@@ -396,6 +529,38 @@ class GeneratorConfigTest {
                      () -> GeneratorConfig.builder().objectUniquenessMaxAttempts(0));
         assertThrows(IllegalArgumentException.class,
                      () -> GeneratorConfig.builder().objectUniqueField("___"));
+    }
+
+    @Test
+    @DisplayName("object configuration copies mutable inputs and isolates derived builders")
+    void objectConfigurationCopiesMutableInputsAndIsolatesDerivedBuilders() {
+        String[] uniqueFields = {"account_id"};
+        GeneratorConfig original = GeneratorConfig.builder().objectUniqueFields(uniqueFields).build();
+        uniqueFields[0] = "email";
+
+        GeneratorConfig derived = original.toBuilder().objectUniqueField("email").build();
+
+        assertEquals(Set.of("accountid"), original.getObjectUniqueFieldNames());
+        assertEquals(Set.of("accountid", "email"), derived.getObjectUniqueFieldNames());
+        assertThrows(UnsupportedOperationException.class,
+                     () -> original.getObjectUniqueFieldNames().add("username"));
+        assertThrows(UnsupportedOperationException.class,
+                     () -> original.getObjectSubtypes().put(Runnable.class, Thread.class));
+    }
+
+    @Test
+    @DisplayName("object callbacks are retained by reference without configuration-time execution")
+    void objectCallbacksRetainedWithoutConfigurationTimeExecution() {
+        AtomicInteger calls = new AtomicInteger();
+        Generator<String> generator = () -> {
+            calls.incrementAndGet();
+            return "configured";
+        };
+
+        GeneratorConfig config = GeneratorConfig.builder().objectOverride(String.class, generator).build();
+
+        assertSame(generator, config.getObjectTypeOverride(String.class).orElseThrow());
+        assertEquals(0, calls.get());
     }
 
     @Test
@@ -523,14 +688,21 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("generationFailureListener(null) throws")
+    void generationFailureListenerNullThrows() {
+        assertThrows(NullPointerException.class,
+                     () -> GeneratorConfig.builder().generationFailureListener(null));
+    }
+
+    @Test
     @DisplayName("toBuilder() copies all fields and allows deriving new config")
     void toBuilderCopiesAndDerives() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T10:15:30Z"), ZoneId.of("Europe/London"));
-        Random random = new Random(5L);
         SemanticFieldRegistry semanticRegistry = SemanticFieldRegistry.defaults().toBuilder()
                                                                          .alias("email", "contactMail")
                                                                          .build();
+        GenerationFailureListener failureListener = diagnostic -> {};
         GeneratorConfig base = GeneratorConfig.builder()
                                               .seed("my-seed")
                                               .charset(StandardCharsets.UTF_8)
@@ -540,6 +712,7 @@ class GeneratorConfigTest {
                                               .objectPoolSize(2)
                                               .objectOverrideDefaultInitialization(true)
                                               .objectIgnoreErrors(true)
+                                              .generationFailureListener(failureListener)
                                               .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
                                               .objectSemanticRegistry(semanticRegistry)
                                               .objectNullProbability(0.25)
@@ -552,7 +725,6 @@ class GeneratorConfigTest {
                                               .objectExcludeField("password")
                                               .locale(Locale.FRANCE)
                                               .clock(clock)
-                                              .random(random)
                                               .registryContext(context)
                                               .build();
 
@@ -569,6 +741,7 @@ class GeneratorConfigTest {
         assertEquals(2, derived.getObjectPoolSize());
         assertTrue(derived.isObjectOverrideDefaultInitialization());
         assertTrue(derived.isObjectIgnoreErrors());
+        assertSame(failureListener, derived.getGenerationFailureListener());
         assertEquals(ObjectGenerationSemanticMode.STRICT, derived.getObjectSemanticMode());
         assertSame(semanticRegistry, derived.getObjectSemanticRegistry());
         assertEquals(0.25, derived.getObjectNullProbability());
@@ -583,7 +756,7 @@ class GeneratorConfigTest {
         assertEquals(Locale.JAPAN, derived.getLocale());
         assertSame(clock, derived.getClock());
         assertSame(context, derived.getRegistryContext());
-        assertSame(random, derived.getRandom().orElseThrow());
+        assertTrue(derived.getRandom().isEmpty());
     }
 
     @Test
@@ -605,5 +778,54 @@ class GeneratorConfigTest {
         String    password;
         Integer   score;
         LocalDate createdAt;
+    }
+
+
+    @Test
+    @DisplayName("toBuilder round-trip preserves every public property")
+    void toBuilderRoundTripPreservesEveryPublicProperty() throws Exception {
+        GeneratorConfig original = GeneratorConfig.builder()
+            .seed(4242L)
+            .clock(java.time.Clock.fixed(java.time.Instant.parse("2026-01-01T00:00:00Z"),
+                java.time.ZoneOffset.UTC))
+            .locale(java.util.Locale.GERMANY)
+            .stringLength(3, 9)
+            .collectionSize(2, 4)
+            .objectMaxDepth(3)
+            .objectNullProbability(0.25)
+            .generationProfile("round-trip-profile")
+            .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE)
+            .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE)
+            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .build();
+
+        GeneratorConfig copy = original.toBuilder().build();
+
+        for (java.lang.reflect.Method getter : GeneratorConfig.class.getMethods()) {
+            if (getter.getParameterCount() != 0 || getter.getDeclaringClass() != GeneratorConfig.class) {
+                continue;
+            }
+            String name = getter.getName();
+            if (!name.startsWith("get") && !name.startsWith("is")) {
+                continue;
+            }
+            Object expected = getter.invoke(original);
+            Object actual = getter.invoke(copy);
+            if (expected instanceof java.util.Optional<?> expectedOptional
+                && expectedOptional.orElse(null) instanceof GenerationRecipe expectedRecipe) {
+                GenerationRecipe actualRecipe =
+                    (GenerationRecipe) ((java.util.Optional<?>) actual).orElseThrow();
+                assertEquals(expectedRecipe.serialize(), actualRecipe.serialize(), name);
+                continue;
+            }
+            assertEquals(expected, actual, name + " must survive the toBuilder round-trip");
+        }
+    }
+
+    private record RandomSourceConfiguration(String name, Consumer<GeneratorConfig.Builder> configure) {
     }
 }

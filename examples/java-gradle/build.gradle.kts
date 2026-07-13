@@ -4,7 +4,7 @@ plugins {
 
 val krandomVersion = providers.gradleProperty("krandomVersion")
     .orElse(providers.environmentVariable("KRANDOM_VERSION"))
-    .orElse("1.6.0-SNAPSHOT")
+    .orElse("2.0.0-SNAPSHOT")
 
 repositories {
     mavenLocal()
@@ -12,7 +12,8 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-core:${krandomVersion.get()}")
+    implementation(platform("io.github.frikit:krandom-bom:${krandomVersion.get()}"))
+    implementation("io.github.frikit:krandom-core")
     testImplementation("org.junit.jupiter:junit-jupiter-api:6.1.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.1.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.1")

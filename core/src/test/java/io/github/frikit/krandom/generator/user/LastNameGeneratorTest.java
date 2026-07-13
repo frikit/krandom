@@ -180,86 +180,6 @@ class LastNameGeneratorTest {
     class RegistryTest {
 
         @Test
-        @DisplayName("custom locale registration is picked up by LastNameGenerator")
-        void customLocaleRegistration() {
-            Locale korean = Locale.of("ko", "KR");
-            LastNameDataRegistry.register(new LastNameDataProvider() {
-
-                public Locale getLocale() {
-                    return korean;
-                }
-
-                public String[] getLastNames() {
-                    return new String[] { "김", "이", "박" };
-                }
-            });
-            LastNameGenerator gen = new LastNameGenerator(korean);
-            assertTrue(Set.of("김", "이", "박").contains(gen.generate()));
-        }
-
-        @Test
-        @DisplayName("custom provider overrides built-in locale data")
-        void customProviderOverridesBuiltIn() {
-            String[] custom = { "TestSurname" };
-            LastNameDataRegistry.register(new LastNameDataProvider() {
-
-                public Locale getLocale() {
-                    return Locale.US;
-                }
-
-                public String[] getLastNames() {
-                    return custom;
-                }
-            });
-            LastNameGenerator gen = new LastNameGenerator(Locale.US);
-            assertEquals("TestSurname", gen.generate());
-
-            // Restore built-in
-            LastNameDataRegistry.register(new BuiltInLastNameDataProvider(SupportedLocale.EN_US));
-        }
-
-        @Test
-        @DisplayName("registered custom locale appears in registeredKeys()")
-        void customLocaleAppearsInKeys() {
-            Locale swahili = Locale.of("sw", "KE");
-            LastNameDataRegistry.register(new LastNameDataProvider() {
-
-                public Locale getLocale() {
-                    return swahili;
-                }
-
-                public String[] getLastNames() {
-                    return new String[] { "Omondi", "Wanjiku" };
-                }
-            });
-            assertTrue(LastNameDataRegistry.registeredKeys().contains("sw_KE"));
-        }
-
-        @Test
-        @DisplayName("language-only locale falls back to language entry")
-        void languageOnlyFallback() {
-            Locale arabic = Locale.of("ar");
-            LastNameDataRegistry.register(new LastNameDataProvider() {
-
-                public Locale getLocale() {
-                    return arabic;
-                }
-
-                public String[] getLastNames() {
-                    return new String[] { "العلي", "المحمد" };
-                }
-            });
-            LastNameGenerator gen = new LastNameGenerator(Locale.of("ar", "EG"));
-            assertNotNull(gen.generate());
-        }
-
-        @Test
-        @DisplayName("register(null) throws NullPointerException")
-        void registerRejectsNull() {
-            assertThrows(NullPointerException.class, () -> LastNameDataRegistry.register(null));
-        }
-
-        @Test
         @DisplayName("isRegistered(null) returns false")
         void isRegisteredNullReturnsFalse() {
             assertFalse(LastNameDataRegistry.isRegistered(null));
@@ -300,36 +220,6 @@ class LastNameGeneratorTest {
         @DisplayName("forLocale with language-only locale returns language-level provider")
         void forLocaleWithLanguageOnlyLocale() {
             assertNotNull(LastNameDataRegistry.forLocale(Locale.of("en")));
-        }
-
-        @Test
-        @DisplayName("language-only registration replaces the existing language fallback")
-        void languageOnlyRegistrationReplacesFallback() {
-            Locale enOnly = Locale.of("en");
-            LastNameDataRegistry.register(new LastNameDataProvider() {
-
-                public Locale getLocale() {
-                    return enOnly;
-                }
-
-                public String[] getLastNames() {
-                    return new String[] { "FallbackSurname" };
-                }
-            });
-            LastNameGenerator gen = new LastNameGenerator(Locale.of("en", "ZZ"));
-            assertEquals("FallbackSurname", gen.generate());
-
-            // Restore language fallback
-            LastNameDataRegistry.register(new LastNameDataProvider() {
-
-                public Locale getLocale() {
-                    return enOnly;
-                }
-
-                public String[] getLastNames() {
-                    return new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames();
-                }
-            });
         }
     }
 }

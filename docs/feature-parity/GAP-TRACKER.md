@@ -37,7 +37,7 @@ DataFaker documents **258** providers (Base / Entertainment / Food / Sport /
 Videogame). **~150 are pop-culture/fandom/sport/food novelty**; only **~100 are
 "Base" everyday data**, and krandom already covers most of the core Base set
 (names, address, internet, finance, company, job, text, date/time, phone,
-numbers/codes, color, hashing, UUID, IBAN/BIC, cards, templates, unique, schema
+numbers/codes, color, hashing, UUID, configured IBAN/BIC fixtures, cards, templates, unique, schema
 export). So the engineering gap is **locales + a curated ~20 Base providers +
 ergonomics**, not "200 missing providers." Headline-count parity is handled by
 the optional novelty module, not core.
@@ -72,7 +72,8 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
   - **Shipped:** Blood Type, Zodiac + Chinese Zodiac, NATO phonetic, Pronouns,
     Vehicle (VIN + make/model + plate), CNPJ, MBTI, Hobby, Programming Language,
     Measurement, Financial Terms, Nationality, Weather, Passport, Driving License,
-    AWS, Azure, Computer/Device, Restaurant; CPF exposed via `ofCpf()`.
+    AWS, Azure, Computer/Device, Restaurant; CPF requires an explicit national-ID compatibility
+    policy.
     **Curated Base backlog is now essentially cleared — only University remains
     (deprioritized).**
   - **Locale coverage:** Zodiac, Chinese Zodiac, Pronoun, Hobby, Measurement,

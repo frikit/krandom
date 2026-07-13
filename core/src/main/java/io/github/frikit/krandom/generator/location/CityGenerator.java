@@ -23,7 +23,7 @@ import java.util.Random;
  * <p>Built-in support follows the locale catalog in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Additional locales — and overrides
  * of built-in ones — can be registered at runtime via
- * {@link CityDataRegistry#register(CityDataProvider)}.
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  */
 public final class CityGenerator implements Generator<String> {
 

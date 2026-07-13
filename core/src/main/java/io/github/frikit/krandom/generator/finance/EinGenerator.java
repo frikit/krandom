@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 
 import java.security.SecureRandom;
 import java.util.Objects;
@@ -18,14 +19,18 @@ import java.util.Random;
 public final class EinGenerator implements Generator<String> {
 
     private final Random random;
+    private final BusinessTaxIdentifierSafetyPolicy safetyPolicy;
 
-    public EinGenerator() {
-        this(GeneratorConfig.defaults());
-    }
 
+    /**
+     * Creates a generator from explicit configuration.
+     *
+     * @param config the generator configuration; must not be {@code null}
+     */
     public EinGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.safetyPolicy = config.getBusinessTaxIdentifierSafetyPolicy();
     }
 
     /**
@@ -33,6 +38,7 @@ public final class EinGenerator implements Generator<String> {
      */
     @Override
     public String generate() {
+        requireRealisticOutput();
         int prefix = 1 + random.nextInt(99);
         int suffix = random.nextInt(10_000_000);
         return String.format("%02d-%07d", prefix, suffix);
@@ -43,5 +49,13 @@ public final class EinGenerator implements Generator<String> {
      */
     public String generateUnformatted() {
         return generate().replace("-", "");
+    }
+
+    private void requireRealisticOutput() {
+        if (safetyPolicy == BusinessTaxIdentifierSafetyPolicy.DISABLED) {
+            throw new IllegalStateException(
+                "Business tax-identifier generation is disabled by default; select "
+                + "businessTaxIdentifierSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
+        }
     }
 }

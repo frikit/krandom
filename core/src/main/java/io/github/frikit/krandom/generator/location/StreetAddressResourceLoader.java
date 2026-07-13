@@ -27,7 +27,7 @@ final class StreetAddressResourceLoader {
      * @return non-empty array of values
      */
     static String[] load(String resourcePath) {
-        InputStream is = StreetAddressResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = StreetAddressResourceLoader.class.getResourceAsStream("/" + resourcePath);
         if (is == null) {
             throw new IllegalStateException("Street resource not found: " + resourcePath);
         }

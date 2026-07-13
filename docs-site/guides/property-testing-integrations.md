@@ -18,33 +18,88 @@ repositories {
 }
 
 dependencies {
-    testImplementation("io.github.frikit:krandom-kotest-extensions:1.0.0")
+    testImplementation("io.github.frikit:krandom-kotest-extensions:1.5.0")
 }
 ```
 
 Usage:
 
 ```kotlin
-import io.github.frikit.krandom.generator.Generators
-import io.github.frikit.krandom.kotest.toArb
+import io.github.frikit.krandom.generator.GeneratorConfig
+import io.github.frikit.krandom.generator.user.EmailGenerator
+import io.github.frikit.krandom.kotest.krandomArb
 import io.kotest.property.checkAll
 
-val emailArb = Generators.ofEmail().toArb()
+val emailArb = krandomArb(GeneratorConfig.defaults()) { config ->
+    EmailGenerator(config)
+}
 
 checkAll(emailArb) { email ->
     require(email.contains("@"))
 }
 ```
 
+`krandomArb(config) { ... }` creates a fresh generator for every Kotest random-source draw. A
+failing Kotest seed therefore reproduces the same fixture sequence without sharing mutable
+kRandom generator state between cases. The 1.6-era `Generator.toArb()`, no-argument
+`krandomArb { ... }`, and `krandomObjectArb` bridges are removed in v2: they reused one mutable
+generator and could not support host-controlled replay or parallel property tests.
+
 For object generation:
 
 ```kotlin
 import io.github.frikit.krandom.generator.GeneratorConfig
-import io.github.frikit.krandom.kotest.krandomObjectArb
+import io.github.frikit.krandom.kotest.krandomReplayObjectArb
 
-val userArb = krandomObjectArb<UserDto>(
+val userArb = krandomReplayObjectArb<UserDto>(
     GeneratorConfig.builder().seed(42L).build()
 )
 ```
 
+## Shrinking for bounded primitives and selections
+
+Bounded primitives and list selections have shrinking-aware adapters:
+
+```kotlin
+import io.github.frikit.krandom.kotest.krandomIntArb
+import io.github.frikit.krandom.kotest.krandomPickArb
+
+checkAll(krandomIntArb(0, 1000)) { value ->
+    require(value < 1000)
+}
+
+checkAll(krandomPickArb(listOf("basic", "premium", "enterprise"))) { plan ->
+    require(plan.isNotEmpty())
+}
+```
+
+- `krandomIntArb(min, max)`, `krandomLongArb(min, max)`, and `krandomDoubleArb(min, max)` generate
+  kRandom's half-open `[min, max)` range, expose the attainable bounds (plus `-1`, `0`, and `1`
+  when inside the range) as Kotest edge cases, and shrink only to in-range values.
+- `krandomPickArb(source)` picks one element, uses the first element as the edge case, and shrinks
+  toward elements earlier in `source`.
+
+Kotest's `RandomSource` owns determinism for these adapters: replaying a failing Kotest seed
+reproduces the same values, and a `GeneratorConfig` seed is deliberately not consulted.
+
+## Types that cannot be structurally shrunk
+
+Object fixtures (`krandomReplayObjectArb`), semantic values such as emails, names, addresses, and
+identifiers, and any `krandomArb` factory output have no structural shrinker: kRandom generates
+them as opaque values, so there is no meaningful "smaller" fixture to propose. On failure these
+adapters rely on Kotest seed replay instead of shrinking.
+
 The module depends on `krandom-core` transitively.
+
+## Failure Recipes and Supported Versions
+
+`checkAllWithRecipe(config, arb) { ... }` rethrows a failing property with the portable kRandom
+recipe of the configuration appended below Kotest's own seed report, so a CI failure carries both
+replay halves; `krandomKotestRecipe(config)` returns the same value-free recipe directly.
+
+The adapters are verified against the current and previous Kotest minor lines. To run the module
+tests against another version in the supported range:
+
+```bash
+./gradlew :kotest-extensions:test -PkotestVersion=6.1.11
+```

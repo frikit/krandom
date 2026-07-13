@@ -61,7 +61,7 @@ String city = new CityGenerator(mx).generate();
 String street = new StreetAddressGenerator(mx).generate();
 ```
 
-Use `bundle.registerGlobal()` only when you want to extend the process-wide static registries. Prefer `DataRegistryContext.builder().registerLocaleData(...)` for isolated tests and embedded runtimes.
+Register bundles through `DataRegistryContext.builder().registerLocaleData(...)` on the `GeneratorConfig` that consumes them. v2 removed process-wide registration (`registerGlobal()` and the per-registry `register(...)` methods): custom vocabulary is always scoped to a configuration and cannot leak between tests.
 
 ## Locale quality tiers
 
@@ -84,12 +84,13 @@ Optional<SupportedLocale> resourceFallback = locale.resourceFallbackLocale();
 
 Current built-in quality split:
 
-- Native today for resource-backed identity/address data plus profession data: `en_US`, `en_GB`, `en_AU`, `fr_FR`, `de_DE`, `ja_JP`, `es_ES`, `it_IT`, `pt_BR`, `zh_CN`, `nl_NL`, `pl_PL`, `cs_CZ`, `ko_KR`, `ru_RU`, `tr_TR`, `sv_SE`, `nb_NO`, `ar_SA`, `hi_IN`
-- Fallback-backed today: none in the built-in `SupportedLocale` catalog
+- 35 native locale datasets: the original 20 plus `da_DK`, `fi_FI`, `hu_HU`, `ro_RO`, `sk_SK`, `uk_UA`, `bg_BG`, `hr_HR`, `el_GR`, `th_TH`, `vi_VN`, `id_ID`, `ms_MY`, `he_IL`, and `ca_ES`
+- 15 curated fallback variants: `en_CA`, `en_NZ`, `en_IE`, `en_IN`, `en_ZA`, `fr_CA`, `fr_BE`, `fr_CH`, `de_AT`, `de_CH`, `es_MX`, `es_AR`, `pt_PT`, `nl_BE`, and `zh_TW`
+- 50 supported locale variants in total
 
-Fallback tiers are still productized compatibility behavior, not hidden implementation details. They remain part of the metadata model for future or custom locale expansions even though the current built-in catalog is fully native-backed.
+Fallback tiers are productized compatibility behavior, not hidden implementation details. Each fallback variant exposes its canonical resource locale through `resourceFallbackLocale()`.
 
-The previous native-upgrade priority list is now exhausted for the current built-in locale catalog.
+The 35 native datasets satisfy the current resource coverage gates. The 15 regional variants remain explicitly fallback-backed until equivalent native datasets are contributed.
 
 ## Locale contribution quality bar
 

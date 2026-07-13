@@ -3,7 +3,9 @@ package io.github.frikit.krandom.examples
 import io.github.frikit.krandom.generator.Generators
 import io.github.frikit.krandom.dsl.krandom
 import io.github.frikit.krandom.dsl.krandomList
-import io.github.frikit.krandom.kotest.toArb
+import io.github.frikit.krandom.generator.GeneratorConfig
+import io.github.frikit.krandom.generator.user.EmailGenerator
+import io.github.frikit.krandom.kotest.krandomArb
 import io.kotest.property.arbitrary.take
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -26,7 +28,8 @@ class KotlinGradleUsageTest {
 
     @Test
     fun `kotest extension is consumable from kotlin example`() {
-        val samples = Generators.ofEmail().toArb().take(10).toList()
+        val samples = krandomArb(GeneratorConfig.defaults()) { config -> EmailGenerator(config) }
+            .take(10).toList()
 
         assertEquals(10, samples.size)
         samples.forEach { assertTrue(it.contains("@")) }
@@ -49,6 +52,18 @@ class KotlinGradleUsageTest {
         assertEquals(2, fixtures.size)
         fixtures.forEach { assertEquals("Grace Hopper", it.name) }
     }
+
+    @Test
+    fun `kotlin dsl constructs immutable data classes`() {
+        val fixture = krandom<ImmutableDslUserFixture> {
+            rule("name") { "Ada Lovelace" }
+            rule("email") { "ada@example.test" }
+        }
+
+        assertEquals("Ada Lovelace", fixture.name)
+        assertEquals("ada@example.test", fixture.email)
+        assertEquals("preserved-default", fixture.source)
+    }
 }
 
 class DslUserFixture {
@@ -56,3 +71,9 @@ class DslUserFixture {
     var email: String = ""
     var country: String = ""
 }
+
+data class ImmutableDslUserFixture(
+    val name: String,
+    val email: String,
+    val source: String = "preserved-default"
+)

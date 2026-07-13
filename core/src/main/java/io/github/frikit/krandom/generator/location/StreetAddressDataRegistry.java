@@ -22,26 +22,12 @@ public final class StreetAddressDataRegistry {
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
-            register(new BuiltInStreetAddressDataProvider(supportedLocale));
+            registerProvider(new BuiltInStreetAddressDataProvider(supportedLocale));
         }
     }
 
     private StreetAddressDataRegistry() {
         throw new UnsupportedOperationException("Utility class");
-    }
-
-    /**
-     * Registers or replaces a provider.
-     *
-     * @param provider provider to register
-     */
-    public static void register(StreetAddressDataProvider provider) {
-        Objects.requireNonNull(provider, "provider must not be null");
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
-        validateArray("streetNames", provider.getStreetNames());
-        validateArray("streetTypesShort", provider.getStreetTypesShort());
-        validateArray("streetTypesLong", provider.getStreetTypesLong());
-        RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
     }
 
     /**
@@ -65,17 +51,10 @@ public final class StreetAddressDataRegistry {
         return Set.copyOf(providers.keySet());
     }
 
-    private static void validateArray(String name, String[] values) {
-        if (values == null) {
-            throw new NullPointerException(name + " must not be null");
-        }
-        if (values.length == 0) {
-            throw new IllegalArgumentException(name + " must not be empty");
-        }
-        for (String value : values) {
-            if (value == null || value.isBlank()) {
-                throw new IllegalArgumentException(name + " must not contain blank values");
-            }
-        }
+
+    private static void registerProvider(StreetAddressDataProvider provider) {
+        Objects.requireNonNull(provider, "provider must not be null");
+        Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
+        RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
     }
 }

@@ -49,7 +49,7 @@ This section is the current Java parity baseline for execution planning. Some le
 | `company_email()`                                                        | Implemented         | P0 ✅         | Added dedicated company-email generator and email convenience API. |
 | `http_method()`                                                          | Implemented         | P0 ✅         | Added dedicated HTTP method generator.                             |
 | Browser-specific user agents (`chrome/firefox/safari/opera/android/ios`) | Implemented         | P1 ✅         | `UserAgentGenerator` exposes browser/platform-specific methods.    |
-| `iban()`, `aba()`, `bban()`, `bank_country()`                            | Implemented         | P1 ✅         | `IbanGenerator`, `AbaRoutingGenerator`, `BbanGenerator`, `BankCountryGenerator`. |
+| `iban()`, `aba()`, `bban()`, `bank_country()`                            | Configured-only banking identifiers | P1 ✅ | `IbanGenerator`, `AbaRoutingGenerator`, and `BbanGenerator` require explicit banking compatibility policy; `BankCountryGenerator` is unaffected. |
 | `currency()` dict shape                                                  | Implemented         | P1 ✅         | `CurrencyGenerator.generateAsMap()` and `CurrencyInfo` exist.       |
 | `bs()`, `catch_phrase()`                                                 | Implemented         | P1 ✅         | `CompanyBuzzwordGenerator` and `CompanyCatchPhraseGenerator`.      |
 | `text()/texts()` char-limited blocks                                     | Implemented         | P1 ✅         | `TextGenerator` supports char-limited text blocks.                  |
@@ -193,9 +193,9 @@ This section is the current Java parity baseline for execution planning. Some le
 | Card provider      | ✅ `credit_card_provider()`                                              | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.generateProvider()` |
 | Full card          | ✅ `credit_card_full()`                                                  | ✅ Yes          | ✓ DONE                  | `CreditCardGenerator.generateFull()` / `CreditCardInfoGenerator` |
 | **Banking**        |
-| IBAN               | ✅ `iban()`                                                              | ✅ Yes          | ✓ DONE                  | `IbanGenerator`               |
-| SWIFT/BIC          | ✅ `swift()`, `swift8()`, `swift11()`                                    | ✅ Yes          | ✓ DONE                  | `BicGenerator`                |
-| ABA routing        | ✅ `aba()`                                                               | ✅ Yes          | ✓ DONE                  | `AbaRoutingGenerator`         |
+| IBAN               | ✅ `iban()`                                                              | 🟡 Configured-only | ✓ DONE               | `IbanGenerator` with explicit banking compatibility policy |
+| SWIFT/BIC          | ✅ `swift()`, `swift8()`, `swift11()`                                    | 🟡 Configured-only | ✓ DONE               | `BicGenerator` with explicit banking compatibility policy |
+| ABA routing        | ✅ `aba()`                                                               | 🟡 Configured-only | ✓ DONE               | `AbaRoutingGenerator` with explicit banking compatibility policy |
 | BBAN               | ✅ `bban()`                                                              | No           | LOW                     | Basic bank account            |
 | Bank country       | ✅ `bank_country()`                                                      | No           | LOW                     | ISO country code              |
 | **Currency**       |

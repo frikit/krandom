@@ -5,7 +5,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
-VERSION="${KRANDOM_VERSION:-1.6.0-SNAPSHOT}"
+DEFAULT_VERSION="$(awk -F= '$1 == "developmentVersion" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
+VERSION="${KRANDOM_VERSION:-${DEFAULT_VERSION}}"
 REQUIRE_SCALA_TOOLS="${KRANDOM_REQUIRE_SCALA_TOOLS:-false}"
 
 step() { echo; echo "==> $*"; }
@@ -28,6 +29,7 @@ cd "${REPO_ROOT}"
 
 step "Publish krandom modules ${VERSION} to Maven local"
 "${GRADLEW}" \
+    :bom:publishToMavenLocal \
     :core:publishToMavenLocal \
     :jackson:publishToMavenLocal \
     :junit:publishToMavenLocal \
@@ -58,6 +60,9 @@ step "Verify Java + Maven integration modules example"
     cd "${REPO_ROOT}/examples/java-maven-integrations"
     mvn -q -Dkrandom.version="${VERSION}" test
 )
+
+step "Verify Java 21 named-module example"
+"${GRADLEW}" -p "${REPO_ROOT}/examples/java-jpms" -PkrandomVersion="${VERSION}" verifyJpms --no-daemon --console=plain
 
 step "Verify Kotlin + Gradle example"
 (

@@ -50,8 +50,8 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Financial Terms | ✅ DONE | `FinancialTermGenerator` (finance) — finance vocabulary localized across all 35 locales |
 | Computer / Device | ✅ DONE | `ComputerGenerator` (tech) — universal OS/platform/deviceType |
 | Aws / Azure | ✅ DONE | `AwsGenerator` + `AzureGenerator` (tech) — universal regions/instanceId/s3Bucket, resourceGroup |
-| CNPJ (BR) | ✅ DONE | `CnpjGenerator` (commerce) — Brazilian company id, check-digit valid |
-| CPF (BR) | ✅ DONE | `ofCpf()` via `NationalIdGenerator` — Brazilian person id, check-digit valid |
+| CNPJ (BR) | ✅ DONE | `CnpjGenerator` (commerce) — Brazilian company ID; canonical config fails closed, the deprecated bridge is numeric/check-digit valid, and `withAlphanumericFormat()` supports the documented unclassified alphanumeric shape |
+| CPF (BR) | 🟡 Configured-only | `NationalIdGenerator` with explicit `REALISTIC_UNCLASSIFIED` policy; the default fails closed |
 
 ### ✅ Already covered
 
@@ -74,7 +74,7 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Domain | `DomainGenerator` |
 | Fake Duration | `DurationGenerator` |
 | File | `FileNameGenerator`, `FileExtensionGenerator`, `MimeTypeGenerator`, path gens |
-| Finance | `IbanGenerator`, `BicGenerator`, `AbaRoutingGenerator`, `BankInfoGenerator` |
+| Finance | 🟡 Configured-only banking identifiers via `IbanGenerator`, `BicGenerator`, `AbaRoutingGenerator`, and `BankInfoGenerator`; canonical configuration fails closed |
 | Gender | `GenderGenerator` |
 | Hashing | `HashGenerator` |
 | Id Number | 🟡 `NationalIdGenerator` (US/UK/AU/FR/DE/JP/ES/IT/BR/CN) |
@@ -149,6 +149,6 @@ mirroring the Blood Type slice.
 5. Nation / Nationality / Language Code ✅ shipped
 6. Programming Language · Computer/Device · Aws/Azure ✅ shipped
 7. Restaurant · Hobby · Financial Terms · Measurement · Weather ✅ shipped — **University** still open (deprioritized: needs curated per-locale institution data)
-8. CNPJ / CPF ✅ shipped (`CnpjGenerator` + `ofCpf()` in `NationalIdGenerator` family)
+8. CNPJ ✅ shipped; CPF is available only through an explicit national-ID compatibility policy
 
 **Curated Base backlog is now essentially cleared — only University remains.**

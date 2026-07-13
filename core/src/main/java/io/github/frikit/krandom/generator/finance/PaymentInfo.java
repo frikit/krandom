@@ -26,7 +26,7 @@ import java.time.LocalDate;
  * @param amount              payment amount
  * @param payer               payer payload
  * @param billingAddress      billing address payload
- * @param instrumentReference masked payment instrument reference
+ * @param instrumentReference masked card reference or opaque banking test reference
  */
 public record PaymentInfo(
     String paymentNumber,

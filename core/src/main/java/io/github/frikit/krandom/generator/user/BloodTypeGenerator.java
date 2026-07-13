@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,9 +18,10 @@ import java.util.Random;
  * Generates locale-aware blood types ({@code "O+"}, {@code "A-"}, …) weighted by real-world ABO/Rh
  * frequencies.
  *
- * <p>The distribution is resolved from {@link BloodTypeDataRegistry} for the configured locale;
- * locales without a built-in file fall back to a bundled global distribution. Output is reproducible
- * for a fixed seed and locale.
+ * <p>The distribution is resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link BloodTypeDataRegistry}. Locales without a built-in file fall back to a bundled global
+ * distribution. Output is reproducible for a fixed seed and locale.
  *
  * <pre>{@code
  *   String us = new BloodTypeGenerator(Locale.US).generate();        // weighted by US frequencies
@@ -60,7 +62,8 @@ public final class BloodTypeGenerator implements Generator<String> {
      */
     public BloodTypeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        BloodTypeDataProvider provider = BloodTypeDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        BloodTypeDataProvider provider = registryContext.bloodTypeProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

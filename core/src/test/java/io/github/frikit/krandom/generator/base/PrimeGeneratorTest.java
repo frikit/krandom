@@ -147,15 +147,11 @@ class PrimeGeneratorTest {
         }
 
         @Test
-        @DisplayName("should handle min > max with auto-swap")
+        @DisplayName("min > max is rejected instead of swapped")
         void shouldHandleReversedBounds() {
-            PrimeGenerator generator = new PrimeGenerator(20, 2);
-            Set<Integer> expected = Set.of(2, 3, 5, 7, 11, 13, 17, 19);
-
-            for (int i = 0; i < 50; i++) {
-                int value = generator.generate();
-                assertTrue(expected.contains(value));
-            }
+            IllegalArgumentException ex =
+                assertThrows(IllegalArgumentException.class, () -> new PrimeGenerator(20, 2));
+            assertTrue(ex.getMessage().contains("min must be less than max"), ex.getMessage());
         }
     }
 

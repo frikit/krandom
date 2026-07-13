@@ -8,37 +8,37 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
 /**
  * Generates IBAN-like values with valid mod-97 check digits.
+ *
+ * <p>Use an explicit {@link GeneratorConfig} and select
+ * {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated compatibility fixtures.
+ * The default configured policy is {@link BankingSafetyPolicy#DISABLED}.
  */
 public final class IbanGenerator implements Generator<String> {
 
     private final Random               random;
     private final BankCountryGenerator bankCountryGenerator;
     private final BbanGenerator        bbanGenerator;
+    private final BankingSafetyPolicy  bankingSafetyPolicy;
 
-    public IbanGenerator() {
-        this(GeneratorConfig.defaults());
-    }
 
-    public IbanGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(locale).build());
-    }
 
     public IbanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
         this.bankCountryGenerator = new BankCountryGenerator(effective);
         this.bbanGenerator = new BbanGenerator(effective);
+        this.bankingSafetyPolicy = effective.getBankingSafetyPolicy();
     }
 
     @Override
     public String generate() {
+        bankingSafetyPolicy.requireRealisticOutput();
         String country = bankCountryGenerator.generate();
         String bban = bbanGenerator.generate();
         int checkDigits = computeCheckDigits(country, bban);

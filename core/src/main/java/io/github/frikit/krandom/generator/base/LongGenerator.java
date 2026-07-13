@@ -33,13 +33,11 @@ public final class LongGenerator extends AbstractBoundedGenerator<Long> {
     /**
      * Generate a long in the half-open range [{@code min}, {@code max}).
      *
-     * @throws IllegalArgumentException if {@code min == max}
+     * @throws IllegalArgumentException if {@code min >= max}
      */
     @Override
     public Long generate(Long min, Long max) {
         validate(min, max);
-        long lo = lo(min, max);
-        long hi = hi(min, max);
-        return random.nextLong(lo, hi);
+                return random.nextLong(min, max);
     }
 }

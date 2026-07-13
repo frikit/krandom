@@ -31,6 +31,13 @@ class CreditCardGeneratorTest {
 
     private static final DateTimeFormatter EXPIRY_FORMATTER = DateTimeFormatter.ofPattern("MM/yy");
 
+    private static CreditCardGenerator checksumValidGenerator(CardType cardType) {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                                                .build();
+        return new CreditCardGenerator(config, cardType);
+    }
+
     // ── Constructor tests ─────────────────────────────────────────────────────
 
     @Test
@@ -62,6 +69,63 @@ class CreditCardGeneratorTest {
         GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
         CreditCardGenerator gen = new CreditCardGenerator(config, CardType.MASTERCARD);
         assertEquals(CardType.MASTERCARD, gen.getCardType());
+    }
+
+    @Test
+    @DisplayName("default card output is deliberately not Luhn-valid")
+    void defaultCardOutputIsNotLuhnValid() {
+        CardType[] types = { CardType.VISA, CardType.MASTERCARD, CardType.AMEX,
+                             CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB };
+
+        for (CardType type : types) {
+            String card = new CreditCardGenerator(
+                GeneratorConfig.builder().seed(42L).build(),
+                type
+            ).generate(false);
+
+            assertFalse(CreditCardGenerator.isValidLuhn(card), type + " card unexpectedly passed Luhn: " + card);
+        }
+    }
+
+    @Test
+    @DisplayName("checksum-valid card output requires an explicit safety policy")
+    void checksumValidCardOutputRequiresExplicitSafetyPolicy() {
+        String card = new CreditCardGenerator(
+            GeneratorConfig.builder()
+                           .seed(42L)
+                           .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                           .build(),
+            CardType.VISA
+        ).generate(false);
+
+        assertTrue(CreditCardGenerator.isValidLuhn(card));
+    }
+
+    @Test
+    @DisplayName("Stripe sandbox policy returns documented card numbers for every supported type")
+    void stripeSandboxPolicyReturnsDocumentedCardNumbers() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.STRIPE_SANDBOX)
+                                                .build();
+        Map<CardType, String> expectedNumbers = Map.of(
+            CardType.VISA, "4242424242424242",
+            CardType.MASTERCARD, "5555555555554444",
+            CardType.AMEX, "378282246310005",
+            CardType.DISCOVER, "6011111111111117",
+            CardType.JCB, "3566002020360505",
+            CardType.DINERS_CLUB, "3056930009020004"
+        );
+
+        expectedNumbers.forEach((type, expectedNumber) -> {
+            String number = new CreditCardGenerator(config, type).generate(false);
+
+            assertEquals(expectedNumber, number);
+            assertTrue(CreditCardGenerator.isValidLuhn(number));
+        });
+
+        CreditCardInfo info = new CreditCardGenerator(config, CardType.VISA).generateCreditCardInfo();
+        assertEquals("4242424242424242", info.number().replaceAll("\\s", ""));
+        assertEquals("Visa", info.type());
     }
 
     @Test
@@ -140,7 +204,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Visa generates formatted 16-digit card starting with 4")
     void visaFormattedCard() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.VISA);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.VISA);
         String card = gen.generate();
 
         assertNotNull(card);
@@ -154,7 +218,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Visa generates unformatted card when formatted=false")
     void visaUnformattedCard() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.VISA);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.VISA);
         String card = gen.generate(false);
 
         assertNotNull(card);
@@ -180,7 +244,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Visa multiple generations pass Luhn")
     void visaMultipleLuhnCheck() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.VISA);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.VISA);
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
@@ -194,7 +258,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Mastercard generates valid card with correct prefix")
     void mastercardValidPrefix() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.MASTERCARD);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.MASTERCARD);
         String card = gen.generate(false);
 
         assertNotNull(card);
@@ -244,7 +308,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Mastercard multiple generations pass Luhn")
     void mastercardMultipleLuhnCheck() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.MASTERCARD);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.MASTERCARD);
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
@@ -258,7 +322,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Amex generates 15-digit card starting with 34 or 37")
     void amexValidCard() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.AMEX);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.AMEX);
         String card = gen.generate(false);
 
         assertNotNull(card);
@@ -293,7 +357,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Amex multiple generations pass Luhn")
     void amexMultipleLuhnCheck() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.AMEX);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.AMEX);
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
@@ -307,7 +371,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Discover generates valid card with correct prefix")
     void discoverValidPrefix() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.DISCOVER);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.DISCOVER);
         String card = gen.generate(false);
 
         assertNotNull(card);
@@ -325,7 +389,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Discover multiple generations pass Luhn")
     void discoverMultipleLuhnCheck() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.DISCOVER);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.DISCOVER);
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
@@ -339,7 +403,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("JCB generates valid card with 3528-3589 prefix")
     void jcbValidPrefix() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.JCB);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.JCB);
         String card = gen.generate(false);
 
         assertNotNull(card);
@@ -354,7 +418,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("JCB multiple generations pass Luhn")
     void jcbMultipleLuhnCheck() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.JCB);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.JCB);
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
@@ -368,7 +432,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Diners Club generates 14-digit card with valid prefix")
     void dinersClubValidCard() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.DINERS_CLUB);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.DINERS_CLUB);
         String card = gen.generate(false);
 
         assertNotNull(card);
@@ -396,7 +460,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("Diners Club multiple generations pass Luhn")
     void dinersClubMultipleLuhnCheck() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.DINERS_CLUB);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.DINERS_CLUB);
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
@@ -451,7 +515,7 @@ class CreditCardGeneratorTest {
                              CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB };
 
         for (CardType type : types) {
-            CreditCardGenerator gen = new CreditCardGenerator(type);
+            CreditCardGenerator gen = checksumValidGenerator(type);
 
             for (int i = 0; i < 50; i++) {
                 String card = gen.generate(false);
@@ -575,7 +639,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("CardInfo has valid card number")
     void cardInfoValidCardNumber() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.MASTERCARD);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.MASTERCARD);
         CardInfo info = gen.generateWithType();
 
         String unformatted = info.cardNumber().replaceAll("\\s", "");
@@ -639,7 +703,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("RANDOM card type all cards pass Luhn")
     void randomCardTypeAllPassLuhn() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.RANDOM);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.RANDOM);
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
@@ -743,7 +807,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("generateList all cards are valid")
     void generateListAllValid() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.MASTERCARD);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.MASTERCARD);
         List<String> cards = gen.generateList(20);
 
         for (String card : cards) {
@@ -776,7 +840,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("stream generates valid cards")
     void streamGeneratesValidCards() {
-        CreditCardGenerator gen = new CreditCardGenerator(CardType.VISA);
+        CreditCardGenerator gen = checksumValidGenerator(CardType.VISA);
 
         List<String> cards = gen.stream().limit(50).toList();
 

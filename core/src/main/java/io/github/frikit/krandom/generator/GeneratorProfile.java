@@ -60,14 +60,14 @@ public enum GeneratorProfile {
      * Creates a new config for this profile with default locale.
      */
     public GeneratorConfig createConfig() {
-        return applyToBuilder(GeneratorConfig.builder()).build();
+        return applyToBuilder(GeneratorConfig.builder()).generationProfile(name()).build();
     }
 
     /**
      * Creates a new config for this profile and locale.
      */
     public GeneratorConfig createConfig(Locale locale) {
-        return applyToBuilder(GeneratorConfig.builder().locale(locale)).build();
+        return applyToBuilder(GeneratorConfig.builder().locale(locale)).generationProfile(name()).build();
     }
 
     /**
@@ -75,6 +75,6 @@ public enum GeneratorProfile {
      */
     public GeneratorConfig applyTo(GeneratorConfig baseConfig) {
         Objects.requireNonNull(baseConfig, "baseConfig");
-        return applyToBuilder(baseConfig.toBuilder()).build();
+        return applyToBuilder(baseConfig.toBuilder()).generationProfile(name()).build();
     }
 }

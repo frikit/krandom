@@ -5,6 +5,10 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider;
+import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry;
+import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
+import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CityDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
@@ -14,20 +18,36 @@ import io.github.frikit.krandom.generator.location.StateDataRegistry;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressDataRegistry;
 import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
+import io.github.frikit.krandom.generator.measurement.MeasurementDataProvider;
+import io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.GenderDataRegistry;
+import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
+import io.github.frikit.krandom.generator.user.BloodTypeDataRegistry;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry;
+import io.github.frikit.krandom.generator.user.HobbyDataProvider;
+import io.github.frikit.krandom.generator.user.HobbyDataRegistry;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.LastNameDataRegistry;
+import io.github.frikit.krandom.generator.user.NationalityDataProvider;
+import io.github.frikit.krandom.generator.user.NationalityDataRegistry;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
 import io.github.frikit.krandom.generator.user.ProfessionDataRegistry;
+import io.github.frikit.krandom.generator.user.PronounDataProvider;
+import io.github.frikit.krandom.generator.user.PronounDataRegistry;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.SuffixDataRegistry;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataRegistry;
+import io.github.frikit.krandom.generator.user.ZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry;
+import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
+import io.github.frikit.krandom.generator.weather.WeatherDataRegistry;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -61,6 +81,16 @@ public final class DataRegistryContext {
     private final Map<String, CountryDataProvider>       countries;
     private final Map<String, StreetAddressDataProvider> streetAddresses;
     private final Map<String, NationalIdProvider>        nationalIds;
+    private final Map<String, WeatherDataProvider>       weather;
+    private final Map<String, MeasurementDataProvider>   measurements;
+    private final Map<String, FinancialTermDataProvider> financialTerms;
+    private final Map<String, RestaurantTypeDataProvider> restaurantTypes;
+    private final Map<String, HobbyDataProvider>          hobbies;
+    private final Map<String, NationalityDataProvider>    nationalities;
+    private final Map<String, PronounDataProvider>        pronouns;
+    private final Map<String, BloodTypeDataProvider>      bloodTypes;
+    private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs;
+    private final Map<String, ZodiacDataProvider>         zodiacs;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -75,6 +105,16 @@ public final class DataRegistryContext {
         this.countries = Map.copyOf(builder.countries);
         this.streetAddresses = Map.copyOf(builder.streetAddresses);
         this.nationalIds = Map.copyOf(builder.nationalIds);
+        this.weather = Map.copyOf(builder.weather);
+        this.measurements = Map.copyOf(builder.measurements);
+        this.financialTerms = Map.copyOf(builder.financialTerms);
+        this.restaurantTypes = Map.copyOf(builder.restaurantTypes);
+        this.hobbies = Map.copyOf(builder.hobbies);
+        this.nationalities = Map.copyOf(builder.nationalities);
+        this.pronouns = Map.copyOf(builder.pronouns);
+        this.bloodTypes = Map.copyOf(builder.bloodTypes);
+        this.chineseZodiacs = Map.copyOf(builder.chineseZodiacs);
+        this.zodiacs = Map.copyOf(builder.zodiacs);
     }
 
     /**
@@ -267,6 +307,336 @@ public final class DataRegistryContext {
         return mergeKeys(nationalIds.keySet(), useGlobalFallback ? NationalIdRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the weather provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public WeatherDataProvider weatherProvider(Locale locale) {
+        WeatherDataProvider provider = findWithFallback(weather, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return WeatherDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Returns whether this context can resolve weather data for a locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isWeatherRegistered(Locale locale) {
+        return weatherProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable weather locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> weatherRegisteredKeys() {
+        return mergeKeys(weather.keySet(), useGlobalFallback ? WeatherDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the measurement provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public MeasurementDataProvider measurementProvider(Locale locale) {
+        MeasurementDataProvider provider = findWithFallback(measurements, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return MeasurementDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve a measurement vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isMeasurementRegistered(Locale locale) {
+        return measurementProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable measurement locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> measurementRegisteredKeys() {
+        return mergeKeys(measurements.keySet(), useGlobalFallback ? MeasurementDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the financial-term provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public FinancialTermDataProvider financialTermProvider(Locale locale) {
+        FinancialTermDataProvider provider = findWithFallback(financialTerms, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return FinancialTermDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve financial-term vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isFinancialTermRegistered(Locale locale) {
+        return financialTermProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable financial-term locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> financialTermRegisteredKeys() {
+        return mergeKeys(financialTerms.keySet(), useGlobalFallback ? FinancialTermDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the restaurant-type provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public RestaurantTypeDataProvider restaurantTypeProvider(Locale locale) {
+        RestaurantTypeDataProvider provider = findWithFallback(restaurantTypes, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return RestaurantTypeDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve restaurant-type vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isRestaurantTypeRegistered(Locale locale) {
+        return restaurantTypeProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable restaurant-type locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> restaurantTypeRegisteredKeys() {
+        return mergeKeys(restaurantTypes.keySet(), useGlobalFallback ? RestaurantTypeDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the hobby provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public HobbyDataProvider hobbyProvider(Locale locale) {
+        HobbyDataProvider provider = findWithFallback(hobbies, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return HobbyDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve hobby vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isHobbyRegistered(Locale locale) {
+        return hobbyProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable hobby locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> hobbyRegisteredKeys() {
+        return mergeKeys(hobbies.keySet(), useGlobalFallback ? HobbyDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the nationality provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public NationalityDataProvider nationalityProvider(Locale locale) {
+        NationalityDataProvider provider = findWithFallback(nationalities, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return NationalityDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve nationality vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isNationalityRegistered(Locale locale) {
+        return nationalityProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable nationality locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> nationalityRegisteredKeys() {
+        return mergeKeys(nationalities.keySet(), useGlobalFallback ? NationalityDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the pronoun provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public PronounDataProvider pronounProvider(Locale locale) {
+        PronounDataProvider provider = findWithFallback(pronouns, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return PronounDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve pronoun vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isPronounRegistered(Locale locale) {
+        return pronounProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable pronoun locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> pronounRegisteredKeys() {
+        return mergeKeys(pronouns.keySet(), useGlobalFallback ? PronounDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the blood-type provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public BloodTypeDataProvider bloodTypeProvider(Locale locale) {
+        BloodTypeDataProvider provider = findWithFallback(bloodTypes, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return BloodTypeDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve a blood-type distribution for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isBloodTypeRegistered(Locale locale) {
+        return bloodTypeProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable blood-type locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> bloodTypeRegisteredKeys() {
+        return mergeKeys(bloodTypes.keySet(), useGlobalFallback ? BloodTypeDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the Chinese-zodiac provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public ChineseZodiacDataProvider chineseZodiacProvider(Locale locale) {
+        ChineseZodiacDataProvider provider = findWithFallback(chineseZodiacs, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return ChineseZodiacDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve Chinese-zodiac vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isChineseZodiacRegistered(Locale locale) {
+        return chineseZodiacProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable Chinese-zodiac locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> chineseZodiacRegisteredKeys() {
+        return mergeKeys(chineseZodiacs.keySet(), useGlobalFallback ? ChineseZodiacDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the Western-zodiac provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public ZodiacDataProvider zodiacProvider(Locale locale) {
+        ZodiacDataProvider provider = findWithFallback(zodiacs, locale);
+        if (provider != null || !useGlobalFallback) {
+            return provider;
+        }
+        return ZodiacDataRegistry.forLocale(locale);
+    }
+
+    /**
+     * Reports whether this context can resolve Western-zodiac vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isZodiacRegistered(Locale locale) {
+        return zodiacProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable Western-zodiac locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> zodiacRegisteredKeys() {
+        return mergeKeys(zodiacs.keySet(), useGlobalFallback ? ZodiacDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -333,6 +703,52 @@ public final class DataRegistryContext {
         }
     }
 
+    private static void validateTextValues(String name, java.util.List<String> values) {
+        Objects.requireNonNull(values, name);
+        if (values.isEmpty()) {
+            throw new IllegalArgumentException(name + " must not be empty");
+        }
+        for (int i = 0; i < values.size(); i++) {
+            String value = values.get(i);
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
+            }
+        }
+    }
+
+    private static void validatePronounSets(java.util.List<String> pronounSets) {
+        validateTextValues("pronounSets", pronounSets);
+        for (int i = 0; i < pronounSets.size(); i++) {
+            String pronounSet = pronounSets.get(i);
+            int separator = pronounSet.indexOf('/');
+            if (separator <= 0 || separator == pronounSet.length() - 1 || separator != pronounSet.lastIndexOf('/')) {
+                throw new IllegalArgumentException("pronounSet at index " + i + " must use subject/object form");
+            }
+        }
+    }
+
+    private static void validateBloodTypeDistribution(
+        java.util.List<String> types, java.util.List<Integer> weights) {
+        validateTextValues("types", types);
+        Objects.requireNonNull(weights, "weights");
+        if (types.size() != weights.size()) {
+            throw new IllegalArgumentException("types and weights length must match");
+        }
+        for (int i = 0; i < weights.size(); i++) {
+            Integer weight = weights.get(i);
+            if (weight == null || weight <= 0) {
+                throw new IllegalArgumentException("weight at index " + i + " must be > 0");
+            }
+        }
+    }
+
+    private static void validateTwelveTextValues(String name, java.util.List<String> values) {
+        validateTextValues(name, values);
+        if (values.size() != 12) {
+            throw new IllegalArgumentException(name + " must contain exactly 12 values");
+        }
+    }
+
     private static void validateProfessionArrays(String[] professions, int[] weights) {
         Objects.requireNonNull(professions, "professions");
         Objects.requireNonNull(weights, "weights");
@@ -370,6 +786,16 @@ public final class DataRegistryContext {
         private final Map<String, CountryDataProvider>       countries      = new LinkedHashMap<>();
         private final Map<String, StreetAddressDataProvider> streetAddresses = new LinkedHashMap<>();
         private final Map<String, NationalIdProvider>        nationalIds    = new LinkedHashMap<>();
+        private final Map<String, WeatherDataProvider>       weather        = new LinkedHashMap<>();
+        private final Map<String, MeasurementDataProvider>   measurements   = new LinkedHashMap<>();
+        private final Map<String, FinancialTermDataProvider> financialTerms = new LinkedHashMap<>();
+        private final Map<String, RestaurantTypeDataProvider> restaurantTypes = new LinkedHashMap<>();
+        private final Map<String, HobbyDataProvider>          hobbies         = new LinkedHashMap<>();
+        private final Map<String, NationalityDataProvider>    nationalities   = new LinkedHashMap<>();
+        private final Map<String, PronounDataProvider>        pronouns        = new LinkedHashMap<>();
+        private final Map<String, BloodTypeDataProvider>      bloodTypes      = new LinkedHashMap<>();
+        private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs  = new LinkedHashMap<>();
+        private final Map<String, ZodiacDataProvider>         zodiacs        = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -482,6 +908,146 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider, "provider");
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             putWithLanguageFallback(nationalIds, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific weather provider in this context.
+         *
+         * @param provider weather vocabulary provider
+         * @return this builder
+         */
+        public Builder registerWeatherProvider(WeatherDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("conditions", provider.getConditions());
+            putWithLanguageFallback(weather, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific measurement provider in this context.
+         *
+         * @param provider measurement vocabulary provider
+         * @return this builder
+         */
+        public Builder registerMeasurementProvider(MeasurementDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("units", provider.getUnits());
+            putWithLanguageFallback(measurements, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific financial-term provider in this context.
+         *
+         * @param provider financial-term vocabulary provider
+         * @return this builder
+         */
+        public Builder registerFinancialTermProvider(FinancialTermDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("terms", provider.getTerms());
+            putWithLanguageFallback(financialTerms, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific restaurant-type provider in this context.
+         *
+         * @param provider restaurant-type vocabulary provider
+         * @return this builder
+         */
+        public Builder registerRestaurantTypeProvider(RestaurantTypeDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("types", provider.getTypes());
+            putWithLanguageFallback(restaurantTypes, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific hobby provider in this context.
+         *
+         * @param provider hobby vocabulary provider
+         * @return this builder
+         */
+        public Builder registerHobbyProvider(HobbyDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("hobbies", provider.getHobbies());
+            putWithLanguageFallback(hobbies, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific nationality provider in this context.
+         *
+         * @param provider nationality vocabulary provider
+         * @return this builder
+         */
+        public Builder registerNationalityProvider(NationalityDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("nationalities", provider.getNationalities());
+            putWithLanguageFallback(nationalities, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific pronoun provider in this context.
+         *
+         * @param provider pronoun vocabulary provider
+         * @return this builder
+         */
+        public Builder registerPronounProvider(PronounDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validatePronounSets(provider.getPronounSets());
+            putWithLanguageFallback(pronouns, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific blood-type distribution provider in this context.
+         *
+         * @param provider blood-type distribution provider
+         * @return this builder
+         */
+        public Builder registerBloodTypeProvider(BloodTypeDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateBloodTypeDistribution(provider.getTypes(), provider.getWeights());
+            putWithLanguageFallback(bloodTypes, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific Chinese-zodiac provider in this context.
+         *
+         * @param provider Chinese-zodiac vocabulary provider
+         * @return this builder
+         */
+        public Builder registerChineseZodiacProvider(ChineseZodiacDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTwelveTextValues("animals", provider.getAnimals());
+            putWithLanguageFallback(chineseZodiacs, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific Western-zodiac provider in this context.
+         *
+         * @param provider Western-zodiac vocabulary provider
+         * @return this builder
+         */
+        public Builder registerZodiacProvider(ZodiacDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTwelveTextValues("signs", provider.getSigns());
+            putWithLanguageFallback(zodiacs, provider.getLocale(), provider);
             return this;
         }
 

@@ -7,13 +7,10 @@ package io.github.frikit.krandom.generator;
 
 import org.jspecify.annotations.Nullable;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -32,11 +29,12 @@ import java.util.stream.Stream;
  * {@link #filter}) let generators be composed without sub-classing.
  *
  * <p><strong>Thread safety:</strong> Instances of {@code Generator} are <em>not thread-safe</em>. Each
- * generator holds its own {@link java.util.Random} instance whose internal state mutates
- * on every call to {@link #generate()}. Sharing a generator across threads without
- * external synchronization will produce corrupted or duplicated output. Use
- * {@code Generators.threadLocal()} to obtain a thread-confined wrapper when
- * concurrent generation is needed.
+ * generator usually holds a mutable random source whose state advances on every call to
+ * {@link #generate()}. The JDK's {@link java.util.Random} is memory-safe when shared, but concurrent
+ * calls contend and interleave its sequence, so call order and seeded replay are no longer
+ * deterministic. Other generator state may not be safe to share. Use
+ * {@code Generators.threadLocal()} to obtain a thread-confined generator when concurrent
+ * generation is needed.
  *
  * @param <T> the type of value produced
  */
@@ -79,70 +77,20 @@ public interface Generator<T extends @Nullable Object> {
     }
 
     /**
-     * Reseeds underlying mutable random sources for stateful generators.
-     *
-     * <p>If this generator implements {@link Seedable}, the seed is applied directly via
-     * {@link Seedable#reseed(long)}. Otherwise, a reflection-based fallback discovers
-     * non-static fields assignable to {@link Random} across the class hierarchy and applies
-     * {@link Random#setSeed(long)}.
-     *
-     * <p>New generators should implement {@link Seedable} directly instead of relying on
-     * the reflection fallback. The reflection fallback is a transitional mechanism and is
-     * planned for deprecation and removal in a future major release.
-     *
-     * @param seed deterministic seed
-     * @throws UnsupportedOperationException if no reseedable random field is present
-     */
-    default void reseed(long seed) {
-        if (this instanceof Seedable seedable) {
-            seedable.reseed(seed);
-            return;
-        }
-        // Reflection fallback for generators that do not implement Seedable
-        boolean reseeded = false;
-        for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
-            for (Field field : type.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    continue;
-                }
-                try {
-                    field.setAccessible(true);
-                    Object value = field.get(this);
-                    if (value instanceof Random random) {
-                        random.setSeed(seed);
-                        reseeded = true;
-                    }
-                } catch (RuntimeException | IllegalAccessException e) {
-                    throw new IllegalStateException("Unable to access field '" + field.getName() + "'", e);
-                }
-            }
-        }
-        if (!reseeded) {
-            throw new UnsupportedOperationException(
-                "Generator " + getClass().getName() + " does not expose a reseedable Random field");
-        }
-    }
-
-    /**
-     * Reseeds using the same string-to-seed derivation contract as {@link GeneratorConfig}.
-     *
-     * @param seedText textual seed
-     */
-    default void reseed(String seedText) {
-        reseed(GeneratorConfig.deriveSeed(seedText));
-    }
-
-    /**
      * Return a new {@code Generator<R>} that applies {@code mapper} to every value
      * produced by this generator.
      *
      * <pre>{@code
      *   Generator<String> intAsString = Generators.ofInt(1, 100).map(Object::toString);
      * }</pre>
+     *
+     * <p>If this generator implements {@link Seedable}, the returned generator also implements
+     * {@code Seedable} and forwards reseeding to this generator.
      */
     default <R extends @Nullable Object> Generator<R> map(Function<? super T, ? extends R> mapper) {
         Objects.requireNonNull(mapper, "mapper must not be null");
-        return () -> mapper.apply(generate());
+        Generator<R> mapped = () -> mapper.apply(generate());
+        return SeedableGeneratorDecorator.preserve(this, mapped);
     }
 
     /**
@@ -160,6 +108,9 @@ public interface Generator<T extends @Nullable Object> {
      * Return a new {@code Generator<T>} that keeps generating until the produced value
      * satisfies {@code predicate}, failing after {@code maxAttempts}.
      *
+     * <p>If this generator implements {@link Seedable}, the returned generator also implements
+     * {@code Seedable} and forwards reseeding to this generator.
+     *
      * @param predicate predicate a generated value must satisfy
      * @param maxAttempts maximum generated values to try before failing
      * @throws IllegalArgumentException if {@code maxAttempts} is not positive
@@ -169,7 +120,7 @@ public interface Generator<T extends @Nullable Object> {
         if (maxAttempts <= 0) {
             throw new IllegalArgumentException("maxAttempts must be > 0, was: " + maxAttempts);
         }
-        return () -> {
+        Generator<T> filtered = () -> {
             for (int attempt = 0; attempt < maxAttempts; attempt++) {
                 T value = generate();
                 if (predicate.test(value)) {
@@ -179,5 +130,6 @@ public interface Generator<T extends @Nullable Object> {
             throw new IllegalStateException(
                 "Unable to generate a value matching the predicate after " + maxAttempts + " attempts");
         };
+        return SeedableGeneratorDecorator.preserve(this, filtered);
     }
 }

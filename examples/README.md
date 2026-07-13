@@ -2,13 +2,15 @@
 
 This folder contains test-based examples for each supported language/build-tool combination.
 
-Core examples verify direct `io.github.frikit:krandom-core` consumption. Integration examples verify the published Jackson, Spring Boot, Kotest, and Kotlin DSL artifacts from clean consumer builds.
+Core examples verify direct `io.github.frikit:krandom-core` consumption, including strong
+encapsulation from Java 21 named modules. Integration examples verify the published Jackson,
+Spring Boot, Kotest, and Kotlin DSL artifacts from clean consumer builds.
 
-Default example version: `1.6.0-SNAPSHOT`
+Default example version: `2.0.0-SNAPSHOT`
 
 Version strategy:
 
-- `1.6.0-SNAPSHOT` is the repo-local default for Maven-local verification.
+- `2.0.0-SNAPSHOT` is the repo-local default for Maven-local verification.
 - CI injects the version under test instead of editing example build files.
 - published-release checks should pass an explicit version with the existing property knobs rather than changing the embedded defaults.
 
@@ -23,6 +25,7 @@ That script:
 - verifies Java 21+
 - publishes all current `krandom-*` consumer artifacts to Maven local
 - runs the example test suites against the local artifact
+- verifies both successful qualified `opens` and actionable missing-`opens` behavior from named modules
 
 To point the examples at a different artifact version, set `KRANDOM_VERSION` or the build-tool-specific property:
 
@@ -36,6 +39,7 @@ To point the examples at a different artifact version, set `KRANDOM_VERSION` or 
 - Java + Gradle integration modules: `examples/java-gradle-integrations`
 - Java + Maven: `examples/java-maven`
 - Java + Maven integration modules: `examples/java-maven-integrations`
+- Java 21 + Gradle named modules: `examples/java-jpms`
 - Kotlin + Gradle: `examples/kotlin-gradle`
 - Kotlin + Maven: `examples/kotlin-maven`
 - Kotlin + Maven integration modules: `examples/kotlin-maven-integrations`

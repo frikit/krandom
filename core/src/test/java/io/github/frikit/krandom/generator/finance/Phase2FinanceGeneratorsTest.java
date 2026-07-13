@@ -6,6 +6,8 @@
 package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
+import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,12 +23,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Phase 2 finance generators")
+@SuppressWarnings("removal")
 class Phase2FinanceGeneratorsTest {
 
     @Test
     @DisplayName("IBAN generator returns country+check+body format")
     void iban() {
-        String iban = new IbanGenerator(Locale.GERMANY).generate();
+        String iban = new IbanGenerator(GeneratorConfig.builder().locale(Locale.GERMANY) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(iban.matches("[A-Z]{2}\\d{2}\\d+"));
         assertTrue(iban.length() >= 16);
     }
@@ -34,32 +37,79 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("BBAN generator returns numeric account body")
     void bban() {
-        assertTrue(new BbanGenerator(Locale.FRANCE).generate().matches("\\d+"));
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().locale(Locale.FRANCE) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("\\d+"));
     }
 
     @Test
     @DisplayName("BBAN length varies by locale country")
     void bbanLengths() {
-        assertEquals(18, new BbanGenerator(Locale.UK).generate().length());
-        assertEquals(20, new BbanGenerator(Locale.of("pt", "BR")).generate().length());
-        assertEquals(16, new BbanGenerator(Locale.CANADA).generate().length());
+        assertEquals(18, new BbanGenerator(GeneratorConfig.builder().locale(Locale.UK) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(20, new BbanGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertEquals(16, new BbanGenerator(GeneratorConfig.builder().locale(Locale.CANADA) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
     }
 
     @Test
     @DisplayName("ABA routing generator returns 9 digits")
     void aba() {
-        String aba = new AbaRoutingGenerator().generate();
+        String aba = new AbaRoutingGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate();
         assertTrue(aba.matches("\\d{9}"));
     }
 
     @Test
     @DisplayName("seeded banking generators are reproducible")
     void seededBankingGenerators() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                                             .seed(123L)
+                                             .locale(Locale.US)
+                                             .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                             .build();
 
         assertEquals(new BbanGenerator(cfg).generate(), new BbanGenerator(cfg).generate());
         assertEquals(new IbanGenerator(cfg).generate(), new IbanGenerator(cfg).generate());
         assertEquals(new AbaRoutingGenerator(cfg).generate(), new AbaRoutingGenerator(cfg).generate());
+    }
+
+    @Test
+    @DisplayName("default configured banking identifiers fail closed")
+    void defaultConfiguredBankingIdentifiersFailClosed() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+
+        assertThrows(IllegalStateException.class, () -> new BankAccountGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new AbaRoutingGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new BbanGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new IbanGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new BicGenerator(config).generate());
+        assertThrows(IllegalStateException.class, () -> new BankInfoGenerator(config).generate());
+    }
+
+    @Test
+    @DisplayName("legacy no-argument BBAN constructor preserves compatibility output")
+    void legacyNoArgumentBbanConstructor() {
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("\\d{16}"));
+    }
+
+    @Test
+    @DisplayName("legacy no-argument IBAN constructor preserves compatibility output")
+    void legacyNoArgumentIbanConstructor() {
+        assertTrue(new IbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("[A-Z]{2}\\d{2}\\d+"));
+    }
+
+    @Test
+    @DisplayName("legacy no-argument BIC constructor preserves compatibility output")
+    void legacyNoArgumentBicConstructor() {
+        assertTrue(new BicGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?"));
+    }
+
+    @Test
+    @DisplayName("legacy no-argument bank-account constructor preserves compatibility output")
+    void legacyNoArgumentBankAccountConstructor() {
+        assertTrue(new BankAccountGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("\\d{10}"));
+    }
+
+    @Test
+    @DisplayName("legacy no-argument bank-info constructor preserves compatibility output")
+    void legacyNoArgumentBankInfoConstructor() {
+        assertNotNull(new BankInfoGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate());
     }
 
     @Test
@@ -93,9 +143,9 @@ class Phase2FinanceGeneratorsTest {
     }
 
     @Test
-    @DisplayName("ein generator supports formatted and unformatted output")
+    @DisplayName("deprecated no-argument constructor preserves formatted and unformatted output")
     void ein() {
-        EinGenerator generator = new EinGenerator();
+        EinGenerator generator = new EinGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
         String formatted = generator.generate();
         assertTrue(formatted.matches("\\d{2}-\\d{7}"));
 
@@ -106,7 +156,7 @@ class Phase2FinanceGeneratorsTest {
     @Test
     @DisplayName("ein generator seeded output is deterministic")
     void einSeeded() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(777L).build();
+        GeneratorConfig config = realisticConfig(777L);
         EinGenerator a = new EinGenerator(config);
         EinGenerator b = new EinGenerator(config);
         assertEquals(a.generate(), b.generate());
@@ -114,15 +164,48 @@ class Phase2FinanceGeneratorsTest {
     }
 
     @Test
+    @DisplayName("configured EIN generation fails closed by default")
+    void einConfiguredGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class, () -> new EinGenerator(GeneratorConfig.defaults()).generate());
+    }
+
+    @Test
+    @DisplayName("EIN facade requires an explicit realistic compatibility policy")
+    void einFacadeRequiresExplicitPolicy() {
+        assertThrows(IllegalStateException.class, () -> Generators.ofEin().generate());
+        assertTrue(Generators.ofEin(realisticConfig(4L)).generate().matches("\\d{2}-\\d{7}"));
+    }
+
+    @Test
     @DisplayName("cusip generator outputs 9 chars with valid check digit")
     void cusip() {
-        CusipGenerator generator = new CusipGenerator(GeneratorConfig.builder().seed(4L).build());
+        CusipGenerator generator = new CusipGenerator(GeneratorConfig.builder()
+                                                                      .seed(4L)
+                                                                      .securitiesIdentifierSafetyPolicy(
+                                                                          SecuritiesIdentifierSafetyPolicy
+                                                                              .REALISTIC_UNCLASSIFIED)
+                                                                      .build());
         String cusip = generator.generate();
         assertEquals(9, cusip.length());
         assertTrue(cusip.matches("[0-9A-Z]{9}"));
 
         int expected = CusipGenerator.computeCheckDigit(cusip.substring(0, 8));
         assertEquals(expected, cusip.charAt(8) - '0');
+    }
+
+    @Test
+    @DisplayName("configured CUSIP generation fails closed by default")
+    void cusipConfiguredGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class,
+                     () -> new CusipGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofCusip().generate());
+
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                 .securitiesIdentifierSafetyPolicy(
+                                                     SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                 .build();
+        assertTrue(Generators.ofCusip(config).generate().matches("[0-9A-Z]{9}"));
+        assertTrue(new CusipGenerator(GeneratorConfig.builder() .securitiesIdentifierSafetyPolicy( SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("[0-9A-Z]{9}"));
     }
 
     @Test
@@ -171,5 +254,13 @@ class Phase2FinanceGeneratorsTest {
         assertThrows(NullPointerException.class, () -> new BankTypeGenerator((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> new BankNameGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new BankTypeGenerator((Locale) null));
+    }
+
+    private static GeneratorConfig realisticConfig(long seed) {
+        return GeneratorConfig.builder()
+                              .seed(seed)
+                              .businessTaxIdentifierSafetyPolicy(
+                                  BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build();
     }
 }

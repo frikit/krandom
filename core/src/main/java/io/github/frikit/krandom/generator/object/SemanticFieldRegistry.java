@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.provider.ProviderCatalog;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -96,7 +98,7 @@ public final class SemanticFieldRegistry {
     }
 
     private static SemanticFieldRegistry buildDefaults() {
-        return builder()
+        Builder registry = builder()
             .alias("firstname", "firstname", "givenname")
             .alias("lastname", "lastname", "surname", "familyname")
             .alias("fullname", "fullname", "displayname")
@@ -128,28 +130,11 @@ public final class SemanticFieldRegistry {
             .alias("active", "active", "isactive", "enabled", "isenabled")
             .alias("status", "status", "accountstatus", "orderstatus")
             .alias("latitude", "latitude", "lat")
-            .alias("longitude", "longitude", "lon", "lng")
-            .provider("firstname", "person.first_name")
-            .provider("lastname", "person.last_name")
-            .provider("fullname", "person.full_name")
-            .provider("email", "person.email")
-            .provider("username", "person.username")
-            .provider("phone", "address.phone_number")
-            .provider("streetaddress", "address.street_address")
-            .provider("city", "address.city")
-            .provider("state", "address.state")
-            .provider("postalcode", "address.postal_code")
-            .provider("country", "address.country")
-            .provider("companyname", "company.name")
-            .provider("industry", "company.industry")
-            .provider("companyemail", "company.email")
-            .provider("companyurl", "company.url")
-            .provider("password", "security.password")
-            .provider("url", "internet.url")
-            .provider("domain", "internet.domain")
-            .provider("currency", "finance.currency")
-            .provider("uuid", "code.uuid")
-            .build();
+            .alias("longitude", "longitude", "lon", "lng");
+
+        ProviderCatalog.builtIns().forEach(descriptor ->
+            descriptor.getSemanticKeys().forEach(semanticKey -> registry.provider(semanticKey, descriptor.getKey())));
+        return registry.build();
     }
 
     private static Map<String, Set<String>> buildAliasesByKey(Map<String, String> keysByAlias) {

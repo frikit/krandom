@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.time.Clock;
@@ -75,7 +76,7 @@ import java.util.Random;
  *
  * @see TimeGenerator for time component generation
  */
-public final class DateGenerator implements Generator<LocalDate> {
+public final class DateGenerator implements Generator<LocalDate>, Seedable {
 
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
@@ -388,5 +389,13 @@ public final class DateGenerator implements Generator<LocalDate> {
     private int generateValidDay(int year, int month) {
         int maxDay = LocalDate.of(year, month, 1).lengthOfMonth();
         return 1 + random.nextInt(maxDay);
+    }
+
+    /**
+     * Reseeds this generator's owned random source for deterministic replay.
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
     }
 }

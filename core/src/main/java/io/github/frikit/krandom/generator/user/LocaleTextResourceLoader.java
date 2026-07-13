@@ -31,7 +31,7 @@ public final class LocaleTextResourceLoader {
      * @throws IllegalStateException if the resource cannot be found or read
      */
     public static String[] load(String resourcePath) {
-        InputStream is = LocaleTextResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = LocaleTextResourceLoader.class.getResourceAsStream("/" + resourcePath);
         if (is == null) {
             throw new IllegalStateException("Resource not found: " + resourcePath);
         }

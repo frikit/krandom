@@ -59,7 +59,7 @@ import java.lang.annotation.Target;
  *
  * <p>This annotation takes precedence over the automatic semantic field-name resolution
  * but is overridden by programmatic overrides registered via
- * {@link ObjectGeneratorConfig.Builder}.
+ * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder}.
  *
  * @see Randomizer
  * @see FakeRange

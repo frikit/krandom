@@ -7,13 +7,19 @@ package io.github.frikit.krandom.generator.object;
 
 import jakarta.validation.constraints.Email;
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator — @Randomizer")
 class ObjectGeneratorRandomizerAnnotationTest {
@@ -63,8 +69,55 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @Test
     @DisplayName("invalid @Randomizer generator type throws ObjectGenerationException")
     void invalidRandomizerTypeThrows() {
-        assertThrows(ObjectGenerationException.class,
-                     () -> new ObjectGenerator<>(InvalidAnnotatedTarget.class).generate());
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(InvalidAnnotatedTarget.class).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR, context.category());
+        assertEquals(GenerationOperation.CONSTRUCT, context.operation());
+        assertEquals("InvalidAnnotatedTarget.value", context.path());
+        assertEquals(NoDefaultCtorGenerator.class.getName(), context.declaredType());
+        assertTrue(error.getCause() instanceof NoSuchMethodException);
+    }
+
+    @Test
+    @DisplayName("throwing @Randomizer generator reports sanitized field context")
+    void throwingRandomizerIsContextual() {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(ThrowingRandomizerTarget.class).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR, context.category());
+        assertEquals(GenerationOperation.GENERATE, context.operation());
+        assertEquals("ThrowingRandomizerTarget.value", context.path());
+        assertEquals(ThrowingGenerator.class.getName(), context.declaredType());
+        assertTrue(error.getCause() instanceof IllegalStateException);
+        assertFalse(error.getMessage().contains("personal-looking-value"));
+    }
+
+    @Test
+    @DisplayName("legacy uncontextual @Randomizer failure gains field context")
+    void legacyRandomizerFailureGainsContext() {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(LegacyFailingRandomizerTarget.class).generate());
+
+        assertEquals("LegacyFailingRandomizerTarget.value", error.getContext().orElseThrow().path());
+        assertTrue(error.getCause() instanceof ObjectGenerationException);
+        assertFalse(error.getMessage().contains("personal-looking-value"));
+    }
+
+    @Test
+    @DisplayName("already-contextual @Randomizer failure is not wrapped again")
+    void contextualRandomizerFailurePassesThrough() {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(ContextualFailingRandomizerTarget.class).generate());
+
+        assertSame(ContextualFailingGenerator.FAILURE, error);
+        assertEquals("Nested.path", error.getContext().orElseThrow().path());
     }
 
     @Test
@@ -134,6 +187,45 @@ class ObjectGeneratorRandomizerAnnotationTest {
         @Override
         public String generate() {
             return "INVALID";
+        }
+    }
+
+
+    public static class ThrowingGenerator implements Generator<String> {
+
+        @Override
+        public String generate() {
+            throw new IllegalStateException("personal-looking-value");
+        }
+    }
+
+
+    public static class LegacyFailingGenerator implements Generator<String> {
+
+        @Override
+        public String generate() {
+            throw new ObjectGenerationException("personal-looking-value");
+        }
+    }
+
+
+    public static class ContextualFailingGenerator implements Generator<String> {
+
+        private static final ObjectGenerationException FAILURE = new ObjectGenerationException(
+            "nested failure",
+            new GenerationFailureContext(
+                GenerationFailureCategory.ASSIGNMENT,
+                GenerationOperation.ASSIGN,
+                "Nested.path",
+                ContextualFailingGenerator.class,
+                String.class.getName(),
+                2,
+                -1),
+            new IllegalStateException("nested cause"));
+
+        @Override
+        public String generate() {
+            throw FAILURE;
         }
     }
 
@@ -226,6 +318,27 @@ class ObjectGeneratorRandomizerAnnotationTest {
     static class InvalidAnnotatedTarget {
 
         @Randomizer(NoDefaultCtorGenerator.class)
+        private String value;
+    }
+
+
+    static class ThrowingRandomizerTarget {
+
+        @Randomizer(ThrowingGenerator.class)
+        private String value;
+    }
+
+
+    static class LegacyFailingRandomizerTarget {
+
+        @Randomizer(LegacyFailingGenerator.class)
+        private String value;
+    }
+
+
+    static class ContextualFailingRandomizerTarget {
+
+        @Randomizer(ContextualFailingGenerator.class)
         private String value;
     }
 

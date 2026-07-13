@@ -74,11 +74,43 @@ else
     exit 1
 fi
 
+step "Verify documentation facts"
+if bash "${REPO_ROOT}/scripts/verify_documentation_facts.sh"; then
+    ok "Documentation facts OK"
+else
+    fail "Documentation facts verification failed"
+    exit 1
+fi
+
+step "Verify pinned build inputs"
+if bash "${REPO_ROOT}/scripts/verify_build_input_pins.sh"; then
+    ok "Build inputs are immutable or checksum-verified"
+else
+    fail "Build input pin verification failed"
+    exit 1
+fi
+
 step "Compile all modules"
 if "${GRADLEW}" classes testClasses --quiet; then
     ok "Compilation OK"
 else
     fail "Compilation failed"
+    exit 1
+fi
+
+step "Verify public API compatibility"
+if "${GRADLEW}" checkApiContract --quiet; then
+    ok "Public API is compatible and all evolution is classified"
+else
+    fail "Public API contract failed — see build/reports/japicmp and build/reports/api-evolution"
+    exit 1
+fi
+
+step "Generate and validate release SBOMs"
+if "${GRADLEW}" verifyReleaseSboms --quiet; then
+    ok "Release SBOMs are valid"
+else
+    fail "Release SBOM validation failed — see build/reports/sbom"
     exit 1
 fi
 

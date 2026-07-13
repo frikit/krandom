@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -22,18 +21,19 @@ public final class IsinGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
     private final Random          random;
+    private final SecuritiesIdentifierSafetyPolicy safetyPolicy;
 
-    public IsinGenerator() {
-        this(GeneratorConfig.defaults());
-    }
 
-    public IsinGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
-    }
 
+    /**
+     * Creates a generator from explicit configuration.
+     *
+     * @param config the generator configuration; must not be {@code null}
+     */
     public IsinGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
+        this.safetyPolicy = config.getSecuritiesIdentifierSafetyPolicy();
     }
 
     static int computeCheckDigit(String isinWithoutCheck) {
@@ -75,11 +75,17 @@ public final class IsinGenerator implements Generator<String> {
 
     @Override
     public String generate() {
-        return generate(config.getLocale());
+        safetyPolicy.requireRealisticOutput();
+        return generateUnchecked(config.getLocale());
     }
 
     public String generate(Locale locale) {
         Objects.requireNonNull(locale, "locale must not be null");
+        safetyPolicy.requireRealisticOutput();
+        return generateUnchecked(locale);
+    }
+
+    private String generateUnchecked(Locale locale) {
         String country = normalizeCountry(locale);
         StringBuilder base = new StringBuilder(11);
         base.append(country);

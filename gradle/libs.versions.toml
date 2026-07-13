@@ -14,9 +14,11 @@ jspecify = "1.0.0"
 hibernate-validator = "9.1.2.Final"
 jackson = "2.22.0"
 spring-boot = "4.1.0"
+japicmp = "0.26.1"
+cyclonedx = "3.2.4"
+nmcp = "1.6.1"
 
 [libraries]
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -40,3 +42,5 @@ spring-boot-configuration-processor = { module = "org.springframework.boot:sprin
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+cyclonedx = { id = "org.cyclonedx.bom", version.ref = "cyclonedx" }
+nmcp-aggregation = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }

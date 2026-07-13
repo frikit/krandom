@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.measurement;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,8 +18,10 @@ import java.util.Random;
  * Generates locale-aware measurement-unit names, e.g. {@code "Kilometer"} for English or
  * {@code "Километр"} for Russian.
  *
- * <p>Unit names are resolved from {@link MeasurementDataRegistry} for the configured locale; locales
- * without a built-in file fall back to the bundled English units.
+ * <p>Unit names are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link MeasurementDataRegistry}. Locales without a built-in file fall back to bundled English
+ * units.
  *
  * <pre>{@code
  *   String en = new MeasurementGenerator().generate();                     // e.g. "Liter"
@@ -57,7 +60,8 @@ public final class MeasurementGenerator implements Generator<String> {
      */
     public MeasurementGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        MeasurementDataProvider provider = MeasurementDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        MeasurementDataProvider provider = registryContext.measurementProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

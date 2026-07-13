@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.core.model.Address;
 import io.github.frikit.krandom.generator.core.model.Person;
@@ -13,6 +14,9 @@ import io.github.frikit.krandom.generator.core.model.PersonWithArrays;
 import io.github.frikit.krandom.generator.core.model.PersonWithCollections;
 import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
 import io.github.frikit.krandom.generator.core.model.Status;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -608,7 +612,7 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("ignoreErrors=true logs swallowed failures at DEBUG level")
         void ignoreErrorsLogsSwallowedFailuresAtDebugLevel() {
-            Logger logger = (Logger) LoggerFactory.getLogger(FieldGeneratorResolver.class);
+            Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerationFailurePolicy.class);
             ListAppender<ILoggingEvent> appender = new ListAppender<>();
             appender.start();
             Level previousLevel = logger.getLevel();
@@ -620,7 +624,7 @@ class ObjectGeneratorTest {
                     new ObjectGenerator<>(RootIgnoreErrorsHolder.class, rootConfig).generate();
                 assertNull(holder.nested, "throwing nested type should be swallowed");
                 assertTrue(appender.list.stream()
-                                  .anyMatch(e -> e.getFormattedMessage().contains("Ignored nested generation failure")),
+                                  .anyMatch(e -> e.getFormattedMessage().contains("RootIgnoreErrorsHolder.nested")),
                            "swallowed failure should be logged at DEBUG level");
             } finally {
                 logger.detachAppender(appender);
@@ -742,16 +746,25 @@ class ObjectGeneratorTest {
             ObjectGenerationException ex = new ObjectGenerationException("standalone message");
             assertEquals("standalone message", ex.getMessage());
             assertNull(ex.getCause());
+            assertTrue(ex.getContext().isEmpty());
         }
 
         @Test
-        @DisplayName("constructor that throws is wrapped in ObjectGenerationException (ReflectiveOperationException path)")
-        void throwingConstructorWrappedInOGE() {
-            // ctor.newInstance() raises InvocationTargetException (a ReflectiveOperationException)
-            // which is caught in generate() and re-thrown as ObjectGenerationException.
-            ObjectGenerationException ex = assertThrows(ObjectGenerationException.class,
-                                                        () -> new ObjectGenerator<>(ThrowingCtor.class).generate());
-            assertNotNull(ex.getCause(), "Expected a cause wrapping the original exception");
+        @DisplayName("constructor that throws reports sanitized root construction context")
+        void throwingConstructorIsContextual() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ThrowingCtor.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
+            assertEquals(GenerationOperation.CONSTRUCT, context.operation());
+            assertEquals("ThrowingCtor", context.path());
+            assertEquals(ThrowingCtor.class, context.ownerType());
+            assertEquals(ThrowingCtor.class.getTypeName(), context.declaredType());
+            assertEquals(0, context.depth());
+            assertTrue(error.getCause() instanceof RuntimeException);
+            assertFalse(error.getMessage().contains("personal-looking-value"));
         }
 
         @Test
@@ -785,7 +798,7 @@ class ObjectGeneratorTest {
             String value;
 
             ThrowingCtor() {
-                throw new RuntimeException("ctor intentionally throws");
+                throw new RuntimeException("personal-looking-value");
             }
         }
     }
@@ -812,27 +825,36 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("interface-typed field is left null (isInterface branch in isNestableType)")
-        void interfaceFieldLeftNull() {
-            WithInterfaceField obj = new ObjectGenerator<>(WithInterfaceField.class).generate();
-            assertNotNull(obj);
-            assertNull(obj.runner, "interface-typed field should be null");
+        @DisplayName("interface-typed field reports unsupported type in strict mode")
+        void interfaceFieldIsUnsupported() {
+            assertUnsupportedTypeFailure(WithInterfaceField.class, "runner", Runnable.class);
         }
 
         @Test
-        @DisplayName("abstract-class-typed field is left null (isAbstract branch in isNestableType)")
-        void abstractClassFieldLeftNull() {
-            WithAbstractField obj = new ObjectGenerator<>(WithAbstractField.class).generate();
-            assertNotNull(obj);
-            assertNull(obj.base, "abstract-typed field should be null");
+        @DisplayName("abstract-class-typed field reports unsupported type in strict mode")
+        void abstractClassFieldIsUnsupported() {
+            assertUnsupportedTypeFailure(WithAbstractField.class, "base", AbstractBase.class);
         }
 
         @Test
-        @DisplayName("JDK-typed field is left null (startsWith 'java.' branch in isNestableType)")
-        void jdkTypeFieldLeftNull() {
-            WithJdkTypeField obj = new ObjectGenerator<>(WithJdkTypeField.class).generate();
-            assertNotNull(obj);
-            assertNull(obj.locale, "unsupported JDK-typed field should be null");
+        @DisplayName("unsupported JDK-typed field reports context in strict mode")
+        void jdkTypeFieldIsUnsupported() {
+            assertUnsupportedTypeFailure(WithJdkTypeField.class, "locale", java.util.Locale.class);
+        }
+
+        @Test
+        @DisplayName("Object-typed field reports unsupported type in strict mode")
+        void objectFieldIsUnsupported() {
+            assertUnsupportedTypeFailure(WithObjectField.class, "value", Object.class);
+        }
+
+        @Test
+        @DisplayName("explicit lenient mode leaves unsupported fields null")
+        void lenientUnsupportedFieldsAreNull() throws ReflectiveOperationException {
+            assertUnsupportedTypeFallback(WithInterfaceField.class, "runner");
+            assertUnsupportedTypeFallback(WithAbstractField.class, "base");
+            assertUnsupportedTypeFallback(WithJdkTypeField.class, "locale");
+            assertUnsupportedTypeFallback(WithObjectField.class, "value");
         }
 
         @Test
@@ -873,10 +895,19 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("ignoreErrors=false re-throws ObjectGenerationException from nested type with throwing ctor")
-        void ignoreErrorsRethrowsNestedOGE() {
-            assertThrows(ObjectGenerationException.class,
-                         () -> new ObjectGenerator<>(WithThrowingNestedField.class).generate());
+        @DisplayName("strict nested constructor failure gains parent field context")
+        void strictNestedConstructorFailureIsContextual() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(WithThrowingNestedField.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
+            assertEquals(GenerationOperation.CONSTRUCT, context.operation());
+            assertEquals("WithThrowingNestedField.nested", context.path());
+            assertEquals(ThrowsOnCreate.class.getTypeName(), context.declaredType());
+            assertEquals(1, context.depth());
+            assertTrue(error.getCause() instanceof RuntimeException);
         }
 
         @Test
@@ -896,15 +927,103 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("ignoreErrors=false wraps non-OGE exception in ObjectGenerationException (Exception catch)")
-        void ignoreErrorsFalseWrapsRuntimeExceptionFromNested() {
+        @DisplayName("strict nested runtime failure gains parent field context")
+        void strictNestedRuntimeFailureIsContextual() {
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
                                                              .override(String.class, () -> {
                                                                  throw new RuntimeException("intentional");
                                                              })
                                                              .build();
-            assertThrows(ObjectGenerationException.class,
-                         () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals("OuterWithInner.inner", context.path());
+            assertTrue(error.getCause() instanceof RuntimeException);
+        }
+
+        @Test
+        @DisplayName("legacy nested ObjectGenerationException gains parent context")
+        void legacyNestedFailureGainsParentContext() {
+            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
+                                                             .override(String.class, () -> {
+                                                                 throw new ObjectGenerationException(
+                                                                     "personal-looking-value");
+                                                             })
+                                                             .build();
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals("OuterWithInner.inner", context.path());
+            assertEquals(InnerWithString.class.getTypeName(), context.declaredType());
+            assertNull(error.getCause());
+            assertFalse(error.getMessage().contains("personal-looking-value"));
+        }
+
+        @Test
+        @DisplayName("structured nested failure composes a root-relative path once")
+        void structuredNestedFailureComposesParentPath() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(NestedUnsupportedRoot.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals("NestedUnsupportedRoot.middle.child.task", context.path());
+            assertEquals(NestedUnsupportedChild.class, context.ownerType());
+            assertEquals(Runnable.class.getTypeName(), context.declaredType());
+            assertEquals(2, context.depth());
+            assertTrue(error.getCause() instanceof UnsupportedOperationException);
+        }
+
+        @Test
+        @DisplayName("foreign structured nested path is retained below the parent path")
+        void foreignNestedFailurePathIsRetained() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ForeignContextRoot.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
+            assertEquals("ForeignContextRoot.child.External.path", context.path());
+            assertEquals(ForeignContextGenerator.class, context.ownerType());
+            assertEquals(7, context.depth());
+            assertNull(error.getCause());
+        }
+
+        private void assertUnsupportedTypeFailure(Class<?> ownerType,
+                                                  String fieldName,
+                                                  Class<?> declaredType) {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ownerType).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals(ownerType.getSimpleName() + "." + fieldName, context.path());
+            assertEquals(ownerType, context.ownerType());
+            assertEquals(declaredType.getTypeName(), context.declaredType());
+            assertEquals(0, context.depth());
+            assertTrue(error.getCause() instanceof UnsupportedOperationException);
+        }
+
+        private void assertUnsupportedTypeFallback(Class<?> ownerType,
+                                                   String fieldName) throws ReflectiveOperationException {
+            GeneratorConfig config = GeneratorConfig.builder().objectIgnoreErrors(true).build();
+            Object generated = new ObjectGenerator<>(ownerType, config).generate();
+            var field = ownerType.getDeclaredField(fieldName);
+            field.setAccessible(true);
+
+            assertNull(field.get(generated));
         }
 
 
@@ -939,6 +1058,12 @@ class ObjectGeneratorTest {
         static class WithJdkTypeField {
 
             java.util.Locale locale;
+        }
+
+
+        static class WithObjectField {
+
+            Object value;
         }
 
 
@@ -1004,6 +1129,54 @@ class ObjectGeneratorTest {
             InnerWithString inner;
             int             num;
         }
+
+
+        static class NestedUnsupportedRoot {
+
+            NestedUnsupportedMiddle middle;
+        }
+
+
+        static class NestedUnsupportedMiddle {
+
+            NestedUnsupportedChild child;
+        }
+
+
+        static class NestedUnsupportedChild {
+
+            Runnable task;
+        }
+
+
+        static class ForeignContextRoot {
+
+            ForeignContextChild child;
+        }
+
+
+        static class ForeignContextChild {
+
+            @Randomizer(ForeignContextGenerator.class)
+            String value;
+        }
+
+
+        public static class ForeignContextGenerator implements Generator<String> {
+
+            @Override
+            public String generate() {
+                GenerationFailureContext context = new GenerationFailureContext(
+                    GenerationFailureCategory.ASSIGNMENT,
+                    GenerationOperation.ASSIGN,
+                    "External.path",
+                    ForeignContextGenerator.class,
+                    String.class.getName(),
+                    7,
+                    -1);
+                throw new ObjectGenerationException("foreign failure", context, null);
+            }
+        }
     }
 
     // ── generateClass field.set() failure branches ─────────────────────────────
@@ -1022,7 +1195,23 @@ class ObjectGeneratorTest {
                                                              .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
                                                              .ignoreErrors(true)
                                                              .build();
-            assertDoesNotThrow(() -> new ObjectGenerator<>(Address.class, cfg).generate());
+            Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerationFailurePolicy.class);
+            ListAppender<ILoggingEvent> appender = new ListAppender<>();
+            appender.start();
+            Level previousLevel = logger.getLevel();
+            logger.setLevel(Level.DEBUG);
+            logger.addAppender(appender);
+            try {
+                assertDoesNotThrow(() -> new ObjectGenerator<>(Address.class, cfg).generate());
+                assertTrue(appender.list.stream()
+                                        .anyMatch(event -> event.getFormattedMessage().contains(
+                                            "'Address.houseNumber' (declared type int, depth 0")));
+                assertFalse(appender.list.stream()
+                                         .anyMatch(event -> event.getFormattedMessage().contains("NOT_AN_INT")));
+            } finally {
+                logger.detachAppender(appender);
+                logger.setLevel(previousLevel);
+            }
         }
 
         @Test
@@ -1031,8 +1220,21 @@ class ObjectGeneratorTest {
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
                                                              .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
                                                              .build();
-            assertThrows(ObjectGenerationException.class,
-                         () -> new ObjectGenerator<>(Address.class, cfg).generate());
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(Address.class, cfg).generate());
+
+            assertEquals("Could not set field 'Address.houseNumber' (declared type int, depth 0)",
+                         error.getMessage());
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
+            assertEquals(GenerationOperation.ASSIGN, context.operation());
+            assertEquals("Address.houseNumber", context.path());
+            assertEquals(Address.class, context.ownerType());
+            assertEquals("int", context.declaredType());
+            assertEquals(0, context.depth());
+            assertEquals(-1, context.recordIndex());
+            assertTrue(error.getCause() instanceof IllegalArgumentException);
         }
     }
 }

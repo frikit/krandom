@@ -5,14 +5,112 @@
  */
 package io.github.frikit.krandom.dsl
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeInRange
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotBeBlank
 
 class KrandomDslTest : DescribeSpec({
+
+    describe("configuration alignment and recipes") {
+
+        it("krandomConfig exposes a portable replay recipe") {
+            val config = krandomConfig { seed(42L) }
+            config.seed.asLong shouldBe 42L
+            config.generationRecipe.isPresent shouldBe true
+        }
+
+        it("seed text and construction policy apply through the config scope") {
+            val config = krandomConfig {
+                seed("checkout-fixtures")
+                constructionPolicy(
+                    io.github.frikit.krandom.generator.`object`.ObjectConstructionPolicy.values()[0]
+                )
+            }
+            config.stringSeed.get() shouldBe "checkout-fixtures"
+            config.objectConstructionPolicy shouldBe
+                io.github.frikit.krandom.generator.`object`.ObjectConstructionPolicy.values()[0]
+        }
+
+        it("Kotlin DSL and Java builder produce equivalent seeded fixtures") {
+            val javaConfig = io.github.frikit.krandom.generator.GeneratorConfig.builder()
+                .seed(4242L)
+                .objectOverrideDefaultInitialization(true)
+                .build()
+            val javaFixture = io.github.frikit.krandom.generator.`object`.ObjectGenerator(
+                SamplePerson::class.java, javaConfig).generate()
+
+            val dslFixture = krandom<SamplePerson> {
+                config { seed(4242L) }
+            }
+
+            dslFixture.firstName shouldBe javaFixture.firstName
+            dslFixture.lastName shouldBe javaFixture.lastName
+            dslFixture.email shouldBe javaFixture.email
+            dslFixture.age shouldBe javaFixture.age
+        }
+    }
+
+    describe("typed property rules") {
+
+        it("applies a property-reference rule") {
+            val person = krandom<SamplePerson> {
+                rule(SamplePerson::firstName) { "Ada" }
+                rule(SamplePerson::age) { 30 }
+            }
+            person.firstName shouldBe "Ada"
+            person.age shouldBe 30
+        }
+
+        it("applies property-reference rules to immutable data classes") {
+            val account = krandom<TypedAccount> {
+                rule(TypedAccount::owner) { "grace" }
+            }
+            account.owner shouldBe "grace"
+            account.balance shouldNotBe null
+        }
+
+        it("excludes a property through a type-safe reference") {
+            val person = krandom<SamplePerson> {
+                exclude(SamplePerson::email)
+            }
+            person.email shouldBe ""
+        }
+
+        it("rejects duplicate rules for the same property at registration") {
+            val failure = shouldThrow<IllegalArgumentException> {
+                krandom<SamplePerson> {
+                    rule(SamplePerson::firstName) { "Ada" }
+                    rule("firstName") { "Grace" }
+                }
+            }
+            failure.message shouldContain "Duplicate rule for field 'firstName'"
+        }
+
+        it("rejects duplicate type rules at registration") {
+            val failure = shouldThrow<IllegalArgumentException> {
+                krandom<SamplePerson> {
+                    ruleForType(String::class.java) { "first" }
+                    ruleForType(String::class.java) { "second" }
+                }
+            }
+            failure.message shouldContain "Duplicate type rule"
+        }
+
+        it("rejects unknown field rules before generation") {
+            val failure = shouldThrow<IllegalArgumentException> {
+                krandom<SamplePerson> {
+                    rule("noSuchField") { "value" }
+                }
+            }
+            failure.message shouldContain "noSuchField"
+            failure.message shouldContain "known fields"
+        }
+    }
 
     describe("krandom") {
 
@@ -176,6 +274,11 @@ class SamplePerson {
     var email: String = ""
     var age: Int = 0
 }
+
+data class TypedAccount(
+    val owner: String,
+    val balance: Long
+)
 
 class NestedPojo {
     var name: String = ""

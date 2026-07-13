@@ -5,12 +5,11 @@
  */
 package io.github.frikit.krandom.generator.weather;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale} that has a
  * {@code krandom/weather/<locale>.txt} resource. Locales without a file fall back to the bundled
  * default (English) conditions. Custom providers can be added via
- * {@link #register(WeatherDataProvider)}.
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p><b>Lookup order:</b> exact {@code language_COUNTRY} match, then language-only match, then
  * {@code null}.
@@ -34,23 +33,13 @@ public final class WeatherDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/weather/" + supportedLocale.resourcePrefix() + ".txt";
-            if (WeatherDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (WeatherDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInWeatherDataProvider(supportedLocale));
             }
         }
     }
 
     private WeatherDataRegistry() {
-    }
-
-    /**
-     * Registers a custom weather data provider, replacing any provider for the same locale key.
-     *
-     * @param provider the provider to register; must not be {@code null}
-     */
-    public static void register(WeatherDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
-        putProvider(provider);
     }
 
     /**
@@ -90,17 +79,14 @@ public final class WeatherDataRegistry {
      * Returns an unmodifiable snapshot of all currently registered locale keys.
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
+
 
     private static void putProvider(WeatherDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 }

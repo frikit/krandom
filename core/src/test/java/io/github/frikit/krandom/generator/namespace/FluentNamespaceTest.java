@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.namespace;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
 import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
@@ -20,6 +21,7 @@ import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.TimezoneGenerator;
 import io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator;
 import io.github.frikit.krandom.generator.finance.AbaRoutingGenerator;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.BankAccountGenerator;
 import io.github.frikit.krandom.generator.finance.BankCountryGenerator;
 import io.github.frikit.krandom.generator.finance.BankNameGenerator;
@@ -29,12 +31,14 @@ import io.github.frikit.krandom.generator.finance.BicGenerator;
 import io.github.frikit.krandom.generator.finance.CardExpirationGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
 import io.github.frikit.krandom.generator.finance.CryptoAddressGenerator;
+import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
 import io.github.frikit.krandom.generator.finance.CusipGenerator;
 import io.github.frikit.krandom.generator.finance.EinGenerator;
 import io.github.frikit.krandom.generator.finance.IbanGenerator;
 import io.github.frikit.krandom.generator.finance.IsinGenerator;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;
+import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.identifier.EanGenerator;
 import io.github.frikit.krandom.generator.identifier.HashGenerator;
 import io.github.frikit.krandom.generator.identifier.IdentifierMaskGenerator;
@@ -94,6 +98,7 @@ import io.github.frikit.krandom.generator.user.SeniorityGenerator;
 import io.github.frikit.krandom.generator.user.UsernameGenerator;
 import io.github.frikit.krandom.generator.user.BirthdayGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -111,7 +116,10 @@ class FluentNamespaceTest {
     @Test
     @DisplayName("person namespace generates all values")
     void personNamespace() {
-        PersonGenerators p = Generators.person();
+        PersonGenerators p = Generators.person(GeneratorConfig.builder()
+                                                               .nationalIdSafetyPolicy(
+                                                                   NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                               .build());
         assertNotNull(p.fullName().generate());
         assertNotNull(p.firstName().generate());
         assertNotNull(p.lastName().generate());
@@ -165,9 +173,18 @@ class FluentNamespaceTest {
     // ── Finance namespace ────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("finance namespace generates all values")
+    @DisplayName("finance namespace generates all values with explicit compatibility policies")
     void financeNamespace() {
-        FinanceGenerators f = Generators.finance();
+        FinanceGenerators f = Generators.finance(GeneratorConfig.builder()
+                                                                 .bankingSafetyPolicy(
+                                                                     BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .businessTaxIdentifierSafetyPolicy(
+                                                                     BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .cryptoAddressSafetyPolicy(
+                                                                     CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .securitiesIdentifierSafetyPolicy(
+                                                                     SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                 .build());
         assertNotNull(f.creditCard().generate());
         assertNotNull(f.creditCardInfo().generate());
         assertNotNull(f.cardExpiration().generate());
@@ -328,6 +345,10 @@ class FluentNamespaceTest {
         GeneratorConfig seeded = GeneratorConfig.builder()
             .locale(Locale.GERMANY)
             .seed(987654321L)
+            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .build();
 
         DateTimeGenerators datetime = Generators.datetime(seeded);
@@ -419,6 +440,8 @@ class FluentNamespaceTest {
         GeneratorConfig seeded = GeneratorConfig.builder()
             .locale(Locale.US)
             .seed(2468L)
+            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
             .build();
         GeneratorConfig german = seeded.toBuilder().locale(Locale.GERMANY).build();
         GeneratorConfig french = seeded.toBuilder().locale(Locale.FRANCE).build();

@@ -20,6 +20,7 @@ import io.github.frikit.krandom.generator.user.SuffixGenerator;
 import io.github.frikit.krandom.generator.user.TitleGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -65,6 +66,7 @@ class LocaleDataBundleTest {
                                                 .locale(locale)
                                                 .registryContext(context)
                                                 .seed(7L)
+                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                 .build();
 
         assertEquals("Mateo", new FirstNameGenerator(config).generate(Gender.MALE));
@@ -85,44 +87,6 @@ class LocaleDataBundleTest {
         assertEquals("Avenida", streets.generateStreetSuffix(false));
 
         assertEquals("MX-123", new NationalIdGenerator(config).generate());
-    }
-
-    @Test
-    @DisplayName("global bundle registration makes a new locale available through normal constructors")
-    void registersGlobally() {
-        Locale locale = Locale.of("cy", "GB");
-        LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
-                                                  .firstNames(new String[] { "Dafydd" }, new String[] { "Carys" })
-                                                  .lastNames("Jones")
-                                                  .cities("Caerdydd")
-                                                  .states(new String[] { "Cymru" }, new String[] { "CY" })
-                                                  .countries("Y Deyrnas Unedig")
-                                                  .titles("Dr")
-                                                  .suffixes("PhD")
-                                                  .professions("Peiriannydd")
-                                                  .streetAddress(new String[] { "Ddraig" },
-                                                                 new String[] { "Rd" },
-                                                                 new String[] { "Road" })
-                                                  .nationalIdProvider(new FixedNationalIdProvider(locale, "CY-777"))
-                                                  .build();
-
-        bundle.registerGlobal();
-
-        assertTrue(DataRegistryContext.globalDefault().isFirstNameRegistered(locale));
-        assertTrue(DataRegistryContext.globalDefault().isNationalIdRegistered(locale));
-        assertEquals("Dafydd", new FirstNameGenerator(locale).generate(Gender.MALE));
-        assertEquals("Jones", new LastNameGenerator(locale).generate());
-        assertEquals("Caerdydd", new CityGenerator(locale).generate());
-        assertEquals("Cymru", new StateGenerator(locale).generate());
-        assertEquals("Y Deyrnas Unedig", new CountryGenerator(locale).generate());
-        assertEquals("Dr", new TitleGenerator(GeneratorConfig.builder().locale(locale).seed(1L).build()).generate());
-        assertEquals("PhD", new SuffixGenerator(GeneratorConfig.builder().locale(locale).seed(1L).build()).generate());
-        assertEquals("Peiriannydd", new ProfessionGenerator(GeneratorConfig.builder().locale(locale).seed(1L).build()).generate());
-        assertEquals("CY-777", new NationalIdGenerator(locale, 1L).generate());
-
-        StreetAddressGenerator streets = new StreetAddressGenerator(GeneratorConfig.builder().locale(locale).seed(1L).build());
-        assertEquals("Ddraig", streets.generateStreetName());
-        assertEquals("Rd", streets.generateStreetSuffix());
     }
 
     @Test
@@ -212,38 +176,6 @@ class LocaleDataBundleTest {
         assertEquals("Québec", new StateGenerator(config).generate());
         assertEquals("Québec", new StateGenerator(config).generate(true));
         assertEquals("Architecte", new ProfessionGenerator(config).generate());
-    }
-
-    @Test
-    @DisplayName("partial global registration leaves undefined provider families untouched")
-    void partialGlobalRegistrationLeavesMissingFamiliesUnregistered() {
-        Locale locale = Locale.of("gd", "GB");
-        LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
-                                                  .countries("Alba")
-                                                  .build();
-
-        bundle.registerGlobal();
-
-        assertTrue(DataRegistryContext.globalDefault().isCountryRegistered(locale));
-        assertFalse(DataRegistryContext.globalDefault().isCityRegistered(locale));
-        assertEquals("Alba", new CountryGenerator(locale).generate());
-    }
-
-    @Test
-    @DisplayName("global registration also covers gender-only bundles without country data")
-    void globalRegistrationSupportsGenderWithoutCountry() {
-        Locale locale = Locale.of("br", "FR");
-        LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
-                                                  .genderLabels("Paotr", "Plac'h")
-                                                  .build();
-
-        bundle.registerGlobal();
-
-        assertTrue(DataRegistryContext.globalDefault().isGenderRegistered(locale));
-        assertFalse(DataRegistryContext.globalDefault().isCountryRegistered(locale));
-        assertTrue(Set.of("Paotr", "Plac'h").contains(new GenderGenerator(
-            GeneratorConfig.builder().locale(locale).seed(2L).build()
-        ).generate()));
     }
 
     private static final class FixedNationalIdProvider implements NationalIdProvider {

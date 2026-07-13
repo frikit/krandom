@@ -87,36 +87,6 @@ class MeasurementGeneratorTest {
     @Nested
     @DisplayName("MeasurementDataRegistry")
     class Registry {
-
-        @Test
-        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
-        void registry() {
-            assertTrue(MeasurementDataRegistry.isRegistered(RU));
-            assertTrue(MeasurementDataRegistry.isRegistered(Locale.of("ru"))); // language-only
-            assertFalse(MeasurementDataRegistry.isRegistered(Locale.of("is", "IS")));
-            assertFalse(MeasurementDataRegistry.isRegistered(null));
-
-            assertNotNull(MeasurementDataRegistry.forLocale(RU));
-            assertNotNull(MeasurementDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
-            assertNull(MeasurementDataRegistry.forLocale(Locale.of("is")));
-            assertNull(MeasurementDataRegistry.forLocale(null));
-            assertTrue(MeasurementDataRegistry.registeredKeys().contains("ru_RU"));
-
-            MeasurementDataProvider custom = new MeasurementDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getUnits() {
-                    return List.of("Furlong");
-                }
-            };
-            MeasurementDataRegistry.register(custom);
-            assertEquals("Furlong", new MeasurementGenerator(Locale.of("zz")).generate());
-            assertThrows(NullPointerException.class, () -> MeasurementDataRegistry.register(null));
-        }
     }
 
     @Nested

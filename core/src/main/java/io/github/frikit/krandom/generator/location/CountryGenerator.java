@@ -26,7 +26,7 @@ import java.util.Random;
  *
  * <p>Built-in country-name generation follows the full {@link io.github.frikit.krandom.generator.locale.SupportedLocale}
  * catalog. Additional locales — and overrides of built-in ones — can be registered at runtime
- * via {@link CountryDataRegistry#register(CountryDataProvider)}.
+ * via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  */
 public final class CountryGenerator implements Generator<String> {
 

@@ -323,17 +323,6 @@ public final class Generators {
      * @param <T> generated value type
      * @return constant generator
      */
-    public static <T> ConstantGenerator<T> constant(T value) {
-        return new ConstantGenerator<>(value);
-    }
-
-    /**
-     * Returns a generator that always returns the same value.
-     *
-     * @param value value returned by every generated call; may be {@code null}
-     * @param <T> generated value type
-     * @return constant generator
-     */
     public static <T> ConstantGenerator<T> ofConstant(T value) {
         return new ConstantGenerator<>(value);
     }
@@ -1622,10 +1611,13 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces Brazilian company tax IDs (CNPJ), e.g. {@code "12.345.678/0001-95"}.
+     * Returns a CNPJ generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit corporate tax-identifier safety policy to generate
+     * an isolated compatibility fixture.
      */
     public static CnpjGenerator ofCnpj() {
-        return new CnpjGenerator();
+        return new CnpjGenerator(GeneratorConfig.defaults());
     }
 
     /**
@@ -1636,19 +1628,21 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces Brazilian individual tax IDs (CPF), e.g. {@code "123.456.789-09"}.
+     * Returns a fail-closed generator for Brazilian individual tax IDs (CPF).
      *
-     * <p>This is a convenience alias for {@link #ofNationalId(Locale)} with the {@code pt_BR} locale.
+     * <p>Use {@link #ofNationalId(GeneratorConfig)} with
+     * {@code nationalIdSafetyPolicy(REALISTIC_UNCLASSIFIED)} only for isolated compatibility
+     * fixtures.
      */
     public static NationalIdGenerator ofCpf() {
-        return new NationalIdGenerator(Locale.of("pt", "BR"));
+        return ofNationalId(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).build());
     }
 
     /**
-     * Returns a CPF generator with a fixed seed for reproducible output.
+     * Returns a fail-closed seeded CPF generator.
      */
     public static NationalIdGenerator ofCpf(long seed) {
-        return new NationalIdGenerator(Locale.of("pt", "BR"), seed);
+        return ofNationalId(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).seed(seed).build());
     }
 
     /**
@@ -1729,10 +1723,13 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces generic passport numbers (e.g. {@code "A12345678"}).
+     * Returns a passport generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit identity-document safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static PassportGenerator ofPassport() {
-        return new PassportGenerator();
+        return new PassportGenerator(GeneratorConfig.defaults());
     }
 
     /**
@@ -1743,10 +1740,13 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces generic driving-license numbers (e.g. {@code "AB123456"}).
+     * Returns a driving-license generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit identity-document safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static DrivingLicenseGenerator ofDrivingLicense() {
-        return new DrivingLicenseGenerator();
+        return new DrivingLicenseGenerator(GeneratorConfig.defaults());
     }
 
     /**
@@ -2047,31 +2047,34 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces SWIFT/BIC codes.
+     * Returns a fail-closed generator for SWIFT/BIC codes.
+     *
+     * <p>Use the {@link BicGenerator#BicGenerator(GeneratorConfig)} constructor and explicitly
+     * select the banking safety policy when compatibility fixtures require plausible output.
      */
     public static BicGenerator ofBic() {
-        return new BicGenerator();
+        return new BicGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces BBAN values.
+     * Returns a fail-closed generator for BBAN values.
      */
     public static BbanGenerator ofBban() {
-        return new BbanGenerator();
+        return new BbanGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces IBAN values.
+     * Returns a fail-closed generator for IBAN values.
      */
     public static IbanGenerator ofIban() {
-        return new IbanGenerator();
+        return new IbanGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces ABA routing numbers.
+     * Returns a fail-closed generator for ABA routing numbers.
      */
     public static AbaRoutingGenerator ofAbaRouting() {
-        return new AbaRoutingGenerator();
+        return new AbaRoutingGenerator(GeneratorConfig.defaults());
     }
 
     /**
@@ -2082,24 +2085,24 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces account numbers/names/transaction types.
+     * Returns a fail-closed generator for account numbers, names, and transaction types.
      */
     public static BankAccountGenerator ofBankAccount() {
-        return new BankAccountGenerator();
+        return new BankAccountGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces structured bank payloads.
+     * Returns a fail-closed generator for structured bank payloads.
      */
     public static BankInfoGenerator ofBankInfo() {
-        return new BankInfoGenerator();
+        return new BankInfoGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces structured bank payloads for a specific locale.
+     * Returns a fail-closed generator for structured bank payloads in a specific locale.
      */
     public static BankInfoGenerator ofBankInfo(Locale locale) {
-        return new BankInfoGenerator(locale);
+        return new BankInfoGenerator(GeneratorConfig.builder().locale(locale).build());
     }
 
     /**
@@ -2243,45 +2246,88 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces valid ISIN codes.
+     * Returns an ISIN generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit securities-identifier safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static IsinGenerator ofIsin() {
-        return new IsinGenerator();
+        return new IsinGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces CUSIP values with valid check digits.
+     * Returns an ISIN generator configured by the given {@link GeneratorConfig}.
+     */
+    public static IsinGenerator ofIsin(GeneratorConfig config) {
+        return new IsinGenerator(config);
+    }
+
+    /**
+     * Returns a CUSIP generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit securities-identifier safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static CusipGenerator ofCusip() {
-        return new CusipGenerator();
+        return new CusipGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces US EIN values.
+     * Returns a CUSIP generator configured by the given {@link GeneratorConfig}.
+     */
+    public static CusipGenerator ofCusip(GeneratorConfig config) {
+        return new CusipGenerator(config);
+    }
+
+    /**
+     * Returns an EIN generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit corporate tax-identifier safety policy to generate
+     * an isolated compatibility fixture.
      */
     public static EinGenerator ofEin() {
-        return new EinGenerator();
+        return new EinGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a generator that produces crypto wallet addresses.
+     * Returns an EIN generator configured by the given {@link GeneratorConfig}.
+     */
+    public static EinGenerator ofEin(GeneratorConfig config) {
+        return new EinGenerator(config);
+    }
+
+    /**
+     * Returns a crypto-address generator using the default configuration, which fails closed.
+     *
+     * <p>Pass a configuration with an explicit crypto-address safety policy to generate an
+     * isolated compatibility fixture.
      */
     public static CryptoAddressGenerator ofCryptoAddress() {
-        return new CryptoAddressGenerator();
+        return new CryptoAddressGenerator(GeneratorConfig.defaults());
     }
 
     /**
-     * Returns a locale-aware national-id generator.
+     * Returns a crypto-address generator configured by the given {@link GeneratorConfig}.
+     */
+    public static CryptoAddressGenerator ofCryptoAddress(GeneratorConfig config) {
+        return new CryptoAddressGenerator(config);
+    }
+
+    /**
+     * Returns a fail-closed locale-aware national-ID generator.
+     *
+     * <p>Use {@link #ofNationalId(GeneratorConfig)} and explicitly select the national-ID safety
+     * policy when compatibility fixtures require realistic-looking output.
      */
     public static NationalIdGenerator ofNationalId(Locale locale) {
-        return new NationalIdGenerator(locale);
+        return new NationalIdGenerator(GeneratorConfig.builder().locale(locale).build());
     }
 
     /**
-     * Returns a locale-aware seeded national-id generator.
+     * Returns a fail-closed seeded national-ID generator.
      */
     public static NationalIdGenerator ofNationalId(Locale locale, long seed) {
-        return new NationalIdGenerator(locale, seed);
+        return new NationalIdGenerator(GeneratorConfig.builder().locale(locale).seed(seed).build());
     }
 
     /**
@@ -2658,43 +2704,24 @@ public final class Generators {
     /**
      * Returns a generator that picks one random element from the given source list.
      */
-    public static <T> PickGenerator<T> pickFrom(List<T> source) {
+    public static <T> PickGenerator<T> pick(List<T> source) {
         return new PickGenerator<>(source);
     }
 
     /**
-     * Chance-style alias for {@link #pickFrom(List)}.
-     */
-    public static <T> PickGenerator<T> pick(List<T> source) {
-        return pickFrom(source);
-    }
-
-    /**
      * Returns a generator that picks {@code count} distinct elements without replacement.
+     *
+     * @since 1.6
      */
-    public static <T> PickSetGenerator<T> pickSetFrom(List<T> source, int count) {
+    public static <T> PickSetGenerator<T> pickSet(List<T> source, int count) {
         return new PickSetGenerator<>(source, count);
-    }
-
-    /**
-     * Chance-style alias for {@link #pickSetFrom(List, int)}.
-     */
-    public static <T> PickSetGenerator<T> pickset(List<T> source, int count) {
-        return pickSetFrom(source, count);
     }
 
     /**
      * Returns a generator that returns a shuffled copy of the given list.
      */
-    public static <T> ShuffleGenerator<T> shuffleOf(List<T> source) {
-        return new ShuffleGenerator<>(source);
-    }
-
-    /**
-     * Chance-style alias for {@link #shuffleOf(List)}.
-     */
     public static <T> ShuffleGenerator<T> shuffle(List<T> source) {
-        return shuffleOf(source);
+        return new ShuffleGenerator<>(source);
     }
 
     /**
@@ -2709,13 +2736,6 @@ public final class Generators {
      */
     public static <T> UniqueGenerator<T> unique(Generator<T> source) {
         return new UniqueGenerator<>(source);
-    }
-
-    /**
-     * DataFaker-style alias for {@link #unique(Generator)}.
-     */
-    public static <T> UniqueGenerator<T> uniqueValues(Generator<T> source) {
-        return unique(source);
     }
 
     /**
@@ -2740,7 +2760,7 @@ public final class Generators {
         try {
             return uri.toURL();
         } catch (MalformedURLException | IllegalArgumentException e) {
-            throw new IllegalStateException("Generated URI could not be converted to URL: " + uri, e);
+            throw new IllegalStateException("Generated URI could not be converted to URL", e);
         }
     }
 

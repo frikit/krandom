@@ -5,12 +5,11 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale} that <em>has</em> a
  * {@code krandom/bloodtypes/<locale>.txt} resource. Locales without a file are intentionally not
  * registered, so {@link BloodTypeGenerator} falls back to the bundled global distribution. Custom
- * providers can be added at any time via {@link #register(BloodTypeDataProvider)}.
+ * providers can be added at any time via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p><b>Lookup order</b>
  * <ol>
@@ -38,23 +37,13 @@ public final class BloodTypeDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/bloodtypes/" + supportedLocale.resourcePrefix() + ".txt";
-            if (BloodTypeDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (BloodTypeDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInBloodTypeDataProvider(supportedLocale));
             }
         }
     }
 
     private BloodTypeDataRegistry() {
-    }
-
-    /**
-     * Registers a custom blood-type data provider, replacing any provider for the same locale key.
-     *
-     * @param provider the provider to register; must not be {@code null}
-     */
-    public static void register(BloodTypeDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
-        putProvider(provider);
     }
 
     /**
@@ -94,17 +83,13 @@ public final class BloodTypeDataRegistry {
      * Returns an unmodifiable snapshot of all currently registered locale keys.
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
 
     private static void putProvider(BloodTypeDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 }

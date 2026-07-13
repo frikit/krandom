@@ -53,7 +53,7 @@ Generator<Integer> rare = Generators.ofInt(0, 1_000_000)
 
 ```java
 List<String> colors = List.of("red", "green", "blue");
-String one = Generators.pickFrom(colors).generate();
-List<String> two = Generators.pickSetFrom(colors, 2).generate();
-List<String> shuffled = Generators.shuffleOf(colors).generate();
+String one = Generators.pick(colors).generate();
+List<String> two = Generators.pickSet(colors, 2).generate();
+List<String> shuffled = Generators.shuffle(colors).generate();
 ```

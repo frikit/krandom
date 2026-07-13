@@ -16,6 +16,9 @@ import java.util.Random;
 
 /**
  * Generates structured payment payloads derived from coherent invoice data.
+ *
+ * <p>When banking-identifier generation is disabled, bank-method payloads retain only an opaque
+ * test reference and do not construct an account or routing number.
  */
 public final class PaymentInfoGenerator implements Generator<PaymentInfo> {
 
@@ -114,6 +117,9 @@ public final class PaymentInfoGenerator implements Generator<PaymentInfo> {
     private String instrumentReference(String method) {
         if ("CARD".equals(method)) {
             return "**** **** **** " + tailDigits(creditCardInfoGenerator.generate().number(), 4);
+        }
+        if (config.getBankingSafetyPolicy() == BankingSafetyPolicy.DISABLED) {
+            return "ACCT-TEST-" + String.format(Locale.ROOT, "%04d", random.nextInt(10_000));
         }
         return "ACCT-" + tailDigits(bankInfoGenerator.generate().accountNumber(), 4);
     }

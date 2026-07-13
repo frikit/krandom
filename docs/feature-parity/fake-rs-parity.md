@@ -77,7 +77,7 @@ This section is the current source of truth for Java-core parity status. Some le
 | UUID                                                | ✅ Exists    | `UUIDGenerator` supports v4/v5/v7 (fake-rs commonly v4 via feature flag).              |
 | CurrencyCode / Name / Symbol                        | ✅ Exists    | `CurrencyGenerator` supports all three.                                                |
 | Credit card number / expiry / CVV                   | ✅ Exists    | `CreditCardGenerator` + `CardExpirationGenerator`.                                     |
-| BIC / ISIN                                          | ✅ Exists    | `BicGenerator` and `IsinGenerator`.                                                    |
+| BIC / ISIN                                          | 🟡 Configured-only identifiers | `BicGenerator` requires explicit banking compatibility; `IsinGenerator` requires explicit securities-identifier compatibility. |
 | CompanyName / Industry / Profession                 | ✅ Exists    | Implemented; `ProfessionGenerator` is locale-extensible.                               |
 | JobField / JobSeniority / JobTitle(Position)        | ✅ Exists    | `JobFieldGenerator`, `SeniorityGenerator`, `PositionGenerator`.                        |
 | JobType                                             | ✅ Exists    | `JobTypeGenerator`.                                                                    |
@@ -205,7 +205,7 @@ notation. The Color generator is in the internet module, which is unusual.
 | Feature               | Fake-rs Support      | krandom Status | Implementation Priority | Notes                       |
 |-----------------------|----------------------|----------------|-------------------------|-----------------------------|
 | **Banking & Finance** |
-| BIC/SWIFT             | ✅ `Bic()`            | ✅ Yes          | ✓ DONE                  | `BicGenerator`              |
+| BIC/SWIFT             | ✅ `Bic()`            | 🟡 Configured-only | ✓ DONE               | `BicGenerator` with explicit banking compatibility policy |
 | ISIN                  | ✅ `Isin()`           | No           | LOW                     | International Securities ID |
 | **Currency**          |
 | Currency code         | ✅ `CurrencyCode()`   | ✅ Yes          | ✓ DONE                  | ISO 4217 codes              |

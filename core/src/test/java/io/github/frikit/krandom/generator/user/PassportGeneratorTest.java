@@ -18,21 +18,36 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("PassportGenerator")
+@SuppressWarnings("removal")
 class PassportGeneratorTest {
 
     @RepeatedTest(200)
-    @DisplayName("output matches the generic passport format")
+    @DisplayName("deprecated no-argument constructor preserves the generic passport format")
     void formatMatches() {
-        String passport = new PassportGenerator().generate();
+        String passport = new PassportGenerator(GeneratorConfig.builder() .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(passport.matches("[A-Z][0-9]{8}"), passport);
+    }
+
+    @Test
+    @DisplayName("legacy no-argument constructor is removed in v2")
+    void legacyConstructorIsRemoved() {
+        assertThrows(NoSuchMethodException.class, () -> PassportGenerator.class.getConstructor());
     }
 
     @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
-        List<String> a = new PassportGenerator(GeneratorConfig.builder().seed(77L).build()).generateList(25);
-        List<String> b = new PassportGenerator(GeneratorConfig.builder().seed(77L).build()).generateList(25);
+        List<String> a = new PassportGenerator(realisticConfig(77L)).generateList(25);
+        List<String> b = new PassportGenerator(realisticConfig(77L)).generateList(25);
         assertEquals(a, b);
+    }
+
+    @Test
+    @DisplayName("configured generation fails closed by default")
+    void configuredGenerationFailsClosedByDefault() {
+        assertThrows(IllegalStateException.class,
+                     () -> new PassportGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofPassport().generate());
     }
 
     @Test
@@ -42,11 +57,19 @@ class PassportGeneratorTest {
     }
 
     @Test
-    @DisplayName("facade ofPassport produces valid passport numbers and is seed-reproducible")
+    @DisplayName("facade requires an explicit realistic compatibility policy")
     void facade() {
-        assertTrue(Generators.ofPassport().generate().matches("[A-Z][0-9]{8}"));
+        assertThrows(IllegalStateException.class, () -> Generators.ofPassport().generate());
+        assertTrue(Generators.ofPassport(realisticConfig(1L)).generate().matches("[A-Z][0-9]{8}"));
         assertEquals(
-            Generators.ofPassport(GeneratorConfig.builder().seed(1L).build()).generateList(10),
-            Generators.ofPassport(GeneratorConfig.builder().seed(1L).build()).generateList(10));
+            Generators.ofPassport(realisticConfig(1L)).generateList(10),
+            Generators.ofPassport(realisticConfig(1L)).generateList(10));
+    }
+
+    private static GeneratorConfig realisticConfig(long seed) {
+        return GeneratorConfig.builder()
+                              .seed(seed)
+                              .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build();
     }
 }

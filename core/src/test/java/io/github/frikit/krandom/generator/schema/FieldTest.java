@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,6 +45,17 @@ class FieldTest {
         assertNotNull(field.bind("person.full_name").generate(ctx));
         assertNotNull(field.call("internet.url").generate(ctx));
         assertTrue(field.supportedReferences().contains("text.word"));
+    }
+
+    @Test
+    @DisplayName("reference membership includes aliases without resolving")
+    void referenceMembership() {
+        Field field = new Field();
+        assertTrue(field.hasReference("person.full_name"));
+        assertTrue(field.hasReference("email"));
+        assertFalse(field.hasReference("missing.reference"));
+        assertFalse(field.hasReference(" "));
+        assertFalse(field.hasReference(null));
     }
 
     @Test

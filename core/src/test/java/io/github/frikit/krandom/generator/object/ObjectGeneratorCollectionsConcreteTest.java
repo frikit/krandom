@@ -28,6 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -93,10 +94,19 @@ class ObjectGeneratorCollectionsConcreteTest {
         assertEquals(CustomStringIntMap.class, value.customMap.getClass());
         assertTrue(value.customList.size() >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
         assertTrue(value.customList.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
+        assertFalse(value.customQueue.isEmpty());
         assertTrue(value.customQueue.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
+        assertFalse(value.customMap.isEmpty());
         assertTrue(value.customMap.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
         assertTrue(value.customSet.size() > 0
                    && value.customSet.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
+        value.customList.forEach(item -> assertTrue(item instanceof String));
+        value.customSet.forEach(item -> assertTrue(item instanceof String));
+        value.customQueue.forEach(item -> assertTrue(item instanceof String));
+        value.customMap.forEach((key, item) -> {
+            assertTrue(key instanceof String);
+            assertTrue(item instanceof Integer);
+        });
     }
 
     @Test

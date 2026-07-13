@@ -16,8 +16,9 @@ permalink: /getting-started/
 Public coordinates on Maven Central:
 
 - `io.github.frikit:krandom-core`
+- `io.github.frikit:krandom-bom` (from `1.6.0`, aligns all module versions)
 - `io.github.frikit:krandom-jackson`
-- `io.github.frikit:krandom-junit` (from `1.4.0`)
+- `io.github.frikit:krandom-junit` (from `1.2.0`)
 - `io.github.frikit:krandom-spring-boot-starter`
 - `io.github.frikit:krandom-kotest-extensions`
 - `io.github.frikit:krandom-kotlin-dsl`
@@ -39,7 +40,7 @@ dependencies {
     implementation("io.github.frikit:krandom-spring-boot-starter:1.5.0")
     testImplementation("io.github.frikit:krandom-kotest-extensions:1.5.0")
     testImplementation("io.github.frikit:krandom-kotlin-dsl:1.5.0")
-    testImplementation("io.github.frikit:krandom-junit:1.5.0") // JUnit 5 seed extension, from 1.4.0
+    testImplementation("io.github.frikit:krandom-junit:1.5.0") // JUnit 5 seed extension, from 1.2.0
 
 }
 ```
@@ -53,6 +54,8 @@ Maven:
   <version>1.5.0</version>
 </dependency>
 ```
+
+Starting with 1.6.0, import `io.github.frikit:krandom-bom` in Gradle or Maven and omit versions from individual kRandom modules. The repository consumer examples verify that development path.
 
 ## First usage
 

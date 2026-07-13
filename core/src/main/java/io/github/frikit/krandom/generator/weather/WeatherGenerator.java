@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.weather;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,8 +18,10 @@ import java.util.Random;
  * Generates locale-aware weather conditions, e.g. {@code "Sunny"} for English or {@code "Солнечно"}
  * for Russian.
  *
- * <p>Condition names are resolved from {@link WeatherDataRegistry} for the configured locale; locales
- * without a built-in file fall back to the bundled English conditions.
+ * <p>Condition names are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link WeatherDataRegistry}. Locales without a built-in file fall back to bundled English
+ * conditions.
  *
  * <pre>{@code
  *   String en = new WeatherGenerator().generate();                    // e.g. "Rainy"
@@ -57,7 +60,8 @@ public final class WeatherGenerator implements Generator<String> {
      */
     public WeatherGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        WeatherDataProvider provider = WeatherDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        WeatherDataProvider provider = registryContext.weatherProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

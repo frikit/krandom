@@ -87,36 +87,6 @@ class FinancialTermGeneratorTest {
     @Nested
     @DisplayName("FinancialTermDataRegistry")
     class Registry {
-
-        @Test
-        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
-        void registry() {
-            assertTrue(FinancialTermDataRegistry.isRegistered(RU));
-            assertTrue(FinancialTermDataRegistry.isRegistered(Locale.of("ru"))); // language-only
-            assertFalse(FinancialTermDataRegistry.isRegistered(Locale.of("is", "IS")));
-            assertFalse(FinancialTermDataRegistry.isRegistered(null));
-
-            assertNotNull(FinancialTermDataRegistry.forLocale(RU));
-            assertNotNull(FinancialTermDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
-            assertNull(FinancialTermDataRegistry.forLocale(Locale.of("is")));
-            assertNull(FinancialTermDataRegistry.forLocale(null));
-            assertTrue(FinancialTermDataRegistry.registeredKeys().contains("ru_RU"));
-
-            FinancialTermDataProvider custom = new FinancialTermDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getTerms() {
-                    return List.of("Arbitrage");
-                }
-            };
-            FinancialTermDataRegistry.register(custom);
-            assertEquals("Arbitrage", new FinancialTermGenerator(Locale.of("zz")).generate());
-            assertThrows(NullPointerException.class, () -> FinancialTermDataRegistry.register(null));
-        }
     }
 
     @Nested

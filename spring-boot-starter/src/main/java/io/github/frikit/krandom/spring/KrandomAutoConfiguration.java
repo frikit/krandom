@@ -12,6 +12,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import io.github.frikit.krandom.generator.GenerationRecipe;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.ZoneId;
+import java.util.Base64;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 
@@ -37,15 +43,60 @@ public class KrandomAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public GeneratorConfig generatorConfig(KrandomProperties properties) {
-        GeneratorConfig.Builder builder = GeneratorConfig.builder();
+        GeneratorConfig.Builder builder;
         GeneratorConfig defaults = GeneratorConfig.defaults();
 
-        if (properties.getSeed() != null) {
-            builder.seed(properties.getSeed());
+        if (properties.getRecipe() != null && !properties.getRecipe().isBlank()) {
+            if (properties.getSeed() != null
+                || (properties.getLocale() != null && !properties.getLocale().isBlank())) {
+                throw new IllegalArgumentException(
+                    "Configure krandom.recipe or the individual krandom.seed/krandom.locale "
+                        + "properties, not both: the recipe already carries seed and locale");
+            }
+            builder = parseRecipe(properties.getRecipe()).toGeneratorConfig().toBuilder();
+        } else {
+            builder = GeneratorConfig.builder();
+            if (properties.getSeed() != null) {
+                builder.seed(properties.getSeed());
+            }
+            if (properties.getLocale() != null && !properties.getLocale().isBlank()) {
+                builder.locale(parseLocale(properties.getLocale()));
+            }
         }
 
-        if (properties.getLocale() != null && !properties.getLocale().isBlank()) {
-            builder.locale(parseLocale(properties.getLocale()));
+        if (properties.getClock() != null && !properties.getClock().isBlank()) {
+            builder.clock(parseClock(properties.getClock(), properties.getClockZone()));
+        } else if (properties.getClockZone() != null && !properties.getClockZone().isBlank()) {
+            throw new IllegalArgumentException(
+                "krandom.clock-zone requires krandom.clock to be set");
+        }
+
+        if (properties.getPaymentCardSafetyPolicy() != null) {
+            builder.paymentCardSafetyPolicy(properties.getPaymentCardSafetyPolicy());
+        }
+        if (properties.getPhoneNumberSafetyPolicy() != null) {
+            builder.phoneNumberSafetyPolicy(properties.getPhoneNumberSafetyPolicy());
+        }
+        if (properties.getNationalIdSafetyPolicy() != null) {
+            builder.nationalIdSafetyPolicy(properties.getNationalIdSafetyPolicy());
+        }
+        if (properties.getBankingSafetyPolicy() != null) {
+            builder.bankingSafetyPolicy(properties.getBankingSafetyPolicy());
+        }
+        if (properties.getSecuritiesIdentifierSafetyPolicy() != null) {
+            builder.securitiesIdentifierSafetyPolicy(properties.getSecuritiesIdentifierSafetyPolicy());
+        }
+        if (properties.getCryptoAddressSafetyPolicy() != null) {
+            builder.cryptoAddressSafetyPolicy(properties.getCryptoAddressSafetyPolicy());
+        }
+        if (properties.getBusinessTaxIdentifierSafetyPolicy() != null) {
+            builder.businessTaxIdentifierSafetyPolicy(properties.getBusinessTaxIdentifierSafetyPolicy());
+        }
+        if (properties.getIdentityDocumentSafetyPolicy() != null) {
+            builder.identityDocumentSafetyPolicy(properties.getIdentityDocumentSafetyPolicy());
+        }
+        if (properties.getObjectConstructionPolicy() != null) {
+            builder.objectConstructionPolicy(properties.getObjectConstructionPolicy());
         }
 
         if (properties.getObjectMaxDepth() != null) {
@@ -77,6 +128,28 @@ public class KrandomAutoConfiguration {
         }
 
         return builder.build();
+    }
+
+    private static GenerationRecipe parseRecipe(String value) {
+        try {
+            String serialized = value.startsWith("base64:")
+                ? new String(Base64.getUrlDecoder().decode(value.substring("base64:".length())),
+                             StandardCharsets.UTF_8)
+                : value.replace("\\n", "\n");
+            return GenerationRecipe.parse(serialized);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid krandom.recipe: " + e.getMessage(), e);
+        }
+    }
+
+    private static Clock parseClock(String instant, String zone) {
+        try {
+            ZoneId zoneId = zone != null && !zone.isBlank() ? ZoneId.of(zone) : ZoneId.of("UTC");
+            return Clock.fixed(java.time.Instant.parse(instant.trim()), zoneId);
+        } catch (java.time.DateTimeException e) {
+            throw new IllegalArgumentException(
+                "Invalid krandom.clock/krandom.clock-zone: " + e.getMessage(), e);
+        }
     }
 
     private static Locale parseLocale(String tag) {

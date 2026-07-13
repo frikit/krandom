@@ -77,13 +77,15 @@ class BuiltInGeneratorCatalogTest {
     @DisplayName("new number generators validate bounds and support seeding")
     void newNumberGeneratorsValidateBoundsAndSupportSeeding() {
         NumberGenerator number = new NumberGenerator(GeneratorConfig.builder().seed(1L).build());
-        assertTrue(number.generate(20, 10).intValue() >= 10);
+        assertTrue(number.generate(10, 20).intValue() >= 10);
         assertThrows(IllegalArgumentException.class, () -> number.generate(5, 5));
+        assertThrows(IllegalArgumentException.class, () -> number.generate(20, 10));
         assertThrows(NullPointerException.class, () -> new NumberGenerator(null));
         number.reseed(99L);
         assertEquals(new NumberGenerator(99L).generate(), number.generate());
 
-        AtomicIntegerGenerator atomicInteger = new AtomicIntegerGenerator(20, 10, 5L);
+        assertThrows(IllegalArgumentException.class, () -> new AtomicIntegerGenerator(20, 10, 5L));
+        AtomicIntegerGenerator atomicInteger = new AtomicIntegerGenerator(10, 20, 5L);
         assertNotNull(new AtomicIntegerGenerator(GeneratorConfig.builder().seed(3L).build()).generate());
         assertNotNull(new AtomicIntegerGenerator(0, 1).generate());
         int integerValue = atomicInteger.generate().get();
@@ -91,9 +93,9 @@ class BuiltInGeneratorCatalogTest {
         assertThrows(IllegalArgumentException.class, () -> new AtomicIntegerGenerator(1, 1));
         assertThrows(NullPointerException.class, () -> new AtomicIntegerGenerator(null));
         atomicInteger.reseed(123L);
-        assertEquals(new AtomicIntegerGenerator(20, 10, 123L).generate().get(), atomicInteger.generate().get());
+        assertEquals(new AtomicIntegerGenerator(10, 20, 123L).generate().get(), atomicInteger.generate().get());
 
-        AtomicLongGenerator atomicLong = new AtomicLongGenerator(20L, 10L, 5L);
+        AtomicLongGenerator atomicLong = new AtomicLongGenerator(10L, 20L, 5L);
         assertNotNull(new AtomicLongGenerator(GeneratorConfig.builder().seed(3L).build()).generate());
         assertNotNull(new AtomicLongGenerator(0L, 1L).generate());
         long longValue = atomicLong.generate().get();
@@ -101,7 +103,7 @@ class BuiltInGeneratorCatalogTest {
         assertThrows(IllegalArgumentException.class, () -> new AtomicLongGenerator(1L, 1L));
         assertThrows(NullPointerException.class, () -> new AtomicLongGenerator(null));
         atomicLong.reseed(123L);
-        assertEquals(new AtomicLongGenerator(20L, 10L, 123L).generate().get(), atomicLong.generate().get());
+        assertEquals(new AtomicLongGenerator(10L, 20L, 123L).generate().get(), atomicLong.generate().get());
     }
 
     @Test
@@ -215,7 +217,7 @@ class BuiltInGeneratorCatalogTest {
     @DisplayName("misc, network, identifier, and domain randomizers have native replacements")
     void miscNetworkIdentifierAndDomainRandomizersHaveNativeReplacements() {
         assertInstanceOf(Boolean.class, Generators.ofBoolean().generate());
-        assertEquals("fixed", Generators.constant("fixed").generate());
+        assertEquals("fixed", Generators.ofConstant("fixed").generate());
         assertInstanceOf(Locale.class, Generators.ofLocale().generate());
         assertInstanceOf(UUID.class, Generators.ofUuid().generate());
         assertInstanceOf(URI.class, Generators.ofURI().generate());
@@ -253,6 +255,7 @@ class BuiltInGeneratorCatalogTest {
             () -> generatorToUrl.invoke(null, URI.create("relative/path"))
         );
         assertInstanceOf(IllegalStateException.class, generatorFailure.getCause());
+        assertEquals("Generated URI could not be converted to URL", generatorFailure.getCause().getMessage());
 
         Class<?> resolverClass = Class.forName("io.github.frikit.krandom.generator.object.FieldGeneratorResolver");
         Method resolverToUrl = resolverClass.getDeclaredMethod("toUrl", URI.class);
@@ -262,6 +265,7 @@ class BuiltInGeneratorCatalogTest {
             () -> resolverToUrl.invoke(null, URI.create("relative/path"))
         );
         assertInstanceOf(ObjectGenerationException.class, resolverFailure.getCause());
+        assertEquals("Generated URI could not be converted to URL", resolverFailure.getCause().getMessage());
     }
 
     @Test

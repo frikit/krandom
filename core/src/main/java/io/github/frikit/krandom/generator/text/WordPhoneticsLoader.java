@@ -29,7 +29,7 @@ final class WordPhoneticsLoader {
     }
 
     static WordPhonetics load(String resourcePath) {
-        InputStream is = WordPhoneticsLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream is = WordPhoneticsLoader.class.getResourceAsStream("/" + resourcePath);
         if (is == null) {
             throw new IllegalStateException("Word phonetics resource not found: " + resourcePath);
         }

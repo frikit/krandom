@@ -7,6 +7,9 @@ package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationRecipe;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -14,7 +17,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -24,10 +26,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 /**
  * Declarative schema-based record generator.
+ *
+ * <p>When supplied a portable seeded {@link GeneratorConfig}, every value receives a named child
+ * stream derived from its record index and field name. Adding an unrelated schema column therefore
+ * does not perturb existing column values. Caller-owned, secure, and unseeded random sources retain
+ * their documented sequential behavior.
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
@@ -40,6 +48,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     private final GeneratorConfig                  config;
     private final Map<String, SchemaValueProvider> fields;
     private final Random                           random;
+    private final Optional<GenerationRecipe>       generationRecipe;
     private       int                              nextRecordIndex;
 
     @FunctionalInterface
@@ -81,6 +90,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
         this.fields = validateAndCopy(fields);
         this.random = config.createRandom();
+        this.generationRecipe = config.getGenerationRecipe();
         this.nextRecordIndex = 0;
     }
 
@@ -392,7 +402,12 @@ public final class Schema implements Generator<Map<String, Object>> {
             try {
                 properties.put(field, JsonSchemaSupport.copyJsonSchema(entry.getValue().jsonSchema()));
             } catch (RuntimeException ex) {
-                throw new SchemaGenerationException(field, 0, ex);
+                throw new SchemaGenerationException(
+                    field,
+                    -1,
+                    GenerationFailureCategory.SCHEMA_METADATA,
+                    GenerationOperation.EXPORT_SCHEMA,
+                    ex);
             }
         }
 
@@ -402,18 +417,34 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private Map<String, Object> generateAtIndex(int recordIndex) {
-        SchemaContext context = new SchemaContext(config.getLocale(), random, recordIndex);
         Map<String, Object> record = new LinkedHashMap<>(fields.size());
         for (Map.Entry<String, SchemaValueProvider> entry : fields.entrySet()) {
             String name = entry.getKey();
             SchemaValueProvider provider = entry.getValue();
             try {
+                SchemaContext context = new SchemaContext(
+                    config.getLocale(), randomForField(recordIndex, name), recordIndex);
                 record.put(name, provider.generate(context));
             } catch (RuntimeException ex) {
-                throw new SchemaGenerationException(name, recordIndex, ex);
+                throw new SchemaGenerationException(
+                    name,
+                    recordIndex,
+                    ex,
+                    generationRecipe.map(GenerationRecipe::serializeForDiagnostics).orElse(null));
             }
         }
         return record;
+    }
+
+    private Random randomForField(int recordIndex, String fieldName) {
+        if (generationRecipe.isEmpty()) {
+            return random;
+        }
+        return generationRecipe.orElseThrow().childRandom(schemaFieldStreamIdentity(recordIndex, fieldName));
+    }
+
+    private static String schemaFieldStreamIdentity(int recordIndex, String fieldName) {
+        return "schema|record=" + recordIndex + "|field=" + fieldName.length() + ':' + fieldName;
     }
 
     private static void validateCount(int count) {
@@ -772,6 +803,10 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static Object normalizeStructuredValue(Object value) {
+        return normalizeStructuredValue(value, "");
+    }
+
+    private static Object normalizeStructuredValue(Object value, String componentPath) {
         if (value == null
             || value instanceof CharSequence
             || value instanceof Character
@@ -782,14 +817,17 @@ public final class Schema implements Generator<Map<String, Object>> {
         if (value instanceof Map<?, ?> map) {
             Map<Object, Object> normalized = new LinkedHashMap<>(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                normalized.put(entry.getKey(), normalizeStructuredValue(entry.getValue()));
+                normalized.put(entry.getKey(), normalizeStructuredValue(entry.getValue(), componentPath));
             }
             return Collections.unmodifiableMap(normalized);
+        }
+        if (value instanceof Optional<?> optional) {
+            return normalizeStructuredValue(optional.orElse(null), componentPath);
         }
         if (value instanceof Iterable<?> items) {
             List<Object> normalized = new ArrayList<>();
             for (Object item : items) {
-                normalized.add(normalizeStructuredValue(item));
+                normalized.add(normalizeStructuredValue(item, componentPath));
             }
             return Collections.unmodifiableList(normalized);
         }
@@ -797,29 +835,25 @@ public final class Schema implements Generator<Map<String, Object>> {
             int length = Array.getLength(value);
             List<Object> normalized = new ArrayList<>(length);
             for (int i = 0; i < length; i++) {
-                normalized.add(normalizeStructuredValue(Array.get(value, i)));
+                normalized.add(normalizeStructuredValue(Array.get(value, i), componentPath));
             }
             return Collections.unmodifiableList(normalized);
         }
         if (value.getClass().isRecord()) {
-            return recordToMap(value);
+            return recordToMap(value, componentPath);
         }
         return value;
     }
 
-    private static Map<String, Object> recordToMap(Object record) {
+    private static Map<String, Object> recordToMap(Object record, String componentPath) {
         RecordComponent[] components = record.getClass().getRecordComponents();
         Map<String, Object> values = new LinkedHashMap<>(components.length);
         for (RecordComponent component : components) {
-            Method accessor = component.getAccessor();
-            accessor.setAccessible(true);
-            try {
-                values.put(component.getName(), normalizeStructuredValue(accessor.invoke(record)));
-            } catch (ReflectiveOperationException ex) {
-                throw new IllegalArgumentException(
-                    "Failed to read record component '" + component.getName() + "' from "
-                    + record.getClass().getName(), ex);
-            }
+            String path = componentPath.isEmpty()
+                          ? component.getName()
+                          : componentPath + "." + component.getName();
+            Object componentValue = SchemaRecordAccess.read(record, component, path);
+            values.put(component.getName(), normalizeStructuredValue(componentValue, path));
         }
         return Collections.unmodifiableMap(values);
     }

@@ -26,6 +26,7 @@ class KrandomExtensionTest {
     @Test
     void pinnedTextSeedDerivesLikeGeneratorConfig(GeneratorConfig config) {
         assertEquals(GeneratorConfig.deriveSeed("checkout-flow"), config.getSeed().getAsLong());
+        assertEquals("checkout-flow", config.getStringSeed().orElseThrow());
     }
 
     @KrandomSeed(42L)

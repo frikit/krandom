@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,9 +18,11 @@ import java.util.Random;
  * Generates locale-aware personal-pronoun sets, e.g. {@code "they/them"} for English or
  * {@code "они/их"} for Russian.
  *
- * <p>Sets are resolved from {@link PronounDataRegistry} for the configured locale; locales without a
- * built-in file fall back to the bundled English sets. {@link #subjective()} and {@link #objective()}
- * return just the subject or object form of a randomly chosen set.
+ * <p>Sets are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link PronounDataRegistry}. Locales without a built-in file fall back to bundled English sets.
+ * {@link #subjective()} and {@link #objective()} return just the subject or object form of a randomly
+ * chosen set.
  *
  * <pre>{@code
  *   String en = new PronounGenerator().generate();                   // e.g. "she/her"
@@ -58,7 +61,8 @@ public final class PronounGenerator implements Generator<String> {
      */
     public PronounGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        PronounDataProvider provider = PronounDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        PronounDataProvider provider = registryContext.pronounProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

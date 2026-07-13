@@ -6,6 +6,8 @@
 package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -91,7 +93,13 @@ class SchemaTest {
         Schema schema = new Schema(fields);
         SchemaGenerationException ex = assertThrows(SchemaGenerationException.class, schema::generate);
         assertTrue(ex.getMessage().contains("bad"));
+        assertFalse(ex.getMessage().contains("boom"));
         assertTrue(ex.getCause() instanceof IllegalStateException);
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.SCHEMA_VALUE, context.category());
+        assertEquals(GenerationOperation.GENERATE, context.operation());
+        assertEquals("bad", context.path());
+        assertEquals(0, context.recordIndex());
     }
 
     @Test
@@ -346,6 +354,14 @@ class SchemaTest {
         SchemaGenerationException exception = assertThrows(SchemaGenerationException.class, schema::toJsonSchema);
         assertTrue(exception.getMessage().contains("boom"));
         assertFalse(exception.getMessage().isBlank());
+        var context = exception.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.SCHEMA_METADATA, context.category());
+        assertEquals(GenerationOperation.EXPORT_SCHEMA, context.operation());
+        assertEquals("boom", context.path());
+        assertEquals(-1, context.recordIndex());
+        assertTrue(exception.getMessage().contains("export schema metadata"));
+        assertFalse(exception.getMessage().contains("explode"));
+        assertTrue(exception.getCause() instanceof IllegalStateException);
     }
 
     private record CustomerRecord(String name, AddressRecord address) {

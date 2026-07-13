@@ -17,9 +17,12 @@ import java.util.Random;
 /**
  * Generates locale-specific phone numbers.
  *
- * <p>This generator creates realistic phone numbers that match the format conventions of each
- * supported locale. Phone numbers can be generated as formatted (with separators) or unformatted
- * (digits only), and where culturally relevant, as landline or mobile numbers.
+ * <p>This generator creates phone numbers that match the format conventions of each supported
+ * locale. By default, US locale-style output uses NANPA's fictional non-working {@code 555-0100}
+ * through {@code 555-0199} range. Other locales retain realistic output but are
+ * unclassified and must not be treated as non-routable. Phone numbers can be generated as
+ * formatted (with separators) or unformatted (digits only), and where culturally relevant, as
+ * landline or mobile numbers.
  *
  * <p>Built-in support follows the full locale catalog used by the address and identity
  * generators. Supported built-in locales no longer silently fall back to US phone formats when
@@ -29,8 +32,8 @@ import java.util.Random;
  * <pre>{@code
  *   // Default US locale, formatted
  *   PhoneNumberGenerator gen = new PhoneNumberGenerator();
- *   String phone = gen.generate();  // "(555) 123-4567"
- *   String unformatted = gen.generate(false);  // "5551234567"
+ *   String phone = gen.generate();  // "(212) 555-0100"
+ *   String unformatted = gen.generate(false);  // "2125550100"
  *
  *   // UK locale with mobile number
  *   PhoneNumberGenerator ukGen = new PhoneNumberGenerator(Locale.UK);
@@ -45,6 +48,9 @@ import java.util.Random;
  *   PhoneNumberGenerator deGen = new PhoneNumberGenerator(config);
  *   String nummer = deGen.generate();  // Reproducible German phone number
  * }</pre>
+ *
+ * <p>Custom templates from {@link #generateWithFormat(String)} and synthetic MSISDN output are
+ * not covered by {@link PhoneNumberSafetyPolicy}; they remain unclassified.
  */
 public final class PhoneNumberGenerator implements Generator<String> {
 
@@ -70,6 +76,10 @@ public final class PhoneNumberGenerator implements Generator<String> {
         Map.entry("SA", "+966"),
         Map.entry("IN", "+91")
     );
+
+    private static final int NANPA_FICTITIOUS_EXCHANGE = 555;
+    private static final int NANPA_FICTITIOUS_LINE_START = 100;
+    private static final int NANPA_FICTITIOUS_LINE_COUNT = 100;
 
     // US area codes (realistic, avoiding 555)
     private static final int[] US_AREA_CODES = {
@@ -528,8 +538,13 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateUSPhone(boolean formatted) {
         int areaCode = US_AREA_CODES[random.nextInt(US_AREA_CODES.length)];
-        int exchange = 200 + random.nextInt(800); // 200-999
-        int number = random.nextInt(10000);
+        boolean fictionalNanpaRange = usesFictionalNANPARange();
+        int exchange = fictionalNanpaRange
+            ? NANPA_FICTITIOUS_EXCHANGE
+            : 200 + random.nextInt(800);
+        int number = fictionalNanpaRange
+            ? NANPA_FICTITIOUS_LINE_START + random.nextInt(NANPA_FICTITIOUS_LINE_COUNT)
+            : random.nextInt(10000);
 
         if (formatted) {
             // Randomly choose between two common US formats
@@ -894,6 +909,14 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String digits(int count) {
         return String.format("%0" + count + "d", random.nextInt((int) Math.pow(10, count)));
+    }
+
+    private boolean usesFictionalNANPARange() {
+        if (config.getPhoneNumberSafetyPolicy() != PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE) {
+            return false;
+        }
+        String country = locale.getCountry();
+        return "US".equals(country) || (country.isEmpty() && "en".equals(locale.getLanguage()));
     }
 
     private String getLocaleKey(Locale loc) {

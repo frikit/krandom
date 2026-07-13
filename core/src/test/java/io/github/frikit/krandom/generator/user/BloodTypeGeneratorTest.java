@@ -139,32 +139,6 @@ class BloodTypeGeneratorTest {
             assertTrue(keys.contains("en_US"));
             assertTrue(keys.contains("ja_JP"));
         }
-
-        @Test
-        @DisplayName("register adds a custom language-only provider; null is rejected")
-        void registerCustom() {
-            BloodTypeDataProvider custom = new BloodTypeDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getTypes() {
-                    return List.of("O+");
-                }
-
-                @Override
-                public List<Integer> getWeights() {
-                    return List.of(1);
-                }
-            };
-            BloodTypeDataRegistry.register(custom);
-            assertTrue(BloodTypeDataRegistry.isRegistered(Locale.of("zz")));
-            assertSame(custom, BloodTypeDataRegistry.forLocale(Locale.of("zz")));
-            assertEquals("O+", new BloodTypeGenerator(Locale.of("zz")).generate());
-            assertThrows(NullPointerException.class, () -> BloodTypeDataRegistry.register(null));
-        }
     }
 
     @Nested

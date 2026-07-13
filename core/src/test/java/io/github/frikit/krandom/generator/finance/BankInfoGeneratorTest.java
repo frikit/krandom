@@ -20,10 +20,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("BankInfoGenerator")
 class BankInfoGeneratorTest {
 
+    private static GeneratorConfig usConfig() {
+        return GeneratorConfig.builder()
+                              .locale(Locale.US)
+                              .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                              .build();
+    }
+
     @Test
     @DisplayName("generates a coherent structured bank payload")
     void generateBankInfo() {
-        BankInfo info = new BankInfoGenerator(Locale.US).generate();
+        BankInfo info = new BankInfoGenerator(usConfig()).generate();
 
         assertNotNull(info);
         assertTrue(info.accountNumber().matches("\\d+"));
@@ -41,6 +48,7 @@ class BankInfoGeneratorTest {
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .locale(Locale.GERMANY)
                                                 .seed(42L)
+                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                                 .build();
 
         BankInfoGenerator one = new BankInfoGenerator(config);
@@ -52,12 +60,15 @@ class BankInfoGeneratorTest {
     @Test
     @DisplayName("constructors and factories reject nulls and expose locale")
     void constructorValidation() {
-        assertThrows(NullPointerException.class, () -> new BankInfoGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new BankInfoGenerator((GeneratorConfig) null));
-        assertEquals(Locale.US, new BankInfoGenerator(Locale.US).getLocale());
-        assertNotNull(Generators.ofBankInfo().generate());
-        assertNotNull(Generators.ofBankInfo(Locale.US).generate());
-        assertNotNull(Generators.ofBankInfo(GeneratorConfig.defaults()).generate());
+        assertEquals(Locale.US, new BankInfoGenerator(usConfig()).getLocale());
+        assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo().generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo(Locale.US).generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo(GeneratorConfig.defaults()).generate());
+        assertNotNull(Generators.ofBankInfo(GeneratorConfig.builder()
+                                                              .bankingSafetyPolicy(
+                                                                  BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                              .build()).generate());
     }
 
     private static boolean isValidAba(String value) {

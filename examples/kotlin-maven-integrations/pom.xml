@@ -8,13 +8,25 @@
     <version>0.1.0</version>
 
     <properties>
-        <krandom.version>1.6.0-SNAPSHOT</krandom.version>
+        <krandom.version>2.0.0-SNAPSHOT</krandom.version>
         <kotlin.version>2.4.0</kotlin.version>
         <kotlin.compiler.daemon>false</kotlin.compiler.daemon>
         <junit.version>6.1.1</junit.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.github.frikit</groupId>
+                <artifactId>krandom-bom</artifactId>
+                <version>${krandom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -25,17 +37,14 @@
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-core</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-kotest-extensions</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-kotlin-dsl</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

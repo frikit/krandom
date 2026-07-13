@@ -20,7 +20,7 @@ import java.util.Random;
  * <p>Built-in support follows the locale catalog in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Additional locales — and overrides
  * of built-in ones — can be registered at runtime via
- * {@link LastNameDataRegistry#register(LastNameDataProvider)}.
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <pre>{@code
  * // Default — Locale.US

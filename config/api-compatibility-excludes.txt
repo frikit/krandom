@@ -1,0 +1,74 @@
+# One exact japicmp exclusion per line. Keep this file empty during the 1.x line.
+#
+# A v2 exclusion requires all of the following in the same reviewed change:
+# - a 1.6 deprecation or an explicit explanation of why the old API is unsafe;
+# - a migration-guide entry;
+# - the narrowest class/member signature supported by japicmp;
+# - a changelog entry.
+#
+# Never add package-wide wildcards. See `java -jar japicmp.jar --help` for syntax.
+
+# v2 removals of 1.6-deprecated facade aliases; canonical replacements and migration rows are
+# in docs/migration/v1.6-to-v2.md ("Deprecated in 1.6" table); changelog Removed entries match.
+io.github.frikit.krandom.generator.Generators#constant(java.lang.Object)
+io.github.frikit.krandom.generator.Generators#pickFrom(java.util.List)
+io.github.frikit.krandom.generator.Generators#pickset(java.util.List,int)
+io.github.frikit.krandom.generator.Generators#pickSetFrom(java.util.List,int)
+io.github.frikit.krandom.generator.Generators#shuffleOf(java.util.List)
+io.github.frikit.krandom.generator.Generators#uniqueValues(io.github.frikit.krandom.generator.Generator)
+
+# v2 removal of the reflective reseeding fallbacks; the typed Seedable contract replaces them
+# (docs/migration/v1.6-to-v2.md "Typed reseeding").
+io.github.frikit.krandom.generator.Generator#reseed(long)
+io.github.frikit.krandom.generator.Generator#reseed(java.lang.String)
+
+# v2 removal of mutable Kotest bridges (toArb, factory krandomArb, krandomObjectArb); the
+# replay-safe host-seeded adapters replace them (docs-site/guides/property-testing-integrations.md).
+io.github.frikit.krandom.kotest.KrandomArbKt
+
+# v2 removal of all process-wide registry mutation methods (register/append) and the
+# LocaleDataBundle.registerGlobal entry point; DataRegistryContext registration replaces
+# them (docs/migration/v1.6-to-v2.md "Config-scoped locale data").
+io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry
+io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry
+io.github.frikit.krandom.generator.location.CityDataRegistry
+io.github.frikit.krandom.generator.location.CountryDataRegistry
+io.github.frikit.krandom.generator.location.StateDataRegistry
+io.github.frikit.krandom.generator.location.StreetAddressDataRegistry
+io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry
+io.github.frikit.krandom.generator.user.BloodTypeDataRegistry
+io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry
+io.github.frikit.krandom.generator.user.FirstNameDataRegistry
+io.github.frikit.krandom.generator.user.GenderDataRegistry
+io.github.frikit.krandom.generator.user.HobbyDataRegistry
+io.github.frikit.krandom.generator.user.LastNameDataRegistry
+io.github.frikit.krandom.generator.user.NationalityDataRegistry
+io.github.frikit.krandom.generator.user.ProfessionDataRegistry
+io.github.frikit.krandom.generator.user.PronounDataRegistry
+io.github.frikit.krandom.generator.user.SuffixDataRegistry
+io.github.frikit.krandom.generator.user.TitleDataRegistry
+io.github.frikit.krandom.generator.user.ZodiacDataRegistry
+io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry
+io.github.frikit.krandom.generator.weather.WeatherDataRegistry
+io.github.frikit.krandom.generator.locale.LocaleDataBundle
+
+# v2 removal of 1.6-deprecated Locale/no-arg constructors on finance and identity generators;
+# GeneratorConfig constructors with explicit safety policies replace them
+# (docs/migration/v1.6-to-v2.md).
+io.github.frikit.krandom.generator.commerce.CnpjGenerator
+io.github.frikit.krandom.generator.finance.AbaRoutingGenerator
+io.github.frikit.krandom.generator.finance.BankAccountGenerator
+io.github.frikit.krandom.generator.finance.BankInfoGenerator
+io.github.frikit.krandom.generator.finance.BbanGenerator
+io.github.frikit.krandom.generator.finance.BicGenerator
+io.github.frikit.krandom.generator.finance.CryptoAddressGenerator
+io.github.frikit.krandom.generator.finance.CusipGenerator
+io.github.frikit.krandom.generator.finance.EinGenerator
+io.github.frikit.krandom.generator.finance.IbanGenerator
+io.github.frikit.krandom.generator.finance.IsinGenerator
+io.github.frikit.krandom.generator.user.DrivingLicenseGenerator
+io.github.frikit.krandom.generator.user.PassportGenerator
+io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator
+
+# v2 strict bound semantics (D5): protected lo/hi swap helpers removed from the bounded base.
+io.github.frikit.krandom.generator.base.AbstractBoundedGenerator

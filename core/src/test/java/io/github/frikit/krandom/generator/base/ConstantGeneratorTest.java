@@ -36,7 +36,7 @@ class ConstantGeneratorTest {
     @DisplayName("object identity is preserved")
     void objectIdentityIsPreserved() {
         List<String> value = new ArrayList<>();
-        ConstantGenerator<List<String>> generator = Generators.constant(value);
+        ConstantGenerator<List<String>> generator = Generators.ofConstant(value);
 
         assertSame(value, generator.generate());
         assertSame(value, generator.value());

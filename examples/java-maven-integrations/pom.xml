@@ -8,28 +8,37 @@
     <version>0.1.0</version>
 
     <properties>
-        <krandom.version>1.6.0-SNAPSHOT</krandom.version>
+        <krandom.version>2.0.0-SNAPSHOT</krandom.version>
         <spring.boot.version>4.1.0</spring.boot.version>
         <junit.version>6.1.1</junit.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.github.frikit</groupId>
+                <artifactId>krandom-bom</artifactId>
+                <version>${krandom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-core</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-jackson</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-spring-boot-starter</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

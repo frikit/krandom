@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,8 +18,10 @@ import java.util.Random;
  * Generates locale-aware financial-term names, e.g. {@code "Dividend"} for English or
  * {@code "Дивиденд"} for Russian.
  *
- * <p>Term names are resolved from {@link FinancialTermDataRegistry} for the configured locale; locales
- * without a built-in file fall back to the bundled English terms.
+ * <p>Term names are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link FinancialTermDataRegistry}. Locales without a built-in file fall back to bundled English
+ * terms.
  *
  * <pre>{@code
  *   String en = new FinancialTermGenerator().generate();                     // e.g. "Asset"
@@ -57,7 +60,8 @@ public final class FinancialTermGenerator implements Generator<String> {
      */
     public FinancialTermGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        FinancialTermDataProvider provider = FinancialTermDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        FinancialTermDataProvider provider = registryContext.financialTermProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

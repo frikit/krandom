@@ -44,12 +44,10 @@ public final class NumberGenerator implements Generator<Number>, Seedable {
      * Generates an {@link Integer} in the half-open range [{@code min}, {@code max}).
      */
     public Number generate(int min, int max) {
-        if (min == max) {
-            throw new IllegalArgumentException("min and max must differ, both were: " + min);
+        if (min >= max) {
+            throw new IllegalArgumentException("min must be less than max, got: min=" + min + ", max=" + max);
         }
-        int lo = Math.min(min, max);
-        int hi = Math.max(min, max);
-        return random.nextInt(lo, hi);
+        return random.nextInt(min, max);
     }
 
     @Override

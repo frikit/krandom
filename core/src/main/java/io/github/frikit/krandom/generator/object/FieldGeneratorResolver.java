@@ -8,6 +8,10 @@ package io.github.frikit.krandom.generator.object;
 import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationRecipe;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.base.BigDecimalGenerator;
 import io.github.frikit.krandom.generator.base.BigIntegerGenerator;
 import io.github.frikit.krandom.generator.base.BooleanGenerator;
@@ -39,11 +43,17 @@ import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 
+import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.AnnotatedParameterizedType;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.RecordComponent;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -94,8 +104,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Internal resolver: maps a field's ({@link Type}, {@link Class}, name, owner) tuple
@@ -122,12 +130,13 @@ import org.slf4j.LoggerFactory;
  *   <li>Depth guard: if {@code currentDepth >= maxDepth} return primitive zero / {@code null}</li>
  *   <li>Nested class or record: delegate to a child {@link ObjectGenerator} (cycle-safe via
  *       {@link ObjectPool})</li>
- *   <li>Unsupported type: return primitive zero / {@code null}</li>
+ *   <li>Unsupported type: fail with field context, or return primitive zero / {@code null}
+ *       in explicit lenient mode</li>
  * </ol>
  */
 final class FieldGeneratorResolver {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FieldGeneratorResolver.class);
+    private static final String OBJECT_CHARACTER_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     static final int DEFAULT_MIN_ELEMENT_COUNT = GeneratorConfig.defaults().getMinCollectionSize();
     static final int DEFAULT_MAX_ELEMENT_COUNT = GeneratorConfig.defaults().getMaxCollectionSize();
@@ -183,6 +192,8 @@ final class FieldGeneratorResolver {
     private final GeneratorConfig       generatorConfig;
     private final ObjectPool            pool;
     private final UniqueFieldTracker    uniqueFieldTracker;
+    private final Long                  generationSeed;
+    private final boolean               namedChildStreams;
     private final Random                sequenceRandom;
     private final Map<Class<?>, Generator<?>> builtins;
     private final Map<String, Generator<?>>   semanticStringGenerators;
@@ -190,15 +201,20 @@ final class FieldGeneratorResolver {
     private final ObjectGenerationSemanticMode semanticMode;
     private final SemanticFieldRegistry       semanticRegistry;
     private final Set<String>                 uniqueFieldNames;
+    private final ObjectGenerationFailurePolicy failurePolicy;
+    private final Map<TypeVariable<?>, Type> typeBindings;
 
     FieldGeneratorResolver(ObjectGeneratorConfig config,
                            ObjectPool pool,
                            UniqueFieldTracker uniqueFieldTracker,
-                           Long generationSeed) {
+                           Long generationSeed,
+                           Map<? extends TypeVariable<?>, ? extends Type> typeBindings) {
         this.config = config;
         this.generatorConfig = config.getGeneratorConfig();
         this.pool = pool;
         this.uniqueFieldTracker = uniqueFieldTracker;
+        this.generationSeed = generationSeed;
+        this.namedChildStreams = generationSeed != null && this.generatorConfig.getGenerationRecipe().isPresent();
         this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
         this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
         this.semanticRegistry = config.getSemanticRegistry();
@@ -206,6 +222,11 @@ final class FieldGeneratorResolver {
         this.semanticTypedGenerators = buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
         this.semanticMode = config.getSemanticMode();
         this.uniqueFieldNames = config.getUniqueFieldNames();
+        this.failurePolicy = new ObjectGenerationFailurePolicy(
+            config.isIgnoreErrors(),
+            generatorConfig.getGenerationFailureListener(),
+            generatorConfig.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics));
+        this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
     }
 
     private static Map<Class<?>, Generator<?>> buildBuiltins(ObjectGeneratorConfig cfg,
@@ -222,17 +243,20 @@ final class FieldGeneratorResolver {
         Long charSeed = nextDeterministicSeed(generatorConfig, seedSource);
         Long booleanSeed = nextDeterministicSeed(generatorConfig, seedSource);
 
-        Generator<Byte> byteGenerator = byteSeed != null ? new ByteGenerator(Byte.MIN_VALUE, Byte.MAX_VALUE, byteSeed) : new ByteGenerator();
-        Generator<Short> shortGenerator = shortSeed != null ? new ShortGenerator(Short.MIN_VALUE, Short.MAX_VALUE, shortSeed) : new ShortGenerator();
-        Generator<Integer> intGenerator = intSeed != null ? new IntGenerator(Integer.MIN_VALUE, Integer.MAX_VALUE, intSeed) : new IntGenerator();
-        Generator<Long> longGenerator = longSeed != null ? new LongGenerator(Long.MIN_VALUE, Long.MAX_VALUE, longSeed) : new LongGenerator();
-        Generator<Float> floatGenerator = floatSeed != null ? new FloatGenerator(0f, 1f, floatSeed) : new FloatGenerator();
-        Generator<Double> doubleGenerator = doubleSeed != null ? new DoubleGenerator(0.0, 1.0, doubleSeed) : new DoubleGenerator();
-        Generator<Character> charGenerator = buildCharGenerator(charSeed);
-        Generator<Boolean> booleanGenerator = booleanSeed != null ? new BooleanGenerator(booleanSeed) : new BooleanGenerator();
-        Generator<String> stringGenerator = buildStringGenerator(generatorConfig, nextDeterministicSeed(generatorConfig, seedSource));
-        Generator<BigDecimal> bigDecimalGenerator = buildBigDecimalGenerator(nextDeterministicSeed(generatorConfig, seedSource));
-        Generator<BigInteger> bigIntegerGenerator = buildBigIntegerGenerator(nextDeterministicSeed(generatorConfig, seedSource));
+        Generator<Byte> byteGenerator = byteGenerator(byteSeed, seedSource, Byte.MIN_VALUE, Byte.MAX_VALUE);
+        Generator<Short> shortGenerator = shortGenerator(shortSeed, seedSource, Short.MIN_VALUE, Short.MAX_VALUE);
+        Generator<Integer> intGenerator = intGenerator(intSeed, seedSource, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        Generator<Long> longGenerator = longGenerator(longSeed, seedSource, Long.MIN_VALUE, Long.MAX_VALUE);
+        Generator<Float> floatGenerator = floatGenerator(floatSeed, seedSource, 0f, 1f, null);
+        Generator<Double> doubleGenerator = doubleGenerator(doubleSeed, seedSource, 0.0, 1.0, null);
+        Generator<Character> charGenerator = charGenerator(charSeed, seedSource);
+        Generator<Boolean> booleanGenerator = booleanGenerator(booleanSeed, seedSource);
+        Generator<String> stringGenerator = buildStringGenerator(
+            generatorConfig, nextDeterministicSeed(generatorConfig, seedSource), seedSource);
+        Generator<BigDecimal> bigDecimalGenerator = bigDecimalGenerator(
+            nextDeterministicSeed(generatorConfig, seedSource), seedSource, "0", "1000000", 2);
+        Generator<BigInteger> bigIntegerGenerator = bigIntegerGenerator(
+            nextDeterministicSeed(generatorConfig, seedSource), seedSource, 0L, Long.MAX_VALUE);
         Generator<Number> numberGenerator = new NumberGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
         Generator<AtomicInteger> atomicIntegerGenerator = () -> new AtomicInteger(intGenerator.generate());
         Generator<AtomicLong> atomicLongGenerator = () -> new AtomicLong(longGenerator.generate());
@@ -328,7 +352,7 @@ final class FieldGeneratorResolver {
         try {
             return uri.toURL();
         } catch (MalformedURLException | IllegalArgumentException e) {
-            throw new ObjectGenerationException("Generated URI could not be converted to URL: " + uri, e);
+            throw new ObjectGenerationException("Generated URI could not be converted to URL", e);
         }
     }
 
@@ -343,36 +367,57 @@ final class FieldGeneratorResolver {
 
     private static Random randomFor(GeneratorConfig config, Random seedSource) {
         Long seed = nextDeterministicSeed(config, seedSource);
-        return seed != null ? new Random(seed) : config.createRandom();
+        return seed != null ? new Random(seed) : seedSource;
     }
 
-    private static CharGenerator buildCharGenerator(Long seed) {
-        CharGenerator.Builder builder = CharGenerator.builder().uppercase().lowercase();
+    private static CharGenerator buildCharGenerator(long seed) {
+        return CharGenerator.builder().uppercase().lowercase().seed(seed).build();
+    }
+
+    private static Generator<Character> charGenerator(Long seed, Random source) {
         if (seed != null) {
-            builder.seed(seed);
+            return buildCharGenerator(seed);
         }
-        return builder.build();
+        return () -> OBJECT_CHARACTER_POOL.charAt(source.nextInt(OBJECT_CHARACTER_POOL.length()));
     }
 
-    private static StringGenerator buildStringGenerator(GeneratorConfig config, Long seed) {
+    private static Generator<Boolean> booleanGenerator(Long seed, Random source) {
+        if (seed != null) {
+            return new BooleanGenerator(seed);
+        }
+        return source::nextBoolean;
+    }
+
+    private static Generator<String> buildStringGenerator(GeneratorConfig config, Long seed, Random source) {
+        if (seed == null) {
+            Generator<Character> characters = charGenerator(null, source);
+            return () -> {
+                int length = config.getMinStringLength() == config.getMaxStringLength()
+                             ? config.getMinStringLength()
+                             : (int) source.nextLong(config.getMinStringLength(),
+                                                     (long) config.getMaxStringLength() + 1L);
+                StringBuilder value = new StringBuilder(length);
+                for (int i = 0; i < length; i++) {
+                    value.append(characters.generate());
+                }
+                return value.toString();
+            };
+        }
         StringGenerator.Builder builder = StringGenerator.builder()
                                                         .minLength(config.getMinStringLength())
                                                         .maxLength(config.getMaxStringLength())
                                                         .charGenerator(buildCharGenerator(seed));
-        if (seed != null) {
-            builder.seed(seed);
-        }
-        return builder.build();
+        return builder.seed(seed).build();
     }
 
-    private static BigDecimalGenerator buildBigDecimalGenerator(Long seed) {
-        return seed != null ? new BigDecimalGenerator(new BigDecimal("0"), new BigDecimal("1000000"), 2, seed)
-                            : new BigDecimalGenerator();
+    private static Generator<Byte> byteGenerator(Long seed, Random source, byte min, byte maxExclusive) {
+        return seed != null ? new ByteGenerator(min, maxExclusive, seed)
+                            : () -> (byte) source.nextInt(min, maxExclusive);
     }
 
-    private static BigIntegerGenerator buildBigIntegerGenerator(Long seed) {
-        return seed != null ? new BigIntegerGenerator(BigInteger.ZERO, BigInteger.valueOf(Long.MAX_VALUE), seed)
-                            : new BigIntegerGenerator();
+    private static Generator<Short> shortGenerator(Long seed, Random source, short min, short maxExclusive) {
+        return seed != null ? new ShortGenerator(min, maxExclusive, seed)
+                            : () -> (short) source.nextInt(min, maxExclusive);
     }
 
     private static Generator<LocalDate> buildDateGenerator(GeneratorConfig config,
@@ -382,12 +427,13 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new DateGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        DateGenerator generator = new DateGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            DateGenerator generator = new DateGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        return () -> randomDate(seedSource, min, max);
     }
 
     private static Generator<LocalDateTime> buildLocalDateTimeGenerator(GeneratorConfig config,
@@ -397,12 +443,13 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new LocalDateTimeGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        LocalDateTimeGenerator generator = new LocalDateTimeGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            LocalDateTimeGenerator generator = new LocalDateTimeGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        return () -> randomLocalDateTime(seedSource, min, max);
     }
 
     private static Generator<Instant> buildInstantGenerator(GeneratorConfig config,
@@ -412,12 +459,13 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new InstantGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        InstantGenerator generator = new InstantGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            InstantGenerator generator = new InstantGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        return () -> randomDate(seedSource, min, max).atStartOfDay().toInstant(ZoneOffset.UTC);
     }
 
     private static Generator<ZonedDateTime> buildZonedDateTimeGenerator(GeneratorConfig config,
@@ -427,12 +475,17 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new ZonedDateTimeGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        ZonedDateTimeGenerator generator = new ZonedDateTimeGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            ZonedDateTimeGenerator generator = new ZonedDateTimeGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        List<String> zoneIds = new ArrayList<>(ZoneId.getAvailableZoneIds());
+        zoneIds.sort(String::compareTo);
+        return () -> ZonedDateTime.of(
+            randomLocalDateTime(seedSource, min, max),
+            ZoneId.of(zoneIds.get(seedSource.nextInt(zoneIds.size()))));
     }
 
     private static Generator<java.util.Date> buildUtilDateGenerator(GeneratorConfig config,
@@ -442,12 +495,15 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new UtilDateGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        UtilDateGenerator generator = new UtilDateGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            UtilDateGenerator generator = new UtilDateGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        long minMillis = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        long maxExclusiveMillis = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        return () -> new java.util.Date(seedSource.nextLong(minMillis, maxExclusiveMillis));
     }
 
     private static Generator<java.sql.Date> buildSqlDateGenerator(GeneratorConfig config,
@@ -457,12 +513,13 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new SqlDateGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        SqlDateGenerator generator = new SqlDateGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            SqlDateGenerator generator = new SqlDateGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        return () -> java.sql.Date.valueOf(randomDate(seedSource, min, max));
     }
 
     private static Generator<java.sql.Timestamp> buildSqlTimestampGenerator(GeneratorConfig config,
@@ -472,12 +529,25 @@ final class FieldGeneratorResolver {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
             return new SqlTimestampGenerator(derivedGeneratorConfig(config, seedSource));
         }
-        SqlTimestampGenerator generator = new SqlTimestampGenerator(min, max);
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
+            SqlTimestampGenerator generator = new SqlTimestampGenerator(min, max);
             generator.reseed(seed);
+            return generator;
         }
-        return generator;
+        long minMillis = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        long maxExclusiveMillis = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        return () -> new java.sql.Timestamp(seedSource.nextLong(minMillis, maxExclusiveMillis));
+    }
+
+    private static LocalDate randomDate(Random source, LocalDate min, LocalDate max) {
+        return LocalDate.ofEpochDay(source.nextLong(min.toEpochDay(), max.toEpochDay() + 1L));
+    }
+
+    private static LocalDateTime randomLocalDateTime(Random source, LocalDate min, LocalDate max) {
+        return LocalDateTime.of(
+            randomDate(source, min, max),
+            LocalTime.of(source.nextInt(24), source.nextInt(60), source.nextInt(60)));
     }
 
     private static Map<String, Generator<?>> buildSemanticStringGenerators(GeneratorConfig config,
@@ -514,7 +584,7 @@ final class FieldGeneratorResolver {
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "createdat", today.minusYears(10), today);
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "updatedat", today.minusYears(10), today);
         registerTemporalSemantic(generators, objectConfig, config, seedSource, "birthdate", today.minusYears(90), today.minusYears(18));
-        Generator<Integer> ageGenerator = intGenerator(nextDeterministicSeed(config, seedSource), 18, 91);
+        Generator<Integer> ageGenerator = intGenerator(nextDeterministicSeed(config, seedSource), seedSource, 18, 91);
         registerTypedSemantic(generators, "age", int.class, ageGenerator);
         registerTypedSemantic(generators, "age", Integer.class, ageGenerator);
         registerTypedSemantic(generators, "age", long.class, (Generator<Long>) () -> Long.valueOf(ageGenerator.generate()));
@@ -524,28 +594,43 @@ final class FieldGeneratorResolver {
         registerTypedSemantic(generators, "age", String.class, (Generator<String>) () -> Integer.toString(ageGenerator.generate()));
 
         registerNumericSemantic(generators, "amount",
-                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "1000000", 2),
-                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
-                                intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE),
-                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
-                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 1000000.0, 2),
-                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 1000000.0f, 2));
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    "0", "1000000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    1L, Long.MAX_VALUE),
+                                intGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                             1, Integer.MAX_VALUE),
+                                longGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                              1L, Long.MAX_VALUE),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                0.01, 1000000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                               0.01f, 1000000.0f, 2));
 
         registerNumericSemantic(generators, "balance",
-                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "10000000", 2),
-                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
-                                intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE),
-                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE),
-                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 10000000.0, 2),
-                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 10000000.0f, 2));
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    "0", "10000000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    1L, Long.MAX_VALUE),
+                                intGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                             1, Integer.MAX_VALUE),
+                                longGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                              1L, Long.MAX_VALUE),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                0.01, 10000000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                               0.01f, 10000000.0f, 2));
 
         registerNumericSemantic(generators, "price",
-                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), "0", "10000", 2),
-                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, 10000L),
-                                intGenerator(nextDeterministicSeed(config, seedSource), 1, 10000),
-                                longGenerator(nextDeterministicSeed(config, seedSource), 1L, 10000L),
-                                doubleGenerator(nextDeterministicSeed(config, seedSource), 0.01, 10000.0, 2),
-                                floatGenerator(nextDeterministicSeed(config, seedSource), 0.01f, 10000.0f, 2));
+                                bigDecimalGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                    "0", "10000", 2),
+                                bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource, 1L, 10000L),
+                                intGenerator(nextDeterministicSeed(config, seedSource), seedSource, 1, 10000),
+                                longGenerator(nextDeterministicSeed(config, seedSource), seedSource, 1L, 10000L),
+                                doubleGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                0.01, 10000.0, 2),
+                                floatGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                               0.01f, 10000.0f, 2));
 
         Generator<String> currencyCodeGenerator = buildLocaleCurrencyCodeGenerator(config, seedSource);
         registerTypedSemantic(generators, "currency", String.class, currencyCodeGenerator);
@@ -553,15 +638,25 @@ final class FieldGeneratorResolver {
                               buildLibraryCurrencyGenerator(config, seedSource));
         registerTypedSemantic(generators, "currency", java.util.Currency.class, buildJavaCurrencyGenerator(config, seedSource));
 
-        Generator<Long> stringIdGenerator = longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE);
+        Generator<Long> stringIdGenerator = longGenerator(
+            nextDeterministicSeed(config, seedSource), seedSource, 1L, Long.MAX_VALUE);
         registerTypedSemantic(generators, "id", UUID.class, new UUIDGenerator(derivedGeneratorConfig(config, seedSource)));
         registerTypedSemantic(generators, "id", String.class, () -> Long.toString(stringIdGenerator.generate()));
         registerTypedSemantic(generators, "id", BigInteger.class,
-                              bigIntegerGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
-        registerTypedSemantic(generators, "id", int.class, intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE));
-        registerTypedSemantic(generators, "id", Integer.class, intGenerator(nextDeterministicSeed(config, seedSource), 1, Integer.MAX_VALUE));
-        registerTypedSemantic(generators, "id", long.class, longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
-        registerTypedSemantic(generators, "id", Long.class, longGenerator(nextDeterministicSeed(config, seedSource), 1L, Long.MAX_VALUE));
+                              bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                                  1L, Long.MAX_VALUE));
+        registerTypedSemantic(generators, "id", int.class,
+                              intGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                           1, Integer.MAX_VALUE));
+        registerTypedSemantic(generators, "id", Integer.class,
+                              intGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                           1, Integer.MAX_VALUE));
+        registerTypedSemantic(generators, "id", long.class,
+                              longGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                            1L, Long.MAX_VALUE));
+        registerTypedSemantic(generators, "id", Long.class,
+                              longGenerator(nextDeterministicSeed(config, seedSource), seedSource,
+                                            1L, Long.MAX_VALUE));
 
         Generator<Boolean> activeGenerator = buildActiveGenerator(config, seedSource);
         registerTypedSemantic(generators, "active", boolean.class, activeGenerator);
@@ -664,34 +759,70 @@ final class FieldGeneratorResolver {
         return provider;
     }
 
-    private static Generator<BigDecimal> bigDecimalGenerator(Long seed, String min, String max, int scale) {
-        return seed != null
-               ? new BigDecimalGenerator(new BigDecimal(min), new BigDecimal(max), scale, seed)
-               : new BigDecimalGenerator(new BigDecimal(min), new BigDecimal(max), scale);
+    private static Generator<BigDecimal> bigDecimalGenerator(Long seed,
+                                                             Random source,
+                                                             String min,
+                                                             String max,
+                                                             int scale) {
+        BigDecimal lower = new BigDecimal(min);
+        BigDecimal upper = new BigDecimal(max);
+        if (seed != null) {
+            return new BigDecimalGenerator(lower, upper, scale, seed);
+        }
+        long originInclusive = lower.scaleByPowerOfTen(scale).toBigInteger().longValueExact();
+        long boundExclusive = Math.addExact(
+            upper.scaleByPowerOfTen(scale).toBigInteger().longValueExact(), 1L);
+        return () -> BigDecimal.valueOf(source.nextLong(originInclusive, boundExclusive), scale);
     }
 
-    private static Generator<BigInteger> bigIntegerGenerator(Long seed, long min, long maxExclusive) {
-        BigInteger lower = BigInteger.valueOf(min);
-        BigInteger upper = BigInteger.valueOf(Math.max(min + 1, maxExclusive));
-        return seed != null ? new BigIntegerGenerator(lower, upper, seed) : new BigIntegerGenerator(lower, upper);
+    private static Generator<BigInteger> bigIntegerGenerator(Long seed,
+                                                             Random source,
+                                                             long min,
+                                                             long maxExclusive) {
+        if (seed != null) {
+            BigInteger lower = BigInteger.valueOf(min);
+            BigInteger upper = BigInteger.valueOf(Math.max(min + 1, maxExclusive));
+            return new BigIntegerGenerator(lower, upper, seed);
+        }
+        return () -> BigInteger.valueOf(source.nextLong(min, maxExclusive));
     }
 
-    private static Generator<Integer> intGenerator(Long seed, int min, int maxExclusive) {
-        return seed != null ? new IntGenerator(min, maxExclusive, seed) : new IntGenerator(min, maxExclusive);
+    private static Generator<Integer> intGenerator(Long seed, Random source, int min, int maxExclusive) {
+        return seed != null ? new IntGenerator(min, maxExclusive, seed) : () -> source.nextInt(min, maxExclusive);
     }
 
-    private static Generator<Long> longGenerator(Long seed, long min, long maxExclusive) {
-        return seed != null ? new LongGenerator(min, maxExclusive, seed) : new LongGenerator(min, maxExclusive);
+    private static Generator<Long> longGenerator(Long seed, Random source, long min, long maxExclusive) {
+        return seed != null ? new LongGenerator(min, maxExclusive, seed) : () -> source.nextLong(min, maxExclusive);
     }
 
-    private static Generator<Double> doubleGenerator(Long seed, double min, double max, int precision) {
-        DoubleGenerator generator = seed != null ? new DoubleGenerator(min, max, seed) : new DoubleGenerator(min, max);
-        return () -> round(generator.generate(), precision);
+    private static Generator<Double> doubleGenerator(Long seed,
+                                                     Random source,
+                                                     double min,
+                                                     double max,
+                                                     Integer precision) {
+        if (seed != null) {
+            DoubleGenerator generator = new DoubleGenerator(min, max, seed);
+            return precision == null ? generator : () -> round(generator.generate(), precision);
+        }
+        return () -> {
+            double value = source.nextDouble(min, max);
+            return precision == null ? value : round(value, precision);
+        };
     }
 
-    private static Generator<Float> floatGenerator(Long seed, float min, float max, int precision) {
-        FloatGenerator generator = seed != null ? new FloatGenerator(min, max, seed) : new FloatGenerator(min, max);
-        return () -> (float) round(generator.generate(), precision);
+    private static Generator<Float> floatGenerator(Long seed,
+                                                   Random source,
+                                                   float min,
+                                                   float max,
+                                                   Integer precision) {
+        if (seed != null) {
+            FloatGenerator generator = new FloatGenerator(min, max, seed);
+            return precision == null ? generator : () -> (float) round(generator.generate(), precision);
+        }
+        return () -> {
+            float value = source.nextFloat(min, max);
+            return precision == null ? value : (float) round(value, precision);
+        };
     }
 
     private static double round(double value, int precision) {
@@ -827,11 +958,11 @@ final class FieldGeneratorResolver {
                                      Class<?> rawType,
                                      Generator<?> annotationGenerator,
                                      Generator<?> bvGen,
-                                     boolean hasSizeConstraint) {
-        if (element == null || rawType.isPrimitive() || rawType == Optional.class) {
+                                     boolean requiredConstraint) {
+        if (element == null || element instanceof AnnotatedType || rawType.isPrimitive() || rawType == Optional.class) {
             return false;
         }
-        if (annotationGenerator != null || bvGen != null || hasSizeConstraint) {
+        if (annotationGenerator != null || bvGen != null || requiredConstraint) {
             return false;
         }
         double probability = config.getNullProbability();
@@ -846,7 +977,7 @@ final class FieldGeneratorResolver {
     }
 
     private boolean shouldReturnEmptyOptional(AnnotatedElement element) {
-        if (element == null) {
+        if (element == null || element instanceof AnnotatedType) {
             return false;
         }
         double probability = config.getOptionalEmptyProbability();
@@ -855,16 +986,23 @@ final class FieldGeneratorResolver {
 
     // ── Primary entry point ───────────────────────────────────────────────────
 
-    /**
-     * Extracts the {@code idx}-th type argument from a {@link ParameterizedType}.
-     * Returns {@code Object.class} when the type is raw or the argument is not a plain class.
-     */
-    private static Class<?> typeArg(Type t, int idx) {
-        if (t instanceof ParameterizedType pt) {
-            var arg = pt.getActualTypeArguments();
-            if (arg[idx] instanceof Class<?> c) return c;
+    private ResolvedType containerArgument(Type type, Class<?> containerContract, int index) {
+        ResolvedType resolved = ResolvedType.resolve(type, typeBindings);
+        Type hierarchyType = resolved.effectiveType() != null
+                             ? resolved.effectiveType().declaredType()
+                             : type;
+        Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
+        bindings.putAll(ResolvedType.bindingsFor(hierarchyType));
+        return ResolvedType.resolve(containerContract.getTypeParameters()[index], bindings);
+    }
+
+    private boolean hasResolvedArguments(Type type, Class<?> containerContract) {
+        for (int i = 0; i < containerContract.getTypeParameters().length; i++) {
+            if (!containerArgument(type, containerContract, i).isResolved()) {
+                return false;
+            }
         }
-        return Object.class; // raw or erased — resolveAndGenerate handles Object gracefully
+        return true;
     }
 
     private static Set<Object> toSetType(Class<?> rawType, List<Object> values) {
@@ -879,7 +1017,8 @@ final class FieldGeneratorResolver {
             return new LinkedHashSet<>(values);
         }
         Set<Object> concrete = instantiateCollectionType(rawType, Set.class);
-        if (concrete != null && addAllSafely(concrete, values)) {
+        if (concrete != null) {
+            addAllOrThrow(concrete, values);
             return concrete;
         }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
@@ -912,7 +1051,8 @@ final class FieldGeneratorResolver {
             return new CopyOnWriteArrayList<>(values);
         }
         List<Object> concrete = instantiateCollectionType(rawType, List.class);
-        if (concrete != null && addAllSafely(concrete, values)) {
+        if (concrete != null) {
+            addAllOrThrow(concrete, values);
             return concrete;
         }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
@@ -926,14 +1066,15 @@ final class FieldGeneratorResolver {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static Queue<Object> toQueueType(Class<?> rawType, List<Object> values) {
-        Queue<Object> concrete = instantiateCollectionType(rawType, Queue.class);
-        if (concrete != null && addAllSafely(concrete, values)) {
-            return concrete;
-        }
         if (rawType == PriorityQueue.class) {
             Queue<Object> queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
             queue.addAll(values);
             return queue;
+        }
+        Queue<Object> concrete = instantiateCollectionType(rawType, Queue.class);
+        if (concrete != null) {
+            addAllOrThrow(concrete, values);
+            return concrete;
         }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
             Queue<Object> queue = new java.util.ArrayDeque<>();
@@ -972,16 +1113,19 @@ final class FieldGeneratorResolver {
             Constructor<?> ctor = rawType.getDeclaredConstructor();
             ctor.setAccessible(true);
             return (T) ctor.newInstance();
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (NoSuchMethodException ignored) {
             return null;
+        } catch (InvocationTargetException e) {
+            throw new CollectionConstructionFailure(e.getTargetException());
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            throw new CollectionConstructionFailure(e);
         }
     }
 
-    private static boolean addAllSafely(Collection<Object> target, List<Object> values) {
+    private static void addAllOrThrow(Collection<Object> target, List<Object> values) {
         try {
             target.addAll(values);
-            return true;
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException firstFailure) {
             if (target instanceof Queue<?>) {
                 try {
                     target.clear();
@@ -990,20 +1134,44 @@ final class FieldGeneratorResolver {
                             target.add(value);
                         }
                     }
-                    return true;
-                } catch (RuntimeException ignoredAgain) {
-                    return false;
+                    return;
+                } catch (RuntimeException fallbackFailure) {
+                    throw new CollectionInsertionFailure(fallbackFailure);
                 }
             }
-            return false;
+            throw new CollectionInsertionFailure(firstFailure);
         }
     }
 
-    private static void putSafely(Map<Object, Object> target, Object key, Object value) {
-        try {
-            target.put(key, value);
-        } catch (RuntimeException ignored) {
-            // Keep generation resilient for custom maps with stricter insertion rules.
+    private static final class CollectionInsertionFailure extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        private final RuntimeException insertionCause;
+
+        private CollectionInsertionFailure(RuntimeException insertionCause) {
+            super(insertionCause);
+            this.insertionCause = insertionCause;
+        }
+
+        private RuntimeException insertionCause() {
+            return insertionCause;
+        }
+    }
+
+    private static final class CollectionConstructionFailure extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        private final Throwable constructionCause;
+
+        private CollectionConstructionFailure(Throwable constructionCause) {
+            super(constructionCause);
+            this.constructionCause = constructionCause;
+        }
+
+        private Throwable constructionCause() {
+            return constructionCause;
         }
     }
 
@@ -1036,33 +1204,30 @@ final class FieldGeneratorResolver {
         long max = annotation.max();
         Long seed = nextDeterministicSeed(generatorConfig, sequenceRandom);
         if (rawType == int.class || rawType == Integer.class) {
-            return seed != null ? new IntGenerator((int) min, (int) max, seed)
-                                : new IntGenerator((int) min, (int) max);
+            return intGenerator(seed, sequenceRandom, (int) min, (int) max);
         }
         if (rawType == long.class || rawType == Long.class) {
-            return seed != null ? new LongGenerator(min, max, seed)
-                                : new LongGenerator(min, max);
+            return longGenerator(seed, sequenceRandom, min, max);
         }
         if (rawType == double.class || rawType == Double.class) {
-            return seed != null ? new DoubleGenerator(min, max, seed)
-                                : new DoubleGenerator(min, max);
+            return doubleGenerator(seed, sequenceRandom, min, max, null);
         }
         if (rawType == float.class || rawType == Float.class) {
-            return seed != null ? new FloatGenerator(min, max, seed)
-                                : new FloatGenerator(min, max);
+            return floatGenerator(seed, sequenceRandom, min, max, null);
         }
         if (rawType == short.class || rawType == Short.class) {
-            return seed != null ? new ShortGenerator((short) min, (short) max, seed)
-                                : new ShortGenerator((short) min, (short) max);
+            return shortGenerator(seed, sequenceRandom, (short) min, (short) max);
         }
         if (rawType == byte.class || rawType == Byte.class) {
-            return seed != null ? new ByteGenerator((byte) min, (byte) max, seed)
-                                : new ByteGenerator((byte) min, (byte) max);
+            return byteGenerator(seed, sequenceRandom, (byte) min, (byte) max);
         }
         return null;
     }
 
-    private static Generator<?> annotationRandomizerFor(AnnotatedElement element) {
+    private static Generator<?> annotationRandomizerFor(AnnotatedElement element,
+                                                        Class<?> ownerType,
+                                                        String fieldName,
+                                                        int depth) {
         Randomizer annotation = element.getAnnotation(Randomizer.class);
         if (annotation == null) return null;
         Class<? extends Generator<?>> generatorType = annotation.value();
@@ -1076,12 +1241,58 @@ final class FieldGeneratorResolver {
             }
             Constructor<? extends Generator<?>> ctor = generatorType.getDeclaredConstructor(parameterTypes);
             ctor.setAccessible(true);
-            return ctor.newInstance(parameterValues);
+            Generator<?> generator = ctor.newInstance(parameterValues);
+            return () -> generateWithRandomizerContext(generator, generatorType, ownerType, fieldName, depth);
+        } catch (InvocationTargetException e) {
+            throw randomizerFailure(
+                GenerationOperation.CONSTRUCT, generatorType, ownerType, fieldName, depth, e.getTargetException());
         } catch (ReflectiveOperationException | RuntimeException e) {
-            throw new ObjectGenerationException(
-                "Failed to instantiate @" + Randomizer.class.getSimpleName()
-                + " generator: " + generatorType.getName(), e);
+            throw randomizerFailure(
+                GenerationOperation.CONSTRUCT, generatorType, ownerType, fieldName, depth, e);
         }
+    }
+
+    private static Object generateWithRandomizerContext(Generator<?> generator,
+                                                        Class<? extends Generator<?>> generatorType,
+                                                        Class<?> ownerType,
+                                                        String fieldName,
+                                                        int depth) {
+        try {
+            return generator.generate();
+        } catch (ObjectGenerationException e) {
+            if (e.getContext().isPresent()) {
+                throw e;
+            }
+            throw randomizerFailure(
+                GenerationOperation.GENERATE, generatorType, ownerType, fieldName, depth, e);
+        } catch (RuntimeException e) {
+            throw randomizerFailure(
+                GenerationOperation.GENERATE, generatorType, ownerType, fieldName, depth, e);
+        }
+    }
+
+    private static ObjectGenerationException randomizerFailure(GenerationOperation operation,
+                                                               Class<? extends Generator<?>> generatorType,
+                                                               Class<?> ownerType,
+                                                               String fieldName,
+                                                               int depth,
+                                                               Throwable cause) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String generatorTypeName = generatorType.getName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.CUSTOM_GENERATOR,
+            operation,
+            path,
+            ownerType,
+            generatorTypeName,
+            depth,
+            -1);
+        return new ObjectGenerationException(
+            "Could not " + operation.name().toLowerCase(java.util.Locale.ROOT)
+            + " @" + Randomizer.class.getSimpleName() + " generator at '" + path
+            + "' (generator type " + generatorTypeName + ", depth " + depth + ")",
+            context,
+            cause);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -1133,14 +1344,17 @@ final class FieldGeneratorResolver {
      * @param fieldName    name of the field (used for field-level override lookup)
      * @param ownerType    class that declares the field
      * @param currentDepth nesting depth of the parent {@link ObjectGenerator} (0 = root)
-     * @param element      the annotated element (field or record component) for BV constraint lookup;
-     *                     {@code null} for synthetic recursive calls (collection elements etc.)
+     * @param element      the declaration or annotated type node for annotation-based resolution;
+     *                     {@code null} when no reflection metadata is available
      * @return generated value, or a safe default / {@code null} when the type is unsupported
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     Object resolveAndGenerate(Type genericType, Class<?> rawType,
                               String fieldName, Class<?> ownerType,
                               int currentDepth, AnnotatedElement element) {
+
+        ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
+        rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
 
         // ── 0a. Contextual field-level override ───────────────────────────────
         var ctxField = config.getContextualFieldOverride(ownerType, fieldName);
@@ -1182,38 +1396,54 @@ final class FieldGeneratorResolver {
             return typeOverride.get().generate();
         }
 
-        Generator<?> annotationGenerator = element != null ? annotationRandomizerFor(element) : null;
+        Generator<?> annotationGenerator = element != null
+                                           ? annotationRandomizerFor(element, ownerType, fieldName, currentDepth)
+                                           : null;
         Generator<?> fakeAnnotationGenerator = element != null ? fakeAnnotationGeneratorFor(element, rawType) : null;
         Generator<?> fakeRangeGenerator = element != null ? fakeRangeGeneratorFor(element, rawType) : null;
-        Generator<?> bvGen = element != null
-                              ? BeanValidationSupport.constraintGeneratorFor(
-                                  element, rawType, sequenceRandom, generatorConfig.getClock())
-                              : null;
-        boolean hasSizeConstraint = element != null && BeanValidationSupport.hasSizeConstraint(element);
+        BeanValidationSupport.ConstraintModel bvConstraints;
+        Generator<?> bvGen;
+        try {
+            bvConstraints = BeanValidationSupport.constraintModelFor(element, rawType);
+            bvGen = element != null
+                    ? BeanValidationSupport.constraintGeneratorFor(
+                        element, rawType, sequenceRandom, generatorConfig.getClock(), bvConstraints)
+                    : null;
+        } catch (BeanValidationSupport.ConstraintConflictException conflict) {
+            Object fallback = handleConstraintConflict(
+                rawType, genericType, ownerType, fieldName, currentDepth, conflict);
+            return fallback;
+        }
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────
         String semanticKey = semanticRegistry.semanticKeyForFieldName(fieldName);
         Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
         if (semanticGenerator != null
+            && !bvConstraints.constrained()
             && (semanticMode == ObjectGenerationSemanticMode.STRICT
                 || (annotationGenerator == null && fakeAnnotationGenerator == null
-                    && fakeRangeGenerator == null && bvGen == null))) {
+                    && fakeRangeGenerator == null))) {
             return generateWithUniqueness(fieldName, semanticKey, semanticGenerator);
         }
 
         // ── 3aa. Configured null/optional behavior ────────────────────────────
-        if (bvGen != null && BeanValidationSupport.hasNullConstraint(element)) {
-            return bvGen.generate();
+        if (bvConstraints.nullOnly()) {
+            return generateConstraintValue(
+                bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
         if (Optional.class == rawType) {
+            if (!hasResolvedArguments(genericType, Optional.class)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
             if (shouldReturnEmptyOptional(element)) {
                 return Optional.empty();
             }
-            Class<?> valueType = typeArg(genericType, 0);
-            Object value = resolveAndGenerate(valueType, valueType, fieldName + ".value", ownerType, currentDepth, null);
+            ResolvedType valueType = containerArgument(genericType, Optional.class, 0);
+            Object value = resolveAndGenerate(
+                valueType, fieldName + ".value", ownerType, currentDepth, typeArgumentElement(element, 0));
             return Optional.ofNullable(value);
         }
-        if (shouldReturnNull(element, rawType, annotationGenerator, bvGen, hasSizeConstraint)) {
+        if (shouldReturnNull(element, rawType, annotationGenerator, bvGen, bvConstraints.required())) {
             return null;
         }
 
@@ -1234,7 +1464,8 @@ final class FieldGeneratorResolver {
 
         // ── 3c. Bean Validation constraint override ───────────────────────────
         if (bvGen != null) {
-            return bvGen.generate();
+            return generateConstraintValue(
+                bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 4. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
@@ -1248,46 +1479,86 @@ final class FieldGeneratorResolver {
             Object[] constants = rawType.getEnumConstants();
             if (constants.length == 0) return null;
             Long enumSeed = nextDeterministicSeed(generatorConfig, sequenceRandom);
-            return generateWithUniqueness(fieldName, new EnumGenerator((Class<? extends Enum>) rawType, enumSeed));
+            Generator<?> enumGenerator = enumSeed != null
+                                         ? new EnumGenerator((Class<? extends Enum>) rawType, enumSeed)
+                                         : () -> constants[sequenceRandom.nextInt(constants.length)];
+            return generateWithUniqueness(fieldName, enumGenerator);
         }
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
         if (rawType.isArray()) {
-            return generateArray(rawType, ownerType, fieldName, currentDepth, element);
+            if (!resolvedType.isResolved()) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
+            return generateArray(resolvedType, rawType, ownerType, fieldName, currentDepth, element);
         }
 
         // ── 6b. Set ───────────────────────────────────────────────────────────
         if (Set.class.isAssignableFrom(rawType)) {
-            Class<?> elem = typeArg(genericType, 0);
+            if (!hasResolvedArguments(genericType, Set.class)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
+            ResolvedType elem = containerArgument(genericType, Set.class, 0);
             int elementCount = nextCollectionSize(element);
             Set<Object> values = new LinkedHashSet<>();
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (values.size() < elementCount && attempts++ < maxAttempts) {
-                values.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
+                values.add(resolveAndGenerate(
+                    elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
             }
-            return toSetType(rawType, new ArrayList<>(values));
+            try {
+                return toSetType(rawType, new ArrayList<>(values));
+            } catch (CollectionInsertionFailure failure) {
+                return handleCollectionInsertionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
+            } catch (CollectionConstructionFailure failure) {
+                return handleCollectionConstructionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.constructionCause());
+            }
         }
 
         // ── 6c. List / Queue ──────────────────────────────────────────────────
         if (List.class.isAssignableFrom(rawType) || Queue.class.isAssignableFrom(rawType)) {
-            Class<?> elem = typeArg(genericType, 0);
+            Class<?> containerContract = List.class.isAssignableFrom(rawType) ? List.class : Queue.class;
+            if (!hasResolvedArguments(genericType, containerContract)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
+            ResolvedType elem = containerArgument(genericType, containerContract, 0);
             int elementCount = nextCollectionSize(element);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
-                els.add(resolveAndGenerate(elem, elem, fieldName + "[]", ownerType, currentDepth, null));
+                els.add(resolveAndGenerate(
+                    elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
             }
-            if (List.class.isAssignableFrom(rawType)) {
-                return toListType(rawType, els);
+            try {
+                if (List.class.isAssignableFrom(rawType)) {
+                    return toListType(rawType, els);
+                }
+                return toQueueType(rawType, els);
+            } catch (CollectionInsertionFailure failure) {
+                return handleCollectionInsertionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
+            } catch (CollectionConstructionFailure failure) {
+                return handleCollectionConstructionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.constructionCause());
             }
-            return toQueueType(rawType, els);
         }
 
         // ── 6d. Map ───────────────────────────────────────────────────────────
         if (Map.class.isAssignableFrom(rawType)) {
-            Class<?> k = typeArg(genericType, 0);
-            Class<?> v = typeArg(genericType, 1);
-            Map<Object, Object> map = toMapType(rawType);
+            if (!hasResolvedArguments(genericType, Map.class)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
+            ResolvedType k = containerArgument(genericType, Map.class, 0);
+            ResolvedType v = containerArgument(genericType, Map.class, 1);
+            Map<Object, Object> map;
+            try {
+                map = toMapType(rawType);
+            } catch (CollectionConstructionFailure failure) {
+                return handleCollectionConstructionFailure(
+                    ownerType, fieldName, genericType, currentDepth, failure.constructionCause());
+            }
             if (map == null) {
                 return null;
             }
@@ -1295,16 +1566,43 @@ final class FieldGeneratorResolver {
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (map.size() < elementCount && attempts++ < maxAttempts) {
-                Object key = resolveAndGenerate(k, k, fieldName + ".key", ownerType, currentDepth, null);
-                Object val = resolveAndGenerate(v, v, fieldName + ".val", ownerType, currentDepth, null);
+                Object key = resolveAndGenerate(
+                    k, fieldName + ".key", ownerType, currentDepth, typeArgumentElement(element, 0));
+                Object val = resolveAndGenerate(
+                    v, fieldName + ".value", ownerType, currentDepth, typeArgumentElement(element, 1));
                 if (key != null) {
-                    putSafely(map, key, val);
+                    String entryPath = ownerType.getSimpleName() + "." + fieldName + "[" + map.size() + "]";
+                    try {
+                        map.put(key, val);
+                    } catch (RuntimeException e) {
+                        String declaredType = genericType.getTypeName();
+                        GenerationFailureContext context = new GenerationFailureContext(
+                            GenerationFailureCategory.COLLECTION_INSERTION,
+                            GenerationOperation.INSERT,
+                            entryPath,
+                            ownerType,
+                            declaredType,
+                            currentDepth,
+                            -1);
+                        return failurePolicy.handle(
+                            new ObjectGenerationException(
+                                "Could not insert map entry at '" + entryPath + "' (declared type "
+                                + declaredType + ", depth " + currentDepth + ")",
+                                context,
+                                e),
+                            null);
+                    }
                 }
             }
             if (rawType == Map.class) {
                 return Collections.unmodifiableMap(map);
             }
             return map;
+        }
+
+        if (!resolvedType.isResolved()
+            || (resolvedType.kind() == ResolvedType.Kind.CLASS && rawType.getTypeParameters().length > 0)) {
+            return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 7. Depth guard ────────────────────────────────────────────────────
@@ -1317,10 +1615,11 @@ final class FieldGeneratorResolver {
         // via GeneratorConfig.objectSubtype / ObjectGeneratorConfig.subtype.
         Class<?> nestedType = config.resolveSubtype(rawType);
         if (isNestableType(nestedType)) {
-            if (pool.isInProgress(nestedType)) {
-                return pool.getCached(nestedType); // break circular reference
+            String poolTypeSignature = poolTypeSignature(resolvedType);
+            if (pool.isInProgress(nestedType, poolTypeSignature)) {
+                return pool.getCached(nestedType, poolTypeSignature); // break circular reference
             }
-            pool.begin(nestedType);
+            pool.begin(nestedType, poolTypeSignature);
             try {
                 Object instance = new ObjectGenerator<>(
                     nestedType,
@@ -1328,57 +1627,321 @@ final class FieldGeneratorResolver {
                     currentDepth + 1,
                     pool,
                     nextDeterministicSeed(generatorConfig, sequenceRandom),
-                    uniqueFieldTracker).generate();
-                pool.end(nestedType, instance);
+                    uniqueFieldTracker,
+                    nestedTypeBindings(resolvedType, nestedType)).generate();
+                pool.end(nestedType, poolTypeSignature, instance);
                 return instance;
             } catch (ObjectGenerationException e) {
-                pool.end(nestedType, null);
-                if (config.isIgnoreErrors()) {
-                    LOGGER.debug("Ignored nested generation failure for field '"
-                                + ownerType.getSimpleName() + "." + fieldName + "': " + e);
-                    return null;
-                }
-                throw e;
+                pool.end(nestedType, poolTypeSignature, null);
+                return failurePolicy.handle(
+                    contextualizeNestedFailure(
+                        e, nestedType, ownerType, fieldName, genericType, currentDepth),
+                    null);
             } catch (Exception e) {
-                pool.end(nestedType, null);
-                if (config.isIgnoreErrors()) {
-                    LOGGER.debug("Ignored nested generation failure for field '"
-                                + ownerType.getSimpleName() + "." + fieldName + "': " + e);
-                    return null;
-                }
-                throw new ObjectGenerationException(
-                    "Failed to generate nested type " + rawType.getName() + " for field '"
-                    + ownerType.getSimpleName() + "." + fieldName + "'", e);
+                pool.end(nestedType, poolTypeSignature, null);
+                return failurePolicy.handle(
+                    nestedFailure(
+                        GenerationFailureCategory.REFLECTION,
+                        GenerationOperation.GENERATE,
+                        ownerType.getSimpleName() + "." + fieldName,
+                        ownerType,
+                        genericType.getTypeName(),
+                        currentDepth,
+                        e),
+                    null);
             }
         }
 
         // ── 9. Unsupported type ───────────────────────────────────────────────
-        return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
+        return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
     }
 
-    /**
-     * Convenience overload for callers that do not have a separate generic type
-     * (e.g. internal recursive calls for array/collection elements).
-     */
-    Object resolveAndGenerate(Class<?> rawType, String fieldName,
-                              Class<?> ownerType, int currentDepth) {
-        return resolveAndGenerate(rawType, rawType, fieldName, ownerType, currentDepth, null);
+    Object resolveAndGenerateMember(Type genericType,
+                                    Class<?> rawType,
+                                    String fieldName,
+                                    Class<?> ownerType,
+                                    int currentDepth,
+                                    AnnotatedElement element,
+                                    String streamIdentity) {
+        if (!namedChildStreams) {
+            return resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element);
+        }
+        FieldGeneratorResolver childResolver = new FieldGeneratorResolver(
+            config,
+            pool,
+            uniqueFieldTracker,
+            GenerationRecipe.deriveChildSeed(Objects.requireNonNull(generationSeed), streamIdentity),
+            typeBindings);
+        return childResolver.resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element);
     }
 
-    private Object generateArray(Class<?> arrayType, Class<?> ownerType,
+    private Map<TypeVariable<?>, Type> nestedTypeBindings(ResolvedType resolvedType, Class<?> nestedType) {
+        Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
+        bindings.putAll(ResolvedType.bindingsFor(nestedType));
+        ResolvedType generationType = Objects.requireNonNullElse(resolvedType.effectiveType(), resolvedType);
+        bindings.putAll(ResolvedType.bindingsFor(generationType.declaredType()));
+        return Map.copyOf(bindings);
+    }
+
+    private static String poolTypeSignature(ResolvedType resolvedType) {
+        ResolvedType effectiveType = Objects.requireNonNullElse(resolvedType.effectiveType(), resolvedType);
+        return effectiveType.signature();
+    }
+
+    private static ObjectGenerationException contextualizeNestedFailure(ObjectGenerationException failure,
+                                                                        Class<?> nestedType,
+                                                                        Class<?> ownerType,
+                                                                        String fieldName,
+                                                                        Type declaredType,
+                                                                        int depth) {
+        String parentPath = ownerType.getSimpleName() + "." + fieldName;
+        Optional<GenerationFailureContext> existing = failure.getContext();
+        if (existing.isEmpty()) {
+            return nestedFailure(
+                GenerationFailureCategory.REFLECTION,
+                GenerationOperation.GENERATE,
+                parentPath,
+                ownerType,
+                declaredType.getTypeName(),
+                depth,
+                failure.getCause());
+        }
+
+        GenerationFailureContext child = existing.orElseThrow();
+        String nestedRoot = nestedType.getSimpleName();
+        String childSuffix;
+        if (child.path().equals(nestedRoot)) {
+            childSuffix = "";
+        } else if (child.path().startsWith(nestedRoot + ".")) {
+            childSuffix = child.path().substring(nestedRoot.length());
+        } else {
+            childSuffix = "." + child.path();
+        }
+        return nestedFailure(
+            child.category(),
+            child.operation(),
+            parentPath + childSuffix,
+            child.ownerType(),
+            child.declaredType(),
+            child.depth(),
+            failure.getCause());
+    }
+
+    private static ObjectGenerationException nestedFailure(GenerationFailureCategory category,
+                                                           GenerationOperation operation,
+                                                           String path,
+                                                           Class<?> ownerType,
+                                                           String declaredType,
+                                                           int depth,
+                                                           Throwable cause) {
+        GenerationFailureContext context = new GenerationFailureContext(
+            category,
+            operation,
+            path,
+            ownerType,
+            declaredType,
+            depth,
+            -1);
+        return new ObjectGenerationException(
+            "Could not generate nested value at '" + path + "' (declared type "
+            + declaredType + ", depth " + depth + ")",
+            context,
+            cause);
+    }
+
+    private Object handleUnsupportedType(Class<?> rawType,
+                                         Type declaredType,
+                                         Class<?> ownerType,
+                                         String fieldName,
+                                         int depth) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String declaredTypeName = declaredType.getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.UNSUPPORTED_TYPE,
+            GenerationOperation.GENERATE,
+            path,
+            ownerType,
+            declaredTypeName,
+            depth,
+            -1);
+        UnsupportedOperationException cause = new UnsupportedOperationException(
+            "No generator is registered for the declared type");
+        return failurePolicy.handle(
+            new ObjectGenerationException(
+                "Unsupported type at '" + path + "' (declared type "
+                + declaredTypeName + ", depth " + depth + ")",
+                context,
+                cause),
+            PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
+    }
+
+    private Object handleConstraintConflict(Class<?> rawType,
+                                            Type declaredType,
+                                            Class<?> ownerType,
+                                            String fieldName,
+                                            int depth,
+                                            BeanValidationSupport.ConstraintConflictException cause) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String declaredTypeName = declaredType.getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.UNSUPPORTED_TYPE,
+            GenerationOperation.GENERATE,
+            path,
+            ownerType,
+            declaredTypeName,
+            depth,
+            -1);
+        return failurePolicy.handle(
+            new ObjectGenerationException(
+                "Unsatisfiable constraints at '" + path + "' (declared type "
+                + declaredTypeName + ", depth " + depth + ")",
+                context,
+                cause),
+            PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
+    }
+
+    private Object generateConstraintValue(Generator<?> generator,
+                                           Class<?> rawType,
+                                           Type declaredType,
+                                           Class<?> ownerType,
+                                           String fieldName,
+                                           int depth) {
+        try {
+            return generator.generate();
+        } catch (BeanValidationSupport.ConstraintConflictException conflict) {
+            Object fallback = handleConstraintConflict(
+                rawType, declaredType, ownerType, fieldName, depth, conflict);
+            return fallback;
+        }
+    }
+
+    private Object handleCollectionInsertionFailure(Class<?> ownerType,
+                                                    String fieldName,
+                                                    Type declaredType,
+                                                    int depth,
+                                                    RuntimeException cause) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String declaredTypeName = declaredType.getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.COLLECTION_INSERTION,
+            GenerationOperation.INSERT,
+            path,
+            ownerType,
+            declaredTypeName,
+            depth,
+            -1);
+        return failurePolicy.handle(
+            new ObjectGenerationException(
+                "Could not populate collection at '" + path + "' (declared type "
+                + declaredTypeName + ", depth " + depth + ")",
+                context,
+                cause),
+            null);
+    }
+
+    private Object handleCollectionConstructionFailure(Class<?> ownerType,
+                                                       String fieldName,
+                                                       Type declaredType,
+                                                       int depth,
+                                                       Throwable cause) {
+        String path = ownerType.getSimpleName() + "." + fieldName;
+        String declaredTypeName = declaredType.getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+            GenerationFailureCategory.CONSTRUCTION,
+            GenerationOperation.CONSTRUCT,
+            path,
+            ownerType,
+            declaredTypeName,
+            depth,
+            -1);
+        return failurePolicy.handle(
+            new ObjectGenerationException(
+                "Could not construct collection at '" + path + "' (declared type "
+                + declaredTypeName + ", depth " + depth + ")",
+                context,
+                cause),
+            null);
+    }
+
+    private Object resolveAndGenerate(ResolvedType type,
+                                      String fieldName,
+                                      Class<?> ownerType,
+                                      int currentDepth,
+                                      AnnotatedElement element) {
+        ResolvedType generationType = Objects.requireNonNullElse(type.effectiveType(), type);
+        Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
+        return resolveAndGenerate(
+            generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, element);
+    }
+
+    private Object generateArray(ResolvedType declaredArrayType,
+                                 Class<?> runtimeArrayType,
+                                 Class<?> ownerType,
                                  String fieldName, int depth, AnnotatedElement element) {
-        Class<?> comp = arrayType.getComponentType();
+        Class<?> comp = runtimeArrayType.getComponentType();
+        ResolvedType declaredComponentType = Objects.requireNonNull(declaredArrayType.componentType());
         int elementCount = nextCollectionSize(element);
         Object arr = Array.newInstance(comp, elementCount);
         for (int i = 0; i < elementCount; i++) {
-            Object el = resolveAndGenerate(comp, fieldName + "[]", ownerType, depth);
+            Object el = resolveAndGenerate(
+                declaredComponentType,
+                fieldName + "[]",
+                ownerType,
+                depth,
+                arrayComponentElement(element));
             try {
                 Array.set(arr, i, el);
-            } catch (IllegalArgumentException ignored) {
-                // null into a primitive slot — leave the JVM default (0 / false)
+            } catch (IllegalArgumentException e) {
+                String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
+                String declaredType = declaredArrayType.signature();
+                GenerationFailureContext context = new GenerationFailureContext(
+                    GenerationFailureCategory.COLLECTION_INSERTION,
+                    GenerationOperation.INSERT,
+                    elementPath,
+                    ownerType,
+                    declaredType,
+                    depth,
+                    -1);
+                failurePolicy.handle(
+                    new ObjectGenerationException(
+                        "Could not insert array element at '" + elementPath + "' (declared type "
+                        + declaredType + ", depth " + depth + ")",
+                        context,
+                        e),
+                    null);
             }
         }
         return arr;
+    }
+
+    private static AnnotatedElement typeArgumentElement(AnnotatedElement element, int index) {
+        AnnotatedType type = annotatedTypeFor(element);
+        if (!(type instanceof AnnotatedParameterizedType parameterizedType)) {
+            return null;
+        }
+        AnnotatedType[] arguments = parameterizedType.getAnnotatedActualTypeArguments();
+        return index < arguments.length ? arguments[index] : null;
+    }
+
+    private static AnnotatedElement arrayComponentElement(AnnotatedElement element) {
+        AnnotatedType type = annotatedTypeFor(element);
+        return type instanceof AnnotatedArrayType arrayType ? arrayType.getAnnotatedGenericComponentType() : null;
+    }
+
+    private static AnnotatedType annotatedTypeFor(AnnotatedElement element) {
+        if (element instanceof AnnotatedType annotatedType) {
+            return annotatedType;
+        }
+        if (element instanceof java.lang.reflect.Field field) {
+            return field.getAnnotatedType();
+        }
+        if (element instanceof RecordComponent recordComponent) {
+            return recordComponent.getAnnotatedType();
+        }
+        if (element instanceof Parameter parameter) {
+            return parameter.getAnnotatedType();
+        }
+        return null;
     }
 
     private int nextCollectionSize(AnnotatedElement element) {

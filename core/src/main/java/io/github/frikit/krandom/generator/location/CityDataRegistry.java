@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Built-in support is auto-loaded at class init from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
  *
- * <p>Custom providers registered via {@link #register(CityDataProvider)} override built-in data
+ * <p>Custom providers registered via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder} override built-in data
  * for the same locale and enable support for additional locales.
  */
 public final class CityDataRegistry {
@@ -31,25 +31,12 @@ public final class CityDataRegistry {
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
-            register(new BuiltInCityDataProvider(supportedLocale));
+            registerProvider(new BuiltInCityDataProvider(supportedLocale));
         }
     }
 
     private CityDataRegistry() {
         throw new UnsupportedOperationException("Utility class");
-    }
-
-    /**
-     * Registers or replaces the city data provider for a locale.
-     *
-     * @param provider the provider; must not be {@code null}
-     * @throws NullPointerException if {@code provider} is {@code null}
-     */
-    public static void register(CityDataProvider provider) {
-        Objects.requireNonNull(provider, "provider must not be null");
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
-        validateArray("cities", provider.getCities());
-        RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
     }
 
     /**
@@ -81,17 +68,10 @@ public final class CityDataRegistry {
         return Set.copyOf(providers.keySet());
     }
 
-    private static void validateArray(String name, String[] values) {
-        Objects.requireNonNull(values, name + " must not be null");
-        if (values.length == 0) {
-            throw new IllegalArgumentException(name + " must not be empty");
-        }
-        for (int i = 0; i < values.length; i++) {
-            String value = values[i];
-            if (value == null || value.isBlank()) {
-                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
-            }
-        }
-    }
 
+    private static void registerProvider(CityDataProvider provider) {
+        Objects.requireNonNull(provider, "provider must not be null");
+        Objects.requireNonNull(provider.getLocale(), "provider.getLocale() must not be null");
+        RegistryLookup.putWithLanguageFallback(providers, provider.getLocale(), provider);
+    }
 }

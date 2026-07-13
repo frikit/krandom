@@ -7,6 +7,7 @@ package io.github.frikit.krandom.examples.e2e.spidregistration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.YearGenerator;
 import io.github.frikit.krandom.generator.identifier.IdentifierMaskGenerator;
@@ -109,7 +110,7 @@ public final class SpidRegistrationForm {
         IdentifierMaskGenerator identifier = new IdentifierMaskGenerator(config);
         DateGenerator date = new DateGenerator(config);
         // Codice Fiscale is always Italian regardless of the display locale of the rest of the form.
-        NationalIdGenerator codiceFiscale = new NationalIdGenerator(Locale.ITALY, seed);
+        NationalIdGenerator codiceFiscale = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ITALY).seed(seed) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
         // A CIE is valid for up to ten years.
         int thisYear = LocalDate.now().getYear();
         YearGenerator expiryYear = new YearGenerator(thisYear + 1, thisYear + 10, seed + 1);

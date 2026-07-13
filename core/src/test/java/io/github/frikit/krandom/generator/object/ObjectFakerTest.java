@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -301,7 +304,13 @@ class ObjectFakerTest {
                 .ruleFor("age", generated -> null)
                 .generate());
 
-        assertTrue(ex.getMessage().contains("Failed to apply fixture rule"));
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
+        assertEquals(GenerationOperation.APPLY_RULE, context.operation());
+        assertEquals("PrimitiveFixture.age", context.path());
+        assertEquals(int.class.getTypeName(), context.declaredType());
+        assertEquals(0, context.depth());
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
     }
 
     @Test
@@ -763,7 +772,15 @@ class ObjectFakerTest {
                 }
             });
 
-        assertTrue(ex.getMessage().contains("Failed to apply nested include rules"));
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.REFLECTION, context.category());
+        assertEquals(GenerationOperation.APPLY_RULE, context.operation());
+        assertEquals("FixtureUserWithBrokenAddress.address.postalCode", context.path());
+        assertEquals(BrokenAddressRecord.class, context.ownerType());
+        assertEquals(String.class.getTypeName(), context.declaredType());
+        assertEquals(1, context.depth());
+        assertTrue(ex.getCause() instanceof IllegalStateException);
+        assertFalse(ex.getMessage().contains("boom"));
     }
 
     @Test
@@ -776,7 +793,15 @@ class ObjectFakerTest {
                 .ruleFor("address", () -> new BrokenAddressRecord("Rome", "00100"))
                 .generate());
 
-        assertTrue(ex.getMessage().contains("Failed to apply ignore rule"));
+        var context = ex.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
+        assertEquals(GenerationOperation.APPLY_RULE, context.operation());
+        assertEquals("FixtureUserWithBrokenAddress.address.city", context.path());
+        assertEquals(BrokenAddressRecord.class, context.ownerType());
+        assertEquals(String.class.getTypeName(), context.declaredType());
+        assertEquals(1, context.depth());
+        assertTrue(ex.getCause() instanceof IllegalStateException);
+        assertFalse(ex.getMessage().contains("boom"));
     }
 
     @Test

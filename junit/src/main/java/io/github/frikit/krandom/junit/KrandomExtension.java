@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.junit;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -17,6 +18,8 @@ import org.junit.jupiter.api.extension.TestWatcher;
 import org.junit.platform.commons.support.AnnotationSupport;
 import org.jspecify.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.Random;
 
@@ -28,9 +31,18 @@ import java.util.Random;
  * random per-test seed when unpinned. The seed is injectable as a {@link GeneratorConfig} or
  * {@link GeneratorConfig.Builder} test parameter, both pre-seeded with the test's seed.
  *
+ * <p>Set {@code -Dkrandom.junit.recipe=base64:<serialized recipe>} or
+ * {@code -Dkrandom.junit.seed=<numeric seed>} to replay a test without editing its source. The
+ * corresponding {@code KRANDOM_JUNIT_RECIPE} and {@code KRANDOM_JUNIT_SEED} environment variables
+ * are supported when the JVM properties are absent. A recipe takes the same form as
+ * {@link GenerationRecipe#serialize()}, encoded with URL-safe Base64 without padding; literal
+ * recipes with {@code \n} line separators are also accepted. Replay overrides take precedence over
+ * {@link KrandomSeed}.
+ *
  * <p>When a test fails, the seed is published as a JUnit report entry under the
- * {@value #REPORT_ENTRY_KEY} key and printed to {@code System.err} with a reproduction hint, so
- * a failing unpinned run can be replayed by annotating the test with
+ * {@value #REPORT_ENTRY_KEY} key and a safe portable recipe under {@value #RECIPE_REPORT_ENTRY_KEY}.
+ * Both are printed to {@code System.err} with a reproduction hint, so a failing unpinned run can
+ * be replayed either by the printed JVM option or by annotating the test with
  * {@code @KrandomSeed(<reported seed>L)} — no more unreproducible random-data failures.
  *
  * <p><b>Usage</b>
@@ -59,12 +71,32 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     /** Key under which the failing test's seed is published as a JUnit report entry. */
     public static final String REPORT_ENTRY_KEY = "krandom.seed";
 
+    /** Key under which the failing test's safe portable replay recipe is published. */
+    public static final String RECIPE_REPORT_ENTRY_KEY = "krandom.recipe";
+
     private static final Namespace NAMESPACE = Namespace.create(KrandomExtension.class);
     private static final String SEED_KEY = "seedInfo";
     private static final Random UNPINNED_SEEDS = new Random();
+    private static final String REPLAY_RECIPE_PROPERTY = "krandom.junit.recipe";
+    private static final String REPLAY_RECIPE_ENVIRONMENT = "KRANDOM_JUNIT_RECIPE";
+    private static final String REPLAY_SEED_PROPERTY = "krandom.junit.seed";
+    private static final String REPLAY_SEED_ENVIRONMENT = "KRANDOM_JUNIT_SEED";
 
-    /** Resolved seed for one test: the value plus whether it was pinned via the annotation. */
-    private record SeedInfo(long seed, boolean pinned) {
+    /** Resolved configuration for one test and whether its source is explicit. */
+    private record SeedInfo(GeneratorConfig config, boolean pinned) {
+
+        private long seed() {
+            return config.getSeed().orElseThrow();
+        }
+
+        private String diagnosticRecipe() {
+            return config.getGenerationRecipe()
+                         .orElseThrow(() -> new IllegalStateException("test replay configuration has no recipe"))
+                         .serializeForDiagnostics();
+        }
+    }
+
+    private record ReplayOverride(String value, String source) {
     }
 
     @Override
@@ -80,11 +112,11 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        GeneratorConfig.Builder builder = GeneratorConfig.builder().seed(seedInfo(extensionContext).seed());
+        GeneratorConfig config = seedInfo(extensionContext).config();
         if (parameterContext.getParameter().getType() == GeneratorConfig.class) {
-            return builder.build();
+            return config;
         }
-        return builder;
+        return config.toBuilder();
     }
 
     @Override
@@ -96,16 +128,27 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             return;
         }
         context.publishReportEntry(REPORT_ENTRY_KEY, Long.toString(info.seed()));
-        System.err.println(failureMessage(context.getDisplayName(), info));
+        String recipe = info.diagnosticRecipe();
+        context.publishReportEntry(RECIPE_REPORT_ENTRY_KEY, recipe);
+        System.err.println(failureMessage(context.getDisplayName(), info, recipe));
     }
 
-    private static String failureMessage(String displayName, SeedInfo info) {
+    private static String failureMessage(String displayName, SeedInfo info, String recipe) {
+        String replayOption = replayOption(recipe);
         if (info.pinned()) {
-            return "krandom: test '%s' failed with pinned seed %d.".formatted(displayName, info.seed());
+            return ("krandom: test '%s' failed with pinned seed %d. %s%nReplay recipe:%n%s")
+                .formatted(displayName, info.seed(), replayOption, recipe);
         }
         return ("krandom: test '%s' failed with seed %d. "
-                + "Annotate it with @KrandomSeed(%dL) to reproduce this run.")
-                .formatted(displayName, info.seed(), info.seed());
+                + "Annotate it with @KrandomSeed(%dL) to reproduce this run. %s%nReplay recipe:%n%s")
+                .formatted(displayName, info.seed(), info.seed(), replayOption, recipe);
+    }
+
+    private static String replayOption(String recipe) {
+        String encoded = Base64.getUrlEncoder()
+                               .withoutPadding()
+                               .encodeToString(recipe.getBytes(StandardCharsets.UTF_8));
+        return "Replay option: -D" + REPLAY_RECIPE_PROPERTY + "=base64:" + encoded;
     }
 
     /**
@@ -118,9 +161,23 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     }
 
     private static SeedInfo computeSeedInfo(ExtensionContext context) {
+        Optional<ReplayOverride> recipeOverride = replayOverride(
+            REPLAY_RECIPE_PROPERTY, REPLAY_RECIPE_ENVIRONMENT);
+        Optional<ReplayOverride> seedOverride = replayOverride(REPLAY_SEED_PROPERTY, REPLAY_SEED_ENVIRONMENT);
+        if (recipeOverride.isPresent() && seedOverride.isPresent()) {
+            throw new ExtensionConfigurationException(
+                "Configure only one replay override: " + REPLAY_RECIPE_PROPERTY + " or " + REPLAY_SEED_PROPERTY);
+        }
+        if (recipeOverride.isPresent()) {
+            return recipeInfo(recipeOverride.get());
+        }
+        if (seedOverride.isPresent()) {
+            return numericSeedInfo(seedOverride.get());
+        }
+
         Optional<KrandomSeed> annotation = findSeedAnnotation(context);
         if (annotation.isEmpty()) {
-            return new SeedInfo(UNPINNED_SEEDS.nextLong(), false);
+            return new SeedInfo(GeneratorConfig.builder().seed(UNPINNED_SEEDS.nextLong()).build(), false);
         }
         KrandomSeed seed = annotation.get();
         boolean hasValue = seed.value() != KrandomSeed.UNSET;
@@ -130,7 +187,7 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
                     "@KrandomSeed must set either value or text, not both");
         }
         if (hasValue) {
-            return new SeedInfo(seed.value(), true);
+            return new SeedInfo(GeneratorConfig.builder().seed(seed.value()).build(), true);
         }
         if (!hasText) {
             throw new ExtensionConfigurationException(
@@ -139,7 +196,43 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         if (seed.text().isBlank()) {
             throw new ExtensionConfigurationException("@KrandomSeed text seed must not be blank");
         }
-        return new SeedInfo(GeneratorConfig.deriveSeed(seed.text()), true);
+        return new SeedInfo(GeneratorConfig.builder().seed(seed.text()).build(), true);
+    }
+
+    private static Optional<ReplayOverride> replayOverride(String property, String environment) {
+        String propertyValue = System.getProperty(property);
+        if (propertyValue != null) {
+            return Optional.of(new ReplayOverride(propertyValue, property));
+        }
+        String environmentValue = System.getenv(environment);
+        if (environmentValue != null) {
+            return Optional.of(new ReplayOverride(environmentValue, environment));
+        }
+        return Optional.empty();
+    }
+
+    private static SeedInfo recipeInfo(ReplayOverride override) {
+        try {
+            return new SeedInfo(GenerationRecipe.parse(decodeRecipe(override.value())).toGeneratorConfig(), true);
+        } catch (IllegalArgumentException exception) {
+            throw new ExtensionConfigurationException("Invalid " + override.source() + " replay recipe", exception);
+        }
+    }
+
+    private static String decodeRecipe(String value) {
+        if (value.startsWith("base64:")) {
+            byte[] decoded = Base64.getUrlDecoder().decode(value.substring("base64:".length()));
+            return new String(decoded, StandardCharsets.UTF_8);
+        }
+        return value.replace("\\n", "\n");
+    }
+
+    private static SeedInfo numericSeedInfo(ReplayOverride override) {
+        try {
+            return new SeedInfo(GeneratorConfig.builder().seed(Long.parseLong(override.value())).build(), true);
+        } catch (NumberFormatException exception) {
+            throw new ExtensionConfigurationException("Invalid " + override.source() + " numeric seed", exception);
+        }
     }
 
     /**

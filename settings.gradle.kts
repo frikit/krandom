@@ -5,8 +5,14 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("com.gradleup.nmcp.settings") version "1.6.1"
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        if (providers.gradleProperty("useLocalMaven").isPresent) {
+            mavenLocal()
+        }
+        mavenCentral()
+    }
 }
 
 val currentJava = org.gradle.api.JavaVersion.current()
@@ -23,6 +29,7 @@ if (!currentJava.isCompatibleWith(org.gradle.api.JavaVersion.VERSION_21)) {
 rootProject.name = "krandom"
 
 include(":core")
+include(":bom")
 include(":jackson")
 include(":junit")
 include(":spring-boot-starter")
@@ -30,13 +37,3 @@ include(":kotest-extensions")
 include(":kotlin-dsl")
 include(":benchmarks")
 include(":examples-e2e")
-
-nmcpSettings {
-    centralPortal {
-        username = System.getenv("CENTRAL_PORTAL_USERNAME") ?: ""
-        password = System.getenv("CENTRAL_PORTAL_PASSWORD") ?: ""
-        // USER_MANAGED: upload appears in the Central Portal UI for manual "Publish".
-        // Flip to AUTOMATIC for hands-off subsequent releases.
-        publishingType = System.getenv("CENTRAL_PORTAL_PUBLISHING_TYPE") ?: "USER_MANAGED"
-    }
-}

@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -19,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Pre-seeded at class-load time with every built-in locale from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
- * Custom providers can be added at any time via {@link #register(SuffixDataProvider)}, replacing
+ * Custom providers can be added at any time via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}, replacing
  * any existing provider for the same locale key.
  *
  * <p><b>Lookup order</b>
@@ -41,20 +40,6 @@ public final class SuffixDataRegistry {
     }
 
     private SuffixDataRegistry() {
-    }
-
-    /**
-     * Registers a custom suffix data provider.
-     *
-     * <p>If a provider already exists for the same exact locale key, it is replaced. A
-     * language-only key (e.g. {@code "en"}) explicitly replaces the language-level fallback.
-     *
-     * @param provider the provider to register; must not be {@code null}
-     */
-    public static void register(SuffixDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
-        validateProvider(provider);
-        putProvider(provider);
     }
 
     /**
@@ -88,7 +73,7 @@ public final class SuffixDataRegistry {
      * Returns an unmodifiable snapshot of all currently registered locale keys.
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
 
     private static void seedInternal(SuffixDataProvider provider) {
@@ -98,29 +83,9 @@ public final class SuffixDataRegistry {
     private static void putProvider(SuffixDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 
-    private static void validateProvider(SuffixDataProvider provider) {
-        Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
-        validateArray("suffixes", provider.getSuffixes());
-    }
 
-    private static void validateArray(String name, String[] values) {
-        Objects.requireNonNull(values, name);
-        if (values.length == 0) {
-            throw new IllegalArgumentException(name + " must not be empty");
-        }
-        for (int i = 0; i < values.length; i++) {
-            String value = values[i];
-            if (value == null || value.isBlank()) {
-                throw new IllegalArgumentException(name + " at index " + i + " must not be blank");
-            }
-        }
-    }
 }

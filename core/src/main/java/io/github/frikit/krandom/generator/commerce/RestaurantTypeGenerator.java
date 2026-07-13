@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.util.List;
 import java.util.Locale;
@@ -17,8 +18,10 @@ import java.util.Random;
  * Generates locale-aware restaurant cuisine/type names, e.g. {@code "Steakhouse"} for English or
  * {@code "Стейк-хаус"} for Russian.
  *
- * <p>Types are resolved from {@link RestaurantTypeDataRegistry} for the configured locale; locales
- * without a built-in file fall back to the bundled English types.
+ * <p>Types are resolved from the configured
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext}; its default view delegates to
+ * {@link RestaurantTypeDataRegistry}. Locales without a built-in file fall back to bundled English
+ * types.
  *
  * <pre>{@code
  *   String en = new RestaurantTypeGenerator().generate();                     // e.g. "Italian"
@@ -57,7 +60,8 @@ public final class RestaurantTypeGenerator implements Generator<String> {
      */
     public RestaurantTypeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        RestaurantTypeDataProvider provider = RestaurantTypeDataRegistry.forLocale(config.getLocale());
+        DataRegistryContext registryContext = config.getRegistryContext();
+        RestaurantTypeDataProvider provider = registryContext.restaurantTypeProvider(config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

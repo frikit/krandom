@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    `java-library`
     jacoco
 }
 
@@ -14,21 +14,20 @@ val coverageCounters = listOf(
     "CLASS"
 )
 
-kotlin {
-    jvmToolchain(21)
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
 dependencies {
     api(libs.jspecify)
-    implementation(libs.kotlin.stdlib)
     implementation(libs.slf4j.api)
     implementation(libs.objenesis)
     implementation(libs.jakarta.validation.api)
 
     testImplementation(libs.commons.validator)
     testImplementation(libs.hibernate.validator)
-    testImplementation(libs.kotest.runner.junit5)
-    testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
@@ -39,11 +38,21 @@ dependencies {
 }
 
 tasks.test {
-    useJUnitPlatform {
-        includeEngines("kotest", "junit-jupiter")
-    }
+    useJUnitPlatform()
     jvmArgs("-Xmx512m")
+    systemProperty("krandom.rootDir", rootProject.projectDir.absolutePath)
     finalizedBy(tasks.jacocoTestReport)
+}
+
+val providerCatalogDocumentationFile = rootProject.layout.projectDirectory.file("docs/reference/provider-catalog.md")
+
+tasks.register<JavaExec>("generateProviderCatalogDocumentation") {
+    group = "documentation"
+    description = "Generates the built-in provider reference from ProviderCatalog."
+    dependsOn(tasks.named("testClasses"))
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("io.github.frikit.krandom.generator.provider.ProviderCatalogDocumentation")
+    args(providerCatalogDocumentationFile.asFile.absolutePath)
 }
 
 jacoco {

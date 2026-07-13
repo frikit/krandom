@@ -104,6 +104,53 @@ class SchemaParserTest {
             assertThrows(IllegalArgumentException.class,
                 () -> SchemaParser.fromJsonSchema(objectSchema(properties)));
         }
+
+        @Test
+        @DisplayName("rejects references and composition keywords with their schema path")
+        void rejectsUnsupportedReferencesAndCompositions() {
+            IllegalArgumentException reference = assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(
+                    Map.of("address", Map.of("$ref", "#/components/schemas/Address")))));
+            assertTrue(reference.getMessage().contains("$ref"));
+            assertTrue(reference.getMessage().contains("$.properties.address"));
+
+            IllegalArgumentException composition = assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(
+                    Map.of("status", Map.of("allOf", List.of(Map.of("type", "string")))))));
+            assertTrue(composition.getMessage().contains("allOf"));
+            assertTrue(composition.getMessage().contains("$.properties.status"));
+        }
+
+        @Test
+        @DisplayName("rejects unsupported array items and cyclic schema maps with their path")
+        void rejectsUnsupportedItemsAndCyclicMaps() {
+            IllegalArgumentException items = assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(
+                    Map.of("tags", Map.of("type", "array", "items", Map.of("oneOf", List.of()))))));
+            assertTrue(items.getMessage().contains("oneOf"));
+            assertTrue(items.getMessage().contains("$.properties.tags.items"));
+
+            Map<String, Object> recursive = new HashMap<>();
+            Map<String, Object> properties = new HashMap<>();
+            recursive.put("type", "object");
+            recursive.put("properties", properties);
+            properties.put("self", recursive);
+            IllegalArgumentException cycle = assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(recursive));
+            assertTrue(cycle.getMessage().contains("Recursive JSON Schema map"));
+            assertTrue(cycle.getMessage().contains("$.properties.self"));
+        }
+
+        @Test
+        @DisplayName("accepts the JSON Schema control keywords emitted by krandom exports")
+        void acceptsKrandomExportControlKeywords() {
+            assertDoesNotThrow(() -> SchemaParser.fromJsonSchema(Map.of(
+                "$schema", "https://json-schema.org/draft/2020-12/schema",
+                "type", "object",
+                "additionalProperties", false,
+                "required", List.of("name"),
+                "properties", Map.of("name", Map.of("type", "string")))));
+        }
     }
 
     @Nested

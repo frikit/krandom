@@ -8,15 +8,26 @@
     <version>0.1.0</version>
 
     <properties>
-        <krandom.version>1.6.0-SNAPSHOT</krandom.version>
+        <krandom.version>2.0.0-SNAPSHOT</krandom.version>
         <maven.compiler.release>21</maven.compiler.release>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.github.frikit</groupId>
+                <artifactId>krandom-bom</artifactId>
+                <version>${krandom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
             <groupId>io.github.frikit</groupId>
             <artifactId>krandom-core</artifactId>
-            <version>${krandom.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

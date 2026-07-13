@@ -87,36 +87,6 @@ class WeatherGeneratorTest {
     @Nested
     @DisplayName("WeatherDataRegistry")
     class Registry {
-
-        @Test
-        @DisplayName("registry honors built-ins, custom providers, and rejects null/unknown")
-        void registry() {
-            assertTrue(WeatherDataRegistry.isRegistered(RU));
-            assertTrue(WeatherDataRegistry.isRegistered(Locale.of("ru"))); // language-only
-            assertFalse(WeatherDataRegistry.isRegistered(Locale.of("is", "IS")));
-            assertFalse(WeatherDataRegistry.isRegistered(null));
-
-            assertNotNull(WeatherDataRegistry.forLocale(RU));
-            assertNotNull(WeatherDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
-            assertNull(WeatherDataRegistry.forLocale(Locale.of("is")));
-            assertNull(WeatherDataRegistry.forLocale(null));
-            assertTrue(WeatherDataRegistry.registeredKeys().contains("ru_RU"));
-
-            WeatherDataProvider custom = new WeatherDataProvider() {
-                @Override
-                public Locale getLocale() {
-                    return Locale.of("zz");
-                }
-
-                @Override
-                public List<String> getConditions() {
-                    return List.of("Zephyr");
-                }
-            };
-            WeatherDataRegistry.register(custom);
-            assertEquals("Zephyr", new WeatherGenerator(Locale.of("zz")).generate());
-            assertThrows(NullPointerException.class, () -> WeatherDataRegistry.register(null));
-        }
     }
 
     @Nested

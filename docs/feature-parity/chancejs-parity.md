@@ -142,6 +142,10 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 #### National ID Section (10/10 locales — krandom-unique, no Chance.js equivalent)
 
+> Safety note: the locale constructors shown below are deprecated 1.6 compatibility bridges.
+> Canonical v2 configuration fails closed; use `NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED`
+> only for isolated fixtures and never as a real identity credential.
+
 - ✅ US SSN - `new NationalIdGenerator(Locale.US)` → `"411-90-0070"` (area 666 excluded per SSA)
 - ✅ UK NI number - `new NationalIdGenerator(Locale.UK)` → `"AB 12 34 56 C"` (letter rules + disallowed pairs)
 - ✅ AU TFN - `new NationalIdGenerator(Locale.of("en","AU"))` → `"123 456 782"` (mod-11 weighted checksum)
@@ -703,6 +707,7 @@ _None - awaiting next feature selection_
 | American format                                                | ✅ `birthday({american: true})`                                          | ✅ Yes          | ✓ DONE                  | `generateAsAmericanString()` → '05/27/1983'                                                        |
 | Type-based birthday                                            | ✅ `birthday({type: 'adult'})`                                           | ✅ Yes          | ✓ DONE                  | `new BirthdayGenerator(AgeType.ADULT)`                                                             |
 | **ID Numbers**                                                 |                                                                         |                |                         |                                                                                                    |
+| National-ID safety                                             | —                                                                       | ✅ Yes          | ✓ DONE                  | Canonical configuration fails closed; locale constructors below are deprecated compatibility bridges |
 | SSN (US)                                                       | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.US)` via `UsNationalIdProvider` (area 666 excluded)                |
 | Last 4 SSN                                                     | ✅ `ssn({ssnFour: true})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().lastFourOnly().generate(random)`                                       |
 | SSN format control                                             | ✅ `ssn({dashes: false})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().withoutDashes().generate(random)`                                      |

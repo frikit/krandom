@@ -12,6 +12,7 @@ import io.github.frikit.krandom.generator.commerce.OrderInfo;
 import io.github.frikit.krandom.generator.commerce.ProductInfo;
 import io.github.frikit.krandom.generator.commerce.ShipmentInfo;
 import io.github.frikit.krandom.generator.finance.BankInfo;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardInfo;
 import io.github.frikit.krandom.generator.finance.InvoiceInfo;
@@ -67,9 +68,9 @@ class DocumentationSnippetsTest {
         IntGenerator b = Generators.ofInt(1, 100, 123L);
 
         List<String> colors = List.of("red", "green", "blue");
-        String one = Generators.pickFrom(colors).generate();
-        List<String> two = Generators.pickSetFrom(colors, 2).generate();
-        List<String> shuffled = Generators.shuffleOf(colors).generate();
+        String one = Generators.pick(colors).generate();
+        List<String> two = Generators.pickSet(colors, 2).generate();
+        List<String> shuffled = Generators.shuffle(colors).generate();
 
         assertTrue(n >= 10 && n < 99);
         assertTrue(p >= 0.0 && p < 1.0);
@@ -172,6 +173,7 @@ class DocumentationSnippetsTest {
         GeneratorConfig cfg = GeneratorConfig.builder()
                                              .locale(Locale.US)
                                              .seed(20260303L)
+                                             .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                              .build();
 
         FullNameGenerator names = new FullNameGenerator(cfg);

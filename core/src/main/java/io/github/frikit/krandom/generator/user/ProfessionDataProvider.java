@@ -10,7 +10,7 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific profession data source.
  *
- * <p>Implement and register via {@link ProfessionDataRegistry#register(ProfessionDataProvider)} to
+ * <p>Implement and register via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder} to
  * override built-in profession data for a locale or add support for new locales.
  */
 public interface ProfessionDataProvider {

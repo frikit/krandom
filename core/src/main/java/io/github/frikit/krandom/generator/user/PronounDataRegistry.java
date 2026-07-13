@@ -5,12 +5,11 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Seeded at class-load time with every built-in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale} that has a
  * {@code krandom/pronouns/<locale>.txt} resource. Locales without a file fall back to the bundled
- * default (English) sets. Custom providers can be added via {@link #register(PronounDataProvider)}.
+ * default (English) sets. Custom providers can be added via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p><b>Lookup order:</b> exact {@code language_COUNTRY} match, then language-only match, then
  * {@code null}.
@@ -33,23 +32,13 @@ public final class PronounDataRegistry {
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             String path = "krandom/pronouns/" + supportedLocale.resourcePrefix() + ".txt";
-            if (PronounDataRegistry.class.getClassLoader().getResource(path) != null) {
+            if (PronounDataRegistry.class.getResource("/" + path) != null) {
                 putProvider(new BuiltInPronounDataProvider(supportedLocale));
             }
         }
     }
 
     private PronounDataRegistry() {
-    }
-
-    /**
-     * Registers a custom pronoun data provider, replacing any provider for the same locale key.
-     *
-     * @param provider the provider to register; must not be {@code null}
-     */
-    public static void register(PronounDataProvider provider) {
-        Objects.requireNonNull(provider, "provider");
-        putProvider(provider);
     }
 
     /**
@@ -89,17 +78,13 @@ public final class PronounDataRegistry {
      * Returns an unmodifiable snapshot of all currently registered locale keys.
      */
     public static Set<String> registeredKeys() {
-        return Collections.unmodifiableSet(REGISTRY.keySet());
+        return Set.copyOf(REGISTRY.keySet());
     }
 
     private static void putProvider(PronounDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
-        if (country.isEmpty()) {
-            REGISTRY.put(lang, provider);
-        } else {
-            REGISTRY.put(lang + "_" + country, provider);
+        REGISTRY.put(lang + "_" + country, provider);
             REGISTRY.putIfAbsent(lang, provider);
-        }
     }
 }

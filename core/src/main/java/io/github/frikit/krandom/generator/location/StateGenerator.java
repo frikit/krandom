@@ -23,7 +23,7 @@ import java.util.Random;
  * <p>Built-in support follows the locale catalog in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Additional locales — and overrides
  * of built-in ones — can be registered at runtime via
- * {@link StateDataRegistry#register(StateDataProvider)}.
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p>States can be generated as full names (e.g., {@code "California"}) or abbreviations
  * (e.g., {@code "CA"}) where supported, controlled by the {@link #generate(boolean)} method.

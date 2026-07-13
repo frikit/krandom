@@ -6,7 +6,13 @@
 package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
+import io.github.frikit.krandom.generator.provider.ProviderCatalog;
+import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
+import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
 import io.github.frikit.krandom.generator.text.WordGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,9 +58,33 @@ class FieldLookupTest {
     }
 
     @Test
+    @DisplayName("built-in schema references and aliases are defined by the provider catalog")
+    void builtInsAreDefinedByProviderCatalog() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+        Set<String> references = new java.util.HashSet<>();
+        Map<String, String> aliases = new java.util.HashMap<>();
+
+        for (ProviderDescriptor<?> descriptor : ProviderCatalog.schemaBuiltIns()) {
+            for (ProviderSchemaProjection<?> projection : descriptor.getSchemaProjections()) {
+                references.add(projection.getReference());
+                for (String alias : projection.getAliases()) {
+                    aliases.put(alias, projection.getReference());
+                }
+            }
+        }
+
+        assertEquals(references, lookup.supportedReferences());
+        assertEquals(aliases, lookup.aliases());
+    }
+
+    @Test
     @DisplayName("resolves and generates values for all built-in references")
     void resolveAllBuiltins() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(77L).locale(Locale.US).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(77L)
+                                                .locale(Locale.US)
+                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
         FieldLookup lookup = new FieldLookup(config);
         SchemaContext context = new SchemaContext(Locale.US, new Random(1L), 0);
 
@@ -93,6 +124,39 @@ class FieldLookupTest {
     }
 
     @Test
+    @DisplayName("classified schema references expose their selected safety policy")
+    void classifiedReferencesExposeSelectedSafetyPolicy() {
+        FieldLookup defaults = new FieldLookup(GeneratorConfig.defaults());
+        FieldLookup validatorFixtures = new FieldLookup(GeneratorConfig.builder()
+                                                                      .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                                                                      .phoneNumberSafetyPolicy(
+                                                                          PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                                      .build());
+
+        assertEquals("GUARANTEED", safetyMetadata(defaults, "finance.credit_card_number").get("formatValidity"));
+        assertEquals("CONFIGURATION_DEPENDENT",
+                     safetyMetadata(defaults, "finance.credit_card_number").get("checksumValidity"));
+        assertEquals(Map.of("setting", "payment.card-safety-policy", "selected", "TEST_SAFE_NON_ROUTABLE"),
+                     safetyMetadata(defaults, "finance.credit_card_number").get("policy"));
+        assertEquals(Map.of("setting", "phone-number.safety-policy", "selected", "TEST_SAFE_WHERE_AVAILABLE"),
+                     safetyMetadata(defaults, "address.phone_number").get("policy"));
+        assertEquals(Map.of("setting", "banking.safety-policy", "selected", "DISABLED"),
+                     safetyMetadata(defaults, "finance.bank_info").get("policy"));
+        assertEquals("UNCLASSIFIED", safetyMetadata(defaults, "finance.bank_info").get("testSafety"));
+        assertEquals(Map.of("setting", "payment.card-safety-policy", "selected", "CHECKSUM_VALID"),
+                     safetyMetadata(validatorFixtures, "finance.credit_card_number").get("policy"));
+        assertEquals(Map.of("setting", "phone-number.safety-policy", "selected", "REALISTIC_UNCLASSIFIED"),
+                     safetyMetadata(validatorFixtures, "address.phone_number").get("policy"));
+        assertNull(defaults.resolve("finance.cvv").jsonSchema().get("x-krandom-safety"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) new Schema(Map.of(
+            "card", defaults.resolve("finance.credit_card_number"))).toJsonSchema().get("properties");
+        assertEquals(safetyMetadata(defaults, "finance.credit_card_number"),
+                     ((Map<?, ?>) properties.get("card")).get("x-krandom-safety"));
+    }
+
+    @Test
     @DisplayName("validation for null, blank and unknown references")
     void validation() {
         FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
@@ -123,6 +187,22 @@ class FieldLookupTest {
         assertEquals("custom.order_id", lookup.aliases().get("custom.order"));
         assertEquals("ORD-7", lookup.resolve("custom.order").generate(context));
         assertTrue(lookup.supportedReferences().contains("custom.order_id"));
+    }
+
+    @Test
+    @DisplayName("reference and alias views are immutable snapshots")
+    void referenceAndAliasViewsAreImmutableSnapshots() {
+        FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
+        Set<String> references = lookup.supportedReferences();
+        Map<String, String> aliases = lookup.aliases();
+
+        lookup.register("custom.snapshot", ctx -> "snapshot");
+        lookup.registerAlias("snapshot", "custom.snapshot");
+
+        assertFalse(references.contains("custom.snapshot"));
+        assertFalse(aliases.containsKey("snapshot"));
+        assertThrows(UnsupportedOperationException.class, () -> references.add("other"));
+        assertThrows(UnsupportedOperationException.class, () -> aliases.put("other", "custom.snapshot"));
     }
 
     @Test
@@ -250,6 +330,11 @@ class FieldLookupTest {
     private static boolean allowsNull(Map<?, ?> schema) {
         Object type = schema.get("type");
         return type instanceof Iterable<?> types && contains(types, "null");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> safetyMetadata(FieldLookup lookup, String reference) {
+        return (Map<String, Object>) lookup.resolve(reference).jsonSchema().get("x-krandom-safety");
     }
 
     private static boolean contains(Iterable<?> values, Object expected) {

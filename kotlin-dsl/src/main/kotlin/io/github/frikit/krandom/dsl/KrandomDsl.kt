@@ -8,6 +8,9 @@ package io.github.frikit.krandom.dsl
 import io.github.frikit.krandom.generator.Generator
 import io.github.frikit.krandom.generator.GeneratorConfig
 import io.github.frikit.krandom.generator.`object`.ObjectGenerator
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 
 /**
  * Entry point for the krandom Kotlin DSL.
@@ -58,7 +61,29 @@ inline fun <reified T : Any> krandomGenerator(block: KrandomBuilder<T>.() -> Uni
 }
 
 /**
+ * Builds a standalone [GeneratorConfig] with the DSL's [ConfigScope].
+ *
+ * The returned configuration exposes its portable replay recipe through
+ * [GeneratorConfig.getGenerationRecipe] when it is seed-owned:
+ *
+ * ```kotlin
+ * val config = krandomConfig { seed(42L) }
+ * val recipe = config.generationRecipe.orElseThrow().serialize()
+ * ```
+ */
+fun krandomConfig(block: ConfigScope.() -> Unit): GeneratorConfig {
+    val builder = GeneratorConfig.builder()
+    ConfigScope(builder).block()
+    return builder.build()
+}
+
+/**
  * Builder for configuring krandom object generation via DSL.
+ *
+ * Defaults match the Java `ObjectGenerator` with one intentional, documented difference:
+ * the DSL enables `objectOverrideDefaultInitialization` so field rules and generated values
+ * replace Kotlin/Java field initializers; without it, `rule(...)` on an initialized property
+ * would be ignored, which surprises DSL users.
  */
 @KrandomDslMarker
 class KrandomBuilder<T : Any>(private val type: Class<T>) {
@@ -76,15 +101,43 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
     }
 
     /**
+     * Registers a type-safe field-level override through a property reference.
+     *
+     * The property reference survives renames and is checked by the Kotlin compiler, so the rule
+     * value type always matches the property type.
+     *
+     * ```kotlin
+     * rule(Person::firstName) { "Ada" }
+     * ```
+     *
+     * @throws IllegalArgumentException when a rule for the same property is already registered
+     */
+    fun <V> rule(property: KProperty1<T, V>, generator: () -> V) {
+        registerFieldRule(property.name, Generator { generator() })
+    }
+
+    /**
      * Registers a field-level override by field name.
+     *
+     * This string form is the compatibility bridge for fields that cannot be referenced as a
+     * Kotlin property; prefer the type-safe [rule] overload with a property reference. Unknown
+     * field names fail when the generator is built.
      *
      * ```kotlin
      * rule("firstName") { "Ada" }
      * ```
+     *
+     * @throws IllegalArgumentException when a rule for the same field is already registered
      */
     fun <V> rule(fieldName: String, generator: () -> V) {
-        @Suppress("UNCHECKED_CAST")
-        fieldOverrides[fieldName] = Generator { generator() } as Generator<*>
+        registerFieldRule(fieldName, Generator { generator() })
+    }
+
+    private fun registerFieldRule(fieldName: String, generator: Generator<*>) {
+        require(!fieldOverrides.containsKey(fieldName)) {
+            "Duplicate rule for field '$fieldName' of ${type.name}"
+        }
+        fieldOverrides[fieldName] = generator
     }
 
     /**
@@ -98,6 +151,9 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
      * ```
      */
     fun <V> ruleForType(clazz: Class<V>, generator: () -> V) {
+        require(!typeOverrides.containsKey(clazz)) {
+            "Duplicate type rule for ${clazz.name}"
+        }
         @Suppress("UNCHECKED_CAST")
         typeOverrides[clazz] = Generator { generator() } as Generator<*>
     }
@@ -124,6 +180,13 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
     }
 
     /**
+     * Excludes a property from generation through a type-safe reference.
+     */
+    fun exclude(property: KProperty1<T, *>) {
+        exclude(property.name)
+    }
+
+    /**
      * Excludes a field by name from generation.
      */
     fun exclude(fieldName: String) {
@@ -132,6 +195,12 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
 
     @PublishedApi
     internal fun build(): ObjectGenerator<T> {
+        val known = knownFieldNames()
+        val unknown = fieldOverrides.keys.filterNot { it in known }
+        require(unknown.isEmpty()) {
+            "Unknown field rule(s) ${unknown.sorted()} for ${type.name}; " +
+                "known fields: ${known.sorted()}"
+        }
         for ((fieldName, generator) in fieldOverrides) {
             configBuilder.objectOverride(type, fieldName, generator)
         }
@@ -150,6 +219,25 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
         }
 
         return ObjectGenerator(type, configBuilder.build())
+    }
+
+    private fun knownFieldNames(): Set<String> {
+        val names = mutableSetOf<String>()
+        var current: Class<*>? = type
+        while (current != null && current != Any::class.java) {
+            current.declaredFields.forEach { field -> names += field.name }
+            current = current.superclass
+        }
+        // Kotlin metadata adds primary-constructor parameters and member properties that have no
+        // backing Java field visible above; reflection over synthetic/local classes can fail, and
+        // that supplementary lookup must not block validation of the Java field names.
+        runCatching {
+            type.kotlin.primaryConstructor?.parameters?.forEach { parameter ->
+                parameter.name?.let { names += it }
+            }
+            type.kotlin.memberProperties.forEach { property -> names += property.name }
+        }
+        return names
     }
 
     companion object {
@@ -196,6 +284,16 @@ class ConfigScope(private val builder: GeneratorConfig.Builder) {
 
     fun objectMaxDepth(depth: Int) {
         builder.objectMaxDepth(depth)
+    }
+
+    /** Selects the explicit object construction policy (safe by default in v2). */
+    fun constructionPolicy(policy: io.github.frikit.krandom.generator.`object`.ObjectConstructionPolicy) {
+        builder.objectConstructionPolicy(policy)
+    }
+
+    /** Sets a textual seed using the same derivation contract as `GeneratorConfig`. */
+    fun seed(seedText: String) {
+        builder.seed(seedText)
     }
 }
 

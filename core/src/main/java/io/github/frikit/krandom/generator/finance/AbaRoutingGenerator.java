@@ -8,28 +8,31 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
 /**
  * Generates US ABA routing transit numbers with valid checksum.
+ *
+ * <p>Use an explicit {@link GeneratorConfig} and select
+ * {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated compatibility fixtures.
+ * The default configured policy is {@link BankingSafetyPolicy#DISABLED}.
  */
 public final class AbaRoutingGenerator implements Generator<String> {
 
-    private final Random random;
+    private final Random                random;
+    private final BankingSafetyPolicy bankingSafetyPolicy;
 
-    public AbaRoutingGenerator() {
-        this(GeneratorConfig.defaults());
-    }
 
     public AbaRoutingGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
+        this.bankingSafetyPolicy = effective.getBankingSafetyPolicy();
     }
 
     @Override
     public String generate() {
+        bankingSafetyPolicy.requireRealisticOutput();
         int[] digits = new int[9];
         for (int i = 0; i < 8; i++) {
             digits[i] = random.nextInt(10);

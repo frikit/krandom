@@ -5,7 +5,16 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
+import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
+import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import org.jspecify.annotations.Nullable;
 
@@ -32,7 +41,14 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * Immutable configuration shared across generators.
+ * Configuration whose value fields are immutable after construction.
+ *
+ * <p>A caller-owned {@link Random} and a caller-supplied random factory are retained by
+ * reference. Their state, lifecycle, and thread-safety remain the caller's responsibility.
+ * Object generators, contextual generators, predicates, listeners, and other callbacks are also
+ * retained by reference and are never invoked while configuration is copied or built. Arrays and
+ * collections supplied to builder methods are normalized and copied before they become part of a
+ * built configuration.
  *
  * <p>Obtain an instance via the fluent {@link Builder}:
  * <pre>{@code
@@ -58,6 +74,7 @@ public final class GeneratorConfig {
 
     private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
     private static final long FNV1A_64_PRIME        = 0x100000001b3L;
+    private static final GenerationFailureListener NO_FAILURE_LISTENER = diagnostic -> {};
 
     private final OptionalLong seed;
     private final Optional<String> stringSeed;
@@ -69,7 +86,9 @@ public final class GeneratorConfig {
     private final int          objectMaxDepth;
     private final int          objectPoolSize;
     private final boolean      objectOverrideDefaultInitialization;
+    private final ObjectConstructionPolicy objectConstructionPolicy;
     private final boolean      objectIgnoreErrors;
+    private final GenerationFailureListener generationFailureListener;
     private final LocalDate    objectDateMin;
     private final LocalDate    objectDateMax;
     private final ObjectGenerationSemanticMode objectSemanticMode;
@@ -93,6 +112,17 @@ public final class GeneratorConfig {
     private final DataRegistryContext registryContext;
     private final Clock        clock;
     private final boolean      secureRandom;
+    private final String       generationProfile;
+    private final String       safetyPolicy;
+    private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
+    private final BankingSafetyPolicy bankingSafetyPolicy;
+    private final BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy;
+    private final CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy;
+    private final SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy;
+    private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
+    private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
+    private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
+    private final String       providerDatasetVersion;
 
     private GeneratorConfig(Builder b) {
         this.seed = effectiveSeed(b.numericSeed, b.stringSeed);
@@ -105,7 +135,9 @@ public final class GeneratorConfig {
         this.objectMaxDepth = b.objectMaxDepth;
         this.objectPoolSize = b.objectPoolSize;
         this.objectOverrideDefaultInitialization = b.objectOverrideDefaultInitialization;
+        this.objectConstructionPolicy = b.objectConstructionPolicy;
         this.objectIgnoreErrors = b.objectIgnoreErrors;
+        this.generationFailureListener = b.generationFailureListener;
         this.objectDateMin = b.objectDateMin;
         this.objectDateMax = b.objectDateMax;
         this.objectSemanticMode = b.objectSemanticMode;
@@ -130,6 +162,17 @@ public final class GeneratorConfig {
         this.registryContext = b.registryContext;
         this.clock = b.clock;
         this.secureRandom = b.secureRandom;
+        this.generationProfile = b.generationProfile;
+        this.safetyPolicy = b.safetyPolicy;
+        this.paymentCardSafetyPolicy = b.paymentCardSafetyPolicy;
+        this.bankingSafetyPolicy = b.bankingSafetyPolicy;
+        this.businessTaxIdentifierSafetyPolicy = b.businessTaxIdentifierSafetyPolicy;
+        this.cryptoAddressSafetyPolicy = b.cryptoAddressSafetyPolicy;
+        this.securitiesIdentifierSafetyPolicy = b.securitiesIdentifierSafetyPolicy;
+        this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
+        this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
+        this.identityDocumentSafetyPolicy = b.identityDocumentSafetyPolicy;
+        this.providerDatasetVersion = b.providerDatasetVersion;
     }
 
     /**
@@ -171,6 +214,124 @@ public final class GeneratorConfig {
      */
     public String getSeedDerivationVersion() {
         return STRING_SEED_DERIVATION;
+    }
+
+    /**
+     * Label of the profile that supplied this configuration, or {@code "custom"}.
+     */
+    public String getGenerationProfile() {
+        return generationProfile;
+    }
+
+    /**
+     * Requested output-safety policy label recorded in portable recipes.
+     *
+     * <p>The initial value is {@value GenerationRecipe#LEGACY_UNCLASSIFIED_SAFETY_POLICY}; the
+     * dedicated safety contract defines stricter policies without changing recipe shape.
+     */
+    public String getSafetyPolicy() {
+        return safetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated payment-card numbers.
+     *
+     * <p>The default produces issuer-shaped numbers that deliberately fail Luhn. Select
+     * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} only for isolated validator fixtures.
+     * {@link PaymentCardSafetyPolicy#STRIPE_SANDBOX} selects Stripe's fixed sandbox values and
+     * requires Stripe sandbox/test API keys; it is not portable to other processors.
+     */
+    public PaymentCardSafetyPolicy getPaymentCardSafetyPolicy() {
+        return paymentCardSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated banking identifiers and account values.
+     *
+     * <p>The default fails closed because krandom has no portable non-routable banking-fixture
+     * contract. {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} is an explicit compatibility
+     * opt-in for isolated tests; it does not make values safe for production or external systems.
+     */
+    public BankingSafetyPolicy getBankingSafetyPolicy() {
+        return bankingSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated corporate tax identifiers.
+     *
+     * <p>The default fails closed because krandom has no portable non-routable CNPJ or EIN
+     * fixture contract. {@link BusinessTaxIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} is an
+     * explicit compatibility opt-in for isolated tests; it does not make values safe for
+     * production or external systems.
+     */
+    public BusinessTaxIdentifierSafetyPolicy getBusinessTaxIdentifierSafetyPolicy() {
+        return businessTaxIdentifierSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated cryptocurrency destination-address shapes.
+     *
+     * <p>The default fails closed because a plausible address is not proof of a test network,
+     * unspendability, or non-routability. {@link CryptoAddressSafetyPolicy#REALISTIC_UNCLASSIFIED}
+     * is an explicit compatibility opt-in for isolated tests; it does not make values safe for a
+     * wallet, exchange, or other external system.
+     */
+    public CryptoAddressSafetyPolicy getCryptoAddressSafetyPolicy() {
+        return cryptoAddressSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated ISIN and CUSIP values.
+     *
+     * <p>The default fails closed because a valid check digit does not establish an assigned,
+     * non-routable, or test-safe securities identifier. {@link
+     * SecuritiesIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} is an explicit compatibility
+     * opt-in for isolated tests; it does not make values safe for a trading, custody, clearing,
+     * settlement, or other external system.
+     */
+    public SecuritiesIdentifierSafetyPolicy getSecuritiesIdentifierSafetyPolicy() {
+        return securitiesIdentifierSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for locale-style phone-number output.
+     *
+     * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for US locales.
+     * Other locales and custom phone-number templates remain unclassified rather than
+     * being presented as non-routable.
+     */
+    public PhoneNumberSafetyPolicy getPhoneNumberSafetyPolicy() {
+        return phoneNumberSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated national identity numbers.
+     *
+     * <p>The default fails closed because the library has no cross-country non-routable fixture
+     * contract. {@link NationalIdSafetyPolicy#REALISTIC_UNCLASSIFIED} is an explicit compatibility
+     * opt-in for isolated tests; it does not make values safe for production or external systems.
+     */
+    public NationalIdSafetyPolicy getNationalIdSafetyPolicy() {
+        return nationalIdSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated passport and driving-license identifiers.
+     *
+     * <p>The default fails closed because generic document-number shapes do not establish a
+     * portable non-routable fixture. {@link IdentityDocumentSafetyPolicy#REALISTIC_UNCLASSIFIED}
+     * is an explicit compatibility opt-in for isolated tests; it does not make values safe for
+     * production or external systems.
+     */
+    public IdentityDocumentSafetyPolicy getIdentityDocumentSafetyPolicy() {
+        return identityDocumentSafetyPolicy;
+    }
+
+    /**
+     * Version label for the provider datasets used by this configuration.
+     */
+    public String getProviderDatasetVersion() {
+        return providerDatasetVersion;
     }
 
     public Charset getCharset() {
@@ -215,10 +376,24 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Construction policy used for non-record object generation.
+     */
+    public ObjectConstructionPolicy getObjectConstructionPolicy() {
+        return objectConstructionPolicy;
+    }
+
+    /**
      * Controls whether object-generation population errors are swallowed.
      */
     public boolean isObjectIgnoreErrors() {
         return objectIgnoreErrors;
+    }
+
+    /**
+     * Listener for strict and lenient value-sanitized object-generation failure diagnostics.
+     */
+    public GenerationFailureListener getGenerationFailureListener() {
+        return generationFailureListener;
     }
 
     /**
@@ -385,36 +560,41 @@ public final class GeneratorConfig {
     }
 
     /**
-     * Optional caller-owned random instance configured by callers.
+     * Optional caller-owned random instance.
+     *
+     * <p>The instance is retained by reference and is never copied or implicitly reseeded.
      */
     public Optional<Random> getRandom() {
         return Optional.ofNullable(random);
     }
 
     /**
-     * Optional random-factory override configured by callers.
+     * Optional caller-owned random factory.
+     *
+     * <p>The factory is invoked once for each call to {@link #createRandom()} and must
+     * return a non-null source. The factory and returned sources are never implicitly reseeded.
      */
     public Optional<Supplier<Random>> getRandomFactory() {
         return Optional.ofNullable(randomFactory);
     }
 
     /**
-     * Returns {@code true} when unseeded generation should use {@link SecureRandom}.
+     * Returns {@code true} when {@link SecureRandom} is the configured random source.
      */
     public boolean isSecureRandom() {
         return secureRandom;
     }
 
     /**
-     * Creates a random instance honoring custom factory and configured seed.
+     * Obtains the configured random source.
      *
-     * <p>Precedence:
+     * <p>The builder permits exactly one explicit source specification:
      * <ol>
-     *   <li>If a caller-owned random instance is configured, it is used.</li>
-     *   <li>Otherwise, if a random factory is configured, it is used.</li>
-     *   <li>Otherwise, if a seed is configured, {@link Random} is used.</li>
-     *   <li>Otherwise, if secure random is explicitly enabled, {@link SecureRandom} is used.</li>
-     *   <li>Otherwise, {@link Random} is used.</li>
+     *   <li>A caller-owned instance is returned unchanged on every call.</li>
+     *   <li>A configured factory is invoked on every call.</li>
+     *   <li>A seed creates a fresh {@link Random} at the same initial state on every call.</li>
+     *   <li>Secure mode creates a fresh {@link SecureRandom} on every call.</li>
+     *   <li>With no explicit source, a fresh unseeded {@link Random} is created.</li>
      * </ol>
      */
     public Random createRandom() {
@@ -422,9 +602,7 @@ public final class GeneratorConfig {
             return random;
         }
         if (randomFactory != null) {
-            Random random = Objects.requireNonNull(randomFactory.get(), "randomFactory returned null");
-            seed.ifPresent(random::setSeed);
-            return random;
+            return Objects.requireNonNull(randomFactory.get(), "randomFactory returned null");
         }
         if (seed.isPresent()) {
             return new Random(seed.getAsLong());
@@ -433,10 +611,103 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Returns a portable replay recipe when every output-affecting input is serializable.
+     *
+     * <p>Unseeded, secure, caller-owned, callback-backed, or custom-registry configurations have
+     * state that cannot be replayed safely, so they return an empty result rather than a partial
+     * recipe that would misrepresent the generated fixture.
+     */
+    public Optional<GenerationRecipe> getGenerationRecipe() {
+        if (!isPortableRecipeConfiguration()) {
+            return Optional.empty();
+        }
+        GenerationRecipe.Builder recipe = GenerationRecipe.builder()
+                                                            .libraryVersion(GenerationRecipe.currentLibraryVersion())
+                                                            .seed(seed.getAsLong())
+                                                            .locale(locale)
+                                                            .clock(clock.instant(), clock.getZone())
+                                                            .profile(generationProfile)
+                                                            .safetyPolicy(safetyPolicy)
+                                                            .constructionPolicy(objectConstructionPolicy)
+                                                            .providerDatasetVersion(providerDatasetVersion)
+                                                            .setting("payment.card-safety-policy",
+                                                                     paymentCardSafetyPolicy.name())
+                                                            .setting("banking.safety-policy", bankingSafetyPolicy.name())
+                                                            .setting("business-tax-identifier.safety-policy",
+                                                                     businessTaxIdentifierSafetyPolicy.name())
+                                                            .setting("crypto-address.safety-policy",
+                                                                     cryptoAddressSafetyPolicy.name())
+                                                            .setting("securities-identifier.safety-policy",
+                                                                     securitiesIdentifierSafetyPolicy.name())
+                                                            .setting("phone-number.safety-policy",
+                                                                     phoneNumberSafetyPolicy.name())
+                                                            .setting("national-id.safety-policy",
+                                                                     nationalIdSafetyPolicy.name())
+                                                            .setting("identity-document.safety-policy",
+                                                                     identityDocumentSafetyPolicy.name())
+                                                            .setting("charset", charset.name())
+                                                            .setting("string.min", Integer.toString(minStringLength))
+                                                            .setting("string.max", Integer.toString(maxStringLength))
+                                                            .setting("collection.min", Integer.toString(minCollectionSize))
+                                                            .setting("collection.max", Integer.toString(maxCollectionSize))
+                                                            .setting("object.max-depth", Integer.toString(objectMaxDepth))
+                                                            .setting("object.pool-size", Integer.toString(objectPoolSize))
+                                                            .setting("object.override-default-initialization",
+                                                                     Boolean.toString(objectOverrideDefaultInitialization))
+                                                            .setting("object.ignore-errors", Boolean.toString(objectIgnoreErrors))
+                                                            .setting("object.semantic-mode", objectSemanticMode.name())
+                                                            .setting("object.null-probability",
+                                                                     Double.toString(objectNullProbability))
+                                                            .setting("object.optional-empty-probability",
+                                                                     Double.toString(objectOptionalEmptyProbability))
+                                                            .setting("object.unique-fields",
+                                                                     String.join(",", objectUniqueFieldNames))
+                                                            .setting("object.uniqueness-max-attempts",
+                                                                     Integer.toString(objectUniquenessMaxAttempts));
+        if (stringSeed.isPresent()) {
+            recipe.seedText(stringSeed.get());
+        }
+        if (objectDateMin != null) {
+            recipe.setting("object.date-min", objectDateMin.toString())
+                  .setting("object.date-max", Objects.requireNonNull(objectDateMax).toString());
+        }
+        return Optional.of(recipe.build());
+    }
+
+    /**
      * Scoped registry context used by locale-aware generators.
      */
     public DataRegistryContext getRegistryContext() {
         return registryContext;
+    }
+
+    private boolean isPortableRecipeConfiguration() {
+        // Builder validation makes a present seed mutually exclusive with caller-owned and secure
+        // sources, so seed ownership is the only random-source condition required here.
+        return seed.isPresent()
+            && registryContext == DataRegistryContext.globalDefault()
+            && objectSemanticRegistry == SemanticFieldRegistry.defaults()
+            && hasNoCustomObjectGenerationState();
+    }
+
+    private boolean hasNoCustomObjectGenerationState() {
+        boolean[] emptyStates = {
+            objectTypeOverrides.isEmpty(),
+            objectFieldOverrides.isEmpty(),
+            objectContextualTypeOverrides.isEmpty(),
+            objectContextualFieldOverrides.isEmpty(),
+            objectPredicateFieldOverrides.isEmpty(),
+            objectContextualPredicateFieldOverrides.isEmpty(),
+            objectExclusionPredicates.isEmpty(),
+            objectTypeExclusionPredicates.isEmpty(),
+            objectSubtypes.isEmpty()
+        };
+        for (boolean emptyState : emptyStates) {
+            if (!emptyState) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -501,7 +772,9 @@ public final class GeneratorConfig {
         private int               objectMaxDepth    = DEFAULT_OBJECT_MAX_DEPTH;
         private int               objectPoolSize    = DEFAULT_OBJECT_POOL_SIZE;
         private boolean           objectOverrideDefaultInitialization;
+        private ObjectConstructionPolicy objectConstructionPolicy = ObjectConstructionPolicy.SAFE_CONSTRUCTORS;
         private boolean           objectIgnoreErrors;
+        private GenerationFailureListener generationFailureListener = NO_FAILURE_LISTENER;
         private LocalDate         objectDateMin;
         private LocalDate         objectDateMax;
         private ObjectGenerationSemanticMode objectSemanticMode = ObjectGenerationSemanticMode.RELAXED;
@@ -527,6 +800,19 @@ public final class GeneratorConfig {
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
         private Clock             clock             = Clock.systemDefaultZone();
         private boolean           secureRandom;
+        private String            generationProfile = GenerationRecipe.CUSTOM_PROFILE;
+        private String            safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
+        private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
+        private BankingSafetyPolicy bankingSafetyPolicy = BankingSafetyPolicy.DISABLED;
+        private BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy =
+            BusinessTaxIdentifierSafetyPolicy.DISABLED;
+        private CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy = CryptoAddressSafetyPolicy.DISABLED;
+        private SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy =
+            SecuritiesIdentifierSafetyPolicy.DISABLED;
+        private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
+        private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
+        private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
+        private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
 
         private Builder() {
         }
@@ -542,7 +828,9 @@ public final class GeneratorConfig {
             this.objectMaxDepth = source.objectMaxDepth;
             this.objectPoolSize = source.objectPoolSize;
             this.objectOverrideDefaultInitialization = source.objectOverrideDefaultInitialization;
+            this.objectConstructionPolicy = source.objectConstructionPolicy;
             this.objectIgnoreErrors = source.objectIgnoreErrors;
+            this.generationFailureListener = source.generationFailureListener;
             this.objectDateMin = source.objectDateMin;
             this.objectDateMax = source.objectDateMax;
             this.objectSemanticMode = source.objectSemanticMode;
@@ -566,10 +854,24 @@ public final class GeneratorConfig {
             this.registryContext = source.registryContext;
             this.clock = source.clock;
             this.secureRandom = source.secureRandom;
+            this.generationProfile = source.generationProfile;
+            this.safetyPolicy = source.safetyPolicy;
+            this.paymentCardSafetyPolicy = source.paymentCardSafetyPolicy;
+            this.bankingSafetyPolicy = source.bankingSafetyPolicy;
+            this.businessTaxIdentifierSafetyPolicy = source.businessTaxIdentifierSafetyPolicy;
+            this.cryptoAddressSafetyPolicy = source.cryptoAddressSafetyPolicy;
+            this.securitiesIdentifierSafetyPolicy = source.securitiesIdentifierSafetyPolicy;
+            this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
+            this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
+            this.identityDocumentSafetyPolicy = source.identityDocumentSafetyPolicy;
+            this.providerDatasetVersion = source.providerDatasetVersion;
         }
 
         /**
          * Fix the PRNG seed for reproducible output.
+         *
+         * <p>A seed cannot be combined with {@link #random(Random)},
+         * {@link #randomFactory(Supplier)}, or {@link #secureRandom()}.
          */
         public Builder seed(long seed) {
             this.numericSeed = OptionalLong.of(seed);
@@ -579,6 +881,8 @@ public final class GeneratorConfig {
 
         /**
          * Derive a deterministic numeric seed from a non-blank string.
+         *
+         * <p>A seed cannot be combined with another random-source specification.
          */
         public Builder seed(String seedText) {
             Objects.requireNonNull(seedText, "seedText");
@@ -592,41 +896,41 @@ public final class GeneratorConfig {
 
         /**
          * Use a caller-owned random instance for generated values.
+         *
+         * <p>The instance is retained by reference, returned unchanged, and never reseeded.
+         * It cannot be combined with a seed, random factory, or secure mode.
          */
         public Builder random(Random random) {
             this.random = Objects.requireNonNull(random, "random");
-            this.randomFactory = null;
-            this.secureRandom = false;
             return this;
         }
 
         /**
-         * Inject custom random factory for advanced use cases and tests.
+         * Inject a caller-owned random factory for advanced use cases and tests.
+         *
+         * <p>The factory is invoked once per {@link GeneratorConfig#createRandom()} call.
+         * Its result is not reseeded. It cannot be combined with another source specification.
          */
         public Builder randomFactory(Supplier<? extends Random> randomFactory) {
             Objects.requireNonNull(randomFactory, "randomFactory");
-            this.random = null;
-            this.secureRandom = false;
             this.randomFactory = () -> randomFactory.get();
             return this;
         }
 
         /**
-         * Opt in to {@link SecureRandom} for unseeded generation.
+         * Use fresh {@link SecureRandom} instances for generation.
+         *
+         * <p>Secure mode cannot be combined with another random-source specification.
          */
         public Builder secureRandom() {
             return secureRandom(true);
         }
 
         /**
-         * Controls whether unseeded generation uses {@link SecureRandom}.
+         * Controls whether generation uses fresh {@link SecureRandom} instances.
          */
         public Builder secureRandom(boolean secureRandom) {
             this.secureRandom = secureRandom;
-            if (secureRandom) {
-                this.random = null;
-                this.randomFactory = null;
-            }
             return this;
         }
 
@@ -691,6 +995,15 @@ public final class GeneratorConfig {
         }
 
         /**
+         * Selects how non-record classes are constructed. The default invokes constructors safely.
+         */
+        public Builder objectConstructionPolicy(ObjectConstructionPolicy objectConstructionPolicy) {
+            this.objectConstructionPolicy = Objects.requireNonNull(
+                objectConstructionPolicy, "objectConstructionPolicy must not be null");
+            return this;
+        }
+
+        /**
          * Controls whether object-generation population errors are swallowed.
          *
          * <p>When {@code true}, affected fields are left at {@code null} / their primitive
@@ -700,6 +1013,18 @@ public final class GeneratorConfig {
          */
         public Builder objectIgnoreErrors(boolean objectIgnoreErrors) {
             this.objectIgnoreErrors = objectIgnoreErrors;
+            return this;
+        }
+
+        /**
+         * Sets the synchronous listener for value-sanitized object-generation failures.
+         *
+         * <p>The listener receives structured context, the cause class name, and an optional
+         * replay identity. It never receives generated field values or the throwable itself.
+         */
+        public Builder generationFailureListener(GenerationFailureListener generationFailureListener) {
+            this.generationFailureListener = Objects.requireNonNull(
+                generationFailureListener, "generationFailureListener must not be null");
             return this;
         }
 
@@ -808,7 +1133,11 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Register a type-level override for object generation.
+         * Registers a type-level override for object generation.
+         *
+         * <p>The override is also the factory for a root object of {@code type}, so it can safely
+         * construct interfaces, abstract types, or immutable values without reflective access.
+         * Root factory results must be non-null and assignable to {@code type}.
          */
         public <T> Builder objectOverride(Class<T> type, Generator<? extends T> generator) {
             Objects.requireNonNull(type, "type must not be null");
@@ -829,7 +1158,11 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Register a contextual type-level override for object generation.
+         * Registers a contextual type-level override for object generation.
+         *
+         * <p>For a root object, the context uses field name {@code "$root"}, the requested type as
+         * owner, and depth zero. Contextual type overrides take precedence over plain type
+         * overrides. Results must be non-null and assignable to {@code type}.
          */
         public <T> Builder objectOverride(Class<T> type, ContextualGenerator<? extends T> generator) {
             Objects.requireNonNull(type, "type must not be null");
@@ -921,6 +1254,160 @@ public final class GeneratorConfig {
         }
 
         /**
+         * Labels this configuration with a named profile for replay diagnostics.
+         */
+        public Builder generationProfile(String generationProfile) {
+            this.generationProfile = requireRecipeToken("generationProfile", generationProfile);
+            return this;
+        }
+
+        /**
+         * Labels the requested output-safety policy for replay diagnostics.
+         */
+        public Builder safetyPolicy(String safetyPolicy) {
+            this.safetyPolicy = requireRecipeToken("safetyPolicy", safetyPolicy);
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated payment-card numbers.
+         *
+         * <p>The default deliberately fails Luhn while preserving issuer shape and length. Choose
+         * {@link PaymentCardSafetyPolicy#CHECKSUM_VALID} only for isolated validator fixtures.
+         * {@link PaymentCardSafetyPolicy#STRIPE_SANDBOX} selects Stripe's fixed sandbox values
+         * and requires Stripe sandbox/test API keys; it is not portable to another processor.
+         *
+         * @param paymentCardSafetyPolicy card-number safety policy
+         * @return this builder
+         */
+        public Builder paymentCardSafetyPolicy(PaymentCardSafetyPolicy paymentCardSafetyPolicy) {
+            this.paymentCardSafetyPolicy = Objects.requireNonNull(
+                paymentCardSafetyPolicy, "paymentCardSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated banking identifiers and account values.
+         *
+         * <p>The default is {@link BankingSafetyPolicy#DISABLED}. Select
+         * {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures that do
+         * not leave the test boundary.
+         *
+         * @param bankingSafetyPolicy banking generation policy
+         * @return this builder
+         */
+        public Builder bankingSafetyPolicy(BankingSafetyPolicy bankingSafetyPolicy) {
+            this.bankingSafetyPolicy = Objects.requireNonNull(
+                bankingSafetyPolicy, "bankingSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated corporate tax identifiers.
+         *
+         * <p>The default is {@link BusinessTaxIdentifierSafetyPolicy#DISABLED}. Select
+         * {@link BusinessTaxIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated
+         * fixtures that do not leave the test boundary.
+         *
+         * @param businessTaxIdentifierSafetyPolicy corporate tax-identifier generation policy
+         * @return this builder
+         */
+        public Builder businessTaxIdentifierSafetyPolicy(
+            BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy) {
+            this.businessTaxIdentifierSafetyPolicy = Objects.requireNonNull(
+                businessTaxIdentifierSafetyPolicy, "businessTaxIdentifierSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated cryptocurrency destination-address shapes.
+         *
+         * <p>The default is {@link CryptoAddressSafetyPolicy#DISABLED}. Select
+         * {@link CryptoAddressSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures that
+         * do not leave the test boundary.
+         *
+         * @param cryptoAddressSafetyPolicy cryptocurrency address generation policy
+         * @return this builder
+         */
+        public Builder cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy) {
+            this.cryptoAddressSafetyPolicy = Objects.requireNonNull(
+                cryptoAddressSafetyPolicy, "cryptoAddressSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated ISIN and CUSIP values.
+         *
+         * <p>The default is {@link SecuritiesIdentifierSafetyPolicy#DISABLED}. Select
+         * {@link SecuritiesIdentifierSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated
+         * fixtures that do not leave the test boundary.
+         *
+         * @param securitiesIdentifierSafetyPolicy securities-identifier generation policy
+         * @return this builder
+         */
+        public Builder securitiesIdentifierSafetyPolicy(
+            SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy) {
+            this.securitiesIdentifierSafetyPolicy = Objects.requireNonNull(
+                securitiesIdentifierSafetyPolicy, "securitiesIdentifierSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for locale-style phone-number output.
+         *
+         * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for US locales.
+         * Other locales and custom templates remain unclassified.
+         *
+         * @param phoneNumberSafetyPolicy locale-style phone-number safety policy
+         * @return this builder
+         */
+        public Builder phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy phoneNumberSafetyPolicy) {
+            this.phoneNumberSafetyPolicy = Objects.requireNonNull(
+                phoneNumberSafetyPolicy, "phoneNumberSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated national identity numbers.
+         *
+         * <p>The default is {@link NationalIdSafetyPolicy#DISABLED}. Select
+         * {@link NationalIdSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures that
+         * do not leave the test boundary.
+         *
+         * @param nationalIdSafetyPolicy national-ID generation policy
+         * @return this builder
+         */
+        public Builder nationalIdSafetyPolicy(NationalIdSafetyPolicy nationalIdSafetyPolicy) {
+            this.nationalIdSafetyPolicy = Objects.requireNonNull(
+                nationalIdSafetyPolicy, "nationalIdSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated passport and driving-license identifiers.
+         *
+         * <p>The default is {@link IdentityDocumentSafetyPolicy#DISABLED}. Select
+         * {@link IdentityDocumentSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures
+         * that do not leave the test boundary.
+         *
+         * @param identityDocumentSafetyPolicy identity-document generation policy
+         * @return this builder
+         */
+        public Builder identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy) {
+            this.identityDocumentSafetyPolicy = Objects.requireNonNull(
+                identityDocumentSafetyPolicy, "identityDocumentSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Labels the provider dataset version for deterministic replay diagnostics.
+         */
+        public Builder providerDatasetVersion(String providerDatasetVersion) {
+            this.providerDatasetVersion = requireRecipeToken("providerDatasetVersion", providerDatasetVersion);
+            return this;
+        }
+
+        /**
          * Registry context used by locale-aware generators.
          */
         public Builder registryContext(DataRegistryContext registryContext) {
@@ -950,7 +1437,23 @@ public final class GeneratorConfig {
             return normalized.toString();
         }
 
+        private static String requireRecipeToken(String name, String value) {
+            Objects.requireNonNull(value, name + " must not be null");
+            if (value.isBlank() || value.indexOf('\n') >= 0 || value.indexOf('\r') >= 0) {
+                throw new IllegalArgumentException(name + " must be a non-blank single-line value");
+            }
+            return value;
+        }
+
         public GeneratorConfig build() {
+            int configuredSources = (numericSeed.isPresent() || stringSeed.isPresent()) ? 1 : 0;
+            configuredSources += random == null ? 0 : 1;
+            configuredSources += randomFactory == null ? 0 : 1;
+            configuredSources += secureRandom ? 1 : 0;
+            if (configuredSources > 1) {
+                throw new IllegalStateException(
+                    "Configure only one random source: seed, random, randomFactory, or secureRandom");
+            }
             return new GeneratorConfig(this);
         }
     }

@@ -22,3 +22,17 @@ tasks.test {
         includeEngines("kotest", "junit-jupiter")
     }
 }
+
+// Supported-version-range verification: -PkotestVersion=<version> forces the Kotest line the
+// module is compiled and tested against (e.g. ./gradlew :kotest-extensions:test -PkotestVersion=6.1.11).
+val kotestVersionOverride = providers.gradleProperty("kotestVersion")
+if (kotestVersionOverride.isPresent) {
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "io.kotest") {
+                useVersion(kotestVersionOverride.get())
+                because("kotest version-range verification")
+            }
+        }
+    }
+}

@@ -8,13 +8,16 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
 /**
  * Generates locale-aware bank account artifacts (number, name, transaction type).
+ *
+ * <p>Use an explicit {@link GeneratorConfig} and select
+ * {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated compatibility fixtures.
+ * The default configured policy is {@link BankingSafetyPolicy#DISABLED}.
  */
 public final class BankAccountGenerator implements Generator<String> {
 
@@ -50,21 +53,17 @@ public final class BankAccountGenerator implements Generator<String> {
         "deposito", "prelievo", "pagamento", "bonifico", "rimborso", "commissione", "interesse", "storno"
     };
 
-    private final Locale locale;
-    private final Random random;
+    private final Locale                locale;
+    private final Random                random;
+    private final BankingSafetyPolicy bankingSafetyPolicy;
 
-    public BankAccountGenerator() {
-        this(GeneratorConfig.defaults());
-    }
 
-    public BankAccountGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
-    }
 
     public BankAccountGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
+        this.bankingSafetyPolicy = config.getBankingSafetyPolicy();
     }
 
     private static int lengthByCountry(String country) {
@@ -89,6 +88,7 @@ public final class BankAccountGenerator implements Generator<String> {
     }
 
     public String generateAccountNumber() {
+        bankingSafetyPolicy.requireRealisticOutput();
         return randomDigits(lengthByCountry(locale.getCountry()));
     }
 
