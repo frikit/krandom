@@ -111,6 +111,9 @@ io.github.frikit.krandom.generator.schema.Field
 io.github.frikit.krandom.generator.schema.FieldLookup
 # Schema remains KEEP; this covers private structured-record conversion helpers only.
 io.github.frikit.krandom.generator.schema.Schema
+# SchemaParser remains KEEP; its documented v2 import contract now rejects references and
+# composition rather than silently producing unconstrained values. See schema-and-provider-hub.md.
+io.github.frikit.krandom.generator.schema.SchemaParser
 
 # Config-scoped weather vocabulary; global registration remains the 1.6 compatibility adapter.
 io.github.frikit.krandom.generator.DataRegistryContext

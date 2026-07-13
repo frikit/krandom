@@ -13,10 +13,12 @@ import io.github.frikit.krandom.generator.datetime.TimeGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Parses JSON Schema (Draft 2020-12) or OpenAPI 3.x schema objects into krandom
@@ -36,6 +38,12 @@ import java.util.Objects;
  *   <li>{@code nullable} (OpenAPI 3.0) — nullable field support</li>
  * </ul>
  *
+ * <p>The parser accepts the control keywords emitted by {@link Schema#toJsonSchema()}, including
+ * {@code $schema}, {@code required}, and {@code additionalProperties}. References and schema
+ * composition ({@code $ref}, {@code allOf}, {@code anyOf}, {@code oneOf}, and related conditional
+ * keywords) are rejected with a schema path because this parser has no resolver or composition
+ * semantics.
+ *
  * <p>Field names are matched against krandom's semantic resolver for realistic data.
  * For example, a property named "email" with type "string" will produce email addresses.
  *
@@ -54,6 +62,14 @@ import java.util.Objects;
  * }</pre>
  */
 public final class SchemaParser {
+
+    private static final Set<String> UNSUPPORTED_KEYWORDS = Set.of(
+        "$dynamicRef", "$recursiveRef", "$ref",
+        "allOf", "anyOf", "oneOf", "not",
+        "if", "then", "else",
+        "contains", "prefixItems", "unevaluatedItems",
+        "dependentRequired", "dependentSchemas",
+        "patternProperties", "propertyNames", "unevaluatedProperties");
 
     private SchemaParser() {
     }
@@ -93,6 +109,9 @@ public final class SchemaParser {
                 "JSON Schema object must have a \"properties\" map");
         }
 
+        validateSupportedKeywords(jsonSchema, "$",
+                                  Collections.newSetFromMap(new IdentityHashMap<>()));
+
         Field field = new Field(config);
         Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
 
@@ -122,6 +141,36 @@ public final class SchemaParser {
         }
 
         return new Schema(config, providers);
+    }
+
+    private static void validateSupportedKeywords(Map<?, ?> schema,
+                                                  String path,
+                                                  Set<Map<?, ?>> visiting) {
+        if (!visiting.add(schema)) {
+            throw new IllegalArgumentException("Recursive JSON Schema map is unsupported at " + path);
+        }
+        try {
+            for (String keyword : UNSUPPORTED_KEYWORDS) {
+                if (schema.containsKey(keyword)) {
+                    throw new IllegalArgumentException(
+                        "Unsupported JSON Schema keyword '" + keyword + "' at " + path);
+                }
+            }
+            Object properties = schema.get("properties");
+            if (properties instanceof Map<?, ?> nestedProperties) {
+                for (Map.Entry<?, ?> entry : nestedProperties.entrySet()) {
+                    if (entry.getKey() instanceof String name && entry.getValue() instanceof Map<?, ?> nestedSchema) {
+                        validateSupportedKeywords(nestedSchema, path + ".properties." + name, visiting);
+                    }
+                }
+            }
+            Object items = schema.get("items");
+            if (items instanceof Map<?, ?> itemSchema) {
+                validateSupportedKeywords(itemSchema, path + ".items", visiting);
+            }
+        } finally {
+            visiting.remove(schema);
+        }
     }
 
     /**

@@ -72,6 +72,16 @@ SchemaValueProvider typedPayload = SchemaValueProvider.withJsonSchema(
 );
 ```
 
+### JSON Schema import subset
+
+`SchemaParser.fromJsonSchema(...)` accepts object schemas using scalar `type` values, nullable type
+lists, `format`, `enum`, `const`, numeric/string/array bounds, `pattern`, `items`, and nested
+`properties`. It also accepts `$schema`, `required`, and `additionalProperties`, so a schema emitted
+by `toJsonSchema()` can be imported again. References and composition are intentionally unsupported:
+`$ref`, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas, and pattern/dependent-property
+composition fail immediately with the nested schema path. Unknown string formats use the normal
+semantic-or-string fallback; they do not claim an unimplemented format contract.
+
 Use the streaming writer methods when you want payload output without materializing the whole batch first:
 
 ```java
