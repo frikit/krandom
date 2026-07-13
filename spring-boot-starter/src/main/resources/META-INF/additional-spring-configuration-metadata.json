@@ -46,6 +46,75 @@
       "type": "java.lang.Integer",
       "description": "Maximum size for generated collections and arrays.",
       "defaultValue": 10
+    },
+    {
+      "name": "krandom.recipe",
+      "type": "java.lang.String",
+      "description": "Portable serialized generation recipe. It cannot be combined with krandom.seed or krandom.locale."
+    },
+    {
+      "name": "krandom.clock",
+      "type": "java.lang.String",
+      "description": "ISO-8601 instant used as a fixed clock for deterministic temporal generation."
+    },
+    {
+      "name": "krandom.clock-zone",
+      "type": "java.lang.String",
+      "description": "IANA zone ID for krandom.clock. It requires krandom.clock and otherwise defaults to UTC."
+    },
+    {
+      "name": "krandom.payment-card-safety-policy",
+      "type": "io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy",
+      "description": "Safety policy for payment-card fixtures. The default deliberately produces non-Luhn values.",
+      "defaultValue": "TEST_SAFE_NON_ROUTABLE"
+    },
+    {
+      "name": "krandom.phone-number-safety-policy",
+      "type": "io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy",
+      "description": "Safety policy for telephone-number fixtures.",
+      "defaultValue": "TEST_SAFE_WHERE_AVAILABLE"
+    },
+    {
+      "name": "krandom.national-id-safety-policy",
+      "type": "io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy",
+      "description": "Safety policy for national-identifier fixtures. The default disables generation.",
+      "defaultValue": "DISABLED"
+    },
+    {
+      "name": "krandom.banking-safety-policy",
+      "type": "io.github.frikit.krandom.generator.finance.BankingSafetyPolicy",
+      "description": "Safety policy for banking-identifier fixtures. The default disables generation.",
+      "defaultValue": "DISABLED"
+    },
+    {
+      "name": "krandom.securities-identifier-safety-policy",
+      "type": "io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy",
+      "description": "Safety policy for securities-identifier fixtures. The default disables generation.",
+      "defaultValue": "DISABLED"
+    },
+    {
+      "name": "krandom.crypto-address-safety-policy",
+      "type": "io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy",
+      "description": "Safety policy for crypto-address fixtures. The default disables generation.",
+      "defaultValue": "DISABLED"
+    },
+    {
+      "name": "krandom.business-tax-identifier-safety-policy",
+      "type": "io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy",
+      "description": "Safety policy for business tax-identifier fixtures. The default disables generation.",
+      "defaultValue": "DISABLED"
+    },
+    {
+      "name": "krandom.identity-document-safety-policy",
+      "type": "io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy",
+      "description": "Safety policy for identity-document fixtures. The default disables generation.",
+      "defaultValue": "DISABLED"
+    },
+    {
+      "name": "krandom.object-construction-policy",
+      "type": "io.github.frikit.krandom.generator.object.ObjectConstructionPolicy",
+      "description": "Construction policy for generated objects. The default calls safe constructors.",
+      "defaultValue": "SAFE_CONSTRUCTORS"
     }
   ]
 }

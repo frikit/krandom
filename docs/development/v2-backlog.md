@@ -48,7 +48,7 @@ the master plan), `open` (not started), `blocked` (needs a release action or ext
 | 3.2 Combinator and boundary contracts | correctness | D5 | 2.6, 3.1 | done: strict bounds, set-backed uniqueness, replay-preserving decorators, and combinator review complete |
 | 3.3 Kotest replay and shrinking | integration | — | 2.5–2.7 | done: host-seeded adapters, bounded shrinking, failure recipes, and 6.1/6.2 version-range verification |
 | 3.4 Typed Kotlin DSL | integration, contract | — | 2.5 | done: typed rules with validation, aligned defaults, and idiomatic configs |
-| 3.5 `@KrandomTest` Spring slice | integration | — | 2.6–2.8 | partial: standalone slice plus recipe/clock/safety binding done; defaults fact-alignment and published-line testing remain |
+| 3.5 `@KrandomTest` Spring slice | integration | — | 2.6–2.8 | done: standalone slice, core-aligned metadata defaults, full-context parity, and Spring Boot 4.1.0 published-artifact examples verified |
 | 3.6 JUnit replay integration | integration | — | 2.7 | done (jqwik out of scope) |
 | 3.7 Schema contract | contract, correctness | D10 | 2.2, 2.3, 2.8 | open |
 | 3.8 JPMS consumers | compatibility, integration | — | 2.4 | partial: core/jackson/junit named consumers and boundary/name pinning done; the JDK matrix belongs to 3.9 CI |

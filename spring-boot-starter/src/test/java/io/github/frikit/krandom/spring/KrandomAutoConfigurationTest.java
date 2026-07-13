@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.spring;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import org.junit.jupiter.api.DisplayName;
@@ -14,9 +16,17 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -201,6 +211,65 @@ class KrandomAutoConfigurationTest {
               });
     }
 
+    @Test
+    @DisplayName("generated configuration metadata covers all bindable properties and core defaults")
+    void generatedMetadataMatchesCoreDefaults() throws IOException {
+        Map<String, JsonNode> metadata = generatedMetadata();
+        GeneratorConfig defaults = GeneratorConfig.defaults();
+
+        assertEquals(Set.of(
+                         "krandom.seed",
+                         "krandom.locale",
+                         "krandom.object-max-depth",
+                         "krandom.object-null-probability",
+                         "krandom.min-string-length",
+                         "krandom.max-string-length",
+                         "krandom.min-collection-size",
+                         "krandom.max-collection-size",
+                         "krandom.recipe",
+                         "krandom.clock",
+                         "krandom.clock-zone",
+                         "krandom.payment-card-safety-policy",
+                         "krandom.phone-number-safety-policy",
+                         "krandom.national-id-safety-policy",
+                         "krandom.banking-safety-policy",
+                         "krandom.securities-identifier-safety-policy",
+                         "krandom.crypto-address-safety-policy",
+                         "krandom.business-tax-identifier-safety-policy",
+                         "krandom.identity-document-safety-policy",
+                         "krandom.object-construction-policy"),
+                     metadata.keySet());
+        assertTrue(metadata.values().stream()
+                           .allMatch(property -> !property.path("description").asText().isBlank()));
+
+        assertEquals(defaults.getLocale().toLanguageTag(), metadata.get("krandom.locale").path("defaultValue").asText());
+        assertEquals(defaults.getObjectMaxDepth(), metadata.get("krandom.object-max-depth").path("defaultValue").asInt());
+        assertEquals(defaults.getObjectNullProbability(),
+                     metadata.get("krandom.object-null-probability").path("defaultValue").asDouble());
+        assertEquals(defaults.getMinStringLength(), metadata.get("krandom.min-string-length").path("defaultValue").asInt());
+        assertEquals(defaults.getMaxStringLength(), metadata.get("krandom.max-string-length").path("defaultValue").asInt());
+        assertEquals(defaults.getMinCollectionSize(), metadata.get("krandom.min-collection-size").path("defaultValue").asInt());
+        assertEquals(defaults.getMaxCollectionSize(), metadata.get("krandom.max-collection-size").path("defaultValue").asInt());
+        assertEquals(defaults.getPaymentCardSafetyPolicy().name(),
+                     metadata.get("krandom.payment-card-safety-policy").path("defaultValue").asText());
+        assertEquals(defaults.getPhoneNumberSafetyPolicy().name(),
+                     metadata.get("krandom.phone-number-safety-policy").path("defaultValue").asText());
+        assertEquals(defaults.getNationalIdSafetyPolicy().name(),
+                     metadata.get("krandom.national-id-safety-policy").path("defaultValue").asText());
+        assertEquals(defaults.getBankingSafetyPolicy().name(),
+                     metadata.get("krandom.banking-safety-policy").path("defaultValue").asText());
+        assertEquals(defaults.getSecuritiesIdentifierSafetyPolicy().name(),
+                     metadata.get("krandom.securities-identifier-safety-policy").path("defaultValue").asText());
+        assertEquals(defaults.getCryptoAddressSafetyPolicy().name(),
+                     metadata.get("krandom.crypto-address-safety-policy").path("defaultValue").asText());
+        assertEquals(defaults.getBusinessTaxIdentifierSafetyPolicy().name(),
+                     metadata.get("krandom.business-tax-identifier-safety-policy").path("defaultValue").asText());
+        assertEquals(defaults.getIdentityDocumentSafetyPolicy().name(),
+                     metadata.get("krandom.identity-document-safety-policy").path("defaultValue").asText());
+        assertEquals(defaults.getObjectConstructionPolicy().name(),
+                     metadata.get("krandom.object-construction-policy").path("defaultValue").asText());
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     public static final class SampleUser {
@@ -227,6 +296,41 @@ class KrandomAutoConfigurationTest {
             current = current.getCause();
         }
         return false;
+    }
+
+    private static Map<String, JsonNode> generatedMetadata() throws IOException {
+        Enumeration<URL> resources = KrandomAutoConfigurationTest.class.getClassLoader()
+            .getResources("META-INF/spring-configuration-metadata.json");
+        Map<String, JsonNode> metadata = new HashMap<>();
+        while (resources.hasMoreElements()) {
+            URL resource = resources.nextElement();
+            try (InputStream input = resource.openStream()) {
+                mergeKrandomProperties(input, metadata);
+            }
+        }
+        try (InputStream input = KrandomAutoConfigurationTest.class.getResourceAsStream(
+            "/META-INF/additional-spring-configuration-metadata.json")) {
+            assertNotNull(input, "Additional Spring configuration metadata must be packaged with the starter");
+            mergeKrandomProperties(input, metadata);
+        }
+        assertFalse(metadata.isEmpty(), "Spring configuration metadata must be packaged with the starter");
+        return metadata;
+    }
+
+    private static void mergeKrandomProperties(InputStream input, Map<String, JsonNode> metadata) throws IOException {
+        JsonNode properties = new ObjectMapper().readTree(input).path("properties");
+        for (JsonNode property : properties) {
+            String name = property.path("name").asText();
+            if (name.startsWith("krandom.")) {
+                metadata.merge(name, property, KrandomAutoConfigurationTest::mergeMetadata);
+            }
+        }
+    }
+
+    private static JsonNode mergeMetadata(JsonNode generated, JsonNode additional) {
+        com.fasterxml.jackson.databind.node.ObjectNode merged = generated.deepCopy();
+        merged.setAll((com.fasterxml.jackson.databind.node.ObjectNode) additional);
+        return merged;
     }
 
     @Test

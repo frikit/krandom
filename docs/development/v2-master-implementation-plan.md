@@ -563,7 +563,7 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Goal**: Complete the v2 public surface, make every adapter honor its host framework, validate real module boundaries, and make publication recoverable.
 **Success Criteria**: All published modules pass their host-framework contract tests and compatibility gates; release automation can resume safely; documentation and performance claims are evidence-backed.
 **Tests**: Compatibility baseline, integration replay tests, published-artifact consumers, JPMS tests, mutation testing, multi-JDK CI, benchmark regression checks, release dry-runs, and Maven Central smoke simulations.
-**Status**: In Progress (Steps 3.2, 3.3, 3.4, and 3.6 are complete; Steps 3.1, 3.5,
+**Status**: In Progress (Steps 3.2, 3.3, 3.4, 3.5, and 3.6 are complete; Steps 3.1,
 3.8 are partially complete; Steps 3.7 and 3.9–3.12 remain open.)
 
 ### Step 3.1 — Simplify the v2 API and object configuration
@@ -664,15 +664,18 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 
 - [x] Compose the required Spring test extension/bootstrap annotations.
 - [x] Limit the context to the documented kRandom beans.
-- [ ] Align property defaults and metadata with core configuration facts.
+- [x] Align property defaults and metadata with core configuration facts. (The packaged Spring
+  metadata is contract-tested against `GeneratorConfig.defaults()`.)
 - [x] Verify property binding for seed/recipe, locale, clock, safety, and construction policies.
 - [x] Add failure diagnostics for invalid property combinations.
-- [ ] Test against the supported Spring Boot line using published artifacts.
+- [x] Test against the supported Spring Boot line using published artifacts. (The Gradle and Maven
+  integration examples resolve the locally published `2.0.0-SNAPSHOT` starter with Spring Boot 4.1.0.)
 
 **Tests**
 
 - [x] A consumer test using only `@KrandomTest` starts the promised context.
-- [ ] Full `@SpringBootTest` and slice tests produce equivalent configured generators.
+- [x] Full `@SpringBootTest` and slice tests produce equivalent configured generators. (The full
+  context and isolated slice both assert the documented `GeneratorConfig` contract.)
 - [x] Invalid properties fail fast with actionable messages.
 
 **Done when:** The annotation's example works exactly as written.
