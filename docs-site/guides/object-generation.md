@@ -8,6 +8,14 @@ permalink: /guides/object-generation/
 
 `ObjectGenerator<T>` populates Java classes recursively.
 
+## Configuration ownership
+
+Use one immutable `GeneratorConfig` as the source of object-generation settings. Values supplied
+through configuration collections or varargs are copied when the configuration is built; registered
+generators, predicates, listeners, random sources, and factories remain caller-owned references and
+are not invoked while the configuration is assembled. Treat those executable objects as immutable
+for the lifetime of a configuration, or create a new configuration when they need to change.
+
 ## Basic usage
 
 ```java

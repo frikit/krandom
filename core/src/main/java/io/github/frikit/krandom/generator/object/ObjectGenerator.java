@@ -145,7 +145,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
      */
     public ObjectGenerator(Class<T> type) {
         this(type,
-             ObjectGeneratorConfig.builder().generatorConfig(GeneratorConfig.defaults()).build(),
+             ObjectGeneratorConfig.from(GeneratorConfig.defaults()),
              0,
              null,
              null,
@@ -157,7 +157,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
      */
     public ObjectGenerator(Class<T> type, GeneratorConfig config) {
         this(type,
-             ObjectGeneratorConfig.builder().generatorConfig(config).build(),
+             ObjectGeneratorConfig.from(config),
              0,
              null,
              null,

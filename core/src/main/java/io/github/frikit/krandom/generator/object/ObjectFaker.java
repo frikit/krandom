@@ -84,7 +84,7 @@ public final class ObjectFaker<T> implements Generator<T> {
      * Creates a fixture authoring API using the shared root configuration.
      */
     public ObjectFaker(Class<T> type, GeneratorConfig config) {
-        this(type, ObjectGeneratorConfig.builder().generatorConfig(config).build(), true);
+        this(type, ObjectGeneratorConfig.from(config), true);
     }
 
     /**

@@ -532,6 +532,38 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("object configuration copies mutable inputs and isolates derived builders")
+    void objectConfigurationCopiesMutableInputsAndIsolatesDerivedBuilders() {
+        String[] uniqueFields = {"account_id"};
+        GeneratorConfig original = GeneratorConfig.builder().objectUniqueFields(uniqueFields).build();
+        uniqueFields[0] = "email";
+
+        GeneratorConfig derived = original.toBuilder().objectUniqueField("email").build();
+
+        assertEquals(Set.of("accountid"), original.getObjectUniqueFieldNames());
+        assertEquals(Set.of("accountid", "email"), derived.getObjectUniqueFieldNames());
+        assertThrows(UnsupportedOperationException.class,
+                     () -> original.getObjectUniqueFieldNames().add("username"));
+        assertThrows(UnsupportedOperationException.class,
+                     () -> original.getObjectSubtypes().put(Runnable.class, Thread.class));
+    }
+
+    @Test
+    @DisplayName("object callbacks are retained by reference without configuration-time execution")
+    void objectCallbacksRetainedWithoutConfigurationTimeExecution() {
+        AtomicInteger calls = new AtomicInteger();
+        Generator<String> generator = () -> {
+            calls.incrementAndGet();
+            return "configured";
+        };
+
+        GeneratorConfig config = GeneratorConfig.builder().objectOverride(String.class, generator).build();
+
+        assertSame(generator, config.getObjectTypeOverride(String.class).orElseThrow());
+        assertEquals(0, calls.get());
+    }
+
+    @Test
     @DisplayName("advanced object overrides and exclusions are stored on the root config")
     void advancedObjectOverridesAndExclusionsStored() throws Exception {
         GeneratorConfig config = GeneratorConfig.builder()

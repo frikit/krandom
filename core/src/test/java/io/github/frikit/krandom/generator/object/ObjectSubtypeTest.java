@@ -122,8 +122,8 @@ class ObjectSubtypeTest {
     }
 
     @Test
-    @DisplayName("explicit subtype(...) before generatorConfig(...) suppresses inheritance")
-    void explicitSubtypesSuppressInheritance() {
+    @DisplayName("explicit subtype(...) before generatorConfig(...) merges root subtype mappings")
+    void explicitSubtypesMergeRootMappings() {
         GeneratorConfig gc = GeneratorConfig.builder()
                                             .objectSubtype(Payment.class, CardPayment.class)
                                             .build();
@@ -133,7 +133,7 @@ class ObjectSubtypeTest {
                                                          .build();
 
         assertSame(Bike.class, ogc.resolveSubtype(Vehicle.class));
-        assertSame(Payment.class, ogc.resolveSubtype(Payment.class));
+        assertSame(CardPayment.class, ogc.resolveSubtype(Payment.class));
     }
 
     @Test

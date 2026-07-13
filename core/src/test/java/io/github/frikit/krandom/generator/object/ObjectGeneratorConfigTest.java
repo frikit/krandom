@@ -9,12 +9,8 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,6 +81,22 @@ class ObjectGeneratorConfigTest {
         assertEquals(0.5, objectConfig.getOptionalEmptyProbability());
         assertEquals(Set.of("email", "accountid"), objectConfig.getUniqueFieldNames());
         assertEquals(7, objectConfig.getUniquenessMaxAttempts());
+    }
+
+    @Test
+    @DisplayName("adapter retains an unmodified root configuration")
+    void adapterRetainsUnmodifiedRootConfiguration() {
+        GeneratorConfig generatorConfig = GeneratorConfig.builder()
+                                                         .seed(42L)
+                                                         .objectMaxDepth(3)
+                                                         .objectOverride(String.class, () -> "root")
+                                                         .build();
+
+        ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
+                                                                 .generatorConfig(generatorConfig)
+                                                                 .build();
+
+        assertSame(generatorConfig, objectConfig.toGeneratorConfig());
     }
 
     @Test
@@ -403,31 +415,6 @@ class ObjectGeneratorConfigTest {
     }
 
     @Test
-    @DisplayName("toBuilder treats one-sided reflected date state as explicit")
-    void toBuilderTreatsOneSidedReflectedDateStateAsExplicit() throws Exception {
-        LocalDate reflectedMax = LocalDate.of(2025, 6, 30);
-        GeneratorConfig inheritedGeneratorConfig = GeneratorConfig.builder()
-                                                                 .objectDateRange(LocalDate.of(1999, 1, 1), LocalDate.of(1999, 12, 31))
-                                                                 .build();
-        ObjectGeneratorConfig source = ObjectGeneratorConfig.builder().build();
-
-        Field dateMaxField = ObjectGeneratorConfig.class.getDeclaredField("dateMax");
-        dateMaxField.setAccessible(true);
-        dateMaxField.set(source, reflectedMax);
-
-        Constructor<ObjectGeneratorConfig.Builder> copyConstructor =
-            ObjectGeneratorConfig.Builder.class.getDeclaredConstructor(ObjectGeneratorConfig.class);
-        copyConstructor.setAccessible(true);
-
-        ObjectGeneratorConfig copy = copyConstructor.newInstance(source)
-                                                    .generatorConfig(inheritedGeneratorConfig)
-                                                    .build();
-
-        assertNull(copy.getDateMin());
-        assertEquals(reflectedMax, copy.getDateMax());
-    }
-
-    @Test
     @DisplayName("field overrides for classes with same simple name do not collide")
     void fieldOverridesDoNotCollideAcrossPackages() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
@@ -447,48 +434,6 @@ class ObjectGeneratorConfigTest {
     }
 
     @Test
-    @DisplayName("legacy simple-name field override key remains supported")
-    void legacySimpleNameFieldOverrideKeyStillWorks() throws Exception {
-        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
-
-        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("fieldOverrides");
-        overridesField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        Map<String, io.github.frikit.krandom.generator.Generator<?>> fieldOverrides =
-            (Map<String, io.github.frikit.krandom.generator.Generator<?>>) overridesField.get(builder);
-        fieldOverrides.put("SameNameHolder.value", () -> "LEGACY");
-
-        ObjectGeneratorConfig config = builder.build();
-        io.github.frikit.krandom.generator.object.collision.left.SameNameHolder value =
-            new ObjectGenerator<>(io.github.frikit.krandom.generator.object.collision.left.SameNameHolder.class, config)
-                .generate();
-
-        assertEquals("LEGACY", value.getValue());
-    }
-
-    @Test
-    @DisplayName("legacy simple-name contextual field override key remains supported")
-    void legacySimpleNameContextualFieldOverrideKeyStillWorks() throws Exception {
-        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
-
-        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("contextualFieldOverrides");
-        overridesField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        Map<String, io.github.frikit.krandom.generator.ContextualGenerator<?>> fieldOverrides =
-            (Map<String, io.github.frikit.krandom.generator.ContextualGenerator<?>>) overridesField.get(builder);
-        fieldOverrides.put("SameNameHolder.value", ctx -> "LEGACY-CONTEXTUAL");
-
-        ObjectGeneratorConfig config = builder.build();
-
-        assertEquals("LEGACY-CONTEXTUAL",
-                     config.getContextualFieldOverride(
-                             io.github.frikit.krandom.generator.object.collision.left.SameNameHolder.class,
-                             "value")
-                           .orElseThrow()
-                           .generate(null));
-    }
-
-    @Test
     @DisplayName("toGeneratorConfig keeps object date range unset when compatibility config has none")
     void toGeneratorConfigKeepsDateRangeUnsetWhenAbsent() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
@@ -499,77 +444,6 @@ class ObjectGeneratorConfigTest {
 
         assertNull(migrated.getObjectDateMin());
         assertNull(migrated.getObjectDateMax());
-    }
-
-    @Test
-    @DisplayName("toGeneratorConfig ignores one-sided date range state from malformed compatibility configs")
-    void toGeneratorConfigIgnoresOneSidedDateRangeState() throws Exception {
-        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
-
-        Field dateMinField = ObjectGeneratorConfig.Builder.class.getDeclaredField("dateMin");
-        dateMinField.setAccessible(true);
-        dateMinField.set(builder, LocalDate.of(2024, 1, 1));
-
-        ObjectGeneratorConfig config = builder.build();
-        GeneratorConfig migrated = config.toGeneratorConfig();
-
-        assertNull(migrated.getObjectDateMin());
-        assertNull(migrated.getObjectDateMax());
-    }
-
-    @Test
-    @DisplayName("toGeneratorConfig rejects malformed legacy field override keys")
-    void toGeneratorConfigRejectsMalformedLegacyFieldOverrideKeys() throws Exception {
-        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
-
-        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("fieldOverrides");
-        overridesField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        Map<String, io.github.frikit.krandom.generator.Generator<?>> fieldOverrides =
-            (Map<String, io.github.frikit.krandom.generator.Generator<?>>) overridesField.get(builder);
-        fieldOverrides.put("broken", () -> "LEGACY");
-
-        ObjectGeneratorConfig config = builder.build();
-
-        IllegalStateException error = assertThrows(IllegalStateException.class, config::toGeneratorConfig);
-        assertTrue(error.getMessage().contains("Cannot migrate legacy object field key"));
-    }
-
-    @Test
-    @DisplayName("toGeneratorConfig rejects malformed legacy field override keys with trailing separators")
-    void toGeneratorConfigRejectsMalformedLegacyFieldOverrideKeysWithTrailingSeparator() throws Exception {
-        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
-
-        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("fieldOverrides");
-        overridesField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        Map<String, io.github.frikit.krandom.generator.Generator<?>> fieldOverrides =
-            (Map<String, io.github.frikit.krandom.generator.Generator<?>>) overridesField.get(builder);
-        fieldOverrides.put("broken.", () -> "LEGACY");
-
-        ObjectGeneratorConfig config = builder.build();
-
-        IllegalStateException error = assertThrows(IllegalStateException.class, config::toGeneratorConfig);
-        assertTrue(error.getMessage().contains("Cannot migrate legacy object field key"));
-    }
-
-    @Test
-    @DisplayName("toGeneratorConfig rejects unresolved legacy field owner types")
-    void toGeneratorConfigRejectsUnresolvedLegacyFieldOwnerTypes() throws Exception {
-        ObjectGeneratorConfig.Builder builder = ObjectGeneratorConfig.builder();
-
-        Field overridesField = ObjectGeneratorConfig.Builder.class.getDeclaredField("fieldOverrides");
-        overridesField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        Map<String, io.github.frikit.krandom.generator.Generator<?>> fieldOverrides =
-            (Map<String, io.github.frikit.krandom.generator.Generator<?>>) overridesField.get(builder);
-        fieldOverrides.put("SameNameHolder.value", () -> "LEGACY");
-
-        ObjectGeneratorConfig config = builder.build();
-
-        IllegalStateException error = assertThrows(IllegalStateException.class, config::toGeneratorConfig);
-        assertTrue(error.getMessage().contains("Cannot resolve object field owner type"));
-        assertTrue(error.getCause() instanceof ClassNotFoundException);
     }
 
     static class RootInheritedFixture {

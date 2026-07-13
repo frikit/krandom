@@ -563,7 +563,8 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
 **Goal**: Complete the v2 public surface, make every adapter honor its host framework, validate real module boundaries, and make publication recoverable.
 **Success Criteria**: All published modules pass their host-framework contract tests and compatibility gates; release automation can resume safely; documentation and performance claims are evidence-backed.
 **Tests**: Compatibility baseline, integration replay tests, published-artifact consumers, JPMS tests, mutation testing, multi-JDK CI, benchmark regression checks, release dry-runs, and Maven Central smoke simulations.
-**Status**: Not Started
+**Status**: In Progress (Steps 3.2, 3.3, 3.4, and 3.6 are complete; Steps 3.1, 3.5,
+3.8 are partially complete; Steps 3.7 and 3.9–3.12 remain open.)
 
 ### Step 3.1 — Simplify the v2 API and object configuration
 
@@ -578,8 +579,8 @@ is intentionally implemented in Step 3.8, where a real named module can verify `
   finance/identity safety-bridge constructors.)
 - [ ] Keep one canonical name and consistent overload pattern for each operation.
 - [ ] Split the giant facade only into small domain namespaces justified by the inventory; avoid speculative abstraction.
-- [ ] Collapse duplicated `ObjectGeneratorConfig` state into `GeneratorConfig` or one composed public object policy.
-- [ ] Make configuration structurally immutable by defensively copying/wrapping mutable collections and clearly documenting ownership of caller callbacks/factories.
+- [x] Collapse duplicated `ObjectGeneratorConfig` state into `GeneratorConfig` or one composed public object policy. [`ObjectGeneratorConfig`](v2-public-configuration-consolidation-plan.md) is now a read-only view over one root configuration.
+- [x] Make configuration structurally immutable by defensively copying/wrapping mutable collections and clearly documenting ownership of caller callbacks/factories. [`GeneratorConfig`](v2-public-configuration-consolidation-plan.md) tests cover copied value inputs, immutable views, derived-builder isolation, and retained callback references.
 - [x] Remove public documentation references to package-private types.
 - [ ] Generate the new v2 API baseline.
 

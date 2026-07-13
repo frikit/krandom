@@ -45,6 +45,10 @@ import java.util.function.Supplier;
  *
  * <p>A caller-owned {@link Random} and a caller-supplied random factory are retained by
  * reference. Their state, lifecycle, and thread-safety remain the caller's responsibility.
+ * Object generators, contextual generators, predicates, listeners, and other callbacks are also
+ * retained by reference and are never invoked while configuration is copied or built. Arrays and
+ * collections supplied to builder methods are normalized and copied before they become part of a
+ * built configuration.
  *
  * <p>Obtain an instance via the fluent {@link Builder}:
  * <pre>{@code

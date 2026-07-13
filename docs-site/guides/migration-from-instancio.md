@@ -29,7 +29,7 @@ dependencies {
 | `Instancio.of(User.class).set(field("email"), v).create()` | `ObjectFaker.of(User.class).ruleFor("email", () -> v).generate()` or `GeneratorConfig.builder().objectOverride(User.class, "email", () -> v)` |
 | `.supply(field("id"), gen)` | `.ruleFor("id", gen)` (any `Generator<T>` or lambda) |
 | `.ignore(field("password"))` | `.ignore("password")` / `.objectExcludeField("password")` |
-| `.withNullable(field(...))` | `ObjectGeneratorConfig.builder().nullProbability(0.1)` |
+| `.withNullable(field(...))` | `GeneratorConfig.builder().objectNullProbability(0.1)` |
 | `.onComplete(...)` | `ObjectFaker.afterGenerate(consumer)` / `.postProcess(operator)` |
 | `.withSeed(42)` | `GeneratorConfig.builder().seed(42L)` |
 | `.withMaxDepth(3)` | `.objectMaxDepth(3)` |
