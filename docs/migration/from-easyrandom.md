@@ -13,14 +13,15 @@ developed and produces the same graphs with **realistic, locale-aware values**.
 ## Why switch
 
 **Pros**: maintained; realistic locale-aware values instead of synthetic noise;
-35 locales; native Bean Validation; schema export; Spring Boot / JUnit 5 / kotest.
+50 supported locale variants (35 native datasets and 15 curated fallbacks); native Bean Validation;
+schema export; Spring Boot / JUnit 5 / kotest.
 **Cons / gaps**: see [`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
 
 ## Dependency
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:1.5.0")
+    testImplementation("io.github.frikit:krandom-core:2.0.0")
 }
 ```
 

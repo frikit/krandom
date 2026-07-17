@@ -15,7 +15,7 @@ its successor, so both columns read the same.
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.5.0")
+    implementation("io.github.frikit:krandom-core:2.0.0")
 }
 ```
 
@@ -39,7 +39,7 @@ dependencies {
 | `faker.address().zipCode()` | `Generators.ofPostalCode().generate()` |
 | `faker.phoneNumber().phoneNumber()` | `Generators.ofPhoneNumber().generate()` |
 | `faker.company().name()` | `Generators.ofCompanyName().generate()` |
-| `faker.finance().iban()` | `Generators.ofIban().generate()` |
+| `faker.finance().iban()` | `new IbanGenerator(bankingConfig).generate()` |
 | `faker.finance().creditCard()` | `Generators.ofCreditCard().generate()` |
 | `faker.number().numberBetween(1, 100)` | `Generators.ofInt(1, 100).generate()` |
 | `faker.regexify("[a-z]{8}")` | `new RegexGenerator("[a-z]{8}").generate()` |
@@ -48,6 +48,15 @@ Domain namespaces (`Generators.person()`, `location()`, `finance()`,
 `network()`, `text()`, `commerce()`, `identifier()`, `datetime()`) mirror
 DataFaker's provider-object style if you prefer fluent discovery over flat
 statics. Each accepts an optional `GeneratorConfig`.
+
+In 2.0.0, banking identifiers are fail-closed. Define `bankingConfig` only for an isolated
+compatibility fixture; it does not make an IBAN safe to submit anywhere:
+
+```java
+GeneratorConfig bankingConfig = GeneratorConfig.builder()
+        .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+        .build();
+```
 
 ## Template helpers
 
@@ -87,7 +96,8 @@ for the seed-stability policy.
   pop-culture catalogs): not shipped. If your tests depend on these, keep
   DataFaker for those calls or open an issue — domain packs are
   community-contributable.
-- **Locales**: kRandom ships 35 curated locales; DataFaker advertises 60+.
+- **Locales**: kRandom supports 50 locale variants (35 native datasets and 15 curated fallbacks);
+  DataFaker advertises 60+.
   Check yours against the [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}) guide.
 - **Runtime YAML data files**: kRandom uses code-based registries instead;
   custom data is registered through `ProviderHub` or `DataRegistryContext`.

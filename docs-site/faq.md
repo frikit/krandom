@@ -8,11 +8,15 @@ permalink: /faq/
 
 ## Which module should I use?
 
-Use `core` for generation APIs and `jackson` only when you need Jackson integration.
+Use `krandom-core` for generation APIs. Add `krandom-jackson` for Jackson schema support,
+`krandom-junit` for the JUnit seed extension, `krandom-spring-boot-starter` for Spring Boot,
+`krandom-kotest-extensions` for Kotest adapters, or `krandom-kotlin-dsl` for Kotlin fixture rules.
+Import `krandom-bom:2.0.0` to align multiple kRandom modules.
 
 ## How do I keep generated data stable between test runs?
 
-Use seeded generators (constructor overloads or `GeneratorConfig.seed(...)`) and reuse the same config.
+Build and reuse a seeded configuration, for example
+`GeneratorConfig.builder().seed(42L).build()`.
 
 ## How do I apply locale consistently?
 

@@ -1,5 +1,9 @@
 # k-random Reference Feature Inventory
 
+> **2.0.0 API note:** This is a historical feature inventory. Use
+> `Generators.ofConstant(...)` and the [generator catalog](../../docs-site/generator-catalog.md)
+> when writing current code.
+
 ## Scope
 
 This inventory was built from the cloned reference repository at `/private/tmp/k-random-reference`, reviewed at commit `43d5b6f4ea38b59ce73c90d9f47e3b25e9c57f32`.
@@ -109,7 +113,7 @@ The target is native feature parity in `io.github.frikit.krandom.*`, not source-
 | Primitive and number | `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `Number`, `BigInteger`, `BigDecimal`, `AtomicInteger`, `AtomicLong` randomizers and range variants | Covered by scalar factories, `NumberGenerator`, `AtomicIntegerGenerator`, `AtomicLongGenerator`, big-number generators, object field resolution, and `Generators.forType(...)` for standalone Java type lookup. |
 | Text | `Character`, `CharSequence`, `String`, `StringDelegating`, `RegularExpression` | Covered by `CharGenerator`, `StringGenerator`, `RegexGenerator`, `Generators.ofRegex(...)`, and text namespace methods. `CharSequence` maps to generated `String`. |
 | Collections | `Collection`, `List`, `Set`, `Queue`, `Map`, `EnumSet`, `EnumMap` | Covered for object fields. Standalone collection randomizer classes migrate to generator composition, `generateList`, `repeat`, `pick`, `shuffle`, or explicit object overrides. |
-| Misc | `Boolean`, `Constant`, `Enum`, `Locale`, `Null`, `Optional`, `Skip`, `UUID` | Covered by `Generators.ofBoolean`, `Generators.constant`, `EnumGenerator`, `Generators.ofLocale`, `Generators.constant(null)`, object optional handling, exclusions, and `Generators.ofUuid`. |
+| Misc | `Boolean`, `Constant`, `Enum`, `Locale`, `Null`, `Optional`, `Skip`, `UUID` | Covered by `Generators.ofBoolean`, `Generators.constant`, `EnumGenerator`, `Generators.ofLocale`, `Generators.ofConstant(null)`, object optional handling, exclusions, and `Generators.ofUuid`. |
 | Network | `UriRandomizer`, `UrlRandomizer`, `Ipv4AddressRandomizer`, `Ipv6AddressRandomizer`, `MacAddressRandomizer` | Covered by typed `Generators.ofURI()`/`ofURL()` when Java objects are needed, string `Generators.ofUri()`/`ofUrl()`, and `Generators.network().ipv4()`, `.ipv6()`, and `.macAddress()`. |
 | Time | `Date`, `SqlDate`, `SqlTime`, `SqlTimestamp`, `Calendar`, `GregorianCalendar`, `LocalDate`, `LocalTime`, `LocalDateTime`, `Instant`, `OffsetDateTime`, `OffsetTime`, `ZonedDateTime`, `Year`, `YearMonth`, `MonthDay`, `Duration`, `JavaDuration`, `Period`, `ZoneId`, `ZoneOffset`, `TimeZone`, plus day/hour/minute/nanosecond helpers | Covered by date/time generators, `Generators.datetime()`, `Generators.forType(...)`, and object field resolution. `LegacyTimeZoneGenerator` covers `java.util.TimeZone`; `TimezoneGenerator` remains the string timezone-id generator. |
 | Faker/domain | `City`, `Company`, `Country`, `CreditCardNumber`, `Email`, `FirstName`, `FullName`, `GenericString`, `Ipv4Address`, `Ipv6Address`, `Isbn`, `LastName`, `Latitude`, `Longitude`, `MacAddress`, `Paragraph`, `Password`, `PhoneNumber`, `RegularExpression`, `Sentence`, `State`, `Street`, `Word`, `ZipCode` | Covered or exceeded by native person, location, finance, network, identifier, text, and base generators. Migration should use namespaces rather than old class names. |

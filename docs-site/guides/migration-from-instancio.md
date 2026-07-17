@@ -16,7 +16,7 @@ directly; the honest-gaps section lists what does not (yet).
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.5.0")
+    implementation("io.github.frikit:krandom-core:2.0.0")
 }
 ```
 
@@ -69,7 +69,8 @@ User user = new ObjectFaker<>(User.class, config)
   `@Pattern`, `@Size`, …) are honored during population without extra setup.
 - **Bulk structured export** — `Field` + `Schema` produce CSV, JSONL, XML,
   and SQL output; Instancio has no export story.
-- **Locale-aware data** in 35 locales.
+- **Locale-aware data** across 50 supported locale variants (35 native datasets and 15 curated
+  fallbacks).
 
 ## Honest gaps
 

@@ -10,7 +10,7 @@ Use `krandom-jackson` when you want Jackson to understand kRandom schema definit
 
 ## Dependency
 
-After the public release is cut, use Maven Central:
+Use Maven Central:
 
 ```kotlin
 repositories {
@@ -18,8 +18,8 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.5.0")
-    implementation("io.github.frikit:krandom-jackson:1.5.0")
+    implementation("io.github.frikit:krandom-core:2.0.0")
+    implementation("io.github.frikit:krandom-jackson:2.0.0")
 }
 ```
 

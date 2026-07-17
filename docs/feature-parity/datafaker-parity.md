@@ -1,5 +1,14 @@
 # DataFaker Feature Parity Analysis
 
+> **2.0.0 API note:** This is a historical parity analysis, not a current API tutorial. The
+> canonical selection helpers are `pick`, `pickSet`, `shuffle`, and `unique`; national-ID fixtures
+> require an explicit `GeneratorConfig` with `NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED`.
+> Use the [generator catalog](../../docs-site/generator-catalog.md) for current runnable APIs.
+
+Where this analysis uses `nationalIdConfig(locale)`, it denotes a `GeneratorConfig` built with the
+given locale and `.nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)` for an
+isolated fixture.
+
 ## Library Overview
 
 - **Name**: DataFaker
@@ -49,10 +58,10 @@ Covered in the 100% contract:
 | Name suffix                 | ✅ `suffix()` (Jr., Sr., III)                 | ✅ Yes          | ✓ DONE                  | `SuffixGenerator` — 10 locales                         |
 | Title                       | ✅ `title()` (professional titles)            | ✅ Yes          | ✓ DONE                  | `TitleGenerator` for honorifics                        |
 | **ID Numbers**              |
-| SSN (US)                    | ✅ `ssnValid()`                               | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.US)` — area 666 excluded   |
+| SSN (US)                    | ✅ `ssnValid()`                               | ✅ Yes          | ✓ DONE                  | `Generators.ofNationalId(nationalIdConfig(Locale.US))` — area 666 excluded   |
 | Singapore FIN/UIN           | ✅ `singaporeanFin()`, `singaporeanUin()`     | No (intentional) | SKIP                | Niche locale ID outside 10-locale `NationalIdGenerator` scope; add via community PR if requested |
 | Poland PESEL                | ✅ `peselNumber()`                            | No (intentional) | SKIP                | Niche locale ID outside `NationalIdGenerator` scope; add via community PR if requested |
-| China SSN                   | ✅ `validZhCNSsn()`                           | ✅ Yes          | ✓ DONE                  | `NationalIdGenerator(Locale.CHINA)` — 18-char ISO 7064 |
+| China SSN                   | ✅ `validZhCNSsn()`                           | ✅ Yes          | ✓ DONE                  | `Generators.ofNationalId(nationalIdConfig(Locale.CHINA))` — 18-char ISO 7064 |
 | Portugal NIF                | ✅ `validPtNif()`                             | No (intentional) | SKIP                | Niche locale ID outside `NationalIdGenerator` scope; add via community PR if requested |
 | Mexico SSN                  | ✅ `validEsMXSsn()`                           | No (intentional) | SKIP                | Niche locale ID outside `NationalIdGenerator` scope; add via community PR if requested |
 | South Africa SSN            | ✅ `validEnZaSsn()`                           | No (intentional) | SKIP                | Niche locale ID outside `NationalIdGenerator` scope; add via community PR if requested |
@@ -331,7 +340,7 @@ DataFaker's largest surface area is curated vocabulary catalogs. These are expli
 | Nullable values          | ✅ `nullRate(0.1)`                  | ✅ Yes | ✓ DONE | Nullable booleans plus object-level null probability cover core null-rate use cases |
 | Stream API               | ✅ `stream().limit(n)`              | ✅ Yes   | ✓ DONE   | `gen.stream().limit(n)` on every generator                             |
 | **Unique Values**        |
-| Unique enforcement       | ✅ `faker.unique()`                 | ✅ Yes   | ✓ DONE   | `Generators.unique(...)` and `Generators.uniqueValues(...)`            |
+| Unique enforcement       | ✅ `faker.unique()`                 | ✅ Yes   | ✓ DONE   | `Generators.unique(...)` and `Generators.unique(...)`            |
 | **Output Formats**       |
 | CSV generation           | ✅ Schema-based                     | ✅ Yes   | ✓ DONE   | `Schema.toCsv()`                                                       |
 | JSON generation          | ✅ Schema-based                     | ✅ Yes   | ✓ DONE   | `Schema.toJsonLines()`                                                 |
@@ -360,7 +369,7 @@ DataFaker's largest surface area is curated vocabulary catalogs. These are expli
     - `TemplateStringGenerator` supports `numerify()`, `letterify()`, `bothify()`
 7. ~~**Collection Generation**~~ ✅ DONE — `gen.generateList(n)` and `gen.stream()` on every generator
 8. ~~**Unique Value Enforcement**~~ ✅ DONE
-    - `Generators.unique(...)` and `Generators.uniqueValues(...)`
+    - `Generators.unique(...)` and `Generators.unique(...)`
 
 ### Phase 2: HIGH VALUE (Should Have)
 

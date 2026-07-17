@@ -6,84 +6,109 @@ permalink: /generator-catalog/
 
 # Generator Catalog (Java)
 
-Main entrypoint: `io.github.frikit.krandom.generator.Generators`
+The main entry point is `io.github.frikit.krandom.generator.Generators`. Most
+locale-aware factories accept a `Locale` or `GeneratorConfig`; use a shared
+`GeneratorConfig` when a fixture needs common locale, seed, clock, safety, or
+registry settings. Factories with a `long` overload provide a locally seeded
+generator where shown by the API.
 
-## Base and numeric
+## Base, numeric, and algorithms
 
-- `ofByte`, `ofShort`, `ofInt`, `ofNaturalNumber`, `ofLong`, `ofFloat`, `ofDouble`
-- `ofNormal`, `ofPrime`
-- `ofBigDecimal`, `ofBigInteger`
-- `ofBoolean`, `ofNullableBoolean`
-- `ofDigit`, `ofNumberWithFormat`, `ofPyDecimal`
-- `ofChar`, `ofString`, `ofTemplate`, `ofProviderTemplate`
-- `constant`, `ofConstant`
-
-## Algorithms and games
-
-- `ofFibonacci`, `ofLuhn`
-- `ofCoin`, `ofDice`
+- `ofConstant`, `ofBoolean`, `ofNullableBoolean`, `ofChar`, `ofString`, `ofDigit`,
+  `ofNumber`, `ofNumberWithFormat`, `ofRegex`, `ofPyDecimal`
+- `ofByte`, `ofShort`, `ofInt`, `ofNaturalNumber`, `ofLong`, `ofFloat`, `ofDouble`,
+  `ofAtomicInteger`, `ofAtomicLong`, `ofBigDecimal`, `ofBigInteger`
+- `ofNormal`, `ofPrime`, `ofFibonacci`, `ofLuhn`, `ofCoin`, `ofDice`
 
 ## Network and internet
 
 - `ofIPv4`, `ofIPv6`, `ofIP`, `ofPort`, `ofMacAddress`
-- `ofDomain`, `ofHostname`, `ofUrl`, `ofUri`, `ofSlug`, `ofUserAgent`
+- `ofDomain`, `ofHostname`, `ofUrl` (text URL), `ofUri` (text URI), `ofURI`
+  (`URI` object), `ofURL` (`URL` object), `ofSlug`, `ofUserAgent`
 - `ofHttpMethod`, `ofHttpStatusCode`
 
-## Date and time
+## Date, time, and locale
 
-- `ofLocalDate`, `ofLocalDateTime`, `ofInstant`, `ofZonedDateTime`
-- `ofDuration`, `ofTimezone`, `ofCalendar`
-- `ofLocale`
+- `ofLocalDate`, `ofLocalTime`, `ofLocalDateTime`, `ofInstant`, `ofZonedDateTime`,
+  `ofOffsetDateTime`, `ofOffsetTime`
+- `ofDuration`, `ofPeriod`, `ofYear`, `ofYearMonth`, `ofMonthDay`, `ofZoneId`,
+  `ofZoneOffset`, `ofTimeZone`, `ofTimezone`, `ofCalendar`
+- `ofUtilDate`, `ofSqlDate`, `ofSqlTime`, `ofSqlTimestamp`, `ofLocale`
 
-## Location
+## People, location, and profiles
 
-- `ofStreetAddress`, `ofAddressInfo`, `ofCity`, `ofState`, `ofPostalCode`, `ofCountry`, `ofPhoneNumber`, `ofGeohash`
+- `ofFullName`, `ofMiddleName`, `ofEmail`, `ofUsername`, `ofPassword`,
+  `ofAvatarUrl`, `ofContactInfo`, `ofSimpleProfile`, `ofProfile`
+- `ofStreetAddress`, `ofAddressInfo`, `ofCity`, `ofState`, `ofPostalCode`,
+  `ofCountry`, `ofPhoneNumber`, `ofGeohash`
+- `ofCompanyEmail`, `ofCompanyInfo`, `ofJobInfo`, `ofPersonInfo`, `ofSocialHandle`,
+  `ofSocialProfile`
+- `ofProfession`, `ofIndustry`, `ofJobField`, `ofJobType`, `ofSeniority`,
+  `ofPosition`, `ofEducationalAttainment`, `ofMaritalStatus`, `ofBloodType`,
+  `ofPronoun`, `ofNationality`
+- `ofZodiac`, `ofChineseZodiac`, `ofNatoPhonetic`, `ofHobby`,
+  `ofProgrammingLanguage`, `ofMbti`
 
-## User and identity
-
-- `ofFullName`, `ofEmail`, `ofContactInfo`, `ofJobInfo`, `ofPersonInfo`, `ofCompanyEmail`, `ofCompanyInfo`
-- `ofUsername`, `ofPassword`, `ofAvatarUrl`
-- `ofSimpleProfile`, `ofProfile`
-- `ofProfession`, `ofJobField`, `ofJobType`, `ofPosition`, `ofIndustry`
-- `ofEducationalAttainment`, `ofMaritalStatus`
-- `ofNationalId(locale)` and seeded overload
-
-## Company and commerce
+## Company, commerce, vehicle, and domain data
 
 - `ofCompanyName`, `ofCompanyUrl`, `ofCompanyBuzzword`, `ofCompanyCatchPhrase`
 - `ofCommerce`, `ofProductInfo`, `ofOrderInfo`, `ofShipmentInfo`
+- `ofVin`, `ofVehicle`, `ofWeather`, `ofMeasurement`, `ofFinancialTerm`,
+  `ofRestaurantType`
+- `ofAws`, `ofAzure`, `ofComputer`, `ofColor`
 
-## Finance and codes
+## Finance, identity, and identifiers
 
-- `ofCurrency`, `ofMoney`
-- `ofCreditCard`, `ofCreditCardInfo`, `ofCardExpiration`, `ofInvoiceInfo`, `ofPaymentInfo`
-- `ofBic`, `ofBban`, `ofIban`, `ofAbaRouting`, `ofBankCountry`, `ofBankAccount`, `ofBankInfo`, `ofBankName`, `ofBankType`
-- `ofIsin`, `ofCusip`, `ofEin`, `ofCryptoAddress`
-- `ofUuid`, `ofHash`, `ofIdentifierMask`, `ofEan`, `ofUpc`, `ofIsbn`
+- Safe-by-default finance: `ofCurrency`, `ofCurrencyPair`, `ofMoney`,
+  `ofCreditCard`, `ofCreditCardInfo`, `ofCardExpiration`, `ofInvoiceInfo`,
+  `ofPaymentInfo`
+- Banking (explicit policy required before generation): `ofBic`, `ofBban`,
+  `ofIban`, `ofAbaRouting`, `ofBankAccount`, `ofBankInfo`; `ofBankCountry`,
+  `ofBankName`, and `ofBankType` provide descriptive bank data
+- Other fail-closed generators (explicit policy required): `ofIsin`, `ofCusip`,
+  `ofEin`, `ofCnpj`, `ofCpf`, `ofCryptoAddress`, `ofNationalId`, `ofPassport`,
+  `ofDrivingLicense`
+- General identifiers: `ofUuid`, `ofHash`, `ofIdentifierMask`, `ofEan`, `ofUpc`,
+  `ofIsbn`
 
-## Files and system
+`PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE` is the default for cards.
+Banking, securities, business-tax, crypto-address, national-ID, and identity-document output is
+disabled by default. Select the corresponding `GeneratorConfig` safety policy only for isolated
+fixtures; see [Finance and Identity]({{ '/guides/finance-and-identity/' | relative_url }}) and
+[Data Validity and Safety]({{ '/guides/data-validity-and-safety/' | relative_url }}).
 
-- `ofFileExtension`, `ofFileName`, `ofDirPath`, `ofFilePath`, `ofMimeType`, `ofSemver`
-- `ofVersion`, `ofPlatformId`, `ofExceptionPayload`, `ofDatabase`
+## Files, text, templates, and system data
 
-## Text
-
+- `ofFileExtension`, `ofFileName`, `ofDirPath`, `ofFilePath`, `ofMimeType`,
+  `ofSemver`, `ofVersion`, `ofPlatformId`, `ofDatabase`, `ofExceptionPayload`
 - `ofLoremIpsum`, `ofWord`, `ofSyllable`, `ofSentence`, `ofParagraph`, `ofText`
-- `ofTemplate`, `ofProviderTemplate`
+- `ofTemplate`, `ofProviderTemplate`, `ofDataFakerExpression`
 
-## Structured generation
+## Objects, schemas, and providers
 
-- `ofField`, `ofSchema`
-- `ofProviderHub`
+- `ofObject` generates a type; `ofObjectFaker` adds targeted rules and exclusions.
+- `ofField` resolves provider keys; `ofSchema` generates batches and exports them.
+- `ofProviderHub` exposes named provider lookup and aliases.
 
-## Selection helpers
+## Selection, reuse, and concurrency helpers
 
-- `pickFrom`, `pickSetFrom`, `shuffleOf`, `weighted`
-- `unique`, `uniqueValues`, `repeat`
+- `pick`, `pickSet`, `shuffle`, `weighted`, `unique`, `repeat`
+- `threadLocal` supplies one generator instance per calling thread.
+
+The removed 1.x aliases (`constant`, `pickFrom`, `pickSetFrom`, `shuffleOf`, and
+`uniqueValues`) are not available in 2.0.0. See the
+[1.x-to-2.0.0 migration guide](https://github.com/frikit/krandom/blob/main/docs/migration/v1.6-to-v2.md)
+for exact replacements.
+
+## Domain namespaces
+
+For discoverability, the same families are grouped under `person`, `finance`, `location`,
+`network`, `text`, `commerce`, `identifier`, and `datetime`. Each namespace accepts an optional
+`GeneratorConfig`.
 
 ## Type-based lookup
 
-- `forType(Class<T>)`
-
-Supported built-ins include boxed and primitive Java scalar types, plus `String`, `Calendar`,
-`GregorianCalendar`, and `Locale`.
+`forType(Class<T>)` supplies built-ins for primitive/wrapper scalars, `String`, `Number`, big
+numbers, atomics, UUID, `Locale`, `URI`/`URL`, legacy date/time types, and common `java.time`
+types. It throws `IllegalArgumentException` for unsupported classes; use an explicit generator or
+an object override for those types.

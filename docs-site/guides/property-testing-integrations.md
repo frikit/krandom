@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("io.github.frikit:krandom-kotest-extensions:1.5.0")
+    testImplementation("io.github.frikit:krandom-kotest-extensions:2.0.0")
 }
 ```
 
@@ -41,8 +41,8 @@ checkAll(emailArb) { email ->
 
 `krandomArb(config) { ... }` creates a fresh generator for every Kotest random-source draw. A
 failing Kotest seed therefore reproduces the same fixture sequence without sharing mutable
-kRandom generator state between cases. The 1.6-era `Generator.toArb()`, no-argument
-`krandomArb { ... }`, and `krandomObjectArb` bridges are removed in v2: they reused one mutable
+kRandom generator state between cases. The legacy `Generator.toArb()`, no-argument
+`krandomArb { ... }`, and `krandomObjectArb` bridges are removed in 2.0.0: they reused one mutable
 generator and could not support host-controlled replay or parallel property tests.
 
 For object generation:

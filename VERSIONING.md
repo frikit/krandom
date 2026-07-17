@@ -9,7 +9,7 @@ published artifacts (`io.github.frikit:krandom-*`).
 
 - **Major** (`X.0.0`): may remove or change public API. Migration notes are
   published in the changelog and, for larger changes, as a guide under
-  `docs/migration/`. The v2 migration path is documented in
+  `docs/migration/`. The 1.x-to-2.0.0 migration path is documented in
   [`docs/migration/v1.6-to-v2.md`](docs/migration/v1.6-to-v2.md).
 - **Minor** (`1.X.0`): additive only. Existing public API keeps compiling and
   behaving as documented. New generators, locales, and configuration options

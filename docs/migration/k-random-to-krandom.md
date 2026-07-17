@@ -16,7 +16,7 @@ Gradle Kotlin:
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.5.0")
+    implementation("io.github.frikit:krandom-core:2.0.0")
 }
 ```
 
@@ -24,7 +24,7 @@ Gradle Groovy:
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:1.5.0'
+    implementation 'io.github.frikit:krandom-core:2.0.0'
 }
 ```
 
@@ -34,7 +34,7 @@ Maven:
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>1.5.0</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 
@@ -445,8 +445,8 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `AtomicIntegerRandomizer` | `Generators.ofAtomicInteger()` / `AtomicIntegerGenerator` |
 | `AtomicLongRandomizer` | `Generators.ofAtomicLong()` / `AtomicLongGenerator` |
 | `BooleanRandomizer` | `Generators.ofBoolean()` / `BooleanGenerator` |
-| `ConstantRandomizer` | `Generators.constant(value)` |
-| `NullRandomizer` | `Generators.constant(null)` |
+| `ConstantRandomizer` | `Generators.ofConstant(value)` |
+| `NullRandomizer` | `Generators.ofConstant(null)` |
 | `SkipRandomizer` | `objectExclude(...)`, `objectExcludeField(...)`, or omit the target field |
 | `EnumRandomizer` | `new EnumGenerator<>(EnumType.class)` |
 | `OptionalRandomizer` | Object optional field handling or wrap a generator with `Optional.ofNullable(...)` |
@@ -511,7 +511,7 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `SentenceRandomizer` | `Generators.ofSentence()` / `Generators.text().sentence()` |
 | `ParagraphRandomizer` | `Generators.ofParagraph()` / `Generators.text().paragraph()` |
 | `RegularExpressionRandomizer` | `Generators.ofRegex(pattern)` / `RegexGenerator` |
-| `GenericStringRandomizer` | `Generators.pickFrom(List.of(words))` or any `Generator<String>` backed by your word list |
+| `GenericStringRandomizer` | `Generators.pick(List.of(words))` or any `Generator<String>` backed by your word list |
 | `LatitudeRandomizer` / `LongitudeRandomizer` | `new CoordinatesGenerator(...).generateLatitude()` / `.generateLongitude()` |
 | `CollectionRandomizer`, `ListRandomizer`, `SetRandomizer`, `QueueRandomizer` | Use `generator.generateList(size)`, `Generators.repeat(...)`, selection helpers, or object field generation |
 | `MapRandomizer`, `EnumMapRandomizer`, `EnumSetRandomizer` | Use typed object fields, generator composition, or explicit object overrides |

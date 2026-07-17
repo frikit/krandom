@@ -1,5 +1,12 @@
 # Chance.js Feature Parity Analysis
 
+> **2.0.0 API note:** This is a historical parity analysis, not a current API tutorial. The
+> canonical 2.0.0 methods are `ofConstant`, `pick`, `pickSet`, `shuffle`, and `unique`.
+> Historical locale constructors and process-wide registry registration discussed below were
+> removed; use `GeneratorConfig` with `DataRegistryContext` instead. For current runnable
+> guidance, use the [generator catalog](../../docs-site/generator-catalog.md) and the migration
+> guide.
+
 ## Library Overview
 
 - **Name**: Chance.js
@@ -125,7 +132,7 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - ✅ Birthday as string - `generateAsString()` returns locale-aware format (e.g., `"5/27/1983"` for en_US, `"27.5.1983"` for de_DE, `"1983/5/27"` for ja_JP) — **extends Chance.js** (US-only)
 - ✅ American format birthday - `generateAsAmericanString()` returns `MM/dd/yyyy` (e.g., `"05/27/1983"`)
 - ✅ Type-based birthday - `new BirthdayGenerator(AgeType.ADULT)` for age-appropriate dates
-- ✅ SSN (US) - `new NationalIdGenerator(Locale.US)` via `UsNationalIdProvider`; `AAA-GG-SSSS` (area 666 excluded)
+- ✅ SSN (US) - `nationalId(Locale.US)` via `UsNationalIdProvider`; `AAA-GG-SSSS` (area 666 excluded)
 - ✅ SSN format control - `new UsNationalIdProvider().withoutDashes()` / `.lastFourOnly()`
 - ✅ **[krandom extension]** Multi-locale national IDs - `NationalIdGenerator` with 10 built-in country providers (see National ID section below)
 - ✅ **[krandom extension]** Locale-aware birthday string - `new BirthdayGenerator(Locale.GERMANY).generateAsString()` → `"27.5.1983"`
@@ -142,27 +149,38 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 
 #### National ID Section (10/10 locales — krandom-unique, no Chance.js equivalent)
 
-> Safety note: the locale constructors shown below are deprecated 1.6 compatibility bridges.
-> Canonical v2 configuration fails closed; use `NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED`
-> only for isolated fixtures and never as a real identity credential.
+> **2.0.0 safety note:** National-ID generation fails closed. For brevity, `nationalId(locale)`
+> below means the explicit compatibility fixture shown here; never use its output as a real identity
+> credential:
+>
+> ```java
+> private static NationalIdGenerator nationalId(Locale locale) {
+>     GeneratorConfig config = GeneratorConfig.builder()
+>         .locale(locale)
+>         .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+>         .build();
+>     return Generators.ofNationalId(config);
+> }
+> ```
 
-- ✅ US SSN - `new NationalIdGenerator(Locale.US)` → `"411-90-0070"` (area 666 excluded per SSA)
-- ✅ UK NI number - `new NationalIdGenerator(Locale.UK)` → `"AB 12 34 56 C"` (letter rules + disallowed pairs)
-- ✅ AU TFN - `new NationalIdGenerator(Locale.of("en","AU"))` → `"123 456 782"` (mod-11 weighted checksum)
-- ✅ FR NIR - `new NationalIdGenerator(Locale.FRANCE)` → 15-digit with control key `97 − (N mod 97)`
-- ✅ DE Steuer-ID - `new NationalIdGenerator(Locale.GERMANY)` → 11 digits, ISO 7064 Mod 11,10 check
-- ✅ JP My Number - `new NationalIdGenerator(Locale.JAPAN)` → 12 digits, weighted-sum mod-11 check
-- ✅ ES DNI - `new NationalIdGenerator(Locale.of("es","ES"))` → `"12345678Z"` (mod-23 letter)
-- ✅ IT Codice Fiscale - `new NationalIdGenerator(Locale.ITALY)` → 16-char alphanumeric with check character
-- ✅ BR CPF - `new NationalIdGenerator(Locale.of("pt","BR"))` → `"123.456.789-09"` (double mod-11 verifiers)
-- ✅ CN Resident ID - `new NationalIdGenerator(Locale.CHINA)` → 18 chars, ISO 7064 Mod 11,2 check
+- ✅ US SSN - `nationalId(Locale.US)` → `"411-90-0070"` (area 666 excluded per SSA)
+- ✅ UK NI number - `nationalId(Locale.UK)` → `"AB 12 34 56 C"` (letter rules + disallowed pairs)
+- ✅ AU TFN - `nationalId(Locale.of("en","AU"))` → `"123 456 782"` (mod-11 weighted checksum)
+- ✅ FR NIR - `nationalId(Locale.FRANCE)` → 15-digit with control key `97 − (N mod 97)`
+- ✅ DE Steuer-ID - `nationalId(Locale.GERMANY)` → 11 digits, ISO 7064 Mod 11,10 check
+- ✅ JP My Number - `nationalId(Locale.JAPAN)` → 12 digits, weighted-sum mod-11 check
+- ✅ ES DNI - `nationalId(Locale.of("es","ES"))` → `"12345678Z"` (mod-23 letter)
+- ✅ IT Codice Fiscale - `nationalId(Locale.ITALY)` → 16-char alphanumeric with check character
+- ✅ BR CPF - `nationalId(Locale.of("pt","BR"))` → `"123.456.789-09"` (double mod-11 verifiers)
+- ✅ CN Resident ID - `nationalId(Locale.CHINA)` → 18 chars, ISO 7064 Mod 11,2 check
 
 **Metrics**:
 
 - Test coverage: 100% branch for `generator.user.nationalid` package
 - Architecture: `NationalIdProvider` interface + `NationalIdRegistry` (ConcurrentHashMap, language-level fallback) + `NationalIdGenerator` facade — mirrors `TitleGenerator` / `TitleDataRegistry`
   pattern exactly
-- Registry extensibility: `NationalIdRegistry.register(provider)` adds/overrides any locale at runtime
+- Registry extensibility: `DataRegistryContext.builder().registerNationalIdProvider(provider)`
+  adds or overrides a provider for one configuration
 - All 10 algorithms include verifiable checksums; package-private static helpers expose branch-testable logic
 - Seeded generation, `generateList()`, and `stream()` all supported
 
@@ -184,7 +202,8 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Architecture: `CountryDataProvider` interface + `CountryDataRegistry` (follows same pattern as other registries) + `CountryGenerator`
 - Data: 195 countries per locale loaded from resource files (`krandom/countries/`)
 - Official names: Sourced from UN documents and ISO 3166 standards for each language
-- Registry extensibility: `CountryDataRegistry.register(provider)` adds/overrides any locale at runtime
+- Registry extensibility: `DataRegistryContext.builder().registerCountryProvider(provider)` adds or
+  overrides a provider for one configuration
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 - ✅ City names - `CityGenerator` with 10 locales supporting locale-specific major cities
@@ -206,7 +225,8 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Data: 70-250 cities per locale loaded from resource files (`krandom/cities/`)
 - Locale-specific: Each locale returns cities from that country/region (US cities for en_US, German cities for de_DE, etc.)
 - Official names: Uses proper local spellings with native characters (München not Munich, 東京 not Tokyo romanization)
-- Registry extensibility: `CityDataRegistry.register(provider)` adds/overrides any locale at runtime
+- Registry extensibility: `DataRegistryContext.builder().registerCityProvider(provider)` adds or
+  overrides a provider for one configuration
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 - ✅ State/Province names - `StateGenerator` with 10 locales supporting abbreviations and full names
@@ -229,7 +249,8 @@ Chance.js is a minimalist yet powerful random data generator for JavaScript with
 - Dual format support: `generate()` returns full names, `generate(true)` returns abbreviations (when available)
 - Locale-specific: Each locale returns states/provinces from that country (US states for en_US, UK countries for en_GB, etc.)
 - Official names: Uses proper local spellings (Bayern not Bavaria in de_DE)
-- Registry extensibility: `StateDataRegistry.register(provider)` adds/overrides any locale at runtime
+- Registry extensibility: `DataRegistryContext.builder().registerStateProvider(provider)` adds or
+  overrides a provider for one configuration
 - Seeded generation, `generateList()`, and `stream()` all supported
 
 - ✅ Postal codes - `PostalCodeGenerator` with 10 locales generating locale-specific postal code formats
@@ -708,20 +729,20 @@ _None - awaiting next feature selection_
 | Type-based birthday                                            | ✅ `birthday({type: 'adult'})`                                           | ✅ Yes          | ✓ DONE                  | `new BirthdayGenerator(AgeType.ADULT)`                                                             |
 | **ID Numbers**                                                 |                                                                         |                |                         |                                                                                                    |
 | National-ID safety                                             | —                                                                       | ✅ Yes          | ✓ DONE                  | Canonical configuration fails closed; locale constructors below are deprecated compatibility bridges |
-| SSN (US)                                                       | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.US)` via `UsNationalIdProvider` (area 666 excluded)                |
+| SSN (US)                                                       | ✅ `ssn({ssnFour, dashes})`                                              | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.US)` via `UsNationalIdProvider` (area 666 excluded)                |
 | Last 4 SSN                                                     | ✅ `ssn({ssnFour: true})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().lastFourOnly().generate(random)`                                       |
 | SSN format control                                             | ✅ `ssn({dashes: false})`                                                | ✅ Yes          | ✓ DONE                  | `new UsNationalIdProvider().withoutDashes().generate(random)`                                      |
 | **National IDs (krandom extension — no Chance.js equivalent)** |                                                                         |                |                         |                                                                                                    |
-| UK NI number                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.UK)` → `"AB 12 34 56 C"`                                           |
-| AU TFN                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("en","AU"))` → `"123 456 782"`                                  |
-| FR NIR                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.FRANCE)` → 15-digit                                                |
-| DE Steuer-ID                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.GERMANY)` → 11 digits                                              |
-| JP My Number                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.JAPAN)` → 12 digits                                                |
-| ES DNI                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("es","ES"))` → `"12345678Z"`                                    |
-| IT Codice Fiscale                                              | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.ITALY)` → 16 chars                                                 |
-| BR CPF                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.of("pt","BR"))` → `"123.456.789-09"`                               |
-| CN Resident ID                                                 | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `new NationalIdGenerator(Locale.CHINA)` → 18 chars                                                 |
-| Custom locale ID                                               | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `NationalIdRegistry.register(provider)` at runtime                                                 |
+| UK NI number                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.UK)` → `"AB 12 34 56 C"`                                           |
+| AU TFN                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.of("en","AU"))` → `"123 456 782"`                                  |
+| FR NIR                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.FRANCE)` → 15-digit                                                |
+| DE Steuer-ID                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.GERMANY)` → 11 digits                                              |
+| JP My Number                                                   | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.JAPAN)` → 12 digits                                                |
+| ES DNI                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.of("es","ES"))` → `"12345678Z"`                                    |
+| IT Codice Fiscale                                              | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.ITALY)` → 16 chars                                                 |
+| BR CPF                                                         | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.of("pt","BR"))` → `"123.456.789-09"`                               |
+| CN Resident ID                                                 | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `nationalId(Locale.CHINA)` → 18 chars                                                 |
+| Custom locale ID                                               | Not in Chance.js                                                      | ✅ Yes          | ✓ DONE                  | `DataRegistryContext.builder().registerNationalIdProvider(provider)` for one configuration       |
 
 ### 4. LOCATION & ADDRESS
 
@@ -903,9 +924,9 @@ _None - awaiting next feature selection_
 | RangeError             | ✅ Throws if pool too small                  | ✅ Yes          | ✓ DONE                  | Throws `IllegalStateException` when unique pool is exhausted      |
 | Custom comparator      | ✅ `{comparator: (arr, val) => ...}`         | ✅ Yes          | ✓ DONE                  | `Generators.unique(source, comparator)`                           |
 | **Collection Helpers** |
-| pick()                 | ✅ `pick(['a','b','c'])`                     | ✅ Yes          | ✓ DONE                  | `PickGenerator<T>` via `Generators.pickFrom(source)`              |
-| pickset()              | ✅ `pickset(['a','b','c'], 2)`               | ✅ Yes          | ✓ DONE                  | `PickSetGenerator<T>` via `Generators.pickSetFrom(source, n)`     |
-| shuffle()              | ✅ `shuffle([1,2,3,4])`                      | ✅ Yes          | ✓ DONE                  | `ShuffleGenerator<T>` via `Generators.shuffleOf(source)`          |
+| pick()                 | ✅ `pick(['a','b','c'])`                     | ✅ Yes          | ✓ DONE                  | `PickGenerator<T>` via `Generators.pick(source)`              |
+| pickset()              | ✅ `pickset(['a','b','c'], 2)`               | ✅ Yes          | ✓ DONE                  | `PickSetGenerator<T>` via `Generators.pickSet(source, n)`     |
+| shuffle()              | ✅ `shuffle([1,2,3,4])`                      | ✅ Yes          | ✓ DONE                  | `ShuffleGenerator<T>` via `Generators.shuffle(source)`          |
 | **Weighted Random**    |
 | weighted()             | ✅ `weighted(values, weights)`               | ✅ Yes          | ✓ DONE                  | `WeightedGenerator<T>` via `Generators.weighted(values, weights)` |
 | Example                | ✅ `weighted(['heads','tails'], [7,3])`      | ✅ Yes          | ✓ DONE                  | Weighted selection verified with statistical tests                |
@@ -1185,18 +1206,19 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 **National ID Section (100% Complete — krandom extension)**:
 
-- ✅ US SSN — `NationalIdGenerator(Locale.US)` via `UsNationalIdProvider` (`AAA-GG-SSSS`, area 666 excluded)
-- ✅ UK NI number — `NationalIdGenerator(Locale.UK)` (`AB 12 34 56 C`, letter validity + disallowed-pair rejection)
-- ✅ AU TFN — `NationalIdGenerator(Locale.of("en","AU"))` (mod-11 weighted checksum)
-- ✅ FR NIR — `NationalIdGenerator(Locale.FRANCE)` (control key = `97 − N mod 97`)
-- ✅ DE Steuer-ID — `NationalIdGenerator(Locale.GERMANY)` (ISO 7064 Mod 11,10)
-- ✅ JP My Number — `NationalIdGenerator(Locale.JAPAN)` (weighted-sum mod-11, 12 digits)
-- ✅ ES DNI — `NationalIdGenerator(Locale.of("es","ES"))` (mod-23 check letter)
-- ✅ IT Codice Fiscale — `NationalIdGenerator(Locale.ITALY)` (16-char odd/even position check)
-- ✅ BR CPF — `NationalIdGenerator(Locale.of("pt","BR"))` (double mod-11 verifier digits)
-- ✅ CN Resident ID — `NationalIdGenerator(Locale.CHINA)` (ISO 7064 Mod 11,2, 18 chars)
-- Architecture: `NationalIdProvider` interface + `NationalIdRegistry` (ConcurrentHashMap, language-level fallback) + `NationalIdGenerator` facade; mirrors `TitleGenerator` stack exactly; extensible
-  via `NationalIdRegistry.register()`
+- ✅ US SSN — `nationalId(Locale.US)` via `UsNationalIdProvider` (`AAA-GG-SSSS`, area 666 excluded)
+- ✅ UK NI number — `nationalId(Locale.UK)` (`AB 12 34 56 C`, letter validity + disallowed-pair rejection)
+- ✅ AU TFN — `nationalId(Locale.of("en","AU"))` (mod-11 weighted checksum)
+- ✅ FR NIR — `nationalId(Locale.FRANCE)` (control key = `97 − N mod 97`)
+- ✅ DE Steuer-ID — `nationalId(Locale.GERMANY)` (ISO 7064 Mod 11,10)
+- ✅ JP My Number — `nationalId(Locale.JAPAN)` (weighted-sum mod-11, 12 digits)
+- ✅ ES DNI — `nationalId(Locale.of("es","ES"))` (mod-23 check letter)
+- ✅ IT Codice Fiscale — `nationalId(Locale.ITALY)` (16-char odd/even position check)
+- ✅ BR CPF — `nationalId(Locale.of("pt","BR"))` (double mod-11 verifier digits)
+- ✅ CN Resident ID — `nationalId(Locale.CHINA)` (ISO 7064 Mod 11,2, 18 chars)
+- Architecture: `NationalIdProvider` interface + `DataRegistryContext` + `NationalIdGenerator`
+  facade; custom providers are registered on one configuration with
+  `registerNationalIdProvider(...)`
 
 **Locale-Aware Birthday Strings (100% Complete — krandom extension)**:
 
@@ -1217,9 +1239,9 @@ Chance.js offers **unique features** that krandom lacks, particularly in:
 
 - ✅ Repeat generation (`n` equivalent) — `RepeatGenerator<T>` via `Generators.repeat(source, count)`
 - ✅ Unique values — `UniqueGenerator<T>` via `Generators.unique(source)` / `Generators.unique(source, comparator)`
-- ✅ Random element pick — `PickGenerator<T>` via `Generators.pickFrom(source)`
-- ✅ Random subset pick — `PickSetGenerator<T>` via `Generators.pickSetFrom(source, count)`
-- ✅ Collection shuffle — `ShuffleGenerator<T>` via `Generators.shuffleOf(source)`
+- ✅ Random element pick — `PickGenerator<T>` via `Generators.pick(source)`
+- ✅ Random subset pick — `PickSetGenerator<T>` via `Generators.pickSet(source, count)`
+- ✅ Collection shuffle — `ShuffleGenerator<T>` via `Generators.shuffle(source)`
 - ✅ Weighted random selection — `WeightedGenerator<T>` via `Generators.weighted(values, weights)`
 - ✅ Coverage quality: `io.github.frikit.krandom.generator.selection` at 100% line + 100% branch in pre-commit coverage report
 

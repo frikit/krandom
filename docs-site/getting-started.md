@@ -16,14 +16,14 @@ permalink: /getting-started/
 Module coordinates (Maven Central group `io.github.frikit`):
 
 - `io.github.frikit:krandom-core`
-- `io.github.frikit:krandom-bom` (from v2, aligns all module versions)
+- `io.github.frikit:krandom-bom` (aligns all module versions)
 - `io.github.frikit:krandom-jackson`
 - `io.github.frikit:krandom-junit` (from `1.2.0`)
 - `io.github.frikit:krandom-spring-boot-starter`
 - `io.github.frikit:krandom-kotest-extensions`
 - `io.github.frikit:krandom-kotlin-dsl`
 
-The current version is `1.5.0`. Latest version is always shown on
+The current version is `2.0.0`. Latest version is always shown on
 [GitHub Releases](https://github.com/frikit/krandom/releases).
 
 Gradle:
@@ -34,28 +34,41 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.5.0")
+    implementation(platform("io.github.frikit:krandom-bom:2.0.0"))
+    implementation("io.github.frikit:krandom-core")
     // Optional integrations:
-    implementation("io.github.frikit:krandom-jackson:1.5.0")
-    implementation("io.github.frikit:krandom-spring-boot-starter:1.5.0")
-    testImplementation("io.github.frikit:krandom-kotest-extensions:1.5.0")
-    testImplementation("io.github.frikit:krandom-kotlin-dsl:1.5.0")
-    testImplementation("io.github.frikit:krandom-junit:1.5.0") // JUnit 5 seed extension, from 1.2.0
-
+    implementation("io.github.frikit:krandom-jackson")
+    implementation("io.github.frikit:krandom-spring-boot-starter")
+    testImplementation("io.github.frikit:krandom-kotest-extensions")
+    testImplementation("io.github.frikit:krandom-kotlin-dsl")
+    testImplementation("io.github.frikit:krandom-junit") // JUnit 5 seed extension, from 1.2.0
 }
 ```
 
 Maven:
 
 ```xml
-<dependency>
-  <groupId>io.github.frikit</groupId>
-  <artifactId>krandom-core</artifactId>
-  <version>1.5.0</version>
-</dependency>
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.frikit</groupId>
+      <artifactId>krandom-bom</artifactId>
+      <version>2.0.0</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
+<dependencies>
+  <dependency>
+    <groupId>io.github.frikit</groupId>
+    <artifactId>krandom-core</artifactId>
+  </dependency>
+</dependencies>
 ```
 
-Starting with v2, import `io.github.frikit:krandom-bom` in Gradle or Maven and omit versions from individual kRandom modules. Until v2 is available on Maven Central, use the matching explicit `1.5.0` versions shown above. The repository consumer examples verify the BOM path against the development snapshot.
+Import `io.github.frikit:krandom-bom` in Gradle or Maven and omit versions from individual kRandom modules. Use explicit `2.0.0` versions instead when consuming only one artifact without the BOM.
 
 ## First usage
 
@@ -73,6 +86,8 @@ String ipv4 = Generators.ofIPv4().generate();
 
 ```java
 import io.github.frikit.krandom.generator.GeneratorConfig;
+
+import java.util.Locale;
 
 GeneratorConfig cfg = GeneratorConfig.builder()
         .locale(Locale.US)   // optional, defaults to Locale.US
@@ -153,4 +168,4 @@ See also:
 - [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }})
 - [Property Testing Integrations]({{ '/guides/property-testing-integrations/' | relative_url }})
 - [Kotlin DSL]({{ '/guides/kotlin-dsl/' | relative_url }})
-- [Migrating to v2]({{ '/guides/migration-to-v2/' | relative_url }})
+- [Migrating to 2.0.0]({{ '/guides/migration-to-v2/' | relative_url }})

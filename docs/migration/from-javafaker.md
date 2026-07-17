@@ -14,7 +14,8 @@ Two paths:
 ## Why switch to krandom
 
 **Pros**: maintained; realistic field data **and** object-graph generation in one
-library; 35 locales; schema export; Spring Boot / JUnit 5 / kotest integrations.
+library; 50 supported locale variants (35 native datasets and 15 curated fallbacks); schema export;
+Spring Boot / JUnit 5 / kotest integrations.
 **Cons / gaps**: fewer locales than DataFaker (35 vs ~60+) and no novelty/fandom
 catalogs in core — see [`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
 
@@ -22,7 +23,7 @@ catalogs in core — see [`../feature-parity/GAP-TRACKER.md`](../feature-parity/
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:1.5.0")
+    testImplementation("io.github.frikit:krandom-core:2.0.0")
 }
 ```
 

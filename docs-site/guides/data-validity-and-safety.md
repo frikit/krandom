@@ -25,11 +25,13 @@ These levels are not interchangeable. A checksum-valid credit-card number, IBAN,
 | Policy | Properties | Intended use |
 |:---|:---|:---|
 | `TEST_SAFE_NON_ROUTABLE` (default) | Issuer-shaped and format-valid; deliberately fails Luhn | Formatting, UI, and validation-rejection fixtures |
+| `STRIPE_SANDBOX` | Stripe's published interactive test-card number for the selected supported card type | Stripe sandbox tests with Stripe test API keys only |
 | `CHECKSUM_VALID` | Issuer-shaped and Luhn-valid; not a sandbox credential | Isolated validator fixtures only |
 
 The selected policy is included in a portable generation recipe. `CHECKSUM_VALID` never means
-that a number is real, processor-approved, or safe to send externally. Use the payment processor's
-documented sandbox values and test credentials for integration tests.
+that a number is real, processor-approved, or safe to send externally. `STRIPE_SANDBOX` is not
+portable to another processor and must never be used with live Stripe keys. Use the payment
+processor's documented sandbox values and test credentials for integration tests.
 
 ## Phone-number contract
 
@@ -42,9 +44,24 @@ realistic-looking behavior without a safety claim.
 The NANPA allocation does not make the same range safe in countries outside its numbering plan.
 Use a country-specific official test allocation only when the generator documents it.
 
-## Other finance and identity generators
+## Fail-closed finance and identity contracts
 
-IBAN, bank-account, phone, crypto-address, and national-ID generators remain individually
-classified. Do not infer test safety from format or checksum validity. Keep generated
-personal-looking values out of logs and failure reports, and use official sandbox credentials for
-all external integrations.
+The following output families are `DISABLED` by default. Calling `generate()` without the matching
+explicit policy fails fast instead of silently producing a plausible external identifier.
+
+| Family | `GeneratorConfig` policy | Available explicit mode |
+|:---|:---|:---|
+| Banking: ABA routing, account, BBAN, BIC, IBAN, and bank payloads | `bankingSafetyPolicy` | `REALISTIC_UNCLASSIFIED` |
+| National IDs and CPF | `nationalIdSafetyPolicy` | `REALISTIC_UNCLASSIFIED` |
+| Passport and driving license | `identityDocumentSafetyPolicy` | `REALISTIC_UNCLASSIFIED` |
+| CNPJ and EIN | `businessTaxIdentifierSafetyPolicy` | `REALISTIC_UNCLASSIFIED` |
+| Cryptocurrency destination addresses | `cryptoAddressSafetyPolicy` | `REALISTIC_UNCLASSIFIED` |
+| ISIN and CUSIP | `securitiesIdentifierSafetyPolicy` | `REALISTIC_UNCLASSIFIED` |
+
+`REALISTIC_UNCLASSIFIED` supports isolated compatibility fixtures only. It is not a claim of
+non-routability, unassigned status, or safety for a production system. Phone numbers remain
+separately classified by `PhoneNumberSafetyPolicy`; the default is test-safe only where the
+generator documents an official allocation.
+
+Keep generated personal-looking values out of logs and failure reports, and use the external
+provider's official sandbox credentials, test instruments, or testnet for every integration test.

@@ -8,7 +8,8 @@ Instancio deliberately does not ("realism is not its goal"). Full feature matrix
 ## Why switch / trade-offs
 
 **Pros of krandom**: realistic localized data built in (no DataFaker side-car),
-35 locales, checksum national IDs, schema export, Spring Boot / Jackson / kotest.
+50 supported locale variants (35 native datasets and 15 curated fallbacks), checksum national IDs,
+schema export, Spring Boot / Jackson / kotest.
 **What Instancio does better today** (tracked in [`GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md)):
 type-safe method-reference selectors (`field(X::getY)`), reusable `Model<T>`,
 conditional `assign(when/then)`, and data feeds. krandom uses string/dotted-path
@@ -18,8 +19,8 @@ field names and `profile(..)` templates instead.
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:1.5.0")
-    // optional: testImplementation("io.github.frikit:krandom-junit:1.5.0")
+    testImplementation("io.github.frikit:krandom-core:2.0.0")
+    // optional: testImplementation("io.github.frikit:krandom-junit:2.0.0")
 }
 ```
 

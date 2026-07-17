@@ -31,9 +31,12 @@ The GPG public key must be uploaded to a public keyserver (for example
    `[Unreleased]` section in `CHANGELOG.md` is final.
 2. **Land any last commits on `main`.** Run `./scripts/pre_commit_check.sh`
    and `./scripts/verify_examples_local.sh` locally; both must pass.
-3. **Cut the CHANGELOG section.** Promote `[Unreleased]` to
+3. **Cut the release documentation.** Promote `[Unreleased]` to
    `[<version>] - <YYYY-MM-DD>`, add a fresh empty `[Unreleased]` heading,
-   update the diff link at the bottom, and commit.
+   update the diff link at the bottom, set `latestGaVersion=<version>`, and
+   update concrete public coordinates in `README.md` and `docs-site/`. Run
+   `./scripts/verify_documentation_facts.sh` and commit this release-ready
+   documentation before triggering the workflow.
 4. **Trigger the workflow.**
    GitHub UI → "Actions" → "release-maven-central" → "Run workflow":
    - `version`: the SemVer version, no `v` prefix.
@@ -66,12 +69,12 @@ The GPG public key must be uploaded to a public keyserver (for example
   metadata component version matches the release tag.
 - Verify a downloaded jar, SBOM, or `aggregation.zip` with
   `gh attestation verify --repo frikit/krandom <path>`.
-- Land a follow-up documentation and version-facts commit on `main`. Update
-  `latestGaVersion` and `apiBaselineVersion` in `gradle.properties` to the
-  released version, set `developmentVersion` to the next `*-SNAPSHOT`, and
-  update the concrete install versions in `README.md` and `docs-site/`.
-  Then run `./scripts/verify_documentation_facts.sh`; this keeps the public
-  installation guidance and the next API-compatibility baseline aligned.
+- Land a follow-up version-facts commit on `main`. Update `apiBaselineVersion`
+  to the released version, set `developmentVersion` to the next `*-SNAPSHOT`,
+  and retain `latestGaVersion` at the release just published. Then run
+  `./scripts/verify_documentation_facts.sh`; this moves the next
+  API-compatibility baseline forward without changing the published install
+  guidance.
 - Confirm the GitHub Pages deployment includes that follow-up documentation
   commit before announcing the release broadly.
 

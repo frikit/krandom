@@ -6,10 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-- Add versioned, human-readable `GenerationRecipe` replay metadata for portable seeded configurations.
+## [2.0.0] - 2026-07-17
 
 ### Added
 
+- Versioned, human-readable `GenerationRecipe` replay metadata for portable seeded configurations.
 - `checkAllWithRecipe` and `krandomKotestRecipe`: Kotest property failures can now carry the
   portable kRandom configuration recipe alongside Kotest's seed report, and the adapter suite is
   verified against the current and previous Kotest minor via `-PkotestVersion`.
@@ -31,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Kotest adapters for bounded primitives and selections with in-range edge cases and
   range-bounded shrink candidates.
 - Kotest replay-safe factory and object `Arb` adapters now derive a fresh kRandom configuration
-  from each host random-source draw; older mutable adapters are deprecated as 1.6 bridges.
+  from each host random-source draw.
 - `PaymentCardSafetyPolicy.STRIPE_SANDBOX`, an explicit Stripe-only sandbox mode that maps each
   card type supported by kRandom to Stripe's published interactive test-card number. It requires
   Stripe sandbox/test API keys and is not portable to another processor; server-side Stripe tests
@@ -65,7 +66,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Optional `GenerationFailureListener` diagnostics configured through `GeneratorConfig`, exposing only structured context, cause class name, and an optional replay identity—never generated values or throwables.
 - `krandom-bom`, a Maven/Gradle platform that keeps all published kRandom modules on one version. Consumer examples now import the BOM and omit individual kRandom module versions.
 - Japicmp compatibility and evolution gates check every published jar module against the configured latest-GA baseline (`1.5.0`) in local pre-commit checks, CI, and releases. Binary/source breaks fail independently, while additions or other public changes require exact reviewed classification.
-- A generated HTML/XML public API inventory for every published jar module, plus a checked-in v2 disposition document covering facade aliases, registries, object generation, and integrations.
+- A generated HTML/XML public API inventory for every published jar module, plus a checked-in
+  2.0.0 disposition document covering facade aliases, registries, object generation, and
+  integrations.
 - Machine-readable release/module/locale/constraint/schema facts with a documentation gate that rejects stale versions, support counts, resource paths, and default-random claims.
 - Immutable GitHub Action revisions plus checksum verification for the Gradle wrapper distribution and downloaded Mill launcher, enforced locally and in release CI.
 - Strict Gradle dependency verification with reviewed SHA-256 metadata, centralized repositories, and rejection of dynamic or changing dependency selectors.
@@ -84,39 +87,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   checksum-valid replay behavior.
 - `GeneratorConfig` and `Generators.ofNationalId(...)` now disable national-ID generation by
   default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; the locale and seeded
-  `NationalIdGenerator` constructors are deprecated 1.6 bridges and portable recipes persist the
-  selected policy.
+  `NationalIdGenerator` constructors are removed, and portable recipes persist the selected
+  policy.
 - `GeneratorConfig` and canonical banking facades now disable account numbers, ABA routing
   numbers, BBANs, IBANs, BICs, and structured bank payloads by default.
   `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; the affected direct constructors
-  are deprecated 1.6 bridges. Payment payloads use an opaque `ACCT-TEST-####` reference for bank
-  methods while banking output is disabled, and portable recipes persist the selected policy.
+  are removed. Payment payloads use an opaque `ACCT-TEST-####` reference for bank methods while
+  banking output is disabled, and portable recipes persist the selected policy.
 - `GeneratorConfig`, `Generators.ofPassport()`, and `Generators.ofDrivingLicense()` now disable
   generic document identifiers by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility
-  opt-in; the direct `PassportGenerator` and `DrivingLicenseGenerator` constructors are deprecated
-  1.6 bridges scheduled for v2 removal, and portable recipes persist the selected policy.
+  opt-in; the direct `PassportGenerator` and `DrivingLicenseGenerator` constructors are removed,
+  and portable recipes persist the selected policy.
 - `GeneratorConfig`, `Generators.ofCnpj()`, and `Generators.ofEin()` now disable corporate tax-ID
   generation by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; direct
-  `CnpjGenerator` and `EinGenerator` constructors are deprecated 1.6 bridges, and portable
-  recipes persist the selected policy.
+  `CnpjGenerator` and `EinGenerator` constructors are removed, and portable recipes persist the
+  selected policy.
 - `GeneratorConfig` and canonical crypto-address facades now disable plausible destination-address
   output by default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; the direct
-  `CryptoAddressGenerator` constructor is a deprecated 1.6 bridge, and portable recipes persist
-  the selected policy.
+  `CryptoAddressGenerator` constructor is removed, and portable recipes persist the selected
+  policy.
 - `GeneratorConfig` and canonical ISIN/CUSIP facades now disable securities-identifier output by
   default. `REALISTIC_UNCLASSIFIED` is an explicit compatibility opt-in; direct `IsinGenerator`
-  and `CusipGenerator` constructors are deprecated 1.6 bridges, and portable recipes persist the
-  selected policy.
+  and `CusipGenerator` constructors are removed, and portable recipes persist the selected
+  policy.
 - Recursive object generation now distinguishes resolved generic signatures when detecting cycles
   and reusing completed objects, so nested Kotlin generic data classes retain their concrete type
   bindings instead of receiving a value from a different erased generic instantiation.
-- All 21 static data-registry `register(...)` methods and the two
-  `ProfessionDataRegistry.append(...)` overloads are deprecated for removal in v2. They remain
-  behavior-compatible 1.6 adapters; use the matching `DataRegistryContext.Builder` registration
-  method to isolate custom locale data to one `GeneratorConfig`.
-- The ten later-added static data-registry bridges now validate through their matching
-  `DataRegistryContext.Builder` registration before mutating global state, including vocabulary,
-  pronoun-shape, weighted-distribution, and zodiac-cycle rules.
+- Data-registry customisation is now configuration-scoped. Use the matching
+  `DataRegistryContext.Builder` registration method to isolate custom locale data to one
+  `GeneratorConfig`.
 - The Java + Gradle consumer example now demonstrates a custom weather provider scoped to one
   `GeneratorConfig`, rather than process-wide static registry mutation.
 - `WeatherGenerator` now resolves vocabulary through `DataRegistryContext`, so independent
@@ -145,24 +144,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `DataRegistryContext`, so per-configuration vocabulary preserves date-to-sign mapping; the
   global registry remains a fallback.
 - `krandom-core` is now a Java-only build and no longer publishes an unused `kotlin-stdlib` runtime dependency. Kotlin remains confined to the Kotlin DSL and Kotest integration modules.
-- Redundant `Generators` aliases for constants, selection, shuffle, and uniqueness are deprecated for removal in v2. Canonical replacements are documented in `docs/migration/v1.6-to-v2.md`; the legacy methods remain thin behavior-compatible delegates in 1.6.
 - Maven Central publication now uses NMCP's explicit aggregation plugin and an exact seven-module graph, removing the convenience settings plugin's Gradle 10 deprecation.
-
-### Deprecated
-- `Generator.reseed(long)` and `Generator.reseed(String)` are deprecated for removal in v2: their
-  reflection fallback mutates `Random` state the generator does not own and cannot preserve the v2
-  replay contract. Reseed through the typed `Seedable` contract instead; see
-  `docs/migration/v1.6-to-v2.md`.
 
 ### Changed (breaking)
 - Bounded generators enforce strict bound semantics: `min >= max` now throws
   `IllegalArgumentException` with one consistent message across int, long, double, float, short,
   byte, prime, number, and atomic generators. Reversed bounds were previously swapped silently;
-  v2 never swaps a caller mistake. The protected `lo`/`hi` helpers on
+  2.0.0 never swaps a caller mistake. The protected `lo`/`hi` helpers on
   `AbstractBoundedGenerator` are removed.
 
 ### Removed
-- The 1.6-deprecated `Generators` facade aliases `constant`, `pickFrom`, `pickset`,
+- The legacy 1.x `Generators` facade aliases `constant`, `pickFrom`, `pickset`,
   `pickSetFrom`, `shuffleOf`, and `uniqueValues`. Use the canonical `ofConstant`, `pick`,
   `pickSet`, `shuffle`, and `unique`; the migration table is in `docs/migration/v1.6-to-v2.md`.
 - `Generator.reseed(long)` and `Generator.reseed(String)`, including the reflection-based
@@ -171,11 +163,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The mutable Kotest bridges `Generator.toArb()`, the no-argument `krandomArb { ... }` factory,
   and `krandomObjectArb`. Use `krandomArb(config) { ... }`, `krandomReplayObjectArb`, and the
   shrinking-aware bounded arbs, which derive fresh generators from Kotest's `RandomSource`.
-- All process-wide registry mutation: the 23 deprecated static `register(...)`/`append(...)`
+- All process-wide registry mutation: the 23 legacy static `register(...)`/`append(...)`
   methods on the data registries and `LocaleDataBundle.registerGlobal()`. Register custom
   vocabulary on the consuming configuration via `DataRegistryContext.builder()` instead; built-in
   locale data still loads automatically and read-only lookups are unchanged.
-- The 21 deprecated no-argument and `Locale`-based constructors on the finance and identity
+- The 21 legacy no-argument and `Locale`-based constructors on the finance and identity
   generators (ABA routing, bank account/info, BBAN, BIC, IBAN, ISIN, CUSIP, EIN, CNPJ, crypto
   address, passport, driving license, national ID). Construct them with a `GeneratorConfig`
   carrying an explicit safety policy; the removed bridges' exact replacement expressions are in
@@ -339,7 +331,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/frikit/krandom/compare/v1.5.0...v2.0.0
 [1.5.0]: https://github.com/frikit/krandom/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/frikit/krandom/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/frikit/krandom/compare/v1.2.0...v1.3.0

@@ -8,7 +8,8 @@ stop hand-stitching "DataFaker for fields + Instancio/EasyRandom for structure."
 
 **Pros of krandom**
 - Realistic field data **and** full object/record graphs in one library.
-- 35 locales, checksum national IDs, schema export (CSV/JSONL/XML/SQL).
+- 50 supported locale variants (35 native datasets and 15 curated fallbacks), checksum national IDs,
+  schema export (CSV/JSONL/XML/SQL).
 - A DataFaker-expression adapter, so you can port `#{Provider.method}` strings as-is.
 
 **What DataFaker still has that krandom doesn't**
@@ -19,7 +20,7 @@ stop hand-stitching "DataFaker for fields + Instancio/EasyRandom for structure."
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:1.5.0")
+    testImplementation("io.github.frikit:krandom-core:2.0.0")
 }
 ```
 

@@ -18,6 +18,7 @@ fail() {
 
 DEVELOPMENT_VERSION="$(fact developmentVersion)"
 LATEST_GA_VERSION="$(fact latestGaVersion)"
+API_BASELINE_VERSION="$(fact apiBaselineVersion)"
 JAVA_MINIMUM_VERSION="$(fact javaMinimumVersion)"
 PUBLISHED_MODULES="$(fact publishedModules)"
 NATIVE_LOCALE_COUNT="$(fact nativeLocaleCount)"
@@ -29,6 +30,7 @@ SCHEMA_EXPORT_FORMATS="$(fact schemaExportFormats)"
 for value in \
     "${DEVELOPMENT_VERSION}" \
     "${LATEST_GA_VERSION}" \
+    "${API_BASELINE_VERSION}" \
     "${JAVA_MINIMUM_VERSION}" \
     "${PUBLISHED_MODULES}" \
     "${NATIVE_LOCALE_COUNT}" \
@@ -86,6 +88,9 @@ grep -Fq "opens io.github.frikit.krandom.examples.jpms.openconsumer to ${CORE_MO
 
 grep -Fq "The latest released version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/README.md" || fail "README latest GA version is stale"
 grep -Fq "The current version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started latest GA version is stale"
+grep -Fq "io.github.frikit:krandom-core:${LATEST_GA_VERSION}" "${REPO_ROOT}/README.md" || fail "README core coordinate is stale"
+grep -Fq "io.github.frikit:krandom-bom:${LATEST_GA_VERSION}" "${REPO_ROOT}/README.md" || fail "README BOM coordinate is stale"
+grep -Fq "io.github.frikit:krandom-bom:${LATEST_GA_VERSION}" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started BOM coordinate is stale"
 grep -Fq "${NATIVE_LOCALE_COUNT} native locale datasets" "${REPO_ROOT}/docs-site/guides/locale-aware-data.md" || fail "native locale documentation is stale"
 grep -Fq "${FALLBACK_LOCALE_COUNT} curated fallback variants" "${REPO_ROOT}/docs-site/guides/locale-aware-data.md" || fail "fallback locale documentation is stale"
 grep -Fq "${LOCALE_VARIANT_COUNT} supported locale variants" "${REPO_ROOT}/docs-site/guides/locale-aware-data.md" || fail "total locale documentation is stale"
@@ -93,15 +98,26 @@ grep -Fq 'krandom-junit` (from `1.2.0`)' "${REPO_ROOT}/docs-site/getting-started
 for term in 'Format-valid' 'Checksum-valid' 'Semantically plausible' 'Test-safe / non-routable'; do
     grep -Fq "${term}" "${REPO_ROOT}/docs-site/guides/data-validity-and-safety.md" || fail "data validity term is missing: ${term}"
 done
+for term in 'STRIPE_SANDBOX' 'bankingSafetyPolicy' 'nationalIdSafetyPolicy'; do
+    grep -Fq "${term}" "${REPO_ROOT}/docs-site/guides/data-validity-and-safety.md" || fail "data validity guide is missing: ${term}"
+done
 if rg -n 'SecureRandom' "${REPO_ROOT}/spring-boot-starter/src/main/java/io/github/frikit/krandom/spring/KrandomProperties.java"; then
     fail "Spring properties still claim SecureRandom is the unseeded default"
 fi
 
-if rg -n 'io\.github\.frikit:krandom-[^`" ]*:1\.0\.0|<version>1\.0\.0</version>' \
+if rg -n 'io\.github\.frikit:krandom-[^`" ]*:(1\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT)|<version>(1\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT)</version>' \
     "${REPO_ROOT}/README.md" \
     "${REPO_ROOT}/docs-site" \
     "${REPO_ROOT}/docs/migration"; then
-    fail "current installation/migration documentation still contains 1.0.0 coordinates"
+    fail "current installation/migration documentation contains stale or snapshot coordinates"
+fi
+
+if rg -n 'Generators\.(constant|pickFrom|pickSetFrom|shuffleOf|uniqueValues)\(' \
+    "${REPO_ROOT}/README.md" \
+    "${REPO_ROOT}/docs-site" \
+    "${REPO_ROOT}/docs/migration" \
+    --glob '!v1.6-to-v2.md'; then
+    fail "current public documentation still uses a removed 1.x Generators alias"
 fi
 
 if rg -n '<locale>_(first_male|first_female|last|street_names|street_types_short|street_types_long|secondary_units)\.txt' \
@@ -109,4 +125,4 @@ if rg -n '<locale>_(first_male|first_female|last|street_names|street_types_short
     fail "locale contribution guide still contains the obsolete flat resource layout"
 fi
 
-echo "Documentation facts verified: ${LATEST_GA_VERSION} GA, ${DEVELOPMENT_VERSION} development, ${#modules[@]} modules, ${ACTUAL_TOTAL} locale variants."
+echo "Documentation facts verified: ${LATEST_GA_VERSION} release docs, ${API_BASELINE_VERSION} API baseline, ${DEVELOPMENT_VERSION} development, ${#modules[@]} modules, ${ACTUAL_TOTAL} locale variants."

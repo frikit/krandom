@@ -1,5 +1,9 @@
 # Easy Random Feature Parity Analysis
 
+> **2.0.0 API note:** This is a historical parity analysis, not a current API tutorial. Use
+> `Generators.ofConstant(...)` for constants and consult the
+> [generator catalog](../../docs-site/generator-catalog.md) for current runnable APIs.
+
 ## Library Overview
 
 - **Name**: Easy Random
@@ -395,7 +399,7 @@ Features from Easy Random that are **not yet implemented** (all LOW priority or 
 | Optional<T>                       | ✅ OptionalPopulator                              | ✅ Yes          | ✓ DONE                  | Java 8 optionals via resolver                    |
 | OptionalRandomizer                | ✅ Yes                                            | ✅ Yes          | ✓ DONE                  | Behavior covered in resolver |
 | **Utility Randomizers**           |
-| ConstantRandomizer                | ✅ Always same value                              | ✅ Yes          | ✓ DONE                  | `ConstantGenerator<T>`, `Generators.constant(value)`, and `Generators.ofConstant(value)` |
+| ConstantRandomizer                | ✅ Always same value                              | ✅ Yes          | ✓ DONE                  | `ConstantGenerator<T>`, `Generators.ofConstant(value)`, and `Generators.ofConstant(value)` |
 | NullRandomizer                    | ✅ Always null                                    | No (intentional) | SKIP                | Use constant/null custom generator where needed |
 | SkipRandomizer                    | ✅ Leave field unset                              | No (intentional) | SKIP                | Use exclusion predicates for skip semantics |
 

@@ -155,7 +155,7 @@ Module coordinates (group `io.github.frikit`):
 
 | Artifact | Java module name |
 |:---|:---|
-| `io.github.frikit:krandom-bom` (from v2) | — (Maven/Gradle platform) |
+| `io.github.frikit:krandom-bom` | — (Maven/Gradle platform) |
 | `io.github.frikit:krandom-core` | `io.github.frikit.krandom` (explicit descriptor) |
 | `io.github.frikit:krandom-jackson` | `io.github.frikit.krandom.jackson` |
 | `io.github.frikit:krandom-junit` | `io.github.frikit.krandom.junit` |
@@ -163,16 +163,15 @@ Module coordinates (group `io.github.frikit`):
 | `io.github.frikit:krandom-kotest-extensions` | `io.github.frikit.krandom.kotest` |
 | `io.github.frikit:krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` |
 
-The latest released version is `1.5.0` (the in-repo development build defaults to
-`2.0.0-SNAPSHOT`). The released version is always
-shown on [GitHub Releases](https://github.com/frikit/krandom/releases) and
+The latest released version is `2.0.0`. Release availability is shown on
+[GitHub Releases](https://github.com/frikit/krandom/releases) and
 [Maven Central](https://central.sonatype.com/artifact/io.github.frikit/krandom-core).
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:1.5.0")
+    implementation("io.github.frikit:krandom-core:2.0.0")
 }
 ```
 
@@ -180,7 +179,17 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:1.5.0'
+    implementation 'io.github.frikit:krandom-core:2.0.0'
+}
+```
+
+### Gradle with the BOM
+
+```kotlin
+dependencies {
+    implementation(platform("io.github.frikit:krandom-bom:2.0.0"))
+    implementation("io.github.frikit:krandom-core")
+    testImplementation("io.github.frikit:krandom-junit")
 }
 ```
 
@@ -190,11 +199,13 @@ dependencies {
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>1.5.0</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 
-Starting with v2, multi-module consumers can import `krandom-bom` once and omit versions from individual kRandom dependencies. Until v2 is available on Maven Central, use the matching explicit `1.5.0` versions shown above. The consumer examples already exercise the BOM path against the development snapshot.
+In 2.0.0, multi-module consumers can import `krandom-bom` once and omit versions from individual
+kRandom dependencies. The consumer examples exercise both direct core consumption and BOM-aligned
+integration modules.
 
 For local consumer verification against an unpublished snapshot, use
 `./scripts/verify_examples_local.sh` or
@@ -229,7 +240,7 @@ deprecation rules — is documented in [VERSIONING.md](VERSIONING.md).
 - Docs URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
 - Internal docs: [`docs/`](docs/)
 - k-random migration guide: [`docs/migration/k-random-to-krandom.md`](docs/migration/k-random-to-krandom.md)
-- v2 migration guide: [`docs/migration/v1.6-to-v2.md`](docs/migration/v1.6-to-v2.md)
+- 1.x-to-2.0.0 migration guide: [`docs/migration/v1.6-to-v2.md`](docs/migration/v1.6-to-v2.md)
 
 GitHub Pages deployment is wired through [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml).
 
