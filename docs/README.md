@@ -16,7 +16,7 @@ kRandom.
 | Doc                                                                           |  Language  | Library                                                 | Notes                                               |
 |:------------------------------------------------------------------------------|:----------:|:--------------------------------------------------------|:----------------------------------------------------|
 | [easy-random-reference.md](similar-libs-reference/easy-random-reference.md)   |    Java    | [easy-random](https://github.com/j-easy/easy-random)    | Object-graph population; annotation-driven          |
-| [datafaker-reference.md](similar-libs-reference/datafaker-reference.md)       |    Java    | [DataFaker](https://github.com/datafaker-net/datafaker) | Successor to JavaFaker; 200+ providers, 60+ locales |
+| [datafaker-reference.md](similar-libs-reference/datafaker-reference.md)       |    Java    | [DataFaker](https://github.com/datafaker-net/datafaker) | Successor to JavaFaker; 263 documented providers, 70 locale tags |
 | [chancejs-reference.md](similar-libs-reference/chancejs-reference.md)         | JavaScript | [Chance.js](https://chancejs.com)                       | Seeded; broad primitive and domain coverage         |
 | [lorem-reference.md](similar-libs-reference/lorem-reference.md)               | JavaScript | [lorem (mdeanda)](https://github.com/mdeanda/lorem)     | Lightweight Lorem Ipsum generator                   |
 | [faker-python-reference.md](similar-libs-reference/faker-python-reference.md) |   Python   | [Faker](https://github.com/joke2k/faker)                | 80+ locales; 23 provider groups                     |

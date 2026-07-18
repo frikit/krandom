@@ -111,6 +111,37 @@ io.github.frikit.krandom.generator.schema.Field
 io.github.frikit.krandom.generator.schema.FieldLookup
 # Schema remains KEEP; this covers private structured-record conversion helpers only.
 io.github.frikit.krandom.generator.schema.Schema
+# DataFaker-parity fixture additions are explicit v2 KEEP APIs. They are intentionally small,
+# dependency-free contracts with focused behavior and coverage tests; see the public API inventory.
+io.github.frikit.krandom.generator.datapack.LocalDataPack
+io.github.frikit.krandom.generator.network.HttpFixture
+io.github.frikit.krandom.generator.network.HttpFixtureGenerator
+io.github.frikit.krandom.generator.network.HttpStatus
+io.github.frikit.krandom.generator.schema.OutputFormat
+io.github.frikit.krandom.generator.schema.SchemaProjection
+io.github.frikit.krandom.generator.selection.FinitePoolGenerator
+io.github.frikit.krandom.generator.selection.SequenceGenerator
+io.github.frikit.krandom.generator.user.PasswordPolicy
+io.github.frikit.krandom.generator.user.UniversityData
+io.github.frikit.krandom.generator.user.UniversityDataProvider
+io.github.frikit.krandom.generator.user.UniversityGenerator
+io.github.frikit.krandom.generator.Generators
+io.github.frikit.krandom.generator.namespace.NetworkGenerators
+io.github.frikit.krandom.generator.namespace.PersonGenerators
+io.github.frikit.krandom.generator.user.PasswordGenerator
+io.github.frikit.krandom.generator.Generators#ofHttpFixture()
+io.github.frikit.krandom.generator.Generators#ofUniversity(io.github.frikit.krandom.generator.GeneratorConfig)
+io.github.frikit.krandom.generator.Generators#pool(java.util.List)
+io.github.frikit.krandom.generator.Generators#sequence(java.util.List,int,int)
+io.github.frikit.krandom.generator.Generators#sequence(io.github.frikit.krandom.generator.GeneratorConfig,java.util.List,int,int,double)
+io.github.frikit.krandom.generator.namespace.NetworkGenerators#httpFixture()
+io.github.frikit.krandom.generator.namespace.PersonGenerators#university()
+io.github.frikit.krandom.generator.user.PasswordGenerator#generate(io.github.frikit.krandom.generator.user.PasswordPolicy)
+io.github.frikit.krandom.generator.DataRegistryContext#universityProvider(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#isUniversityRegistered(java.util.Locale)
+io.github.frikit.krandom.generator.DataRegistryContext#universityRegisteredKeys()
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerDataPack(io.github.frikit.krandom.generator.datapack.LocalDataPack)
+io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerUniversityProvider(io.github.frikit.krandom.generator.user.UniversityDataProvider)
 # SchemaParser remains KEEP; its documented v2 import contract now rejects references and
 # composition rather than silently producing unconstrained values. See schema-and-provider-hub.md.
 io.github.frikit.krandom.generator.schema.SchemaParser

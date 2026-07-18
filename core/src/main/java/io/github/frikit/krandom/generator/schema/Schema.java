@@ -39,11 +39,11 @@ import java.util.Random;
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
-    private static final String JSON_SCHEMA_DRAFT_2020_12 = "https://json-schema.org/draft/2020-12/schema";
-    private static final String XML_DECLARATION           = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-    private static final String DEFAULT_XML_ROOT_ELEMENT  = "records";
-    private static final String DEFAULT_XML_RECORD_ELEMENT = "record";
-    private static final char   NEWLINE                   = '\n';
+    private static final String JSON_SCHEMA_DRAFT_2020_12  = "https://json-schema.org/draft/2020-12/schema";
+    static final String         XML_DECLARATION            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    static final String         DEFAULT_XML_ROOT_ELEMENT   = "records";
+    static final String         DEFAULT_XML_RECORD_ELEMENT = "record";
+    static final char           NEWLINE                    = '\n';
 
     private final GeneratorConfig                  config;
     private final Map<String, SchemaValueProvider> fields;
@@ -163,6 +163,91 @@ public final class Schema implements Generator<Map<String, Object>> {
         for (int i = 0; i < count; i++) {
             appendJsonObject(out, generate());
             out.append(NEWLINE);
+        }
+    }
+
+    /**
+     * Renders generated records as a JSON array.
+     *
+     * @param count record count
+     * @return JSON payload
+     */
+    public String toJson(int count) {
+        return buildString(builder -> writeJson(builder, count));
+    }
+
+    /**
+     * Writes generated records as a JSON array without materializing a batch list.
+     *
+     * @param out   appendable destination
+     * @param count record count
+     * @throws IOException if the appendable fails
+     */
+    public void writeJson(Appendable out, int count) throws IOException {
+        Objects.requireNonNull(out, "out must not be null");
+        validateCount(count);
+        out.append('[');
+        for (int i = 0; i < count; i++) {
+            if (i > 0) {
+                out.append(',');
+            }
+            appendJsonObject(out, generate());
+        }
+        out.append(']').append(NEWLINE);
+    }
+
+    /**
+     * Renders generated records as a YAML sequence.
+     *
+     * @param count record count
+     * @return YAML payload
+     */
+    public String toYaml(int count) {
+        return buildString(builder -> writeYaml(builder, count));
+    }
+
+    /**
+     * Writes generated records as a YAML sequence without materializing a batch list.
+     *
+     * @param out   appendable destination
+     * @param count record count
+     * @throws IOException if the appendable fails
+     */
+    public void writeYaml(Appendable out, int count) throws IOException {
+        Objects.requireNonNull(out, "out must not be null");
+        validateCount(count);
+        if (count == 0) {
+            out.append("[]").append(NEWLINE);
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            appendYamlListItem(out, generate(), 0);
+        }
+    }
+
+    /**
+     * Renders generated records as a TOML array of {@code records} tables.
+     *
+     * @param count record count
+     * @return TOML payload
+     */
+    public String toToml(int count) {
+        return buildString(builder -> writeToml(builder, count));
+    }
+
+    /**
+     * Writes generated records as a TOML array of {@code records} tables without materializing a
+     * batch list. TOML has no representation for {@code null}, so null values are rejected.
+     *
+     * @param out   appendable destination
+     * @param count record count
+     * @throws IOException if the appendable fails
+     */
+    public void writeToml(Appendable out, int count) throws IOException {
+        Objects.requireNonNull(out, "out must not be null");
+        validateCount(count);
+        for (int i = 0; i < count; i++) {
+            appendTomlRecord(out, generate());
         }
     }
 
@@ -352,12 +437,18 @@ public final class Schema implements Generator<Map<String, Object>> {
         Objects.requireNonNull(format, "format must not be null");
         if (format == OutputFormat.JSONL) {
             writeJsonLines(writer, count);
+        } else if (format == OutputFormat.JSON) {
+            writeJson(writer, count);
         } else if (format == OutputFormat.CSV) {
             writeCsv(writer, count);
         } else if (format == OutputFormat.XML) {
             writeXml(writer, count);
-        } else {
+        } else if (format == OutputFormat.SQL) {
             writeSqlInserts(writer, tableName, count);
+        } else if (format == OutputFormat.YAML) {
+            writeYaml(writer, count);
+        } else {
+            writeToml(writer, count);
         }
     }
 
@@ -453,13 +544,13 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
     }
 
-    private static void appendIndent(Appendable out, int spaces) throws IOException {
+    static void appendIndent(Appendable out, int spaces) throws IOException {
         for (int i = 0; i < spaces; i++) {
             out.append(' ');
         }
     }
 
-    private static void appendXmlField(Appendable out, String fieldName, Object value, int indent) throws IOException {
+    static void appendXmlField(Appendable out, String fieldName, Object value, int indent) throws IOException {
         appendIndent(out, indent);
         String elementName = isValidXmlElementName(fieldName) ? fieldName : "field";
         boolean useNameAttribute = !elementName.equals(fieldName);
@@ -540,7 +631,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         return true;
     }
 
-    private static String requireSqlIdentifier(String value, String label) {
+    static String requireSqlIdentifier(String value, String label) {
         Objects.requireNonNull(value, label + " must not be null");
         if (value.isBlank()) {
             throw new IllegalArgumentException(label + " must not be blank");
@@ -554,7 +645,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         return value;
     }
 
-    private static void appendSqlIdentifier(Appendable out, String identifier) throws IOException {
+    static void appendSqlIdentifier(Appendable out, String identifier) throws IOException {
         String[] parts = identifier.split("\\.", -1);
         for (int i = 0; i < parts.length; i++) {
             if (i > 0) {
@@ -573,7 +664,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
     }
 
-    private static void appendSqlValue(Appendable out, Object value) throws IOException {
+    static void appendSqlValue(Appendable out, Object value) throws IOException {
         value = normalizeStructuredValue(value);
         if (value == null) {
             out.append("NULL");
@@ -609,7 +700,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append('\'');
     }
 
-    private static void appendJsonValue(Appendable out, Object value) throws IOException {
+    static void appendJsonValue(Appendable out, Object value) throws IOException {
         value = normalizeStructuredValue(value);
         if (value == null) {
             out.append("null");
@@ -680,7 +771,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append(String.valueOf(value));
     }
 
-    private static void appendJsonObject(Appendable out, Map<?, ?> value) throws IOException {
+    static void appendJsonObject(Appendable out, Map<?, ?> value) throws IOException {
         out.append('{');
         boolean first = true;
         for (Map.Entry<?, ?> entry : value.entrySet()) {
@@ -708,7 +799,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append(']');
     }
 
-    private static void appendJsonString(Appendable out, String value) throws IOException {
+    static void appendJsonString(Appendable out, String value) throws IOException {
         out.append('"');
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
@@ -740,7 +831,192 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append(Character.forDigit(ch & 0xF, 16));
     }
 
-    private static void appendCsvRow(Appendable out, List<String> values) throws IOException {
+    static void appendYamlListItem(Appendable out, Object value, int indent) throws IOException {
+        Object normalized = normalizeStructuredValue(value);
+        appendIndent(out, indent);
+        out.append("- ");
+        if (normalized instanceof Map<?, ?> map) {
+            appendYamlMapAfterListMarker(out, map, indent);
+            return;
+        }
+        if (normalized instanceof Iterable<?> values) {
+            if (!values.iterator().hasNext()) {
+                out.append("[]").append(NEWLINE);
+                return;
+            }
+            out.append(NEWLINE);
+            for (Object item : values) {
+                appendYamlListItem(out, item, indent + 2);
+            }
+            return;
+        }
+        appendJsonValue(out, normalized);
+        out.append(NEWLINE);
+    }
+
+    private static void appendYamlMapAfterListMarker(Appendable out, Map<?, ?> map, int listIndent) throws IOException {
+        if (map.isEmpty()) {
+            out.append("{}").append(NEWLINE);
+            return;
+        }
+        boolean first = true;
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (first) {
+                appendYamlKey(out, entry.getKey());
+                appendYamlMapValue(out, entry.getValue(), listIndent + 2);
+                first = false;
+            } else {
+                appendIndent(out, listIndent + 2);
+                appendYamlKey(out, entry.getKey());
+                appendYamlMapValue(out, entry.getValue(), listIndent + 2);
+            }
+        }
+    }
+
+    private static void appendYamlMap(Appendable out, Map<?, ?> map, int indent) throws IOException {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            appendIndent(out, indent);
+            appendYamlKey(out, entry.getKey());
+            appendYamlMapValue(out, entry.getValue(), indent);
+        }
+    }
+
+    private static void appendYamlKey(Appendable out, Object key) throws IOException {
+        String value = String.valueOf(key);
+        if (isPlainYamlKey(value)) {
+            out.append(value);
+        } else {
+            appendJsonString(out, value);
+        }
+        out.append(':');
+    }
+
+    private static boolean isPlainYamlKey(String value) {
+        if (value.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (!(Character.isLetterOrDigit(ch) || ch == '_' || ch == '-')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void appendYamlMapValue(Appendable out, Object value, int parentIndent) throws IOException {
+        Object normalized = normalizeStructuredValue(value);
+        if (normalized instanceof Map<?, ?> map) {
+            if (map.isEmpty()) {
+                out.append(" {}").append(NEWLINE);
+                return;
+            }
+            out.append(NEWLINE);
+            appendYamlMap(out, map, parentIndent + 2);
+            return;
+        }
+        if (normalized instanceof Iterable<?> values) {
+            if (!values.iterator().hasNext()) {
+                out.append(" []").append(NEWLINE);
+                return;
+            }
+            out.append(NEWLINE);
+            for (Object item : values) {
+                appendYamlListItem(out, item, parentIndent + 2);
+            }
+            return;
+        }
+        out.append(' ');
+        appendJsonValue(out, normalized);
+        out.append(NEWLINE);
+    }
+
+    static void appendTomlRecord(Appendable out, Map<String, Object> record) throws IOException {
+        out.append("[[records]]").append(NEWLINE);
+        for (Map.Entry<String, Object> entry : record.entrySet()) {
+            appendTomlKey(out, entry.getKey());
+            out.append(" = ");
+            appendTomlValue(out, entry.getValue());
+            out.append(NEWLINE);
+        }
+    }
+
+    private static void appendTomlValue(Appendable out, Object value) throws IOException {
+        Object normalized = normalizeStructuredValue(value);
+        if (normalized == null) {
+            throw new IllegalArgumentException("TOML does not support null values");
+        }
+        if (normalized instanceof CharSequence text) {
+            appendJsonString(out, text.toString());
+            return;
+        }
+        if (normalized instanceof Character character) {
+            appendJsonString(out, String.valueOf(character));
+            return;
+        }
+        if (normalized instanceof Number || normalized instanceof Boolean) {
+            appendJsonValue(out, normalized);
+            return;
+        }
+        if (normalized instanceof Map<?, ?> map) {
+            out.append('{');
+            if (!map.isEmpty()) {
+                out.append(' ');
+            }
+            boolean first = true;
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (!first) {
+                    out.append(", ");
+                }
+                appendTomlKey(out, String.valueOf(entry.getKey()));
+                out.append(" = ");
+                appendTomlValue(out, entry.getValue());
+                first = false;
+            }
+            if (!map.isEmpty()) {
+                out.append(' ');
+            }
+            out.append('}');
+            return;
+        }
+        if (normalized instanceof Iterable<?> values) {
+            out.append('[');
+            boolean first = true;
+            for (Object item : values) {
+                if (!first) {
+                    out.append(", ");
+                }
+                appendTomlValue(out, item);
+                first = false;
+            }
+            out.append(']');
+            return;
+        }
+        appendJsonString(out, String.valueOf(normalized));
+    }
+
+    private static void appendTomlKey(Appendable out, String key) throws IOException {
+        if (isPlainTomlKey(key)) {
+            out.append(key);
+        } else {
+            appendJsonString(out, key);
+        }
+    }
+
+    private static boolean isPlainTomlKey(String value) {
+        if (value.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (!(Character.isLetterOrDigit(ch) || ch == '_' || ch == '-')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static void appendCsvRow(Appendable out, List<String> values) throws IOException {
         for (int i = 0; i < values.size(); i++) {
             if (i > 0) {
                 out.append(',');
@@ -775,7 +1051,7 @@ public final class Schema implements Generator<Map<String, Object>> {
                || value.endsWith(" ");
     }
 
-    private static String toCsvCell(Object value) {
+    static String toCsvCell(Object value) {
         Object normalized = normalizeStructuredValue(value);
         if (normalized == null) {
             return "";
@@ -792,7 +1068,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         return String.valueOf(normalized);
     }
 
-    private static String buildString(StringBuilderWriter writer) {
+    static String buildString(StringBuilderWriter writer) {
         StringBuilder builder = new StringBuilder();
         try {
             writer.write(builder);
@@ -802,7 +1078,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         return builder.toString();
     }
 
-    private static Object normalizeStructuredValue(Object value) {
+    static Object normalizeStructuredValue(Object value) {
         return normalizeStructuredValue(value, "");
     }
 

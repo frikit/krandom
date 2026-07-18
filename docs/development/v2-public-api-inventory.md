@@ -289,6 +289,23 @@ private structured-record conversion and contextual failure propagation.
 `FieldLookup` remains **KEEP** with no new public members; its exact class-level classification
 covers private catalog-driven registration and JSON Schema conversion helpers.
 
+## DataFaker-parity additions
+
+The following focused v2 additions remain **KEEP**. They address fixture and data-loading use
+cases without importing DataFaker's broad catalog or adding runtime dependencies.
+
+| API | Disposition | Contract |
+|:---|:---|:---|
+| `HttpFixture`, `HttpStatus`, `HttpFixtureGenerator`, `network().httpFixture()` | **KEEP** | Coherent static HTTP fixtures; body shapes are content-type compatible and no HTTP call is made. |
+| `PasswordPolicy`, `PasswordGenerator.generate(PasswordPolicy)` | **KEEP** | Inclusive length bounds and required character-set counts are validated and guaranteed. |
+| `SequenceGenerator`, `FinitePoolGenerator`, `Generators.sequence(...)`, `Generators.pool(...)` | **KEEP** | Seeded bounded sequences may intentionally contain nulls; pools emit each value once, then require `reset()`. |
+| `SchemaProjection`, `OutputFormat.JSON/YAML/TOML`, schema structured writers | **KEEP** | Projects source objects once and writes supported formats incrementally; TOML deliberately rejects null values. |
+| `LocalDataPack`, `UniversityData`, `UniversityDataProvider`, `UniversityGenerator`, scoped registry methods | **KEEP** | Local-only, provenance-declared, bounded and SHA-256-verified University data; no provider is globally registered. |
+
+The matching narrow entries in `config/api-evolution-allowlist.txt` classify the new surface
+against the 1.5.0 baseline. Each contract has Javadocs, direct tests, and a public guide; the
+local-pack and native-image guides contain runnable setup rather than an implicit default dataset.
+
 ## Integration exceptions
 
 | API | Disposition | Contract work |

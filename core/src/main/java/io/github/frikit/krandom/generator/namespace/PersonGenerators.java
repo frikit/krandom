@@ -58,6 +58,8 @@ public final class PersonGenerators {
     public ProfessionGenerator profession() { return new ProfessionGenerator(config); }
     public ProfessionGenerator profession(Locale locale) { return new ProfessionGenerator(withLocale(locale)); }
 
+    public UniversityGenerator university() { return new UniversityGenerator(config); }
+
     public NationalIdGenerator nationalId(Locale locale) { return new NationalIdGenerator(withLocale(locale)); }
 
     public AvatarUrlGenerator avatarUrl() { return new AvatarUrlGenerator(config); }

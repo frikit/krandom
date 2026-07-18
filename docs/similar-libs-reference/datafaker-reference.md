@@ -16,15 +16,16 @@
 ## 1. Purpose and Overview
 
 DataFaker is the **official successor to JavaFaker**. It is a JVM library (Java, Kotlin, Groovy) for generating realistic fake data across hundreds of domains. It was created as a modernised fork of
-`java-faker` with updated dependencies, expanded provider coverage (200+ providers), GraalVM native-image support, and a substantially improved API.
+`java-faker` with updated dependencies, a current 263-provider catalog,
+experimental GraalVM native-image support, and a substantially improved API.
 
 | Property              | Value                                           |
 |-----------------------|-------------------------------------------------|
 | GitHub                | https://github.com/datafaker-net/datafaker      |
-| Latest stable version | 2.5.4                                           |
+| Latest stable version | 2.7.0                                           |
 | Java requirement      | Java 17+ (v2.x); Java 8 supported in v1.x (EOL) |
 | License               | Apache License 2.0                              |
-| Locale support        | 60+ locales                                     |
+| Locale support        | 70 advertised locale tags                       |
 | Predecessor           | java-faker (GitHub: DiUS/java-faker)            |
 
 ### Key improvements over JavaFaker
@@ -49,7 +50,7 @@ DataFaker is the **official successor to JavaFaker**. It is a JVM library (Java,
 <dependency>
     <groupId>net.datafaker</groupId>
     <artifactId>datafaker</artifactId>
-    <version>2.5.4</version>
+        <version>2.7.0</version>
 </dependency>
 ```
 
@@ -57,7 +58,7 @@ DataFaker is the **official successor to JavaFaker**. It is a JVM library (Java,
 
 ```groovy
 dependencies {
-    implementation 'net.datafaker:datafaker:2.5.4'
+    implementation 'net.datafaker:datafaker:2.7.0'
 }
 ```
 
@@ -65,13 +66,13 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("net.datafaker:datafaker:2.5.4")
+    implementation("net.datafaker:datafaker:2.7.0")
 }
 ```
 
 ### Snapshot builds
 
-Add the Sonatype snapshots repository, then use version `2.6.0-SNAPSHOT`.
+Use the documented snapshot repository only when deliberately testing DataFaker's next snapshot; the current upstream README advertises `2.8.0-SNAPSHOT`.
 
 ```xml
 
@@ -113,7 +114,7 @@ val faker = Faker(Random(42))
 
 ### 3.2 Locale Support
 
-DataFaker supports 60+ locales. Pass a `java.util.Locale` to the constructor:
+DataFaker's current README lists 70 locale tags. Pass a `java.util.Locale` to the constructor:
 
 ```java
 new Faker(Locale.of("fr"))        // French
@@ -1664,7 +1665,7 @@ The table below highlights high-value DataFaker capabilities absent from krandom
 | Entry point            | `Generators` (static factory); `KRandom*` objects | `new Faker()` instance                                   |
 | Provider access        | Direct instantiation of generator classes         | `faker.provider()` accessor methods                      |
 | Data source            | CSV files and hardcoded logic                     | YAML files (100+ locale files)                           |
-| Locale support         | US-centric (names, SSN)                           | 60+ locales, locale-aware interpolation                  |
+| Locale support         | US-centric (names, SSN)                           | 70 advertised locale tags, locale-aware interpolation    |
 | Seeding                | Per-generator seed parameter                      | Single seed on `Faker` constructor                       |
 | Bulk generation        | `generator.generateList(n)`                       | `faker.collection()`, `faker.stream()`                   |
 | Output formats         | Raw values only                                   | CSV, JSON, YAML, XML via `Schema` API                    |

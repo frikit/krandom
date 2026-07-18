@@ -1,14 +1,16 @@
-# DataFaker Provider Catalog — Live Mapping
+# DataFaker Provider Catalog — Curated Mapping
 
-Full mapping of **every provider** documented at
-<https://www.datafaker.net/documentation/providers/> (snapshot **2026-06-21**)
-against krandom's current generators. This is the "what can we take from
-DataFaker" inventory that feeds the curated Base-provider backlog in
+Curated mapping of the DataFaker providers relevant to kRandom's core scope.
+The upstream catalog was rechecked on **2026-07-18** and documents **263
+providers across six groups**. Most of the difference is intentionally
+out-of-scope curated vocabulary rather than missing generation mechanics. This
+inventory feeds the implementation backlog in
 [`GAP-TRACKER.md`](./GAP-TRACKER.md). The narrative feature matrix lives in
 [`datafaker-parity.md`](./datafaker-parity.md); this file is the **provider-by-provider** index.
 
-DataFaker documents **256 providers** across 5 groups:
-Base (127) · Entertainment (74) · Food (8) · Healthcare (5) · Sport (9) · Videogame (33).
+See the upstream [provider catalog](https://www.datafaker.net/documentation/providers/)
+for its complete, moving list. This document deliberately tracks capability
+parity, not a brittle one-for-one provider count.
 
 ## Legend
 
@@ -44,7 +46,7 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Passport | ✅ DONE | `PassportGenerator` (user) — generic format `[A-Z][0-9]{8}` |
 | Driving License | ✅ DONE | `DrivingLicenseGenerator` (user) — generic format `[A-Z]{2}[0-9]{6}` |
 | Programming Language | ✅ DONE | `ProgrammingLanguageGenerator` (tech) — universal proper nouns |
-| University | 🟢 | institution names — **deprioritized**: needs curated real per-locale institution names (data/research task, not the translation pattern) |
+| University | ✅ DONE | `UniversityGenerator` backed by a versioned, checksum-verified, configuration-scoped local data pack |
 | Restaurant | ✅ DONE | `RestaurantTypeGenerator` (commerce) — cuisine/type localized across all 35 locales |
 | Hobby | ✅ DONE | `HobbyGenerator` (user) — activity vocabulary localized across all 35 locales (`krandom/hobbies`) |
 | Financial Terms | ✅ DONE | `FinancialTermGenerator` (finance) — finance vocabulary localized across all 35 locales |
@@ -81,6 +83,7 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Image | 🟡 `AvatarUrlGenerator` (avatar URLs; generic image URLs ⛔) |
 | Industry Segments | `IndustryGenerator` |
 | Internet | `EmailGenerator`, `URLGenerator`, `UriGenerator`, `IPv4/IPv6Generator`, `MacAddressGenerator`, `PortGenerator`, `UserAgentGenerator` |
+| HTTP | ✅ DONE | `HttpFixtureGenerator` supplies coherent method/version/status/header/content-type/body fixtures |
 | Job | `JobFieldGenerator`, `JobTypeGenerator`, `PositionGenerator`, `SeniorityGenerator` |
 | Locality / Location | `RandomLocaleGenerator`, location package (`CoordinatesGenerator`, `GeohashGenerator`…) |
 | Lorem / Text / Word / Verb | `LoremIpsumGenerator`, `TextGenerator`, `WordGenerator`, `SentenceGenerator`, `ParagraphGenerator` |
@@ -100,11 +103,11 @@ DataFaker's without bloating core. ⛔ stays out by design.
 | Subscription / Stock | ⛔ SKIP | `PaymentInfoGenerator` done; subscription & ticker catalogs out of scope |
 | Compass / Size / Garment Size | ⛔ SKIP | trivial fixed lists; compose from `PickGenerator` |
 | Relationship | ⛔ SKIP | niche kinship vocabulary, low fixture value |
-| Ancient, Animal, App, Appliance, Artist, Australia, Aviation, Brand, Camera, Cannabis, Cat, Chiquito, Community, Construction, Cosmere, Culture Series, Dc Comics, Drone, Dungeons And Dragons, Educator, Electrical Components, Emergency, Emoji, Famous Last Words, Fingerprint, Funny Name, Hacker, Hipster, Hololive, Horse, House, Kpop, Large Language Model, Marketing, Matz, Medical, Military, Mood, Mountain, Mountaineering, Music, Nigeria, Olympic Sport, Photography, Planet, Robin, Rock Band, Science, Shakespeare, Sip, Slack Emoji, Space, Superhero, Team, Tire, Transport, Yoda | 🟣 NOVELTY | Pop-culture / fandom / long-tail / domain vocabularies → `krandom-novelty` module |
+| Ancient, Animal, App, Appliance, Artist, Australia, Aviation, Brand, Camera, Cannabis, Cat, Chiquito, Community, Construction, Cosmere, Culture Series, Dc Comics, Drone, Dungeons And Dragons, Educator, Electrical Components, Emergency, Emoji, Famous Last Words, Fingerprint, Funny Name, Hacker, Hipster, Hololive, Horse, House, Kpop, Large Language Model, Marketing, Matz, Medical, Military, Mood, Mountain, Mountaineering, Music, Nigeria, Olympic Sport, Photography, Planet, Robin, Rock Band, Science, Shakespeare, Sip, Slack Emoji, Space, Superhero, Team, Tire, Transport, Yoda | 🟣 NOVELTY | Pop-culture / fandom / long-tail / domain vocabularies → optional domain packs after demand and licence review |
 
 ---
 
-## Groups 2–5 — wholesale novelty (→ module, not core)
+## Non-core provider groups — optional domain data, not core
 
 These groups are **entirely** pop-culture / lifestyle / domain catalogs. None
 enter core; high-demand ones get ported to `krandom-novelty` after a
@@ -122,17 +125,17 @@ per-catalog licensing review (GAP-TRACKER Phase 3).
 
 | Bucket | Count (approx) | Disposition |
 |--------|----------------|-------------|
-| ✅ HAVE / 🟡 PARTIAL | ~65 Base | core, shipped (incl. the now-cleared curated backlog) |
-| 🟢 BACKLOG (curated) | 1 Base (University) | **deprioritized — needs curated per-locale institution data** |
+| ✅ HAVE / 🟡 PARTIAL | Core realistic providers | core, shipped or targeted by the v2 parity plan |
+| ✅ SHIPPED MECHANICS | Fixture ergonomics, University data packs, native-image metadata | implemented by `v2-datafaker-parity-implementation-plan.md` |
 | 🟣 NOVELTY | ~60 Base + 129 (groups 2–5) | optional `krandom-novelty` module |
 | ⛔ SKIP | ~6 | intentionally out of scope |
 
-**Net core engineering work from DataFaker = essentially done.** The curated 🟢
-Base backlog is cleared except **University** (deprioritized: needs curated real
-per-locale institution names, a data/research task rather than the translation
-pattern). Remaining headroom is locale expansion (35 → 60+). Everything else is
-either shipped, a module concern, or a deliberate skip — consistent with the
-locked GAP-TRACKER strategy.
+**Core provider breadth is substantially covered, but core engineering work is
+not complete.** DataFaker remains ahead in broad declarative YAML/URL data sources and
+long-tail domain catalogs. kRandom now covers the reusable fixture mechanics—object projection,
+streaming JSON/YAML/TOML output, local verified University packs, coherent HTTP fixtures,
+constrained passwords, variable sequences, finite pools, and experimental native-image metadata—
+while preserving safety and deterministic-generation design.
 
 ---
 
@@ -148,7 +151,8 @@ mirroring the Blood Type slice.
 4. Vehicle (VIN check-digit) · Passport · Driving License ✅ shipped
 5. Nation / Nationality / Language Code ✅ shipped
 6. Programming Language · Computer/Device · Aws/Azure ✅ shipped
-7. Restaurant · Hobby · Financial Terms · Measurement · Weather ✅ shipped — **University** still open (deprioritized: needs curated per-locale institution data)
+7. Restaurant · Hobby · Financial Terms · Measurement · Weather · University ✅ shipped — University is supplied by explicit local packs rather than an unreviewed process-wide dataset
 8. CNPJ ✅ shipped; CPF is available only through an explicit national-ID compatibility policy
 
-**Curated Base backlog is now essentially cleared — only University remains.**
+**Current work is tracked in
+[`../development/v2-datafaker-parity-implementation-plan.md`](../development/v2-datafaker-parity-implementation-plan.md).**

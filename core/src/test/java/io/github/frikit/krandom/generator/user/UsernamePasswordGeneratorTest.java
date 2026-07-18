@@ -84,6 +84,50 @@ class UsernamePasswordGeneratorTest {
     }
 
     @Test
+    @DisplayName("Password policies enforce required character sets")
+    void passwordPolicy() {
+        PasswordPolicy policy = PasswordPolicy.builder()
+            .length(12, 12)
+            .requireLowercase(2)
+            .requireUppercase(2)
+            .requireDigits(3)
+            .requireSymbols("!@#", 2)
+            .build();
+        String password = new PasswordGenerator(GeneratorConfig.builder().seed(11L).build()).generate(policy);
+
+        assertEquals(12, password.length());
+        assertTrue(password.chars().filter(Character::isLowerCase).count() >= 2);
+        assertTrue(password.chars().filter(Character::isUpperCase).count() >= 2);
+        assertTrue(password.chars().filter(Character::isDigit).count() >= 3);
+        assertTrue(password.chars().filter(c -> c == '!' || c == '@' || c == '#').count() >= 2);
+        assertThrows(NullPointerException.class, () -> new PasswordGenerator().generate((PasswordPolicy) null));
+        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().length(2).requireDigits(3).build());
+        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().requireSymbols("", 1));
+        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().requireLowercase(-1));
+    }
+
+    @Test
+    @DisplayName("password policy exposes an immutable default alphabet and validates every builder input")
+    void passwordPolicyBuilderCoverage() {
+        PasswordPolicy defaultPolicy = PasswordPolicy.builder().length(10).build();
+        assertEquals(10, defaultPolicy.minLength());
+        assertEquals(10, defaultPolicy.maxLength());
+        assertTrue(defaultPolicy.requirements().isEmpty());
+        assertTrue(defaultPolicy.alphabet().contains(PasswordPolicy.LOWERCASE));
+        assertTrue(defaultPolicy.alphabet().contains(PasswordPolicy.UPPERCASE));
+        assertTrue(defaultPolicy.alphabet().contains(PasswordPolicy.DIGITS));
+        assertTrue(defaultPolicy.alphabet().contains(PasswordPolicy.SYMBOLS));
+
+        PasswordPolicy custom = PasswordPolicy.builder().length(4).require("ab", 0).build();
+        assertEquals("ab", custom.requirements().getFirst().symbols());
+        assertEquals(0, custom.requirements().getFirst().minimumCount());
+        assertEquals("ab", custom.alphabet());
+        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().length(0));
+        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().length(3, 2));
+        assertThrows(NullPointerException.class, () -> PasswordPolicy.builder().require(null, 1));
+    }
+
+    @Test
     @DisplayName("Generators factory exposes username/password generators")
     void generatorsFactoryCoverage() {
         assertNotNull(Generators.ofUsername().generate());

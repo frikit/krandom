@@ -24,14 +24,17 @@ Schema schema = Generators.ofSchema(Locale.US, fields);
 List<Map<String, Object>> batch = schema.generateBatch(10);
 
 String jsonl = schema.toJsonLines(10);
+String json = schema.toJson(10);
 String csv = schema.toCsv(10);
 String xml = schema.toXml(10);
 String sql = schema.toSqlInserts("public.orders", 10);
+String yaml = schema.toYaml(10);
+String toml = schema.toToml(10);
 ```
 
 `Field.bind(...)` covers both scalar tokens and composite provider payloads. Composite records are
-kept as nested JSON objects in JSONL and JSON Schema, and as JSON cell/literal values in CSV, XML,
-and SQL exports:
+kept as nested JSON objects in JSONL, JSON, YAML, TOML, and JSON Schema, and as JSON cell/literal
+values in CSV, XML, and SQL exports:
 
 ```java
 Field field = Generators.ofField(Locale.US);
@@ -44,9 +47,12 @@ fields.put("payment", field.bind("finance.payment_info"));
 Schema schema = Generators.ofSchema(Locale.US, fields);
 
 String jsonl = schema.toJsonLines(1);
+String json = schema.toJson(1);
 String csv = schema.toCsv(1);
 String xml = schema.toXml(1);
 String sql = schema.toSqlInserts("public.orders", 1);
+String yaml = schema.toYaml(1);
+String toml = schema.toToml(1);
 Map<String, Object> jsonSchema = schema.toJsonSchema();
 ```
 
@@ -87,12 +93,42 @@ Use the streaming writer methods when you want payload output without materializ
 ```java
 StringBuilder out = new StringBuilder();
 schema.writeJsonLines(out, 1000);
+schema.writeJson(out, 1000);
 schema.writeCsv(out, 1000);
 schema.writeXml(out, 1000);
 schema.writeSqlInserts(out, "public.orders", 1000);
+schema.writeYaml(out, 1000);
+schema.writeToml(out, 1000);
 ```
 
 For stream-based output, `writeTo(OutputStream, OutputFormat, count)` writes UTF-8 and flushes its adapter writer without closing the caller-owned stream. The `Writer` overload also leaves ownership with the caller.
+
+`JSON` is an array document; `JSONL` stays one object per line. YAML renders an ordinary sequence
+and TOML renders an array of `records` tables. TOML has no `null` value, so its writer rejects a
+null field instead of silently changing data.
+
+### Projecting existing objects
+
+`SchemaProjection<T>` applies named extractors to objects you already have. It consumes an
+`Iterable` once and writes incrementally, so it does not require a duplicate map batch:
+
+```java
+record Order(String id, int quantity) {}
+
+Map<String, Function<Order, ?>> columns = new LinkedHashMap<>();
+columns.put("id", Order::id);
+columns.put("quantity", Order::quantity);
+
+SchemaProjection<Order> projection = SchemaProjection.of(columns);
+List<Order> orders = List.of(new Order("ORD-1", 2));
+String json = projection.toJson(orders);
+String yaml = projection.toYaml(orders);
+projection.writeTo(writer, OutputFormat.SQL, orders, "public.orders");
+```
+
+Projection supports the same JSONL, JSON, CSV, XML, SQL, YAML, and TOML formats as generated
+schemas. `Schema` is still the right API when values must be generated from `Field` providers;
+use `SchemaProjection` when the values already exist.
 
 `FieldLookup` is now an extensible token registry rather than a fixed table, and `Field` exposes the same registration flow:
 

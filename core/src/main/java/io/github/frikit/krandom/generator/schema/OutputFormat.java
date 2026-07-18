@@ -13,6 +13,9 @@ public enum OutputFormat {
     /** Newline-delimited JSON (one JSON object per line). */
     JSONL,
 
+    /** A JSON array containing all generated records. */
+    JSON,
+
     /** Comma-separated values with a header row. */
     CSV,
 
@@ -20,5 +23,11 @@ public enum OutputFormat {
     XML,
 
     /** SQL {@code INSERT} statements (requires a table name). */
-    SQL
+    SQL,
+
+    /** YAML document containing a sequence of generated records. */
+    YAML,
+
+    /** TOML array-of-tables document containing generated records. */
+    TOML
 }

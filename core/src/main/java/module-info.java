@@ -21,6 +21,7 @@ module io.github.frikit.krandom {
     exports io.github.frikit.krandom.generator.color;
     exports io.github.frikit.krandom.generator.commerce;
     exports io.github.frikit.krandom.generator.database;
+    exports io.github.frikit.krandom.generator.datapack;
     exports io.github.frikit.krandom.generator.datetime;
     exports io.github.frikit.krandom.generator.failure;
     exports io.github.frikit.krandom.generator.file;

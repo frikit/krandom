@@ -115,6 +115,7 @@ import io.github.frikit.krandom.generator.namespace.TextGenerators;
 import io.github.frikit.krandom.generator.network.DomainGenerator;
 import io.github.frikit.krandom.generator.network.HostnameGenerator;
 import io.github.frikit.krandom.generator.network.HttpMethodGenerator;
+import io.github.frikit.krandom.generator.network.HttpFixtureGenerator;
 import io.github.frikit.krandom.generator.network.HttpStatusCodeGenerator;
 import io.github.frikit.krandom.generator.network.IPGenerator;
 import io.github.frikit.krandom.generator.network.IPv4Generator;
@@ -135,7 +136,9 @@ import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
 import io.github.frikit.krandom.generator.selection.PickGenerator;
 import io.github.frikit.krandom.generator.selection.PickSetGenerator;
+import io.github.frikit.krandom.generator.selection.FinitePoolGenerator;
 import io.github.frikit.krandom.generator.selection.RepeatGenerator;
+import io.github.frikit.krandom.generator.selection.SequenceGenerator;
 import io.github.frikit.krandom.generator.selection.ShuffleGenerator;
 import io.github.frikit.krandom.generator.selection.UniqueGenerator;
 import io.github.frikit.krandom.generator.selection.WeightedGenerator;
@@ -196,6 +199,7 @@ import io.github.frikit.krandom.generator.user.SimpleProfileGenerator;
 import io.github.frikit.krandom.generator.user.SocialHandleGenerator;
 import io.github.frikit.krandom.generator.user.SocialProfileGenerator;
 import io.github.frikit.krandom.generator.user.UsernameGenerator;
+import io.github.frikit.krandom.generator.user.UniversityGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 
 import java.math.BigDecimal;
@@ -655,6 +659,13 @@ public final class Generators {
      */
     public static HttpMethodGenerator ofHttpMethod() {
         return new HttpMethodGenerator();
+    }
+
+    /**
+     * Returns a generator that produces coherent HTTP request and response fixtures.
+     */
+    public static HttpFixtureGenerator ofHttpFixture() {
+        return new HttpFixtureGenerator();
     }
 
     /**
@@ -2047,6 +2058,16 @@ public final class Generators {
     }
 
     /**
+     * Creates a University fixture generator using local data configured on the supplied context.
+     *
+     * @param config generator configuration containing a local university data pack
+     * @return University fixture generator
+     */
+    public static UniversityGenerator ofUniversity(GeneratorConfig config) {
+        return new UniversityGenerator(config);
+    }
+
+    /**
      * Returns a fail-closed generator for SWIFT/BIC codes.
      *
      * <p>Use the {@link BicGenerator#BicGenerator(GeneratorConfig)} constructor and explicitly
@@ -2715,6 +2736,33 @@ public final class Generators {
      */
     public static <T> PickSetGenerator<T> pickSet(List<T> source, int count) {
         return new PickSetGenerator<>(source, count);
+    }
+
+    /**
+     * Returns a finite pool that emits every value at most once before exhaustion.
+     */
+    public static <T> FinitePoolGenerator<T> pool(List<T> values) {
+        return new FinitePoolGenerator<>(values);
+    }
+
+    /**
+     * Returns a variable-length sequence generator with no null elements.
+     */
+    public static <T> SequenceGenerator<T> sequence(List<? extends Generator<? extends T>> sources,
+                                                     int minLength,
+                                                     int maxLength) {
+        return new SequenceGenerator<>(sources, minLength, maxLength);
+    }
+
+    /**
+     * Returns a variable-length sequence generator with explicit configuration and null probability.
+     */
+    public static <T> SequenceGenerator<T> sequence(GeneratorConfig config,
+                                                     List<? extends Generator<? extends T>> sources,
+                                                     int minLength,
+                                                     int maxLength,
+                                                     double nullProbability) {
+        return new SequenceGenerator<>(config, sources, minLength, maxLength, nullProbability);
     }
 
     /**

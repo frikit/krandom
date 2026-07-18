@@ -43,6 +43,7 @@ dependencies {
 | `faker.finance().creditCard()` | `Generators.ofCreditCard().generate()` |
 | `faker.number().numberBetween(1, 100)` | `Generators.ofInt(1, 100).generate()` |
 | `faker.regexify("[a-z]{8}")` | `new RegexGenerator("[a-z]{8}").generate()` |
+| `faker.university().name()` | load a local data pack, then `Generators.ofUniversity(config).name()` |
 
 Domain namespaces (`Generators.person()`, `location()`, `finance()`,
 `network()`, `text()`, `commerce()`, `identifier()`, `datetime()`) mirror
@@ -77,8 +78,11 @@ guide for the full token list.
 
 ## Bulk and structured output
 
-DataFaker has no first-class bulk export; kRandom does. For row-style data
-use `Field` + `Schema` and export to CSV, JSONL, XML, or SQL — see
+Both libraries have schema-based bulk output. kRandom's v2 schema API streams generated rows to
+JSONL, JSON arrays, CSV, XML, SQL, YAML, and TOML, and exports JSON Schema. `SchemaProjection<T>`
+also transforms existing object sequences through those same formats without materializing a map
+batch. For generated row-style data use `Field` + `Schema`; for existing objects use
+`SchemaProjection<T>` — see
 [Schema and Provider Hub]({{ '/guides/schema-and-provider-hub/' | relative_url }}).
 
 ## Seeding differences
@@ -97,10 +101,11 @@ for the seed-stability policy.
   DataFaker for those calls or open an issue — domain packs are
   community-contributable.
 - **Locales**: kRandom supports 50 locale variants (35 native datasets and 15 curated fallbacks);
-  DataFaker advertises 60+.
+  DataFaker's current README lists 70 locale tags, including generic and novelty variants.
   Check yours against the [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}) guide.
-- **Runtime YAML data files**: kRandom uses code-based registries instead;
-  custom data is registered through `ProviderHub` or `DataRegistryContext`.
+- **Local data packs**: DataFaker accepts YAML files and URLs. kRandom accepts a versioned,
+  SHA-256-verified local University CSV pack with declared source and license; runtime network
+  loading is intentionally excluded. See [Local Data Packs]({{ '/guides/local-data-packs/' | relative_url }}).
 - **`#{...}` expression syntax**: the common tokens work directly via
   `Generators.ofDataFakerExpression(...)` (case-insensitive, camelCase or
   snake_case; unknown tokens fail fast with the supported list). Exotic

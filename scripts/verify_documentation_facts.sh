@@ -65,9 +65,12 @@ IFS=',' read -r -a schema_formats <<< "${SCHEMA_EXPORT_FORMATS}"
 for format in "${schema_formats[@]}"; do
     case "${format}" in
         CSV) method="toCsv" ;;
+        JSON) method="toJson" ;;
         JSONL) method="toJsonLines" ;;
         XML) method="toXml" ;;
         SQL) method="toSqlInserts" ;;
+        YAML) method="toYaml" ;;
+        TOML) method="toToml" ;;
         *) fail "unknown schema export format fact: ${format}" ;;
     esac
     grep -Fq " ${method}(" "${SCHEMA_FILE}" || fail "Schema export fact ${format} has no ${method} method"
@@ -85,6 +88,19 @@ grep -Fq "module ${CORE_MODULE_NAME} {" "${CORE_MODULE_DESCRIPTOR}" || fail "cor
 grep -Fq "opens com.example.fixtures.model to ${CORE_MODULE_NAME};" "${OBJECT_GENERATION_GUIDE}" || fail "object guide is missing the qualified opens contract"
 grep -Fq "opens io.github.frikit.krandom.examples.jpms.openconsumer to ${CORE_MODULE_NAME};" \
     "${REPO_ROOT}/examples/java-jpms/open-consumer/src/main/java/module-info.java" || fail "JPMS open consumer does not exercise the documented core module name"
+
+NATIVE_METADATA="${REPO_ROOT}/core/src/main/resources/META-INF/native-image/io.github.frikit/krandom/reachability-metadata.json"
+NATIVE_GUIDE="${REPO_ROOT}/docs-site/guides/native-image.md"
+DATA_PACK_GUIDE="${REPO_ROOT}/docs-site/guides/local-data-packs.md"
+[[ -f "${NATIVE_METADATA}" ]] || fail "native-image reachability metadata is missing"
+[[ -x "${REPO_ROOT}/scripts/verify_native_image.sh" ]] || fail "native-image smoke script is not executable"
+grep -Fq 'ObjectGenerator' "${NATIVE_METADATA}" || fail "native-image metadata lacks object-generator reflection"
+grep -Fq 'krandom/.*\\.txt' "${NATIVE_METADATA}" || fail "native-image metadata lacks classpath resource reachability"
+grep -Fq './scripts/verify_native_image.sh' "${NATIVE_GUIDE}" || fail "native-image guide lacks smoke command"
+grep -Fq 'allDeclaredConstructors' "${NATIVE_GUIDE}" || fail "native-image guide lacks consumer reflection guidance"
+grep -Fq 'university.sha256' "${DATA_PACK_GUIDE}" || fail "local data-pack guide lacks checksum contract"
+grep -Fq 'registerDataPack(pack)' "${DATA_PACK_GUIDE}" || fail "local data-pack guide lacks scoped registration"
+grep -Fq 'SchemaProjection' "${REPO_ROOT}/docs-site/guides/schema-and-provider-hub.md" || fail "schema guide lacks existing-object projection"
 
 grep -Fq "The latest released version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/README.md" || fail "README latest GA version is stale"
 grep -Fq "The current version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started latest GA version is stale"
@@ -118,6 +134,13 @@ if rg -n 'Generators\.(constant|pickFrom|pickSetFrom|shuffleOf|uniqueValues)\(' 
     "${REPO_ROOT}/docs/migration" \
     --glob '!v1.6-to-v2.md'; then
     fail "current public documentation still uses a removed 1.x Generators alias"
+fi
+
+if rg -n 'DataFaker (has no|does not have|does not support) (bulk|schema|export)' \
+    "${REPO_ROOT}/README.md" \
+    "${REPO_ROOT}/docs" \
+    "${REPO_ROOT}/docs-site"; then
+    fail "documentation still makes a stale DataFaker bulk/schema capability claim"
 fi
 
 if rg -n '<locale>_(first_male|first_female|last|street_names|street_types_short|street_types_long|secondary_units)\.txt' \

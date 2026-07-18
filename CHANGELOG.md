@@ -10,6 +10,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `HttpFixtureGenerator`, coherent static HTTP request/response fixture records, and a namespaced
+  `network().httpFixture()` entry point. They generate compatible response-body shapes without
+  making network calls.
+- `PasswordPolicy`, bounded `SequenceGenerator`, and `FinitePoolGenerator` for common test-fixture
+  constraints: required password character sets, deterministic nullable sequences, and
+  resettable without-replacement pools.
+- `SchemaProjection`, which projects existing objects into JSONL, JSON, CSV, XML, SQL, YAML, or
+  TOML without materializing a batch. `Schema` now also writes JSON arrays, YAML, and TOML.
+- Verified `LocalDataPack` loading and configuration-scoped University fixtures. Packs are local
+  directories with a versioned manifest, required provenance/license declarations, bounded
+  SHA-256-verified CSV data, and no network-loading path.
+- Experimental GraalVM native-image reachability metadata, a conditional local smoke verifier,
+  and guidance for registering application-owned reflective types.
 - Versioned, human-readable `GenerationRecipe` replay metadata for portable seeded configurations.
 - `checkAllWithRecipe` and `krandomKotestRecipe`: Kotest property failures can now carry the
   portable kRandom configuration recipe alongside Kotest's seed report, and the adapter suite is

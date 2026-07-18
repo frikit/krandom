@@ -9,6 +9,9 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
@@ -65,11 +68,39 @@ public final class PasswordGenerator implements Generator<String> {
         return randomPassword(length);
     }
 
+    /**
+     * Generates a password that satisfies the supplied immutable policy.
+     *
+     * @param policy password character and length requirements
+     * @return policy-compliant password
+     */
+    public String generate(PasswordPolicy policy) {
+        PasswordPolicy effectivePolicy = Objects.requireNonNull(policy, "policy must not be null");
+        int length = effectivePolicy.minLength() + random.nextInt(effectivePolicy.maxLength() - effectivePolicy.minLength() + 1);
+        List<Character> characters = new ArrayList<>(length);
+        for (PasswordPolicy.Requirement requirement : effectivePolicy.requirements()) {
+            for (int i = 0; i < requirement.minimumCount(); i++) {
+                characters.add(randomCharacter(requirement.symbols()));
+            }
+        }
+        while (characters.size() < length) {
+            characters.add(randomCharacter(effectivePolicy.alphabet()));
+        }
+        Collections.shuffle(characters, random);
+        StringBuilder result = new StringBuilder(length);
+        characters.forEach(result::append);
+        return result.toString();
+    }
+
     private String randomPassword(int length) {
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append(ALPHABET.charAt(random.nextInt(ALPHABET.length())));
+            sb.append(randomCharacter(ALPHABET));
         }
         return sb.toString();
+    }
+
+    private char randomCharacter(String alphabet) {
+        return alphabet.charAt(random.nextInt(alphabet.length()));
     }
 }

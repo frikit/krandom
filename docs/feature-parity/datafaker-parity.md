@@ -16,9 +16,14 @@ isolated fixture.
 - **Version Analyzed**: Latest (2024+)
 - **GitHub**: https://github.com/datafaker-net/datafaker
 - **License**: Apache 2.0
-- **Key Strength**: 200+ providers, extensive localization, schema-based output
+- **Key Strength**: 263 documented providers, extensive localization, schema transformations
 
-**Last Updated**: 2026-06-20 — cross-library backlog now lives in [`GAP-TRACKER.md`](./GAP-TRACKER.md). **Locale note:** per-row "10 locales" figures below predate the v1.3–v1.4 expansion and should be read as **35 locales**.
+**Last Updated**: 2026-07-18 — current implementation work is tracked in
+[`../development/v2-datafaker-parity-implementation-plan.md`](../development/v2-datafaker-parity-implementation-plan.md).
+DataFaker's current catalog lists **263 providers** and its README lists **70
+locale tags**. The older per-row figures in this historical matrix are not a
+release contract; use the current generator catalog and migration guide for
+supported APIs.
 
 ## Java Execution Plan
 
@@ -28,18 +33,22 @@ isolated fixture.
 
 ## Executive Summary
 
-DataFaker is the most feature-rich Java faker library with 200+ generator providers, 60+ locales, and advanced features like schema-based output formats (CSV/JSON/YAML/XML), unique value enforcement,
-and GraalVM native image support. It's a fork of JavaFaker with significant enhancements.
+DataFaker is the broadest Java faker catalog, with 263 documented providers and
+70 advertised locale tags. Its reusable advantages are schema transformations
+(including existing-object projection and YAML/TOML), declarative data loading,
+HTTP response fixtures, constrained text generation, variable-length sequences,
+and experimental GraalVM native-image metadata. It is a fork of JavaFaker with
+significant enhancements.
 
 ## Java Parity Contract — 2026-04-28
 
-This document now treats parity as **100% of krandom's scoped Java generator-library contract**, not a literal clone of every DataFaker novelty catalog. DataFaker currently documents 256 providers across base, entertainment, food, sport, and videogame groups; cloning every long-tail vocabulary would bloat krandom without improving the Java-first generator experience.
+This document now treats parity as **100% of krandom's scoped Java generator-library contract**, not a literal clone of every DataFaker novelty catalog. DataFaker currently documents 263 providers across base, entertainment, food, healthcare, sport, and videogame groups; cloning every long-tail vocabulary would bloat krandom without improving the Java-first generator experience.
 
 Covered in the 100% contract:
 
 - Core realistic data: identity, address, network, finance, commerce, company, job, text, date/time, phone, number/code, and color.
-- Java library ergonomics: locale/config overloads, deterministic seeds, schema CSV/JSONL/XML/SQL/JSON Schema, custom provider registration, object generation, and DataFaker/JavaFaker-style template helpers.
-- Explicit non-goals: novelty/entertainment catalogs, sports/team rosters, medical vocabularies, food/drink catalogs, stock ticker catalogs, vehicle/aviation catalogs, external YAML data-source compatibility, and return-shape clones that are language-specific to another library.
+- Java library ergonomics: locale/config overloads, deterministic seeds, schema JSONL/JSON/CSV/XML/SQL/YAML/TOML/JSON Schema, existing-object projection, custom provider registration, object generation, and DataFaker/JavaFaker-style template helpers.
+- Explicit non-goals: novelty/entertainment catalogs, sports/team rosters, medical vocabularies, food/drink catalogs, stock ticker catalogs, fingerprint data, live LLM-model catalogs, and return-shape clones that are language-specific to another library. Local configuration-scoped data packs are in scope; runtime URL loading is not.
 
 ---
 
@@ -143,6 +152,7 @@ Covered in the 100% contract:
 | MAC address       | ✅ `macAddress()`                     | ✅ Yes          | ✓ DONE                  | `MacAddressGenerator`                                 |
 | Port              | ✅ `port()`                           | ✅ Yes          | ✓ DONE                  | `PortGenerator`                                       |
 | HTTP method       | ✅ `httpMethod()` (GET, POST)         | ✅ Yes          | ✓ DONE                  | `HttpMethodGenerator`                                 |
+| HTTP fixture      | ✅ coherent request/response fixtures | ✅ Yes          | ✓ DONE                  | `HttpFixtureGenerator` supplies method, version, status, headers, content type, encoding, user agent, and compatible body |
 | **Identifiers**   |
 | UUID v3           | ✅ `uuidv3()`                         | No (intentional) | SKIP                | MD5 namespace UUIDs are rarely useful; v4, v5, and v7 are supported |
 | UUID v4           | ✅ `uuid()`, `uuidv4()`               | ✅ Yes          | ✓ DONE                  | `UUIDGenerator.generateV4()` — RFC 4122 §4.4          |
@@ -319,7 +329,7 @@ DataFaker's largest surface area is curated vocabulary catalogs. These are expli
 | Feature                  | DataFaker                          | krandom | Priority | Implementation Notes                                                   |
 |--------------------------|------------------------------------|---------|----------|------------------------------------------------------------------------|
 | **Locale Support**       |
-| Multiple locales         | ✅ 60+ locales                      | ✅ Yes   | ✓ DONE   | **35 built-in locales** (v1.3–v1.4 expansion); gap to 60+ tracked in GAP-TRACKER.md |
+| Multiple locales         | ✅ 70 advertised locale tags        | ✅ Yes   | ✓ DONE   | **50 supported variants** (35 native + 15 documented fallbacks); native growth remains tracked in GAP-TRACKER.md |
 | Locale-aware data        | ✅ Names, addresses, phones         | ✅ Yes   | ✓ DONE   | Names, cities, states, postcodes, phones, coordinates all locale-aware |
 | Runtime locale switching | ✅ Yes                              | ✅ Yes   | ✓ DONE   | Pass different `Locale` to constructor per call                        |
 | **Seeding**              |
@@ -344,7 +354,9 @@ DataFaker's largest surface area is curated vocabulary catalogs. These are expli
 | **Output Formats**       |
 | CSV generation           | ✅ Schema-based                     | ✅ Yes   | ✓ DONE   | `Schema.toCsv()`                                                       |
 | JSON generation          | ✅ Schema-based                     | ✅ Yes   | ✓ DONE   | `Schema.toJsonLines()`                                                 |
-| YAML generation          | ✅ Schema-based                     | No (intentional) | SKIP | YAML output is not currently a target format |
+| YAML generation          | ✅ Schema-based                     | ✅ Yes | ✓ DONE | `Schema.toYaml(...)` and `OutputFormat.YAML` |
+| TOML generation          | ✅ Schema-based                     | ✅ Yes | ✓ DONE | `Schema.toToml(...)` and `OutputFormat.TOML`; null values fail fast because TOML has no null literal |
+| Existing-object projection | ✅ Schema transformation            | ✅ Yes | ✓ DONE | `SchemaProjection<T>` writes an object sequence incrementally in every schema output format |
 | XML generation           | ✅ Schema-based                     | ✅ Yes | ✓ DONE | `Schema.toXml(...)` and `OutputFormat.XML` |
 | **Expressions**          |
 | YAML expressions         | ✅ `#{Provider.method}`             | No (intentional) | SKIP | Java-native `Field.template(...)` and `ProviderTemplateGenerator` are supported; DataFaker YAML expression syntax is not mirrored |
@@ -404,12 +416,12 @@ DataFaker's largest surface area is curated vocabulary catalogs. These are expli
 ### DataFaker Strengths (vs krandom)
 
 1. **200+ providers** vs ~50 in krandom (krandom has grown significantly)
-2. **60+ locales** vs **35** in krandom — still a gap, but much narrower than this doc's older "10" figure
-3. **Schema-based output** (CSV/JSON/YAML/XML) — no equivalent in krandom
+2. **70 advertised locale tags** vs **50 supported variants** in kRandom — a real breadth gap, while kRandom distinguishes 35 native datasets from 15 documented fallbacks
+3. **Declarative YAML/URL data sources** — kRandom intentionally provides verified local CSV packs rather than runtime URL loading
 4. **Template-based generation breadth** (`numerify`, `letterify`, `bothify`, `regexify`) — partial in krandom (`numerify/letterify/bothify` implemented)
 5. **Unique value enforcement ergonomics** (`faker.unique()` fluent provider chaining) — partial in krandom (`Generators.unique(...)`)
 6. **Expression language** for composable generators (`#{Name.firstName}`)
-7. **GraalVM native image** support
+7. **GraalVM native image** support — now experimental in kRandom too; application model types still need consumer reachability metadata
 8. **POJO auto-population** via `@Fake` annotations
 9. **Comprehensive domain data** (sports, healthcare, entertainment, 40+ franchises)
 10. **Banking codes** (IBAN, BIC/SWIFT, routing numbers)

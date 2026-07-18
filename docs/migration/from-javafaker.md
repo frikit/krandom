@@ -16,7 +16,7 @@ Two paths:
 **Pros**: maintained; realistic field data **and** object-graph generation in one
 library; 50 supported locale variants (35 native datasets and 15 curated fallbacks); schema export;
 Spring Boot / JUnit 5 / kotest integrations.
-**Cons / gaps**: fewer locales than DataFaker (35 vs ~60+) and no novelty/fandom
+**Cons / gaps**: fewer locale variants than DataFaker (50 supported vs 70 advertised tags) and no novelty/fandom
 catalogs in core — see [`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
 
 ## Dependency

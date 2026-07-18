@@ -1,0 +1,21 @@
+{
+  "reflection": [
+    {
+      "type": "io.github.frikit.krandom.generator.object.ObjectGenerator",
+      "allDeclaredConstructors": true,
+      "allDeclaredFields": true,
+      "allDeclaredMethods": true
+    },
+    {
+      "type": "io.github.frikit.krandom.generator.object.ObjectFaker",
+      "allDeclaredConstructors": true,
+      "allDeclaredFields": true,
+      "allDeclaredMethods": true
+    }
+  ],
+  "resources": [
+    {
+      "glob": "krandom/.*\\.txt"
+    }
+  ]
+}

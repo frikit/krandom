@@ -67,6 +67,93 @@ class SchemaOutputTest {
     }
 
     @Test
+    @DisplayName("structured formats render JSON arrays, YAML, and TOML")
+    void structuredFormatsRenderJsonYamlAndToml() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("id", ctx -> ctx.recordIndex() + 1);
+        fields.put("name", ctx -> "Ada");
+        fields.put("tags", ctx -> List.of("math", "logic"));
+        fields.put("meta", ctx -> Map.of("active", true));
+
+        Schema schema = new Schema(fields);
+
+        assertEquals(
+            "[{\"id\":1,\"name\":\"Ada\",\"tags\":[\"math\",\"logic\"],\"meta\":{\"active\":true}}]\n",
+            schema.toJson(1));
+        assertEquals(
+            "- id: 1\n"
+            + "  name: \"Ada\"\n"
+            + "  tags:\n"
+            + "    - \"math\"\n"
+            + "    - \"logic\"\n"
+            + "  meta:\n"
+            + "    active: true\n",
+            new Schema(fields).toYaml(1));
+        assertEquals(
+            "[[records]]\n"
+            + "id = 1\n"
+            + "name = \"Ada\"\n"
+            + "tags = [\"math\", \"logic\"]\n"
+            + "meta = { active = true }\n",
+            new Schema(fields).toToml(1));
+    }
+
+    @Test
+    @DisplayName("TOML rejects null values while JSON and YAML preserve them")
+    void tomlRejectsNullValues() {
+        Schema schema = new Schema(Map.of("missing", ctx -> null));
+
+        assertEquals("[{\"missing\":null}]\n", schema.toJson(1));
+        assertEquals("- missing: null\n", schema.toYaml(1));
+        assertThrows(IllegalArgumentException.class, () -> schema.toToml(1));
+    }
+
+    @Test
+    @DisplayName("YAML and TOML render empty, nested, quoted-key, and scalar variants")
+    void yamlAndTomlCoverStructuredValueBranches() throws IOException {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("plain", ctx -> "text");
+        fields.put("letter", ctx -> 'Q');
+        fields.put("number", ctx -> 7);
+        fields.put("enabled", ctx -> false);
+        fields.put("empty map", ctx -> Map.of());
+        fields.put("nested", ctx -> Map.of("child key", List.of("x", 2), "other", 3));
+        fields.put("emptyList", ctx -> List.of());
+        fields.put("values", ctx -> List.of("x", Map.of()));
+        fields.put("_", ctx -> 1);
+        fields.put("-", ctx -> 2);
+        Schema schema = new Schema(fields);
+
+        String yaml = schema.toYaml(1);
+        assertTrue(yaml.contains("\"empty map\": {}"));
+        assertTrue(yaml.contains("nested:\n"));
+        assertTrue(yaml.contains("\"child key\":"));
+        assertTrue(yaml.contains("emptyList: []"));
+        assertEquals("[]\n", schema.toYaml(0));
+
+        String toml = schema.toToml(1);
+        assertTrue(toml.contains("letter = \"Q\""));
+        assertTrue(toml.contains("empty map = {}") || toml.contains("\"empty map\" = {}"));
+        assertTrue(toml.contains("nested = { "));
+        assertTrue(toml.contains("\"child key\" = [\"x\", 2]"));
+        assertTrue(toml.contains("other = 3"));
+        assertTrue(toml.contains("emptyList = []"));
+
+        StringBuilder yamlList = new StringBuilder();
+        Schema.appendYamlListItem(yamlList, List.of(), 0);
+        Schema.appendYamlListItem(yamlList, List.of("item", Map.of()), 0);
+        Schema.appendYamlListItem(yamlList, Map.of(), 0);
+        assertEquals("- []\n- \n  - \"item\"\n  - {}\n- {}\n", yamlList.toString());
+        Schema.appendYamlListItem(yamlList, Map.of("", new PlainValue("fallback")), 0);
+        assertTrue(yamlList.toString().endsWith("- \"\": \"PlainValue[value=fallback]\"\n"));
+        StringBuilder tomlEmptyKey = new StringBuilder();
+        Schema.appendTomlRecord(tomlEmptyKey, Map.of("", new PlainValue("fallback")));
+        assertEquals("[[records]]\n\"\" = \"PlainValue[value=fallback]\"\n", tomlEmptyKey.toString());
+        assertThrows(IOException.class, () -> schema.writeYaml(new FailingAppendable(), 1));
+        assertThrows(IOException.class, () -> schema.writeToml(new FailingAppendable(), 1));
+    }
+
+    @Test
     @DisplayName("record accessor failures expose structured component context")
     void recordAccessorFailuresExposeStructuredContext() {
         Schema schema = new Schema(Map.of("record", ctx -> new ThrowingRecord("payload")));

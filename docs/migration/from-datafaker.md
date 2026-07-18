@@ -9,11 +9,11 @@ stop hand-stitching "DataFaker for fields + Instancio/EasyRandom for structure."
 **Pros of krandom**
 - Realistic field data **and** full object/record graphs in one library.
 - 50 supported locale variants (35 native datasets and 15 curated fallbacks), checksum national IDs,
-  schema export (CSV/JSONL/XML/SQL).
+  schema output (JSONL/JSON/CSV/XML/SQL/YAML/TOML) and existing-object projection.
 - A DataFaker-expression adapter, so you can port `#{Provider.method}` strings as-is.
 
 **What DataFaker still has that krandom doesn't**
-- More locales (~60+ vs 35) — gap tracked in [`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
+- More locale tags (70 advertised vs 50 supported variants) — breadth gap tracked in [`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
 - ~150 novelty/fandom/sport/food providers (Pokémon, Star Wars, Beer…) — krandom keeps these out of core; they will live in an opt-in `krandom-novelty` module.
 
 ## Dependency
@@ -38,7 +38,7 @@ dependencies {
 | `faker.regexify("[A-Z]{3}\\d{4}")` | `Generators.ofRegex("[A-Z]{3}\\d{4}").generate()` |
 | `faker.unique()...` | `Generators.unique(generator)` |
 | `faker.collection(...).len(n).generate()` | `generator.generateList(n)` / `generator.stream().limit(n)` |
-| CSV/JSON schema output | `Schema.toCsv()` / `Schema.toJsonLines()` / `toXml()` / `toSqlInserts()` |
+| CSV/JSON/YAML/TOML schema output | `Schema.toCsv()` / `toJsonLines()` / `toJson()` / `toXml()` / `toSqlInserts()` / `toYaml()` / `toToml()`; use `SchemaProjection<T>` for existing objects |
 
 ## Examples
 

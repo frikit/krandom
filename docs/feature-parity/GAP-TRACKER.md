@@ -5,7 +5,7 @@ landscape and what we build next**. Consolidates the per-library parity docs in
 this folder into one prioritized backlog. Update this file whenever a backlog
 item ships or a competitor adds something material.
 
-**Last updated:** 2026-06-21
+**Last updated:** 2026-07-18
 
 ## Strategy decisions (locked)
 
@@ -31,22 +31,25 @@ item ships or a competitor adds something material.
 > The per-row "10 locales" notes inside `datafaker-parity.md` predate the
 > v1.3–v1.4 resource expansion and should be read as **≥10, now 35**.
 
-## The "264 providers" reality
+## The 263-provider reality
 
-DataFaker documents **258** providers (Base / Entertainment / Food / Sport /
-Videogame). **~150 are pop-culture/fandom/sport/food novelty**; only **~100 are
-"Base" everyday data**, and krandom already covers most of the core Base set
+DataFaker currently documents **263** providers across Base, Entertainment,
+Food, Healthcare, Sport, and Videogame groups. A large share is
+pop-culture/fandom/sport/food vocabulary; kRandom already covers most everyday
+fixture domains
 (names, address, internet, finance, company, job, text, date/time, phone,
 numbers/codes, color, hashing, UUID, configured IBAN/BIC fixtures, cards, templates, unique, schema
-export). So the engineering gap is **locales + a curated ~20 Base providers +
-ergonomics**, not "200 missing providers." Headline-count parity is handled by
-the optional novelty module, not core.
+export). The reusable engineering gaps—schema transformation/formats, local data packs, HTTP
+fixtures, constrained text and sequences, University data, and experimental native-image
+readiness—are now shipped. Locale breadth and long-tail curated vocabulary remain deliberate,
+demand-led work, not "200 missing providers." Headline-count parity is neither a core goal nor a
+release metric.
 
 ## Cross-library status
 
 | Competitor | Role vs krandom | Maintained? | Tracking doc | Net gap for krandom |
 |---|---|---|---|---|
-| **DataFaker** | Realism / breadth leader | ✅ active (v2.5.4, 2026) | `datafaker-parity.md` ✅ | locales 35→60+, ~20 Base providers, GraalVM native metadata, novelty (→ module) |
+| **DataFaker** | Realism / breadth leader | ✅ active (v2.7.0, 2026) | `datafaker-parity.md` | locale breadth, YAML/URL data-source compatibility, and long-tail domain catalogs |
 | **Instancio** | Object-graph leader, closest rival to `ObjectFaker` | ✅ active (v5.x) | ❌ **MISSING — create it** | Bean-Validation/JPA-aware generation, selector/Model ergonomics, sealed/generics parity advertising |
 | **EasyRandom** | Object-graph, legacy | ⚠️ maintenance mode; v6 (records, Java 17) ~2026 | `easy-random-parity.md` ✅ | none major — `ObjectFaker` is a superset; capture migrators |
 | **JavaFaker** | Dead predecessor of DataFaker | ❌ unmaintained since 2024 | (covered via DataFaker) | migration target only; nothing to adopt |
@@ -67,15 +70,16 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
 - [ ] Add a one-line "see GAP-TRACKER.md" pointer to each per-library parity doc
 
 ### Phase 2 — Close core gaps
-- [ ] **Locales 35 → 60+** (roadmap doc + per-locale data PRs; prioritize by user demand: add e.g. `pt_PT`, `en_CA`, `en_IN`, `zh_TW`, `es_MX`, `fr_CA`, `de_AT`, `de_CH`, plus broader EU/APAC)
-- [ ] **Curated ~20 Base providers** (core-worthy, test-fixture value) — *essentially cleared; only University left (deprioritized)*:
+- [x] **DataFaker v2 parity plan** — [`../development/v2-datafaker-parity-implementation-plan.md`](../development/v2-datafaker-parity-implementation-plan.md): documentation, fixture ergonomics, schema projections/formats, local data packs + University, native-image readiness
+- [ ] **Native locale growth** (only after provenance and native-data quality gates; the current fallback variants are already honest about their tier)
+- [ ] **Curated Base providers** (core-worthy, test-fixture value):
   - **Shipped:** Blood Type, Zodiac + Chinese Zodiac, NATO phonetic, Pronouns,
     Vehicle (VIN + make/model + plate), CNPJ, MBTI, Hobby, Programming Language,
     Measurement, Financial Terms, Nationality, Weather, Passport, Driving License,
     AWS, Azure, Computer/Device, Restaurant; CPF requires an explicit national-ID compatibility
     policy.
-    **Curated Base backlog is now essentially cleared — only University remains
-    (deprioritized).**
+    University is delivered through the local data-pack work rather than a
+    process-wide curated registry.
   - **Locale coverage:** Zodiac, Chinese Zodiac, Pronoun, Hobby, Measurement,
     Financial Terms, Nationality, Restaurant, and Weather are localized across
     **all 35 built-in locales** (per-locale resource files under
@@ -90,13 +94,13 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
   - [x] Nationality / Language / Nation ✅ · Blood Type ✅ · Zodiac ✅ · MBTI ✅
   - [x] NATO phonetic alphabet ✅ · Measurement/units ✅ · Pronouns ✅
   - [x] Cloud resource names (AWS/Azure) ✅ · Computer/Device/OS ✅ · Programming Language ✅
-  - [ ] University (deprioritized) · Restaurant ✅ · Hobby ✅ · Financial Terms ✅ · CNPJ ✅ (BR company id)
+  - [x] University via verified local data packs · Restaurant ✅ · Hobby ✅ · Financial Terms ✅ · CNPJ ✅ (BR company id)
   - **Design note — locale-frequency providers (blood type, …):** back them with per-locale resource files (`krandom/bloodtypes/<locale>.txt`, `TYPE WEIGHT` lines) + weighted selection, seeded only for locales that have a file (others fall back to `default.txt`), mirroring the Gender data-provider/registry pattern. Do **not** hardcode as enums — distributions differ by population/locale. (slice 1: `default`, `en_US`, `ja_JP` shipped; remaining 32 locales are backlog.)
 - [ ] **Ergonomics parity with Instancio** (the real competitive pressure):
   - [ ] Bean-Validation/JPA-aware generation, first-class & documented (krandom has `BeanValidationSupport` — promote it)
   - [ ] Predicate/type **selectors** + reusable **Model/template** concept (beyond `ruleFor`/profiles)
   - [ ] Advertise + lock-in `record`/`sealed`/deep-generics parity with a test matrix
-- [ ] **GraalVM native-image** reachability metadata (Quarkus/Micronaut test users)
+- [x] **GraalVM native-image** reachability metadata and optional smoke verification (experimental; application models still require consumer metadata)
 
 ### Phase 3 — Optional novelty module (`krandom-novelty`)
 - [ ] New opt-in Gradle module; zero core dependency
@@ -114,6 +118,6 @@ krandom does better · What it doesn't have yet (link backlog) · Copy-paste
 examples.** Any competitor "pro" with no krandom answer becomes a Phase 2 item.
 
 ## Per-library parity docs (detail lives here)
-- [`datafaker-parity.md`](./datafaker-parity.md) (narrative matrix) · [`datafaker-providers-catalog.md`](./datafaker-providers-catalog.md) (full 256-provider live mapping) · [`easy-random-parity.md`](./easy-random-parity.md)
+- [`datafaker-parity.md`](./datafaker-parity.md) (narrative matrix) · [`datafaker-providers-catalog.md`](./datafaker-providers-catalog.md) (curated 263-provider capability mapping) · [`easy-random-parity.md`](./easy-random-parity.md)
 - `instancio-parity.md` *(to create — Phase 1)*
 - Non-JVM references: `faker-python-parity.md`, `chancejs-parity.md`, `fake-rs-parity.md`, `gofakeit-parity.md`, `feature-parity-bogus.md`, `mimesis-parity.md`, `k-random-reference-parity.md`

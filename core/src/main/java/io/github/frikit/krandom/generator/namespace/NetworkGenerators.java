@@ -50,4 +50,7 @@ public final class NetworkGenerators {
     public HttpStatusCodeGenerator httpStatusCode() { return new HttpStatusCodeGenerator(config); }
 
     public HttpMethodGenerator httpMethod() { return new HttpMethodGenerator(config); }
+
+    /** Returns coherent HTTP request/response fixture values. */
+    public HttpFixtureGenerator httpFixture() { return new HttpFixtureGenerator(config); }
 }

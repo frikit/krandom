@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider;
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry;
+import io.github.frikit.krandom.generator.datapack.LocalDataPack;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
@@ -42,6 +43,8 @@ import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.SuffixDataRegistry;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataRegistry;
+import io.github.frikit.krandom.generator.user.UniversityData;
+import io.github.frikit.krandom.generator.user.UniversityDataProvider;
 import io.github.frikit.krandom.generator.user.ZodiacDataProvider;
 import io.github.frikit.krandom.generator.user.ZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
@@ -91,6 +94,7 @@ public final class DataRegistryContext {
     private final Map<String, BloodTypeDataProvider>      bloodTypes;
     private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs;
     private final Map<String, ZodiacDataProvider>         zodiacs;
+    private final Map<String, UniversityDataProvider>     universities;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -115,6 +119,7 @@ public final class DataRegistryContext {
         this.bloodTypes = Map.copyOf(builder.bloodTypes);
         this.chineseZodiacs = Map.copyOf(builder.chineseZodiacs);
         this.zodiacs = Map.copyOf(builder.zodiacs);
+        this.universities = Map.copyOf(builder.universities);
     }
 
     /**
@@ -637,6 +642,38 @@ public final class DataRegistryContext {
         return mergeKeys(zodiacs.keySet(), useGlobalFallback ? ZodiacDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the locally registered university provider for a locale.
+     *
+     * <p>University fixtures intentionally never use global fallback. They must come from a
+     * verified local data pack attached to this context.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when no local pack is registered
+     */
+    public UniversityDataProvider universityProvider(Locale locale) {
+        return findWithFallback(universities, locale);
+    }
+
+    /**
+     * Reports whether a local university data pack is available for a locale.
+     *
+     * @param locale requested locale
+     * @return true when a local provider is registered
+     */
+    public boolean isUniversityRegistered(Locale locale) {
+        return universityProvider(locale) != null;
+    }
+
+    /**
+     * Returns the locale keys supplied by local University data packs.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> universityRegisteredKeys() {
+        return mergeKeys(universities.keySet(), Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -768,6 +805,18 @@ public final class DataRegistryContext {
         }
     }
 
+    private static void validateUniversityData(UniversityData[] universities) {
+        Objects.requireNonNull(universities, "universities");
+        if (universities.length == 0) {
+            throw new IllegalArgumentException("universities must not be empty");
+        }
+        for (int index = 0; index < universities.length; index++) {
+            if (universities[index] == null) {
+                throw new IllegalArgumentException("university at index " + index + " must not be null");
+            }
+        }
+    }
+
     /**
      * Context builder.
      */
@@ -796,6 +845,7 @@ public final class DataRegistryContext {
         private final Map<String, BloodTypeDataProvider>      bloodTypes      = new LinkedHashMap<>();
         private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs  = new LinkedHashMap<>();
         private final Map<String, ZodiacDataProvider>         zodiacs        = new LinkedHashMap<>();
+        private final Map<String, UniversityDataProvider>     universities   = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -817,6 +867,16 @@ public final class DataRegistryContext {
          */
         public Builder registerLocaleData(LocaleDataBundle bundle) {
             return Objects.requireNonNull(bundle, "bundle").applyTo(this);
+        }
+
+        /**
+         * Registers verified local data-pack providers with this context only.
+         *
+         * @param dataPack verified local data pack
+         * @return this builder
+         */
+        public Builder registerDataPack(LocalDataPack dataPack) {
+            return registerUniversityProvider(Objects.requireNonNull(dataPack, "dataPack").universityProvider());
         }
 
         public Builder registerFirstNameProvider(FirstNameDataProvider provider) {
@@ -1048,6 +1108,20 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateTwelveTextValues("signs", provider.getSigns());
             putWithLanguageFallback(zodiacs, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific University fixture provider in this context.
+         *
+         * @param provider University fixture provider
+         * @return this builder
+         */
+        public Builder registerUniversityProvider(UniversityDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateUniversityData(provider.getUniversities());
+            putWithLanguageFallback(universities, provider.getLocale(), provider);
             return this;
         }
 
