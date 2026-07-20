@@ -15,7 +15,7 @@ hibernate-validator = "9.1.2.Final"
 jackson = "2.22.0"
 spring-boot = "4.1.0"
 japicmp = "0.26.1"
-cyclonedx = "3.2.4"
+cyclonedx = "3.3.0"
 nmcp = "1.6.1"
 
 [libraries]
