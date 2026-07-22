@@ -24,6 +24,10 @@ String withPath = urls.generateWithPath();
 String full = urls.generateWithPathAndQuery();
 ```
 
+`ofUrl()` and `ofUri()` produce text values. When an API needs parsed JDK objects instead, use
+`Generators.ofURL()` for `java.net.URL` or `Generators.ofURI()` for `java.net.URI`. The distinction
+is intentional: lowercase names describe a text format and uppercase names describe the JDK type.
+
 ## File-oriented values
 
 ```java

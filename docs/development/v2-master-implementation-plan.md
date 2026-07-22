@@ -3,7 +3,7 @@
 **Created:** 2026-07-09
 **Status:** In progress
 **Source review:** [`../reviews/v2-release-readiness-review-2026-07-09.md`](../reviews/v2-release-readiness-review-2026-07-09.md)
-**Current line:** `2.0.0-SNAPSHOT`
+**Current line:** `2.1.0-SNAPSHOT`
 **Target:** A stable v2 contract followed by controlled adoption across consumer projects
 
 ## 1. Purpose

@@ -6,11 +6,11 @@ Core examples verify direct `io.github.frikit:krandom-core` consumption, includi
 encapsulation from Java 21 named modules. Integration examples verify the published Jackson,
 Spring Boot, Kotest, and Kotlin DSL artifacts from clean consumer builds.
 
-Default example version: `2.0.0-SNAPSHOT`
+Default example version: `2.1.0-SNAPSHOT`
 
 Version strategy:
 
-- `2.0.0-SNAPSHOT` is the repo-local default for Maven-local verification.
+- `2.1.0-SNAPSHOT` is the repo-local default for Maven-local verification.
 - CI injects the version under test instead of editing example build files.
 - published-release checks should pass an explicit version with the existing property knobs rather than changing the embedded defaults.
 

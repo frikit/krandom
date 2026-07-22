@@ -27,7 +27,7 @@ The GPG public key must be uploaded to a public keyserver (for example
 
 ## Cutting a release
 
-1. **Decide the version.** SemVer; for example `2.0.0`. Confirm the
+1. **Decide the version.** SemVer; for example `2.1.0`. Confirm the
    `[Unreleased]` section in `CHANGELOG.md` is final.
 2. **Land any last commits on `main`.** Run `./scripts/pre_commit_check.sh`
    and `./scripts/verify_examples_local.sh` locally; both must pass.
@@ -61,6 +61,34 @@ The GPG public key must be uploaded to a public keyserver (for example
    "Publish". Validation runs first; if it fails, fix and re-upload.
    Releases are immutable once published.
 
+## Release rehearsal and recovery
+
+Before dispatching a release, rehearse the exact non-publishing quality and artifact checks from a
+clean version decision:
+
+```bash
+JAVA_HOME=<JDK 21+> ./scripts/verify_release_rehearsal.sh 2.1.0
+```
+
+The rehearsal validates SemVer, requires that `v2.1.0` does not already exist locally, verifies the
+runbook recovery markers, and runs API compatibility plus release-SBOM checks with
+`-PreleaseVersion=2.1.0`. It never reads publication credentials, tags a commit, uploads artifacts,
+or contacts Maven Central.
+
+If a release workflow fails, first identify the last completed step and check Central Portal before
+retrying:
+
+| Last completed step | Safe recovery |
+| --- | --- |
+| Before **Publish to Maven Central** | Fix the failure and dispatch the normal workflow again. No immutable artifact has been uploaded. |
+| **Publish to Maven Central** completed, but the deployment is pending | Do not re-upload. Complete validation and publish (for `USER_MANAGED`) in Central Portal; then continue with the GitHub release only if needed. |
+| **Publish to Maven Central** completed, but **Create GitHub Release** failed | Verify the exact version and target commit in Central Portal, then re-dispatch the workflow with the same version and `resumeGithubRelease=true`. It rebuilds, signs, and attests the release assets but deliberately skips Central upload. |
+| Maven Central has already published the version | Never rerun the Central upload. Published coordinates are immutable. Repair only the missing GitHub release/announcement and retain the original version. |
+
+`resumeGithubRelease=true` is a recovery control, not a shortcut: it must only be used after
+confirming that the Central deployment for that exact version and commit exists. The workflow still
+refuses an existing Git tag, so it cannot overwrite a completed GitHub release.
+
 ## Post-release
 
 - Verify on Maven Central: `https://repo1.maven.org/maven2/io/github/frikit/krandom-core/<version>/`
@@ -69,6 +97,9 @@ The GPG public key must be uploaded to a public keyserver (for example
   metadata component version matches the release tag.
 - Verify a downloaded jar, SBOM, or `aggregation.zip` with
   `gh attestation verify --repo frikit/krandom <path>`.
+- Run the Central-only consumer gate after the coordinates are visible:
+  `KRANDOM_VERSION=<version> ./scripts/verify_examples_central.sh`. It exercises a plain-Java
+  Maven/Gradle consumer and a Kotlin/Spring Maven consumer without Maven-local resolution.
 - Land a follow-up version-facts commit on `main`. Update `apiBaselineVersion`
   to the released version, set `developmentVersion` to the next `*-SNAPSHOT`,
   and retain `latestGaVersion` at the release just published. Then run

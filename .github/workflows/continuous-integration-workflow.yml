@@ -7,16 +7,20 @@ on:
 
 jobs:
   build:
-    name: Test & Coverage (Kotest + JUnit 5)
+    name: Test & Coverage (Java ${{ matrix.java }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [ '21', '25' ]
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
-      - name: Set up Java 21 (Temurin)
+      - name: Set up Java ${{ matrix.java }} (Temurin)
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
         with:
-          java-version: '21'
+          java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: 'gradle'
 
@@ -39,12 +43,54 @@ jobs:
         run: ./gradlew verifyReleaseSboms --stacktrace --console=plain --max-workers=1 --no-daemon
 
       - name: Upload coverage to Codecov
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        if: matrix.java == '21' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: core/build/jacoco/jacoco.xml
           fail_ci_if_error: false
+
+  native-image:
+    name: GraalVM Native Image Smoke (Java 25)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Set up GraalVM with Native Image
+        uses: graalvm/setup-graalvm@bef4b0e916c7dd079bf60fb95d49139f67e32c5f # v1.5.3
+        with:
+          java-version: '25'
+          distribution: graalvm
+          components: native-image
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build and run native-image smoke fixture
+        run: ./scripts/verify_native_image.sh
+
+  mutation-pilot:
+    name: Schema Mutation Pilot (Java 21)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Measure schema mutation baseline
+        run: ./gradlew :core:pitest --console=plain --max-workers=1 --no-daemon
 
   examples:
     name: Examples (Local Maven Snapshot)

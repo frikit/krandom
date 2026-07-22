@@ -225,8 +225,8 @@ class BuiltInGeneratorCatalogTest {
         assertInstanceOf(URI.class, Generators.ofURI(GeneratorConfig.builder().seed(7L).build()).generate());
         assertInstanceOf(java.net.URL.class, Generators.ofURL(GeneratorConfig.builder().seed(7L).build()).generate());
 
-        assertNotNull(Generators.ofUri().generate());
-        assertNotNull(Generators.ofUrl().generate());
+        assertInstanceOf(String.class, Generators.ofUri().generate());
+        assertInstanceOf(String.class, Generators.ofUrl().generate());
         assertNotNull(Generators.ofIPv4().generate());
         assertNotNull(Generators.ofIPv6().generate());
         assertNotNull(Generators.ofMacAddress().generate());

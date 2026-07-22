@@ -4,9 +4,12 @@ This example verifies that published Kotlin-facing integration artifacts are con
 
 - `io.github.frikit:krandom-kotest-extensions`
 - `io.github.frikit:krandom-kotlin-dsl`
+- `io.github.frikit:krandom-spring-boot-starter`
+
+The test suite proves Kotlin DSL/Kotest use and Spring Boot auto-configuration from Kotlin.
 
 It is executed by `../../scripts/verify_examples_local.sh` after the repository modules are published to Maven local.
 
 ```bash
-mvn -Dkrandom.version=2.0.0-SNAPSHOT test
+mvn -Dkrandom.version=2.1.0-SNAPSHOT test
 ```

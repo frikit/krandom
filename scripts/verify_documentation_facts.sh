@@ -101,6 +101,11 @@ grep -Fq 'allDeclaredConstructors' "${NATIVE_GUIDE}" || fail "native-image guide
 grep -Fq 'university.sha256' "${DATA_PACK_GUIDE}" || fail "local data-pack guide lacks checksum contract"
 grep -Fq 'registerDataPack(pack)' "${DATA_PACK_GUIDE}" || fail "local data-pack guide lacks scoped registration"
 grep -Fq 'SchemaProjection' "${REPO_ROOT}/docs-site/guides/schema-and-provider-hub.md" || fail "schema guide lacks existing-object projection"
+[[ -x "${REPO_ROOT}/scripts/verify_release_rehearsal.sh" ]] || fail "release rehearsal script is not executable"
+[[ -x "${REPO_ROOT}/scripts/verify_examples_central.sh" ]] || fail "Central consumer verification script is not executable"
+grep -Fq 'resumeGithubRelease=true' "${REPO_ROOT}/docs/release-runbook.md" || fail "release runbook lacks GitHub Release recovery guidance"
+grep -Fq 'verify_examples_central.sh' "${REPO_ROOT}/docs/release-runbook.md" || fail "release runbook lacks Central consumer verification"
+grep -Fq 'Test strength | 94%' "${REPO_ROOT}/docs/development/v2-1-mutation-pilot.md" || fail "mutation pilot baseline is stale"
 
 grep -Fq "The latest released version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/README.md" || fail "README latest GA version is stale"
 grep -Fq "The current version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started latest GA version is stale"

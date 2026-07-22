@@ -80,13 +80,30 @@ SchemaValueProvider typedPayload = SchemaValueProvider.withJsonSchema(
 
 ### JSON Schema import subset
 
-`SchemaParser.fromJsonSchema(...)` accepts object schemas using scalar `type` values, nullable type
-lists, `format`, `enum`, `const`, numeric/string/array bounds, `pattern`, `items`, and nested
-`properties`. It also accepts `$schema`, `required`, and `additionalProperties`, so a schema emitted
-by `toJsonSchema()` can be imported again. References and composition are intentionally unsupported:
-`$ref`, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas, and pattern/dependent-property
-composition fail immediately with the nested schema path. Unknown string formats use the normal
-semantic-or-string fallback; they do not claim an unimplemented format contract.
+`SchemaParser.fromJsonSchema(...)` implements a deliberately small JSON Schema/OpenAPI subset. It
+is a fixture-schema importer, not a general JSON Schema validator or reference resolver:
+
+| Construct | Supported behavior |
+| --- | --- |
+| Root | An object with a non-empty `properties` map is required. |
+| Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
+| Scalars | `const`, a non-empty `enum`, numeric bounds, string length bounds, and the simplified-regex `pattern` syntax supported by `RegexGenerator`. |
+| Strings | `email`, `uri`/`url`, `uuid`, `date`, `date-time`, `time`, `ipv4`, `ipv6`, and `hostname` receive dedicated generation. An unknown *string* format deliberately uses semantic-name or bounded-string fallback rather than pretending to implement it. |
+| Structures | `items` and `minItems`/`maxItems` for arrays; nested `properties` for objects. An array without `items` produces strings. |
+| OpenAPI controls | OpenAPI 3.0 `nullable`, plus `$schema`, `required`, and `additionalProperties` emitted by `toJsonSchema()`. The latter three are accepted as document controls rather than generation constraints. |
+
+`$ref`, dynamic/recursive references, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas,
+and pattern/dependent-property composition are unsupported. They fail during parsing with the nested
+schema path. Malformed `type`, `format`, and `enum` values also fail during parsing with that path;
+they never silently become an unconstrained field. A Java map that recursively contains itself is
+rejected for the same reason: the importer has no document-ID or reference-resolution model.
+
+Schema export is metadata-driven and side-effect free. Built-in `Field` providers carry an exact
+fragment; a custom lambda with no metadata deliberately exports `{}` to mean **unknown**, not an
+invented type. Attach `SchemaValueProvider.withJsonSchema(...)` or `withSample(...)` when a custom
+provider can make a narrower claim. `Schema`, `SchemaProjection`, and parser-created generators are
+stateful: use one instance per thread (or `Generators.threadLocal(...)`) and share only immutable
+configuration and completed provider registrations.
 
 Use the streaming writer methods when you want payload output without materializing the whole batch first:
 

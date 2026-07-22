@@ -8,10 +8,11 @@
     <version>0.1.0</version>
 
     <properties>
-        <krandom.version>2.0.0-SNAPSHOT</krandom.version>
+        <krandom.version>2.1.0-SNAPSHOT</krandom.version>
         <kotlin.version>2.4.0</kotlin.version>
         <kotlin.compiler.daemon>false</kotlin.compiler.daemon>
         <junit.version>6.1.1</junit.version>
+        <spring.boot.version>4.1.0</spring.boot.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -47,6 +48,10 @@
             <artifactId>krandom-kotlin-dsl</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.github.frikit</groupId>
+            <artifactId>krandom-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.version}</version>
@@ -56,6 +61,12 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>${spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

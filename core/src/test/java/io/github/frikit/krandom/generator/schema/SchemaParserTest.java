@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -103,6 +104,33 @@ class SchemaParserTest {
             properties.put("name", "not-a-schema");
             assertThrows(IllegalArgumentException.class,
                 () -> SchemaParser.fromJsonSchema(objectSchema(properties)));
+        }
+
+        @Test
+        @DisplayName("rejects a non-string format with its schema path")
+        void rejectsNonStringFormat() {
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(
+                    Map.of("value", Map.of("type", "string", "format", 42)))));
+            assertTrue(exception.getMessage().contains("$.properties.value"));
+        }
+
+        @Test
+        @DisplayName("rejects unsupported type names with their schema path")
+        void rejectsUnsupportedType() {
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(
+                    Map.of("value", Map.of("type", "binary")))));
+            assertTrue(exception.getMessage().contains("$.properties.value"));
+        }
+
+        @Test
+        @DisplayName("rejects type lists containing multiple concrete types")
+        void rejectsMultipleConcreteTypes() {
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(
+                    Map.of("value", Map.of("type", List.of("string", "integer"))))));
+            assertTrue(exception.getMessage().contains("$.properties.value"));
         }
 
         @Test
@@ -473,15 +501,14 @@ class SchemaParserTest {
         }
 
         @Test
-        @DisplayName("empty enum falls through to type-based generation")
+        @DisplayName("rejects an empty enum with the schema path")
         void emptyEnum() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", "string");
             fieldSchema.put("enum", List.of());
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("data", fieldSchema)));
-            Object value = schema.generate().get("data");
-            assertInstanceOf(String.class, value);
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("data", fieldSchema))));
+            assertTrue(exception.getMessage().contains("$.properties.data"));
         }
     }
 
@@ -1106,54 +1133,60 @@ class SchemaParserTest {
     class TypeListEdgeCases {
 
         @Test
-        @DisplayName("empty type list falls to untyped")
+        @DisplayName("rejects an empty type list")
         void emptyTypeList() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", List.of());
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("val", fieldSchema)));
-            Object value = schema.generate().get("val");
-            assertInstanceOf(String.class, value);
+            assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
         }
 
         @Test
-        @DisplayName("type list with non-string entries is handled")
+        @DisplayName("rejects type lists with non-string entries")
         void nonStringTypeList() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", List.of(42, "string"));
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("val", fieldSchema)));
-            Object value = schema.generate().get("val");
-            assertInstanceOf(String.class, value);
+            assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
         }
 
         @Test
-        @DisplayName("type as non-string non-list returns empty string type")
+        @DisplayName("rejects a non-string non-list type")
         void typeAsNumber() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", 42);
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("val", fieldSchema)));
-            // falls through to resolveUntyped -> string
-            Object value = schema.generate().get("val");
-            assertInstanceOf(String.class, value);
+            assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
         }
     }
 
     @Nested
-    @DisplayName("enum with non-list value")
+    @DisplayName("malformed enum")
     class EnumEdgeCases {
 
         @Test
-        @DisplayName("enum with non-list value falls through to type-based generation")
+        @DisplayName("rejects an enum with a non-list value")
         void nonListEnum() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", "string");
             fieldSchema.put("enum", "not-a-list");
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("data", fieldSchema)));
-            Object value = schema.generate().get("data");
-            assertInstanceOf(String.class, value);
+            assertThrows(IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("data", fieldSchema))));
         }
+    }
+
+    @Test
+    @DisplayName("seeded format providers reproduce their generated record")
+    void seededFormatProvidersReproduce() {
+        Map<String, Object> properties = new LinkedHashMap<>();
+        for (String format : List.of("email", "uri", "uuid", "date", "date-time", "time", "ipv4", "ipv6", "hostname")) {
+            properties.put(format, Map.of("type", "string", "format", format));
+        }
+        GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+
+        Map<String, Object> first = SchemaParser.fromJsonSchema(objectSchema(properties), config).generate();
+        Map<String, Object> second = SchemaParser.fromJsonSchema(objectSchema(properties), config).generate();
+
+        assertEquals(first, second);
     }
 }

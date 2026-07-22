@@ -6,8 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-07-17
-
 ### Added
 
 - `HttpFixtureGenerator`, coherent static HTTP request/response fixture records, and a namespaced
@@ -23,6 +21,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   SHA-256-verified CSV data, and no network-loading path.
 - Experimental GraalVM native-image reachability metadata, a conditional local smoke verifier,
   and guidance for registering application-owned reflective types.
+
+## [2.0.0] - 2026-07-17
+
+### Added
+
 - Versioned, human-readable `GenerationRecipe` replay metadata for portable seeded configurations.
 - `checkAllWithRecipe` and `krandomKotestRecipe`: Kotest property failures can now carry the
   portable kRandom configuration recipe alongside Kotest's seed report, and the adapter suite is

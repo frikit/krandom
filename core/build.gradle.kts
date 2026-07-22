@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     jacoco
+    alias(libs.plugins.pitest)
 }
 
 val coverageThreshold = "0.999".toBigDecimal()
@@ -42,6 +43,23 @@ tasks.test {
     jvmArgs("-Xmx512m")
     systemProperty("krandom.rootDir", rootProject.projectDir.absolutePath)
     finalizedBy(tasks.jacocoTestReport)
+}
+
+pitest {
+    targetClasses.set(setOf(
+        "io.github.frikit.krandom.generator.schema.Schema",
+        "io.github.frikit.krandom.generator.schema.SchemaParser",
+        "io.github.frikit.krandom.generator.schema.SchemaValueProvider",
+        "io.github.frikit.krandom.generator.location.RegistryLookup"
+    ))
+    targetTests.set(setOf(
+        "io.github.frikit.krandom.generator.schema.*",
+        "io.github.frikit.krandom.generator.location.RegistryLookupTest"
+    ))
+    junit5PluginVersion.set("1.2.3")
+    outputFormats.set(setOf("HTML", "XML"))
+    timestampedReports.set(false)
+    threads.set(1)
 }
 
 val providerCatalogDocumentationFile = rootProject.layout.projectDirectory.file("docs/reference/provider-catalog.md")

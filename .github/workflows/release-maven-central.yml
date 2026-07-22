@@ -15,6 +15,11 @@ on:
           - USER_MANAGED
           - AUTOMATIC
         default: USER_MANAGED
+      resumeGithubRelease:
+        description: "Skip Central upload and recreate only a failed GitHub Release after verifying the Central deployment"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -105,6 +110,7 @@ jobs:
       # publishingType=AUTOMATIC: artifacts release as soon as Sonatype validation
       # passes, no UI step needed.
       - name: Publish to Maven Central (Central Portal)
+        if: github.event.inputs.resumeGithubRelease != 'true'
         env:
           CENTRAL_PORTAL_USERNAME: ${{ secrets.CENTRAL_PORTAL_USERNAME }}
           CENTRAL_PORTAL_PASSWORD: ${{ secrets.CENTRAL_PORTAL_PASSWORD }}
@@ -112,6 +118,12 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
         run: ./gradlew publishAggregationToCentralPortal -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
+
+      - name: Confirm GitHub Release recovery mode
+        if: github.event.inputs.resumeGithubRelease == 'true'
+        run: |
+          echo "Central upload intentionally skipped."
+          echo "Confirm the version is already present in Central Portal before creating the GitHub Release."
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2

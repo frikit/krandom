@@ -9,7 +9,14 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
+import io.github.frikit.krandom.generator.datetime.DateGenerator;
+import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.TimeGenerator;
+import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
+import io.github.frikit.krandom.generator.network.HostnameGenerator;
+import io.github.frikit.krandom.generator.network.IPv4Generator;
+import io.github.frikit.krandom.generator.network.IPv6Generator;
+import io.github.frikit.krandom.generator.network.URLGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,11 +45,13 @@ import java.util.Set;
  *   <li>{@code nullable} (OpenAPI 3.0) — nullable field support</li>
  * </ul>
  *
- * <p>The parser accepts the control keywords emitted by {@link Schema#toJsonSchema()}, including
- * {@code $schema}, {@code required}, and {@code additionalProperties}. References and schema
- * composition ({@code $ref}, {@code allOf}, {@code anyOf}, {@code oneOf}, and related conditional
- * keywords) are rejected with a schema path because this parser has no resolver or composition
- * semantics.
+ * <p>A type list may contain one concrete supported type plus {@code null}. Empty, malformed, and
+ * unsupported type declarations, non-string formats, and empty or malformed enums are rejected
+ * with their schema path. The parser accepts the control keywords emitted by
+ * {@link Schema#toJsonSchema()}, including {@code $schema}, {@code required}, and
+ * {@code additionalProperties}. References and schema composition ({@code $ref}, {@code allOf},
+ * {@code anyOf}, {@code oneOf}, and related conditional keywords) are rejected with a schema path
+ * because this parser has no resolver or composition semantics.
  *
  * <p>Field names are matched against krandom's semantic resolver for realistic data.
  * For example, a property named "email" with type "string" will produce email addresses.
@@ -70,6 +79,9 @@ public final class SchemaParser {
         "contains", "prefixItems", "unevaluatedItems",
         "dependentRequired", "dependentSchemas",
         "patternProperties", "propertyNames", "unevaluatedProperties");
+
+    private static final Set<String> SUPPORTED_TYPES = Set.of(
+        "string", "integer", "number", "boolean", "array", "object", "null");
 
     private SchemaParser() {
     }
@@ -156,6 +168,7 @@ public final class SchemaParser {
                         "Unsupported JSON Schema keyword '" + keyword + "' at " + path);
                 }
             }
+            validateSupportedShape(schema, path);
             Object properties = schema.get("properties");
             if (properties instanceof Map<?, ?> nestedProperties) {
                 for (Map.Entry<?, ?> entry : nestedProperties.entrySet()) {
@@ -170,6 +183,51 @@ public final class SchemaParser {
             }
         } finally {
             visiting.remove(schema);
+        }
+    }
+
+    private static void validateSupportedShape(Map<?, ?> schema, String path) {
+        if (schema.containsKey("enum")) {
+            Object enumValues = schema.get("enum");
+            if (!(enumValues instanceof List<?> values) || values.isEmpty()) {
+                throw new IllegalArgumentException(
+                    "JSON Schema enum must be a non-empty list at " + path);
+            }
+        }
+
+        if (schema.containsKey("format") && !(schema.get("format") instanceof String)) {
+            throw new IllegalArgumentException("JSON Schema format must be a string at " + path);
+        }
+
+        Object type = schema.get("type");
+        if (type instanceof String namedType) {
+            validateSupportedType(namedType, path);
+        } else if (type instanceof List<?> types) {
+            if (types.isEmpty()) {
+                throw new IllegalArgumentException("JSON Schema type list must not be empty at " + path);
+            }
+            long concreteTypes = 0;
+            for (Object item : types) {
+                if (!(item instanceof String namedType)) {
+                    throw new IllegalArgumentException("JSON Schema type entries must be strings at " + path);
+                }
+                validateSupportedType(namedType, path);
+                if (!"null".equals(namedType)) {
+                    concreteTypes++;
+                }
+            }
+            if (concreteTypes > 1) {
+                throw new IllegalArgumentException(
+                    "JSON Schema type lists may contain one concrete type plus null at " + path);
+            }
+        } else if (type != null) {
+            throw new IllegalArgumentException("JSON Schema type must be a string or list at " + path);
+        }
+    }
+
+    private static void validateSupportedType(String type, String path) {
+        if (!SUPPORTED_TYPES.contains(type)) {
+            throw new IllegalArgumentException("Unsupported JSON Schema type '" + type + "' at " + path);
         }
     }
 
@@ -269,7 +327,11 @@ public final class SchemaParser {
         // Bounded string length
         int minLength = intOrDefault(schema.get("minLength"), config.getMinStringLength());
         int maxLength = intOrDefault(schema.get("maxLength"), config.getMaxStringLength());
-        var gen = StringGenerator.builder().minLength(minLength).maxLength(maxLength).build();
+        StringGenerator.Builder builder = StringGenerator.builder()
+                                                       .minLength(minLength)
+                                                       .maxLength(maxLength);
+        config.getSeed().ifPresent(builder::seed);
+        var gen = builder.build();
         return ctx -> gen.generate();
     }
 
@@ -280,35 +342,35 @@ public final class SchemaParser {
                 yield ctx -> gen.generate();
             }
             case "uri", "url" -> {
-                var gen = Generators.ofUrl();
+                var gen = new URLGenerator(config);
                 yield ctx -> gen.generate();
             }
             case "uuid" -> {
-                var gen = Generators.ofUuid();
+                var gen = new UUIDGenerator(config);
                 yield ctx -> gen.generate().toString();
             }
             case "date" -> {
-                var gen = Generators.ofLocalDate();
+                var gen = new DateGenerator(config);
                 yield ctx -> gen.generate().toString();
             }
             case "date-time" -> {
-                var gen = Generators.ofLocalDateTime();
+                var gen = new LocalDateTimeGenerator(config);
                 yield ctx -> gen.generate().toString();
             }
             case "time" -> {
-                var gen = new TimeGenerator();
+                var gen = new TimeGenerator(config);
                 yield ctx -> gen.generate().toString();
             }
             case "ipv4" -> {
-                var gen = Generators.ofIPv4();
+                var gen = new IPv4Generator(config);
                 yield ctx -> gen.generate();
             }
             case "ipv6" -> {
-                var gen = Generators.ofIPv6();
+                var gen = new IPv6Generator(config);
                 yield ctx -> gen.generate();
             }
             case "hostname" -> {
-                var gen = Generators.ofHostname();
+                var gen = new HostnameGenerator(config);
                 yield ctx -> gen.generate();
             }
             default -> null;

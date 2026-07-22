@@ -24,7 +24,8 @@ generator where shown by the API.
 
 - `ofIPv4`, `ofIPv6`, `ofIP`, `ofPort`, `ofMacAddress`
 - `ofDomain`, `ofHostname`, `ofUrl` (text URL), `ofUri` (text URI), `ofURI`
-  (`URI` object), `ofURL` (`URL` object), `ofSlug`, `ofUserAgent`
+  (`URI` object), `ofURL` (`URL` object), `ofSlug`, `ofUserAgent`. Lowercase `Url`/`Uri`
+  names generate text; uppercase `URL`/`URI` names generate the corresponding JDK object.
 - `ofHttpMethod`, `ofHttpStatusCode`
 
 ## Date, time, and locale
@@ -68,7 +69,8 @@ generator where shown by the API.
 - Other fail-closed generators (explicit policy required): `ofIsin`, `ofCusip`,
   `ofEin`, `ofCnpj`, `ofCpf`, `ofCryptoAddress`, `ofNationalId`, `ofPassport`,
   `ofDrivingLicense`
-- General identifiers: `ofUuid`, `ofHash`, `ofIdentifierMask`, `ofEan`, `ofUpc`,
+- General identifiers: `ofUuid` (the canonical UUID factory; no redundant `ofUUID` alias),
+  `ofHash`, `ofIdentifierMask`, `ofEan`, `ofUpc`,
   `ofIsbn`
 
 `PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE` is the default for cards.

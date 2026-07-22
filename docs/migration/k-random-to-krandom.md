@@ -451,9 +451,9 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `EnumRandomizer` | `new EnumGenerator<>(EnumType.class)` |
 | `OptionalRandomizer` | Object optional field handling or wrap a generator with `Optional.ofNullable(...)` |
 | `LocaleRandomizer` | `Generators.ofLocale()` / `RandomLocaleGenerator` |
-| `UUIDRandomizer` | `Generators.ofUuid()` / `Generators.identifier().uuid()` / `UUIDGenerator` |
-| `UriRandomizer` | `Generators.ofURI()` for `URI`, or `Generators.ofUri()` for URI strings |
-| `UrlRandomizer` | `Generators.ofURL()` for `URL`, or `Generators.ofUrl()` for URL strings |
+| `UUIDRandomizer` | `Generators.ofUuid()` / `Generators.identifier().uuid()` / `UUIDGenerator` (`ofUuid()` is the only UUID facade spelling) |
+| `UriRandomizer` | `Generators.ofURI()` for `URI`, or `Generators.ofUri()` for URI strings (upper-case names return JDK objects; lower-case names return text) |
+| `UrlRandomizer` | `Generators.ofURL()` for `URL`, or `Generators.ofUrl()` for URL strings (upper-case names return JDK objects; lower-case names return text) |
 | `DateRandomizer` | `Generators.ofUtilDate()` / `UtilDateGenerator` |
 | `DateRangeRandomizer` | `new UtilDateGenerator(minDate, maxDate)` after converting bounds to `LocalDate`, or `objectDateRange(...)` for object fields |
 | `SqlDateRandomizer` | `Generators.ofSqlDate()` / `SqlDateGenerator` |

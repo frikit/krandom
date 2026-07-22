@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.spotless) apply false
     alias(libs.plugins.cyclonedx)
     alias(libs.plugins.nmcp.aggregation)
+    alias(libs.plugins.pitest) apply false
 }
 
 val apiBaselineVersion = providers.gradleProperty("apiBaselineVersion")

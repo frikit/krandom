@@ -17,6 +17,7 @@ spring-boot = "4.1.0"
 japicmp = "0.26.1"
 cyclonedx = "3.3.0"
 nmcp = "1.6.1"
+pitest = "1.19.0"
 
 [libraries]
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
@@ -44,3 +45,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 cyclonedx = { id = "org.cyclonedx.bom", version.ref = "cyclonedx" }
 nmcp-aggregation = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }
+pitest = { id = "info.solidsoft.pitest", version.ref = "pitest" }

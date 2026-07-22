@@ -1,7 +1,7 @@
 # kRandom v2 Public API Inventory
 
 **Baseline:** `1.5.0`
-**Development line:** `2.0.0-SNAPSHOT`
+**Development line:** `2.1.0-SNAPSHOT`
 **Status:** Classified for the 1.6 bridge
 
 ## Machine-readable inventory
@@ -67,11 +67,21 @@ The facade currently has hundreds of public static declarations. Domain namespac
 | `pickset(list, count)` | **REMOVED in v2** | `pickSet(list, count)` | Existing spelling violates Java casing |
 | `shuffleOf(list)` | **REMOVED in v2** | `shuffle(list)` | Redundant alias |
 | `uniqueValues(generator)` | **REMOVED in v2** | `unique(generator)` | Redundant alias |
-| `ofUrl()` / `ofURL()` | **DECISION REQUIRED** | One acronym convention | Current overload sets differ |
-| `ofUri()` / `ofURI()` | **DECISION REQUIRED** | One acronym convention | Current overload sets differ |
-| `ofUuid()` | **DECISION REQUIRED** | Keep or add `ofUUID()` bridge | Must use the same acronym rule as URL/URI |
+| `ofUrl()` / `ofURL()` | **KEEP** | `ofUrl()` for a URL-form `String`; `ofURL()` for `java.net.URL` | Lower camel case names a textual format; JDK type spelling names an object factory |
+| `ofUri()` / `ofURI()` | **KEEP** | `ofUri()` for a URI-form `String`; `ofURI()` for `java.net.URI` | Lower camel case names a textual format; JDK type spelling names an object factory |
+| `ofUuid()` | **KEEP** | `ofUuid()` | It is the sole UUID factory and follows ordinary lower-camel Java method casing; do not add a redundant `ofUUID()` alias |
 
 All other facade methods default to **KEEP** for the 1.6 bridge. Stage 3 may reduce the v2 facade only through a reviewed inventory update and an available 1.6 migration path.
+
+### URL, URI, and UUID naming decision
+
+The lowercase forms name text formats (`url`, `uri`, and `uuid`), while the all-caps forms are
+reserved for object factories whose return type is the corresponding JDK acronym type. This is a
+deliberate return-type distinction, not an overload pair: use `ofUrl()` or `ofUri()` where the
+consumer expects text, and `ofURL()` or `ofURI()` where it expects a parsed JDK object. `ofUuid()`
+is already unambiguous, so an `ofUUID()` bridge would only enlarge the facade. No facade split is
+justified: the generated catalog and domain namespaces provide the discoverability path, and the
+current four methods form a small, type-led exception that is easy to document and test.
 
 ## Registry exceptions
 
