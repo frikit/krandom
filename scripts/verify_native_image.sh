@@ -32,8 +32,7 @@ native-image \
     --class-path "${CORE_JAR}:${WORK_DIRECTORY}" \
     -H:Class=io.github.frikit.krandom.smoke.NativeImageSmoke \
     -H:Name=krandom-native-image-smoke \
-    -H:Path="${WORK_DIRECTORY}" \
-    --quiet
+    -H:Path="${WORK_DIRECTORY}"
 
 RESULT="$(${WORK_DIRECTORY}/krandom-native-image-smoke)"
 [[ "${RESULT}" =~ ^[1-9]$ ]] || {
