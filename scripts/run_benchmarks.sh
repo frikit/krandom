@@ -33,9 +33,9 @@ for arg in "$@"; do
 done
 
 if [ "$QUICK" = true ]; then
-    JMH_ARGS="-wi 1 -i 2 -f 1 -t 1"
+    JMH_ARGS="-foe true -wi 1 -i 2 -f 1 -t 1"
 else
-    JMH_ARGS="-wi 3 -i 5 -f 1 -t 1"
+    JMH_ARGS="-foe true -wi 3 -i 5 -f 1 -t 1"
 fi
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -103,6 +103,11 @@ echo
           -e 's#/Library/Java/JavaVirtualMachines/[^/[:space:]]*/Contents/Home#<jdk>#g' \
     | tee "${RAW_OUTPUT}"
 
+if grep -Eq '(^|[[:space:]])<failure>($|[[:space:]])' "${RAW_OUTPUT}"; then
+    echo "ERROR: JMH reported a benchmark failure; see ${RAW_OUTPUT}" >&2
+    exit 1
+fi
+
 step "Raw output saved to ${RAW_OUTPUT}"
 
 # ── Parse results and generate dashboard ──────────────────────────────────────
@@ -119,8 +124,9 @@ OS_VERSION=$(uname -r)
 JMH_TABLE=$(grep -E "^(Benchmark|Competitor|Expanded|FirstName|ObjectFactory|ObjectGenerator|Regex|Schema)" "${RAW_OUTPUT}" 2>/dev/null || true)
 
 if [ -z "${JMH_TABLE}" ]; then
-    echo "WARNING: no JMH result rows parsed from ${RAW_OUTPUT}; the generated dashboard will have empty tables." >&2
-    echo "         Check the raw output for JMH failures or a changed output format." >&2
+    echo "ERROR: no JMH result rows parsed from ${RAW_OUTPUT}." >&2
+    echo "       Check the raw output for JMH failures or a changed output format." >&2
+    exit 1
 fi
 
 # Build the dashboard

@@ -17,6 +17,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.OperationsPerInvocation;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
@@ -30,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 3, time = 1)
 @Fork(1)
 public class ExpandedGenerationBenchmark {
+
+    private static final int UNIQUE_EMAIL_BATCH_SIZE = 1_000;
 
     @State(Scope.Thread)
     public static class GeneratorState {
@@ -89,6 +92,15 @@ public class ExpandedGenerationBenchmark {
                                                                 .seed(7L)
                                                                 .build()),
                               2_000);
+
+        String generateUniqueEmailBatch() {
+            uniqueEmail.reset();
+            String email = uniqueEmail.generate();
+            for (int i = 1; i < UNIQUE_EMAIL_BATCH_SIZE; i++) {
+                email = uniqueEmail.generate();
+            }
+            return email;
+        }
     }
 
     @Benchmark
@@ -112,7 +124,8 @@ public class ExpandedGenerationBenchmark {
     }
 
     @Benchmark
+    @OperationsPerInvocation(UNIQUE_EMAIL_BATCH_SIZE)
     public String uniquenessHeavyEmailGeneration(GeneratorState state) {
-        return state.uniqueEmail.generate();
+        return state.generateUniqueEmailBatch();
     }
 }
