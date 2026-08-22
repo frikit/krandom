@@ -142,6 +142,10 @@ io.github.frikit.krandom.generator.DataRegistryContext#isUniversityRegistered(ja
 io.github.frikit.krandom.generator.DataRegistryContext#universityRegisteredKeys()
 io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerDataPack(io.github.frikit.krandom.generator.datapack.LocalDataPack)
 io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerUniversityProvider(io.github.frikit.krandom.generator.user.UniversityDataProvider)
+# Forward fixture-control APIs; see krandom-2-1-hardening-plan.md.
+io.github.frikit.krandom.generator.object.PropertySelector
+io.github.frikit.krandom.generator.object.PropertyPath
+io.github.frikit.krandom.generator.object.ObjectModel
 # SchemaParser remains KEEP; its documented v2 import contract now rejects references and
 # composition rather than silently producing unconstrained values. See schema-and-provider-hub.md.
 io.github.frikit.krandom.generator.schema.SchemaParser

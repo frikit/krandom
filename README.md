@@ -79,14 +79,19 @@ val user = krandom<User> {
 - Use scalar generators like `Generators.ofInt(...)`, `Generators.ofEmail()`, or `Generators.ofCity()` when you need a few direct values.
 - Use the domain namespaces — `Generators.person()`, `Generators.finance()`, `Generators.location()`, `Generators.network()`, `Generators.text()`, `Generators.commerce()`, `Generators.identifier()`, `Generators.datetime()` — when you want a discoverable, IDE-friendly entry point per domain (each also accepts a `GeneratorConfig`).
 - Use `ObjectGenerator<T>` when you want an existing DTO / record populated with realistic defaults.
-- Use `ObjectFaker<T>` when you need explicit fixture rules, nested overrides, or reusable profiles.
+- Use `ObjectFaker<T>` when you need explicit fixture rules, typed nested overrides, or strict
+  configuration validation. Use immutable `ObjectModel<T>` values for reusable, composable fixture
+  definitions.
 - Use `Field` + `Schema` when you want row-style payloads or formatted export output such as CSV, JSONL, XML, or SQL.
 
 The public docs now also include a dedicated guide: [Choosing an API](docs-site/guides/choosing-an-api.md).
 
 ## Performance
 
-krandom's scalar generators are significantly faster than comparable JVM libraries. Full benchmark reports are run monthly and stored in [`docs/benchmarks/`](docs/benchmarks/).
+krandom's scalar generators are significantly faster than comparable JVM libraries. Checked-in
+full benchmark reports are stored in [`docs/benchmarks/`](docs/benchmarks/); the
+[methodology](docs/benchmarks/METHODOLOGY.md) separates structural and semantic workloads and
+defines the publication protocol and regression budgets.
 
 **Scalar generation throughput** (single value per call, ops/s — higher is better):
 

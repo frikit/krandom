@@ -139,6 +139,14 @@ else
     exit 1
 fi
 
+step "Run critical-path mutation tests"
+if "${GRADLEW}" :core:pitest --quiet; then
+    ok "Mutation score meets the measured critical-path threshold"
+else
+    fail "Mutation testing failed — see core/build/reports/pitest"
+    exit 1
+fi
+
 step "Enforce coverage thresholds"
 COVERAGE_OK=0
 "${GRADLEW}" :core:jacocoTestCoverageVerification --quiet && COVERAGE_OK=1 || true

@@ -41,7 +41,6 @@ import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
 import io.github.frikit.krandom.generator.network.URLGenerator;
 import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import io.github.frikit.krandom.generator.provider.ProviderHub;
 
 import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedElement;
@@ -137,6 +136,7 @@ import java.util.function.Supplier;
 final class FieldGeneratorResolver {
 
     private static final String OBJECT_CHARACTER_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    private static final List<String> ZONE_IDS = ZoneId.getAvailableZoneIds().stream().sorted().toList();
 
     static final int DEFAULT_MIN_ELEMENT_COUNT = GeneratorConfig.defaults().getMinCollectionSize();
     static final int DEFAULT_MAX_ELEMENT_COUNT = GeneratorConfig.defaults().getMaxCollectionSize();
@@ -218,9 +218,16 @@ final class FieldGeneratorResolver {
         this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
         this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
         this.semanticRegistry = config.getSemanticRegistry();
-        this.semanticStringGenerators = buildSemanticStringGenerators(this.generatorConfig, this.sequenceRandom, this.semanticRegistry);
-        this.semanticTypedGenerators = buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
         this.semanticMode = config.getSemanticMode();
+        if (semanticMode == ObjectGenerationSemanticMode.STRUCTURAL_ONLY) {
+            this.semanticStringGenerators = Map.of();
+            this.semanticTypedGenerators = Map.of();
+        } else {
+            this.semanticStringGenerators =
+                buildSemanticStringGenerators(this.generatorConfig, this.sequenceRandom, this.semanticRegistry);
+            this.semanticTypedGenerators =
+                buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
+        }
         this.uniqueFieldNames = config.getUniqueFieldNames();
         this.failurePolicy = new ObjectGenerationFailurePolicy(
             config.isIgnoreErrors(),
@@ -307,9 +314,7 @@ final class FieldGeneratorResolver {
             periodRandom.nextInt(0, 12),
             periodRandom.nextInt(0, 31));
         Random zoneRandom = randomFor(generatorConfig, seedSource);
-        List<String> zoneIds = new ArrayList<>(ZoneId.getAvailableZoneIds());
-        zoneIds.sort(String::compareTo);
-        Generator<ZoneId> zoneIdGenerator = () -> ZoneId.of(zoneIds.get(zoneRandom.nextInt(zoneIds.size())));
+        Generator<ZoneId> zoneIdGenerator = () -> ZoneId.of(ZONE_IDS.get(zoneRandom.nextInt(ZONE_IDS.size())));
         Random zoneOffsetRandom = randomFor(generatorConfig, seedSource);
         Generator<ZoneOffset> zoneOffsetGenerator = () -> ZoneOffset.ofTotalSeconds(zoneOffsetRandom.nextInt(-72, 73) * 15 * 60);
         Generator<java.util.Date> utilDateGenerator = buildUtilDateGenerator(generatorConfig, seedSource, lo, hi);
@@ -481,11 +486,9 @@ final class FieldGeneratorResolver {
             generator.reseed(seed);
             return generator;
         }
-        List<String> zoneIds = new ArrayList<>(ZoneId.getAvailableZoneIds());
-        zoneIds.sort(String::compareTo);
         return () -> ZonedDateTime.of(
             randomLocalDateTime(seedSource, min, max),
-            ZoneId.of(zoneIds.get(seedSource.nextInt(zoneIds.size()))));
+            ZoneId.of(ZONE_IDS.get(seedSource.nextInt(ZONE_IDS.size()))));
     }
 
     private static Generator<java.util.Date> buildUtilDateGenerator(GeneratorConfig config,
@@ -749,10 +752,9 @@ final class FieldGeneratorResolver {
     private static Generator<?> buildProviderBackedSemanticGenerator(GeneratorConfig config,
                                                                      SemanticFieldRegistry semanticRegistry,
                                                                      String semanticKey) {
-        ProviderHub hub = new ProviderHub(config);
         String providerName = Objects.requireNonNull(semanticRegistry.semanticProviderNameFor(semanticKey),
                                                      "No provider mapping for semantic key: " + semanticKey);
-        Generator<?> provider = hub.get(providerName, Generator.class);
+        Generator<?> provider = BuiltInProviderResolver.generator(providerName, config);
         if ("uuid".equals(semanticKey)) {
             return () -> provider.generate().toString();
         }
@@ -835,8 +837,8 @@ final class FieldGeneratorResolver {
     }
 
     private static Generator<String> buildLocaleCurrencyCodeGenerator(GeneratorConfig config, Random seedSource) {
-        CurrencyGenerator generator =
-            new ProviderHub(derivedGeneratorConfig(config, seedSource)).get("finance.currency", CurrencyGenerator.class);
+        CurrencyGenerator generator = BuiltInProviderResolver.provider(
+            "finance.currency", derivedGeneratorConfig(config, seedSource), CurrencyGenerator.class);
         return () -> generator.generateCurrencyIsoCode(config.getLocale());
     }
 

@@ -50,7 +50,7 @@ release metric.
 | Competitor | Role vs krandom | Maintained? | Tracking doc | Net gap for krandom |
 |---|---|---|---|---|
 | **DataFaker** | Realism / breadth leader | ✅ active (v2.7.0, 2026) | `datafaker-parity.md` | locale breadth, YAML/URL data-source compatibility, and long-tail domain catalogs |
-| **Instancio** | Object-graph leader, closest rival to `ObjectFaker` | ✅ active (v5.x) | ❌ **MISSING — create it** | Bean-Validation/JPA-aware generation, selector/Model ergonomics, sealed/generics parity advertising |
+| **Instancio** | Object-graph leader, closest rival to `ObjectFaker` | ✅ active (v5.x) | [`instancio-parity.md`](./instancio-parity.md) | JPA metadata, feeds, depth/group selectors, and generic type-token parity |
 | **EasyRandom** | Object-graph, legacy | ⚠️ maintenance mode; v6 (records, Java 17) ~2026 | `easy-random-parity.md` ✅ | none major — `ObjectFaker` is a superset; capture migrators |
 | **JavaFaker** | Dead predecessor of DataFaker | ❌ unmaintained since 2024 | (covered via DataFaker) | migration target only; nothing to adopt |
 

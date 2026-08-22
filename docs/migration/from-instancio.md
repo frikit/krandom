@@ -32,16 +32,16 @@ dependencies {
 | `Instancio.of(X.class)....create()` | `new ObjectFaker<>(X.class, cfg)....generate()` |
 | `Instancio.ofList(X).size(n).create()` | `Generators.ofObject(X.class).generateList(n)` |
 | `Instancio.stream(X).limit(n)` | `Generators.ofObject(X.class).stream().limit(n)` |
-| `set(field(X::getColor), "White")` | `.ruleFor("color", () -> "White")` |
-| `supply(field(X::getName), () -> v)` | `.ruleFor("name", () -> v)` |
-| `generate(field(P::getAge), g -> g.ints().range(4,50))` | `.ruleFor("age", Generators.ofInt(4, 50))` |
-| `generate(field(P::getDob), g -> g.temporal().localDate().past())` | `.ruleFor("dob", Generators.ofLocalDate())` (bounded via `DateGenerator.past()`) |
-| `ignore(field(X::getId))` | `.ignore("id")` |
+| `set(field(X::getColor), "White")` | `.ruleFor(X::getColor, () -> "White")` |
+| `supply(field(X::getName), () -> v)` | `.ruleFor(X::getName, () -> v)` |
+| `generate(field(P::getAge), g -> g.ints().range(4,50))` | `.ruleFor(P::getAge, Generators.ofInt(4, 50))` |
+| `generate(field(P::getDob), g -> g.temporal().localDate().past())` | `.ruleFor(P::getDob, Generators.ofLocalDate())` (bounded via `DateGenerator.past()`) |
+| `ignore(field(X::getId))` | `.ignore(X::getId)` |
 | `withNullable(field(X::getMiddle))` | nullable generator / `objectOptionalEmptyProbability(..)` |
 | `subtype(all(AbstractAddress.class), AddressImpl.class)` | `GeneratorConfig.builder().objectSubtype(AbstractAddress.class, AddressImpl.class)` |
 | `onComplete(all(P.class), p -> ...)` | `.afterGenerate(p -> ...)` / `.postProcess(op)` |
-| `toModel()` + reuse | `.profile("name", f -> ...)` + `.useProfile("name")` |
-| nested target `field(Address::getCity)` | dotted path `.ruleFor("address.city", ...)` |
+| `toModel()` + reuse | `ObjectModel.of(X.class).configure(...)`; compose with `.and(...)` |
+| nested target `field(Address::getCity)` | `.ruleFor(PropertyPath.of(X::getAddress).then(Address::getCity), ...)` |
 | `InstancioExtension` + `@Seed(123)` | `KrandomExtension` + `@KrandomSeed(123)` (`krandom-junit`) |
 
 ## Example
@@ -61,9 +61,9 @@ krandom (realistic email is built in — no second library):
 ```java
 GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
 Person p = new ObjectFaker<>(Person.class, cfg)
-    .ruleFor("lastName", () -> "Simpson")
-    .ruleFor("age", Generators.ofInt(18, 65))
-    .ruleFor("email", Generators.ofEmail(cfg))     // realistic, locale-aware, in-library
+    .ruleFor(Person::getLastName, () -> "Simpson")
+    .ruleFor(Person::getAge, Generators.ofInt(18, 65))
+    .ruleFor(Person::getEmail, Generators.ofEmail(cfg)) // realistic and locale-aware
     .generate();
 ```
 

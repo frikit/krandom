@@ -26,14 +26,14 @@ dependencies {
 |---|---|
 | `Instancio.create(User.class)` | `Generators.ofObject(User.class).generate()` |
 | `Instancio.ofList(User.class).size(10).create()` | `Generators.ofObject(User.class).generateList(10)` |
-| `Instancio.of(User.class).set(field("email"), v).create()` | `ObjectFaker.of(User.class).ruleFor("email", () -> v).generate()` or `GeneratorConfig.builder().objectOverride(User.class, "email", () -> v)` |
-| `.supply(field("id"), gen)` | `.ruleFor("id", gen)` (any `Generator<T>` or lambda) |
-| `.ignore(field("password"))` | `.ignore("password")` / `.objectExcludeField("password")` |
+| `Instancio.of(User.class).set(field(User::getEmail), v).create()` | `ObjectFaker.of(User.class).ruleFor(User::getEmail, () -> v).generate()` |
+| `.supply(field(User::getId), gen)` | `.ruleFor(User::getId, gen)` (any `Generator<T>` or lambda) |
+| `.ignore(field(User::getPassword))` | `.ignore(User::getPassword)` / `.objectExcludeField("password")` |
 | `.withNullable(field(...))` | `GeneratorConfig.builder().objectNullProbability(0.1)` |
 | `.onComplete(...)` | `ObjectFaker.afterGenerate(consumer)` / `.postProcess(operator)` |
 | `.withSeed(42)` | `GeneratorConfig.builder().seed(42L)` |
 | `.withMaxDepth(3)` | `.objectMaxDepth(3)` |
-| `Instancio.of(Model<T>)` | `ObjectFaker.profile("name", ...)` + `.useProfile("name")` (closest analogue) |
+| `Instancio.of(Model<T>)` | `ObjectModel<T>.faker()` / `.generate()`; compose models with `.and(...)` |
 | `generate(field(...), gen -> gen.ints().range(1, 10))` | `.ruleFor("count", Generators.ofInt(1, 10))` |
 | `@ExtendWith(InstancioExtension.class)` + `@Seed(42)` | `@ExtendWith(KrandomExtension.class)` + `@KrandomSeed(42L)` from `krandom-junit` — same failure-seed reporting; see the [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }}) guide |
 
@@ -55,8 +55,8 @@ kRandom:
 GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
 
 User user = new ObjectFaker<>(User.class, config)
-    .ruleFor("email", () -> "owner@example.test")
-    .ignore("password")
+    .ruleFor(User::getEmail, () -> "owner@example.test")
+    .ignore(User::getPassword)
     .generate();
 ```
 
@@ -74,10 +74,10 @@ User user = new ObjectFaker<>(User.class, config)
 
 ## Honest gaps
 
-- **Method-reference selectors** (`field(User::getEmail)`): kRandom rules use
-  field names and predicates, not method references.
-- **`Model<T>` composition**: `ObjectFaker` profiles cover named rule sets,
-  but there is no model inheritance/derivation yet.
 - **Feeds** (CSV/JSON-backed data sources): not shipped; on the roadmap.
 - **Selector depth scoping** (`atDepth(...)`): use `objectMaxDepth` plus
   per-field rules; per-depth selectors have no direct equivalent.
+- **Selector groups and arbitrary selector predicates**: typed paths select one property at a
+  time; broad predicate rules remain configured through `GeneratorConfig` field predicates.
+- **JPA-specific constraints**: Bean Validation is native, but JPA metadata such as
+  `@Column(length=...)` is not interpreted.

@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.benchmarks;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
 import org.instancio.Instancio;
 import org.jeasy.random.EasyRandom;
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Head-to-head bulk generation: produce N objects per invocation.
+ * Bulk generation split into structural and semantic fixture workloads.
  *
  * <p>Parameterized by batch size (100 and 1000) so the results show how each library
  * scales with volume.
@@ -52,7 +53,16 @@ public class CompetitorBulkBenchmark {
 
     @State(Scope.Thread)
     public static class KrandomState {
-        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> generator =
+        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> structuralGenerator =
+            new ObjectGenerator<>(BenchmarkFixtures.ComparableUser.class,
+                                  GeneratorConfig.builder()
+                                                 .locale(Locale.US)
+                                                 .seed(7L)
+                                                 .objectMaxDepth(2)
+                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                                 .build());
+
+        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> semanticGenerator =
             new ObjectGenerator<>(BenchmarkFixtures.ComparableUser.class,
                                   GeneratorConfig.builder()
                                                  .locale(Locale.US)
@@ -80,8 +90,13 @@ public class CompetitorBulkBenchmark {
     // ── Benchmarks ───────────────────────────────────────────────────────────
 
     @Benchmark
-    public List<BenchmarkFixtures.ComparableUser> krandomBulk(KrandomState state, BatchParams params) {
-        return state.generator.generateList(params.batchSize);
+    public List<BenchmarkFixtures.ComparableUser> krandomStructuralBulk(KrandomState state, BatchParams params) {
+        return state.structuralGenerator.generateList(params.batchSize);
+    }
+
+    @Benchmark
+    public List<BenchmarkFixtures.ComparableUser> krandomSemanticBulk(KrandomState state, BatchParams params) {
+        return state.semanticGenerator.generateList(params.batchSize);
     }
 
     @Benchmark

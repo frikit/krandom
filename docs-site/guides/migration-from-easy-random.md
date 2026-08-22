@@ -6,9 +6,10 @@ permalink: /guides/migration-from-easy-random/
 
 # Migration from easy-random
 
-Use this mapping to move easy-random (org.jeasy) code to kRandom. kRandom's
-object generation covers the easy-random core feature set natively, including
-Bean Validation handling that easy-random ships as a separate module.
+Use this mapping to move Easy Random 6.x (`org.jeasy.random`) code to kRandom. Easy Random runs on
+Java 17; kRandom 2.x requires Java 21. kRandom covers the common structural object-generation
+surface and adds native Bean Validation and semantic fixture generation, but it does not promise
+the same seeded object values.
 
 ## Install
 

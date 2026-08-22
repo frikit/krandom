@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Type-safe Java object rules through `PropertySelector` and composable `PropertyPath`, including
+  getter and record-accessor references for root and nested `ObjectFaker` rules.
+- Immutable, composable `ObjectModel` fixture configurations and opt-in `ObjectFaker.strict()`
+  validation. Existing dependent rules now provide type-safe correlated assignments.
+- Critical object-engine mutation testing with measured 85% mutation and 98% mutated-class
+  coverage thresholds, plus Gradle and Maven consumer coverage for the new public fixture API.
 - `HttpFixtureGenerator`, coherent static HTTP request/response fixture records, and a namespaced
   `network().httpFixture()` entry point. They generate compatible response-body shapes without
   making network calls.
@@ -92,6 +98,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Pinned GitHub/Sigstore build-provenance attestations for the signed Maven Central bundle, jars, and SBOMs before publication.
 
 ### Changed
+- Object generation caches Bean Validation constraint/accessor metadata, reuses sorted time-zone
+  metadata, and resolves immutable built-in provider descriptors without rebuilding a mutable
+  provider hub for every object.
+- Competitor benchmarks separate structural object generation from semantic fixture construction;
+  full publishable runs use three forks and report GC/allocation metrics against documented
+  regression budgets. Dashboard parsing now handles parameterized and competitor-only JMH tables
+  and fails if the generated methodology link is missing.
+- Semantic coherence now deterministically derives a birth date from an explicitly overridden age,
+  while preserving both values when the user explicitly overrides both fields.
 - `PhoneNumberGenerator` now uses NANPA's fictional `555-0100` through `555-0199` range by
   default for US locale-style output. Other locales, custom templates, and MSISDN
   output remain explicitly unclassified; `REALISTIC_UNCLASSIFIED` restores the prior behavior and
