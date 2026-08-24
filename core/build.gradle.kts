@@ -50,16 +50,25 @@ pitest {
         "io.github.frikit.krandom.generator.schema.Schema",
         "io.github.frikit.krandom.generator.schema.SchemaParser",
         "io.github.frikit.krandom.generator.schema.SchemaValueProvider",
-        "io.github.frikit.krandom.generator.location.RegistryLookup"
+        "io.github.frikit.krandom.generator.location.RegistryLookup",
+        "io.github.frikit.krandom.generator.object.BeanValidationSupport",
+        "io.github.frikit.krandom.generator.object.BuiltInProviderResolver",
+        "io.github.frikit.krandom.generator.object.ObjectFaker",
+        "io.github.frikit.krandom.generator.object.ObjectGenerator",
+        "io.github.frikit.krandom.generator.object.ObjectModel",
+        "io.github.frikit.krandom.generator.object.PropertyPath"
     ))
     targetTests.set(setOf(
         "io.github.frikit.krandom.generator.schema.*",
-        "io.github.frikit.krandom.generator.location.RegistryLookupTest"
+        "io.github.frikit.krandom.generator.location.RegistryLookupTest",
+        "io.github.frikit.krandom.generator.object.*"
     ))
     junit5PluginVersion.set("1.2.3")
     outputFormats.set(setOf("HTML", "XML"))
     timestampedReports.set(false)
     threads.set(1)
+    mutationThreshold.set(85)
+    coverageThreshold.set(98)
 }
 
 val providerCatalogDocumentationFile = rootProject.layout.projectDirectory.file("docs/reference/provider-catalog.md")

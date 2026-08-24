@@ -8,6 +8,8 @@ package io.github.frikit.krandom.generator.provider;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -31,6 +33,20 @@ public final class ProviderSchemaProjection<T> {
     private final Class<?>                      recordType;
     private final Set<String>                   nullableComponents;
     private final ProviderSafetyMetadata        safetyMetadata;
+
+    /**
+     * Creates a string-shaped schema projection builder.
+     *
+     * @param reference canonical schema reference
+     * @param extractor provider value extractor
+     * @param <T> provider implementation type
+     * @return projection builder
+     */
+    public static <T> Builder<T> builder(
+        String reference,
+        BiFunction<? super T, GeneratorConfig, ?> extractor) {
+        return new Builder<>(reference, extractor);
+    }
 
     ProviderSchemaProjection(String reference,
                              List<String> aliases,
@@ -151,5 +167,137 @@ public final class ProviderSchemaProjection<T> {
                                               recordType,
                                               nullableComponents,
                                               metadata);
+    }
+
+    /**
+     * Builder for a typed provider schema projection.
+     *
+     * @param <T> provider implementation type
+     */
+    public static final class Builder<T> {
+
+        private final String reference;
+        private final BiFunction<? super T, GeneratorConfig, ?> extractor;
+        private final List<String> aliases = new ArrayList<>();
+        private boolean integer;
+        private String format;
+        private Class<?> recordType;
+        private Set<String> nullableComponents = Set.of();
+        private ProviderSafetyMetadata safetyMetadata = ProviderSafetyMetadata.unclassified();
+
+        private Builder(String reference, BiFunction<? super T, GeneratorConfig, ?> extractor) {
+            this.reference = requireName("reference", reference);
+            this.extractor = Objects.requireNonNull(extractor, "extractor must not be null");
+        }
+
+        /**
+         * Adds schema lookup aliases.
+         *
+         * @param values aliases
+         * @return this builder
+         */
+        public Builder<T> aliases(String... values) {
+            Objects.requireNonNull(values, "aliases must not be null");
+            Set<String> names = new LinkedHashSet<>(aliases);
+            for (String value : values) {
+                String alias = requireName("alias", value);
+                if (!names.add(alias)) {
+                    throw new IllegalArgumentException("alias is duplicated: " + alias);
+                }
+            }
+            aliases.clear();
+            aliases.addAll(names);
+            return this;
+        }
+
+        /**
+         * Marks values as JSON Schema integers.
+         *
+         * @return this builder
+         */
+        public Builder<T> integer() {
+            this.integer = true;
+            return this;
+        }
+
+        /**
+         * Sets a JSON Schema string format.
+         *
+         * @param value format name
+         * @return this builder
+         */
+        public Builder<T> format(String value) {
+            this.format = requireName("format", value);
+            return this;
+        }
+
+        /**
+         * Describes a record-shaped value and its nullable components.
+         *
+         * @param type record type
+         * @param nullableComponentNames nullable record components
+         * @return this builder
+         */
+        public Builder<T> record(Class<?> type, String... nullableComponentNames) {
+            Class<?> value = Objects.requireNonNull(type, "type must not be null");
+            if (!value.isRecord()) {
+                throw new IllegalArgumentException("type must be a record: " + value.getName());
+            }
+            this.recordType = value;
+            Objects.requireNonNull(nullableComponentNames, "nullableComponentNames must not be null");
+            Set<String> names = new LinkedHashSet<>();
+            for (String componentName : nullableComponentNames) {
+                names.add(requireToken("nullableComponentName", componentName));
+            }
+            this.nullableComponents = Set.copyOf(names);
+            return this;
+        }
+
+        /**
+         * Sets projection-specific validity and test-safety metadata.
+         *
+         * @param metadata safety metadata
+         * @return this builder
+         */
+        public Builder<T> safetyMetadata(ProviderSafetyMetadata metadata) {
+            this.safetyMetadata = Objects.requireNonNull(metadata, "metadata must not be null");
+            return this;
+        }
+
+        /**
+         * Builds the immutable projection.
+         *
+         * @return schema projection
+         */
+        public ProviderSchemaProjection<T> build() {
+            int shapes = (integer ? 1 : 0) + (format == null ? 0 : 1) + (recordType == null ? 0 : 1);
+            if (shapes > 1) {
+                throw new IllegalStateException("Choose only one schema shape: integer, format, or record");
+            }
+            if (aliases.contains(reference)) {
+                throw new IllegalArgumentException("alias duplicates schema reference: " + reference);
+            }
+            return new ProviderSchemaProjection<>(reference,
+                                                  aliases,
+                                                  extractor,
+                                                  integer,
+                                                  format,
+                                                  recordType,
+                                                  nullableComponents,
+                                                  safetyMetadata);
+        }
+
+        private static String requireName(String name, String value) {
+            return requireToken(name, value).toLowerCase(java.util.Locale.ROOT);
+        }
+
+        private static String requireToken(String name, String value) {
+            Objects.requireNonNull(value, name + " must not be null");
+            String normalized = value.trim();
+            if (normalized.isEmpty() || normalized.indexOf('\n') >= 0 || normalized.indexOf('\r') >= 0) {
+                throw new IllegalArgumentException(name + " must be a non-blank single-line value");
+            }
+            return normalized;
+        }
     }
 }

@@ -1,16 +1,20 @@
 # kRandom v2 Master Implementation Plan
 
 **Created:** 2026-07-09
-**Status:** In progress
+**Status:** Historical execution record; superseded after the 2.0.0 release
 **Source review:** [`../reviews/v2-release-readiness-review-2026-07-09.md`](../reviews/v2-release-readiness-review-2026-07-09.md)
 **Current line:** `2.1.0-SNAPSHOT`
 **Target:** A stable v2 contract followed by controlled adoption across consumer projects
 
 ## 1. Purpose
 
-This is the single source of truth for preparing, releasing, and adopting kRandom v2. It converts the v2 readiness audit into ordered work packages with dependencies, implementation steps, tests, and objective completion gates.
+This document records the original work used to prepare kRandom v2. It is not the current source of
+truth after the 2.0.0 release. Active work is tracked in
+[`v2-1-contract-and-release-plan.md`](v2-1-contract-and-release-plan.md) and focused implementation
+plans such as [`krandom-2-1-hardening-plan.md`](krandom-2-1-hardening-plan.md).
 
-Historical parity, roadmap, and release plans remain useful research, but they do not control v2 scope. If they conflict with this plan, this plan wins.
+Unchecked items below remain historical requirements or deferred ideas; they do not override a
+newer active plan.
 
 The governing principle is simple:
 
@@ -772,18 +776,18 @@ Kotest-only (Step 3.3).
 
 **Actions**
 
-- [ ] Separate scalar, object, semantic-object, schema, and bulk export benchmarks.
-- [ ] Make competitor workloads equivalent or label the semantic work difference explicitly.
-- [ ] Use at least three forks and publish confidence intervals.
-- [ ] Define regression budgets for representative workloads, memory, and allocation.
-- [ ] Profile before optimizing object generation.
-- [ ] Restore an automated benchmark cadence or remove the monthly claim.
-- [ ] Present the complete dashboard rather than cherry-picked scalar wins.
+- [x] Separate scalar, structural-object, semantic-fixture, schema, and bulk export benchmarks.
+- [x] Make competitor workloads equivalent or label the semantic work difference explicitly.
+- [x] Use at least three forks and publish confidence intervals in full runs.
+- [x] Define throughput and allocation regression budgets for representative workloads.
+- [x] Profile before optimizing object generation.
+- [x] Remove the unsupported monthly benchmark claim.
+- [x] Present the complete dashboard rather than cherry-picked scalar wins.
 
 **Tests**
 
 - [ ] Quick benchmarks detect gross regressions in pull requests.
-- [ ] Full benchmarks are reproducible from one documented command/environment.
+- [x] Full benchmarks are reproducible from one documented command/environment.
 - [ ] Marketing claims are mechanically linked to current results.
 
 **Done when:** Performance work and claims are based on comparable, reproducible evidence.

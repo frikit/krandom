@@ -5,7 +5,7 @@ landscape and what we build next**. Consolidates the per-library parity docs in
 this folder into one prioritized backlog. Update this file whenever a backlog
 item ships or a competitor adds something material.
 
-**Last updated:** 2026-07-18
+**Last updated:** 2026-08-24
 
 ## Strategy decisions (locked)
 
@@ -50,13 +50,12 @@ release metric.
 | Competitor | Role vs krandom | Maintained? | Tracking doc | Net gap for krandom |
 |---|---|---|---|---|
 | **DataFaker** | Realism / breadth leader | ✅ active (v2.7.0, 2026) | `datafaker-parity.md` | locale breadth, YAML/URL data-source compatibility, and long-tail domain catalogs |
-| **Instancio** | Object-graph leader, closest rival to `ObjectFaker` | ✅ active (v5.x) | ❌ **MISSING — create it** | Bean-Validation/JPA-aware generation, selector/Model ergonomics, sealed/generics parity advertising |
+| **Instancio** | Object-graph leader, closest rival to `ObjectFaker` | ✅ active (v5.x) | [`instancio-parity.md`](./instancio-parity.md) | JPA metadata, feeds, depth/group selectors, and generic type-token parity |
 | **EasyRandom** | Object-graph, legacy | ⚠️ maintenance mode; v6 (records, Java 17) ~2026 | `easy-random-parity.md` ✅ | none major — `ObjectFaker` is a superset; capture migrators |
 | **JavaFaker** | Dead predecessor of DataFaker | ❌ unmaintained since 2024 | (covered via DataFaker) | migration target only; nothing to adopt |
 
-**Biggest tracking gap: there is no Instancio parity doc**, yet Instancio is the
-competitor most aligned with krandom's `ObjectFaker` value prop. Creating it is
-Phase 1 below.
+Instancio remains the competitor most aligned with krandom's `ObjectFaker` value prop; its
+dedicated parity document is now maintained alongside this tracker.
 
 ## Prioritized backlog
 
@@ -98,7 +97,7 @@ relevant per-library doc + `./scripts/pre_commit_check.sh`.
   - **Design note — locale-frequency providers (blood type, …):** back them with per-locale resource files (`krandom/bloodtypes/<locale>.txt`, `TYPE WEIGHT` lines) + weighted selection, seeded only for locales that have a file (others fall back to `default.txt`), mirroring the Gender data-provider/registry pattern. Do **not** hardcode as enums — distributions differ by population/locale. (slice 1: `default`, `en_US`, `ja_JP` shipped; remaining 32 locales are backlog.)
 - [ ] **Ergonomics parity with Instancio** (the real competitive pressure):
   - [ ] Bean-Validation/JPA-aware generation, first-class & documented (krandom has `BeanValidationSupport` — promote it)
-  - [ ] Predicate/type **selectors** + reusable **Model/template** concept (beyond `ruleFor`/profiles)
+  - [x] Type-safe property selectors + reusable immutable `ObjectModel` templates
   - [ ] Advertise + lock-in `record`/`sealed`/deep-generics parity with a test matrix
 - [x] **GraalVM native-image** reachability metadata and optional smoke verification (experimental; application models still require consumer metadata)
 
@@ -119,5 +118,5 @@ examples.** Any competitor "pro" with no krandom answer becomes a Phase 2 item.
 
 ## Per-library parity docs (detail lives here)
 - [`datafaker-parity.md`](./datafaker-parity.md) (narrative matrix) · [`datafaker-providers-catalog.md`](./datafaker-providers-catalog.md) (curated 263-provider capability mapping) · [`easy-random-parity.md`](./easy-random-parity.md)
-- `instancio-parity.md` *(to create — Phase 1)*
+- [`instancio-parity.md`](./instancio-parity.md)
 - Non-JVM references: `faker-python-parity.md`, `chancejs-parity.md`, `fake-rs-parity.md`, `gofakeit-parity.md`, `feature-parity-bogus.md`, `mimesis-parity.md`, `k-random-reference-parity.md`

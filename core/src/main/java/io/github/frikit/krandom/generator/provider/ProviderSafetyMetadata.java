@@ -71,10 +71,19 @@ public record ProviderSafetyMetadata(ProviderValidity formatValidity,
         safetyPolicy = Objects.requireNonNull(safetyPolicy, "safetyPolicy must not be null");
     }
 
-    static ProviderSafetyMetadata unclassified() {
+    public static ProviderSafetyMetadata unclassified() {
         return new ProviderSafetyMetadata(ProviderValidity.UNCLASSIFIED,
                                           ProviderValidity.UNCLASSIFIED,
                                           ProviderValidity.UNCLASSIFIED,
                                           ProviderTestSafety.UNCLASSIFIED);
+    }
+
+    /**
+     * Returns whether this value makes no validity or test-safety claims.
+     *
+     * @return true when every classification is unclassified and no policy is attached
+     */
+    public boolean isUnclassified() {
+        return equals(unclassified());
     }
 }

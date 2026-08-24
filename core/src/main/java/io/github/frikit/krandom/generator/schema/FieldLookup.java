@@ -10,7 +10,6 @@ import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
 import io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata;
-import io.github.frikit.krandom.generator.provider.ProviderSafetyPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderFactory;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
 
@@ -40,6 +39,7 @@ public final class FieldLookup {
     public FieldLookup(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         registerBuiltIns();
+        registerExtensions();
     }
 
     private static String normalize(String reference) {
@@ -276,18 +276,22 @@ public final class FieldLookup {
     }
 
     private void registerBuiltInDescriptor(ProviderDescriptor<?> descriptor) {
-        registerBuiltInDescriptorTyped(descriptor);
+        registerDescriptorTyped(descriptor, ConflictPolicy.REPLACE);
     }
 
-    private <T> void registerBuiltInDescriptorTyped(ProviderDescriptor<T> descriptor) {
+    private void registerExtensionDescriptor(ProviderDescriptor<?> descriptor) {
+        registerDescriptorTyped(descriptor, ConflictPolicy.FAIL);
+    }
+
+    private <T> void registerDescriptorTyped(ProviderDescriptor<T> descriptor, ConflictPolicy policy) {
         T provider = descriptor.create(config);
         for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
             register(projection.getReference(),
                      context -> projection.extract(provider, config),
                      jsonSchemaFor(projection),
-                     ConflictPolicy.REPLACE);
+                     policy);
             for (String alias : projection.getAliases()) {
-                registerAlias(alias, projection.getReference(), ConflictPolicy.REPLACE);
+                registerAlias(alias, projection.getReference(), policy);
             }
         }
     }
@@ -305,18 +309,17 @@ public final class FieldLookup {
     }
 
     private Map<String, Object> withSafetyMetadata(Map<String, Object> schema, ProviderSafetyMetadata metadata) {
-        if (metadata.safetyPolicy().isEmpty()) {
+        if (metadata.isUnclassified()) {
             return schema;
         }
-        ProviderSafetyPolicy safetyPolicy = metadata.safetyPolicy().orElseThrow();
-        Map<String, Object> policy = Map.of("setting", safetyPolicy.getSetting(),
-                                            "selected", safetyPolicy.selectedValue(config));
         Map<String, Object> safety = new LinkedHashMap<>();
         safety.put("formatValidity", metadata.formatValidity().name());
         safety.put("checksumValidity", metadata.checksumValidity().name());
         safety.put("semanticPlausibility", metadata.semanticPlausibility().name());
         safety.put("testSafety", metadata.testSafety().name());
-        safety.put("policy", policy);
+        metadata.safetyPolicy().ifPresent(safetyPolicy ->
+            safety.put("policy", Map.of("setting", safetyPolicy.getSetting(),
+                                         "selected", safetyPolicy.selectedValue(config))));
         Map<String, Object> extended = new LinkedHashMap<>(schema);
         extended.put("x-krandom-safety", Collections.unmodifiableMap(safety));
         return Collections.unmodifiableMap(extended);
@@ -325,6 +328,12 @@ public final class FieldLookup {
     private void registerBuiltIns() {
         for (ProviderDescriptor<?> descriptor : ProviderCatalog.schemaBuiltIns()) {
             registerBuiltInDescriptor(descriptor);
+        }
+    }
+
+    private void registerExtensions() {
+        for (ProviderDescriptor<?> descriptor : config.getExtensionRegistry().getProviderDescriptors()) {
+            registerExtensionDescriptor(descriptor);
         }
     }
 }

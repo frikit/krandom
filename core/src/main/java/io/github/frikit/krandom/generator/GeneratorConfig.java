@@ -6,6 +6,8 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
+import io.github.frikit.krandom.generator.extension.KRandomExtensionRegistry;
+import io.github.frikit.krandom.generator.extension.KRandomModule;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
@@ -123,6 +125,8 @@ public final class GeneratorConfig {
     private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
     private final String       providerDatasetVersion;
+    private final List<KRandomModule> modules;
+    private final KRandomExtensionRegistry extensionRegistry;
 
     private GeneratorConfig(Builder b) {
         this.seed = effectiveSeed(b.numericSeed, b.stringSeed);
@@ -141,7 +145,9 @@ public final class GeneratorConfig {
         this.objectDateMin = b.objectDateMin;
         this.objectDateMax = b.objectDateMax;
         this.objectSemanticMode = b.objectSemanticMode;
-        this.objectSemanticRegistry = b.objectSemanticRegistry;
+        this.modules = List.copyOf(b.modules);
+        this.extensionRegistry = KRandomExtensionRegistry.resolve(modules);
+        this.objectSemanticRegistry = extensionRegistry.applyTo(b.objectSemanticRegistry);
         this.objectNullProbability = b.objectNullProbability;
         this.objectOptionalEmptyProbability = b.objectOptionalEmptyProbability;
         this.objectUniqueFieldNames = Collections.unmodifiableSet(new LinkedHashSet<>(b.objectUniqueFieldNames));
@@ -433,6 +439,15 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Returns the immutable registry of explicitly installed extension contributions.
+     *
+     * @return configuration-scoped extension registry
+     */
+    public KRandomExtensionRegistry getExtensionRegistry() {
+        return extensionRegistry;
+    }
+
+    /**
      * Probability that a nullable reference field resolves to {@code null}.
      */
     public double getObjectNullProbability() {
@@ -686,6 +701,7 @@ public final class GeneratorConfig {
         // sources, so seed ownership is the only random-source condition required here.
         return seed.isPresent()
             && registryContext == DataRegistryContext.globalDefault()
+            && extensionRegistry.getModuleIds().isEmpty()
             && objectSemanticRegistry == SemanticFieldRegistry.defaults()
             && hasNoCustomObjectGenerationState();
     }
@@ -813,6 +829,7 @@ public final class GeneratorConfig {
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
         private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
+        private final List<KRandomModule> modules = new ArrayList<>();
 
         private Builder() {
         }
@@ -865,6 +882,30 @@ public final class GeneratorConfig {
             this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
             this.identityDocumentSafetyPolicy = source.identityDocumentSafetyPolicy;
             this.providerDatasetVersion = source.providerDatasetVersion;
+            this.modules.addAll(source.modules);
+        }
+
+        /**
+         * Installs one explicit, configuration-scoped extension module.
+         *
+         * <p>Module identifiers must be unique. Contributions are resolved at build time and
+         * conflicts with built-in or previously installed names fail closed.
+         *
+         * @param module module to install
+         * @return this builder
+         */
+        public Builder install(KRandomModule module) {
+            KRandomModule contribution = Objects.requireNonNull(module, "module must not be null");
+            String id = Objects.requireNonNull(contribution.id(), "module id must not be null").trim();
+            if (id.isEmpty() || id.indexOf('\n') >= 0 || id.indexOf('\r') >= 0) {
+                throw new IllegalArgumentException("module id must be a non-blank single-line value");
+            }
+            boolean alreadyInstalled = modules.stream().anyMatch(existing -> id.equals(existing.id().trim()));
+            if (alreadyInstalled) {
+                throw new IllegalArgumentException("Module already installed: " + id);
+            }
+            modules.add(contribution);
+            return this;
         }
 
         /**

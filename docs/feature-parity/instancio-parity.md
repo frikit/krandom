@@ -44,16 +44,16 @@ The genuine gaps are **ergonomics**, not capability:
 
 | Feature | Instancio | krandom | Status |
 |---|---|---|---|
-| Fixed value | `set(field(X::getC), "White")` | `ruleFor("color", () -> "White")` | ✅ |
-| Supplier | `supply(field(..), () -> v)` | `ruleFor("f", () -> v)` | ✅ |
-| Built-in generator w/ range | `generate(field(..), gen -> gen.ints().range(a,b))` | `ruleFor("f", Generators.ofInt(a,b))` | ✅ |
-| Ignore field | `ignore(field(..))` | `ObjectFaker.ignore("f")` / `objectExcludeField("f")` | ✅ |
+| Fixed value | `set(field(X::getC), "White")` | `ruleFor(X::getC, () -> "White")` | ✅ |
+| Supplier | `supply(field(..), () -> v)` | `ruleFor(X::getF, () -> v)` | ✅ |
+| Built-in generator w/ range | `generate(field(..), gen -> gen.ints().range(a,b))` | `ruleFor(X::getF, Generators.ofInt(a,b))` | ✅ |
+| Ignore field | `ignore(field(..))` | `ObjectFaker.ignore(X::getF)` / `objectExcludeField("f")` | ✅ |
 | Nullable | `withNullable(field(..))` | `objectOptionalEmptyProbability(..)` / nullable generators | ⚠️ partial |
 | On-complete callback | `onComplete(all(X), c)` | `afterGenerate(c)` / `postProcess(op)` | ✅ |
 | **Predicate selectors** | `all(String.class)`, predicates | `FieldPredicates.*` / `TypePredicates.*` via `objectOverride(pred, gen)` | ✅ |
-| **Type-safe method-ref selectors** | `field(Pojo::getX)` | string / dotted path `"a.b.field"` | ❌ **gap** |
-| Reusable templates | `Model<T>` via `toModel()` | `ObjectFaker.profile(..)` / `useProfile(..)` | ⚠️ partial |
-| Conditional rules | `assign(when(..).set(..))` | — | ❌ **gap** |
+| **Type-safe method-ref selectors** | `field(Pojo::getX)` | `Pojo::getX`; nested `PropertyPath.of(...).then(...)` | ✅ |
+| Reusable templates | `Model<T>` via `toModel()` | immutable `ObjectModel<T>` with `.configure(...)` / `.and(...)` | ✅ |
+| Conditional/correlated rules | `assign(when(..).set(..))` | dependent `ruleFor(Pojo::getX, generated -> ...)` | ⚠️ value correlation; no selector-group DSL |
 
 ## 3. JUnit 5 integration
 
@@ -90,8 +90,8 @@ The genuine gaps are **ergonomics**, not capability:
 
 ## Gaps to close (→ GAP-TRACKER Phase 2 ergonomics)
 
-- [ ] Type-safe method-reference selectors (`field(X::getY)`) alongside string paths
-- [ ] Reusable `Model<T>`-style templates (beyond profiles)
+- [x] Type-safe method-reference selectors through `PropertySelector` and nested `PropertyPath`
+- [x] Reusable immutable `ObjectModel<T>` templates, including composition
 - [ ] Conditional `assign(when/then)` rules
 - [ ] Data feeds: populate objects from CSV/JSON sources
 - [ ] Verify/advertise generic type-token + Java 21 sequenced-collection parity

@@ -152,6 +152,22 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
+    @DisplayName("explicit age and birthDate overrides are both preserved")
+    void explicitAgeAndBirthDateOverridesArePreserved() {
+        LocalDate explicitBirthDate = LocalDate.of(2000, 1, 1);
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                                                            .override(AgeCoherenceHolder.class, "ageYears", () -> 42)
+                                                            .override(AgeCoherenceHolder.class, "dateOfBirth",
+                                                                      () -> explicitBirthDate)
+                                                            .build();
+
+        AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class, config).generate();
+
+        assertEquals(42, value.ageYears);
+        assertEquals(explicitBirthDate, value.dateOfBirth);
+    }
+
+    @Test
     @DisplayName("active and string status stay aligned")
     void activeAndStringStatusStayAligned() {
         LifecycleCoherenceHolder value = new ObjectGenerator<>(LifecycleCoherenceHolder.class).generate();

@@ -33,7 +33,7 @@ Recommended path: implement missing behavior natively in the existing `io.github
 | Built-in Java type randomizers | High | Covered | Scalar, number, atomic, Java time, legacy date/time, URI/URL, locale, UUID, text/regex, collection/object-field, and faker/domain randomizer families now have native generators or documented generator-composition replacements. |
 | Faker/DataFaker randomizers | High functional | Partial | Local has richer native providers. Reference exposes DataFaker-backed classes such as `FirstNameRandomizer`, `ZipCodeRandomizer`, `PasswordRandomizer`, `RegularExpressionRandomizer`; map those to native generators. |
 | Bean Validation | High | Covered through native APIs | Local object generation now supports the reference constraint families for fields and getter/method annotations, including assert true/false, null/not-blank, numeric bounds/signs, decimal bounds, past/future temporal constraints, pattern/email, and string/container/map/array `@Size`. Reference registry/service loading maps to native resolver behavior rather than a separate module. |
-| Extension SPI | Medium | Covered through native APIs and migration docs | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local maps these to `Generator<T>`, `ContextualGenerator<T>`, predicate/object overrides, `ProviderHub`, and explicit native construction decisions. |
+| Extension SPI | Medium | Covered through native APIs and migration docs | Reference has `Randomizer<T>`, `ContextAwareRandomizer<T>`, registries/providers/policies/factories. Local maps these to `Generator<T>`, rich `ContextualGenerator<T>` metadata, predicate/object overrides, and explicit configuration-scoped `KRandomModule` contributions. |
 | Annotations | High | Covered for reference-style field rules | Local has analogous `@Exclude`, `@Randomizer`, `@RandomizerArgument`, plus `@Fake` and `@FakeRange`. Constructor arguments cover common reference-style value types. |
 | Classpath scanning | Missing by design | Migration-doc-only replacement | Reference can opt into ClassGraph-based concrete subtype discovery for abstract/interface fields. Local migration uses explicit `objectOverride(...)` registrations instead of scanning. |
 | Setter semantics | Direct-field native behavior | Migration-doc-only replacement | Reference calls setters by default and only direct-fields with `bypassSetters(true)`. Local object generation sets fields directly; setter-first mode is not copied in the native parity plan. |
@@ -86,11 +86,11 @@ Native exclusion and annotation mapping is now covered by tests in `ObjectGenera
 Native extension mapping is now covered by tests in `ObjectGeneratorExtensionModelTest`.
 
 - k-random `Randomizer<T>` maps to native `Generator<T>`.
-- k-random `ContextAwareRandomizer<T>` maps to native `ContextualGenerator<T>`, with context for field name, owner type, and depth.
+- k-random `ContextAwareRandomizer<T>` maps to native `ContextualGenerator<T>`, with context for field name, owner type, depth, full path, declared type, declaration, and active config.
 - Type, exact field, predicate field, and contextual predicate field randomizer registration are covered through `GeneratorConfig.objectOverride(...)`.
-- Custom registry/provider use cases map to explicit generator composition and `ProviderHub.register(...)` with aliases and `ConflictPolicy`.
+- Reusable registry/provider use cases map to explicit, config-scoped `KRandomModule` contributions; short-lived hub-local extensions can still use `ProviderHub.register(...)`.
 - Object factory customization maps to native constructor/Objenesis creation plus explicit type or field overrides for special cases.
-- ServiceLoader registry discovery and registry priority annotations remain out of scope for the native API.
+- Ambient ServiceLoader registry discovery and registry priority annotations remain intentionally out of scope; modules are explicitly installed, deterministically ordered, and conflict-safe.
 
 ## Phase 5 Built-In Randomizer Baseline
 

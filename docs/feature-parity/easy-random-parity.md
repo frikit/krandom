@@ -1,20 +1,21 @@
 # Easy Random Feature Parity Analysis
 
-> **2.0.0 API note:** This is a historical parity analysis, not a current API tutorial. Use
-> `Generators.ofConstant(...)` for constants and consult the
-> [generator catalog](../../docs-site/generator-catalog.md) for current runnable APIs.
+> **Current baseline:** The migration and benchmark contract is verified against Easy Random
+> 6.0.0. Older feature-count sections below remain historical implementation evidence; use the
+> [migration guide](../migration/from-easyrandom.md) and
+> [generator catalog](../../docs-site/generator-catalog.md) for current APIs.
 
 ## Library Overview
 
 - **Name**: Easy Random
 - **Language**: Java
-- **Version Analyzed**: 5.0.x (Java 11+), 4.3.x (Java 8)
+- **Version Analyzed**: 6.0.0 (Java 17+), with historical 5.0.x notes retained below
 - **GitHub**: https://github.com/j-easy/easy-random
 - **License**: MIT
-- **Status**: Maintenance mode (since November 2020) — bug fixes only
+- **Status**: Maintained 6.x line
 - **Key Strength**: Reflection-based object graph population, minimal configuration, ObjectMother pattern implementation
 
-*Last Updated: 2026-02-28 (Java-only execution plan refreshed; incremental parity slices in progress)*
+*Last Updated: 2026-08-21*
 
 ## Java Execution Plan
 
@@ -24,8 +25,10 @@
 
 ## Executive Summary
 
-Easy Random is a specialized library focused on **object graph randomization** rather than realistic data generation. Unlike DataFaker (200+ providers for realistic data), Easy Random excels at *
-*populating arbitrary Java objects with random values** to eliminate hand-crafted test fixtures. It implements the **ObjectMother pattern** for the JVM, making it ideal for:
+Easy Random is a specialized library focused on **object graph randomization** rather than
+realistic data generation. It excels at **populating arbitrary Java objects with random values**
+to eliminate hand-crafted test fixtures. It implements the Object Mother pattern for the JVM,
+making it useful for:
 
 - Generating test fixtures without manual builders
 - Populating databases with domain objects at scale
@@ -173,15 +176,14 @@ This document treats parity as **100% of krandom's scoped Java object-generation
 - **Algorithms**: Sieve of Eratosthenes (primes), Box-Muller (normal dist.), Luhn (cards), ISO 7064 (national IDs), ISBN-10/13 check digits
 - **Pre-commit Checks**: ALL PASSING ✅
 
-### Remaining Gaps ⏳
+### Remaining deliberate differences
 
-Features from Easy Random that are **not yet implemented** (all LOW priority or deliberate skip):
-
-- `@NotNull` / `@NotEmpty` bean validation constraints
-- `@Past` / `@Future` temporal constraints
-- Classpath scanning for abstract/interface types (intentionally skipped — slow/complex)
-- ServiceLoader registry SPI (intentionally skipped — over-engineered)
-- Password generator
+- Classpath scanning for abstract/interface types is intentionally replaced by explicit subtype
+  mappings.
+- ServiceLoader randomizer discovery is intentionally replaced by explicit provider/configuration
+  registration.
+- Exact seeded values and setter side effects are not migration guarantees.
+- Java 17 consumers must move to Java 21 to adopt krandom 2.x.
 
 ---
 

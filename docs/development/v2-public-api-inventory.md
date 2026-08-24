@@ -160,6 +160,14 @@ Classified schema references carry the same configuration-selected contract thro
 registration API. Catalog initialization rejects provider, schema-reference, and alias collisions,
 while each descriptor checks that its factory returns the declared provider type.
 
+`KRandomModule`, `KRandomModuleContext`, and `KRandomExtensionRegistry` are additive **KEEP** APIs.
+They provide the explicit v3 extension boundary: module IDs and all provider/schema names are
+validated at `GeneratorConfig.build()`, contributions remain configuration-scoped, and the same
+descriptor drives `ProviderHub`, `FieldLookup`, safety metadata, and semantic object generation.
+`ProviderDescriptor.Builder` and `ProviderSchemaProjection.Builder` are the public construction
+path for third-party descriptors. `GenerationContext` path/type/declaration/config accessors are
+additive **KEEP** APIs that retain its v2 constructor and existing accessors.
+
 ## Object-generation exceptions
 
 | API | Disposition | Required work |
@@ -202,7 +210,7 @@ exception constructors and inheritance remain compatible; the original cause is 
 Diagnostics expose only the cause class name, not the throwable. Replay identity remains empty
 until Step 2.7 introduces the recipe contract. Listener callback failures are sanitized and cannot
 replace strict failures or lenient fallback behavior.
-`ObjectGenerator` and `ObjectFaker` remain **KEEP** with no new public members; their exact
+`ObjectGenerator` and the 2.0 `ObjectFaker` surface remain **KEEP**; their exact
 class-level evolution classifications cover private contextual-failure implementation reported by
 japicmp.
 `GeneratorConfig` and its builder also retain **KEEP** dispositions; their exact class-level

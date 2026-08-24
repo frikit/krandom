@@ -23,6 +23,7 @@ module io.github.frikit.krandom {
     exports io.github.frikit.krandom.generator.database;
     exports io.github.frikit.krandom.generator.datapack;
     exports io.github.frikit.krandom.generator.datetime;
+    exports io.github.frikit.krandom.generator.extension;
     exports io.github.frikit.krandom.generator.failure;
     exports io.github.frikit.krandom.generator.file;
     exports io.github.frikit.krandom.generator.finance;

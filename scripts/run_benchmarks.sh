@@ -35,7 +35,7 @@ done
 if [ "$QUICK" = true ]; then
     JMH_ARGS="-foe true -wi 1 -i 2 -f 1 -t 1"
 else
-    JMH_ARGS="-foe true -wi 3 -i 5 -f 1 -t 1"
+    JMH_ARGS="-foe true -wi 3 -i 5 -f 3 -t 1 -prof gc"
 fi
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -65,11 +65,31 @@ format_score() {
     local score
 
     if [ -n "${batch_size}" ]; then
-        score=$(awk -v benchmark="${benchmark}" -v batch_size="${batch_size}" \
-            '$1 == benchmark && $2 == batch_size { printf "%d", $6; found = 1; exit } END { if (!found) exit 1 }' <<< "${lines}")
+        score=$(awk -v benchmark="${benchmark}" -v batch_size="${batch_size}" '
+            $1 == benchmark && $2 == batch_size {
+                for (i = 2; i <= NF; i++) {
+                    if ($i == "thrpt") {
+                        printf "%d", $(i + 2)
+                        found = 1
+                        exit
+                    }
+                }
+            }
+            END { if (!found) exit 1 }
+        ' <<< "${lines}")
     else
-        score=$(awk -v benchmark="${benchmark}" \
-            '$1 == benchmark { printf "%d", $6; found = 1; exit } END { if (!found) exit 1 }' <<< "${lines}")
+        score=$(awk -v benchmark="${benchmark}" '
+            $1 == benchmark {
+                for (i = 2; i <= NF; i++) {
+                    if ($i == "thrpt") {
+                        printf "%d", $(i + 2)
+                        found = 1
+                        exit
+                    }
+                }
+            }
+            END { if (!found) exit 1 }
+        ' <<< "${lines}")
     fi
 
     format_integer "${score}"
@@ -182,7 +202,8 @@ SCALAR
 fi
 
 if [ -n "$OBJECT_LINES" ]; then
-    krandom_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.krandomObject")
+    krandom_structural_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.krandomStructuralObject")
+    krandom_semantic_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.krandomSemanticObject")
     datafaker_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.dataFakerObject")
     easyrandom_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.easyRandomObject")
     instancio_obj=$(format_score "$OBJECT_LINES" "CompetitorObjectBenchmark.instancioObject")
@@ -190,21 +211,25 @@ if [ -n "$OBJECT_LINES" ]; then
     cat >> "${DASHBOARD}" << OBJECT
 ## Competitor Comparison: Object Population
 
-Populate a 6-field POJO per invocation (ops/s, higher is better).
+Populate a 6-field POJO per invocation (ops/s, higher is better). Structural generation and
+semantic fixture construction are different workloads and are not presented as interchangeable.
 
-| Benchmark | krandom | DataFaker | EasyRandom | Instancio |
+| Workload | krandom | DataFaker | EasyRandom | Instancio |
 |:---|---:|---:|---:|---:|
-| single object | ${krandom_obj} | ${datafaker_obj} | ${easyrandom_obj} | ${instancio_obj} |
+| structural object | ${krandom_structural_obj} | — | ${easyrandom_obj} | ${instancio_obj} |
+| semantic fixture | ${krandom_semantic_obj} | ${datafaker_obj} | — | — |
 
 OBJECT
 fi
 
 if [ -n "$BULK_LINES" ]; then
-    krandom_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.krandomBulk" "100")
+    krandom_structural_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.krandomStructuralBulk" "100")
+    krandom_semantic_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.krandomSemanticBulk" "100")
     datafaker_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.dataFakerBulk" "100")
     easyrandom_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.easyRandomBulk" "100")
     instancio_100=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.instancioBulk" "100")
-    krandom_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.krandomBulk" "1000")
+    krandom_structural_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.krandomStructuralBulk" "1000")
+    krandom_semantic_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.krandomSemanticBulk" "1000")
     datafaker_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.dataFakerBulk" "1000")
     easyrandom_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.easyRandomBulk" "1000")
     instancio_1k=$(format_score "$BULK_LINES" "CompetitorBulkBenchmark.instancioBulk" "1000")
@@ -212,12 +237,15 @@ if [ -n "$BULK_LINES" ]; then
     cat >> "${DASHBOARD}" << BULK
 ## Competitor Comparison: Bulk Generation
 
-Generate N objects per invocation (ops/s, higher is better).
+Generate N objects per invocation (ops/s, higher is better). Structural competitors and manual
+semantic fixture construction are shown on separate rows.
 
-| Batch size | krandom | DataFaker | EasyRandom | Instancio |
-|:---|---:|---:|---:|---:|
-| 100 | ${krandom_100} | ${datafaker_100} | ${easyrandom_100} | ${instancio_100} |
-| 1,000 | ${krandom_1k} | ${datafaker_1k} | ${easyrandom_1k} | ${instancio_1k} |
+| Workload | Batch size | krandom | DataFaker | EasyRandom | Instancio |
+|:---|---:|---:|---:|---:|---:|
+| structural | 100 | ${krandom_structural_100} | — | ${easyrandom_100} | ${instancio_100} |
+| semantic | 100 | ${krandom_semantic_100} | ${datafaker_100} | — | — |
+| structural | 1,000 | ${krandom_structural_1k} | — | ${easyrandom_1k} | ${instancio_1k} |
+| semantic | 1,000 | ${krandom_semantic_1k} | ${datafaker_1k} | — | — |
 
 BULK
 fi
@@ -252,6 +280,8 @@ Full JMH output: [\`results/${TODAY}.txt\`](results/${TODAY}.txt)
 
 ## Reproducing
 
+Protocol and regression budgets: [\`METHODOLOGY.md\`](METHODOLOGY.md)
+
 \`\`\`bash
 # Full run (all benchmarks, ~10 min)
 ./scripts/run_benchmarks.sh
@@ -265,6 +295,11 @@ Full JMH output: [\`results/${TODAY}.txt\`](results/${TODAY}.txt)
 
 Requires Java 21+. Set \`JAVA_HOME\` if your default JDK differs.
 FOOTER
+
+if ! grep -Fq 'Protocol and regression budgets: [`METHODOLOGY.md`](METHODOLOGY.md)' "${DASHBOARD}"; then
+    echo "ERROR: generated dashboard is incomplete: ${DASHBOARD}" >&2
+    exit 1
+fi
 
 step "Dashboard written to ${DASHBOARD}"
 echo "  View: docs/benchmarks/DASHBOARD.md"

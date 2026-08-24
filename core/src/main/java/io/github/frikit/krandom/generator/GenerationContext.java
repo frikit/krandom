@@ -5,6 +5,13 @@
  */
 package io.github.frikit.krandom.generator;
 
+import org.jspecify.annotations.Nullable;
+
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Type;
+import java.util.Objects;
+import java.util.Optional;
+
 /**
  * Provides context about the field currently being generated.
  *
@@ -22,11 +29,46 @@ public final class GenerationContext {
     private final String   fieldName;
     private final Class<?> ownerType;
     private final int      depth;
+    private final String   path;
+    private final @Nullable Type declaredType;
+    private final @Nullable AnnotatedElement declaration;
+    private final @Nullable GeneratorConfig config;
 
     public GenerationContext(String fieldName, Class<?> ownerType, int depth) {
-        this.fieldName = fieldName;
-        this.ownerType = ownerType;
+        this(fieldName, ownerType, depth, simpleName(ownerType) + "." + fieldName, null, null, null);
+    }
+
+    /**
+     * Creates a metadata-complete generation context.
+     *
+     * @param fieldName field or component name
+     * @param ownerType declaring type
+     * @param depth nesting depth
+     * @param path full root-to-field path
+     * @param declaredType reflected declared type, when available
+     * @param declaration reflected declaration, when available
+     * @param config active generator configuration, when available
+     */
+    public GenerationContext(String fieldName,
+                             Class<?> ownerType,
+                             int depth,
+                             String path,
+                             @Nullable Type declaredType,
+                             @Nullable AnnotatedElement declaration,
+                             @Nullable GeneratorConfig config) {
+        this.fieldName = Objects.requireNonNull(fieldName, "fieldName must not be null");
+        this.ownerType = Objects.requireNonNull(ownerType, "ownerType must not be null");
+        if (depth < 0) {
+            throw new IllegalArgumentException("depth must be >= 0");
+        }
         this.depth = depth;
+        this.path = Objects.requireNonNull(path, "path must not be null");
+        if (path.isBlank()) {
+            throw new IllegalArgumentException("path must not be blank");
+        }
+        this.declaredType = declaredType;
+        this.declaration = declaration;
+        this.config = config;
     }
 
     /**
@@ -50,5 +92,46 @@ public final class GenerationContext {
      */
     public int getDepth() {
         return depth;
+    }
+
+    /**
+     * Full root-to-field path used for diagnostics and targeted behavior.
+     *
+     * @return generation path
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * Reflected declared type, including generic arguments when available.
+     *
+     * @return optional declared type
+     */
+    public Optional<Type> getDeclaredType() {
+        return Optional.ofNullable(declaredType);
+    }
+
+    /**
+     * Field, record component, parameter, or other declaration being generated.
+     *
+     * @return optional reflected declaration
+     */
+    public Optional<AnnotatedElement> getDeclaration() {
+        return Optional.ofNullable(declaration);
+    }
+
+    /**
+     * Active generator configuration.
+     *
+     * @return optional active configuration
+     */
+    public Optional<GeneratorConfig> getConfig() {
+        return Optional.ofNullable(config);
+    }
+
+    private static String simpleName(Class<?> type) {
+        Class<?> value = Objects.requireNonNull(type, "ownerType must not be null");
+        return value.getSimpleName().isBlank() ? value.getName() : value.getSimpleName();
     }
 }

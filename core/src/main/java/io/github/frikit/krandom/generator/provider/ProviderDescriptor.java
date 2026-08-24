@@ -8,6 +8,8 @@ package io.github.frikit.krandom.generator.provider;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -28,6 +30,19 @@ public final class ProviderDescriptor<T> {
     private final Set<String>       semanticKeys;
     private final ProviderSafetyMetadata safetyMetadata;
     private final List<ProviderSchemaProjection<T>> schemaProjections;
+
+    /**
+     * Creates a public descriptor builder for a built-in or module provider.
+     *
+     * @param key canonical provider lookup key
+     * @param providerType provider implementation type
+     * @param factory configuration-aware provider factory
+     * @param <T> provider implementation type
+     * @return descriptor builder
+     */
+    public static <T> Builder<T> builder(String key, Class<T> providerType, ProviderFactory factory) {
+        return new Builder<>(key, providerType, factory);
+    }
 
     ProviderDescriptor(String key,
                        Class<T> providerType,
@@ -149,5 +164,113 @@ public final class ProviderDescriptor<T> {
                                         semanticKeys,
                                         metadata,
                                         schemaProjections);
+    }
+
+    /**
+     * Builder for one metadata-complete provider contribution.
+     *
+     * @param <T> provider implementation type
+     */
+    public static final class Builder<T> {
+
+        private final String key;
+        private final Class<T> providerType;
+        private final ProviderFactory factory;
+        private final Set<String> aliases = new LinkedHashSet<>();
+        private final Set<String> semanticKeys = new LinkedHashSet<>();
+        private final List<ProviderSchemaProjection<T>> schemaProjections = new ArrayList<>();
+        private ProviderSafetyMetadata safetyMetadata = ProviderSafetyMetadata.unclassified();
+
+        private Builder(String key, Class<T> providerType, ProviderFactory factory) {
+            this.key = requireName("key", key);
+            this.providerType = Objects.requireNonNull(providerType, "providerType must not be null");
+            this.factory = Objects.requireNonNull(factory, "factory must not be null");
+        }
+
+        /**
+         * Adds provider lookup aliases.
+         *
+         * @param values aliases
+         * @return this builder
+         */
+        public Builder<T> aliases(String... values) {
+            addNames(aliases, "alias", values);
+            return this;
+        }
+
+        /**
+         * Adds semantic object-field keys backed by this provider.
+         *
+         * @param values semantic keys
+         * @return this builder
+         */
+        public Builder<T> semanticKeys(String... values) {
+            addNames(semanticKeys, "semanticKey", values);
+            return this;
+        }
+
+        /**
+         * Sets provider-level validity and test-safety metadata.
+         *
+         * @param metadata safety metadata
+         * @return this builder
+         */
+        public Builder<T> safetyMetadata(ProviderSafetyMetadata metadata) {
+            this.safetyMetadata = Objects.requireNonNull(metadata, "metadata must not be null");
+            return this;
+        }
+
+        /**
+         * Adds a typed schema projection.
+         *
+         * @param projection schema projection
+         * @return this builder
+         */
+        public Builder<T> schemaProjection(ProviderSchemaProjection<T> projection) {
+            schemaProjections.add(Objects.requireNonNull(projection, "projection must not be null"));
+            return this;
+        }
+
+        /**
+         * Builds the immutable descriptor.
+         *
+         * @return provider descriptor
+         */
+        public ProviderDescriptor<T> build() {
+            if (aliases.contains(key)) {
+                throw new IllegalArgumentException("alias duplicates provider key: " + key);
+            }
+            List<ProviderSchemaProjection<T>> projections = schemaProjections.stream()
+                .map(projection -> projection.getSafetyMetadata().isUnclassified() && !safetyMetadata.isUnclassified()
+                                   ? projection.withSafetyMetadata(safetyMetadata)
+                                   : projection)
+                .toList();
+            return new ProviderDescriptor<>(key,
+                                            providerType,
+                                            factory,
+                                            List.copyOf(aliases),
+                                            Set.copyOf(semanticKeys),
+                                            safetyMetadata,
+                                            projections);
+        }
+
+        private static void addNames(Set<String> target, String name, String... values) {
+            Objects.requireNonNull(values, name + "s must not be null");
+            for (String value : values) {
+                String normalized = requireName(name, value);
+                if (!target.add(normalized)) {
+                    throw new IllegalArgumentException(name + " is duplicated: " + normalized);
+                }
+            }
+        }
+
+        private static String requireName(String name, String value) {
+            Objects.requireNonNull(value, name + " must not be null");
+            String normalized = value.trim().toLowerCase(java.util.Locale.ROOT);
+            if (normalized.isEmpty() || normalized.indexOf('\n') >= 0 || normalized.indexOf('\r') >= 0) {
+                throw new IllegalArgumentException(name + " must be a non-blank single-line value");
+            }
+            return normalized;
+        }
     }
 }

@@ -3,6 +3,7 @@ package io.github.frikit.krandom.examples;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.object.ObjectModel;
 import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
 import io.github.frikit.krandom.generator.weather.WeatherGenerator;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,19 @@ class JavaGradleUsageTest {
         int a = Generators.ofInt(1, 100, 42L).generate();
         int b = Generators.ofInt(1, 100, 42L).generate();
         assertEquals(a, b);
+    }
+
+    @Test
+    void publicTypedObjectModelApiCompilesAndGenerates() {
+        ObjectModel<UserFixture> model = ObjectModel.of(UserFixture.class)
+            .configure(faker -> faker
+                .ruleFor(UserFixture::name, () -> "Ada Lovelace")
+                .ruleFor(UserFixture::email, user -> user.name().toLowerCase(Locale.ROOT)
+                                                          .replace(' ', '.') + "@example.com")
+                .ruleFor(UserFixture::country, () -> "United Kingdom")
+                .strict());
+
+        assertEquals("ada.lovelace@example.com", model.generate().email());
     }
 
     @Test

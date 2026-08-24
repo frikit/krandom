@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.benchmarks;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
 import org.instancio.Instancio;
 import org.jeasy.random.EasyRandom;
@@ -24,13 +25,14 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Head-to-head POJO population: krandom vs DataFaker vs EasyRandom vs Instancio.
+ * POJO population split into structural and semantic fixture workloads.
  *
  * <p>All libraries populate the same {@link BenchmarkFixtures.ComparableUser} POJO so the
- * comparison measures library overhead, not model complexity. JavaFaker is excluded because
- * it has no object-population API. DataFaker's {@code populate()} requires {@code @Fake}
- * annotations, so it uses manual field assignment instead — the idiomatic way DataFaker
- * users build test fixtures.
+ * comparison measures library overhead, not model complexity. EasyRandom and Instancio are
+ * compared with krandom's structural mode. DataFaker's idiomatic manual semantic assignment is
+ * compared with krandom's semantic mode. These two workload families are intentionally reported
+ * separately because their semantics and costs are different. JavaFaker is excluded because it
+ * has no object-population API.
  */
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -43,7 +45,16 @@ public class CompetitorObjectBenchmark {
 
     @State(Scope.Thread)
     public static class KrandomState {
-        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> generator =
+        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> structuralGenerator =
+            new ObjectGenerator<>(BenchmarkFixtures.ComparableUser.class,
+                                  GeneratorConfig.builder()
+                                                 .locale(Locale.US)
+                                                 .seed(7L)
+                                                 .objectMaxDepth(2)
+                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                                 .build());
+
+        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> semanticGenerator =
             new ObjectGenerator<>(BenchmarkFixtures.ComparableUser.class,
                                   GeneratorConfig.builder()
                                                  .locale(Locale.US)
@@ -74,8 +85,13 @@ public class CompetitorObjectBenchmark {
     // ── Benchmarks ───────────────────────────────────────────────────────────
 
     @Benchmark
-    public BenchmarkFixtures.ComparableUser krandomObject(KrandomState state) {
-        return state.generator.generate();
+    public BenchmarkFixtures.ComparableUser krandomStructuralObject(KrandomState state) {
+        return state.structuralGenerator.generate();
+    }
+
+    @Benchmark
+    public BenchmarkFixtures.ComparableUser krandomSemanticObject(KrandomState state) {
+        return state.semanticGenerator.generate();
     }
 
     @Benchmark

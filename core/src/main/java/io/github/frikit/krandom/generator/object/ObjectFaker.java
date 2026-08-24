@@ -72,6 +72,7 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     private UniqueFieldTracker uniqueFieldTracker = new UniqueFieldTracker();
     private ObjectGenerator<T>  objectGenerator;
+    private boolean             strictValidation;
 
     /**
      * Creates a fixture authoring API with default object-generation settings.
@@ -118,6 +119,22 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
+     * Registers a deterministic root field rule through a type-safe accessor reference.
+     */
+    public <V> ObjectFaker<T> ruleFor(PropertySelector<T, V> property,
+                                      Generator<? extends V> generator) {
+        return ruleFor(PropertyPath.of(property), generator);
+    }
+
+    /**
+     * Registers a deterministic field rule through a type-safe root or nested property path.
+     */
+    public <V> ObjectFaker<T> ruleFor(PropertyPath<T, V> property,
+                                      Generator<? extends V> generator) {
+        return ruleFor(Objects.requireNonNull(property, "property must not be null").path(), generator);
+    }
+
+    /**
      * Registers a context-aware field rule evaluated during base object generation.
      */
     public <V> ObjectFaker<T> ruleForContext(String fieldName, ContextualGenerator<? extends V> generator) {
@@ -129,6 +146,22 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
+     * Registers a context-aware root field rule through a type-safe accessor reference.
+     */
+    public <V> ObjectFaker<T> ruleForContext(PropertySelector<T, V> property,
+                                             ContextualGenerator<? extends V> generator) {
+        return ruleForContext(PropertyPath.of(property), generator);
+    }
+
+    /**
+     * Registers a context-aware field rule through a type-safe root or nested property path.
+     */
+    public <V> ObjectFaker<T> ruleForContext(PropertyPath<T, V> property,
+                                             ContextualGenerator<? extends V> generator) {
+        return ruleForContext(Objects.requireNonNull(property, "property must not be null").path(), generator);
+    }
+
+    /**
      * Registers a dependent field rule evaluated after the base object is generated.
      */
     public <V> ObjectFaker<T> ruleFor(String fieldName, Function<? super T, ? extends V> generator) {
@@ -136,6 +169,22 @@ public final class ObjectFaker<T> implements Generator<T> {
         ensureFieldAvailable(fieldName);
         dependentFieldRules.put(target.path(), Objects.requireNonNull(generator, "generator must not be null"));
         return this;
+    }
+
+    /**
+     * Registers a correlated root assignment through a type-safe accessor reference.
+     */
+    public <V> ObjectFaker<T> ruleFor(PropertySelector<T, V> property,
+                                      Function<? super T, ? extends V> generator) {
+        return ruleFor(PropertyPath.of(property), generator);
+    }
+
+    /**
+     * Registers a correlated root or nested assignment through a type-safe property path.
+     */
+    public <V> ObjectFaker<T> ruleFor(PropertyPath<T, V> property,
+                                      Function<? super T, ? extends V> generator) {
+        return ruleFor(Objects.requireNonNull(property, "property must not be null").path(), generator);
     }
 
     /**
@@ -160,6 +209,20 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
+     * Excludes a root property selected by an accessor method reference.
+     */
+    public ObjectFaker<T> ignore(PropertySelector<T, ?> property) {
+        return ignore(PropertyPath.of(property));
+    }
+
+    /**
+     * Excludes a root or nested type-safe property path.
+     */
+    public ObjectFaker<T> ignore(PropertyPath<T, ?> property) {
+        return ignore(Objects.requireNonNull(property, "property must not be null").path());
+    }
+
+    /**
      * Restricts generation to one field or nested field path. Once at least one include rule
      * exists, root fields not explicitly included or covered by a field rule are left untouched,
      * and nested include paths prune sibling fields beneath the included root object.
@@ -172,6 +235,20 @@ public final class ObjectFaker<T> implements Generator<T> {
         includedFields.add(target.path());
         invalidateGeneratorState();
         return this;
+    }
+
+    /**
+     * Restricts generation to a root property selected by an accessor method reference.
+     */
+    public ObjectFaker<T> include(PropertySelector<T, ?> property) {
+        return include(PropertyPath.of(property));
+    }
+
+    /**
+     * Restricts generation to a root or nested type-safe property path.
+     */
+    public ObjectFaker<T> include(PropertyPath<T, ?> property) {
+        return include(Objects.requireNonNull(property, "property must not be null").path());
     }
 
     /**
@@ -309,9 +386,22 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
+     * Enables configuration validation before every generation or population operation.
+     *
+     * <p>String paths are already resolved when registered, so misspelled and unused paths fail
+     * immediately. Strict mode additionally requires every generated root property to have an
+     * explicit rule, include, or ignore decision according to {@link #assertConfigurationIsValid()}.
+     */
+    public ObjectFaker<T> strict() {
+        strictValidation = true;
+        return this;
+    }
+
+    /**
      * Populates an existing mutable instance using the configured fixture rules.
      */
     public T populate(T instance) {
+        validateIfStrict();
         Objects.requireNonNull(instance, "instance must not be null");
         if (type.isRecord()) {
             throw new UnsupportedOperationException(
@@ -326,7 +416,14 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     @Override
     public T generate() {
+        validateIfStrict();
         return applyPostGenerationRules(generator().generate());
+    }
+
+    private void validateIfStrict() {
+        if (strictValidation) {
+            assertConfigurationIsValid();
+        }
     }
 
     private void invalidateGeneratorState() {
@@ -424,7 +521,13 @@ public final class ObjectFaker<T> implements Generator<T> {
             if (!path.isRoot()) {
                 RuleTarget target = path.leaf();
                 Object fieldValue = entry.getValue().generate(
-                    new GenerationContext(target.fieldName(), target.ownerType(), path.depth()));
+                    new GenerationContext(target.fieldName(),
+                                          target.ownerType(),
+                                          path.depth(),
+                                          type.getSimpleName() + "." + path.path(),
+                                          target.field() != null ? target.field().getGenericType() : target.valueType(),
+                                          target.field() != null ? target.field() : target.accessor(),
+                                          baseConfig.getGeneratorConfig()));
                 current = assignFieldValue(current, path, fieldValue);
             }
         }

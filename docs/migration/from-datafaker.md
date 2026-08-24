@@ -14,7 +14,9 @@ stop hand-stitching "DataFaker for fields + Instancio/EasyRandom for structure."
 
 **What DataFaker still has that krandom doesn't**
 - More locale tags (70 advertised vs 50 supported variants) — breadth gap tracked in [`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
-- ~150 novelty/fandom/sport/food providers (Pokémon, Star Wars, Beer…) — krandom keeps these out of core; they will live in an opt-in `krandom-novelty` module.
+- Long-tail novelty, fandom, sport, food, and medical providers — krandom intentionally keeps
+  these out of core. Keep DataFaker for those calls or supply a local, provenance-declared data
+  pack when the domain is project-specific.
 
 ## Dependency
 

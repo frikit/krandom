@@ -53,10 +53,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Derives a constrained {@link Generator} from Bean Validation annotations on a field.
@@ -72,6 +76,19 @@ final class BeanValidationSupport {
         Comparator.comparing(NumericBound::value).thenComparing(bound -> !bound.inclusive());
     private static final Comparator<NumericBound> UPPER_BOUND_ORDER =
         Comparator.comparing(NumericBound::value).thenComparing(NumericBound::inclusive);
+    private static final ClassValue<ConcurrentMap<ConstraintCacheKey, ConstraintModel>> CONSTRAINT_MODELS =
+        new ClassValue<>() {
+            @Override
+            protected ConcurrentMap<ConstraintCacheKey, ConstraintModel> computeValue(Class<?> type) {
+                return new ConcurrentHashMap<>();
+            }
+        };
+    private static final ClassValue<AccessorMethods> ACCESSOR_METHODS = new ClassValue<>() {
+        @Override
+        protected AccessorMethods computeValue(Class<?> type) {
+            return buildAccessorMethods(type);
+        }
+    };
 
     private BeanValidationSupport() {
     }
@@ -90,6 +107,11 @@ final class BeanValidationSupport {
         private static final ConstraintModel NONE =
             new ConstraintModel(false, false, false, null, null, null, null, null);
     }
+
+    private record ConstraintCacheKey(boolean recordComponent, String name, Class<?> rawType) {}
+
+    private record AccessorMethods(Map<String, List<Method>> declared,
+                                   Map<String, List<Method>> interfaces) {}
 
     static final class ConstraintConflictException extends IllegalArgumentException {
 
@@ -156,6 +178,21 @@ final class BeanValidationSupport {
         if (element == null) {
             return ConstraintModel.NONE;
         }
+        Objects.requireNonNull(rawType, "rawType must not be null");
+        if (element instanceof Field field) {
+            ConstraintCacheKey key = new ConstraintCacheKey(false, field.getName(), rawType);
+            return CONSTRAINT_MODELS.get(field.getDeclaringClass())
+                                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
+        }
+        if (element instanceof RecordComponent component) {
+            ConstraintCacheKey key = new ConstraintCacheKey(true, component.getName(), rawType);
+            return CONSTRAINT_MODELS.get(component.getDeclaringRecord())
+                                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
+        }
+        return buildConstraintModel(element, rawType);
+    }
+
+    private static ConstraintModel buildConstraintModel(AnnotatedElement element, Class<?> rawType) {
         boolean nullOnly = annotation(element, Null.class) != null;
         boolean notNull = annotation(element, NotNull.class) != null;
         boolean notEmpty = annotation(element, NotEmpty.class) != null;
@@ -897,15 +934,10 @@ final class BeanValidationSupport {
         Class<?> owner,
         String name,
         Class<A> type) {
-        for (Class<?> interfaceType : owner.getInterfaces()) {
-            try {
-                Method method = interfaceType.getMethod(name);
-                List<A> found = List.of(method.getAnnotationsByType(type));
-                if (!found.isEmpty()) {
-                    return found;
-                }
-            } catch (NoSuchMethodException ignored) {
-                // Try the next interface.
+        for (Method method : ACCESSOR_METHODS.get(owner).interfaces().getOrDefault(name, List.of())) {
+            List<A> found = List.of(method.getAnnotationsByType(type));
+            if (!found.isEmpty()) {
+                return found;
             }
         }
         return List.of();
@@ -915,19 +947,11 @@ final class BeanValidationSupport {
         Class<?> owner,
         String name,
         Class<A> type) {
-        Class<?> current = owner;
-        while (current != Object.class) {
-            try {
-                Method method = current.getDeclaredMethod(name);
-                method.setAccessible(true);
-                List<A> found = List.of(method.getAnnotationsByType(type));
-                if (!found.isEmpty()) {
-                    return found;
-                }
-            } catch (NoSuchMethodException ignored) {
-                // Try the next superclass.
+        for (Method method : ACCESSOR_METHODS.get(owner).declared().getOrDefault(name, List.of())) {
+            List<A> found = List.of(method.getAnnotationsByType(type));
+            if (!found.isEmpty()) {
+                return found;
             }
-            current = current.getSuperclass();
         }
         return List.of();
     }
@@ -953,15 +977,10 @@ final class BeanValidationSupport {
     private static <A extends java.lang.annotation.Annotation> A interfaceMethodAnnotation(Class<?> owner,
                                                                                            String name,
                                                                                            Class<A> type) {
-        for (Class<?> interfaceType : owner.getInterfaces()) {
-            try {
-                Method method = interfaceType.getMethod(name);
-                A annotation = method.getAnnotation(type);
-                if (annotation != null) {
-                    return annotation;
-                }
-            } catch (NoSuchMethodException ignored) {
-                // Try parent interfaces below.
+        for (Method method : ACCESSOR_METHODS.get(owner).interfaces().getOrDefault(name, List.of())) {
+            A annotation = method.getAnnotation(type);
+            if (annotation != null) {
+                return annotation;
             }
         }
         return null;
@@ -970,20 +989,41 @@ final class BeanValidationSupport {
     private static <A extends java.lang.annotation.Annotation> A declaredMethodAnnotation(Class<?> owner,
                                                                                           String name,
                                                                                           Class<A> type) {
+        for (Method method : ACCESSOR_METHODS.get(owner).declared().getOrDefault(name, List.of())) {
+            A annotation = method.getAnnotation(type);
+            if (annotation != null) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    private static AccessorMethods buildAccessorMethods(Class<?> owner) {
+        Map<String, List<Method>> declared = new LinkedHashMap<>();
         Class<?> current = owner;
         while (current != Object.class) {
-            try {
-                Method method = current.getDeclaredMethod(name);
-                method.setAccessible(true);
-                A annotation = method.getAnnotation(type);
-                if (annotation != null) {
-                    return annotation;
+            for (Method method : current.getDeclaredMethods()) {
+                if (method.getParameterCount() == 0) {
+                    declared.computeIfAbsent(method.getName(), ignored -> new ArrayList<>()).add(method);
                 }
-            } catch (NoSuchMethodException ignored) {
-                // Try the next superclass.
             }
             current = current.getSuperclass();
         }
-        return null;
+
+        Map<String, List<Method>> interfaces = new LinkedHashMap<>();
+        for (Class<?> interfaceType : owner.getInterfaces()) {
+            for (Method method : interfaceType.getMethods()) {
+                if (method.getParameterCount() == 0) {
+                    interfaces.computeIfAbsent(method.getName(), ignored -> new ArrayList<>()).add(method);
+                }
+            }
+        }
+        return new AccessorMethods(immutableMethodMap(declared), immutableMethodMap(interfaces));
+    }
+
+    private static Map<String, List<Method>> immutableMethodMap(Map<String, List<Method>> methods) {
+        Map<String, List<Method>> immutable = new LinkedHashMap<>(methods.size());
+        methods.forEach((name, values) -> immutable.put(name, List.copyOf(values)));
+        return Map.copyOf(immutable);
     }
 }

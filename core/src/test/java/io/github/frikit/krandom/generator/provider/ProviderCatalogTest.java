@@ -18,6 +18,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -118,6 +119,126 @@ class ProviderCatalogTest {
         assertEquals(ProviderValidity.UNCLASSIFIED, metadata.semanticPlausibility());
         assertEquals(ProviderTestSafety.UNCLASSIFIED, metadata.testSafety());
         assertTrue(metadata.safetyPolicy().isEmpty());
+        assertTrue(metadata.isUnclassified());
+    }
+
+    @Test
+    @DisplayName("public descriptor builder retains complete provider metadata")
+    void publicDescriptorBuilder() {
+        ProviderSafetyMetadata safety = new ProviderSafetyMetadata(ProviderValidity.GUARANTEED,
+                                                                    ProviderValidity.NOT_APPLICABLE,
+                                                                    ProviderValidity.GUARANTEED,
+                                                                    ProviderTestSafety.NON_ROUTABLE);
+        ProviderSchemaProjection<String> projection = ProviderSchemaProjection
+            .builder("custom.value", (String provider, GeneratorConfig config) -> provider)
+            .aliases("custom_value")
+            .build();
+        ProviderDescriptor<String> descriptor = ProviderDescriptor.builder("custom", String.class, config -> "value")
+                                                                  .aliases("custom.provider")
+                                                                  .semanticKeys("customvalue")
+                                                                  .safetyMetadata(safety)
+                                                                  .schemaProjection(projection)
+                                                                  .build();
+
+        assertEquals(List.of("custom.provider"), descriptor.getAliases());
+        assertEquals(Set.of("customvalue"), descriptor.getSemanticKeys());
+        assertEquals(safety, descriptor.getSafetyMetadata());
+        assertEquals(safety, descriptor.getSchemaProjections().getFirst().getSafetyMetadata());
+        assertFalse(safety.isUnclassified());
+    }
+
+    @Test
+    @DisplayName("descriptor builder rejects duplicate and malformed names")
+    void descriptorBuilderValidation() {
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderDescriptor.builder("custom", String.class, config -> "value")
+                                             .aliases("custom")
+                                             .build());
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderDescriptor.builder("custom", String.class, config -> "value")
+                                             .aliases("alias", "alias"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderDescriptor.builder("custom", String.class, config -> "value")
+                                             .semanticKeys("key", "key"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderDescriptor.builder("\n", String.class, config -> "value"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderDescriptor.builder("bad\nkey", String.class, config -> "value"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderDescriptor.builder("bad\rkey", String.class, config -> "value"));
+    }
+
+    @Test
+    @DisplayName("schema projection builder supports every JSON Schema shape")
+    void schemaProjectionBuilderShapes() {
+        ProviderSafetyMetadata safety = new ProviderSafetyMetadata(ProviderValidity.GUARANTEED,
+                                                                    ProviderValidity.NOT_APPLICABLE,
+                                                                    ProviderValidity.GUARANTEED,
+                                                                    ProviderTestSafety.NON_ROUTABLE);
+        ProviderSchemaProjection<String> integer = ProviderSchemaProjection
+            .builder("custom.integer", (String provider, GeneratorConfig config) -> 1)
+            .integer()
+            .build();
+        ProviderSchemaProjection<String> formatted = ProviderSchemaProjection
+            .builder("custom.formatted", (String provider, GeneratorConfig config) -> provider)
+            .format("uuid")
+            .safetyMetadata(safety)
+            .build();
+        ProviderSchemaProjection<String> record = ProviderSchemaProjection
+            .builder("custom.record", (String provider, GeneratorConfig config) ->
+                new ProjectionRecord(provider, null))
+            .record(ProjectionRecord.class, "nullableValue")
+            .build();
+
+        assertTrue(integer.isInteger());
+        assertEquals("uuid", formatted.getFormat().orElseThrow());
+        assertEquals(safety, formatted.getSafetyMetadata());
+        assertEquals(ProjectionRecord.class, record.getRecordType().orElseThrow());
+        assertEquals(Set.of("nullableValue"), record.getNullableComponents());
+
+        ProviderSchemaProjection<String> classifiedProjection = ProviderSchemaProjection
+            .builder("custom.classified", (String provider, GeneratorConfig config) -> provider)
+            .safetyMetadata(safety)
+            .build();
+        ProviderDescriptor<String> classifiedDescriptor = ProviderDescriptor
+            .builder("custom.classified", String.class, config -> "value")
+            .safetyMetadata(safety)
+            .schemaProjection(classifiedProjection)
+            .build();
+        assertEquals(safety, classifiedDescriptor.getSchemaProjections().getFirst().getSafetyMetadata());
+    }
+
+    @Test
+    @DisplayName("schema projection builder rejects contradictory and invalid shapes")
+    void schemaProjectionBuilderValidation() {
+        assertThrows(IllegalStateException.class,
+                     () -> ProviderSchemaProjection
+                         .builder("custom.invalid", (String provider, GeneratorConfig config) -> provider)
+                         .integer()
+                         .format("uuid")
+                         .build());
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderSchemaProjection
+                         .builder("custom.value", (String provider, GeneratorConfig config) -> provider)
+                         .aliases("custom.value")
+                         .build());
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderSchemaProjection
+                         .builder("custom.value", (String provider, GeneratorConfig config) -> provider)
+                         .aliases("alias", "alias"));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderSchemaProjection
+                         .builder("custom.value", (String provider, GeneratorConfig config) -> provider)
+                         .record(String.class));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderSchemaProjection
+                         .builder(" ", (String provider, GeneratorConfig config) -> provider));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderSchemaProjection
+                         .builder("bad\nreference", (String provider, GeneratorConfig config) -> provider));
+        assertThrows(IllegalArgumentException.class,
+                     () -> ProviderSchemaProjection
+                         .builder("bad\rreference", (String provider, GeneratorConfig config) -> provider));
     }
 
     @Test
@@ -150,5 +271,8 @@ class ProviderCatalogTest {
                               .filter(descriptor -> descriptor.getKey().equals(key))
                               .findFirst()
                               .orElseThrow();
+    }
+
+    private record ProjectionRecord(String value, String nullableValue) {
     }
 }

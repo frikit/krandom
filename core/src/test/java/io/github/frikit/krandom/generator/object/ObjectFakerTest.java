@@ -422,13 +422,13 @@ class ObjectFakerTest {
     @DisplayName("nested rules rebuild record paths when needed")
     void nestedRulesRebuildRecordPathsWhenNeeded() {
         FixtureRecordWithNestedRecord record = new ObjectFaker<>(FixtureRecordWithNestedRecord.class)
-            .ruleFor("address.city", () -> "Paris")
+            .ruleForContext("address.city", context -> "Paris-" + context.getDeclaration().orElseThrow().getClass().getSimpleName())
             .ruleFor("address.postalCode", generated -> generated.address().city() + "-75000")
             .generate();
 
         assertNotNull(record.address());
-        assertEquals("Paris", record.address().city());
-        assertEquals("Paris-75000", record.address().postalCode());
+        assertEquals("Paris-Method", record.address().city());
+        assertEquals("Paris-Method-75000", record.address().postalCode());
     }
 
     @Test

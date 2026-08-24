@@ -141,17 +141,19 @@ for exact target types, intersection rules, precedence, and exclusions.
 
 ## Fluent fixtures
 
-Use `ObjectFaker<T>` when the default object graph is close but you want a few explicit rules, including nested paths:
+Use `ObjectFaker<T>` when the default object graph is close but you want explicit rules. JavaBean
+getter and record-accessor references provide refactor-safe root paths; `PropertyPath.then(...)`
+composes nested paths without string literals:
 
 ```java
 ObjectFaker<UserDto> faker = new ObjectFaker<>(UserDto.class)
-        .ruleFor("firstName", () -> "Ada")
-        .ruleFor("lastName", () -> "Lovelace")
-        .ruleFor("address.city", () -> "London")
-        .ruleFor("email",
+        .ruleFor(UserDto::getFirstName, () -> "Ada")
+        .ruleFor(UserDto::getLastName, () -> "Lovelace")
+        .ruleFor(PropertyPath.of(UserDto::getAddress).then(Address::getCity), () -> "London")
+        .ruleFor(UserDto::getEmail,
                  user -> user.getFirstName().toLowerCase() + "."
                          + user.getLastName().toLowerCase() + "@example.com")
-        .ignore("password")
+        .ignore(UserDto::getPassword)
         .profile("minimal", configured -> configured.include("firstName", "email"))
         .useProfile("minimal");
 
@@ -162,6 +164,7 @@ List<UserDto> users = faker.generateList(100);
 Supported in the current fixture layer:
 
 - path-aware `ruleFor(...)` with plain generators, including nested paths such as `address.city`
+- type-safe getter and record-accessor rules, with nested `PropertyPath` composition
 - path-aware dependent `ruleFor(...)` based on the generated root object
 - path-aware `ruleForContext(...)` with nested owner/depth metadata
 - path-aware `ignore(...)`, including nested paths such as `address.city`
@@ -169,6 +172,26 @@ Supported in the current fixture layer:
 - named `profile(...)` plus `useProfile(...)` for reusable rule bundles
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
+- `strict()` to validate the complete explicit rule/include/ignore decision before generation
+
+Use `ObjectModel<T>` when a fixture definition must be immutable, reusable, and composable:
+
+```java
+ObjectModel<UserDto> names = ObjectModel.of(UserDto.class)
+        .configure(faker -> faker
+                .ruleFor(UserDto::getFirstName, () -> "Ada")
+                .ruleFor(UserDto::getLastName, () -> "Lovelace"));
+
+ObjectModel<UserDto> contact = ObjectModel.of(UserDto.class)
+        .configure(faker -> faker.ruleFor(
+                UserDto::getEmail,
+                user -> user.getFirstName().toLowerCase() + "@example.com"));
+
+UserDto user = names.and(contact).generate(config);
+```
+
+Each model creates a fresh `ObjectFaker`; stateful field generators should be constructed inside
+the model configuration callback rather than captured and shared.
 
 Nested `include(...)` paths keep the parent object alive and clear sibling fields below that path unless you also include the wider root object.
 

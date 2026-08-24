@@ -1,9 +1,8 @@
 # Migrating From EasyRandom To krandom
 
-EasyRandom (`org.jeasy.random`) generates random object graphs but has been in
-**maintenance mode since 2020** (a long-awaited v6 with records landed ~2026),
-and its values are deliberately synthetic (`"asdlkfj"`). krandom is actively
-developed and produces the same graphs with **realistic, locale-aware values**.
+EasyRandom (`org.jeasy.random`) 6.x generates structural random object graphs on Java 17.
+krandom 2.x requires Java 21 and adds semantic, locale-aware fixture values. Treat migration as a
+behavior change rather than expecting identical seeded objects.
 
 > EasyRandom's `EasyRandomParameters` / `FieldPredicates` / `Randomizer` API is
 > the same surface as the k-random reference library. The exhaustive randomizer

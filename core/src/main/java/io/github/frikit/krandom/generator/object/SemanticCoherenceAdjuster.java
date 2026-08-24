@@ -378,6 +378,12 @@ final class SemanticCoherenceAdjuster {
         LocalDate birthDate = toLocalDate(birthDateSlot.getValue());
         Integer age = toInteger(ageSlot.getValue());
         if (birthDate != null) {
+            if (age != null && isProtected(ageSlot)) {
+                if (canAssign(birthDateSlot, allowOverwriteExisting)) {
+                    birthDateSlot.setValue(fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
+                }
+                return;
+            }
             int derivedAge = ageFromBirthDate(birthDate);
             if (age != null && age == derivedAge) {
                 return;
@@ -385,9 +391,6 @@ final class SemanticCoherenceAdjuster {
             if (canAssign(ageSlot, allowOverwriteExisting)) {
                 ageSlot.setValue(fromAge(derivedAge, ageSlot.rawType()));
                 return;
-            }
-            if (age != null && canAssign(birthDateSlot, allowOverwriteExisting)) {
-                birthDateSlot.setValue(fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
             }
             return;
         }
