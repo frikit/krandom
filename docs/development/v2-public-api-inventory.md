@@ -160,6 +160,14 @@ Classified schema references carry the same configuration-selected contract thro
 registration API. Catalog initialization rejects provider, schema-reference, and alias collisions,
 while each descriptor checks that its factory returns the declared provider type.
 
+`KRandomModule`, `KRandomModuleContext`, and `KRandomExtensionRegistry` are additive **KEEP** APIs.
+They provide the explicit v3 extension boundary: module IDs and all provider/schema names are
+validated at `GeneratorConfig.build()`, contributions remain configuration-scoped, and the same
+descriptor drives `ProviderHub`, `FieldLookup`, safety metadata, and semantic object generation.
+`ProviderDescriptor.Builder` and `ProviderSchemaProjection.Builder` are the public construction
+path for third-party descriptors. `GenerationContext` path/type/declaration/config accessors are
+additive **KEEP** APIs that retain its v2 constructor and existing accessors.
+
 ## Object-generation exceptions
 
 | API | Disposition | Required work |

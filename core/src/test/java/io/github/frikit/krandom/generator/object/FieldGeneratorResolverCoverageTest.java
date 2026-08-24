@@ -62,7 +62,12 @@ class FieldGeneratorResolverCoverageTest {
 
     private static FieldGeneratorResolver resolver(ObjectGeneratorConfig config) {
         return new FieldGeneratorResolver(
-            config, new ObjectPool(config.getObjectPoolSize()), new UniqueFieldTracker(), 0L, Map.of());
+            config,
+            new ObjectPool(config.getObjectPoolSize()),
+            new UniqueFieldTracker(),
+            0L,
+            Map.of(),
+            "Fixture");
     }
 
     @Test

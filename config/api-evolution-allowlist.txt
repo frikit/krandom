@@ -146,6 +146,13 @@ io.github.frikit.krandom.generator.DataRegistryContext$Builder#registerUniversit
 io.github.frikit.krandom.generator.object.PropertySelector
 io.github.frikit.krandom.generator.object.PropertyPath
 io.github.frikit.krandom.generator.object.ObjectModel
+# Explicit v3 extension kernel and rich contextual metadata; see v3-extension-kernel-plan.md.
+io.github.frikit.krandom.generator.extension.KRandomModule
+io.github.frikit.krandom.generator.extension.KRandomModuleContext
+io.github.frikit.krandom.generator.extension.KRandomExtensionRegistry
+io.github.frikit.krandom.generator.GenerationContext
+io.github.frikit.krandom.generator.provider.ProviderHub
+io.github.frikit.krandom.generator.schema.FieldLookup
 # SchemaParser remains KEEP; its documented v2 import contract now rejects references and
 # composition rather than silently producing unconstrained values. See schema-and-provider-hub.md.
 io.github.frikit.krandom.generator.schema.SchemaParser

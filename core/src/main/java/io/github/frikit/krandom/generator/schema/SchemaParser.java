@@ -268,11 +268,9 @@ public final class SchemaParser {
 
         // enum: random selection
         if (fieldSchema.containsKey("enum")) {
-            Object enumRaw = fieldSchema.get("enum");
-            if (enumRaw instanceof List<?> enumValues && !enumValues.isEmpty()) {
-                List<Object> values = Collections.unmodifiableList(new ArrayList<>(enumValues));
-                return ctx -> values.get(ctx.random().nextInt(values.size()));
-            }
+            List<?> enumValues = (List<?>) fieldSchema.get("enum");
+            List<Object> values = Collections.unmodifiableList(new ArrayList<>(enumValues));
+            return ctx -> values.get(ctx.random().nextInt(values.size()));
         }
 
         String schemaType = typeOf(fieldSchema);

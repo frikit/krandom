@@ -203,12 +203,14 @@ final class FieldGeneratorResolver {
     private final Set<String>                 uniqueFieldNames;
     private final ObjectGenerationFailurePolicy failurePolicy;
     private final Map<TypeVariable<?>, Type> typeBindings;
+    private final String objectPath;
 
     FieldGeneratorResolver(ObjectGeneratorConfig config,
                            ObjectPool pool,
                            UniqueFieldTracker uniqueFieldTracker,
                            Long generationSeed,
-                           Map<? extends TypeVariable<?>, ? extends Type> typeBindings) {
+                           Map<? extends TypeVariable<?>, ? extends Type> typeBindings,
+                           String objectPath) {
         this.config = config;
         this.generatorConfig = config.getGeneratorConfig();
         this.pool = pool;
@@ -234,6 +236,7 @@ final class FieldGeneratorResolver {
             generatorConfig.getGenerationFailureListener(),
             generatorConfig.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics));
         this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
+        this.objectPath = Objects.requireNonNull(objectPath, "objectPath must not be null");
     }
 
     private static Map<Class<?>, Generator<?>> buildBuiltins(ObjectGeneratorConfig cfg,
@@ -1361,21 +1364,22 @@ final class FieldGeneratorResolver {
         // ── 0a. Contextual field-level override ───────────────────────────────
         var ctxField = config.getContextualFieldOverride(ownerType, fieldName);
         if (ctxField.isPresent()) {
-            return ctxField.get().generate(new GenerationContext(fieldName, ownerType, currentDepth));
+            return ctxField.get().generate(generationContext(fieldName, ownerType, currentDepth, genericType, element));
         }
 
         // ── 0aa. Contextual predicate field override ─────────────────────────
         if (element instanceof java.lang.reflect.Field field) {
             var ctxPredicateField = config.getContextualFieldPredicateOverride(field);
             if (ctxPredicateField.isPresent()) {
-                return ctxPredicateField.get().generate(new GenerationContext(fieldName, ownerType, currentDepth));
+                return ctxPredicateField.get().generate(
+                    generationContext(fieldName, ownerType, currentDepth, genericType, element));
             }
         }
 
         // ── 0b. Contextual type-level override ────────────────────────────────
         var ctxType = config.getContextualTypeOverride(rawType);
         if (ctxType.isPresent()) {
-            return ctxType.get().generate(new GenerationContext(fieldName, ownerType, currentDepth));
+            return ctxType.get().generate(generationContext(fieldName, ownerType, currentDepth, genericType, element));
         }
 
         // ── 1. Field-level override ───────────────────────────────────────────
@@ -1630,14 +1634,15 @@ final class FieldGeneratorResolver {
                     pool,
                     nextDeterministicSeed(generatorConfig, sequenceRandom),
                     uniqueFieldTracker,
-                    nestedTypeBindings(resolvedType, nestedType)).generate();
+                    nestedTypeBindings(resolvedType, nestedType),
+                    memberPath(fieldName)).generate();
                 pool.end(nestedType, poolTypeSignature, instance);
                 return instance;
             } catch (ObjectGenerationException e) {
                 pool.end(nestedType, poolTypeSignature, null);
                 return failurePolicy.handle(
                     contextualizeNestedFailure(
-                        e, nestedType, ownerType, fieldName, genericType, currentDepth),
+                        e, nestedType, ownerType, fieldName, memberPath(fieldName), genericType, currentDepth),
                     null);
             } catch (Exception e) {
                 pool.end(nestedType, poolTypeSignature, null);
@@ -1673,8 +1678,27 @@ final class FieldGeneratorResolver {
             pool,
             uniqueFieldTracker,
             GenerationRecipe.deriveChildSeed(Objects.requireNonNull(generationSeed), streamIdentity),
-            typeBindings);
+            typeBindings,
+            objectPath);
         return childResolver.resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element);
+    }
+
+    private GenerationContext generationContext(String fieldName,
+                                                Class<?> ownerType,
+                                                int depth,
+                                                Type declaredType,
+                                                AnnotatedElement declaration) {
+        return new GenerationContext(fieldName,
+                                     ownerType,
+                                     depth,
+                                     memberPath(fieldName),
+                                     declaredType,
+                                     declaration,
+                                     generatorConfig);
+    }
+
+    private String memberPath(String fieldName) {
+        return objectPath + "." + fieldName;
     }
 
     private Map<TypeVariable<?>, Type> nestedTypeBindings(ResolvedType resolvedType, Class<?> nestedType) {
@@ -1694,9 +1718,9 @@ final class FieldGeneratorResolver {
                                                                         Class<?> nestedType,
                                                                         Class<?> ownerType,
                                                                         String fieldName,
+                                                                        String parentPath,
                                                                         Type declaredType,
                                                                         int depth) {
-        String parentPath = ownerType.getSimpleName() + "." + fieldName;
         Optional<GenerationFailureContext> existing = failure.getContext();
         if (existing.isEmpty()) {
             return nestedFailure(
@@ -1710,19 +1734,21 @@ final class FieldGeneratorResolver {
         }
 
         GenerationFailureContext child = existing.orElseThrow();
-        String nestedRoot = nestedType.getSimpleName();
-        String childSuffix;
-        if (child.path().equals(nestedRoot)) {
-            childSuffix = "";
-        } else if (child.path().startsWith(nestedRoot + ".")) {
-            childSuffix = child.path().substring(nestedRoot.length());
-        } else {
-            childSuffix = "." + child.path();
+        String contextualPath = child.path();
+        if (!contextualPath.equals(parentPath) && !contextualPath.startsWith(parentPath + ".")) {
+            String nestedRoot = nestedType.getSimpleName();
+            if (contextualPath.equals(nestedRoot)) {
+                contextualPath = parentPath;
+            } else if (contextualPath.startsWith(nestedRoot + ".")) {
+                contextualPath = parentPath + contextualPath.substring(nestedRoot.length());
+            } else {
+                contextualPath = parentPath + "." + contextualPath;
+            }
         }
         return nestedFailure(
             child.category(),
             child.operation(),
-            parentPath + childSuffix,
+            contextualPath,
             child.ownerType(),
             child.declaredType(),
             child.depth(),

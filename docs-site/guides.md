@@ -17,6 +17,7 @@ permalink: /guides/
 - [Local Data Packs]({{ '/guides/local-data-packs/' | relative_url }})
 - [Bean Validation Support]({{ '/guides/bean-validation/' | relative_url }})
 - [Schema and Provider Hub]({{ '/guides/schema-and-provider-hub/' | relative_url }})
+- [Writing Extension Modules]({{ '/guides/writing-modules/' | relative_url }})
 - [Jackson Integration]({{ '/guides/jackson-integration/' | relative_url }})
 - [Spring Boot Starter]({{ '/guides/spring-boot-starter/' | relative_url }})
 - [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }})

@@ -137,6 +137,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private final Long                  generationSeed;
     private final Random                topLevelSeedSequence;
     private final Map<TypeVariable<?>, Type> typeBindings;
+    private final String                objectPath;
 
     // ── Public constructors ───────────────────────────────────────────────────
 
@@ -196,6 +197,24 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     Long generationSeed,
                     UniqueFieldTracker uniqueFieldTracker,
                     Map<? extends TypeVariable<?>, ? extends Type> typeBindings) {
+        this(type,
+             config,
+             depth,
+             pool,
+             generationSeed,
+             uniqueFieldTracker,
+             typeBindings,
+             typePath(type));
+    }
+
+    ObjectGenerator(Class<T> type,
+                    ObjectGeneratorConfig config,
+                    int depth,
+                    ObjectPool pool,
+                    Long generationSeed,
+                    UniqueFieldTracker uniqueFieldTracker,
+                    Map<? extends TypeVariable<?>, ? extends Type> typeBindings,
+                    String objectPath) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.depth = depth;
@@ -203,6 +222,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         this.generationSeed = generationSeed;
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
         this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
+        this.objectPath = Objects.requireNonNull(objectPath, "objectPath must not be null");
         this.topLevelSeedSequence = depth == 0 && pool == null
                                     ? config.getGeneratorConfig().getSeed().isPresent()
                                       ? config.getGeneratorConfig().createRandom()
@@ -247,7 +267,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 new ObjectPool(config.getObjectPoolSize()),
                 nextGenerationSeed(),
                 uniqueFieldTracker,
-                typeBindings);
+                typeBindings,
+                objectPath);
             return scoped.generateWithPool();
         }
         return generateWithPool();
@@ -275,7 +296,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 new ObjectPool(config.getObjectPoolSize()),
                 nextGenerationSeed(),
                 uniqueFieldTracker,
-                typeBindings);
+                typeBindings,
+                objectPath);
             return scoped.populateWithPool(instance);
         }
         return populateWithPool(instance);
@@ -288,7 +310,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (contextualFactory.isPresent()) {
             return generateFromRootFactory(
                 "contextual type override",
-                () -> contextualFactory.get().generate(new GenerationContext("$root", type, depth)));
+                () -> contextualFactory.get().generate(
+                    new GenerationContext("$root",
+                                          type,
+                                          depth,
+                                          objectPath,
+                                          type,
+                                          type,
+                                          config.getGeneratorConfig())));
         }
         var factory = config.getTypeOverride(type);
         if (factory.isPresent()) {
@@ -301,7 +330,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
                 generationSeed,
-                typeBindings);
+                typeBindings,
+                objectPath);
         SemanticCoherenceAdjuster coherenceAdjuster =
             new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth);
         try {
@@ -390,8 +420,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     private String typePath() {
-        String simpleName = type.getSimpleName();
-        return simpleName.isBlank() ? type.getName() : simpleName;
+        return objectPath;
+    }
+
+    private static String typePath(Class<?> valueType) {
+        String simpleName = valueType.getSimpleName();
+        return simpleName.isBlank() ? valueType.getName() : simpleName;
     }
 
     private T populateWithPool(T instance) {
@@ -401,7 +435,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
                 generationSeed,
-                typeBindings);
+                typeBindings,
+                objectPath);
         try {
             populateClass(instance,
                           resolver,

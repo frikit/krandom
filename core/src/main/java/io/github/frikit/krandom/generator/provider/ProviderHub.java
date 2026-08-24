@@ -90,6 +90,7 @@ public final class ProviderHub {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.profile = Objects.requireNonNull(profile, "profile must not be null");
         registerBuiltIns();
+        registerExtensions();
     }
 
     private static String normalize(String name) {
@@ -306,6 +307,15 @@ public final class ProviderHub {
         for (ProviderDescriptor<?> descriptor : ProviderCatalog.builtIns()) {
             for (String alias : descriptor.getAliases()) {
                 registerAlias(alias, descriptor.getKey(), ConflictPolicy.REPLACE);
+            }
+        }
+    }
+
+    private void registerExtensions() {
+        for (ProviderDescriptor<?> descriptor : config.getExtensionRegistry().getProviderDescriptors()) {
+            register(descriptor.getKey(), descriptor::create, ConflictPolicy.FAIL);
+            for (String alias : descriptor.getAliases()) {
+                registerAlias(alias, descriptor.getKey(), ConflictPolicy.FAIL);
             }
         }
     }

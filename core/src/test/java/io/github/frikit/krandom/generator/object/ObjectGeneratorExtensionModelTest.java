@@ -15,7 +15,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,6 +58,35 @@ class ObjectGeneratorExtensionModelTest {
 
         assertEquals("ExtensionFixture:name:0", fixture.name);
         assertEquals("NestedExtension:nestedCode:1", fixture.nested.nestedCode);
+    }
+
+    @Test
+    @DisplayName("contextual override receives path, declared type, declaration, and active config")
+    void contextualOverrideReceivesRichGenerationContext() {
+        AtomicReference<String> path = new AtomicReference<>();
+        AtomicReference<Type> declaredType = new AtomicReference<>();
+        AtomicReference<Field> declaration = new AtomicReference<>();
+        AtomicReference<GeneratorConfig> observedConfig = new AtomicReference<>();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .locale(Locale.CANADA)
+                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                                .objectOverride(NestedExtension.class, "nestedCode",
+                                                    (ContextualGenerator<String>) ctx -> {
+                                                        path.set(ctx.getPath());
+                                                        declaredType.set(ctx.getDeclaredType().orElseThrow());
+                                                        declaration.set((Field) ctx.getDeclaration().orElseThrow());
+                                                        observedConfig.set(ctx.getConfig().orElseThrow());
+                                                        return "rich-context";
+                                                    })
+                                                .build();
+
+        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+
+        assertEquals("rich-context", fixture.nested.nestedCode);
+        assertEquals("ExtensionFixture.nested.nestedCode", path.get());
+        assertEquals(String.class, declaredType.get());
+        assertEquals("nestedCode", declaration.get().getName());
+        assertEquals(config, observedConfig.get());
     }
 
     @Test

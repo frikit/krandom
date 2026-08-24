@@ -37,9 +37,21 @@ final class BuiltInProviderResolver {
         Objects.requireNonNull(expectedType, "expectedType must not be null");
         ProviderDescriptor<?> descriptor = PROVIDERS_BY_NAME.get(name);
         if (descriptor == null) {
-            throw new IllegalArgumentException("Unknown built-in provider '" + name + "'");
+            descriptor = extensionProvider(name, config);
+        }
+        if (descriptor == null) {
+            throw new IllegalArgumentException("Unknown provider '" + name + "'");
         }
         return expectedType.cast(descriptor.create(config));
+    }
+
+    private static ProviderDescriptor<?> extensionProvider(String name, GeneratorConfig config) {
+        for (ProviderDescriptor<?> descriptor : config.getExtensionRegistry().getProviderDescriptors()) {
+            if (descriptor.getKey().equals(name) || descriptor.getAliases().contains(name)) {
+                return descriptor;
+            }
+        }
+        return null;
     }
 
     private static Map<String, ProviderDescriptor<?>> buildProvidersByName() {

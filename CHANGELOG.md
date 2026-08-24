@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Explicit, configuration-scoped `KRandomModule` extensions. A metadata-complete
+  `ProviderDescriptor` can now contribute provider aliases, schema projections, safety claims,
+  and semantic object-field generation without classpath scanning or global registration;
+  conflicts fail during configuration construction.
+- Rich contextual generation metadata: `GenerationContext` now exposes the full root-to-field
+  path, reflected declared type and declaration, and active `GeneratorConfig`, while retaining
+  its existing constructor and field/owner/depth accessors.
 - Type-safe Java object rules through `PropertySelector` and composable `PropertyPath`, including
   getter and record-accessor references for root and nested `ObjectFaker` rules.
 - Immutable, composable `ObjectModel` fixture configurations and opt-in `ObjectFaker.strict()`

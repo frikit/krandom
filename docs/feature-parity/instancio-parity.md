@@ -90,8 +90,8 @@ The genuine gaps are **ergonomics**, not capability:
 
 ## Gaps to close (→ GAP-TRACKER Phase 2 ergonomics)
 
-- [ ] Type-safe method-reference selectors (`field(X::getY)`) alongside string paths
-- [ ] Reusable `Model<T>`-style templates (beyond profiles)
+- [x] Type-safe method-reference selectors through `PropertySelector` and nested `PropertyPath`
+- [x] Reusable immutable `ObjectModel<T>` templates, including composition
 - [ ] Conditional `assign(when/then)` rules
 - [ ] Data feeds: populate objects from CSV/JSON sources
 - [ ] Verify/advertise generic type-token + Java 21 sequenced-collection parity

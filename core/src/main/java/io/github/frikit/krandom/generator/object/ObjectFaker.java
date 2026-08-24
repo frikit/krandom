@@ -521,7 +521,13 @@ public final class ObjectFaker<T> implements Generator<T> {
             if (!path.isRoot()) {
                 RuleTarget target = path.leaf();
                 Object fieldValue = entry.getValue().generate(
-                    new GenerationContext(target.fieldName(), target.ownerType(), path.depth()));
+                    new GenerationContext(target.fieldName(),
+                                          target.ownerType(),
+                                          path.depth(),
+                                          type.getSimpleName() + "." + path.path(),
+                                          target.field() != null ? target.field().getGenericType() : target.valueType(),
+                                          target.field() != null ? target.field() : target.accessor(),
+                                          baseConfig.getGeneratorConfig()));
                 current = assignFieldValue(current, path, fieldValue);
             }
         }
