@@ -7,7 +7,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
-COVERAGE_THRESHOLD="99.9"
+COVERAGE_THRESHOLD="100.0"
 
 cd "${REPO_ROOT}"
 

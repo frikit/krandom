@@ -33,6 +33,11 @@ public class KrandomObjectFakerFactory {
 
     private final GeneratorConfig config;
 
+    /**
+     * Creates a factory backed by the supplied generator configuration.
+     *
+     * @param config generator configuration shared by created instances
+     */
     public KrandomObjectFakerFactory(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
     }

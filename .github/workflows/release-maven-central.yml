@@ -20,6 +20,14 @@ on:
         required: true
         type: boolean
         default: false
+      releaseCommit:
+        description: "Exact commit SHA printed by the initial USER_MANAGED run; required when resuming"
+        required: false
+        type: string
+
+concurrency:
+  group: maven-central-release-${{ github.repository }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -38,10 +46,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate semver input
+      - name: Require the main branch
         shell: bash
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          if [[ "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "Releases must run from refs/heads/main, got ${GITHUB_REF}"
+            exit 1
+          fi
+
+      - name: Validate release source commit
+        shell: bash
+        env:
+          REQUESTED_COMMIT: ${{ github.event.inputs.releaseCommit }}
+          RESUME_GITHUB_RELEASE: ${{ github.event.inputs.resumeGithubRelease }}
+        run: |
+          CHECKED_OUT_COMMIT="$(git rev-parse HEAD)"
+          if [[ "${RESUME_GITHUB_RELEASE}" == "true" ]]; then
+            if [[ ! "${REQUESTED_COMMIT}" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              echo "releaseCommit must be the exact 40-character SHA printed by the initial run"
+              exit 1
+            fi
+            if [[ "${REQUESTED_COMMIT,,}" != "${CHECKED_OUT_COMMIT}" ]]; then
+              echo "main moved after Central upload: expected ${REQUESTED_COMMIT}, got ${CHECKED_OUT_COMMIT}"
+              echo "Do not tag a different commit. Repair the GitHub release from the original commit."
+              exit 1
+            fi
+          elif [[ -n "${REQUESTED_COMMIT}" ]]; then
+            echo "releaseCommit is only valid with resumeGithubRelease=true"
+            exit 1
+          fi
+          echo "RELEASE_COMMIT=${CHECKED_OUT_COMMIT}" >> "$GITHUB_ENV"
+
+      - name: Validate semver input
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          VERSION="${INPUT_VERSION}"
           SEMVER_REGEX='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'
           if [[ ! "$VERSION" =~ $SEMVER_REGEX ]]; then
             echo "Invalid semver version: $VERSION"
@@ -50,12 +91,34 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "TAG=v$VERSION" >> "$GITHUB_ENV"
 
-      - name: Fail if tag already exists
+      - name: Verify release facts
         shell: bash
+        env:
+          RESUME_GITHUB_RELEASE: ${{ github.event.inputs.resumeGithubRelease }}
+        run: |
+          MODE=prepare
+          if [[ "${RESUME_GITHUB_RELEASE}" == "true" ]]; then
+            MODE=resume
+          fi
+          ./scripts/verify_release_facts.sh "${VERSION}" "${MODE}"
+
+      - name: Validate release tag state
+        shell: bash
+        env:
+          RESUME_GITHUB_RELEASE: ${{ github.event.inputs.resumeGithubRelease }}
         run: |
           if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
-            echo "Tag already exists: ${TAG}"
-            exit 1
+            if [[ "${RESUME_GITHUB_RELEASE}" != "true" ]]; then
+              echo "Tag already exists: ${TAG}"
+              exit 1
+            fi
+            git fetch --force origin "refs/tags/${TAG}:refs/tags/${TAG}"
+            TAG_COMMIT="$(git rev-list -n 1 "${TAG}")"
+            if [[ "${TAG_COMMIT}" != "${RELEASE_COMMIT}" ]]; then
+              echo "Existing ${TAG} points to ${TAG_COMMIT}, expected ${RELEASE_COMMIT}"
+              exit 1
+            fi
+            echo "Existing ${TAG} already points to the release commit; recovery may continue."
           fi
 
       - name: Set up Java 21 (Temurin)
@@ -119,6 +182,23 @@ jobs:
           GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
         run: ./gradlew publishAggregationToCentralPortal -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
 
+      - name: Await manual Central publication
+        if: github.event.inputs.resumeGithubRelease != 'true' && github.event.inputs.publishingType == 'USER_MANAGED'
+        run: |
+          echo "The signed deployment is uploaded but not yet public."
+          echo "Release commit: ${RELEASE_COMMIT}"
+          echo "Publish it in Central Portal, then rerun with resumeGithubRelease=true and releaseCommit=${RELEASE_COMMIT}."
+
+      - name: Verify Maven Central publication
+        if: github.event.inputs.resumeGithubRelease == 'true'
+        shell: bash
+        run: |
+          POM_URL="https://repo1.maven.org/maven2/io/github/frikit/krandom-core/${VERSION}/krandom-core-${VERSION}.pom"
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-delay 10 --retry-all-errors \
+            --output /dev/null "${POM_URL}"
+          echo "Verified public Maven Central POM: ${POM_URL}"
+
       - name: Confirm GitHub Release recovery mode
         if: github.event.inputs.resumeGithubRelease == 'true'
         run: |
@@ -126,12 +206,13 @@ jobs:
           echo "Confirm the version is already present in Central Portal before creating the GitHub Release."
 
       - name: Create GitHub Release
+        if: github.event.inputs.publishingType == 'AUTOMATIC' || github.event.inputs.resumeGithubRelease == 'true'
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ env.TAG }}
           name: Release ${{ env.TAG }}
           generate_release_notes: true
-          target_commitish: ${{ github.sha }}
+          target_commitish: ${{ env.RELEASE_COMMIT }}
           files: |
             core/build/libs/*.jar
             jackson/build/libs/*.jar
@@ -144,6 +225,7 @@ jobs:
             build/reports/sbom/*.cdx.xml
           body: |
             Published modules:
+            - io.github.frikit:krandom-bom:${{ env.VERSION }}
             - io.github.frikit:krandom-core:${{ env.VERSION }}
             - io.github.frikit:krandom-jackson:${{ env.VERSION }}
             - io.github.frikit:krandom-junit:${{ env.VERSION }}

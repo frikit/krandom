@@ -36,6 +36,16 @@ import java.util.Properties;
  */
 public final class LocalDataPack {
 
+    @FunctionalInterface
+    interface InputStreamOpener {
+        InputStream open(Path path) throws IOException;
+    }
+
+    @FunctionalInterface
+    interface MessageDigestFactory {
+        MessageDigest create() throws NoSuchAlgorithmException;
+    }
+
     /** Manifest file name expected in every local data pack. */
     public static final String MANIFEST_FILE_NAME = "krandom-data-pack.properties";
 
@@ -172,12 +182,19 @@ public final class LocalDataPack {
     }
 
     private static byte[] readBounded(Path file, int maximumBytes, String label) {
+        return readBounded(file, maximumBytes, label, Files::newInputStream);
+    }
+
+    static byte[] readBounded(Path file,
+                              int maximumBytes,
+                              String label,
+                              InputStreamOpener inputStreamOpener) {
         try {
             if (!Files.isRegularFile(file)) {
                 throw new IllegalArgumentException(label + " does not exist or is not a regular file: " + file);
             }
             byte[] bytes;
-            try (InputStream input = Files.newInputStream(file)) {
+            try (InputStream input = inputStreamOpener.open(file)) {
                 bytes = input.readNBytes(maximumBytes + 1);
             }
             if (bytes.length > maximumBytes) {
@@ -213,12 +230,16 @@ public final class LocalDataPack {
     }
 
     private static void verifySha256(byte[] bytes, String expected) {
+        verifySha256(bytes, expected, () -> MessageDigest.getInstance("SHA-256"));
+    }
+
+    static void verifySha256(byte[] bytes, String expected, MessageDigestFactory messageDigestFactory) {
         if (!expected.matches("[0-9a-fA-F]{64}")) {
             throw new IllegalArgumentException("university.sha256 must be a 64-character hexadecimal SHA-256 digest");
         }
         String actual;
         try {
-            actual = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+            actual = HexFormat.of().formatHex(messageDigestFactory.create().digest(bytes));
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException("SHA-256 must be available in every Java runtime", ex);
         }

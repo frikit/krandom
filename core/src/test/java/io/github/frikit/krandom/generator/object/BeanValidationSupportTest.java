@@ -196,6 +196,8 @@ class BeanValidationSupportTest {
         assertNotNull(interfaceGetterGenerator);
         assertEquals(4, ((String) interfaceGetterGenerator.generate()).length());
 
+        assertNull(generatorFor("parameterizedAccessorText", String.class));
+
         assertNull(BeanValidationSupport.constraintGeneratorFor(
             Sample.class.getDeclaredMethod("plainMethod"), String.class, new Random(1L)));
     }
@@ -213,6 +215,9 @@ class BeanValidationSupportTest {
 
         @Size(min = 4, max = 4)
         String getInterfaceSizedText();
+
+        @Size(min = 8, max = 8)
+        String getParameterizedAccessorText(String prefix);
     }
 
     record ComponentSample(@Size(min = 2, max = 2) String code) {}
@@ -360,6 +365,8 @@ class BeanValidationSupportTest {
 
         String interfaceSizedText;
 
+        String parameterizedAccessorText;
+
         @Size(min = 3, max = 5)
         String getGetterSizedText() {
             return getterSizedText;
@@ -368,6 +375,11 @@ class BeanValidationSupportTest {
         @Override
         public String getInterfaceSizedText() {
             return interfaceSizedText;
+        }
+
+        @Override
+        public String getParameterizedAccessorText(String prefix) {
+            return prefix + parameterizedAccessorText;
         }
 
         String plainMethod() {

@@ -25,6 +25,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -201,6 +202,36 @@ class LocalDataPackTest {
                           validManifest("universities.csv", "0".repeat(64)));
 
         assertThrows(IllegalArgumentException.class, () -> LocalDataPack.load(temporaryDirectory));
+    }
+
+    @Test
+    @DisplayName("reports filesystem read failures with the affected file")
+    void reportsFilesystemReadFailures() throws IOException {
+        Path file = Files.writeString(temporaryDirectory.resolve("unreadable.csv"), "fixture");
+        IOException cause = new IOException("read denied");
+
+        IllegalArgumentException failure = assertThrows(
+            IllegalArgumentException.class,
+            () -> LocalDataPack.readBounded(file, 100, "fixture file", ignored -> {
+                throw cause;
+            }));
+
+        assertTrue(failure.getMessage().contains(file.toString()));
+        assertSame(cause, failure.getCause());
+    }
+
+    @Test
+    @DisplayName("reports a Java runtime without the required SHA-256 digest")
+    void reportsMissingSha256Digest() {
+        NoSuchAlgorithmException cause = new NoSuchAlgorithmException("SHA-256 unavailable");
+
+        IllegalStateException failure = assertThrows(
+            IllegalStateException.class,
+            () -> LocalDataPack.verifySha256(new byte[0], "0".repeat(64), () -> {
+                throw cause;
+            }));
+
+        assertSame(cause, failure.getCause());
     }
 
     private void assertInvalidData(String data) throws IOException {

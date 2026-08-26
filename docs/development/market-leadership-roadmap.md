@@ -41,7 +41,7 @@ general “number one” claim.
 |:---|:---|
 | Fixture control | The executable comparison corpus covers the 40 most common scalar, object, nested, collection, schema, and test-integration tasks with no unresolved P0 gap. |
 | Replay and diagnosis | Every supported integration reports the effective seed and portable recipe; every object failure identifies the type and property path; one documented action replays a captured failure. |
-| Correctness | Core retains the existing 100% rounded line and 99.9% aggregate branch gates; high-risk contract packages meet a measured mutation threshold; million-sample invariant suites find no unexplained validity failure. |
+| Correctness | Core retains exact 100% line, branch, instruction, method, class, and complexity coverage; high-risk contract packages meet a measured mutation threshold; million-sample invariant suites find no unexplained validity failure. |
 | Performance | On semantically equivalent workloads kRandom is either fastest or within 10% of the fastest maintained JVM competitor, with no representative workload regressing more than its approved budget. |
 | Compatibility | Clean Java, Kotlin, Spring, JUnit, Kotest, JPMS, Maven, Gradle, sbt, Mill, and native-image consumers pass the published compatibility matrix. |
 | Adoption | At least five independent external projects use released artifacts, including Java and Kotlin/Spring consumers, and can demonstrate replay and dependency-level rollback. |

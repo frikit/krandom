@@ -23,7 +23,7 @@ Module coordinates (Maven Central group `io.github.frikit`):
 - `io.github.frikit:krandom-kotest-extensions`
 - `io.github.frikit:krandom-kotlin-dsl`
 
-The current version is `2.0.0`. Latest version is always shown on
+The current version is `2.1.0`. Latest version is always shown on
 [GitHub Releases](https://github.com/frikit/krandom/releases).
 
 Gradle:
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation(platform("io.github.frikit:krandom-bom:2.0.0"))
+    implementation(platform("io.github.frikit:krandom-bom:2.1.0"))
     implementation("io.github.frikit:krandom-core")
     // Optional integrations:
     implementation("io.github.frikit:krandom-jackson")
@@ -53,7 +53,7 @@ Maven:
     <dependency>
       <groupId>io.github.frikit</groupId>
       <artifactId>krandom-bom</artifactId>
-      <version>2.0.0</version>
+      <version>2.1.0</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -68,7 +68,7 @@ Maven:
 </dependencies>
 ```
 
-Import `io.github.frikit:krandom-bom` in Gradle or Maven and omit versions from individual kRandom modules. Use explicit `2.0.0` versions instead when consuming only one artifact without the BOM.
+Import `io.github.frikit:krandom-bom` in Gradle or Maven and omit versions from individual kRandom modules. Use explicit `2.1.0` versions instead when consuming only one artifact without the BOM.
 
 ## First usage
 

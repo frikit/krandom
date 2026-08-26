@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-08-26
+
 ### Added
 
 - Explicit, configuration-scoped `KRandomModule` extensions. A metadata-complete
@@ -369,7 +371,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/frikit/krandom/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/frikit/krandom/compare/v1.5.0...v2.0.0
 [1.5.0]: https://github.com/frikit/krandom/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/frikit/krandom/compare/v1.3.0...v1.4.0

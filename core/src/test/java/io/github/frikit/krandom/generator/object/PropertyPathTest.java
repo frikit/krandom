@@ -57,7 +57,7 @@ class PropertyPathTest {
     void rejectsArbitraryLambdas() {
         IllegalArgumentException failure = assertThrows(
             IllegalArgumentException.class,
-            () -> PropertyPath.of((PropertySelector<Person, String>) person -> person.getName().trim()));
+            () -> PropertyPath.of((PropertySelector<Person, String>) person -> normalizedName(person)));
 
         assertTrue(failure.getMessage().contains("method reference"));
     }
@@ -122,6 +122,10 @@ class PropertyPathTest {
             IllegalArgumentException.class, () -> PropertyPath.of(selector));
 
         assertEquals("broken metadata", failure.getCause().getMessage());
+    }
+
+    private String normalizedName(Person person) {
+        return person.getName().trim();
     }
 
     interface Named {

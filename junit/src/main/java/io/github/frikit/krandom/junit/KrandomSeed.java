@@ -57,12 +57,16 @@ public @interface KrandomSeed {
 
     /**
      * Numeric seed to pin, mutually exclusive with {@link #text()}.
+     *
+     * @return the numeric seed, or {@link #UNSET} when not specified
      */
     long value() default UNSET;
 
     /**
      * String seed to pin, mutually exclusive with {@link #value()}; derived to a numeric seed
      * via {@link GeneratorConfig#deriveSeed(String)} and must not be blank.
+     *
+     * @return the string seed, or an empty string when not specified
      */
     String text() default "";
 }

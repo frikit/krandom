@@ -20,21 +20,30 @@ Three benchmark classes compare krandom against other JVM fake-data libraries:
 
 See the full report: [docs/benchmarks/DASHBOARD.md](../docs/benchmarks/DASHBOARD.md)
 
-**Scalar generation** — krandom is **8x to 19x faster** than DataFaker and **26x to 155x faster** than JavaFaker:
+The latest publication-grade run was recorded on **2026-08-26** with JDK 21.0.12.1, three
+forks, three warmup iterations, five measurement iterations, and allocation profiling. Treat it
+as the first baseline for the current workload definitions; older reports used a different
+protocol and are not regression-comparable.
+
+**Scalar generation** (ops/s, higher is better):
 
 | Benchmark | krandom (ops/s) | DataFaker (ops/s) | krandom advantage |
 |:---|---:|---:|:---|
-| firstName | 62,097,588 | 3,340,974 | 18.6x |
-| email | 7,041,044 | 868,973 | 8.1x |
-| streetAddress | 13,305,613 | 951,856 | 14.0x |
+| firstName | 103,289,329 | 6,249,732 | 16.5x |
+| email | 18,622,629 | 866,639 | 21.5x |
+| streetAddress | 22,917,208 | 1,834,284 | 12.5x |
 
-**Object population** — krandom's `ObjectGenerator` uses semantic field matching (realistic data per field name), which trades throughput for data quality:
+**Object population** keeps structural generation and semantic fixture construction separate:
 
-| Benchmark | krandom (ops/s) | DataFaker (ops/s) | EasyRandom (ops/s) | Instancio (ops/s) |
+| Workload | krandom | DataFaker | EasyRandom | Instancio |
 |:---|---:|---:|---:|---:|
-| single object | 4,897 | 364,781 | 120,098 | 111,937 |
+| structural object | 9,005 | — | 78,913 | 196,118 |
+| semantic fixture | 3,202 | 506,915 | — | — |
 
-> EasyRandom and Instancio fill fields with arbitrary random values. krandom produces realistic data for each field (real names, valid emails, real cities). The throughput gap is the cost of semantic realism.
+DataFaker's manual fixture construction is a semantic workload. Easy Random and Instancio are
+structural workloads in this suite. A blank cell means there is no equivalent workload, not a
+zero score. See [METHODOLOGY.md](../docs/benchmarks/METHODOLOGY.md) for the full protocol and
+regression budgets.
 
 ### Reports
 
@@ -42,20 +51,20 @@ Benchmark reports are stored in [`docs/benchmarks/`](../docs/benchmarks/) with o
 
 | Report | Date | JDK |
 |:---|:---|:---|
-| [DASHBOARD.md](../docs/benchmarks/DASHBOARD.md) | 2026-04-25 | Temurin 21.0.10+7 |
+| [DASHBOARD.md](../docs/benchmarks/DASHBOARD.md) | 2026-08-26 | 21.0.12.1 |
 
 ### Running competitor benchmarks
 
 Full competitor suite:
 
 ```bash
-./gradlew :benchmarks:jmh --args="Competitor -wi 3 -i 5 -f 1 -t 1"
+./gradlew :benchmarks:jmh --args="Competitor -wi 3 -i 5 -f 3 -t 1 -prof gc"
 ```
 
 Single benchmark class:
 
 ```bash
-./gradlew :benchmarks:jmh --args="CompetitorScalarBenchmark -wi 3 -i 5 -f 1 -t 1"
+./gradlew :benchmarks:jmh --args="CompetitorScalarBenchmark -wi 3 -i 5 -f 3 -t 1 -prof gc"
 ```
 
 ## Internal Benchmarks
@@ -87,38 +96,9 @@ Run a subset with custom JMH args:
 ./gradlew :benchmarks:profileGeneration
 ```
 
-## Latest Internal Run Snapshot
+## Latest Internal Results
 
-This is an ad-hoc local `profileGeneration` snapshot used to spot-check
-internals on a developer machine. It is separate from the monthly competitor
-reports archived in [`docs/benchmarks/`](../docs/benchmarks/), which are the
-authoritative, methodology-documented numbers.
-
-Date: **March 29, 2026 12:52:48 BST**
-JDK: **Temurin OpenJDK 21.0.10+7 LTS**
-Command: `./gradlew :benchmarks:profileGeneration`
-
-| case | count | ops/sec | heap-delta-mb |
-|:---|:---|---:|---:|
-| first-name | 1,000 | 23,233,121.14 | 0.00 |
-| first-name | 10,000 | 24,492,335.12 | 0.00 |
-| first-name | 100,000 | 42,399,830.40 | 0.00 |
-| first-name | 1,000,000 | 38,650,890.66 | 0.00 |
-| first-name | 10,000,000 | 54,909,693.10 | 0.00 |
-| regex-ssn | 1,000 | 528,052.81 | 0.96 |
-| regex-ssn | 10,000 | 5,214,332.53 | 9.05 |
-| regex-ssn | 100,000 | 4,581,577.79 | 31.20 |
-| regex-ssn | 1,000,000 | 5,283,201.64 | 8.45 |
-| regex-ssn | 10,000,000 | 5,700,535.48 | 47.96 |
-| object-simple-user | 1,000 | 72,946.78 | 16.00 |
-| object-simple-user | 10,000 | 136,025.97 | 150.00 |
-| object-simple-user | 100,000 | 185,608.95 | -273.95 |
-| object-simple-user | 1,000,000 | 192,028.49 | -99.97 |
-| object-simple-user | 10,000,000 | 192,427.60 | -130.00 |
-
-Notes:
-
-- Numbers above are a single local snapshot, not a stability baseline.
-- `heap-delta-mb` can be negative because of GC timing during long runs.
-- The benchmark suite has expanded since this snapshot; rerun `:benchmarks:jmh` or `:benchmarks:profileGeneration` for current numbers on the new cases.
-- Use the structural-only benchmark cases as the current throughput baseline when evaluating the cost of stricter semantic realism.
+The current internal workload scores and allocation profiles are published in
+[the benchmark dashboard](../docs/benchmarks/DASHBOARD.md#internal-benchmarks). Use the full-run
+protocol when establishing or comparing a release baseline; `profileGeneration` and quick runs
+are local diagnostics only.

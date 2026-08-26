@@ -283,7 +283,7 @@ Full JMH output: [\`results/${TODAY}.txt\`](results/${TODAY}.txt)
 Protocol and regression budgets: [\`METHODOLOGY.md\`](METHODOLOGY.md)
 
 \`\`\`bash
-# Full run (all benchmarks, ~10 min)
+# Full run (all benchmarks, ~20-30 min)
 ./scripts/run_benchmarks.sh
 
 # Quick run (fewer iterations, ~3 min)

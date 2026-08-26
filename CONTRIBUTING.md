@@ -31,7 +31,7 @@ java -version   # must report 21+
 
 ## Code quality gates
 
-- **Coverage**: the build enforces 99.9% line, branch, instruction, method, class, and complexity coverage via JaCoCo. New code must be covered by tests.
+- **Coverage**: the build enforces exact 100% line, branch, instruction, method, class, and complexity coverage via JaCoCo. New code must be covered by tests.
 - **Formatting**: Spotless enforces consistent formatting and MIT license headers. Run `./gradlew spotlessApply` to fix formatting issues.
 - **Tests**: all tests must pass. The test suite uses Kotest (DescribeSpec) for the core module and JUnit 5 for Java modules.
 

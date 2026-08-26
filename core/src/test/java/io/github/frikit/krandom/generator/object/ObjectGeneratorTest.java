@@ -999,6 +999,19 @@ class ObjectGeneratorTest {
             assertNull(error.getCause());
         }
 
+        @Test
+        @DisplayName("a nested type root path collapses to its parent field path")
+        void nestedTypeRootFailurePathCollapsesToParent() {
+            ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(NestedRootContextRoot.class).generate());
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
+            assertEquals("NestedRootContextRoot.child", context.path());
+            assertEquals(NestedRootContextGenerator.class, context.ownerType());
+        }
+
         private void assertUnsupportedTypeFailure(Class<?> ownerType,
                                                   String fieldName,
                                                   Class<?> declaredType) {
@@ -1152,6 +1165,33 @@ class ObjectGeneratorTest {
         static class ForeignContextRoot {
 
             ForeignContextChild child;
+        }
+
+        static class NestedRootContextRoot {
+
+            NestedRootContextChild child;
+        }
+
+        static class NestedRootContextChild {
+
+            @Randomizer(NestedRootContextGenerator.class)
+            String value;
+        }
+
+        public static class NestedRootContextGenerator implements Generator<String> {
+
+            @Override
+            public String generate() {
+                GenerationFailureContext context = new GenerationFailureContext(
+                    GenerationFailureCategory.ASSIGNMENT,
+                    GenerationOperation.ASSIGN,
+                    NestedRootContextChild.class.getSimpleName(),
+                    NestedRootContextGenerator.class,
+                    String.class.getName(),
+                    2,
+                    -1);
+                throw new ObjectGenerationException("nested root failure", context, null);
+            }
         }
 
 

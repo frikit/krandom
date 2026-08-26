@@ -8,6 +8,7 @@ package io.github.frikit.krandom.kotest
 import io.github.frikit.krandom.generator.GeneratorConfig
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowAny
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldNotBeEmpty
@@ -25,6 +26,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
+@OptIn(ExperimentalKotest::class)
 class KrandomShrinkingArbTest : DescribeSpec({
 
     describe("krandomIntArb") {

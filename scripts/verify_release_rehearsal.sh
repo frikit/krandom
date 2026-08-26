@@ -25,7 +25,13 @@ for marker in "Release rehearsal and recovery" "resumeGithubRelease=true" "Never
 done
 
 "${REPO_ROOT}/scripts/require_java21.sh"
-"${REPO_ROOT}/gradlew" checkApiContract verifyReleaseSboms \
+"${REPO_ROOT}/scripts/verify_release_facts.sh" "${VERSION}"
+"${REPO_ROOT}/scripts/verify_documentation_facts.sh"
+"${REPO_ROOT}/gradlew" clean build check checkApiContract \
+    -PreleaseVersion="${VERSION}" \
+    --stacktrace --console=plain --max-workers=1 --no-daemon \
+    -x :benchmarks:test -x :benchmarks:check
+"${REPO_ROOT}/gradlew" verifyReleaseSboms \
     -PreleaseVersion="${VERSION}" \
     --stacktrace --console=plain --max-workers=1 --no-daemon
 

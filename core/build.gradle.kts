@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.pitest)
 }
 
-val coverageThreshold = "0.999".toBigDecimal()
+val coverageThreshold = "1.0".toBigDecimal()
 val coverageCounters = listOf(
     // JaCoCo does not expose a STATEMENT counter; INSTRUCTION is the closest equivalent.
     "INSTRUCTION",

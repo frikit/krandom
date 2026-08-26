@@ -202,6 +202,21 @@ class KRandomModuleTest {
                 context.registerSemanticAliases("second", "secondAlias");
             }
         }).build();
+        GeneratorConfig.builder().install(new KRandomModule() {
+            @Override
+            public String id() {
+                return "same.provider.normalized.semantic";
+            }
+
+            @Override
+            public void configure(KRandomModuleContext context) {
+                context.registerProvider(
+                    ProviderDescriptor.builder("custom.normalized", FixedTrackingGenerator.class,
+                                               FixedTrackingGenerator::new)
+                                      .semanticKeys("custom-key", "custom.key")
+                                      .build());
+            }
+        }).build();
         assertThrows(IllegalArgumentException.class,
                      () -> GeneratorConfig.builder().install(new KRandomModule() {
                          @Override

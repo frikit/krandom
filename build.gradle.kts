@@ -50,6 +50,11 @@ configure<com.diffplug.gradle.spotless.SpotlessExtension> {
 val publishedModules = setOf("bom", "core", "jackson", "junit", "spring-boot-starter", "kotest-extensions", "kotlin-dsl")
 val apiModules = publishedModules - "bom"
 val apiEvolutionTasks = mutableListOf<TaskProvider<JavaExec>>()
+val releaseComponentGroup = group.toString()
+val releaseModuleVersions = publishedModules.associateWith { moduleName ->
+    project(":$moduleName").version.toString()
+}
+val releaseSbomDirectory = layout.buildDirectory.dir("reports/sbom")
 
 dependencies {
     publishedModules.forEach { moduleName ->
@@ -117,9 +122,9 @@ tasks.register("verifyReleaseSboms") {
 
         publishedModules.forEach { moduleName ->
             val expectedName = "krandom-$moduleName"
-            val expectedVersion = project(":$moduleName").version.toString()
-            val jsonFile = layout.buildDirectory.file("reports/sbom/$expectedName.cdx.json").get().asFile
-            val xmlFile = layout.buildDirectory.file("reports/sbom/$expectedName.cdx.xml").get().asFile
+            val expectedVersion = releaseModuleVersions.getValue(moduleName)
+            val jsonFile = releaseSbomDirectory.get().file("$expectedName.cdx.json").asFile
+            val xmlFile = releaseSbomDirectory.get().file("$expectedName.cdx.xml").asFile
 
             check(jsonFile.isFile && jsonFile.length() > 0) { "Missing release SBOM: $jsonFile" }
             check(xmlFile.isFile && xmlFile.length() > 0) { "Missing release SBOM: $xmlFile" }
@@ -132,7 +137,7 @@ tasks.register("verifyReleaseSboms") {
             val jsonMetadata = json["metadata"] as Map<String, Any?>
             @Suppress("UNCHECKED_CAST")
             val jsonComponent = jsonMetadata["component"] as Map<String, Any?>
-            check(jsonComponent["group"] == project.group.toString()) { "$jsonFile has the wrong component group" }
+            check(jsonComponent["group"] == releaseComponentGroup) { "$jsonFile has the wrong component group" }
             check(jsonComponent["name"] == expectedName) { "$jsonFile has the wrong component name" }
             check(jsonComponent["version"] == expectedVersion) { "$jsonFile has the wrong component version" }
             val componentNames = (json["components"] as? List<*>)
@@ -149,7 +154,7 @@ tasks.register("verifyReleaseSboms") {
                 "/*[local-name()='bom']/*[local-name()='metadata']/*[local-name()='component']/*[local-name()='$name']/text()",
                 xml
             )
-            check(xmlComponentValue("group") == project.group.toString()) { "$xmlFile has the wrong component group" }
+            check(xmlComponentValue("group") == releaseComponentGroup) { "$xmlFile has the wrong component group" }
             check(xmlComponentValue("name") == expectedName) { "$xmlFile has the wrong component name" }
             check(xmlComponentValue("version") == expectedVersion) { "$xmlFile has the wrong component version" }
         }

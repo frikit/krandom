@@ -3,6 +3,9 @@
 **State:** Local implementation complete through the pre-publication gate. This plan does not
 authorize a release, tag, Central upload, or external-consumer run by itself.
 
+**Owner decision (2026-08-26):** Release the completed additive line as `2.1.0`, then begin the
+separate `3.0.0` preparation line after publication and remote verification complete.
+
 The next release should favor contract confidence over more provider breadth. The post-tag work is
 additive public API, so the recommended version is **2.1.0**, subject to owner confirmation in
 Stage 1. A patch release would not correctly describe those additions under semantic versioning.
@@ -96,6 +99,8 @@ another feature cycle.
 
 - A reviewed release PR freezes the version, changelog, API baseline, compatibility matrix, and
   release notes.
+- Core reports zero missed JaCoCo instructions, lines, branches, complexity points, methods, and
+  classes under the exact 100% release gate.
 - Maven Central artifacts, BOM, signatures, checksums, SBOMs, provenance, sources, Javadocs, POMs,
   and JPMS metadata are verified remotely.
 - At least one plain-Java and one Kotlin/Spring consumer resolve the released artifacts and replay a
@@ -107,6 +112,21 @@ another feature cycle.
 artifact attestation verification, and `./scripts/pre_commit_check.sh`.
 
 **Status**: In Progress
+
+**Local release-candidate evidence (2026-08-26)**:
+
+- `./scripts/verify_release_rehearsal.sh 2.1.0` passed the clean build, test, API-contract,
+  and seven-module SBOM gates.
+- `KRANDOM_VERSION=2.1.0 ./scripts/verify_examples_local.sh` passed the Java, Kotlin, Scala,
+  Gradle, Maven, sbt, Mill, integration-module, and JPMS consumers.
+- `./scripts/verify_foundation_acceptance.sh` passed twice from clean outputs.
+- The full core suite reports zero JaCoCo misses: 93,450 instructions, 15,895 lines, 6,143 branches,
+  7,432 complexity points, 4,226 methods, and 463 classes are covered; the Gradle, local summary,
+  and Codecov thresholds now require exact 100%.
+- `./scripts/run_benchmarks.sh` completed the three-fork publication protocol and established
+  the current workload definitions' first comparable baseline.
+- `./gradlew nmcpZipAggregation -PreleaseVersion=2.1.0` assembled the unsigned local Central
+  bundle; CI supplies and verifies the release signatures.
 
 **External prerequisite**: Publishing, Central Portal validation, attestation verification, and
 Central-only consumer execution require a reviewed commit, repository secrets, and remote artifact

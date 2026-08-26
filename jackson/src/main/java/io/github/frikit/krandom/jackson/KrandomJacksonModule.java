@@ -18,6 +18,7 @@ import java.io.IOException;
  */
 public final class KrandomJacksonModule extends SimpleModule {
 
+    /** Creates a module with serializers for krandom public types. */
     public KrandomJacksonModule() {
         super("krandom-jackson");
         addSerializer(Schema.class, new SchemaSerializer());

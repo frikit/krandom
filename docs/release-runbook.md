@@ -30,7 +30,9 @@ The GPG public key must be uploaded to a public keyserver (for example
 1. **Decide the version.** SemVer; for example `2.1.0`. Confirm the
    `[Unreleased]` section in `CHANGELOG.md` is final.
 2. **Land any last commits on `main`.** Run `./scripts/pre_commit_check.sh`
-   and `./scripts/verify_examples_local.sh` locally; both must pass.
+   and `./scripts/verify_examples_local.sh` locally; both must pass. The pre-commit report must show
+   zero missed instructions, lines, branches, complexity points, methods, and classes under the
+   exact 100% JaCoCo gate; a rounded `100.0%` display is not sufficient by itself.
 3. **Cut the release documentation.** Promote `[Unreleased]` to
    `[<version>] - <YYYY-MM-DD>`, add a fresh empty `[Unreleased]` heading,
    update the diff link at the bottom, set `latestGaVersion=<version>`, and
@@ -44,7 +46,7 @@ The GPG public key must be uploaded to a public keyserver (for example
      manual gate in the Central Portal UI). Switch to `AUTOMATIC` once you
      trust the pipeline.
 5. **Watch the workflow.**
-   - "Build, test, and check" — full clean + tests + coverage gate and
+   - "Build, test, and check" — full clean + tests + exact 100% coverage gate and
      validated per-module CycloneDX 1.6 SBOMs
      (`-x :benchmarks:test -x :benchmarks:check`).
    - "Assemble signed Maven Central bundle" and "Attest release build
@@ -54,11 +56,18 @@ The GPG public key must be uploaded to a public keyserver (for example
      `./gradlew publishAggregationToCentralPortal`. The
      `com.gradleup.nmcp.aggregation` plugin uploads the already attested signed
      bundle via the Central Portal API.
-   - "Create GitHub Release" — tags `v<version>`, attaches per-module
-     jars and JSON/XML SBOMs, and writes auto-generated release notes.
-6. **(USER_MANAGED only) Release in the portal.**
+   - With `AUTOMATIC`, "Create GitHub Release" tags `v<version>`, attaches per-module
+     jars and JSON/XML SBOMs, and writes auto-generated release notes in the same run.
+   - With `USER_MANAGED`, the first run stops after the signed Central upload and does not create
+     a public tag or GitHub release for artifacts that are not available yet. Record the exact
+     release commit printed by the workflow.
+6. **(USER_MANAGED only) Release in the portal and finish GitHub publication.**
    <https://central.sonatype.com> → "Deployments" → find the upload →
-   "Publish". Validation runs first; if it fails, fix and re-upload.
+   "Publish". Validation runs first; if it fails, fix and re-upload. Once Maven Central shows the
+   version as published, rerun the workflow before `main` moves, with the same version,
+   `resumeGithubRelease=true`, and `releaseCommit=<SHA printed by the initial run>`. The workflow
+   verifies the commit and public Central POM, skips Central upload, and creates the tag and GitHub
+   release.
    Releases are immutable once published.
 
 ## Release rehearsal and recovery
@@ -81,13 +90,15 @@ retrying:
 | Last completed step | Safe recovery |
 | --- | --- |
 | Before **Publish to Maven Central** | Fix the failure and dispatch the normal workflow again. No immutable artifact has been uploaded. |
-| **Publish to Maven Central** completed, but the deployment is pending | Do not re-upload. Complete validation and publish (for `USER_MANAGED`) in Central Portal; then continue with the GitHub release only if needed. |
-| **Publish to Maven Central** completed, but **Create GitHub Release** failed | Verify the exact version and target commit in Central Portal, then re-dispatch the workflow with the same version and `resumeGithubRelease=true`. It rebuilds, signs, and attests the release assets but deliberately skips Central upload. |
+| **Publish to Maven Central** completed, but the deployment is pending | Do not re-upload. Complete validation and publish in Central Portal; then rerun before `main` moves with `resumeGithubRelease=true` and the recorded `releaseCommit`. |
+| **Publish to Maven Central** completed, but **Create GitHub Release** failed | Verify the exact version and target commit in Central Portal, then re-dispatch with the same version, `resumeGithubRelease=true`, and the recorded `releaseCommit`. An existing tag is accepted only when it already points to that commit. |
+| `main` moved after a USER_MANAGED upload | Do not tag the newer commit or re-upload immutable coordinates. Create or repair the GitHub release at the recorded release commit, then verify its assets and attestations manually. |
 | Maven Central has already published the version | Never rerun the Central upload. Published coordinates are immutable. Repair only the missing GitHub release/announcement and retain the original version. |
 
 `resumeGithubRelease=true` is a recovery control, not a shortcut: it must only be used after
-confirming that the Central deployment for that exact version and commit exists. The workflow still
-refuses an existing Git tag, so it cannot overwrite a completed GitHub release.
+confirming that the Central deployment for that exact version and commit exists. The workflow
+requires the recorded commit, verifies the public Maven Central POM, and refuses an existing tag
+unless it resolves to that same commit.
 
 ## Post-release
 

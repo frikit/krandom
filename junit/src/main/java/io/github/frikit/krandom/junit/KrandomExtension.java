@@ -68,6 +68,10 @@ import java.util.Random;
  */
 public final class KrandomExtension implements BeforeEachCallback, ParameterResolver, TestWatcher {
 
+    /** Creates the extension. */
+    public KrandomExtension() {
+    }
+
     /** Key under which the failing test's seed is published as a JUnit report entry. */
     public static final String REPORT_ENTRY_KEY = "krandom.seed";
 

@@ -1107,7 +1107,7 @@ final class FieldGeneratorResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T instantiateCollectionType(Class<?> rawType, Class<T> expectedType) {
+    private static <T> T instantiateCollectionType(Class<?> rawType, Class<?> expectedType) {
         if (!expectedType.isAssignableFrom(rawType)) {
             return null;
         }

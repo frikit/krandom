@@ -19,8 +19,8 @@ field names and `profile(..)` templates instead.
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:2.0.0")
-    // optional: testImplementation("io.github.frikit:krandom-junit:2.0.0")
+    testImplementation("io.github.frikit:krandom-core:2.1.0")
+    // optional: testImplementation("io.github.frikit:krandom-junit:2.1.0")
 }
 ```
 

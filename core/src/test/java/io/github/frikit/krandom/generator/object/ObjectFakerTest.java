@@ -56,6 +56,21 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("strict mode generates after every writable field is configured")
+    void strictModeGeneratesCompleteConfiguration() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+            .ruleFor("firstName", () -> "Ada")
+            .ruleFor("lastName", () -> "Lovelace")
+            .ruleFor("email", () -> "ada@example.com")
+            .strict()
+            .generate();
+
+        assertEquals("Ada", user.firstName);
+        assertEquals("Lovelace", user.lastName);
+        assertEquals("ada@example.com", user.email);
+    }
+
+    @Test
     @DisplayName("dependent rule can use previously generated root values")
     void dependentRuleUsesGeneratedRootValues() {
         FixtureUser user = new ObjectFaker<>(FixtureUser.class)

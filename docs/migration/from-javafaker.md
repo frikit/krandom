@@ -23,7 +23,7 @@ catalogs in core — see [`../feature-parity/GAP-TRACKER.md`](../feature-parity/
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:2.0.0")
+    testImplementation("io.github.frikit:krandom-core:2.1.0")
 }
 ```
 

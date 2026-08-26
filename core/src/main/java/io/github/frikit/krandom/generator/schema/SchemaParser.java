@@ -549,11 +549,12 @@ public final class SchemaParser {
         if (type instanceof String s) {
             return s;
         }
-        if (type instanceof List<?> types && !types.isEmpty()) {
+        if (type instanceof List<?> types) {
             // Pick first non-null type
             for (Object t : types) {
-                if (t instanceof String s && !"null".equals(s)) {
-                    return s;
+                String namedType = (String) t;
+                if (!"null".equals(namedType)) {
+                    return namedType;
                 }
             }
             return "null";

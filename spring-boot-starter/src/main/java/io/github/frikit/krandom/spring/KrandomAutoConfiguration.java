@@ -40,6 +40,16 @@ import java.util.Locale;
 @EnableConfigurationProperties(KrandomProperties.class)
 public class KrandomAutoConfiguration {
 
+    /** Creates the auto-configuration. */
+    public KrandomAutoConfiguration() {
+    }
+
+    /**
+     * Creates the generator configuration from the bound application properties.
+     *
+     * @param properties bound krandom properties
+     * @return the configured generator settings
+     */
     @Bean
     @ConditionalOnMissingBean
     public GeneratorConfig generatorConfig(KrandomProperties properties) {
@@ -165,12 +175,24 @@ public class KrandomAutoConfiguration {
         }
     }
 
+    /**
+     * Creates the provider hub used by application code.
+     *
+     * @param config generator configuration
+     * @return the configured provider hub
+     */
     @Bean
     @ConditionalOnMissingBean
     public ProviderHub providerHub(GeneratorConfig config) {
         return new ProviderHub(config);
     }
 
+    /**
+     * Creates the typed object-faker factory used by application code.
+     *
+     * @param config generator configuration
+     * @return the configured object-faker factory
+     */
     @Bean
     @ConditionalOnMissingBean
     public KrandomObjectFakerFactory krandomObjectFakerFactory(GeneratorConfig config) {
