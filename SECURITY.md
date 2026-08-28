@@ -38,9 +38,9 @@ acknowledgement.
 
 In scope:
 
-- Code in this repository's published modules (`krandom-core`,
-  `krandom-jackson`, `krandom-spring-boot-starter`, `krandom-kotest-extensions`,
-  `krandom-kotlin-dsl`).
+- Code and metadata in this repository's published modules (`krandom-bom`, `krandom-core`,
+  `krandom-jackson`, `krandom-junit`, `krandom-spring-boot-starter`,
+  `krandom-kotest-extensions`, `krandom-kotlin-dsl`).
 - Build and release tooling that ships in the repository
   (`scripts/`, `.github/workflows/`).
 

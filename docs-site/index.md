@@ -6,8 +6,9 @@ permalink: /
 
 # kRandom Java Documentation
 
-kRandom 2.2.0 is a Java random-data generation library built for test fixtures, seedable fake data,
-and object graph population.
+kRandom is a Java random-data generation library built for test fixtures, seedable fake data, and
+object graph population. The latest stable release is 2.2.0; the repository is preparing the
+3.0.0 development line, so installation examples on this site continue to use 2.2.0.
 
 This site is focused on the Java side only.
 

@@ -1,3 +1,11 @@
-# No public API changes relative to apiBaselineVersion for the 2.3.0 development line.
-# Any future entry must identify an exact symbol, a tested contract change, and a changelog entry.
-# Never add package-wide wildcards.
+# Public API additions and structural changes relative to apiBaselineVersion.
+#
+# The v3 line starts from the released 2.2.0 API, so this file is intentionally empty.
+# Every future entry requires, in the same reviewed change:
+# - a consumer use case and disposition in docs/development/v3-preparation-plan.md;
+# - focused behavior tests and Javadocs;
+# - a changelog entry;
+# - the narrowest class or member signature reported by the API evolution task.
+#
+# Never add package-wide wildcards. The compatibility gate still checks allowlisted elements for
+# binary and source breakage.

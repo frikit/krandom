@@ -66,6 +66,14 @@ else
     exit 1
 fi
 
+step "Verify repository Markdown links"
+if bash "${REPO_ROOT}/scripts/verify_markdown_links.sh"; then
+    ok "Repository Markdown links OK"
+else
+    fail "Repository Markdown link verification failed"
+    exit 1
+fi
+
 step "Verify docs-site internal links"
 if bash "${REPO_ROOT}/scripts/verify_docs_site_links.sh"; then
     ok "Docs-site links OK"

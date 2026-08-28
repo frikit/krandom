@@ -5,6 +5,11 @@ Every published jar module is checked for public binary and source compatibility
 kRandom follows [Semantic Versioning 2.0.0](https://semver.org) for all
 published artifacts (`io.github.frikit:krandom-*`).
 
+The latest stable release is `2.1.0`. The repository development line is
+`3.0.0-SNAPSHOT`, compared against the released `2.1.0` public API. A snapshot version is not a
+release promise; the [v3 preparation plan](docs/development/v3-preparation-plan.md) must approve a
+concrete major-version contract and migration before 3.0.0 can reach GA.
+
 ## What a version number promises
 
 - **Major** (`X.0.0`): may remove or change public API. Migration notes are
@@ -16,6 +21,9 @@ published artifacts (`io.github.frikit:krandom-*`).
   may be added.
 - **Patch** (`1.0.X`): bug fixes only. No new API, no behavior changes beyond
   the documented fix.
+
+A major release does not justify arbitrary cleanup. Every incompatible entry must be narrow,
+reviewed, listed in the changelog, and paired with a compile-tested migration and rollback path.
 
 The public API is everything exported by the published modules' packages and
 documented in Javadoc. Internal packages and classes marked package-private
@@ -30,10 +38,12 @@ carry no compatibility guarantee.
   which can change the concrete values a fixed seed produces. Tests should
   assert on shape and constraints, not on exact generated values, unless they
   pin both the library version and the seed.
+- **Major releases** may change a recipe or stream only when the changelog and migration guide name
+  the versioned transition and provide a reproducible before/after example.
 
 ## Platform support window
 
-**Java 21 is the deliberate baseline for the 1.x and 2.x lines.** This is a
+**Java 21 is the deliberate baseline for the 1.x, 2.x, and planned 3.x lines.** This is a
 positioning decision, not an oversight: it will not be lowered within either
 major line, and any future change to the Java baseline would only happen in a
 major release.
@@ -44,6 +54,7 @@ major release.
 |:---|:---|:---|:---|
 | 1.x | 21+ | 4.x | Kotlin version pinned in `gradle/libs.versions.toml` |
 | 2.x | 21+ | 4.x | Kotlin version pinned in `gradle/libs.versions.toml` |
+| 3.x | 21+ | 4.x | Kotlin version pinned in `gradle/libs.versions.toml` |
 
 - **Java**: 21 or later (toolchain-enforced at build time).
 - **Spring Boot**: the `krandom-spring-boot-starter` module targets Spring

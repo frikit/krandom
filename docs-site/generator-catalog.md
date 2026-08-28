@@ -26,7 +26,7 @@ generator where shown by the API.
 - `ofDomain`, `ofHostname`, `ofUrl` (text URL), `ofUri` (text URI), `ofURI`
   (`URI` object), `ofURL` (`URL` object), `ofSlug`, `ofUserAgent`. Lowercase `Url`/`Uri`
   names generate text; uppercase `URL`/`URI` names generate the corresponding JDK object.
-- `ofHttpMethod`, `ofHttpStatusCode`
+- `ofHttpMethod`, `ofHttpStatusCode`, `ofHttpFixture`
 
 ## Date, time, and locale
 
@@ -44,6 +44,7 @@ generator where shown by the API.
   `ofCountry`, `ofPhoneNumber`, `ofGeohash`
 - `ofCompanyEmail`, `ofCompanyInfo`, `ofJobInfo`, `ofPersonInfo`, `ofSocialHandle`,
   `ofSocialProfile`
+- `ofUniversity` for configuration-scoped verified local data packs
 - `ofProfession`, `ofIndustry`, `ofJobField`, `ofJobType`, `ofSeniority`,
   `ofPosition`, `ofEducationalAttainment`, `ofMaritalStatus`, `ofBloodType`,
   `ofPronoun`, `ofNationality`
@@ -88,13 +89,15 @@ fixtures; see [Finance and Identity]({{ '/guides/finance-and-identity/' | relati
 
 ## Objects, schemas, and providers
 
-- `ofObject` generates a type; `ofObjectFaker` adds targeted rules and exclusions.
+- `ofObject` generates a type; `ofObjectFaker` adds targeted rules and exclusions through strings,
+  Java method references, or nested `PropertyPath` values. `ObjectModel` captures immutable,
+  composable fixture definitions, and strict mode rejects unused explicit rules.
 - `ofField` resolves provider keys; `ofSchema` generates batches and exports them.
 - `ofProviderHub` exposes named provider lookup and aliases.
 
 ## Selection, reuse, and concurrency helpers
 
-- `pick`, `pickSet`, `shuffle`, `weighted`, `unique`, `repeat`
+- `pick`, `pickSet`, `shuffle`, `weighted`, `unique`, `repeat`, `sequence`, `pool`
 - `threadLocal` supplies one generator instance per calling thread.
 
 The removed 1.x aliases (`constant`, `pickFrom`, `pickSetFrom`, `shuffleOf`, and

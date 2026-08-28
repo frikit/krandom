@@ -1,19 +1,18 @@
 # Migrating From Instancio To krandom
 
-Instancio is the modern object-graph generator. krandom does the same one-call
-graph generation **and** fills fields with realistic, locale-aware values —
-Instancio deliberately does not ("realism is not its goal"). Full feature matrix:
-[`../feature-parity/instancio-parity.md`](../feature-parity/instancio-parity.md).
+Instancio is a mature object-graph generator. kRandom also provides one-call graph generation and
+adds built-in realistic, locale-aware values.
 
 ## Why switch / trade-offs
 
 **Pros of krandom**: realistic localized data built in (no DataFaker side-car),
 50 supported locale variants (35 native datasets and 15 curated fallbacks), checksum national IDs,
 schema export, Spring Boot / Jackson / kotest.
-**What Instancio does better today** (tracked in [`GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md)):
-type-safe method-reference selectors (`field(X::getY)`), reusable `Model<T>`,
-conditional `assign(when/then)`, and data feeds. krandom uses string/dotted-path
-field names and `profile(..)` templates instead.
+**What Instancio does better today**: a broader selector vocabulary and scoping model, element and
+setter selectors, conditional assignment, data feeds, and generated field/parameter injection for
+JUnit. kRandom 2.1 already provides Java method-reference selectors, typed nested paths, immutable
+`ObjectModel<T>` templates, dependent rules, and strict unused-rule validation; the remaining gaps
+are tracked in the [`product roadmap`](../development/market-leadership-roadmap.md).
 
 ## Dependency
 
@@ -80,6 +79,6 @@ reproduced. The same krandom version + `GeneratorConfig` + call order is
 repeatable, and `@KrandomSeed` reports/pins the seed for failed tests just like
 Instancio's `@Seed`.
 
-Honest gaps and roadmap:
-[`../feature-parity/instancio-parity.md`](../feature-parity/instancio-parity.md) ·
-[`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
+Honest gaps and priorities are summarized in the
+[`competitive landscape`](../competitive-landscape.md) and
+[`product roadmap`](../development/market-leadership-roadmap.md).

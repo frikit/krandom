@@ -348,7 +348,7 @@ Extension point mapping:
 | --- | --- |
 | `Randomizer<T>` | `Generator<T>` |
 | `ContextAwareRandomizer<T>` | `ContextualGenerator<T>` |
-| `RandomizationContext` / `RandomizerContext` | `GenerationContext` for contextual object-generation overrides; full root/current object path state is not copied |
+| `RandomizationContext` / `RandomizerContext` | `GenerationContext` for contextual object-generation overrides, including the full object path, declared type and declaration, root owner, depth, and active configuration |
 | `RandomizerRegistry` | explicit `GeneratorConfig.objectOverride(...)` registrations or `ProviderHub` registrations |
 | `RandomizerProvider` | `ProviderHub` or a generator factory method |
 | `ObjectFactory` / `ObjenesisObjectFactory` | native constructor/Objenesis object creation plus explicit type or field overrides for special construction |
@@ -403,7 +403,10 @@ GeneratorConfig config = GeneratorConfig.builder()
     .build();
 ```
 
-`ObjectFactory` migrations usually do not need a hook. krandom uses constructors when available and Objenesis fallback when needed. For a special construction rule, use a type or field override:
+`ObjectFactory` migrations usually do not need a hook. kRandom uses safe constructors by default
+and fails contextually when no safe construction path exists. Prefer a type or field factory for a
+special construction rule; use explicit `UNSAFE_CONSTRUCTOR_BYPASS` only as a temporary legacy
+compatibility path:
 
 ```java
 GeneratorConfig config = GeneratorConfig.builder()
@@ -516,7 +519,7 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `CollectionRandomizer`, `ListRandomizer`, `SetRandomizer`, `QueueRandomizer` | Use `generator.generateList(size)`, `Generators.repeat(...)`, selection helpers, or object field generation |
 | `MapRandomizer`, `EnumMapRandomizer`, `EnumSetRandomizer` | Use typed object fields, generator composition, or explicit object overrides |
 
-The full mapping baseline lives in `docs/feature-parity/k-random-reference-feature-inventory.md`.
+The table above is the maintained randomizer mapping baseline.
 
 ## Faker And Domain Generators
 
@@ -648,4 +651,6 @@ krandom's native defaults remain different: unseeded random source, string lengt
 
 ## Tracked Gaps
 
-See `docs/plans/k-random-reference-100-feature-parity-plan.md` for the implementation order, `docs/feature-parity/k-random-reference-parity.md` for the current audit, and `docs/feature-parity/k-random-reference-feature-inventory.md` for the detailed mapping baseline.
+This guide is the maintained migration baseline. Broader fixture-control priorities and the v3
+release gate are tracked in the
+[`product roadmap`](../development/market-leadership-roadmap.md).

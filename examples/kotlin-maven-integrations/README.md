@@ -11,5 +11,5 @@ The test suite proves Kotlin DSL/Kotest use and Spring Boot auto-configuration f
 It is executed by `../../scripts/verify_examples_local.sh` after the repository modules are published to Maven local.
 
 ```bash
-mvn -Dkrandom.version=2.3.0-SNAPSHOT test
+mvn -Dkrandom.version=3.0.0-SNAPSHOT test
 ```

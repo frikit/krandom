@@ -25,15 +25,14 @@ New locales and entries are **curated from real data** — never bulk-generated.
 See [`docs/locale-contribution-guide.md`](../../../../../docs/locale-contribution-guide.md)
 and `CONTRIBUTING.md` for the contribution workflow and quality bar.
 
-## Locale coverage and goal
+## Locale coverage
 
-`java.util.Locale.getAvailableLocales()` on **JDK 21** returns **1,069**
-locales — 811 distinct language+country combinations, across 226 languages and
-252 regions. kRandom does not aim to mechanically cover all of them; it curates
-the **most widely used** locales with real, verified data.
+kRandom does not aim to mirror every locale returned by the JDK. Built-in locale growth requires
+curated data, provenance, native-script review, and the repository quality gates. The current
+public contract is 35 native locale datasets plus 15 explicit curated fallback variants, for 50
+supported variants in total.
 
-**Goal:** grow to at least the **100 most popular locales** (covering ~90% of
-real-world use cases), and hundreds over time. Current coverage by folder:
+Native resource coverage by folder:
 
 | Folder | Datasets per locale | Files | Locales supported | Per-entry rule | Status |
 |:---|:---|---:|---:|:---|:---|
@@ -46,9 +45,8 @@ real-world use cases), and hundreds over time. Current coverage by folder:
 | `titles/` | 1 | 35 | 35 | ≥ 4 unique honorifics | ok |
 | `text/` | n/a | 1 set | non-locale | complete standard set | ok |
 
-All seven locale-keyed folders (cities, names, states, streets, countries,
-professions, titles) now cover the same 35-locale core set. The next step is
-growing that core toward the 100-most-popular-locales goal.
+The locale-keyed folders cover the same 35-locale native set. Additional regional variants expose
+their fallback source through `SupportedLocale`; they do not pretend to contain native data.
 
 ## Folders
 
@@ -72,9 +70,7 @@ named `<locale>.txt` (one name per line):
 - `names/last/<locale>.txt` — common family names
 
 - **Content:** popular given names (by gender) and family names for the locale.
-- **Rule:** **target ≥ 100 unique** entries per file, drawn from genuinely
-  popular names. *Current files hold 39–74 entries and are below target — this
-  folder is the priority for the next curation pass.*
+- **Rule:** **at least 100 unique** entries per file, drawn from genuinely popular names.
 - **Loader:** the name registries under `generator.user` (e.g.
   `FirstNameDataRegistry`, `LastNameDataRegistry`), backed by
   `LocaleTextResourceLoader`.

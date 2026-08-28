@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Started the `3.0.0-SNAPSHOT` development line from the released `2.2.0` API baseline and reset
+  the API evolution classifications for the new major line.
+- Replaced completed v2 plans, dated review reports, and superseded parity research with a concise
+  documentation map, maintained competitive summary, current product roadmap, and staged v3 plan.
+- Added repository-wide internal Markdown link validation and aligned local consumer examples with
+  the development version while keeping public installation guidance on the latest stable release.
+
 ## [2.2.0] - 2026-09-04
 
 ### Changed
@@ -273,7 +282,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - **Identifiers & formats:** `VinGenerator` (`ofVin`, ISO-3779 check digit) + `VehicleGenerator` (`ofVehicle`, make/model/plate); `CnpjGenerator` (`ofCnpj`) and `ofCpf()` for Brazilian company/person tax ids (check-digit valid); `PassportGenerator` (`ofPassport`); `DrivingLicenseGenerator` (`ofDrivingLicense`).
   - **Technical / universal:** `NatoPhoneticGenerator` (`ofNatoPhonetic`, ICAO; `wordFor`/`spell`), `ProgrammingLanguageGenerator` (`ofProgrammingLanguage`), `AwsGenerator` (`ofAws`; region/instanceId/s3Bucket), `AzureGenerator` (`ofAzure`; region/resourceGroup), `ComputerGenerator` (`ofComputer`; OS/platform/deviceType).
 - `LocaleTextResourceLoader` is now `public` so locale-aware generators in any package can reuse the shared classpath resource loader.
-- Full DataFaker provider catalog mapping all 256 providers to krandom status (`docs/feature-parity/datafaker-providers-catalog.md`), plus a competitive gap tracker, Instancio parity matrix, and migration guides (from JavaFaker/DataFaker/EasyRandom/Instancio).
+- A source-audited DataFaker provider mapping, competitive gap tracker, Instancio parity matrix,
+  and migration guides from JavaFaker, DataFaker, Easy Random, and Instancio. The dated research
+  snapshots remain available in the `v2.1.0` tag; the migration guides remain maintained.
 
 ### Changed
 - Dependency bumps (verified no regression across tests, 100% coverage gate, consumer examples, and JMH benchmarks): `net.datafaker` 2.5.4→2.6.0, `com.diffplug.spotless` 8.6.0→8.7.0, `io.kotest` 6.1.11→6.2.1, `com.gradleup.nmcp.settings` 1.5.0→1.6.0; CI actions `actions/checkout` 6→7 and `softprops/action-gh-release` 3.0.0→3.0.1.
@@ -362,7 +373,7 @@ First public release on Maven Central under `io.github.frikit`.
 - Registry input validation is inconsistent across user data registries (`FirstName`/`LastName`/`Gender`/`Title`/`Suffix` accept content that downstream generators reject; `Profession`/`StreetAddress` validate at registration). Standardize on register-time validation.
 - Locale fallback policy differs by registry: `CountryDataRegistry` does language fallback; `CityDataRegistry`/`StateDataRegistry`/`StreetAddressDataRegistry` are exact-match only. Pick one policy and codify it.
 
-See [`docs/reviews/project-review-codex.md`](docs/reviews/project-review-codex.md) for full context.
+The original review context remains available in Git history and the `v1.0.0` tag.
 
 ---
 
