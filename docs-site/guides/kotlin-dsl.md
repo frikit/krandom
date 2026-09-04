@@ -76,6 +76,28 @@ val many = users.generateList(5)
 
 Rules are backed by `GeneratorConfig` object overrides, so the DSL shares the same defaults, seeding, locale, and object-generation behavior as the Java API.
 
+## Java fixture API and Kotlin DSL scope
+
+The Kotlin DSL is the concise, typed front end for ordinary root-property fixtures. It deliberately
+does not claim every Java `ObjectFaker` feature. Choose the Java fixture API when a test needs the
+broader rule-composition surface.
+
+| Capability | Java `ObjectFaker` | Kotlin DSL |
+|:---|:---|:---|
+| Root property rules | String, accessor, and `PropertyPath` rules | Property-reference and string rules |
+| Nested-path rules | Supported | Use Java `ObjectFaker` |
+| Contextual and dependent rules | Supported | Use Java `ObjectFaker` |
+| Include, profiles, post-processing, and `populate` | Supported | Use Java `ObjectFaker` |
+| Immutable reusable models | `ObjectModel<T>` | Use Java `ObjectModel` |
+| Kotlin primary constructors | Via the Kotlin DSL module | Via the Kotlin DSL module |
+| Initialized properties | Java preserves them by default | DSL rules override them by default |
+
+In both APIs, an explicit field rule takes precedence over a type rule and generated defaults.
+The DSL validates duplicate field/type rules immediately and unknown root field names when building.
+It supports neither value classes nor sealed/abstract types without a concrete type override.
+These boundaries are intentional: they keep the Kotlin adapter small while the Java API remains the
+single place for complex fixture composition.
+
 ## Immutable Kotlin classes
 
 `krandom-kotlin-dsl` includes Kotlin reflection and constructs immutable Kotlin values through their

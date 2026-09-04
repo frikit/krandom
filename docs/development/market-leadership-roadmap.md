@@ -46,10 +46,11 @@ with current kRandom guidance.
 
 ### P0 — Deliver compatible fixture improvements
 
-- Complete profile rollback and explicit replay snapshots on the v2 line.
-- Offer independent field streams without changing existing defaults.
-- Qualify old consumers and recipes before releasing additive APIs.
-- Reconsider v3 only after consumer evidence justifies an incompatible default or API change.
+- Completed in 2.3.0: profile rollback, explicit replay snapshots, and opt-in independent
+  field streams, without changing existing defaults.
+- Keep qualifying old consumers and recipes before every additive fixture feature.
+- Reconsider v3 only after consumer evidence justifies an incompatible default or API change;
+  do not create a major version merely to reorganize internals.
 
 ### P1 — Fixture control and diagnosis
 
