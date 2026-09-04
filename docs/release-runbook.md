@@ -27,7 +27,7 @@ The GPG public key must be uploaded to a public keyserver (for example
 
 ## Cutting a release
 
-1. **Decide the version.** SemVer; for example `2.3.0`. Confirm the
+1. **Decide the version.** SemVer; for example `2.4.0`. Confirm the
    `[Unreleased]` section in `CHANGELOG.md` is final.
 2. **Land any last commits on `main`.** Run `./scripts/pre_commit_check.sh`
    and `./scripts/verify_examples_local.sh` locally; both must pass. The pre-commit report must show
@@ -76,12 +76,12 @@ Before dispatching a release, rehearse the exact non-publishing quality and arti
 clean version decision:
 
 ```bash
-JAVA_HOME=<JDK 21+> ./scripts/verify_release_rehearsal.sh 2.3.0
+JAVA_HOME=<JDK 21+> ./scripts/verify_release_rehearsal.sh 2.4.0
 ```
 
-The rehearsal validates SemVer, requires that `v2.3.0` does not already exist locally, verifies the
+The rehearsal validates SemVer, requires that `v2.4.0` does not already exist locally, verifies the
 runbook recovery markers, and runs API compatibility plus release-SBOM checks with
-`-PreleaseVersion=2.3.0`. It never reads publication credentials, tags a commit, uploads artifacts,
+`-PreleaseVersion=2.4.0`. It never reads publication credentials, tags a commit, uploads artifacts,
 or contacts Maven Central.
 
 If a release workflow fails, first identify the last completed step and check Central Portal before

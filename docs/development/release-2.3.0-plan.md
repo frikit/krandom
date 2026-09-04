@@ -28,14 +28,14 @@ old-consumer compatibility and recipe/output comparisons against 2.2.0.
 **Goal**: Merge reviewed release inputs to main and publish 2.3.0 through the established workflow.
 **Success Criteria**: PR and main checks pass; release tag points to the exact main commit.
 **Tests**: Java 21/25 CI, native-image smoke, release workflow and provenance.
-**Status**: In Progress
+**Status**: Complete
 
 ## Stage 5: Verify public release and close out
 **Goal**: Verify published artifacts and consumers, update version facts, and clean release branches.
 **Success Criteria**: Central-only consumers pass; artifacts match the signed bundle; main uses
 2.3.0 as latest GA/API baseline and 2.4.0-SNAPSHOT for development; Pages is current.
 **Tests**: Central artifact/signature comparison, SBOM/provenance, final CI and branch state.
-**Status**: Not Started
+**Status**: Complete
 
 ## Contract decisions
 
@@ -83,3 +83,32 @@ entries when the published API baseline advances.
 
 - Final release-input pre-commit checks and the exact 2.3.0 release rehearsal passed, including
   API checks against 2.2.0 and all seven versioned release SBOMs.
+
+
+## Publication evidence
+
+- [PR #106](https://github.com/frikit/krandom/pull/106) passed Java 21/25, mutation, native-image,
+  all consumer examples, documentation build, and both Snyk checks before merging.
+- Exact release commit on main: `4cb25619f84109ccbaac1c37d539ed9b1be8b554`; its tree matches
+  the tested candidate `f586d1499f6ffa9f8cbdb5833e5afba82069f754`.
+- [Release workflow](https://github.com/frikit/krandom/actions/runs/33899455582) succeeded with
+  automatic Central publication. [v2.3.0](https://github.com/frikit/krandom/releases/tag/v2.3.0)
+  points to that commit and has 33 release assets.
+- Signed aggregation-bundle provenance verified with `gh attestation verify --repo frikit/krandom`.
+- A 2.2.0 reader rejects the explicit new recipe policy with
+  `Unsupported recipe setting: object.field-stream-policy`, confirming the documented boundary.
+
+
+## Public verification and closeout
+
+- All 64 public Maven artifact/signature files match the signed aggregation bundle byte-for-byte.
+  All 96 bundled checksum files validate, and all seven SBOM identities and provenance digests
+  match the published 2.3.0 release.
+- Central-only Java Maven/Gradle and Kotlin/Spring Maven consumers pass, including the new
+  snapshot, stream-policy, and profile-recovery APIs; no Maven-local resolution is used.
+- Merged-main CI and the initial 2.3.0 Pages deployment passed. Final closeout CI and Pages are
+  checked after the version-facts commit is pushed.
+- Post-release facts advance the API baseline to 2.3.0 and development/examples to 2.4.0-SNAPSHOT,
+  keep latest GA at 2.3.0, and clear the release-specific API evolution classifications.
+
+Post-release full pre-commit verification passed against the public 2.3.0 API baseline.

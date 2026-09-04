@@ -1,16 +1,3 @@
-# Exact 2.3.0 additions and internal structural changes; see docs/development/release-2.3.0-plan.md
-# and CHANGELOG.md. The separate compatibility gate has no exclusions.
-io.github.frikit.krandom.generator.GeneratorConfig#snapshotClock()
-io.github.frikit.krandom.generator.GeneratorConfig#getObjectFieldStreamPolicy()
-io.github.frikit.krandom.generator.GeneratorConfig$Builder#objectFieldStreamPolicy(io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy)
-io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy
-io.github.frikit.krandom.dsl.ConfigScope#objectFieldStreamPolicy(io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy)
-# japicmp class-level changes from private helpers only; no public methods changed on these types.
-# ProfileRollbackTest verifies the configuration exception guarantee.
-io.github.frikit.krandom.generator.object.ObjectFaker
-# Engine-level tests verify the opt-in snapshot flag and unchanged default clock.
-io.github.frikit.krandom.junit.KrandomExtension
-# The three exact GeneratorConfig/Builder methods above are the complete public additions.
-# As in the 2.1.0 inventory, private immutable policy fields also require class classification.
-io.github.frikit.krandom.generator.GeneratorConfig
-io.github.frikit.krandom.generator.GeneratorConfig$Builder
+# No public API changes relative to apiBaselineVersion for the 2.4.0 development line.
+# Any future entry must identify an exact symbol, a tested contract change, and a changelog entry.
+# Never add package-wide wildcards.

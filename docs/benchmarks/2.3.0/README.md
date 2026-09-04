@@ -4,7 +4,7 @@ Measured on 2026-09-04 on the same macOS arm64 host with JDK 21, JMH 1.37,
 two forks, three one-second warmups and five one-second measurements per fork.
 Both runs used `-Xms256m -Xmx256m` and the GC profiler. The same compiled benchmark
 class ran against the released 2.2.0 jar and the 2.3.0 candidate jar. No other builds
-or tests ran during the measurements.
+or tests were launched by this release task during the measurements.
 
 Workload: a seeded structural record containing a String, int, and List<Integer>, with
 a fixed clock; the customized variant overrides only the name with a constant.

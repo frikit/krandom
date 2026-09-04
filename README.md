@@ -25,7 +25,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 
 ## Current status
 
-- Latest stable release: `2.3.0`; current repository development line: `2.3.0-SNAPSHOT`.
+- Latest stable release: `2.3.0`; current repository development line: `2.4.0-SNAPSHOT`.
 - Java-first architecture.
 - `core` is the only behavior source of truth.
 - `bom` aligns the versions of all published modules.
