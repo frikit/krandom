@@ -105,9 +105,15 @@ grep -Fq 'SchemaProjection' "${REPO_ROOT}/docs-site/guides/schema-and-provider-h
 [[ -x "${REPO_ROOT}/scripts/verify_examples_central.sh" ]] || fail "Central consumer verification script is not executable"
 grep -Fq 'resumeGithubRelease=true' "${REPO_ROOT}/docs/release-runbook.md" || fail "release runbook lacks GitHub Release recovery guidance"
 grep -Fq 'verify_examples_central.sh' "${REPO_ROOT}/docs/release-runbook.md" || fail "release runbook lacks Central consumer verification"
-grep -Fq 'Test strength | 94%' "${REPO_ROOT}/docs/development/v2-1-mutation-pilot.md" || fail "mutation pilot baseline is stale"
+grep -Fq 'mutationThreshold.set(85)' "${REPO_ROOT}/core/build.gradle.kts" || fail "critical-path mutation threshold changed without documentation review"
+grep -Fq 'coverageThreshold.set(98)' "${REPO_ROOT}/core/build.gradle.kts" || fail "critical-path mutation coverage threshold changed without documentation review"
+grep -Fq '85% mutation score' "${REPO_ROOT}/CONTRIBUTING.md" || fail "CONTRIBUTING does not document the mutation score gate"
+grep -Fq '98% mutated-class line coverage' "${REPO_ROOT}/CONTRIBUTING.md" || fail "CONTRIBUTING does not document the mutation coverage gate"
 
 grep -Fq "The latest released version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/README.md" || fail "README latest GA version is stale"
+grep -Fq "current repository development line: \`${DEVELOPMENT_VERSION}\`" "${REPO_ROOT}/README.md" || fail "README development version is stale"
+grep -Fq "The latest stable release is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/VERSIONING.md" || fail "version policy latest GA is stale"
+grep -Fq "\`${DEVELOPMENT_VERSION}\`, compared against the released \`${API_BASELINE_VERSION}\` public API" "${REPO_ROOT}/VERSIONING.md" || fail "version policy development/API baseline is stale"
 grep -Fq "The current version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started latest GA version is stale"
 grep -Fq "io.github.frikit:krandom-core:${LATEST_GA_VERSION}" "${REPO_ROOT}/README.md" || fail "README core coordinate is stale"
 grep -Fq "io.github.frikit:krandom-bom:${LATEST_GA_VERSION}" "${REPO_ROOT}/README.md" || fail "README BOM coordinate is stale"
@@ -132,6 +138,25 @@ if rg -n 'io\.github\.frikit:krandom-[^`" ]*:(1\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.
     "${REPO_ROOT}/docs/migration"; then
     fail "current installation/migration documentation contains stale or snapshot coordinates"
 fi
+
+EXAMPLE_VERSION_FILES=(
+    "examples/java-gradle/build.gradle.kts"
+    "examples/java-gradle-integrations/build.gradle.kts"
+    "examples/java-jpms/open-consumer/build.gradle.kts"
+    "examples/java-jpms/closed-consumer/build.gradle.kts"
+    "examples/java-jpms/jackson-consumer/build.gradle.kts"
+    "examples/java-jpms/junit-consumer/build.gradle.kts"
+    "examples/kotlin-gradle/build.gradle.kts"
+    "examples/java-maven/pom.xml"
+    "examples/java-maven-integrations/pom.xml"
+    "examples/kotlin-maven/pom.xml"
+    "examples/kotlin-maven-integrations/pom.xml"
+    "examples/scala-sbt/build.sbt"
+    "examples/scala-mill/build.mill"
+)
+for example_file in "${EXAMPLE_VERSION_FILES[@]}"; do
+    grep -Fq "${DEVELOPMENT_VERSION}" "${REPO_ROOT}/${example_file}" || fail "${example_file} does not use developmentVersion ${DEVELOPMENT_VERSION}"
+done
 
 if rg -n 'Generators\.(constant|pickFrom|pickSetFrom|shuffleOf|uniqueValues)\(' \
     "${REPO_ROOT}/README.md" \

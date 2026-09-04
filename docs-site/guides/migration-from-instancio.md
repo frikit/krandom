@@ -16,7 +16,7 @@ directly; the honest-gaps section lists what does not (yet).
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.2.0")
+    implementation("io.github.frikit:krandom-core:2.3.0")
 }
 ```
 
@@ -34,7 +34,7 @@ dependencies {
 | `.withSeed(42)` | `GeneratorConfig.builder().seed(42L)` |
 | `.withMaxDepth(3)` | `.objectMaxDepth(3)` |
 | `Instancio.of(Model<T>)` | `ObjectModel<T>.faker()` / `.generate()`; compose models with `.and(...)` |
-| `generate(field(...), gen -> gen.ints().range(1, 10))` | `.ruleFor("count", Generators.ofInt(1, 10))` |
+| `generate(field(...), gen -> gen.ints().range(1, 10))` | `.ruleFor(User::getCount, Generators.ofInt(1, 10))` |
 | `@ExtendWith(InstancioExtension.class)` + `@Seed(42)` | `@ExtendWith(KrandomExtension.class)` + `@KrandomSeed(42L)` from `krandom-junit` — same failure-seed reporting; see the [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }}) guide |
 
 ## Before and after
@@ -67,8 +67,8 @@ User user = new ObjectFaker<>(User.class, config)
   throughput-for-realism trade-off; see the README performance section).
 - **Bean Validation awareness** — 21 Jakarta constraints (`@Email`, `@Min`,
   `@Pattern`, `@Size`, …) are honored during population without extra setup.
-- **Bulk structured export** — `Field` + `Schema` produce CSV, JSONL, XML,
-  and SQL output; Instancio has no export story.
+- **Bulk structured export** — `Field` + `Schema` produce JSONL, JSON, CSV, XML, SQL, YAML, and
+  TOML output, including streaming writers and existing-object projections.
 - **Locale-aware data** across 50 supported locale variants (35 native datasets and 15 curated
   fallbacks).
 
@@ -81,3 +81,6 @@ User user = new ObjectFaker<>(User.class, config)
   time; broad predicate rules remain configured through `GeneratorConfig` field predicates.
 - **JPA-specific constraints**: Bean Validation is native, but JPA metadata such as
   `@Column(length=...)` is not interpreted.
+- **JUnit generated-value injection and parameter sources**: kRandom reports and replays per-test
+  seeds, but does not yet provide equivalents to Instancio's generated field/parameter injection
+  and parameterized source APIs.

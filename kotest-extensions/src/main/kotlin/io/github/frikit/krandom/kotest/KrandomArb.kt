@@ -159,7 +159,9 @@ fun krandomKotestRecipe(config: GeneratorConfig = GeneratorConfig.defaults()): S
 /**
  * Runs [io.kotest.property.checkAll] over [arb] and, when the property fails, rethrows the
  * assertion error with the kRandom recipe of [config] appended alongside Kotest's own seed
- * report, so a CI failure carries both replay halves.
+ * report, so a CI failure carries both replay halves. For temporal replay, call
+ * [GeneratorConfig.snapshotClock] before creating the Arb and pass that same configuration here.
+ * This helper cannot recover the clock used earlier by an independently constructed Arb.
  */
 suspend fun <A> checkAllWithRecipe(
     config: GeneratorConfig,

@@ -216,7 +216,9 @@ final class FieldGeneratorResolver {
         this.pool = pool;
         this.uniqueFieldTracker = uniqueFieldTracker;
         this.generationSeed = generationSeed;
-        this.namedChildStreams = generationSeed != null && this.generatorConfig.getGenerationRecipe().isPresent();
+        this.namedChildStreams = generationSeed != null
+            && (this.generatorConfig.getObjectFieldStreamPolicy() == ObjectFieldStreamPolicy.INDEPENDENT
+                || this.generatorConfig.getGenerationRecipe().isPresent());
         this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
         this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
         this.semanticRegistry = config.getSemanticRegistry();

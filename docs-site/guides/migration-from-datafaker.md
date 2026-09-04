@@ -7,15 +7,15 @@ permalink: /guides/migration-from-datafaker/
 # Migration from DataFaker
 
 Use this mapping to move DataFaker (or JavaFaker) code to kRandom. This is
-feature-parity guidance, not source-compatible import replacement. JavaFaker
-users: the same mappings apply — JavaFaker is unmaintained and DataFaker is
-its successor, so both columns read the same.
+feature-parity guidance, not source-compatible import replacement. JavaFaker users can use the
+same mappings: its original repository still documents the legacy `1.0.2` coordinate, while
+DataFaker is the actively developed successor.
 
 ## Install
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.2.0")
+    implementation("io.github.frikit:krandom-core:2.3.0")
 }
 ```
 
@@ -100,9 +100,9 @@ for the seed-stability policy.
   pop-culture catalogs): not shipped. If your tests depend on these, keep
   DataFaker for those calls or open an issue — domain packs are
   community-contributable.
-- **Locales**: kRandom supports 50 locale variants (35 native datasets and 15 curated fallbacks);
-  DataFaker's current README lists 70 locale tags, including generic and novelty variants.
-  Check yours against the [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}) guide.
+- **Locales**: kRandom supports 50 variants (35 native datasets and 15 curated fallbacks), while
+  DataFaker maintains a broader locale surface. Check the exact locale you use against the
+  [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}) guide.
 - **Local data packs**: DataFaker accepts YAML files and URLs. kRandom accepts a versioned,
   SHA-256-verified local University CSV pack with declared source and license; runtime network
   loading is intentionally excluded. See [Local Data Packs]({{ '/guides/local-data-packs/' | relative_url }}).

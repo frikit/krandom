@@ -281,6 +281,10 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     /**
      * Applies a previously defined named profile exactly once.
+     *
+     * <p>If the profile fails, library-owned configuration is restored, including nested profiles
+     * and cached generator references. External callback effects and random values consumed by a
+     * callback are not rolled back. Successfully applied profiles keep their existing behavior.
      */
     public ObjectFaker<T> useProfile(String name) {
         Objects.requireNonNull(name, "name must not be null");
@@ -291,19 +295,48 @@ public final class ObjectFaker<T> implements Generator<T> {
         if (applyingProfiles.contains(name)) {
             throw new IllegalStateException("Profile '" + name + "' is already being applied");
         }
-        if (!appliedProfiles.add(name)) {
+        if (appliedProfiles.contains(name)) {
             throw new IllegalStateException("Profile '" + name + "' is already applied");
         }
+        ObjectFaker<T> snapshot = new ObjectFaker<>(type, baseConfig);
+        snapshot.copyConfigurationFrom(this);
+        appliedProfiles.add(name);
         applyingProfiles.add(name);
         try {
             profile.accept(this);
             return this;
-        } catch (RuntimeException e) {
-            appliedProfiles.remove(name);
+        } catch (RuntimeException | Error e) {
+            copyConfigurationFrom(snapshot);
             throw e;
         } finally {
             applyingProfiles.remove(name);
         }
+    }
+
+    private void copyConfigurationFrom(ObjectFaker<T> source) {
+        rulePaths.clear();
+        rulePaths.putAll(source.rulePaths);
+        fieldRules.clear();
+        fieldRules.putAll(source.fieldRules);
+        contextualFieldRules.clear();
+        contextualFieldRules.putAll(source.contextualFieldRules);
+        dependentFieldRules.clear();
+        dependentFieldRules.putAll(source.dependentFieldRules);
+        namedProfiles.clear();
+        namedProfiles.putAll(source.namedProfiles);
+        ignoredFields.clear();
+        ignoredFields.addAll(source.ignoredFields);
+        includedFields.clear();
+        includedFields.addAll(source.includedFields);
+        postProcessors.clear();
+        postProcessors.addAll(source.postProcessors);
+        applyingProfiles.clear();
+        applyingProfiles.addAll(source.applyingProfiles);
+        appliedProfiles.clear();
+        appliedProfiles.addAll(source.appliedProfiles);
+        strictValidation = source.strictValidation;
+        uniqueFieldTracker = source.uniqueFieldTracker;
+        objectGenerator = source.objectGenerator;
     }
 
     /**

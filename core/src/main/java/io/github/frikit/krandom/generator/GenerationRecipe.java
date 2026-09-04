@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
@@ -392,6 +393,10 @@ public final class GenerationRecipe {
     }
 
     private void applySettings(GeneratorConfig.Builder builder) {
+        String streamPolicy = settings.get("object.field-stream-policy");
+        if (streamPolicy != null) {
+            builder.objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(streamPolicy));
+        }
         String charset = settings.get("charset");
         if (charset != null) {
             builder.charset(Charset.forName(charset));
@@ -533,7 +538,7 @@ public final class GenerationRecipe {
 
     private static boolean isKnownSetting(String key) {
         return switch (key) {
-            case "charset", "string.min", "string.max", "collection.min", "collection.max", "object.max-depth",
+            case "object.field-stream-policy", "charset", "string.min", "string.max", "collection.min", "collection.max", "object.max-depth",
                  "object.pool-size", "object.override-default-initialization", "object.ignore-errors",
                  "object.semantic-mode", "object.null-probability", "object.optional-empty-probability",
                  "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",

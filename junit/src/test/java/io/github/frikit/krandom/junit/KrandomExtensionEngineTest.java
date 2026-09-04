@@ -223,6 +223,53 @@ class KrandomExtensionEngineTest {
                 "unpinned tests must not reuse a previous test's stored seed");
     }
 
+    @Test
+    void optInClockSnapshotIsSharedByGenerationAndFailureReport() throws Exception {
+        withSystemProperty("krandom.junit.snapshot-clock", "true", () -> {
+            EngineExecutionResults results = runFixture(SnapshotFailingFixture.class);
+            results.testEvents().assertStatistics(stats -> stats.failed(1));
+            GenerationRecipe reported = GenerationRecipe.parse(singleRecipeReportEntry(results));
+            assertEquals(SnapshotFailingFixture.CLOCK.toInstant(), reported.getClockInstant());
+            assertEquals(SnapshotFailingFixture.CLOCK.getZone(), reported.getClockZone());
+        });
+    }
+
+    @Test
+    void malformedSnapshotFlagFailsBeforeReportingARecipe() throws Exception {
+        withSystemProperty("krandom.junit.snapshot-clock", "yes", () ->
+            assertSingleConfigurationError(PassingFixture.class, "snapshot-clock must be true or false"));
+    }
+
+    @Test
+    void snapshotDisabledRetainsLiveClock() throws Exception {
+        withSystemProperty("krandom.junit.snapshot-clock", "false", () -> {
+            EngineExecutionResults results = runFixture(LiveClockFixture.class);
+            results.testEvents().assertStatistics(stats -> stats.succeeded(1));
+        });
+    }
+
+    @Disabled
+    @KrandomSeed(42)
+    static class SnapshotFailingFixture {
+        static java.time.ZonedDateTime CLOCK;
+        @Test
+        void failAfterCapturingClock(GeneratorConfig config, GeneratorConfig.Builder builder) {
+            CLOCK = java.time.ZonedDateTime.ofInstant(config.getClock().instant(), config.getClock().getZone());
+            assertEquals(java.time.Clock.fixed(CLOCK.toInstant(), CLOCK.getZone()), config.getClock());
+            assertEquals(config.getClock(), builder.build().getClock());
+            fail("report the same captured instant");
+        }
+    }
+
+    @Disabled
+    @KrandomSeed(42)
+    static class LiveClockFixture {
+        @Test
+        void retainsLiveClock(GeneratorConfig config) {
+            assertEquals(java.time.Clock.systemDefaultZone(), config.getClock());
+        }
+    }
+
     private static void assertSingleConfigurationError(Class<?> fixture, String expectedMessagePart) {
         EngineExecutionResults results = runFixture(fixture);
 

@@ -10,7 +10,7 @@ permalink: /guides/junit-extension/
 when a test fails, so a failure caused by random data is always reproducible.
 
 ```kotlin
-testImplementation("io.github.frikit:krandom-junit:2.2.0")
+testImplementation("io.github.frikit:krandom-junit:2.3.0")
 ```
 
 ## Seed reporting on failure
@@ -134,3 +134,15 @@ class UserFixtureTest {
 
 See also: [Testing Integrations]({{ '/guides/testing-integrations/' | relative_url }}) and
 [Migration from Instancio]({{ '/guides/migration-from-instancio/' | relative_url }}).
+
+## Captured test clocks (2.3+)
+
+Set the **test JVM** system property `krandom.junit.snapshot-clock=true` to capture one clock before
+parameter injection. The injected configuration and failure recipe use the same instant and zone.
+The default `false` retains live clocks; other values are rejected. For Gradle, configure
+`tasks.test { systemProperty("krandom.junit.snapshot-clock", "true") }`; for Maven Surefire, set
+`krandom.junit.snapshot-clock` in `systemPropertyVariables`.
+
+The extension cannot track later edits to an injected builder. If you change its clock, rules,
+locale, or other settings, capture/report the resulting configuration yourself. A seed alone does
+not reproduce a moving clock. A replay-recipe override already has a fixed clock.

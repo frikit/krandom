@@ -47,7 +47,10 @@ regression budgets.
 
 ### Reports
 
-Benchmark reports are stored in [`docs/benchmarks/`](../docs/benchmarks/) with one file per run. Reports are generated monthly to track performance trends.
+Accepted benchmark reports are stored in [`docs/benchmarks/`](../docs/benchmarks/) with raw output
+retained for each comparable full run. Generate a new report when preparing a release or
+investigating a performance change; do not imply an automated cadence that the repository does not
+enforce.
 
 | Report | Date | JDK |
 |:---|:---|:---|

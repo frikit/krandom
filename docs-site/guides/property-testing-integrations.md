@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("io.github.frikit:krandom-kotest-extensions:2.2.0")
+    testImplementation("io.github.frikit:krandom-kotest-extensions:2.3.0")
 }
 ```
 
@@ -103,3 +103,22 @@ tests against another version in the supported range:
 ```bash
 ./gradlew :kotest-extensions:test -PkotestVersion=6.1.11
 ```
+
+## Temporal replay with one snapshot (2.3+)
+
+Build the configuration once with `snapshotClock()` before creating an Arb, and pass the same
+configuration to `checkAllWithRecipe`:
+
+```kotlin
+val session = GeneratorConfig.defaults().snapshotClock()
+val arb = krandomArb(session) { sample ->
+    Generator { DateGenerator(sample).future(7) }
+}
+checkAllWithRecipe(session, arb) { date ->
+    // Assert the application contract here.
+}
+```
+
+The snapshot is shared across property samples. Kotest's seed controls sample randomness, while
+the kRandom recipe records configuration including the captured clock. Snapshotting only in the
+failure handler or passing a different configuration to the Arb cannot reproduce temporal data.

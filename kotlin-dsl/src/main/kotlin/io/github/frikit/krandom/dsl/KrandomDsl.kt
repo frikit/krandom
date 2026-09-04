@@ -291,6 +291,11 @@ class ConfigScope(private val builder: GeneratorConfig.Builder) {
         builder.objectConstructionPolicy(policy)
     }
 
+    /** Selects opt-in independent object-field streams; requires a numeric or textual seed. */
+    fun objectFieldStreamPolicy(policy: io.github.frikit.krandom.generator.`object`.ObjectFieldStreamPolicy) {
+        builder.objectFieldStreamPolicy(policy)
+    }
+
     /** Sets a textual seed using the same derivation contract as `GeneratorConfig`. */
     fun seed(seedText: String) {
         builder.seed(seedText)
