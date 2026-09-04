@@ -60,9 +60,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         continue-on-error: true
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
       - name: Retry deploy to GitHub Pages
         id: deployment_retry
         if: steps.deployment.outcome == 'failure'
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

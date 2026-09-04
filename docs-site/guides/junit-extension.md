@@ -10,7 +10,7 @@ permalink: /guides/junit-extension/
 when a test fails, so a failure caused by random data is always reproducible.
 
 ```kotlin
-testImplementation("io.github.frikit:krandom-junit:2.1.0")
+testImplementation("io.github.frikit:krandom-junit:2.2.0")
 ```
 
 ## Seed reporting on failure

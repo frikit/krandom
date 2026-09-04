@@ -1,9 +1,9 @@
 # Dependency reproducibility
 
-The main kRandom build treats dependency coordinates and artifact bytes as reviewed source inputs.
-Gradle verifies every resolved plugin, build tool, production dependency, and test dependency against
-`gradle/verification-metadata.xml` in strict mode. A missing artifact or changed checksum fails the
-build.
+The main kRandom build pins direct dependency versions and rejects non-reproducible dependency
+selectors. Gradle wrapper distributions are checksum-verified and GitHub Actions are SHA-pinned.
+The repository does not currently track `gradle/verification-metadata.xml`, so Gradle dependency
+artifact checksums are not enforced. Exact version selectors alone do not freeze artifact bytes.
 
 ## Repository policy
 
@@ -22,10 +22,10 @@ The standalone builds under `examples/` intentionally retain only `mavenLocal()`
 Central: they are consumer simulations that verify the locally published kRandom snapshot. They do
 not participate in a release publication.
 
-## Updating verification metadata
+## Establishing verification metadata
 
-Make one dependency or plugin update at a time. Then run the same broad task graph used to create the
-baseline:
+Artifact verification remains a separate hardening task. To establish a baseline, generate SHA-256
+metadata for the build, then review all resolved components and artifacts before accepting it:
 
 ```bash
 ./gradlew --write-verification-metadata sha256 \
@@ -37,7 +37,7 @@ baseline:
 This command adds checksums required by the resolved graph; it is not approval to accept the file
 wholesale. Review the XML diff and require all of the following before committing it:
 
-1. Every new component is explained by the intended version change.
+1. Every component is explained by the current build; later additions must match an intended update.
 2. Every new artifact has a SHA-256 checksum and no broad trusted-artifact exception was added.
 3. Direct dependency and plugin versions are checked against their official release pages or Maven
    Central metadata.
@@ -48,15 +48,13 @@ Checksums provide integrity after this reviewed baseline is established; they do
 identity. Adding PGP identity verification is a separate hardening step and must not replace SHA-256
 checks.
 
-## Dependency-locking decision
+## Dependency locking
 
-Dependency locking is deliberately not enabled at this stage. All direct versions are exact,
-non-reproducible selectors are rejected during resolution, and verification metadata freezes both
-module metadata and artifact bytes. Lock files would duplicate that graph across this multi-project
-library without protecting plugin resolution or `buildSrc`, while adding another update surface.
-They would also provide no useful contract to library consumers, who must resolve dependencies in
-their own application graph.
+Dependency locking is not enabled. Direct versions are exact and non-reproducible selectors are
+rejected during resolution, but there is no committed lock state for the resolved transitive graph.
+Locking and artifact verification address different concerns: locks record selected versions, while
+verification metadata records accepted artifact bytes. Neither is a dependency-resolution contract
+for consumers, who resolve their own application graphs.
 
-Re-evaluate locking if an unavoidable version range enters the resolved graph, if identical source
-and verification metadata ever select different versions, or if the project starts publishing
-resolved rather than declared dependency versions.
+Re-evaluate locking if the same source selects different transitive versions, if a dependency needs
+a version range, or if the project starts publishing resolved rather than declared versions.
