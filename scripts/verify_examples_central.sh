@@ -13,7 +13,7 @@ cleanup() {
 trap cleanup EXIT
 
 if [[ -z "${VERSION}" ]]; then
-    echo "KRANDOM_VERSION must name the published version to verify (for example 2.1.0)." >&2
+    echo "KRANDOM_VERSION must name the published version to verify (for example 2.2.0)." >&2
     exit 1
 fi
 if [[ "${VERSION}" == *SNAPSHOT* ]]; then

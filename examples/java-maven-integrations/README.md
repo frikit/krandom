@@ -8,5 +8,5 @@ This example verifies that published integration artifacts are consumable from a
 It is executed by `../../scripts/verify_examples_local.sh` after the repository modules are published to Maven local.
 
 ```bash
-mvn -Dkrandom.version=2.2.0-SNAPSHOT test
+mvn -Dkrandom.version=2.3.0-SNAPSHOT test
 ```
