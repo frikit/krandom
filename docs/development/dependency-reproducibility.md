@@ -2,8 +2,9 @@
 
 The main kRandom build pins direct dependency versions and rejects non-reproducible dependency
 selectors. Gradle wrapper distributions are checksum-verified and GitHub Actions are SHA-pinned.
-The repository does not currently track `gradle/verification-metadata.xml`, so Gradle dependency
-artifact checksums are not enforced. Exact version selectors alone do not freeze artifact bytes.
+The repository tracks `gradle/verification-metadata.xml` with reviewed SHA-256 checksums for every
+resolved external artifact. Exact version selectors alone do not freeze artifact bytes; Gradle
+verification rejects an artifact whose bytes do not match this reviewed baseline.
 
 ## Repository policy
 
@@ -22,10 +23,10 @@ The standalone builds under `examples/` intentionally retain only `mavenLocal()`
 Central: they are consumer simulations that verify the locally published kRandom snapshot. They do
 not participate in a release publication.
 
-## Establishing verification metadata
+## Updating verification metadata
 
-Artifact verification remains a separate hardening task. To establish a baseline, generate SHA-256
-metadata for the build, then review all resolved components and artifacts before accepting it:
+When a reviewed dependency update adds artifacts, generate updated SHA-256 metadata for the build,
+then review all resolved components and artifacts before accepting it:
 
 ```bash
 ./gradlew --write-verification-metadata sha256 \
