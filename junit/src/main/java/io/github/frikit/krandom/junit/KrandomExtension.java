@@ -31,6 +31,11 @@ import java.util.Random;
  * random per-test seed when unpinned. The seed is injectable as a {@link GeneratorConfig} or
  * {@link GeneratorConfig.Builder} test parameter, both pre-seeded with the test's seed.
  *
+ * <p>Set {@code -Dkrandom.junit.snapshot-clock=true} to capture one fixed clock per test
+ * before parameter injection. Generation and failure diagnostics then use the same instant.
+ * The default remains a live clock. Customizations to an injected builder are not tracked by
+ * the extension; report the actual customized configuration's recipe yourself.
+ *
  * <p>Set {@code -Dkrandom.junit.recipe=base64:<serialized recipe>} or
  * {@code -Dkrandom.junit.seed=<numeric seed>} to replay a test without editing its source. The
  * corresponding {@code KRANDOM_JUNIT_RECIPE} and {@code KRANDOM_JUNIT_SEED} environment variables
@@ -165,6 +170,18 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     }
 
     private static SeedInfo computeSeedInfo(ExtensionContext context) {
+        String snapshot = System.getProperty("krandom.junit.snapshot-clock", "false");
+        boolean snapshotClock = switch (snapshot) {
+            case "true" -> true;
+            case "false" -> false;
+            default -> throw new ExtensionConfigurationException(
+                "krandom.junit.snapshot-clock must be true or false");
+        };
+        SeedInfo info = computeConfiguredSeedInfo(context);
+        return snapshotClock ? new SeedInfo(info.config().snapshotClock(), info.pinned()) : info;
+    }
+
+    private static SeedInfo computeConfiguredSeedInfo(ExtensionContext context) {
         Optional<ReplayOverride> recipeOverride = replayOverride(
             REPLAY_RECIPE_PROPERTY, REPLAY_RECIPE_ENVIRONMENT);
         Optional<ReplayOverride> seedOverride = replayOverride(REPLAY_SEED_PROPERTY, REPLAY_SEED_ENVIRONMENT);

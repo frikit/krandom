@@ -75,4 +75,23 @@ class JavaGradleUsageTest {
 
         assertEquals("Scoped skies", new WeatherGenerator(config).generate());
     }
+
+    @Test
+    void compatibleReplayAndFixtureOptionsWorkFromPublishedArtifacts() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(42)
+            .objectSemanticMode(io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+            .objectFieldStreamPolicy(io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy.INDEPENDENT)
+            .build().snapshotClock();
+        var expected = new io.github.frikit.krandom.generator.object.ObjectGenerator<>(StreamFixture.class, config).generate();
+        var overridden = new io.github.frikit.krandom.generator.object.ObjectGenerator<>(StreamFixture.class,
+            config.toBuilder().objectOverride(StreamFixture.class, "name", () -> "fixed").build()).generate();
+        assertEquals(expected.age(), overridden.age());
+        assertEquals(config.getClock(), config.getGenerationRecipe().orElseThrow().toGeneratorConfig().getClock());
+        var faker = new io.github.frikit.krandom.generator.object.ObjectFaker<>(StreamFixture.class, config)
+            .profile("failed", f -> { f.ruleFor("name", () -> "partial"); throw new IllegalStateException("failed"); });
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> faker.useProfile("failed"));
+        assertEquals("recovered", faker.ruleFor("name", () -> "recovered").generate().name());
+    }
+
+    public record StreamFixture(String name, int age) {}
 }

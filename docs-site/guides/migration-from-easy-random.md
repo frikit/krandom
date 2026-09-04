@@ -6,16 +6,16 @@ permalink: /guides/migration-from-easy-random/
 
 # Migration from easy-random
 
-Use this mapping to move Easy Random 6.x (`org.jeasy.random`) code to kRandom. Easy Random runs on
-Java 17; kRandom 2.x requires Java 21. kRandom covers the common structural object-generation
-surface and adds native Bean Validation and semantic fixture generation, but it does not promise
-the same seeded object values.
+Use this mapping to move Easy Random (`org.jeasy.random`) code to kRandom. Easy Random describes
+itself as maintenance-only; kRandom requires Java 21. kRandom covers the common structural
+object-generation surface and adds native Bean Validation and semantic fixture generation, but it
+does not promise the same seeded object values.
 
 ## Install
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.2.0")
+    implementation("io.github.frikit:krandom-core:2.3.0")
 }
 ```
 
@@ -72,9 +72,10 @@ User user = Generators.ofObject(User.class, config).generate();
   characters, kRandom resolves common field names to realistic values (real
   names, valid emails, real cities) via the semantic field registry. Set
   `objectSemanticRegistry` to extend or disable per project.
-- **Records and constructor-less classes** are handled natively (canonical
-  constructor for records, Objenesis fallback for classes without a no-arg
-  constructor).
+- **Records and constructor-based classes** use safe constructors by default. A type factory is the
+  preferred migration for a class with no usable constructor; explicit
+  `UNSAFE_CONSTRUCTOR_BYPASS` preserves the old Objenesis behavior only as an opt-in compatibility
+  path.
 - **Cycle handling** uses an object pool rather than easy-random's depth
   cutoff alone — circular references resolve to cached instances.
 
@@ -85,8 +86,8 @@ User user = Generators.ofObject(User.class, config).generate();
   implementation explicitly instead:
   `.objectSubtype(PaymentMethod.class, CardPayment.class)` — the mapped
   implementation is then fully populated like any concrete type.
-- **ServiceLoader randomizer SPI**: kRandom uses explicit `ProviderHub`
-  registration instead of `META-INF/services` discovery.
+- **ServiceLoader randomizer SPI**: kRandom uses explicitly installed, configuration-scoped
+  `KRandomModule` contributions instead of classpath discovery.
 - **Setter-based population**: kRandom populates via field reflection, not
   setters. Logic inside setters will not run during generation; use
   `ObjectFaker.postProcess(...)` when you need it.

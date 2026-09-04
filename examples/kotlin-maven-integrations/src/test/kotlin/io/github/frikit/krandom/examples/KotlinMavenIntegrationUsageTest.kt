@@ -50,6 +50,26 @@ class KotlinMavenIntegrationUsageTest {
     }
 
     @Test
+    fun `independent streams and snapshots work from published Kotlin artifacts`() {
+        val plain = krandomList<IntegrationStreamFixture>(5) {
+            config {
+                seed(42L)
+                objectFieldStreamPolicy(io.github.frikit.krandom.generator.`object`.ObjectFieldStreamPolicy.INDEPENDENT)
+            }
+        }
+        val custom = krandomList<IntegrationStreamFixture>(5) {
+            config {
+                seed(42L)
+                objectFieldStreamPolicy(io.github.frikit.krandom.generator.`object`.ObjectFieldStreamPolicy.INDEPENDENT)
+            }
+            rule(IntegrationStreamFixture::name) { "fixed" }
+        }
+        assertEquals(plain.map { it.age }, custom.map { it.age })
+        val session = GeneratorConfig.builder().seed(42L).build().snapshotClock()
+        assertEquals(session.clock, session.generationRecipe.orElseThrow().toGeneratorConfig().clock)
+    }
+
+    @Test
     fun `spring starter is consumable from Kotlin Maven`() {
         val runner = ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(KrandomAutoConfiguration::class.java))
@@ -76,3 +96,5 @@ class KotlinSpringFixture {
     var name: String = ""
     var email: String = ""
 }
+
+data class IntegrationStreamFixture(val name: String, val age: Int)

@@ -1,8 +1,8 @@
 # Migrating From JavaFaker To krandom
 
-**JavaFaker (`com.github.javafaker`) is unmaintained** — no release since 2024,
-known security/bug issues, and projects like Netflix's dgs-framework migrated off
-it. If you are still on JavaFaker, migrate.
+The original JavaFaker repository still documents `com.github.javafaker:javafaker:1.0.2` and has
+been superseded for active Faker-style development by DataFaker. If you are still on JavaFaker,
+treat migration as a dependency refresh rather than extending the legacy surface.
 
 Two paths:
 1. **JavaFaker → DataFaker** — a near drop-in fork (same `faker.name().fullName()`
@@ -16,14 +16,14 @@ Two paths:
 **Pros**: maintained; realistic field data **and** object-graph generation in one
 library; 50 supported locale variants (35 native datasets and 15 curated fallbacks); schema export;
 Spring Boot / JUnit 5 / kotest integrations.
-**Cons / gaps**: fewer locale variants than DataFaker (50 supported vs 70 advertised tags) and no novelty/fandom
-catalogs in core — see [`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
+**Cons / gaps**: kRandom intentionally omits novelty and fandom catalogs from core; use DataFaker
+or a local, provenance-declared data pack when those datasets are required.
 
 ## Dependency
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:2.2.0")
+    testImplementation("io.github.frikit:krandom-core:2.3.0")
 }
 ```
 
@@ -70,6 +70,6 @@ A seed is scoped to its own library; JavaFaker's exact strings are not
 reproduced. The same krandom version + `GeneratorConfig` + call order is
 repeatable.
 
-For the full provider mapping and tracked gaps see
-[`from-datafaker.md`](./from-datafaker.md) and
-[`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
+For the field-level mapping and tracked priorities see
+[`from-datafaker.md`](./from-datafaker.md) and the
+[`competitive landscape`](../competitive-landscape.md).

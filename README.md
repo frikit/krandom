@@ -21,10 +21,11 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 | `benchmarks` | JMH and macro-profile workloads, including competitor comparisons |
 | `examples/` | Consumer examples for Java, Kotlin, and Scala build-tool combinations using `core` directly |
 | `docs-site/` | Public documentation site source |
-| `docs/` | Internal notes, parity tracking, benchmark reports, and implementation plans |
+| `docs/` | Maintained migration, release, benchmark, contribution, and development documentation |
 
 ## Current status
 
+- Latest stable release: `2.3.0`; current repository development line: `2.3.0-SNAPSHOT`.
 - Java-first architecture.
 - `core` is the only behavior source of truth.
 - `bom` aligns the versions of all published modules.
@@ -82,7 +83,8 @@ val user = krandom<User> {
 - Use `ObjectFaker<T>` when you need explicit fixture rules, typed nested overrides, or strict
   configuration validation. Use immutable `ObjectModel<T>` values for reusable, composable fixture
   definitions.
-- Use `Field` + `Schema` when you want row-style payloads or formatted export output such as CSV, JSONL, XML, or SQL.
+- Use `Field` + `Schema` when you want row-style payloads or formatted export output such as JSONL,
+  JSON, CSV, XML, SQL, YAML, or TOML.
 
 The public docs now also include a dedicated guide: [Choosing an API](docs-site/guides/choosing-an-api.md).
 
@@ -97,11 +99,11 @@ defines the publication protocol and regression budgets.
 
 | Benchmark | krandom | DataFaker | JavaFaker | krandom vs DataFaker |
 |:---|---:|---:|---:|:---|
-| firstName | **62,097,588** | 3,340,974 | 471,587 | 18.6x faster |
-| email | **7,041,044** | 868,973 | 270,552 | 8.1x faster |
-| streetAddress | **13,305,613** | 951,856 | 85,805 | 14.0x faster |
+| firstName | **103,289,329** | 6,249,732 | 592,885 | 16.5x faster |
+| email | **18,622,629** | 866,639 | 338,617 | 21.5x faster |
+| streetAddress | **22,917,208** | 1,834,284 | 114,079 | 12.5x faster |
 
-> JDK 21.0.10, JMH 1.37, aarch64. See the [latest full report](docs/benchmarks/DASHBOARD.md) for object-population and bulk-generation numbers, methodology notes, and raw JMH output.
+> JDK 21.0.12.1, JMH 1.37, arm64. See the [latest full report](docs/benchmarks/DASHBOARD.md) for object-population and bulk-generation numbers, methodology notes, and raw JMH output.
 
 krandom's `ObjectGenerator` trades throughput for semantic realism — every field is populated with a domain-appropriate value (real names, valid emails, real cities) rather than arbitrary random bytes.
 
@@ -169,7 +171,7 @@ Module coordinates (group `io.github.frikit`):
 | `io.github.frikit:krandom-kotest-extensions` | `io.github.frikit.krandom.kotest` |
 | `io.github.frikit:krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` |
 
-The latest released version is `2.2.0`. Release availability is shown on
+The latest released version is `2.3.0`. Release availability is shown on
 [GitHub Releases](https://github.com/frikit/krandom/releases) and
 [Maven Central](https://central.sonatype.com/artifact/io.github.frikit/krandom-core).
 
@@ -177,7 +179,7 @@ The latest released version is `2.2.0`. Release availability is shown on
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.2.0")
+    implementation("io.github.frikit:krandom-core:2.3.0")
 }
 ```
 
@@ -185,7 +187,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:2.2.0'
+    implementation 'io.github.frikit:krandom-core:2.3.0'
 }
 ```
 
@@ -193,7 +195,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.frikit:krandom-bom:2.2.0"))
+    implementation(platform("io.github.frikit:krandom-bom:2.3.0"))
     implementation("io.github.frikit:krandom-core")
     testImplementation("io.github.frikit:krandom-junit")
 }
@@ -205,7 +207,7 @@ dependencies {
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>2.2.0</version>
+  <version>2.3.0</version>
 </dependency>
 ```
 
@@ -244,7 +246,7 @@ deprecation rules — is documented in [VERSIONING.md](VERSIONING.md).
 
 - Public docs source: [`docs-site/`](docs-site/)
 - Docs URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
-- Internal docs: [`docs/`](docs/)
+- Maintained project docs: [`docs/`](docs/)
 - k-random migration guide: [`docs/migration/k-random-to-krandom.md`](docs/migration/k-random-to-krandom.md)
 - 1.x-to-2.0.0 migration guide: [`docs/migration/v1.6-to-v2.md`](docs/migration/v1.6-to-v2.md)
 

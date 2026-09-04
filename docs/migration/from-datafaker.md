@@ -13,7 +13,7 @@ stop hand-stitching "DataFaker for fields + Instancio/EasyRandom for structure."
 - A DataFaker-expression adapter, so you can port `#{Provider.method}` strings as-is.
 
 **What DataFaker still has that krandom doesn't**
-- More locale tags (70 advertised vs 50 supported variants) — breadth gap tracked in [`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md).
+- A broader set of locale tags; kRandom currently supports 50 documented variants.
 - Long-tail novelty, fandom, sport, food, and medical providers — krandom intentionally keeps
   these out of core. Keep DataFaker for those calls or supply a local, provenance-declared data
   pack when the domain is project-specific.
@@ -22,7 +22,7 @@ stop hand-stitching "DataFaker for fields + Instancio/EasyRandom for structure."
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:2.2.0")
+    testImplementation("io.github.frikit:krandom-core:2.3.0")
 }
 ```
 
@@ -78,6 +78,6 @@ repeatable krandom output. DataFaker's exact strings are **not** reproduced.
 
 ## Tracked gaps
 
-Provider/locale coverage and the novelty module are tracked in
-[`../feature-parity/GAP-TRACKER.md`](../feature-parity/GAP-TRACKER.md) and
-[`../feature-parity/datafaker-parity.md`](../feature-parity/datafaker-parity.md).
+Current competitive priorities are tracked in the
+[`competitive landscape`](../competitive-landscape.md) and
+[`product roadmap`](../development/market-leadership-roadmap.md).

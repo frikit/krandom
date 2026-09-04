@@ -8,10 +8,10 @@ permalink: /faq/
 
 ## Which module should I use?
 
-Use `krandom-core` for generation APIs. Add `krandom-jackson` for Jackson schema support,
+Use `krandom-core` for generation APIs. Add `krandom-jackson` for Jackson serialization support,
 `krandom-junit` for the JUnit seed extension, `krandom-spring-boot-starter` for Spring Boot,
 `krandom-kotest-extensions` for Kotest adapters, or `krandom-kotlin-dsl` for Kotlin fixture rules.
-Import `krandom-bom:2.2.0` to align multiple kRandom modules.
+Import `krandom-bom:2.3.0` to align multiple kRandom modules.
 
 ## How do I keep generated data stable between test runs?
 
@@ -28,7 +28,9 @@ Use `Field` to bind provider names and `Schema` to generate single records or ba
 
 ## How do I extend providers dynamically?
 
-Use `ProviderHub.register(...)` and optional aliases via `registerAlias(...)`.
+Use an explicitly installed, configuration-scoped `KRandomModule` when the same contribution must
+work through provider lookup, schemas, safety metadata, and semantic object fields. Use
+`ProviderHub.register(...)` only for a short-lived hub-local provider.
 
 ## Can Kotlin or Scala consume the library?
 

@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("io.github.frikit:krandom-kotlin-dsl:2.2.0")
+    testImplementation("io.github.frikit:krandom-kotlin-dsl:2.3.0")
 }
 ```
 
@@ -145,3 +145,19 @@ val recipe = config.generationRecipe.orElseThrow().serialize()  // portable repl
 
 The DSL matches the Java builder defaults with one intentional, documented difference:
 `objectOverrideDefaultInitialization` is enabled so `rule(...)` replaces property initializers.
+
+## Opt-in independent streams (2.3+)
+
+```kotlin
+val users = krandomList<User>(5) {
+    config {
+        seed(42L)
+        objectFieldStreamPolicy(ObjectFieldStreamPolicy.INDEPENDENT)
+    }
+    rule(User::name) { "Ada" }
+}
+```
+
+Import `io.github.frikit.krandom.generator.\`object\`.ObjectFieldStreamPolicy`. The Kotlin option
+uses the same core policy as Java. Existing configurations remain LEGACY. For direct configuration
+consumers, `krandomConfig { seed(42L) }.snapshotClock()` captures an explicit replay clock.

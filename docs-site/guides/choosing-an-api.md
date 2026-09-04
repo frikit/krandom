@@ -60,8 +60,9 @@ Use `ObjectFaker<T>` when defaults are close but you need explicit fixture rules
 
 ```java
 UserFixture user = Generators.ofObjectFaker(UserFixture.class)
-        .ruleFor("email", () -> "owner@example.test")
-        .ruleFor("address.city", () -> "Berlin")
+        .ruleFor(UserFixture::getEmail, () -> "owner@example.test")
+        .ruleFor(PropertyPath.of(UserFixture::getAddress).then(Address::getCity), () -> "Berlin")
+        .strict()
         .generate();
 ```
 
@@ -69,7 +70,7 @@ Choose this path when:
 
 - you need stable field overrides
 - you want nested-path rules
-- you want reusable profiles or post-processing hooks
+- you want immutable, composable `ObjectModel<T>` definitions or post-processing hooks
 - you want to populate existing mutable instances
 
 Start with `ObjectGenerator<T>` first. Move to `ObjectFaker<T>` when you need deliberate fixture design rather than default realism.
@@ -92,7 +93,7 @@ String csv = orders.toCsv(10);
 
 Choose this path when:
 
-- you need CSV / JSONL / XML / SQL output
+- you need JSONL / JSON / CSV / XML / SQL / YAML / TOML output
 - you want generated `Map<String, Object>` rows
 - you want template-driven payloads or token-based schemas
 
