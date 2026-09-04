@@ -25,18 +25,21 @@ if [[ -z "${CORE_JAR}" ]]; then
     exit 1
 fi
 
-javac --release 21 -cp "${CORE_JAR}" -d "${WORK_DIRECTORY}" "${SMOKE_SOURCE}"
+RUNTIME_CLASSPATH="$("${REPO_ROOT}/gradlew" :core:printRuntimeClasspath --quiet)"
+SMOKE_CLASSPATH="${CORE_JAR}:${RUNTIME_CLASSPATH}:${WORK_DIRECTORY}"
+
+javac --release 21 -cp "${CORE_JAR}:${RUNTIME_CLASSPATH}" -d "${WORK_DIRECTORY}" "${SMOKE_SOURCE}"
 
 native-image \
     --no-fallback \
-    --class-path "${CORE_JAR}:${WORK_DIRECTORY}" \
+    --class-path "${SMOKE_CLASSPATH}" \
     -H:Class=io.github.frikit.krandom.smoke.NativeImageSmoke \
     -H:Name=krandom-native-image-smoke \
     -H:Path="${WORK_DIRECTORY}"
 
 RESULT="$(${WORK_DIRECTORY}/krandom-native-image-smoke)"
-[[ "${RESULT}" =~ ^[1-9]$ ]] || {
-    echo "Native-image smoke check failed: expected a generated integer, got '${RESULT}'." >&2
+[[ "${RESULT}" == "native-image-smoke-passed" ]] || {
+    echo "Native-image smoke check failed: got '${RESULT}'." >&2
     exit 1
 }
 

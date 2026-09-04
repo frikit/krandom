@@ -5,10 +5,14 @@
  */
 package io.github.frikit.krandom.smoke;
 
-import io.github.frikit.krandom.generator.base.IntGenerator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.object.ObjectGenerator;
+
+import java.util.Locale;
 
 /**
- * Small, dependency-free core fixture used by {@code verify_native_image.sh}.
+ * Representative core fixture used by {@code verify_native_image.sh}.
  */
 public final class NativeImageSmoke {
 
@@ -21,6 +25,14 @@ public final class NativeImageSmoke {
      * @param args ignored
      */
     public static void main(String[] args) {
-        System.out.println(new IntGenerator(1, 9, 42L).generate());
+        GeneratorConfig config = GeneratorConfig.builder().seed(42L).locale(Locale.US).build();
+        String name = Generators.ofFullName(config).generate();
+        Person person = new ObjectGenerator<>(Person.class, config).generate();
+        if (name.isBlank() || person.name().isBlank() || person.age() == 0) {
+            throw new IllegalStateException("Core provider or record generation failed");
+        }
+        System.out.println("native-image-smoke-passed");
     }
+
+    private record Person(String name, int age) {}
 }

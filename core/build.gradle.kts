@@ -82,6 +82,14 @@ tasks.register<JavaExec>("generateProviderCatalogDocumentation") {
     args(providerCatalogDocumentationFile.asFile.absolutePath)
 }
 
+tasks.register("printRuntimeClasspath") {
+    group = "help"
+    description = "Prints the core runtime classpath for standalone smoke fixtures."
+    doLast {
+        println(configurations.runtimeClasspath.get().asPath)
+    }
+}
+
 jacoco {
     toolVersion = "0.8.15"
     reportsDirectory = layout.buildDirectory.dir("jacoco")

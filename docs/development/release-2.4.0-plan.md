@@ -29,7 +29,7 @@ replace the scalar-only native-image smoke fixture with representative core use 
 **Success Criteria**: Mutation targets cover the new risk boundaries; native image exercises records,
 reflection, localized resources, and a custom provider module.
 **Tests**: `:core:pitest`, GraalVM native-image smoke in CI, full pre-commit gate.
-**Status**: Not Started
+**Status**: In Progress
 
 ## Stage 4: Enforce dependency artifact integrity
 **Goal**: Establish a reviewed Gradle SHA-256 verification baseline and make it part of normal
