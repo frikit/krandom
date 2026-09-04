@@ -21,7 +21,7 @@ resolver without changing public APIs or default generated values.
 remain unchanged; extracted classes have focused behavior tests.
 **Tests**: Core object-generation tests, API contract, performance smoke, full coverage and mutation
 gate.
-**Status**: Not Started
+**Status**: In Progress
 
 ## Stage 3: Strengthen quality evidence
 **Goal**: Add mutation coverage for deterministic configuration/replay and resolver behavior, and
