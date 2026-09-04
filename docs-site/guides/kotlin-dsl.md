@@ -149,6 +149,8 @@ The DSL matches the Java builder defaults with one intentional, documented diffe
 ## Opt-in independent streams (2.3+)
 
 ```kotlin
+import io.github.frikit.krandom.generator.`object`.ObjectFieldStreamPolicy
+
 val users = krandomList<User>(5) {
     config {
         seed(42L)
@@ -158,6 +160,5 @@ val users = krandomList<User>(5) {
 }
 ```
 
-Import `io.github.frikit.krandom.generator.\`object\`.ObjectFieldStreamPolicy`. The Kotlin option
-uses the same core policy as Java. Existing configurations remain LEGACY. For direct configuration
+The Kotlin option uses the same core policy as Java. Existing configurations remain LEGACY. For direct configuration
 consumers, `krandomConfig { seed(42L) }.snapshotClock()` captures an explicit replay clock.
