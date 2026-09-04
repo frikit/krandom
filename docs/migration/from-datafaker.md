@@ -22,7 +22,7 @@ stop hand-stitching "DataFaker for fields + Instancio/EasyRandom for structure."
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:2.1.0")
+    testImplementation("io.github.frikit:krandom-core:2.2.0")
 }
 ```
 

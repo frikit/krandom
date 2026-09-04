@@ -11,7 +11,7 @@ permalink: /faq/
 Use `krandom-core` for generation APIs. Add `krandom-jackson` for Jackson schema support,
 `krandom-junit` for the JUnit seed extension, `krandom-spring-boot-starter` for Spring Boot,
 `krandom-kotest-extensions` for Kotest adapters, or `krandom-kotlin-dsl` for Kotlin fixture rules.
-Import `krandom-bom:2.1.0` to align multiple kRandom modules.
+Import `krandom-bom:2.2.0` to align multiple kRandom modules.
 
 ## How do I keep generated data stable between test runs?
 

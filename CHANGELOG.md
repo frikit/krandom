@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-04
+
+### Changed
+
+- Update SLF4J to 2.0.19 and refresh build tooling: Spotless 8.10.1, japicmp 0.26.2,
+  and NMCP 1.6.2.
+- Update benchmark dependencies to Easy Random 6.0.1, Instancio 6.0.0, and SnakeYAML 2.7.
+- Align consumer examples with Kotlin 2.4.10, JUnit 6.1.3, and Spring Boot 4.1.1.
+- Refresh immutable GitHub Action pins for Java setup, GraalVM, Pages, and release publication.
+- Verify the unchanged public API against the released 2.1.0 baseline without historical exclusions.
+
+### Documentation
+
+- Correct dependency-reproducibility guidance to distinguish version pinning from artifact
+  checksum verification, which is not yet enabled for resolved dependencies.
+- Refresh public installation coordinates and repository-local examples for 2.2.0.
+
 ## [2.1.0] - 2026-08-26
 
 ### Added
@@ -371,7 +388,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/frikit/krandom/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/frikit/krandom/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/frikit/krandom/compare/v1.5.0...v2.0.0
 [1.5.0]: https://github.com/frikit/krandom/compare/v1.4.0...v1.5.0
