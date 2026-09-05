@@ -7,7 +7,7 @@ permalink: /
 # kRandom Java Documentation
 
 kRandom is a Java random-data generation library built for test fixtures, seedable fake data, and
-object graph population. The latest stable release is 2.3.0, which is used by the public
+object graph population. The latest stable release is 2.4.0, which is used by the public
 installation examples. Repository-local snapshots are intended for development verification.
 
 This site is focused on the Java side only.

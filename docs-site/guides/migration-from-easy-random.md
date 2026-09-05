@@ -15,7 +15,7 @@ does not promise the same seeded object values.
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.3.0")
+    implementation("io.github.frikit:krandom-core:2.4.0")
 }
 ```
 

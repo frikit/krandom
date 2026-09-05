@@ -15,7 +15,7 @@ DataFaker is the actively developed successor.
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.3.0")
+    implementation("io.github.frikit:krandom-core:2.4.0")
 }
 ```
 

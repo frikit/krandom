@@ -2,7 +2,7 @@
 
 **Reviewed:** 2026-08-27
 **Status:** Active
-**Stable release:** `2.3.0`
+**Stable release:** `2.4.0`
 **Development line:** `2.4.0-SNAPSHOT`
 
 kRandom should compete on trustworthy fixture generation, not on raw provider count. The durable

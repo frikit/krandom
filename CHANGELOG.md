@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-09-05
+
+### Changed
+
+- Isolate object-field stream planning behind a focused internal policy while preserving the
+  public API, legacy seeded output, and explicit independent-stream behavior.
+- Expand native-image qualification to cover locale-backed resources, record construction, and a
+  configuration-scoped extension provider.
+- Add the stream planner to critical-path mutation testing.
+
+### Security
+
+- Enforce reviewed SHA-256 verification metadata for resolved Gradle dependencies. Existing exact
+  version, wrapper checksum, and immutable GitHub Action requirements remain in place.
+
+### Documentation
+
+- Clarify the supported Java `ObjectFaker` and Kotlin DSL capability boundaries and record the
+  compatible 2.x fixture contract.
+
 ## [2.3.0] - 2026-09-04
 
 ### Added
@@ -415,7 +435,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/frikit/krandom/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/frikit/krandom/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/frikit/krandom/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/frikit/krandom/compare/v2.0.0...v2.1.0

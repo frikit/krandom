@@ -37,7 +37,7 @@ verification.
 **Success Criteria**: `gradle/verification-metadata.xml` contains no broad trust exceptions and a
 cold build, API checks, tests, SBOM generation, and benchmarks resolve under verification.
 **Tests**: Gradle verification on the full local gate and release rehearsal.
-**Status**: In Progress
+**Status**: Complete
 
 ## Stage 5: Qualify and publish 2.4.0
 **Goal**: Cut the compatible release after all previous stages are committed to `main`.
@@ -45,4 +45,4 @@ cold build, API checks, tests, SBOM generation, and benchmarks resolve under ver
 publication, GitHub release, Central-only consumers, and post-release version facts all succeed.
 **Tests**: `scripts/pre_commit_check.sh`, `scripts/verify_examples_local.sh`,
 `scripts/verify_release_rehearsal.sh 2.4.0`, CI and release workflow.
-**Status**: Not Started
+**Status**: In Progress
