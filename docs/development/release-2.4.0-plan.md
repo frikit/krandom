@@ -45,4 +45,22 @@ cold build, API checks, tests, SBOM generation, and benchmarks resolve under ver
 publication, GitHub release, Central-only consumers, and post-release version facts all succeed.
 **Tests**: `scripts/pre_commit_check.sh`, `scripts/verify_examples_local.sh`,
 `scripts/verify_release_rehearsal.sh 2.4.0`, CI and release workflow.
-**Status**: In Progress
+**Status**: Complete
+
+## Publication evidence
+
+- Exact release commit on `main`: `cfe334decc035fd8fb1854500fbba9b41e91ad11`.
+- [Final qualification CI](https://github.com/frikit/krandom/actions/runs/33958441926) passed
+  Java 21/25, exact coverage, mutation, GraalVM native image, SBOM, and the full local consumer
+  matrix. One Maven Central connection reset in the Mill example passed on the targeted retry.
+- [Release workflow](https://github.com/frikit/krandom/actions/runs/33958824642) validated, signed,
+  attested, and uploaded deployment `09ef49a7-9c4d-4c6c-8470-6e77e1079c71` with automatic Central
+  publication.
+- [v2.4.0](https://github.com/frikit/krandom/releases/tag/v2.4.0) is a non-prerelease GitHub
+  release that points to the exact release commit and contains 33 assets.
+- The aggregation bundle's GitHub build-provenance attestation and ZIP integrity passed. It
+  contains the expected 32 signed Maven artifacts and 96 checksum files.
+- The public Maven Central BOM returned successfully, and the Central-only Java Maven, Kotlin
+  Spring Maven, and Java Gradle consumer gate passed without Maven-local resolution.
+- Post-release facts retain `2.4.0` as latest GA, advance the API baseline to `2.4.0`, and advance
+  repository development and example defaults to `2.5.0-SNAPSHOT`.

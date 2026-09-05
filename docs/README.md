@@ -23,7 +23,7 @@ in Git and release tags instead of duplicated as completed plans and dated revie
 
 ## Develop and plan
 
-- [2.3.0 release plan](development/release-2.3.0-plan.md) — qualification and publication record
+- [2.4.0 release plan](development/release-2.4.0-plan.md) — qualification and publication record
 - [Major-version decision](development/v3-preparation-plan.md) — conditions for revisiting v3
 - [Product roadmap](development/market-leadership-roadmap.md) — priorities and release gates
 - [Dependency reproducibility](development/dependency-reproducibility.md) — build-input policy

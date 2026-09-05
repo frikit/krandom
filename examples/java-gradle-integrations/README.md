@@ -8,5 +8,5 @@ This example verifies that the locally published integration artifacts are consu
 It is executed by `../../scripts/verify_examples_local.sh` after the repository modules are published to Maven local.
 
 ```bash
-../../gradlew -p . -PkrandomVersion=2.4.0-SNAPSHOT test
+../../gradlew -p . -PkrandomVersion=2.5.0-SNAPSHOT test
 ```

@@ -1,8 +1,8 @@
 # Major-version decision: deferred
 
 The framework review found compatible delivery paths for profile rollback, replay snapshots, and
-independent object-field streams. The active implementation and release plan is
-[2.3.0](release-2.3.0-plan.md). Existing defaults and v1 recipe interpretation remain supported.
+independent object-field streams. The latest compatible delivery record is
+[2.4.0](release-2.4.0-plan.md). Existing defaults and v1 recipe interpretation remain supported.
 
 A 3.0.0 release is not scheduled. Reconsider it only when changing an established default or
 removing a deprecated API provides enough consumer benefit to justify migration. Require an exact

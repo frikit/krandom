@@ -2,7 +2,7 @@ ThisBuild / scalaVersion := "3.3.8"
 ThisBuild / version := "0.1.0"
 ThisBuild / organization := "io.github.frikit.krandom.examples"
 
-lazy val krandomVersion = sys.props.getOrElse("krandom.version", sys.env.getOrElse("KRANDOM_VERSION", "2.4.0-SNAPSHOT"))
+lazy val krandomVersion = sys.props.getOrElse("krandom.version", sys.env.getOrElse("KRANDOM_VERSION", "2.5.0-SNAPSHOT"))
 
 resolvers += Resolver.mavenLocal
 
