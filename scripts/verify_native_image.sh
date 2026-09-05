@@ -5,6 +5,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SMOKE_SOURCE="${REPO_ROOT}/scripts/native-image-smoke/NativeImageSmoke.java"
+REFLECTION_CONFIG="${REPO_ROOT}/scripts/native-image-smoke/reflect-config.json"
 WORK_DIRECTORY="$(mktemp -d "${TMPDIR:-/tmp}/krandom-native-image.XXXXXX")"
 
 cleanup() {
@@ -33,6 +34,8 @@ javac --release 21 -cp "${CORE_JAR}:${RUNTIME_CLASSPATH}" -d "${WORK_DIRECTORY}"
 native-image \
     --no-fallback \
     --class-path "${SMOKE_CLASSPATH}" \
+    -H:IncludeResources='krandom/.*' \
+    -H:ReflectionConfigurationFiles="${REFLECTION_CONFIG}" \
     -H:Class=io.github.frikit.krandom.smoke.NativeImageSmoke \
     -H:Name=krandom-native-image-smoke \
     -H:Path="${WORK_DIRECTORY}"

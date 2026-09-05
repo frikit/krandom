@@ -1,0 +1,8 @@
+[
+  {
+    "name": "io.github.frikit.krandom.smoke.NativeImageSmoke$Person",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  }
+]
