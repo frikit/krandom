@@ -21,7 +21,7 @@ resolver without changing public APIs or default generated values.
 remain unchanged; extracted classes have focused behavior tests.
 **Tests**: Core object-generation tests, API contract, performance smoke, full coverage and mutation
 gate.
-**Status**: In Progress
+**Status**: Complete
 
 ## Stage 3: Strengthen quality evidence
 **Goal**: Add mutation coverage for deterministic configuration/replay and resolver behavior, and
@@ -29,7 +29,7 @@ replace the scalar-only native-image smoke fixture with representative core use 
 **Success Criteria**: Mutation targets cover the new risk boundaries; native image exercises records,
 reflection, localized resources, and a custom provider module.
 **Tests**: `:core:pitest`, GraalVM native-image smoke in CI, full pre-commit gate.
-**Status**: In Progress
+**Status**: Complete
 
 ## Stage 4: Enforce dependency artifact integrity
 **Goal**: Establish a reviewed Gradle SHA-256 verification baseline and make it part of normal

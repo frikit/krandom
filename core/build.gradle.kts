@@ -54,6 +54,7 @@ pitest {
         "io.github.frikit.krandom.generator.object.BeanValidationSupport",
         "io.github.frikit.krandom.generator.object.BuiltInProviderResolver",
         "io.github.frikit.krandom.generator.object.ObjectFaker",
+        "io.github.frikit.krandom.generator.object.ObjectFieldStreamPlanner",
         "io.github.frikit.krandom.generator.object.ObjectGenerator",
         "io.github.frikit.krandom.generator.object.ObjectModel",
         "io.github.frikit.krandom.generator.object.PropertyPath"
