@@ -20,7 +20,7 @@ dependencies {
     // Competitor libraries for comparative benchmarks
     implementation("net.datafaker:datafaker:2.7.0")
     implementation("org.jeasy:easy-random:6.0.1")
-    implementation("org.instancio:instancio-core:6.0.0")
+    implementation("org.instancio:instancio-core:6.0.1")
     implementation("com.github.javafaker:javafaker:1.0.2") {
         exclude(group = "org.yaml", module = "snakeyaml")
     }
