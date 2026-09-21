@@ -109,7 +109,7 @@ jobs:
           cache: 'gradle'
 
       - name: Install Scala example tools
-        uses: coursier/setup-action@9b7939bf01fd1185ce2babe16135168361bf2c62 # v3
+        uses: coursier/setup-action@3174df5c784a0c8724f06b7924b849551c40c39e # v3
         with:
           apps: sbt
 
