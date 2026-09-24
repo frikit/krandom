@@ -1,15 +1,15 @@
 # kRandom Product Roadmap
 
-**Reviewed:** 2026-09-05
+**Reviewed:** 2026-09-24
 **Status:** Active
-**Stable release:** `2.4.0`
+**Stable release:** `2.5.0`
 **Development line:** `2.5.0-SNAPSHOT`
 
 kRandom should compete on trustworthy fixture generation, not on raw provider count. The durable
 advantages are deterministic replay, coherent object fixtures, explicit safety contracts, honest
 performance evidence, and a small extension boundary.
 
-The latest delivery record is in [`release-2.4.0-plan.md`](release-2.4.0-plan.md). This roadmap sets
+The latest delivery record is in [`release-2.5.0-plan.md`](release-2.5.0-plan.md). This roadmap sets
 product priorities; it does not authorize a tag, publication, or breaking API change.
 
 ## Product principles
