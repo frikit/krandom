@@ -6,7 +6,7 @@ kRandom follows [Semantic Versioning 2.0.0](https://semver.org) for all
 published artifacts (`io.github.frikit:krandom-*`).
 
 The latest stable release is `2.5.0`. The repository development line is
-`2.5.0-SNAPSHOT`, compared against the released `2.4.0` public API. The [2.5.0 plan](docs/development/release-2.5.0-plan.md) records the latest compatible determinism-hardening
+`2.6.0-SNAPSHOT`, compared against the released `2.5.0` public API. The [2.5.0 plan](docs/development/release-2.5.0-plan.md) records the latest compatible determinism-hardening
 release. A future major release still requires an approved incompatible contract and migration
 path.
 

@@ -3,7 +3,7 @@
 **Reviewed:** 2026-09-24
 **Status:** Active
 **Stable release:** `2.5.0`
-**Development line:** `2.5.0-SNAPSHOT`
+**Development line:** `2.6.0-SNAPSHOT`
 
 kRandom should compete on trustworthy fixture generation, not on raw provider count. The durable
 advantages are deterministic replay, coherent object fixtures, explicit safety contracts, honest
