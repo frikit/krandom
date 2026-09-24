@@ -322,8 +322,8 @@ public final class EmailGenerator implements Generator<String> {
      * @return the formatted local part
      */
     private String formatLocalPart(String firstName, String lastName, EmailFormat format) {
-        String first = firstName.toLowerCase().replace(" ", "");
-        String last = lastName.toLowerCase().replace(" ", "");
+        String first = firstName.toLowerCase(config.getLocale()).replace(" ", "");
+        String last = lastName.toLowerCase(config.getLocale()).replace(" ", "");
 
         return switch (format) {
             case FIRSTNAME_DOT_LASTNAME -> first + "." + last;

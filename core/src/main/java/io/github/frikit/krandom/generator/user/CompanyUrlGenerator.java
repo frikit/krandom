@@ -67,7 +67,7 @@ public final class CompanyUrlGenerator implements Generator<String> {
      */
     public String generateFromCompanyName(String companyName) {
         Objects.requireNonNull(companyName, "companyName must not be null");
-        String company = companyName.toLowerCase();
+        String company = companyName.toLowerCase(Locale.ROOT);
         String slug = company.replaceAll("[^a-z0-9]+", "");
         if (slug.isBlank()) {
             slug = "company";

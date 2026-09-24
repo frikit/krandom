@@ -8,6 +8,9 @@ package io.github.frikit.krandom.generator.identifier;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -71,6 +74,19 @@ class UUIDGeneratorTest {
         assertNotNull(uuid);
         assertEquals(7, uuid.version());
         assertEquals(2, uuid.variant());
+    }
+
+    @Test
+    void testGenerateV7UsesConfiguredClock() {
+        Instant instant = Instant.parse("2000-01-01T00:00:00Z");
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .clock(Clock.fixed(instant, ZoneOffset.UTC))
+                                                .build();
+
+        UUID uuid = new UUIDGenerator(config).generateV7();
+
+        assertEquals(instant.toEpochMilli(), uuid.getMostSignificantBits() >>> 16);
     }
 
     @Test

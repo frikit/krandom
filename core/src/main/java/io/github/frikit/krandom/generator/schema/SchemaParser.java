@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -516,7 +517,7 @@ public final class SchemaParser {
         // Convert camelCase and snake_case to dot-notation for Field.bind()
         return fieldName
             .replaceAll("([a-z])([A-Z])", "$1_$2")
-            .toLowerCase()
+            .toLowerCase(Locale.ROOT)
             .replace('_', '.');
     }
 
@@ -539,7 +540,7 @@ public final class SchemaParser {
             case "company", "company.name" -> "finance.company_name";
             case "website" -> "internet.url";
             case "ip", "ip.address" -> "internet.ip_v4";
-            case "id" -> "cryptographic.uuid";
+            case "id" -> "code.uuid";
             default -> null;
         };
     }

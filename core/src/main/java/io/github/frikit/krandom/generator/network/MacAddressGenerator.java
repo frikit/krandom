@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -106,6 +107,6 @@ public final class MacAddressGenerator implements Generator<String> {
      * @return a lowercase MAC-address string; never {@code null}
      */
     public String generateLowercase(char separator) {
-        return generate(separator).toLowerCase();
+        return generate(separator).toLowerCase(Locale.ROOT);
     }
 }

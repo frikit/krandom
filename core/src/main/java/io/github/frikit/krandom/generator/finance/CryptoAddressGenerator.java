@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -65,7 +66,7 @@ public final class CryptoAddressGenerator implements Generator<String> {
     }
 
     private String generateForChain(String chain) {
-        return switch (chain.toLowerCase()) {
+        return switch (chain.toLowerCase(Locale.ROOT)) {
             case "btc", "bitcoin" -> generateBitcoinUnchecked();
             case "eth", "ethereum" -> generateEthereumUnchecked();
             case "ltc", "litecoin" -> generateLitecoinUnchecked();

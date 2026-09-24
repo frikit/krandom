@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Make UUIDv7 generation honor the configured clock so fixed-clock recipes reproduce timestamps.
+- Make machine identifiers, schema field normalization, names, and CSS color output independent of
+  the JVM default locale; restore semantic `id` fields to UUID generation.
+
 ## [2.4.0] - 2026-09-05
 
 ### Changed

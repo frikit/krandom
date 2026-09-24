@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -214,8 +215,8 @@ public final class ColorGenerator implements Generator<String> {
      * Formats RGB as standard hex (#RRGGBB).
      */
     private String formatHex(int r, int g, int b, boolean uppercase) {
-        String hex = String.format("#%02x%02x%02x", r, g, b);
-        return uppercase ? hex.toUpperCase() : hex;
+        String hex = String.format(Locale.ROOT, "#%02x%02x%02x", r, g, b);
+        return uppercase ? hex.toUpperCase(Locale.ROOT) : hex;
     }
 
     /**
@@ -227,15 +228,15 @@ public final class ColorGenerator implements Generator<String> {
         int rShort = r / 16;
         int gShort = g / 16;
         int bShort = b / 16;
-        String hex = String.format("#%x%x%x", rShort, gShort, bShort);
-        return uppercase ? hex.toUpperCase() : hex;
+        String hex = String.format(Locale.ROOT, "#%x%x%x", rShort, gShort, bShort);
+        return uppercase ? hex.toUpperCase(Locale.ROOT) : hex;
     }
 
     /**
      * Formats RGB as CSS rgb() function.
      */
     private String formatRGB(int r, int g, int b) {
-        return String.format("rgb(%d,%d,%d)", r, g, b);
+        return String.format(Locale.ROOT, "rgb(%d,%d,%d)", r, g, b);
     }
 
     /**
@@ -243,7 +244,7 @@ public final class ColorGenerator implements Generator<String> {
      */
     private String formatRGBA(int r, int g, int b) {
         double alpha = random.nextDouble();
-        return String.format("rgba(%d,%d,%d,%.3f)", r, g, b, alpha);
+        return String.format(Locale.ROOT, "rgba(%d,%d,%d,%.3f)", r, g, b, alpha);
     }
 
     /**
@@ -253,7 +254,7 @@ public final class ColorGenerator implements Generator<String> {
         int h = random.nextInt(360);
         int s = random.nextInt(101);
         int l = random.nextInt(101);
-        return String.format("hsl(%d,%d%%,%d%%)", h, s, l);
+        return String.format(Locale.ROOT, "hsl(%d,%d%%,%d%%)", h, s, l);
     }
 
     /**
@@ -264,7 +265,7 @@ public final class ColorGenerator implements Generator<String> {
         int s = random.nextInt(101);
         int l = random.nextInt(101);
         double alpha = random.nextDouble();
-        return String.format("hsla(%d,%d%%,%d%%,%.3f)", h, s, l, alpha);
+        return String.format(Locale.ROOT, "hsla(%d,%d%%,%d%%,%.3f)", h, s, l, alpha);
     }
 
     /**
@@ -272,6 +273,6 @@ public final class ColorGenerator implements Generator<String> {
      */
     private String format0x(int r, int g, int b, boolean uppercase) {
         String formatStr = uppercase ? "0x%02X%02X%02X" : "0x%02x%02x%02x";
-        return String.format(formatStr, r, g, b);
+        return String.format(Locale.ROOT, formatStr, r, g, b);
     }
 }

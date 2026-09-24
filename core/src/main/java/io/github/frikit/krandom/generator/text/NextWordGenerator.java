@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -69,7 +70,7 @@ public final class NextWordGenerator implements Generator<String> {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(name + " must not be blank");
         }
-        return value.trim().toLowerCase();
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -79,7 +80,7 @@ public final class NextWordGenerator implements Generator<String> {
         if (text == null || text.isBlank()) {
             throw new IllegalArgumentException("text must not be blank");
         }
-        String normalized = text.toLowerCase().replaceAll("[^a-z\\s]", " ");
+        String normalized = text.toLowerCase(Locale.ROOT).replaceAll("[^a-z\\s]", " ");
         String[] words = Arrays.stream(normalized.trim().split("\\s+")).toArray(String[]::new);
         return new NextWordGenerator(words);
     }

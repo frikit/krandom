@@ -39,7 +39,7 @@ public final class UsernameGenerator implements Generator<String> {
     }
 
     private static String normalize(String value) {
-        return value.toLowerCase().replaceAll("[^\\p{L}\\p{N}]", "");
+        return value.toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}]", "");
     }
 
     private static String fallback(String value, String defaultValue) {

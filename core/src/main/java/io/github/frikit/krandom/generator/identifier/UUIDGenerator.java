@@ -165,11 +165,13 @@ public final class UUIDGenerator implements Generator<UUID> {
     }
 
     /**
-     * Generates a UUID version 7 (time-ordered).
+     * Generates a UUID version 7 (time-ordered) using the configured clock and random source.
+     *
+     * <p>A fixed clock and seed therefore reproduce the same UUIDv7 value.
      */
     public UUID generateV7() {
         byte[] bytes = new byte[16];
-        long unixMillis = System.currentTimeMillis();
+        long unixMillis = config.getClock().millis();
 
         // 48-bit unix_ts_ms
         bytes[0] = (byte) (unixMillis >>> 40);

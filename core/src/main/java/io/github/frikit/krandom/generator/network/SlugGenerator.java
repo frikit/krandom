@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -61,7 +62,7 @@ public final class SlugGenerator implements Generator<String> {
      */
     public String slugify(String input) {
         Objects.requireNonNull(input, "input must not be null");
-        String normalized = input.trim().toLowerCase();
+        String normalized = input.trim().toLowerCase(Locale.ROOT);
         normalized = normalized.replaceAll("[^a-z0-9]+", "-");
         normalized = normalized.replaceAll("^-+|-+$", "");
         return normalized.isEmpty() ? "n-a" : normalized;
