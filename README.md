@@ -32,7 +32,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 - `jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`, and `kotlin-dsl` are published integration modules.
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
 - CI runs the core contract suite on Java 21 and Java 25, with separate GraalVM native-image and
-  schema mutation-pilot jobs.
+  critical-path mutation jobs.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
 - Published to Maven Central under `io.github.frikit`. See [`docs/release-runbook.md`](docs/release-runbook.md) for the release process.
 

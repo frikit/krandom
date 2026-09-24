@@ -32,8 +32,10 @@ java -version   # must report 21+
 ## Code quality gates
 
 - **Coverage**: the build enforces exact 100% line, branch, instruction, method, class, and complexity coverage via JaCoCo. New code must be covered by tests.
-- **Mutation testing**: critical object/schema paths must retain at least an 85% mutation score and
-  98% mutated-class line coverage.
+- **Mutation testing**: deterministic, safety-sensitive, object, and schema paths must retain at
+  least an 85% mutation score and 98% mutated-class line coverage. Expand targets incrementally
+  around meaningful branching, review survivors by behavior, and do not treat 100% as a goal when
+  equivalent or implementation-only mutations remain.
 - **Formatting**: Spotless enforces consistent formatting and MIT license headers. Run `./gradlew spotlessApply` to fix formatting issues.
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
 

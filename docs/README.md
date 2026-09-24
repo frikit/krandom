@@ -23,6 +23,7 @@ in Git and release tags instead of duplicated as completed plans and dated revie
 
 ## Develop and plan
 
+- [Mutation-testing expansion](development/mutation-testing-expansion-2026-09-24.md) — risk-based target and survivor policy
 - [2.5.0 release plan](development/release-2.5.0-plan.md) — qualification and publication record
 - [2.4.0 release plan](development/release-2.4.0-plan.md) — qualification and publication record
 - [Major-version decision](development/v3-preparation-plan.md) — conditions for revisiting v3

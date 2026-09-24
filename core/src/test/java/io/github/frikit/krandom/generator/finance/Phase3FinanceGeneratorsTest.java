@@ -109,6 +109,38 @@ class Phase3FinanceGeneratorsTest {
     }
 
     @Test
+    @DisplayName("configured named-chain crypto generation fails closed by default")
+    void cryptoNamedChainGenerationFailsClosedByDefault() {
+        CryptoAddressGenerator generator = new CryptoAddressGenerator(GeneratorConfig.defaults());
+
+        assertThrows(IllegalStateException.class, () -> generator.generate("bitcoin"));
+    }
+
+    @Test
+    @DisplayName("configured Bitcoin generation fails closed by default")
+    void cryptoBitcoinGenerationFailsClosedByDefault() {
+        CryptoAddressGenerator generator = new CryptoAddressGenerator(GeneratorConfig.defaults());
+
+        assertThrows(IllegalStateException.class, generator::generateBitcoin);
+    }
+
+    @Test
+    @DisplayName("configured Ethereum generation fails closed by default")
+    void cryptoEthereumGenerationFailsClosedByDefault() {
+        CryptoAddressGenerator generator = new CryptoAddressGenerator(GeneratorConfig.defaults());
+
+        assertThrows(IllegalStateException.class, generator::generateEthereum);
+    }
+
+    @Test
+    @DisplayName("configured Litecoin generation fails closed by default")
+    void cryptoLitecoinGenerationFailsClosedByDefault() {
+        CryptoAddressGenerator generator = new CryptoAddressGenerator(GeneratorConfig.defaults());
+
+        assertThrows(IllegalStateException.class, generator::generateLitecoin);
+    }
+
+    @Test
     @DisplayName("generators factory exposes phase 3 finance generators")
     void financeFactories() {
         assertThrows(IllegalStateException.class, () -> Generators.ofBankAccount().generate());

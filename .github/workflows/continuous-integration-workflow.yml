@@ -72,7 +72,7 @@ jobs:
         run: ./scripts/verify_native_image.sh
 
   mutation-pilot:
-    name: Schema Mutation Pilot (Java 21)
+    name: Critical-path Mutation (Java 21)
     runs-on: ubuntu-latest
 
     steps:
@@ -88,7 +88,7 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Measure schema mutation baseline
+      - name: Measure critical-path mutation baseline
         run: ./gradlew :core:pitest --console=plain --max-workers=1 --no-daemon
 
   examples:

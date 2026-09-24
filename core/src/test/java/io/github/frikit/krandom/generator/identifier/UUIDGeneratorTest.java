@@ -78,7 +78,7 @@ class UUIDGeneratorTest {
 
     @Test
     void testGenerateV7UsesConfiguredClock() {
-        Instant instant = Instant.parse("2000-01-01T00:00:00Z");
+        Instant instant = Instant.ofEpochMilli(0x0123456789ABL);
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .seed(42L)
                                                 .clock(Clock.fixed(instant, ZoneOffset.UTC))
@@ -87,6 +87,17 @@ class UUIDGeneratorTest {
         UUID uuid = new UUIDGenerator(config).generateV7();
 
         assertEquals(instant.toEpochMilli(), uuid.getMostSignificantBits() >>> 16);
+    }
+
+    @Test
+    void testGenerateV7ConsumesRandomBytes() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(42L)
+                                                .clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
+                                                .build();
+        UUIDGenerator generator = new UUIDGenerator(config);
+
+        assertNotEquals(generator.generateV7(), generator.generateV7());
     }
 
     @Test
@@ -166,13 +177,11 @@ class UUIDGeneratorTest {
     @Test
     void testSeededV4Generation() {
         GeneratorConfig config = GeneratorConfig.builder().seed(12345L).build();
-        UUIDGenerator gen1 = new UUIDGenerator(config);
-        UUIDGenerator gen2 = new UUIDGenerator(config);
+        UUIDGenerator generator = new UUIDGenerator(config);
 
-        UUID uuid1 = gen1.generateV4();
-        UUID uuid2 = gen2.generateV4();
+        UUID uuid = generator.generateV4();
 
-        assertEquals(uuid1, uuid2);
+        assertEquals(UUID.fromString("d6209f5c-31b3-4183-a2a9-d8ee7807c8ea"), uuid);
     }
 
     @Test
@@ -287,13 +296,10 @@ class UUIDGeneratorTest {
 
     @Test
     void testV5KnownVectorDns() {
-        // Test with known vector from RFC 4122
         UUIDGenerator gen = new UUIDGenerator();
         UUID uuid = gen.generateV5(UUIDGenerator.getDnsNamespace(), "www.example.com");
 
-        assertNotNull(uuid);
-        assertEquals(5, uuid.version());
-        assertEquals(2, uuid.variant());
+        assertEquals(UUID.fromString("2ed6657d-e927-568b-95e1-2665a8aea6a2"), uuid);
     }
 
     @Test

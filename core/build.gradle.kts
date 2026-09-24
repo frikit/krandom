@@ -47,6 +47,9 @@ tasks.test {
 
 pitest {
     targetClasses.set(setOf(
+        "io.github.frikit.krandom.generator.color.ColorGenerator",
+        "io.github.frikit.krandom.generator.finance.CryptoAddressGenerator",
+        "io.github.frikit.krandom.generator.identifier.UUIDGenerator",
         "io.github.frikit.krandom.generator.schema.Schema",
         "io.github.frikit.krandom.generator.schema.SchemaParser",
         "io.github.frikit.krandom.generator.schema.SchemaValueProvider",
@@ -57,12 +60,20 @@ pitest {
         "io.github.frikit.krandom.generator.object.ObjectFieldStreamPlanner",
         "io.github.frikit.krandom.generator.object.ObjectGenerator",
         "io.github.frikit.krandom.generator.object.ObjectModel",
-        "io.github.frikit.krandom.generator.object.PropertyPath"
+        "io.github.frikit.krandom.generator.object.PropertyPath",
+        "io.github.frikit.krandom.generator.text.NextWordGenerator",
+        "io.github.frikit.krandom.generator.user.EmailGenerator"
     ))
     targetTests.set(setOf(
+        "io.github.frikit.krandom.generator.EnvironmentDeterminismTest",
+        "io.github.frikit.krandom.generator.color.ColorGeneratorTest",
+        "io.github.frikit.krandom.generator.finance.Phase3FinanceGeneratorsTest",
+        "io.github.frikit.krandom.generator.identifier.UUIDGeneratorTest",
         "io.github.frikit.krandom.generator.schema.*",
         "io.github.frikit.krandom.generator.location.RegistryLookupTest",
-        "io.github.frikit.krandom.generator.object.*"
+        "io.github.frikit.krandom.generator.object.*",
+        "io.github.frikit.krandom.generator.text.NextWordGeneratorTest",
+        "io.github.frikit.krandom.generator.user.EmailGeneratorTest"
     ))
     junit5PluginVersion.set("1.2.3")
     outputFormats.set(setOf("HTML", "XML"))

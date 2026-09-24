@@ -32,6 +32,17 @@ class NextWordGeneratorTest {
     }
 
     @Test
+    @DisplayName("constructor identifies the invalid corpus position")
+    void constructorReportsInvalidCorpusPosition() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> new NextWordGenerator(new String[] { "ok", " " })
+        );
+
+        assertEquals("corpusWords[1] must not be blank", exception.getMessage());
+    }
+
+    @Test
     @DisplayName("generate returns corpus word")
     void generateReturnsCorpusWord() {
         NextWordGenerator gen = new NextWordGenerator(GeneratorConfig.builder().seed(1L).build(), CORPUS);
@@ -93,6 +104,14 @@ class NextWordGeneratorTest {
     void generateSentenceValidation() {
         NextWordGenerator gen = new NextWordGenerator(CORPUS);
         assertThrows(IllegalArgumentException.class, () -> gen.generateSentence(-1));
+    }
+
+    @Test
+    @DisplayName("generateSentence rejects zero words")
+    void generateSentenceRejectsZeroWords() {
+        NextWordGenerator gen = new NextWordGenerator(CORPUS);
+
+        assertThrows(IllegalArgumentException.class, () -> gen.generateSentence(0));
     }
 
     @Test
