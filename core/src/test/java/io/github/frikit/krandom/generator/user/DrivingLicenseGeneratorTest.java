@@ -18,20 +18,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("DrivingLicenseGenerator")
-@SuppressWarnings("removal")
 class DrivingLicenseGeneratorTest {
 
     @RepeatedTest(200)
-    @DisplayName("deprecated no-argument constructor preserves the generic driving-license format")
+    @DisplayName("realistic policy produces the generic driving-license format")
     void formatMatches() {
         String license = new DrivingLicenseGenerator(GeneratorConfig.builder() .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(license.matches("[A-Z]{2}[0-9]{6}"), license);
-    }
-
-    @Test
-    @DisplayName("legacy no-argument constructor is removed in v2")
-    void legacyConstructorIsRemoved() {
-        assertThrows(NoSuchMethodException.class, () -> DrivingLicenseGenerator.class.getConstructor());
     }
 
     @Test

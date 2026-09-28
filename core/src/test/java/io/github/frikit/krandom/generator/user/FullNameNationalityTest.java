@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FullNameNationalityTest {
 
     private static FullNameGenerator.NameOptions nationality(String token) {
-        return new FullNameGenerator.NameOptions(false, false, false, false, Gender.FEMALE, token);
+        return new FullNameGenerator.NameOptions(false, false, false, false, false, Gender.FEMALE, token);
     }
 
     private static Set<String> firstNames(Locale locale) {

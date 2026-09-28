@@ -218,7 +218,7 @@ class FullNameGeneratorTest {
         @DisplayName("middle option adds third name component")
         void middleOptionAddsMiddleName() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
-            String name = gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, null, null));
+            String name = gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, false, null, null));
             assertEquals(3, name.split(" ").length);
         }
 
@@ -226,7 +226,7 @@ class FullNameGeneratorTest {
         @DisplayName("middleInitial option formats initial with dot")
         void middleInitialOption() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
-            String name = gen.generate(new FullNameGenerator.NameOptions(false, true, false, false, null, null));
+            String name = gen.generate(new FullNameGenerator.NameOptions(false, true, false, false, false, null, null));
             String[] parts = name.split(" ");
             assertEquals(3, parts.length);
             assertTrue(parts[1].matches(".\\."));
@@ -236,7 +236,7 @@ class FullNameGeneratorTest {
         @DisplayName("middleInitial option supports gender-specific generation")
         void middleInitialWithGender() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
-            String name = gen.generate(new FullNameGenerator.NameOptions(false, true, false, false, Gender.MALE, null));
+            String name = gen.generate(new FullNameGenerator.NameOptions(false, true, false, false, false, Gender.MALE, null));
             String[] parts = name.split(" ");
             assertEquals(3, parts.length);
             assertTrue(parts[1].matches(".\\."));
@@ -246,7 +246,7 @@ class FullNameGeneratorTest {
         @DisplayName("middleInitial takes precedence when middle and middleInitial are both true")
         void middleInitialTakesPrecedence() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
-            String name = gen.generate(new FullNameGenerator.NameOptions(true, true, false, false, null, null));
+            String name = gen.generate(new FullNameGenerator.NameOptions(true, true, false, false, false, null, null));
             String[] parts = name.split(" ");
             assertEquals(3, parts.length);
             assertTrue(parts[1].matches(".\\."), "Expected middle initial precedence");
@@ -256,7 +256,7 @@ class FullNameGeneratorTest {
         @DisplayName("prefix and suffix options add extra components")
         void prefixAndSuffixOptions() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
-            String name = gen.generate(new FullNameGenerator.NameOptions(false, false, true, true, null, null));
+            String name = gen.generate(new FullNameGenerator.NameOptions(false, false, true, true, false, null, null));
             assertEquals(4, name.split(" ").length);
         }
 
@@ -265,7 +265,7 @@ class FullNameGeneratorTest {
         void repeatedGenerationReusesCachedLocaleHelpers() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
             FullNameGenerator.NameOptions opts =
-                new FullNameGenerator.NameOptions(true, false, true, true, Gender.FEMALE, "en");
+                new FullNameGenerator.NameOptions(true, false, true, true, false, Gender.FEMALE, "en");
 
             String first = gen.generate(opts);
             String second = gen.generate(opts);
@@ -278,8 +278,8 @@ class FullNameGeneratorTest {
         @DisplayName("gender option produces valid two-part name")
         void genderOption() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
-            String male = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, Gender.MALE, null));
-            String female = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, Gender.FEMALE, null));
+            String male = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, Gender.MALE, null));
+            String female = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, Gender.FEMALE, null));
             assertEquals(2, male.split(" ").length);
             assertEquals(2, female.split(" ").length);
         }
@@ -288,8 +288,8 @@ class FullNameGeneratorTest {
         @DisplayName("nationality option supports language token mapping")
         void nationalityLanguageToken() {
             FullNameGenerator gen = new FullNameGenerator();
-            String us = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "en"));
-            String it = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "it"));
+            String us = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "en"));
+            String it = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "it"));
             assertTrue(us.split(" ").length >= 2);
             assertTrue(it.split(" ").length >= 2);
         }
@@ -298,8 +298,8 @@ class FullNameGeneratorTest {
         @DisplayName("nationality option supports country token mapping")
         void nationalityCountryToken() {
             FullNameGenerator gen = new FullNameGenerator();
-            String uk = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "uk"));
-            String jp = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "jp"));
+            String uk = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "uk"));
+            String jp = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "jp"));
             assertTrue(uk.split(" ").length >= 2);
             assertTrue(jp.split(" ").length >= 2);
         }
@@ -343,7 +343,7 @@ class FullNameGeneratorTest {
                                                     .build();
             FullNameGenerator gen = new FullNameGenerator(config);
 
-            String name = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "nl"));
+            String name = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "nl"));
 
             assertEquals("ScopedFirst ScopedLast", name);
         }
@@ -384,7 +384,7 @@ class FullNameGeneratorTest {
                                                                          false,
                                                                          true,
                                                                          true,
-                                                                         null,
+                                                                         false, null,
                                                                          "de"));
 
             assertEquals("ScopedTitle ScopedFirst ScopedFirst ScopedLast ScopedSuffix", name);
@@ -396,8 +396,8 @@ class FullNameGeneratorTest {
             GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
             FullNameGenerator gen = new FullNameGenerator(cfg);
 
-            String de = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "de"));
-            String fr = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "fr"));
+            String de = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "de"));
+            String fr = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "fr"));
 
             assertTrue(de.split(" ").length >= 2);
             assertTrue(fr.split(" ").length >= 2);
@@ -409,7 +409,7 @@ class FullNameGeneratorTest {
             FullNameGenerator gen = new FullNameGenerator();
             IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
-                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, " "))
+                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, " "))
             );
             assertTrue(ex.getMessage().contains("nationality"));
         }
@@ -420,7 +420,7 @@ class FullNameGeneratorTest {
             FullNameGenerator gen = new FullNameGenerator();
             assertThrows(
                 UnsupportedOperationException.class,
-                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, "sw"))
+                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "sw"))
             );
         }
 
@@ -430,7 +430,7 @@ class FullNameGeneratorTest {
             FullNameGenerator gen = new FullNameGenerator();
             assertThrows(
                 UnsupportedOperationException.class,
-                () -> gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, null, "es"))
+                () -> gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, false, null, "es"))
             );
         }
 
@@ -571,7 +571,7 @@ class FullNameGeneratorTest {
     }
 
     private static void assertNationalityTokenSupported(FullNameGenerator gen, String token) {
-        String name = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, null, token));
+        String name = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, token));
         assertFalse(name.isBlank(), token);
     }
 

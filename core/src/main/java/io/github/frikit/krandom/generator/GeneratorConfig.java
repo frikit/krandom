@@ -562,16 +562,10 @@ public final class GeneratorConfig {
     /**
      * Return the root-configured field-level override for object generation, if any.
      *
-     * <p>Primary lookup key is {@code "fully.qualified.ClassName.fieldName"}.
-     * Legacy simple-name keys are still supported for backward compatibility.
+     * <p>Overrides are keyed by the owner's fully-qualified class name and the field name.
      */
     public Optional<Generator<?>> getObjectFieldOverride(Class<?> ownerType, String fieldName) {
-        String key = objectFieldKey(ownerType, fieldName);
-        Generator<?> direct = objectFieldOverrides.get(key);
-        if (direct != null) {
-            return Optional.of(direct);
-        }
-        return Optional.ofNullable(objectFieldOverrides.get(objectLegacyFieldKey(ownerType, fieldName)));
+        return Optional.ofNullable(objectFieldOverrides.get(objectFieldKey(ownerType, fieldName)));
     }
 
     /**
@@ -585,12 +579,7 @@ public final class GeneratorConfig {
      * Return the root-configured contextual field-level override for object generation, if any.
      */
     public Optional<ContextualGenerator<?>> getObjectContextualFieldOverride(Class<?> ownerType, String fieldName) {
-        String key = objectFieldKey(ownerType, fieldName);
-        ContextualGenerator<?> direct = objectContextualFieldOverrides.get(key);
-        if (direct != null) {
-            return Optional.of(direct);
-        }
-        return Optional.ofNullable(objectContextualFieldOverrides.get(objectLegacyFieldKey(ownerType, fieldName)));
+        return Optional.ofNullable(objectContextualFieldOverrides.get(objectFieldKey(ownerType, fieldName)));
     }
 
     /**
@@ -849,10 +838,6 @@ public final class GeneratorConfig {
 
     private static String objectFieldKey(Class<?> ownerType, String fieldName) {
         return ownerType.getName() + "." + fieldName;
-    }
-
-    private static String objectLegacyFieldKey(Class<?> ownerType, String fieldName) {
-        return ownerType.getSimpleName() + "." + fieldName;
     }
 
     private record FieldGeneratorOverride(Predicate<Field> predicate, Generator<?> generator) {

@@ -271,20 +271,6 @@ public class KrandomAutoConfiguration {
     }
 
     /**
-     * Creates a provider hub without customizers.
-     *
-     * @param config generator configuration
-     * @return a provider hub for {@code config}
-     * @deprecated since 2.6.0; the auto-configured bean comes from
-     *     {@link #providerHub(GeneratorConfig, ObjectProvider)}, which also applies
-     *     {@link KrandomProviderCustomizer} beans. Retained for binary compatibility.
-     */
-    @Deprecated(since = "2.6.0")
-    public ProviderHub providerHub(GeneratorConfig config) {
-        return new ProviderHub(config);
-    }
-
-    /**
      * Creates the typed object-faker factory used by application code.
      *
      * @param config generator configuration

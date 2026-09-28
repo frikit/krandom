@@ -40,9 +40,8 @@ public class FieldStreamsBenchmark {
     public void setup() {
         GeneratorConfig.Builder config = GeneratorConfig.builder().seed(42)
             .clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
-            .objectSemanticMode(ObjectGenerationSemanticMode.valueOf(semanticMode));
-        // The legacy case also runs against 2.2.0 bytecode, which has no explicit policy API.
-        if (!policy.equals("LEGACY")) config.objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(policy));
+            .objectSemanticMode(ObjectGenerationSemanticMode.valueOf(semanticMode))
+            .objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(policy));
         if (customized) config.objectOverride(Fixture.class, "name", () -> "fixed");
         generator = new ObjectGenerator<>(Fixture.class, config.build());
     }

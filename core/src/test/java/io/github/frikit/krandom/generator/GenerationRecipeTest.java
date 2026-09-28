@@ -16,16 +16,21 @@ import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -38,6 +43,16 @@ class GenerationRecipeTest {
 
     private static final Instant CLOCK_INSTANT = Instant.parse("2026-07-10T12:34:56Z");
     private static final ZoneId CLOCK_ZONE = ZoneId.of("Europe/London");
+    private static final List<String> REQUIRED_POLICY_SETTINGS = List.of(
+        "payment.card-safety-policy",
+        "banking.safety-policy",
+        "business-tax-identifier.safety-policy",
+        "crypto-address.safety-policy",
+        "securities-identifier.safety-policy",
+        "phone-number.safety-policy",
+        "national-id.safety-policy",
+        "identity-document.safety-policy",
+        "email.domain-policy");
 
     @Test
     @DisplayName("serializes a stable human-readable recipe and parses it exactly")
@@ -147,13 +162,38 @@ class GenerationRecipeTest {
                      recipe.toGeneratorConfig().getPaymentCardSafetyPolicy());
     }
 
-    @Test
-    @DisplayName("replays legacy recipes without a payment card safety setting as checksum-valid")
-    void replaysLegacyRecipeWithoutPaymentCardSafetyPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+    static Stream<String> requiredPolicySettings() {
+        return REQUIRED_POLICY_SETTINGS.stream();
+    }
 
-        assertEquals(PaymentCardSafetyPolicy.CHECKSUM_VALID,
-                     recipe.toGeneratorConfig().getPaymentCardSafetyPolicy());
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("requiredPolicySettings")
+    @DisplayName("replay requires every safety and email policy setting")
+    void replayRequiresPolicySetting(String setting) {
+        String complete = GeneratorConfig.builder().seed(42L).build().getGenerationRecipe().orElseThrow().serialize();
+        String missing = complete.lines()
+                                 .filter(line -> !line.startsWith("setting." + setting + "="))
+                                 .collect(Collectors.joining("\n", "", "\n"));
+        GenerationRecipe recipe = GenerationRecipe.parse(missing);
+
+        assertNotEquals(complete, missing, "the serializer must write " + setting);
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, recipe::toGeneratorConfig);
+        assertEquals("Recipe requires setting: " + setting, error.getMessage());
+    }
+
+    @Test
+    @DisplayName("a hand-built recipe with only the required policy settings replays configuration defaults")
+    void policyCompleteRecipeReplaysDefaults() {
+        GeneratorConfig defaults = GeneratorConfig.builder().seed(7L).build();
+        GeneratorConfig replay = policyComplete(7L).build().toGeneratorConfig();
+
+        assertEquals(defaults.getObjectSemanticMode(), replay.getObjectSemanticMode());
+        assertEquals(defaults.getObjectNullProbability(), replay.getObjectNullProbability());
+        assertEquals(defaults.getObjectOptionalEmptyProbability(), replay.getObjectOptionalEmptyProbability());
+        assertEquals(defaults.getObjectUniqueFieldNames(), replay.getObjectUniqueFieldNames());
+        assertEquals(defaults.getObjectDateMin(), replay.getObjectDateMin());
+        assertEquals(defaults.getPaymentCardSafetyPolicy(), replay.getPaymentCardSafetyPolicy());
+        assertEquals(defaults.getEmailDomainPolicy(), replay.getEmailDomainPolicy());
     }
 
     @Test
@@ -202,23 +242,6 @@ class GenerationRecipeTest {
                      GenerationRecipe.parse(defaults.serialize()).toGeneratorConfig().getEmailDomainPolicy());
         assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED,
                      GenerationRecipe.parse(realistic.serialize()).toGeneratorConfig().getEmailDomainPolicy());
-    }
-
-    @Test
-    @DisplayName("replays legacy recipes without an email domain setting with the legacy mailbox domains")
-    void replaysLegacyRecipeWithoutEmailDomainPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
-
-        assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED, recipe.toGeneratorConfig().getEmailDomainPolicy());
-    }
-
-    @Test
-    @DisplayName("replays legacy recipes without a phone number safety setting as unclassified")
-    void replaysLegacyRecipeWithoutPhoneNumberSafetyPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
-
-        assertEquals(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     recipe.toGeneratorConfig().getPhoneNumberSafetyPolicy());
     }
 
     @Test
@@ -315,60 +338,6 @@ class GenerationRecipeTest {
                      recipe.getSettings().get("securities-identifier.safety-policy"));
         assertEquals(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
                      recipe.toGeneratorConfig().getSecuritiesIdentifierSafetyPolicy());
-    }
-
-    @Test
-    @DisplayName("replays legacy recipes without a banking safety setting as unclassified")
-    void replaysLegacyRecipeWithoutBankingSafetyPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
-
-        assertEquals(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     recipe.toGeneratorConfig().getBankingSafetyPolicy());
-    }
-
-    @Test
-    @DisplayName("replays legacy recipes without a business tax-identifier safety setting as unclassified")
-    void replaysLegacyRecipeWithoutBusinessTaxIdentifierSafetyPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
-
-        assertEquals(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     recipe.toGeneratorConfig().getBusinessTaxIdentifierSafetyPolicy());
-    }
-
-    @Test
-    @DisplayName("replays legacy recipes without a crypto-address safety setting as unclassified")
-    void replaysLegacyRecipeWithoutCryptoAddressSafetyPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
-
-        assertEquals(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     recipe.toGeneratorConfig().getCryptoAddressSafetyPolicy());
-    }
-
-    @Test
-    @DisplayName("replays legacy recipes without a securities-identifier safety setting as unclassified")
-    void replaysLegacyRecipeWithoutSecuritiesIdentifierSafetyPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
-
-        assertEquals(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     recipe.toGeneratorConfig().getSecuritiesIdentifierSafetyPolicy());
-    }
-
-    @Test
-    @DisplayName("replays legacy recipes without a national-ID safety setting as unclassified")
-    void replaysLegacyRecipeWithoutNationalIdSafetyPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
-
-        assertEquals(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     recipe.toGeneratorConfig().getNationalIdSafetyPolicy());
-    }
-
-    @Test
-    @DisplayName("replays legacy recipes without an identity-document safety setting as unclassified")
-    void replaysLegacyRecipeWithoutIdentityDocumentSafetyPolicy() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
-
-        assertEquals(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     recipe.toGeneratorConfig().getIdentityDocumentSafetyPolicy());
     }
 
     @Test
@@ -558,34 +527,35 @@ class GenerationRecipeTest {
 
         assertEquals(LocalDate.of(2020, 1, 1), dated.toGeneratorConfig().getObjectDateMin());
         assertEquals(LocalDate.of(2020, 12, 31), dated.toGeneratorConfig().getObjectDateMax());
+        assertRejected("Unsupported recipe setting: unknown", policyComplete(7L).setting("unknown", "value"));
+        assertRejected("Recipe requires setting: string.max", policyComplete(7L).setting("string.min", "4"));
+        assertRejected("Recipe requires setting: string.min", policyComplete(7L).setting("string.max", "4"));
+        assertRejected("Recipe requires setting: collection.min", policyComplete(7L).setting("collection.max", "4"));
+        assertRejected("Recipe requires setting: object.date-max",
+                       policyComplete(7L).setting("object.date-min", "2020-01-01"));
+        assertRejected("Recipe requires setting: object.date-min",
+                       policyComplete(7L).setting("object.date-max", "2020-12-31"));
+        assertRejected("Recipe setting 'object.override-default-initialization' must be true or false",
+                       policyComplete(7L).setting("object.override-default-initialization", "yes"));
         assertThrows(IllegalArgumentException.class,
-                     () -> GenerationRecipe.builder().seed(7L).setting("unknown", "value").build().toGeneratorConfig());
-        assertThrows(IllegalArgumentException.class,
-                     () -> GenerationRecipe.builder().seed(7L).setting("string.min", "4").build().toGeneratorConfig());
-        assertThrows(IllegalArgumentException.class,
-                     () -> GenerationRecipe.builder().seed(7L).setting("string.max", "4").build().toGeneratorConfig());
-        assertThrows(IllegalArgumentException.class,
-                     () -> GenerationRecipe.builder().seed(7L).setting("collection.max", "4").build().toGeneratorConfig());
-        assertThrows(IllegalArgumentException.class,
-                     () -> GenerationRecipe.builder().seed(7L)
-                                            .setting("object.date-min", "2020-01-01")
-                                            .build()
-                                            .toGeneratorConfig());
-        assertThrows(IllegalArgumentException.class,
-                     () -> GenerationRecipe.builder().seed(7L)
-                                            .setting("object.date-max", "2020-12-31")
-                                            .build()
-                                            .toGeneratorConfig());
-        assertThrows(IllegalArgumentException.class,
-                     () -> GenerationRecipe.builder().seed(7L)
-                                            .setting("object.override-default-initialization", "yes")
-                                            .build()
-                                            .toGeneratorConfig());
-        assertThrows(IllegalArgumentException.class,
-                     () -> GenerationRecipe.builder().seed(7L)
-                                            .setting("object.semantic-mode", "UNKNOWN")
-                                            .build()
-                                            .toGeneratorConfig());
+                     () -> policyComplete(7L).setting("object.semantic-mode", "UNKNOWN").build().toGeneratorConfig());
+    }
+
+    private static void assertRejected(String message, GenerationRecipe.Builder recipe) {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                                                      () -> recipe.build().toGeneratorConfig());
+        assertEquals(message, error.getMessage());
+    }
+
+    /** A hand-built recipe carrying only the settings that replay requires, at their default values. */
+    private static GenerationRecipe.Builder policyComplete(long seed) {
+        Map<String, String> defaults =
+            GeneratorConfig.builder().seed(seed).build().getGenerationRecipe().orElseThrow().getSettings();
+        GenerationRecipe.Builder builder = GenerationRecipe.builder().seed(seed);
+        for (String setting : REQUIRED_POLICY_SETTINGS) {
+            builder.setting(setting, defaults.get(setting));
+        }
+        return builder;
     }
 
     @Test

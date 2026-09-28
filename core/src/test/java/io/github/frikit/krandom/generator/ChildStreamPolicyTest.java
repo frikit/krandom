@@ -168,7 +168,7 @@ class ChildStreamPolicyTest {
         assertEquals(new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_13, independent.forChildStream("isbn13")).generate(),
                      commerce.generateIsbn13());
 
-        FullNameGenerator.NameOptions italian = new FullNameGenerator.NameOptions(false, false, false, false, null, "it");
+        FullNameGenerator.NameOptions italian = new FullNameGenerator.NameOptions(false, false, false, false, false, null, "it");
         assertNotEquals(nationalityNames(legacy, italian), nationalityNames(independent, italian),
                         "independent first and last names must not reuse the nationality's shared stream");
         assertEquals(nationalityNames(independent, italian), nationalityNames(independent, italian));

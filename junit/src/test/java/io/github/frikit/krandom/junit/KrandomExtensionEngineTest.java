@@ -101,12 +101,13 @@ class KrandomExtensionEngineTest {
 
     @Test
     void systemRecipeOverrideTakesPrecedenceAndPreservesTextSeedMetadata() throws Exception {
-        GenerationRecipe recipe = GenerationRecipe.builder()
-                                                    .seed(GeneratorConfig.deriveSeed("checkout-replay"))
-                                                    .seedText("checkout-replay")
-                                                    .locale(Locale.CANADA_FRENCH)
-                                                    .profile("ci-replay")
-                                                    .build();
+        GenerationRecipe recipe = GeneratorConfig.builder()
+                                                 .seed("checkout-replay")
+                                                 .locale(Locale.CANADA_FRENCH)
+                                                 .generationProfile("ci-replay")
+                                                 .build()
+                                                 .getGenerationRecipe()
+                                                 .orElseThrow();
 
         withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () -> {
             EngineExecutionResults results = runFixture(RecipeOverrideFixture.class);
@@ -132,7 +133,7 @@ class KrandomExtensionEngineTest {
 
     @Test
     void conflictingSystemOverridesAreAConfigurationError() throws Exception {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+        GenerationRecipe recipe = GeneratorConfig.builder().seed(42L).build().getGenerationRecipe().orElseThrow();
 
         withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () ->
             withSystemProperty(REPLAY_SEED_PROPERTY, "24680", () ->
@@ -141,10 +142,7 @@ class KrandomExtensionEngineTest {
 
     @Test
     void failingTestPrintsSafeCopyableRecipeOverride() throws Exception {
-        GenerationRecipe recipe = GenerationRecipe.builder()
-                                                    .seed(GeneratorConfig.deriveSeed("private seed"))
-                                                    .seedText("private seed")
-                                                    .build();
+        GenerationRecipe recipe = GeneratorConfig.builder().seed("private seed").build().getGenerationRecipe().orElseThrow();
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
 
         withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () -> {

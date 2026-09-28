@@ -72,8 +72,8 @@ class SchemaNamedChildStreamTest {
     }
 
     @Test
-    @DisplayName("legacy schema failure constructor has no replay recipe")
-    void legacySchemaFailureHasNoReplayRecipe() {
+    @DisplayName("public schema failure constructor has no replay recipe")
+    void publicSchemaFailureConstructorHasNoReplayRecipe() {
         SchemaGenerationException error = new SchemaGenerationException(
             "broken", 0, new IllegalStateException("fixture failure"));
 

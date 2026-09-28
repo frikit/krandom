@@ -125,7 +125,7 @@ class KrandomExtensionReplayEngineTest {
     void classRecipeAppliesOnlyToTheClassItNames() {
         ClassScopedFailingFixture.reset();
         String entry = ClassScopedFailingFixture.class.getCanonicalName() + "="
-                       + encoded(GenerationRecipe.builder().seed(5L).build());
+                       + encoded(GeneratorConfig.builder().seed(5L).build().getGenerationRecipe().orElseThrow());
 
         EngineTestSupport.run(ClassScopedFailingFixture.class, Map.of("krandom.junit.class-recipe", entry));
 
@@ -139,7 +139,7 @@ class KrandomExtensionReplayEngineTest {
 
     @Test
     void malformedClassRecipesAreConfigurationErrors() {
-        String recipe = encoded(GenerationRecipe.builder().seed(5L).build());
+        String recipe = encoded(GeneratorConfig.builder().seed(5L).build().getGenerationRecipe().orElseThrow());
         String owner = ClassScopedFailingFixture.class.getCanonicalName();
         for (String value : List.of("not-an-entry", owner + "=plain", owner + "=" + recipe + "," + owner + "=" + recipe)) {
             EngineExecutionResults results = EngineTestSupport.run(
@@ -239,7 +239,7 @@ class KrandomExtensionReplayEngineTest {
 
     @Test
     void replayedRecipeOutputStatesThatTheClockCameFromTheRecipe() {
-        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+        GenerationRecipe recipe = GeneratorConfig.builder().seed(42L).build().getGenerationRecipe().orElseThrow();
         String encoded = "base64:" + Base64.getUrlEncoder().withoutPadding()
                                            .encodeToString(recipe.serialize().getBytes(StandardCharsets.UTF_8));
 
@@ -366,7 +366,8 @@ class KrandomExtensionReplayEngineTest {
         @RegisterExtension
         static final KrandomExtension EXTENSION = new KrandomExtension(name -> "KRANDOM_JUNIT_RECIPE".equals(name)
             ? "base64:" + Base64.getUrlEncoder().withoutPadding().encodeToString(
-                GenerationRecipe.builder().seed(7L).build().serialize().getBytes(StandardCharsets.UTF_8))
+                GeneratorConfig.builder().seed(7L).build().getGenerationRecipe().orElseThrow().serialize()
+                               .getBytes(StandardCharsets.UTF_8))
             : null);
 
         @Test

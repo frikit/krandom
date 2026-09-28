@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Phase 2 finance generators")
-@SuppressWarnings("removal")
 class Phase2FinanceGeneratorsTest {
 
     @Test
@@ -106,31 +105,31 @@ class Phase2FinanceGeneratorsTest {
 
     @Test
     @DisplayName("default-locale BBAN constructor uses the German registry structure")
-    void legacyNoArgumentBbanConstructor() {
+    void defaultLocaleBbanUsesGermanStructure() {
         assertTrue(new BbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("\\d{18}"));
     }
 
     @Test
     @DisplayName("default-locale IBAN constructor emits German IBANs")
-    void legacyNoArgumentIbanConstructor() {
+    void defaultLocaleIbanIsGerman() {
         assertTrue(new IbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("DE\\d{20}"));
     }
 
     @Test
-    @DisplayName("legacy no-argument BIC constructor preserves compatibility output")
-    void legacyNoArgumentBicConstructor() {
+    @DisplayName("realistic banking policy produces well-formed BICs")
+    void realisticBicIsWellFormed() {
         assertTrue(new BicGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?"));
     }
 
     @Test
-    @DisplayName("legacy no-argument bank-account constructor preserves compatibility output")
-    void legacyNoArgumentBankAccountConstructor() {
+    @DisplayName("realistic banking policy produces ten-digit bank accounts")
+    void realisticBankAccountHasTenDigits() {
         assertTrue(new BankAccountGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("\\d{10}"));
     }
 
     @Test
-    @DisplayName("legacy no-argument bank-info constructor preserves compatibility output")
-    void legacyNoArgumentBankInfoConstructor() {
+    @DisplayName("realistic banking policy produces bank info")
+    void realisticBankInfoIsGenerated() {
         assertNotNull(new BankInfoGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate());
     }
 
@@ -165,7 +164,7 @@ class Phase2FinanceGeneratorsTest {
     }
 
     @Test
-    @DisplayName("deprecated no-argument constructor preserves formatted and unformatted output")
+    @DisplayName("realistic policy produces formatted and unformatted EIN output")
     void ein() {
         EinGenerator generator = new EinGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
         String formatted = generator.generate();

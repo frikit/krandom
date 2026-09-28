@@ -346,20 +346,6 @@ public final class FullNameGenerator implements Generator<String> {
         Gender gender,
         String nationality
     ) {
-
-        /**
-         * Backward-compatible constructor with {@code reverse=false}.
-         */
-        public NameOptions(
-            boolean middle,
-            boolean middleInitial,
-            boolean prefix,
-            boolean suffix,
-            Gender gender,
-            String nationality
-        ) {
-            this(middle, middleInitial, prefix, suffix, false, gender, nationality);
-        }
     }
 
 

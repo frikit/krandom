@@ -29,7 +29,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -614,22 +613,6 @@ class GeneratorConfigTest {
         assertTrue(config.shouldObjectExclude(password));
         assertTrue(config.shouldObjectExclude(createdAt));
         assertFalse(config.shouldObjectExclude(name));
-    }
-
-    @Test
-    @DisplayName("legacy simple-name object field override key remains supported on the root config")
-    void legacySimpleNameObjectFieldOverrideKeyStillWorks() throws Exception {
-        GeneratorConfig.Builder builder = GeneratorConfig.builder();
-
-        Field overridesField = GeneratorConfig.Builder.class.getDeclaredField("objectFieldOverrides");
-        overridesField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        Map<String, Generator<?>> fieldOverrides = (Map<String, Generator<?>>) overridesField.get(builder);
-        fieldOverrides.put("RootObjectConfigFixture.name", () -> "LEGACY");
-
-        GeneratorConfig config = builder.build();
-        assertEquals("LEGACY",
-                     config.getObjectFieldOverride(RootObjectConfigFixture.class, "name").orElseThrow().generate());
     }
 
     @Test

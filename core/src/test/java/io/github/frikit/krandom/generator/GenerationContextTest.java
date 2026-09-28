@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GenerationContextTest {
 
     @Test
-    @DisplayName("legacy constructor remains useful without invented reflection metadata")
-    void legacyConstructorCompatibility() {
+    @DisplayName("three-argument constructor derives the path and leaves reflection metadata empty")
+    void threeArgumentConstructorLeavesMetadataEmpty() {
         GenerationContext context = new GenerationContext("name", Fixture.class, 2);
 
         assertEquals("name", context.getFieldName());
@@ -41,7 +41,7 @@ class GenerationContextTest {
     }
 
     @Test
-    @DisplayName("legacy path falls back to the binary name for anonymous owner types")
+    @DisplayName("derived path falls back to the binary name for anonymous owner types")
     void anonymousOwnerPath() {
         Object anonymous = new Object() { };
 

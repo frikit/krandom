@@ -290,8 +290,13 @@ public final class GenerationRecipe {
     /**
      * Recreates a portable generator configuration with a fixed clock.
      *
+     * <p>Every safety-policy setting and the email-domain policy are required, because they select
+     * which values generators may produce; the serialized form of a seeded configuration always
+     * records them.
+     *
      * @return replay configuration
-     * @throws IllegalArgumentException if this library does not recognize a recorded setting
+     * @throws IllegalArgumentException if this library does not recognize a recorded setting, or a
+     *                                  required setting is missing or incomplete
      */
     public GeneratorConfig toGeneratorConfig() {
         GeneratorConfig.Builder builder = GeneratorConfig.builder()
@@ -420,15 +425,21 @@ public final class GenerationRecipe {
         applyInteger(builder, "object.pool-size", builder::objectPoolSize);
         applyBoolean(builder, "object.override-default-initialization", builder::objectOverrideDefaultInitialization);
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
-        applyPaymentCardSafetyPolicy(builder);
-        applyBankingSafetyPolicy(builder);
-        applyBusinessTaxIdentifierSafetyPolicy(builder);
-        applyCryptoAddressSafetyPolicy(builder);
-        applySecuritiesIdentifierSafetyPolicy(builder);
-        applyPhoneNumberSafetyPolicy(builder);
-        applyNationalIdSafetyPolicy(builder);
-        applyIdentityDocumentSafetyPolicy(builder);
-        applyEmailDomainPolicy(builder);
+        builder.paymentCardSafetyPolicy(
+            PaymentCardSafetyPolicy.valueOf(requiredSetting("payment.card-safety-policy")));
+        builder.bankingSafetyPolicy(BankingSafetyPolicy.valueOf(requiredSetting("banking.safety-policy")));
+        builder.businessTaxIdentifierSafetyPolicy(
+            BusinessTaxIdentifierSafetyPolicy.valueOf(requiredSetting("business-tax-identifier.safety-policy")));
+        builder.cryptoAddressSafetyPolicy(
+            CryptoAddressSafetyPolicy.valueOf(requiredSetting("crypto-address.safety-policy")));
+        builder.securitiesIdentifierSafetyPolicy(
+            SecuritiesIdentifierSafetyPolicy.valueOf(requiredSetting("securities-identifier.safety-policy")));
+        builder.phoneNumberSafetyPolicy(
+            PhoneNumberSafetyPolicy.valueOf(requiredSetting("phone-number.safety-policy")));
+        builder.nationalIdSafetyPolicy(NationalIdSafetyPolicy.valueOf(requiredSetting("national-id.safety-policy")));
+        builder.identityDocumentSafetyPolicy(
+            IdentityDocumentSafetyPolicy.valueOf(requiredSetting("identity-document.safety-policy")));
+        builder.emailDomainPolicy(EmailDomainPolicy.valueOf(requiredSetting("email.domain-policy")));
         applyEnum(builder, "object.semantic-mode", builder::objectSemanticMode);
         applyDouble(builder, "object.null-probability", builder::objectNullProbability);
         applyDouble(builder, "object.optional-empty-probability", builder::objectOptionalEmptyProbability);
@@ -449,79 +460,6 @@ public final class GenerationRecipe {
         }
     }
 
-    private void applyPaymentCardSafetyPolicy(GeneratorConfig.Builder builder) {
-        String value = settings.get("payment.card-safety-policy");
-        PaymentCardSafetyPolicy policy = value == null
-            ? PaymentCardSafetyPolicy.CHECKSUM_VALID
-            : PaymentCardSafetyPolicy.valueOf(value);
-        builder.paymentCardSafetyPolicy(policy);
-    }
-
-    private void applyBankingSafetyPolicy(GeneratorConfig.Builder builder) {
-        String value = settings.get("banking.safety-policy");
-        BankingSafetyPolicy policy = value == null
-            ? BankingSafetyPolicy.REALISTIC_UNCLASSIFIED
-            : BankingSafetyPolicy.valueOf(value);
-        builder.bankingSafetyPolicy(policy);
-    }
-
-    private void applyBusinessTaxIdentifierSafetyPolicy(GeneratorConfig.Builder builder) {
-        String value = settings.get("business-tax-identifier.safety-policy");
-        BusinessTaxIdentifierSafetyPolicy policy = value == null
-            ? BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED
-            : BusinessTaxIdentifierSafetyPolicy.valueOf(value);
-        builder.businessTaxIdentifierSafetyPolicy(policy);
-    }
-
-    private void applyCryptoAddressSafetyPolicy(GeneratorConfig.Builder builder) {
-        String value = settings.get("crypto-address.safety-policy");
-        CryptoAddressSafetyPolicy policy = value == null
-            ? CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED
-            : CryptoAddressSafetyPolicy.valueOf(value);
-        builder.cryptoAddressSafetyPolicy(policy);
-    }
-
-    private void applySecuritiesIdentifierSafetyPolicy(GeneratorConfig.Builder builder) {
-        String value = settings.get("securities-identifier.safety-policy");
-        SecuritiesIdentifierSafetyPolicy policy = value == null
-            ? SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED
-            : SecuritiesIdentifierSafetyPolicy.valueOf(value);
-        builder.securitiesIdentifierSafetyPolicy(policy);
-    }
-
-    private void applyPhoneNumberSafetyPolicy(GeneratorConfig.Builder builder) {
-        String value = settings.get("phone-number.safety-policy");
-        PhoneNumberSafetyPolicy policy = value == null
-            ? PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED
-            : PhoneNumberSafetyPolicy.valueOf(value);
-        builder.phoneNumberSafetyPolicy(policy);
-    }
-
-    private void applyNationalIdSafetyPolicy(GeneratorConfig.Builder builder) {
-        String value = settings.get("national-id.safety-policy");
-        NationalIdSafetyPolicy policy = value == null
-            ? NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED
-            : NationalIdSafetyPolicy.valueOf(value);
-        builder.nationalIdSafetyPolicy(policy);
-    }
-
-    private void applyIdentityDocumentSafetyPolicy(GeneratorConfig.Builder builder) {
-        String value = settings.get("identity-document.safety-policy");
-        IdentityDocumentSafetyPolicy policy = value == null
-            ? IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED
-            : IdentityDocumentSafetyPolicy.valueOf(value);
-        builder.identityDocumentSafetyPolicy(policy);
-    }
-
-    private void applyEmailDomainPolicy(GeneratorConfig.Builder builder) {
-        // Recipes written before the policy existed replay the legacy mailbox-provider domains.
-        String value = settings.get("email.domain-policy");
-        EmailDomainPolicy policy = value == null
-            ? EmailDomainPolicy.REALISTIC_UNCLASSIFIED
-            : EmailDomainPolicy.valueOf(value);
-        builder.emailDomainPolicy(policy);
-    }
-
     private void applyDateRange(GeneratorConfig.Builder builder) {
         String min = settings.get("object.date-min");
         String max = settings.get("object.date-max");
@@ -529,6 +467,14 @@ public final class GenerationRecipe {
             builder.objectDateRange(java.time.LocalDate.parse(requirePair("object.date-min", min)),
                                     java.time.LocalDate.parse(requirePair("object.date-max", max)));
         }
+    }
+
+    private String requiredSetting(String key) {
+        String value = settings.get(key);
+        if (value == null) {
+            throw new IllegalArgumentException("Recipe requires setting: " + key);
+        }
+        return value;
     }
 
     private Integer integerSetting(String key) {

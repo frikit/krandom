@@ -39,10 +39,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(OutputCaptureExtension.class)
 class KrandomRecipeExclusivityTest {
 
-    private static final String RECIPE = encode(GenerationRecipe.builder()
-                                                                .seed(24680L)
-                                                                .locale(Locale.CANADA_FRENCH)
-                                                                .build());
+    private static final String RECIPE = encode(GeneratorConfig.builder()
+                                                               .seed(24680L)
+                                                               .locale(Locale.CANADA_FRENCH)
+                                                               .build()
+                                                               .getGenerationRecipe()
+                                                               .orElseThrow());
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(KrandomAutoConfiguration.class));
