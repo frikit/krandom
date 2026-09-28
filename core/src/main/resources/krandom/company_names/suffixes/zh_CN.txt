@@ -1,0 +1,5 @@
+# Company legal-form suffixes, one per line.
+有限公司
+股份有限公司
+有限责任公司
+合伙企业

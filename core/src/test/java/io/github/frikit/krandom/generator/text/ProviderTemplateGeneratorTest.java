@@ -37,7 +37,7 @@ class ProviderTemplateGeneratorTest {
     @Test
     @DisplayName("keeps literal formatting semantics")
     void keepsLiteralFormattingSemantics() {
-        ProviderTemplateGenerator generator = new ProviderTemplateGenerator("ID-##-^^-{firstname}", 5L);
+        ProviderTemplateGenerator generator = new ProviderTemplateGenerator("ID-##-^^-{firstname}", seeded(5L));
 
         assertTrue(generator.generate().matches("ID-\\d{2}-[0-9a-f]{2}-.+"));
     }
@@ -81,8 +81,8 @@ class ProviderTemplateGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGenerationIsReproducible() {
-        ProviderTemplateGenerator first = new ProviderTemplateGenerator("{firstname}-##", 22L);
-        ProviderTemplateGenerator second = new ProviderTemplateGenerator("{firstname}-##", 22L);
+        ProviderTemplateGenerator first = new ProviderTemplateGenerator("{firstname}-##", seeded(22L));
+        ProviderTemplateGenerator second = new ProviderTemplateGenerator("{firstname}-##", seeded(22L));
 
         assertEquals(first.generate(), second.generate());
         assertEquals(first.generate(), second.generate());
@@ -92,7 +92,7 @@ class ProviderTemplateGeneratorTest {
     @DisplayName("facade exposes provider template generator")
     void facadeExposesProviderTemplateGenerator() {
         assertNotNull(Generators.ofProviderTemplate("{firstname}").generate());
-        assertNotNull(Generators.ofProviderTemplate("{firstname}", 1L).generate());
+        assertNotNull(Generators.ofProviderTemplate("{firstname}", seeded(1L)).generate());
         assertNotNull(Generators.ofProviderTemplate("{firstname}", GeneratorConfig.defaults()).generate());
         assertNotNull(Generators.ofProviderTemplate("{firstname}", new FieldLookup(GeneratorConfig.defaults())).generate());
     }
@@ -103,5 +103,9 @@ class ProviderTemplateGeneratorTest {
         assertThrows(NullPointerException.class, () -> new ProviderTemplateGenerator(null));
         assertThrows(NullPointerException.class, () -> new ProviderTemplateGenerator("x", (GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> new ProviderTemplateGenerator("x", (FieldLookup) null));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Ingénieur logiciel
+Chef de produit
+Analyste de données
+Designer UX
+Chargé d'affaires
+Chargé de marketing
+Analyste métier
+Ingénieur DevOps
+Ingénieur fiabilité des sites
+Responsable ingénierie
+Architecte solutions
+Rédacteur technique
+Ingénieur qualité
+Chef de projet
+Ingénieur sécurité
+Administrateur de bases de données

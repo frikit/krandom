@@ -1,0 +1,7 @@
+# Product materials, one per line.
+Acier
+Bois
+Beton
+Plastique
+Granit
+Coton

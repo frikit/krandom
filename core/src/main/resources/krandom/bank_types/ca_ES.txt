@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Banc minorista
+Banc comercial
+Banc d'inversió
+Cooperativa de crèdit
+Banc en línia

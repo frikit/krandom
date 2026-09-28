@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Lösungen
+Systeme
+Technologien
+Industrien
+Dienstleistungen
+Gruppe
+Partner
+Beteiligungen
+Sozietät
+Beratung
+Netzwerke
+Dynamik
+Ressourcen
+Verwaltung
+Analysen

@@ -59,9 +59,9 @@ public final class InvoiceInfoGenerator implements Generator<InvoiceInfo> {
     public InvoiceInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.uuidGenerator = new UUIDGenerator(config);
-        this.orderInfoGenerator = new OrderInfoGenerator(config);
-        this.companyInfoGenerator = new CompanyInfoGenerator(config);
+        this.uuidGenerator = new UUIDGenerator(config.forChildStream("uUID"));
+        this.orderInfoGenerator = new OrderInfoGenerator(config.forChildStream("orderInfo"));
+        this.companyInfoGenerator = new CompanyInfoGenerator(config.forChildStream("companyInfo"));
     }
 
     @Override

@@ -1,0 +1,7 @@
+# Product colors, one per line.
+赤
+青
+緑
+黒
+白
+シルバー

@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.Objects;
 import java.util.Random;
@@ -52,7 +53,12 @@ public final class StringGenerator implements Generator<String> {
     private final RandomGenerator random;
 
     private StringGenerator(Builder b) {
-        if (b.seed != null) {
+        if (b.config != null) {
+            // Characters and lengths both draw from the configuration's random source; a seeded
+            // configuration therefore matches the Builder.seed(long) output exactly.
+            this.charGenerator = b.charGenerator.withRandom(b.config.createRandom());
+            this.random = b.config.createRandom();
+        } else if (b.seed != null) {
             // Preserve configured character pool while making output deterministic.
             this.charGenerator = b.charGenerator.withSeed(b.seed);
             this.random = new Random(b.seed);
@@ -69,6 +75,16 @@ public final class StringGenerator implements Generator<String> {
      */
     public static StringGenerator letters() {
         return builder().charGenerator(CharGenerator.letters()).build();
+    }
+
+    /**
+     * Letters only, 5–20 characters, drawn with the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return a letter-string generator backed by the configuration's random source
+     */
+    public static StringGenerator letters(GeneratorConfig config) {
+        return builder().charGenerator(CharGenerator.letters()).config(config).build();
     }
 
     // ── Convenience factories ─────────────────────────────────────────────────
@@ -191,10 +207,11 @@ public final class StringGenerator implements Generator<String> {
 
     public static final class Builder {
 
-        private CharGenerator charGenerator = CharGenerator.letters();
-        private int           minLength     = 5;
-        private int           maxLength     = 20;
-        private Long          seed          = null;
+        private CharGenerator   charGenerator = CharGenerator.letters();
+        private int             minLength     = 5;
+        private int             maxLength     = 20;
+        private Long            seed          = null;
+        private GeneratorConfig config        = null;
 
         /**
          * Character source for string generation; defaults to {@link CharGenerator#letters()}.
@@ -237,6 +254,18 @@ public final class StringGenerator implements Generator<String> {
          */
         public Builder seed(long seed) {
             this.seed = seed;
+            return this;
+        }
+
+        /**
+         * Draw characters and lengths from the configuration's random source (seed, caller-owned
+         * random, factory, or secure random). Takes precedence over {@link #seed(long)}.
+         *
+         * @param config generator configuration; must not be {@code null}
+         * @return this builder
+         */
+        public Builder config(GeneratorConfig config) {
+            this.config = Objects.requireNonNull(config, "config must not be null");
             return this;
         }
 

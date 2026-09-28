@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globalne
+Narodowe
+Polskie
+Zjednoczone
+Pierwszorzędne
+Zaawansowane
+Strategiczne
+Dynamiczne
+Innowacyjne
+Profesjonalne
+Cyfrowe
+Nowe
+Alfa
+Wiodące
+Nowoczesne

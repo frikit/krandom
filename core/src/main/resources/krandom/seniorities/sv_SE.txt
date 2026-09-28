@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Praktikant
+Junior
+Medarbetare
+Erfaren
+Senior
+Teamledare
+Huvudspecialist
+Specialist
+Direktör
+Vice vd

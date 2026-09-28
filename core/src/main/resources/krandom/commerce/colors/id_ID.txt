@@ -1,0 +1,7 @@
+# Product colors, one per line.
+merah
+biru
+hijau
+hitam
+putih
+perak

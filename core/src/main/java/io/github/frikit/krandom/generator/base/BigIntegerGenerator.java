@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -36,7 +37,16 @@ public final class BigIntegerGenerator implements Generator<BigInteger> {
      * Default range [0, {@link Long#MAX_VALUE}].
      */
     public BigIntegerGenerator() {
-        this(DEFAULT_MIN, DEFAULT_MAX, null);
+        this(DEFAULT_MIN, DEFAULT_MAX, new Random());
+    }
+
+    /**
+     * Default range [0, {@link Long#MAX_VALUE}] using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public BigIntegerGenerator(GeneratorConfig config) {
+        this(DEFAULT_MIN, DEFAULT_MAX, config);
     }
 
     /**
@@ -46,21 +56,21 @@ public final class BigIntegerGenerator implements Generator<BigInteger> {
      * @param max upper bound (inclusive); must not be {@code null} and must be &gt; {@code min}
      */
     public BigIntegerGenerator(BigInteger min, BigInteger max) {
-        this(min, max, null);
+        this(min, max, new Random());
     }
 
     /**
-     * Custom range with PRNG seed for reproducible output.
+     * Custom range using the configuration's random source.
      *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (inclusive)
-     * @param seed PRNG seed
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (inclusive)
+     * @param config generator configuration; must not be {@code null}
      */
-    public BigIntegerGenerator(BigInteger min, BigInteger max, long seed) {
-        this(min, max, (Long) seed);
+    public BigIntegerGenerator(BigInteger min, BigInteger max, GeneratorConfig config) {
+        this(min, max, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
-    private BigIntegerGenerator(BigInteger min, BigInteger max, Long seed) {
+    private BigIntegerGenerator(BigInteger min, BigInteger max, Random random) {
         Objects.requireNonNull(min, "min must not be null");
         Objects.requireNonNull(max, "max must not be null");
         if (min.compareTo(max) >= 0) {
@@ -68,7 +78,7 @@ public final class BigIntegerGenerator implements Generator<BigInteger> {
         }
         this.min = min;
         this.max = max;
-        this.random = seed != null ? new Random(seed) : new Random();
+        this.random = random;
     }
 
     /**

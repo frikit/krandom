@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Vollzeit
+Teilzeit
+Vertrag
+Befristet
+Praktikum
+Freelance
+Ausbildung
+Saisonal
+Ehrenamt
+Remote

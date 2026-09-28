@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Lise
+Ön lisans
+Lisans
+Yüksek lisans
+Doktora
+Uzmanlık
+Meslek lisesi

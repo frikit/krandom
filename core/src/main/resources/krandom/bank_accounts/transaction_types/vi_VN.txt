@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+nạp tiền
+rút tiền
+thanh toán
+chuyển khoản
+hoàn tiền
+phí
+lãi
+bồi hoàn

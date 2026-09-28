@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+memperkemas
+memperkasakan
+memanfaatkan
+mengoptimumkan
+mengintegrasikan
+menskalakan
+menyampaikan
+membolehkan

@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Boeken
+Elektronica
+Buitensport
+Wonen
+Speelgoed
+Tuin

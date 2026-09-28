@@ -63,7 +63,13 @@ public final class DateTimeGenerators {
 
     public TimezoneGenerator timezone() { return new TimezoneGenerator(config); }
 
-    public LegacyTimeZoneGenerator timeZone() { return new LegacyTimeZoneGenerator(config); }
+    /**
+     * Returns a generator of legacy {@link java.util.TimeZone} values (the object form of
+     * {@link #timezone()}).
+     *
+     * @return legacy time-zone generator
+     */
+    public LegacyTimeZoneGenerator timeZoneObject() { return new LegacyTimeZoneGenerator(config); }
 
     public CalendarGenerator calendar() { return new CalendarGenerator(config); }
 }

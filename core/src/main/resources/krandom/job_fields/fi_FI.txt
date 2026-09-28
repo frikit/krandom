@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Tuotekehitys
+Markkinointi
+Myynti
+Talous
+Operatiivinen toiminta
+Tuotehallinta
+Henkilöstöhallinto
+Lakiasiat
+Muotoilu
+Asiakastuki
+Tutkimus
+Datatiede
+Tietoturva
+Hankinnat
+Logistiikka

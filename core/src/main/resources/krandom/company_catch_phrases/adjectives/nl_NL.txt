@@ -1,0 +1,8 @@
+# Catch-phrase adjectives, one per line.
+Adaptieve
+Geïntegreerde
+Vertrouwde
+Intelligente
+Toekomstbestendige
+Moeiteloze
+Veilige

@@ -1,0 +1,7 @@
+# Product colors, one per line.
+红色
+蓝色
+绿色
+黑色
+白色
+银色

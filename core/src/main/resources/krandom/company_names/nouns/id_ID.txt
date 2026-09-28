@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Solusi
+Sistem
+Teknologi
+Industri
+Layanan
+Grup
+Mitra
+Ventura
+Rekanan
+Konsultan
+Jaringan
+Dinamika
+Sumber Daya
+Manajemen
+Analitika

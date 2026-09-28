@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Stagista
+Junior
+Associato
+Intermedio
+Senior
+Responsabile
+Esperto senior
+Specialista
+Direttore
+Vicepresidente

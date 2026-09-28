@@ -13,7 +13,7 @@ behavior change rather than expecting identical seeded objects.
 
 **Pros**: maintained; realistic locale-aware values instead of synthetic noise;
 50 supported locale variants (35 native datasets and 15 curated fallbacks); native Bean Validation;
-schema export; Spring Boot / JUnit 5 / kotest.
+schema export; Spring Boot / JUnit Jupiter / kotest.
 **Cons / gaps**: see the [`competitive landscape`](../competitive-landscape.md).
 
 ## Dependency

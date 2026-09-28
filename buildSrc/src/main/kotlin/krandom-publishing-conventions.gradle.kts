@@ -26,7 +26,7 @@ val moduleDescriptions = mapOf(
     "bom" to "kRandom bill of materials for aligning all published kRandom module versions.",
     "core" to "kRandom core: Java 21 random and fake-data generation toolkit with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
     "jackson" to "Jackson serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
-    "junit" to "JUnit 5 extension for kRandom — per-test seed management with @KrandomSeed pinning, seeded GeneratorConfig parameter injection, and failure-seed reporting for reproducible test runs.",
+    "junit" to "JUnit Jupiter extension for kRandom — per-test seed management with @KrandomSeed pinning, seeded GeneratorConfig parameter injection, and failure-seed reporting for reproducible test runs.",
     "spring-boot-starter" to "Spring Boot 4.x auto-configuration for kRandom — registers GeneratorConfig, ProviderHub, and KrandomObjectFakerFactory beans driven by krandom.* application properties.",
     "kotest-extensions" to "Kotest Arb adapters for kRandom generators, enabling property-based testing on top of krandom-core.",
     "kotlin-dsl" to "Kotlin DSL builder for kRandom object-generation rules — fluent fixture configuration on top of krandom-core."

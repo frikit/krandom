@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 /**
  * Generates random {@link Integer} values.
  *
@@ -15,20 +17,37 @@ package io.github.frikit.krandom.generator.base;
  *   int any     = new IntGenerator().generate();
  *   int positive = new IntGenerator(1, Integer.MAX_VALUE).generate();
  *   int roll     = new IntGenerator(1, 7).generate();  // die roll [1..6]
+ *   int seeded   = new IntGenerator(1, 7, GeneratorConfig.builder().seed(42L).build()).generate();
  * }</pre>
  */
 public final class IntGenerator extends AbstractBoundedGenerator<Integer> {
 
     public IntGenerator() {
-        super(Integer.MIN_VALUE, Integer.MAX_VALUE, null);
+        super(Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
     public IntGenerator(int min, int max) {
-        super(min, max, null);
+        super(min, max);
     }
 
-    public IntGenerator(int min, int max, long seed) {
-        super(min, max, seed);
+    /**
+     * Creates a generator over the default range using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public IntGenerator(GeneratorConfig config) {
+        super(Integer.MIN_VALUE, Integer.MAX_VALUE, config);
+    }
+
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public IntGenerator(int min, int max, GeneratorConfig config) {
+        super(min, max, config);
     }
 
     /**

@@ -1,0 +1,7 @@
+# Company legal-form suffixes, one per line.
+sp. z o.o.
+S.A.
+sp.j.
+sp.k.
+S.K.A.
+P.S.A.

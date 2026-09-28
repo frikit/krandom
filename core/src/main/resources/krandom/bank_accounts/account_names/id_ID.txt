@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Rekening giro
+Rekening tabungan
+Rekening bisnis
+Rekening bersama
+Rekening payroll

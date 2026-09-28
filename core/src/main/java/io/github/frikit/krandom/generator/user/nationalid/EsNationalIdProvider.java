@@ -56,8 +56,8 @@ public final class EsNationalIdProvider implements NationalIdProvider {
         int n = random.nextInt(100_000_000);
         char letter = LETTER_MAP.charAt(n % 23);
         if (dash) {
-            return String.format("%08d-%c", n, letter);
+            return String.format(Locale.ROOT, "%08d-%c", n, letter);
         }
-        return String.format("%08d%c", n, letter);
+        return String.format(Locale.ROOT, "%08d%c", n, letter);
     }
 }

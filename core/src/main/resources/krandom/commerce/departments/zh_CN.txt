@@ -1,0 +1,7 @@
+# Store departments, one per line.
+图书
+电子产品
+户外
+家居
+玩具
+园艺

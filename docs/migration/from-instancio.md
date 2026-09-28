@@ -6,8 +6,8 @@ adds built-in realistic, locale-aware values.
 ## Why switch / trade-offs
 
 **Pros of krandom**: realistic localized data built in (no DataFaker side-car),
-50 supported locale variants (35 native datasets and 15 curated fallbacks), checksum national IDs,
-schema export, Spring Boot / Jackson / kotest.
+50 supported locale variants (35 native datasets and 15 curated fallbacks), national IDs for
+34 countries (checksum-valid where the identifier defines a check digit), schema export, Spring Boot / Jackson / kotest.
 **What Instancio does better today**: a broader selector vocabulary and scoping model, element and
 setter selectors, conditional assignment, data feeds, and generated field/parameter injection for
 JUnit. kRandom 2.1 already provides Java method-reference selectors, typed nested paths, immutable

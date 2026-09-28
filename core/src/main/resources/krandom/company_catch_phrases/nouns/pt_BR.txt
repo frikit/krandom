@@ -1,0 +1,8 @@
+# Catch-phrase nouns, one per line.
+Plataforma
+Rede
+Experiência
+Tecnologia
+Solução
+Suíte
+Arquitetura

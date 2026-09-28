@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -89,8 +90,8 @@ class NaturalNumberGeneratorTest {
         @Test
         @DisplayName("should produce identical sequences with same seed")
         void shouldProduceIdenticalSequences() {
-            NaturalNumberGenerator gen1 = new NaturalNumberGenerator(0, 100, 42L);
-            NaturalNumberGenerator gen2 = new NaturalNumberGenerator(0, 100, 42L);
+            NaturalNumberGenerator gen1 = new NaturalNumberGenerator(0, 100, seeded(42L));
+            NaturalNumberGenerator gen2 = new NaturalNumberGenerator(0, 100, seeded(42L));
 
             for (int i = 0; i < 50; i++) {
                 assertEquals(gen1.generate(), gen2.generate(),
@@ -101,8 +102,8 @@ class NaturalNumberGeneratorTest {
         @Test
         @DisplayName("should produce different sequences with different seeds")
         void shouldProduceDifferentSequences() {
-            NaturalNumberGenerator gen1 = new NaturalNumberGenerator(0, 1000, 42L);
-            NaturalNumberGenerator gen2 = new NaturalNumberGenerator(0, 1000, 99L);
+            NaturalNumberGenerator gen1 = new NaturalNumberGenerator(0, 1000, seeded(42L));
+            NaturalNumberGenerator gen2 = new NaturalNumberGenerator(0, 1000, seeded(99L));
 
             List<Integer> seq1 = gen1.generateList(20);
             List<Integer> seq2 = gen2.generateList(20);
@@ -306,5 +307,9 @@ class NaturalNumberGeneratorTest {
 
             assertFalse(list.contains(10), "List should not contain excluded value 10");
         }
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

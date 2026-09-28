@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Softverski inženjer
+Voditelj proizvoda
+Analitičar podataka
+UX dizajner
+Voditelj ključnih kupaca
+Stručnjak za marketing
+Poslovni analitičar
+DevOps inženjer
+Inženjer pouzdanosti sustava
+Voditelj inženjeringa
+Arhitekt rješenja
+Tehnički pisac
+Inženjer za osiguranje kvalitete
+Voditelj projekta
+Sigurnosni inženjer
+Administrator baza podataka

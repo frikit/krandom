@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+plattformsoberoende
+heltäckande
+branschledande
+friktionsfria
+molnbaserade
+datadrivna

@@ -35,10 +35,10 @@ public final class BankInfoGenerator implements Generator<BankInfo> {
      */
     public BankInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.bankAccountGenerator = new BankAccountGenerator(config);
-        this.abaRoutingGenerator = new AbaRoutingGenerator(config);
-        this.bankNameGenerator = new BankNameGenerator(config);
-        this.bankTypeGenerator = new BankTypeGenerator(config);
+        this.bankAccountGenerator = new BankAccountGenerator(config.forChildStream("bankAccount"));
+        this.abaRoutingGenerator = new AbaRoutingGenerator(config.forChildStream("abaRouting"));
+        this.bankNameGenerator = new BankNameGenerator(config.forChildStream("bankName"));
+        this.bankTypeGenerator = new BankTypeGenerator(config.forChildStream("bankType"));
     }
 
     @Override

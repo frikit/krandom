@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+setoran
+penarikan
+pembayaran
+transfer
+pengembalian dana
+biaya
+bunga
+tolak bayar

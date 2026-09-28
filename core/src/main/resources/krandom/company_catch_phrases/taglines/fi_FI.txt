@@ -1,0 +1,5 @@
+# Catch-phrase taglines, one per line.
+moderneille tiimeille
+digitaaliseen kasvuun
+globaaliin skaalaan
+mitattavaan vaikuttavuuteen

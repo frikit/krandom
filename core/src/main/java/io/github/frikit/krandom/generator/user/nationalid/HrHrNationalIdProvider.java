@@ -10,6 +10,8 @@ import java.util.Random;
 
 /**
  * Generates Croatian OIB (osobni identifikacijski broj) style identifiers — 11 digits.
+ *
+ * <p>All digits are random; no ISO 7064 MOD 11,10 control digit is computed.
  */
 public final class HrHrNationalIdProvider implements NationalIdProvider {
 

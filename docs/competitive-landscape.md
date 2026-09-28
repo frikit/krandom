@@ -19,9 +19,9 @@ linked official documentation for their current APIs and the kRandom guides for 
 - Strict diagnostics for unused, ambiguous, and shadowed fixture rules.
 - Value-sanitized explainability and portable failure replay across standalone, JUnit, Kotest,
   Kotlin, Spring, object, and schema entry points.
-- A generalized, offline, verified data-pack contract and external extension compatibility kit.
+- A generalized, offline, verified data-pack contract.
 - More clean-consumer and real-project migration evidence.
 
 Provider-count parity, runtime classpath scanning, live network data, and unmaintained novelty
-catalogs are not core goals. Detailed priorities and the v3 release gate are in the
+catalogs are not core goals. Detailed priorities and release gates are in the
 [`Product Roadmap`](development/market-leadership-roadmap.md).

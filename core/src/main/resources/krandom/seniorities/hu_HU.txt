@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Gyakornok
+Junior
+Munkatárs
+Medior
+Senior
+Csapatvezető
+Vezető szakértő
+Szakértő
+Igazgató
+Alelnök

@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+إيداع
+سحب
+دفع
+تحويل
+استرداد
+رسوم
+فائدة
+استرجاع المبلغ

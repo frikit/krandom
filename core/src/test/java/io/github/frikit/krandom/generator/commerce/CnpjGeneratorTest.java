@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("CnpjGenerator")
-@SuppressWarnings("removal")
 class CnpjGeneratorTest {
 
     private static final int[] WEIGHTS_1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
@@ -61,7 +60,7 @@ class CnpjGeneratorTest {
     }
 
     @RepeatedTest(200)
-    @DisplayName("deprecated no-argument constructor preserves formatted valid output")
+    @DisplayName("realistic policy produces formatted valid output")
     void formattedValid() {
         String cnpj = new CnpjGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(cnpj.matches("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}"), cnpj);
@@ -69,7 +68,7 @@ class CnpjGeneratorTest {
     }
 
     @RepeatedTest(200)
-    @DisplayName("deprecated no-argument constructor preserves unformatted valid output")
+    @DisplayName("realistic policy produces unformatted valid output")
     void unformattedValid() {
         String cnpj = new CnpjGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).withoutFormatting().generate();
         assertTrue(cnpj.matches("\\d{14}"), cnpj);
@@ -153,7 +152,7 @@ class CnpjGeneratorTest {
     @DisplayName("facade ofCpf fails closed while explicit fixtures remain reproducible")
     void facadeCpf() {
         assertThrows(IllegalStateException.class, () -> Generators.ofCpf().generate());
-        assertThrows(IllegalStateException.class, () -> Generators.ofCpf(5L).generate());
+        assertThrows(IllegalStateException.class, () -> Generators.ofCpf(seeded(5L)).generate());
 
         GeneratorConfig config = GeneratorConfig.builder()
                                                 .locale(java.util.Locale.of("pt", "BR"))
@@ -171,5 +170,9 @@ class CnpjGeneratorTest {
                               .businessTaxIdentifierSafetyPolicy(
                                   BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
                               .build();
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

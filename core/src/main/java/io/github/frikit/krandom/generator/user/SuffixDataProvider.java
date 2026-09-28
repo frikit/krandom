@@ -10,15 +10,22 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific name-suffix data source.
  *
- * <p>Implement this interface and register an instance with {@link SuffixDataRegistry} to extend
- * or override suffix data for any locale — including locales not built into the library.
+ * <p>Implement this interface and register an instance on a configuration-scoped context with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerSuffixProvider(SuffixDataProvider)}
+ * to extend or override suffix data for any locale — including locales not built into the library.
  *
  * <pre>{@code
- * SuffixDataRegistry.register(new SuffixDataProvider() {
- *     public Locale getLocale() { return Locale.of("ko", "KR"); }
- *     public String[] getSuffixes() { return new String[]{"박사", "학사"}; }
- * });
- * SuffixGenerator gen = new SuffixGenerator(Locale.of("ko", "KR"));
+ * DataRegistryContext context = DataRegistryContext.builder()
+ *     .registerSuffixProvider(new SuffixDataProvider() {
+ *         public Locale getLocale() { return Locale.of("ko", "KR"); }
+ *         public String[] getSuffixes() { return new String[]{"박사", "학사"}; }
+ *     })
+ *     .build();
+ * GeneratorConfig config = GeneratorConfig.builder()
+ *     .locale(Locale.of("ko", "KR"))
+ *     .registryContext(context)
+ *     .build();
+ * SuffixGenerator gen = new SuffixGenerator(config);
  * }</pre>
  *
  * <p>The built-in baseline is seeded by {@link SuffixDataRegistry} from

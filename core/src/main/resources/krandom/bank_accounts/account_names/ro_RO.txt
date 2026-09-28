@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Cont curent
+Cont de economii
+Cont de firmă
+Cont comun
+Cont de salariu

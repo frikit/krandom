@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globales
+Nationales
+Françaises
+Unies
+Supérieures
+Avancées
+Stratégiques
+Dynamiques
+Innovantes
+Professionnelles
+Numériques
+Nouvelle Génération
+Alpha
+Performantes
+Excellentes

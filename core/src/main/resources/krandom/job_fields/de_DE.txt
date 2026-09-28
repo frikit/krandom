@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Entwicklung
+Marketing
+Vertrieb
+Finanzen
+Betrieb
+Produktmanagement
+Personalwesen
+Recht
+Design
+Kundenservice
+Forschung
+Data Science
+Sicherheit
+Einkauf
+Logistik

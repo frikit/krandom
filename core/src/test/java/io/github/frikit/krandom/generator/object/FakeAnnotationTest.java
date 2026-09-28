@@ -10,6 +10,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class FakeAnnotationTest {
@@ -122,6 +125,46 @@ class FakeAnnotationTest {
     public static class FakeOnUnsupportedType {
         @Fake("age")
         public boolean ageFlag;
+    }
+
+    public static class DefaultMaxRanges {
+        @FakeRange(min = 1)
+        public int quantity;
+
+        @FakeRange(min = 1)
+        public Short smallNum;
+
+        @FakeRange(min = 1)
+        public byte tinyNum;
+
+        @FakeRange(min = 1)
+        public long bigQuantity;
+    }
+
+    public static class WideNegativeRange {
+        @FakeRange(min = Long.MIN_VALUE, max = 0)
+        public int negative;
+    }
+
+    public static class OutOfTypeRange {
+        @FakeRange(min = 3_000_000_000L)
+        public int impossible;
+    }
+
+    public static class TypeMaximumRanges {
+        @FakeRange(min = Integer.MAX_VALUE)
+        public int intMax;
+
+        @FakeRange(min = Short.MAX_VALUE)
+        public short shortMax;
+
+        @FakeRange(min = Byte.MAX_VALUE)
+        public Byte byteMax;
+    }
+
+    public static class ByteTopRange {
+        @FakeRange(min = 126)
+        public byte top;
     }
 
     // ── Tests ────────────────────────────────────────────────────────────────
@@ -428,6 +471,75 @@ class FakeAnnotationTest {
 
             assertEquals(first.quantity, second.quantity);
             assertEquals(first.bigQuantity, second.bigQuantity);
+        }
+
+        @Test
+        @DisplayName("structural-only mode falls back to structural values for @Fake fields")
+        void structuralOnlyModeIgnoresFakeSemantics() {
+            GeneratorConfig structural = GeneratorConfig.builder()
+                .seed(3L)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .build();
+            ContactForm form = new ObjectGenerator<>(ContactForm.class, structural).generate();
+            assertNotNull(form.contactEmail);
+            assertFalse(form.contactEmail.contains("@"), "structural text, not an email: " + form.contactEmail);
+        }
+
+        @Test
+        @DisplayName("default max narrows to the field type instead of overflowing")
+        void defaultMaxNarrowsToFieldType() {
+            for (long seed = 0; seed < 20; seed++) {
+                DefaultMaxRanges obj = new ObjectGenerator<>(
+                    DefaultMaxRanges.class, GeneratorConfig.builder().seed(seed).build()).generate();
+                assertTrue(obj.quantity >= 1, "Expected quantity >= 1, got: " + obj.quantity);
+                assertTrue(obj.smallNum >= 1, "Expected smallNum >= 1, got: " + obj.smallNum);
+                assertTrue(obj.tinyNum >= 1, "Expected tinyNum >= 1, got: " + obj.tinyNum);
+                assertTrue(obj.bigQuantity >= 1, "Expected bigQuantity >= 1, got: " + obj.bigQuantity);
+            }
+        }
+
+        @Test
+        @DisplayName("minimum below the field type narrows to the type minimum")
+        void wideNegativeMinimumNarrowsToFieldType() {
+            WideNegativeRange obj = new ObjectGenerator<>(
+                WideNegativeRange.class, GeneratorConfig.builder().seed(7L).build()).generate();
+            assertTrue(obj.negative < 0, "Expected a negative int, got: " + obj.negative);
+        }
+
+        @Test
+        @DisplayName("range reaching past the field type includes the type maximum")
+        void rangePastFieldTypeIncludesTypeMaximum() {
+            for (long seed = 0; seed < 10; seed++) {
+                assertTypeMaximums(new ObjectGenerator<>(
+                    TypeMaximumRanges.class, GeneratorConfig.builder().seed(seed).build()).generate());
+            }
+            assertTypeMaximums(new ObjectGenerator<>(TypeMaximumRanges.class).generate());
+        }
+
+        private void assertTypeMaximums(TypeMaximumRanges obj) {
+            assertEquals(Integer.MAX_VALUE, obj.intMax);
+            assertEquals(Short.MAX_VALUE, obj.shortMax);
+            assertEquals(Byte.MAX_VALUE, obj.byteMax);
+        }
+
+        @Test
+        @DisplayName("range reaching past the byte maximum produces both of its values")
+        void rangePastByteMaximumProducesBothValues() {
+            Set<Byte> seen = new HashSet<>();
+            for (long seed = 0; seed < 64; seed++) {
+                seen.add(new ObjectGenerator<>(
+                    ByteTopRange.class, GeneratorConfig.builder().seed(seed).build()).generate().top);
+            }
+            assertEquals(Set.of((byte) 126, (byte) 127), seen);
+        }
+
+        @Test
+        @DisplayName("range with no values for the field type fails with the annotation and type")
+        void rangeOutsideFieldTypeFailsClearly() {
+            ObjectGenerator<OutOfTypeRange> gen = new ObjectGenerator<>(OutOfTypeRange.class);
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class, gen::generate);
+            assertTrue(error.getMessage().contains("@FakeRange"), error.getMessage());
+            assertTrue(error.getMessage().contains("int"), error.getMessage());
         }
     }
 }

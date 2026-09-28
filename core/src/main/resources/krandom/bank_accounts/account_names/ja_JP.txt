@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+当座預金口座
+普通預金口座
+法人口座
+共同名義口座
+給与振込口座

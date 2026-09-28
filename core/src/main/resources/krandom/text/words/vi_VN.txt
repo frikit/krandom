@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+dữ liệu
+mô hình
+hệ thống
+tín hiệu
+quy trình
+phân tích
+nền tảng
+mạng
+an toàn
+dịch vụ
+cấu trúc
+mô-đun
+logic
+giá trị
+ngữ cảnh
+mục tiêu

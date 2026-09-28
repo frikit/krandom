@@ -33,8 +33,9 @@ class JavaGradleUsageTest {
 
     @Test
     void seededGenerationIsDeterministic() {
-        int a = Generators.ofInt(1, 100, 42L).generate();
-        int b = Generators.ofInt(1, 100, 42L).generate();
+        GeneratorConfig seeded = GeneratorConfig.builder().seed(42L).build();
+        int a = Generators.ofInt(1, 100, seeded).generate();
+        int b = Generators.ofInt(1, 100, seeded).generate();
         assertEquals(a, b);
     }
 

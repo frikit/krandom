@@ -190,7 +190,9 @@ class DataRegistryContextTest {
         assertEquals("StateOne", context.stateProvider(fallbackLocale).getStates()[0]);
         assertEquals("CountryOne", context.countryProvider(fallbackLocale).getCountries()[0]);
         assertEquals("Main", context.streetAddressProvider(fallbackLocale).getStreetNames()[0]);
-        assertEquals("NID", context.nationalIdProvider(fallbackLocale).generate(new Random(1L)));
+        // National identifiers are country-specific: another country never borrows them by language.
+        assertNull(context.nationalIdProvider(fallbackLocale));
+        assertEquals("NID", context.nationalIdProvider(Locale.ENGLISH).generate(new Random(1L)));
 
         assertTrue(context.firstNameRegisteredKeys().contains("en_US"));
         assertTrue(context.firstNameRegisteredKeys().contains("en"));
@@ -509,6 +511,55 @@ class DataRegistryContextTest {
         assertSame(languageBloodTypes, context.bloodTypeProvider(Locale.CANADA));
         assertSame(usZodiac, context.zodiacProvider(Locale.US));
         assertSame(languageZodiac, context.zodiacProvider(Locale.CANADA));
+    }
+
+    @Test
+    @DisplayName("lookups prefer scoped exact, then global exact, then scoped language, then global language")
+    void scopedRegionalDataNeverOverridesGlobalExactMatches() {
+        FirstNameDataProvider indianEnglish = firstNameProvider(Locale.of("en", "IN"));
+        FirstNameDataProvider germanOnly = firstNameProvider(Locale.GERMAN);
+        DataRegistryContext context = DataRegistryContext.builder()
+                                                         .registerFirstNameProvider(indianEnglish)
+                                                         .registerFirstNameProvider(germanOnly)
+                                                         .build();
+
+        assertSame(indianEnglish, context.firstNameProvider(Locale.of("en", "IN")));
+        assertSame(FirstNameDataRegistry.forLocale(Locale.US), context.firstNameProvider(Locale.US));
+        assertSame(FirstNameDataRegistry.forLocale(Locale.UK), context.firstNameProvider(Locale.UK));
+        assertSame(FirstNameDataRegistry.forLocale(Locale.GERMANY), context.firstNameProvider(Locale.GERMANY));
+        assertSame(indianEnglish, context.firstNameProvider(Locale.of("en", "SG")));
+        assertSame(germanOnly, context.firstNameProvider(Locale.of("de", "LI")));
+        assertSame(indianEnglish, context.firstNameProvider(Locale.ENGLISH));
+        assertSame(FirstNameDataRegistry.forLocale(Locale.of("fr", "LU")), context.firstNameProvider(Locale.of("fr", "LU")));
+        assertNull(context.firstNameProvider(null));
+    }
+
+    @Test
+    @DisplayName("a scoped regional bundle does not replace default-locale names")
+    void scopedRegionalBundleDoesNotReplaceDefaultLocaleNames() {
+        DataRegistryContext context = DataRegistryContext.builder()
+                                                         .registerLocaleData(io.github.frikit.krandom.generator.locale.LocaleDataBundle
+                                                                                 .builder(Locale.of("en", "IN"))
+                                                                                 .firstNames(new String[] { "Arjun" },
+                                                                                             new String[] { "Priya" })
+                                                                                 .lastNames("Sharma")
+                                                                                 .build())
+                                                         .build();
+        GeneratorConfig usConfig = GeneratorConfig.builder().seed(7L).registryContext(context).build();
+        GeneratorConfig indiaConfig = GeneratorConfig.builder()
+                                                     .seed(7L)
+                                                     .locale(Locale.of("en", "IN"))
+                                                     .registryContext(context)
+                                                     .build();
+
+        List<String> usLastNames = new io.github.frikit.krandom.generator.user.LastNameGenerator(usConfig).generateList(50);
+
+        assertFalse(usLastNames.contains("Sharma"), usLastNames.toString());
+        assertEquals(new io.github.frikit.krandom.generator.user.LastNameGenerator(
+                         GeneratorConfig.builder().seed(7L).build()).generateList(50),
+                     usLastNames);
+        assertEquals(List.of("Sharma", "Sharma"),
+                     new io.github.frikit.krandom.generator.user.LastNameGenerator(indiaConfig).generateList(2));
     }
 
     @Test

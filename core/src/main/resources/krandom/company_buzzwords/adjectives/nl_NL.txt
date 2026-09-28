@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+platformonafhankelijke
+end-to-end
+toonaangevende
+naadloze
+cloud-native
+datagedreven

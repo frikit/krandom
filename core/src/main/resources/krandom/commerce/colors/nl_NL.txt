@@ -1,0 +1,7 @@
+# Product colors, one per line.
+rood
+blauw
+groen
+zwart
+wit
+zilver

@@ -509,13 +509,11 @@ class PostalCodeGeneratorTest {
     // ── Edge cases and variety ────────────────────────────────────────────────
 
     @Test
-    @DisplayName("unsupported locale defaults to US format")
-    void unsupportedLocaleDefaultsToUS() {
-        PostalCodeGenerator gen = new PostalCodeGenerator(Locale.of("xx", "YY"));
-        String code = gen.generate();
-
-        assertNotNull(code);
-        assertTrue(code.matches("\\d{5}"), "Expected US 5-digit format for unknown locale, got: " + code);
+    @DisplayName("an unknown country and language use the documented en_US default")
+    void unknownCountryAndLanguageUseTheDocumentedDefault() {
+        assertEquals(new PostalCodeGenerator(GeneratorConfig.builder().locale(Locale.US).seed(3L).build()).generateList(20),
+                     new PostalCodeGenerator(GeneratorConfig.builder().locale(Locale.of("xx", "YY")).seed(3L).build())
+                         .generateList(20));
     }
 
     @Test

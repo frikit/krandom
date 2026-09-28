@@ -1,0 +1,8 @@
+# Catch-phrase nouns, one per line.
+plattform
+tjeneste
+opplevelse
+motor
+løsning
+pakke
+arkitektur

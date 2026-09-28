@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Tài khoản thanh toán
+Tài khoản tiết kiệm
+Tài khoản doanh nghiệp
+Tài khoản đồng sở hữu
+Tài khoản nhận lương

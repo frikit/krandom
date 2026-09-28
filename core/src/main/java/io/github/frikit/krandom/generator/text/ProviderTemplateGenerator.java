@@ -40,16 +40,6 @@ public final class ProviderTemplateGenerator implements Generator<String> {
     }
 
     /**
-     * Creates a deterministic provider-template generator using the supplied seed.
-     *
-     * @param template template text
-     * @param seed     deterministic seed
-     */
-    public ProviderTemplateGenerator(String template, long seed) {
-        this(template, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a provider-template generator with explicit configuration.
      *
      * @param template template text

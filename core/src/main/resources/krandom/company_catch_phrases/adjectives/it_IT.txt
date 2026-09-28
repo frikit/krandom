@@ -1,0 +1,8 @@
+# Catch-phrase adjectives, one per line.
+adattiva
+unificata
+affidabile
+intelligente
+pronta per il futuro
+semplice
+sicura

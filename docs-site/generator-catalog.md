@@ -23,9 +23,9 @@ generator where shown by the API.
 ## Network and internet
 
 - `ofIPv4`, `ofIPv6`, `ofIP`, `ofPort`, `ofMacAddress`
-- `ofDomain`, `ofHostname`, `ofUrl` (text URL), `ofUri` (text URI), `ofURI`
-  (`URI` object), `ofURL` (`URL` object), `ofSlug`, `ofUserAgent`. Lowercase `Url`/`Uri`
-  names generate text; uppercase `URL`/`URI` names generate the corresponding JDK object.
+- `ofDomain`, `ofHostname`, `ofUrl` (text URL), `ofUri` (text URI), `ofUriObject`
+  (`URI` object), `ofUrlObject` (`URL` object), `ofSlug`, `ofUserAgent`. Plain names generate
+  text; the `…Object` names generate the corresponding JDK object.
 - `ofHttpMethod`, `ofHttpStatusCode`, `ofHttpFixture`
 
 ## Date, time, and locale
@@ -33,7 +33,7 @@ generator where shown by the API.
 - `ofLocalDate`, `ofLocalTime`, `ofLocalDateTime`, `ofInstant`, `ofZonedDateTime`,
   `ofOffsetDateTime`, `ofOffsetTime`
 - `ofDuration`, `ofPeriod`, `ofYear`, `ofYearMonth`, `ofMonthDay`, `ofZoneId`,
-  `ofZoneOffset`, `ofTimeZone`, `ofTimezone`, `ofCalendar`
+  `ofZoneOffset`, `ofTimezone` (text), `ofTimeZoneObject` (`TimeZone` object), `ofCalendar`
 - `ofUtilDate`, `ofSqlDate`, `ofSqlTime`, `ofSqlTimestamp`, `ofLocale`
 
 ## People, location, and profiles
@@ -99,11 +99,6 @@ fixtures; see [Finance and Identity]({{ '/guides/finance-and-identity/' | relati
 
 - `pick`, `pickSet`, `shuffle`, `weighted`, `unique`, `repeat`, `sequence`, `pool`
 - `threadLocal` supplies one generator instance per calling thread.
-
-The removed 1.x aliases (`constant`, `pickFrom`, `pickSetFrom`, `shuffleOf`, and
-`uniqueValues`) are not available in 2.0.0. See the
-[1.x-to-2.0.0 migration guide](https://github.com/frikit/krandom/blob/main/docs/migration/v1.6-to-v2.md)
-for exact replacements.
 
 ## Domain namespaces
 

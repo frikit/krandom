@@ -42,7 +42,7 @@ public final class ProductInfoGenerator implements Generator<ProductInfo> {
      */
     public ProductInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.commerceGenerator = new CommerceGenerator(config);
+        this.commerceGenerator = new CommerceGenerator(config.forChildStream("commerce"));
     }
 
     @Override

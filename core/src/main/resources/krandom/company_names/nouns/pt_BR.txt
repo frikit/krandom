@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Soluções
+Infraestruturas
+Tecnologias
+Indústrias
+Assessorias
+Alianças
+Parcerias
+Participações
+Associações
+Consultorias
+Redes
+Energias
+Distribuidoras
+Administradoras
+Análises

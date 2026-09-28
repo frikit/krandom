@@ -200,7 +200,7 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
      */
     public String generateAmerican() {
         LocalDate date = generate();
-        return String.format("%02d/%02d/%04d",
+        return String.format(Locale.ROOT, "%02d/%02d/%04d",
                              date.getMonthValue(), date.getDayOfMonth(), date.getYear());
     }
 
@@ -211,7 +211,7 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
      */
     public String generateEuropean() {
         LocalDate date = generate();
-        return String.format("%02d/%02d/%04d",
+        return String.format(Locale.ROOT, "%02d/%02d/%04d",
                              date.getDayOfMonth(), date.getMonthValue(), date.getYear());
     }
 
@@ -230,9 +230,17 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
      * @param min minimum year (inclusive)
      * @param max maximum year (inclusive)
      * @return a year
+     * @throws IllegalArgumentException if {@code max < min}
      */
     public int generateYear(int min, int max) {
-        return min + random.nextInt(max - min + 1);
+        if (max < min) {
+            throw new IllegalArgumentException("max must be >= min, got: " + max + " < " + min);
+        }
+        long width = (long) max - min;
+        // Ranges of at most Integer.MAX_VALUE values keep the legacy draw; wider ones would overflow.
+        return width < Integer.MAX_VALUE
+               ? min + random.nextInt((int) width + 1)
+               : (int) random.nextLong(min, (long) max + 1);
     }
 
     /**

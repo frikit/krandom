@@ -1,0 +1,7 @@
+# Product materials, one per line.
+Acciaio
+Legno
+Cemento
+Plastica
+Granito
+Cotone

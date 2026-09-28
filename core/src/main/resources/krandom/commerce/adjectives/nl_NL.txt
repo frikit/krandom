@@ -1,0 +1,7 @@
+# Product adjectives, one per line.
+compact
+strak
+rustiek
+praktisch
+premium
+ergonomisch

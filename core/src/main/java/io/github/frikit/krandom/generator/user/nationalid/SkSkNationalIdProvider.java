@@ -11,6 +11,10 @@ import java.util.Random;
 
 /**
  * Generates Slovak birth number (rodné číslo) style identifiers in {@code YYMMDD/XXXX} format.
+ *
+ * <p>{@code YYMMDD} is a birth date between 1954 and 1999: ten-digit birth numbers were introduced
+ * for births from 1954, so a ten-digit number with a year below 54 denotes a birth from 2000. The
+ * four-digit suffix is random, so values are not guaranteed to satisfy the modulo-11 rule.
  */
 public final class SkSkNationalIdProvider implements NationalIdProvider {
 
@@ -22,7 +26,10 @@ public final class SkSkNationalIdProvider implements NationalIdProvider {
     @Override
     public String generate(Random random) {
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
-        return String.format("%02d%02d%02d/%04d",
+        if (date.getYear() < 1954) {
+            date = date.plusYears(4);
+        }
+        return String.format(Locale.ROOT, "%02d%02d%02d/%04d",
                              date.getYear() % 100,
                              date.getMonthValue(),
                              date.getDayOfMonth(),

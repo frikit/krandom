@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Kokoaikainen
+Osa-aikainen
+Toimeksianto
+Määräaikainen
+Harjoittelu
+Freelance
+Oppisopimus
+Kausityö
+Vapaaehtoistyö
+Etätyö

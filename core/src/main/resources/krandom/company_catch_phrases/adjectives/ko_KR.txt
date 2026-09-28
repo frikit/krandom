@@ -1,0 +1,8 @@
+# Catch-phrase adjectives, one per line.
+적응형
+통합형
+신뢰할 수 있는
+지능형
+미래 지향적
+간편한
+안전한

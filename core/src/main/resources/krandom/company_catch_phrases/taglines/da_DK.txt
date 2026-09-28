@@ -1,0 +1,5 @@
+# Catch-phrase taglines, one per line.
+til moderne teams
+til digital vækst
+til global skala
+til målbar effekt

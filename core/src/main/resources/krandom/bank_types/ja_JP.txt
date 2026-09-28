@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+リテール銀行
+商業銀行
+投資銀行
+信用組合
+ネット銀行

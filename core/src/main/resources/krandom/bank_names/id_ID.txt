@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Bank Nasional Pertama
+Bank Kepercayaan Global
+Koperasi Kredit Perintis
+Puncak Finansial
+Bank Tabungan Warga

@@ -53,15 +53,6 @@ public final class CalendarGenerator implements Generator<Calendar> {
     }
 
     /**
-     * Creates a deterministic calendar generator using the supplied seed.
-     *
-     * @param seed deterministic seed
-     */
-    public CalendarGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a calendar generator with explicit configuration.
      *
      * @param config generator configuration

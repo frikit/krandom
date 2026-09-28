@@ -34,11 +34,15 @@ public final class AtomicLongGenerator implements Generator<AtomicLong>, Seedabl
         this(min, max, GeneratorConfig.defaults());
     }
 
-    public AtomicLongGenerator(long min, long max, long seed) {
-        this(min, max, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    private AtomicLongGenerator(long min, long max, GeneratorConfig config) {
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @throws IllegalArgumentException if {@code min >= max}
+     */
+    public AtomicLongGenerator(long min, long max, GeneratorConfig config) {
         if (min >= max) {
             throw new IllegalArgumentException("min must be less than max, got: min=" + min + ", max=" + max);
         }

@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+oplossingen
+workflows
+infrastructuren
+platforms
+ervaringen
+capaciteiten

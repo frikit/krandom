@@ -1,0 +1,7 @@
+# Product colors, one per line.
+червен
+син
+зелен
+черен
+бял
+сребрист

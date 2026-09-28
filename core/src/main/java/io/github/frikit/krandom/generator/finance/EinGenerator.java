@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 
 import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -41,7 +42,7 @@ public final class EinGenerator implements Generator<String> {
         requireRealisticOutput();
         int prefix = 1 + random.nextInt(99);
         int suffix = random.nextInt(10_000_000);
-        return String.format("%02d-%07d", prefix, suffix);
+        return String.format(Locale.ROOT, "%02d-%07d", prefix, suffix);
     }
 
     /**

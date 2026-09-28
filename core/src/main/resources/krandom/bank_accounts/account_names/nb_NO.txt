@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Brukskonto
+Sparekonto
+Bedriftskonto
+Felleskonto
+Lønnskonto

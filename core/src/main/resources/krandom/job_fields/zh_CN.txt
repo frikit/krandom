@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+工程
+市场营销
+销售
+财务
+运营
+产品
+人力资源
+法务
+设计
+客户支持
+研究
+数据科学
+安全
+采购
+物流

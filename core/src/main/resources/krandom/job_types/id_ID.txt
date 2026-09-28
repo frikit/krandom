@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Penuh waktu
+Paruh waktu
+Kontrak
+Sementara
+Magang
+Pekerja lepas
+Pemagangan
+Musiman
+Relawan
+Jarak jauh

@@ -68,6 +68,20 @@ class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
                         "Kotlin constructor parameter $index of ${context.type.name} has no stable name"
                     )
                 val rawType = parameter.type.jvmErasure.java
+                if (context.isExcluded(name)) {
+                    // Exclusions win over overrides, as they do for fields.
+                    when {
+                        parameter.isOptional -> return@forEachIndexed
+                        parameter.type.isMarkedNullable -> {
+                            arguments[parameter] = null
+                            return@forEachIndexed
+                        }
+                        else -> throw IllegalStateException(
+                            "Excluded Kotlin constructor parameter '$name' of ${context.type.name} " +
+                                "is required and not nullable"
+                        )
+                    }
+                }
                 if (parameter.isOptional && !context.hasExplicitOverride(name, rawType)) {
                     return@forEachIndexed
                 }

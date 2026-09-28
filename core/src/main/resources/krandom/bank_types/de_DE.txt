@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Privatkundenbank
+Geschaeftsbank
+Investmentbank
+Kreditgenossenschaft
+Online-Bank

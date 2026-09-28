@@ -1,0 +1,21 @@
+# Industry names, one per line.
+Technologie
+Santé
+Finance
+Éducation
+Commerce de détail
+Industrie manufacturière
+Télécommunications
+Énergie
+Transports
+BTP
+Immobilier
+Hôtellerie-restauration
+Médias
+Divertissement
+Agriculture
+Aérospatiale
+Automobile
+Biotechnologies
+Conseil
+Cybersécurité

@@ -28,10 +28,6 @@ public final class ZoneIdGenerator implements Generator<ZoneId>, Seedable {
         this(GeneratorConfig.defaults());
     }
 
-    public ZoneIdGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
     public ZoneIdGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();

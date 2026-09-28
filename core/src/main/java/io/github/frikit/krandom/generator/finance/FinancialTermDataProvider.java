@@ -13,8 +13,9 @@ import java.util.Locale;
  *
  * <p>Implement this interface and register an instance with
  * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerFinancialTermProvider(FinancialTermDataProvider)}
- * to add or override financial-term vocabulary for one configuration. The global
- * {@link FinancialTermDataRegistry} remains a compatibility bridge.
+ * to add or override financial-term vocabulary for one configuration.
+ * {@link FinancialTermDataRegistry} holds the built-in vocabulary served by
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
 public interface FinancialTermDataProvider {
 

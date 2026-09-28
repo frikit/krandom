@@ -1,0 +1,7 @@
+# Product materials, one per line.
+Steel
+Wooden
+Concrete
+Plastic
+Granite
+Cotton

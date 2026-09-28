@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Første Nationalbank
+Global Tillidsbank
+Pioner Kreditforening
+Topfinans
+Borgernes Sparekasse

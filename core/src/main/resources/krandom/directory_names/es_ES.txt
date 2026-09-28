@@ -1,0 +1,7 @@
+# Directory names, one per line.
+usuarios
+proyectos
+datos
+registros
+temp
+documentos

@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Videregående skole
+Fagskole
+Bachelorgrad
+Mastergrad
+Doktorgrad
+Profesjonsstudium
+Fagbrev

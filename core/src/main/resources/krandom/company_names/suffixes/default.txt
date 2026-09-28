@@ -1,0 +1,9 @@
+# Company legal-form suffixes, one per line.
+Inc.
+LLC
+Corp.
+Ltd.
+Co.
+Group
+Holdings
+Enterprises

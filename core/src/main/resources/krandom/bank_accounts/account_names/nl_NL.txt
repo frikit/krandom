@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Betaalrekening
+Spaarrekening
+Zakelijke rekening
+Gezamenlijke rekening
+Salarisrekening

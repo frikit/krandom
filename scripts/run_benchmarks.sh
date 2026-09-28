@@ -135,7 +135,8 @@ step "Raw output saved to ${RAW_OUTPUT}"
 step "Generating dashboard"
 
 # Extract JDK version
-JDK_VERSION=$(java -version 2>&1 | head -1 | sed 's/.*"\(.*\)".*/\1/')
+# sed reads the whole stream; `head -1` could exit first and SIGPIPE java under pipefail.
+JDK_VERSION=$(java -version 2>&1 | sed -n '1s/.*"\(.*\)".*/\1/p')
 ARCH=$(uname -m)
 OS=$(uname -s)
 OS_VERSION=$(uname -r)

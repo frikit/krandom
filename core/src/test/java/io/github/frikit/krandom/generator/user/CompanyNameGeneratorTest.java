@@ -46,7 +46,7 @@ class CompanyNameGeneratorTest {
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
             assertThrows(NullPointerException.class,
-                         () -> new CompanyNameGenerator(null));
+                         () -> new CompanyNameGenerator((GeneratorConfig) null));
         }
     }
 

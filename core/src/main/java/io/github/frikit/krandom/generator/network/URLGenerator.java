@@ -105,9 +105,9 @@ public final class URLGenerator implements Generator<String> {
     public URLGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.domainGenerator = new DomainGenerator(config);
-        this.fileExtensionGenerator = new FileExtensionGenerator(config);
-        this.fileNameGenerator = new FileNameGenerator(config);
+        this.domainGenerator = new DomainGenerator(config.forChildStream("domain"));
+        this.fileExtensionGenerator = new FileExtensionGenerator(config.forChildStream("fileExtension"));
+        this.fileNameGenerator = new FileNameGenerator(config.forChildStream("fileName"));
     }
 
     private static String requireNonBlank(String value, String field) {

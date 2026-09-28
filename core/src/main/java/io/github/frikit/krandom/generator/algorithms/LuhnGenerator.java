@@ -6,8 +6,9 @@
 package io.github.frikit.krandom.generator.algorithms;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.util.Random;
+import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 /**
@@ -28,10 +29,21 @@ public final class LuhnGenerator implements Generator<String> {
     private final RandomGenerator random;
 
     /**
-     * Creates a generator backed by the default fast PRNG.
+     * Creates a generator backed by the default fast PRNG ({@link GeneratorConfig#defaults()}).
      */
     public LuhnGenerator() {
-        this.random = new Random();
+        this(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Creates a generator whose digits come from the configuration's random source, so a seeded
+     * configuration reproduces the same numbers.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
+     */
+    public LuhnGenerator(GeneratorConfig config) {
+        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
     }
 
     /**

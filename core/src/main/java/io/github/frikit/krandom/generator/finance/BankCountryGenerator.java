@@ -15,6 +15,10 @@ import java.util.Random;
 
 /**
  * Generates bank-country ISO alpha-2 codes, preferring the configured locale country.
+ *
+ * <p>Codes come from a fixed list (US, GB, DE, FR, ES, IT, BR, JP, CN, AU) that includes countries
+ * without IBANs. {@link IbanGenerator} and {@link BbanGenerator} do not use this generator; they
+ * resolve their own IBAN-registry country from the locale.
  */
 public final class BankCountryGenerator implements Generator<String> {
 

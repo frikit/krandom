@@ -11,8 +11,13 @@ import java.util.Random;
 /**
  * Generates German Tax Identification Numbers (Steuer-Identifikationsnummer).
  *
- * <p>The Steuer-ID consists of 11 digits: the first digit is 1–9 (never 0), digits 2–10 are
- * random 0–9, and digit 11 is a check digit computed using ISO 7064 Mod 11,10.
+ * <p>The Steuer-ID consists of 11 digits and follows the published structure rules:
+ * <ul>
+ *   <li>the first digit is 1–9 (never 0);
+ *   <li>among digits 1–10 exactly one digit occurs twice or three times, every other digit at most
+ *       once, and three occurrences of the same digit are never all directly consecutive;
+ *   <li>digit 11 is a check digit computed using ISO 7064 Mod 11,10.
+ * </ul>
  *
  * <p>The check digit algorithm iterates through digits 1–10:
  * <pre>
@@ -21,10 +26,10 @@ import java.util.Random;
  *     sum = (d + product) % 10
  *     if (sum == 0) sum = 10
  *     product = (2 * sum) % 11
- *   check_digit = 11 - product  (result must be in [1, 9])
+ *   check_digit = 11 - product  (a result of 10 becomes 0)
  * </pre>
  *
- * <p>If the computed check digit equals 10, the first 10 digits are regenerated.
+ * <p>Digits 1–10 are drawn uniformly from all sequences that satisfy the structure rules.
  *
  * <p>Example: {@code "86095742719"}
  */
@@ -39,8 +44,8 @@ public final class DeNationalIdProvider implements NationalIdProvider {
     /**
      * Computes the ISO 7064 Mod 11,10 check digit for the first 10 elements of the given array.
      *
-     * @param digits array of at least 10 integers, each in [0, 9]; first element must be in [1, 9]
-     * @return check digit in [0, 10]; callers should regenerate if the result equals 10
+     * @param digits array of at least 10 integers, each in [0, 9]
+     * @return check digit in [0, 9]
      */
     static int computeCheckDigit(int[] digits) {
         int product = 10;
@@ -49,7 +54,53 @@ public final class DeNationalIdProvider implements NationalIdProvider {
             if (sum == 0) sum = 10;
             product = (2 * sum) % 11;
         }
-        return 11 - product;
+        return (11 - product) % 10;
+    }
+
+    /**
+     * Fills {@code digits[0..9]} with a random arrangement in which exactly one digit occurs twice or
+     * three times and every other digit at most once.
+     *
+     * <p>The repeated digit and the single digits are taken from a shuffled pool of 0–9. The shapes are
+     * chosen in proportion to their sequence counts (twice: 10 × 9 × 10!/2!; three times:
+     * 45 × 8 × 10!/3!; ratio 3 : 4) so that, after rejecting a leading zero or three consecutive
+     * repeats, every valid Steuer-ID prefix is equally likely.
+     *
+     * @param random the PRNG supplying the shuffles and the shape choice
+     * @param digits array of at least 10 elements that receives the digits
+     */
+    private static void fillDigits(Random random, int[] digits) {
+        int[] pool = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        shuffle(random, pool);
+        int occurrences = random.nextInt(7) < 3 ? 2 : 3;
+        for (int i = 0; i < 10; i++) {
+            digits[i] = i < occurrences ? pool[0] : pool[i - occurrences + 1];
+        }
+        shuffle(random, digits);
+    }
+
+    /**
+     * Returns whether any three consecutive elements of {@code digits[0..9]} are equal.
+     *
+     * @param digits array of at least 10 digits
+     * @return {@code true} when three directly consecutive digits are equal
+     */
+    private static boolean hasThreeConsecutiveEqualDigits(int[] digits) {
+        for (int i = 2; i < 10; i++) {
+            if (digits[i] == digits[i - 1] && digits[i] == digits[i - 2]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void shuffle(Random random, int[] values) {
+        for (int i = 9; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int swap = values[i];
+            values[i] = values[j];
+            values[j] = swap;
+        }
     }
 
     @Override
@@ -60,15 +111,10 @@ public final class DeNationalIdProvider implements NationalIdProvider {
     @Override
     public String generate(Random random) {
         int[] digits = new int[11];
-        int checkDigit;
         do {
-            digits[0] = random.nextInt(9) + 1;
-            for (int i = 1; i < 10; i++) {
-                digits[i] = random.nextInt(10);
-            }
-            checkDigit = computeCheckDigit(digits);
-        } while (checkDigit == 10);
-        digits[10] = checkDigit;
+            fillDigits(random, digits);
+        } while (digits[0] == 0 || hasThreeConsecutiveEqualDigits(digits));
+        digits[10] = computeCheckDigit(digits);
 
         StringBuilder sb = new StringBuilder(11);
         for (int d : digits) {

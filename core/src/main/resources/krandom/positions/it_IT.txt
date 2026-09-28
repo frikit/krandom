@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Ingegnere del software
+Responsabile di prodotto
+Analista dati
+Designer UX
+Responsabile commerciale
+Specialista marketing
+Analista di business
+Ingegnere DevOps
+Ingegnere dell'affidabilità dei siti
+Responsabile dell'ingegneria
+Architetto di soluzioni
+Redattore tecnico
+Ingegnere QA
+Capo progetto
+Ingegnere della sicurezza
+Amministratore di database

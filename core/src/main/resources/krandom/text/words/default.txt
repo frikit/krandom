@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+alpha
+beta
+gamma
+delta
+vector
+signal
+stream
+token
+cloud
+matrix
+engine
+system
+future
+global
+local
+secure

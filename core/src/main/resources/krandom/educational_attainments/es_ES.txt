@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Bachillerato
+Técnico Superior
+Grado universitario
+Máster
+Doctorado
+Titulación profesional
+Certificado de profesionalidad

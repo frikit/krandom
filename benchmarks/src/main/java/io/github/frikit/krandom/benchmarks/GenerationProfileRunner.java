@@ -73,7 +73,7 @@ public final class GenerationProfileRunner {
         CountingAppendable csvSink = new CountingAppendable();
 
         profileCase("first-name", new FirstNameGenerator(config));
-        profileCase("regex-ssn", new RegexGenerator("\\d{3}-\\d{2}-\\d{4}", 7L));
+        profileCase("regex-ssn", new RegexGenerator("\\d{3}-\\d{2}-\\d{4}", GeneratorConfig.builder().seed(7L).build()));
         profileCase("object-simple-user", Generators.ofObject(BenchmarkFixtures.SimpleUser.class));
         profileCase("object-structural-customer", Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, structuralObjectConfig));
         profileCase("object-relaxed-customer", Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, relaxedObjectConfig));

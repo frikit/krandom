@@ -8,7 +8,10 @@ kotlin {
 
 dependencies {
     api(project(":core"))
-    api(libs.kotest.property)
+    // Kotest types are part of this module's API. The JVM artifact is named directly so the Maven POM
+    // points at the jar-bearing kotest-property-jvm module rather than the Kotlin Multiplatform root
+    // publication.
+    api(libs.kotest.property.jvm)
 
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
@@ -20,19 +23,5 @@ dependencies {
 tasks.test {
     useJUnitPlatform {
         includeEngines("kotest", "junit-jupiter")
-    }
-}
-
-// Supported-version-range verification: -PkotestVersion=<version> forces the Kotest line the
-// module is compiled and tested against (e.g. ./gradlew :kotest-extensions:test -PkotestVersion=6.1.11).
-val kotestVersionOverride = providers.gradleProperty("kotestVersion")
-if (kotestVersionOverride.isPresent) {
-    configurations.all {
-        resolutionStrategy.eachDependency {
-            if (requested.group == "io.kotest") {
-                useVersion(kotestVersionOverride.get())
-                because("kotest version-range verification")
-            }
-        }
     }
 }

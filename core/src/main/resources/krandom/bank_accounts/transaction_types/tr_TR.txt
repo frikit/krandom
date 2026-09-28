@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+para yatırma
+para çekme
+ödeme
+havale
+iade
+ücret
+faiz
+ters ibraz

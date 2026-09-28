@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+المحدودة
+القابضة
+المساهمة
+ذ.م.م
+للاستثمار

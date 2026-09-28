@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+B.V.
+N.V.
+V.O.F.
+C.V.
+Coöperatie U.A.

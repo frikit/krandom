@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+בע״מ
+ושות׳
+שותפות מוגבלת
+אגודה שיתופית בע״מ
+החזקות בע״מ

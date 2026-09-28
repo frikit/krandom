@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+numerique
+agile
+integree
+modulaire
+fiable
+performante

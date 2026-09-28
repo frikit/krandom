@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Stagiaire
+Junior
+Assistant
+Confirmé
+Senior
+Chef d'équipe
+Expert principal
+Expert technique
+Directeur
+Vice-président

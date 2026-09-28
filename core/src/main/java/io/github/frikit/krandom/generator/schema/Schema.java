@@ -18,6 +18,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.lang.reflect.RecordComponent;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -260,7 +261,20 @@ public final class Schema implements Generator<Map<String, Object>> {
      * @return CSV payload with a header row
      */
     public String toCsv(int count) {
-        return buildString(builder -> writeCsv(builder, count));
+        return toCsv(count, CsvFormulaPolicy.PRESERVE);
+    }
+
+    /**
+     * Renders generated records as CSV, applying a spreadsheet formula policy to every cell.
+     *
+     * <p>Nested objects, arrays, and lists are serialized into JSON cell values.
+     *
+     * @param count         record count
+     * @param formulaPolicy how cells that spreadsheets would evaluate as formulas are written
+     * @return CSV payload with a header row
+     */
+    public String toCsv(int count, CsvFormulaPolicy formulaPolicy) {
+        return buildString(builder -> writeCsv(builder, count, formulaPolicy));
     }
 
     /**
@@ -273,11 +287,27 @@ public final class Schema implements Generator<Map<String, Object>> {
      * @throws IOException if the appendable fails
      */
     public void writeCsv(Appendable out, int count) throws IOException {
+        writeCsv(out, count, CsvFormulaPolicy.PRESERVE);
+    }
+
+    /**
+     * Writes generated records as CSV without materializing a batch list, applying a spreadsheet
+     * formula policy to every cell.
+     *
+     * <p>Nested objects, arrays, and lists are serialized into JSON cell values.
+     *
+     * @param out           appendable destination
+     * @param count         record count
+     * @param formulaPolicy how cells that spreadsheets would evaluate as formulas are written
+     * @throws IOException if the appendable fails
+     */
+    public void writeCsv(Appendable out, int count, CsvFormulaPolicy formulaPolicy) throws IOException {
         Objects.requireNonNull(out, "out must not be null");
+        Objects.requireNonNull(formulaPolicy, "formulaPolicy must not be null");
         validateCount(count);
 
         List<String> columns = new ArrayList<>(fields.keySet());
-        appendCsvRow(out, columns);
+        appendCsvRow(out, columns, formulaPolicy);
         out.append(NEWLINE);
 
         for (int i = 0; i < count; i++) {
@@ -286,7 +316,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             for (String column : columns) {
                 row.add(toCsvCell(record.get(column)));
             }
-            appendCsvRow(out, row);
+            appendCsvRow(out, row, formulaPolicy);
             out.append(NEWLINE);
         }
     }
@@ -307,6 +337,7 @@ public final class Schema implements Generator<Map<String, Object>> {
      * Writes generated records as XML without materializing a batch list.
      *
      * <p>Complex values such as maps, lists, and arrays are serialized into JSON text nodes.
+     * Characters that XML 1.0 cannot represent are written as U+FFFD.
      *
      * @param out   appendable destination
      * @param count record count
@@ -374,7 +405,7 @@ public final class Schema implements Generator<Map<String, Object>> {
                 if (col > 0) {
                     out.append(", ");
                 }
-                appendSqlIdentifier(out, columns.get(col));
+                appendSqlColumn(out, columns.get(col));
             }
             out.append(") VALUES (");
             for (int col = 0; col < columns.size(); col++) {
@@ -589,29 +620,42 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static void appendXmlText(Appendable out, String value) throws IOException {
+        appendXmlEscaped(out, value, false);
+    }
+
+    private static void appendXmlAttribute(Appendable out, String value) throws IOException {
+        appendXmlEscaped(out, value, true);
+    }
+
+    /**
+     * Escapes text for XML 1.0. Characters XML cannot represent (most control characters,
+     * U+FFFE, U+FFFF and unpaired surrogates) become U+FFFD so the document stays well-formed.
+     * Carriage returns, and tabs and newlines inside attributes, are written as character
+     * references because parsers would otherwise normalize them away.
+     */
+    private static void appendXmlEscaped(Appendable out, String value, boolean attribute) throws IOException {
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
+            if (Character.isHighSurrogate(ch) && i + 1 < value.length() && Character.isLowSurrogate(value.charAt(i + 1))) {
+                out.append(ch).append(value.charAt(++i));
+                continue;
+            }
             switch (ch) {
                 case '&' -> out.append("&amp;");
                 case '<' -> out.append("&lt;");
                 case '>' -> out.append("&gt;");
-                default -> out.append(ch);
+                case '"' -> out.append(attribute ? "&quot;" : "\"");
+                case '\'' -> out.append(attribute ? "&apos;" : "'");
+                case '\r' -> out.append("&#13;");
+                case '\n' -> out.append(attribute ? "&#10;" : "\n");
+                case '\t' -> out.append(attribute ? "&#9;" : "\t");
+                default -> out.append(isXmlCharacter(ch) ? ch : '�');
             }
         }
     }
 
-    private static void appendXmlAttribute(Appendable out, String value) throws IOException {
-        for (int i = 0; i < value.length(); i++) {
-            char ch = value.charAt(i);
-            switch (ch) {
-                case '&' -> out.append("&amp;");
-                case '<' -> out.append("&lt;");
-                case '>' -> out.append("&gt;");
-                case '"' -> out.append("&quot;");
-                case '\'' -> out.append("&apos;");
-                default -> out.append(ch);
-            }
-        }
+    private static boolean isXmlCharacter(char ch) {
+        return ch >= 0x20 && !Character.isSurrogate(ch) && ch != '￾' && ch != '￿';
     }
 
     private static boolean isValidXmlElementName(String value) {
@@ -645,23 +689,29 @@ public final class Schema implements Generator<Map<String, Object>> {
         return value;
     }
 
+    /** Writes a possibly schema-qualified table name: {@code crm.customers} becomes two identifiers. */
     static void appendSqlIdentifier(Appendable out, String identifier) throws IOException {
         String[] parts = identifier.split("\\.", -1);
         for (int i = 0; i < parts.length; i++) {
             if (i > 0) {
                 out.append('.');
             }
-            out.append('"');
-            for (int j = 0; j < parts[i].length(); j++) {
-                char ch = parts[i].charAt(j);
-                if (ch == '"') {
-                    out.append("\"\"");
-                } else {
-                    out.append(ch);
-                }
-            }
-            out.append('"');
+            appendSqlColumn(out, parts[i]);
         }
+    }
+
+    /** Writes a column name as one quoted identifier, even when it contains dots. */
+    static void appendSqlColumn(Appendable out, String column) throws IOException {
+        out.append('"');
+        for (int j = 0; j < column.length(); j++) {
+            char ch = column.charAt(j);
+            if (ch == '"') {
+                out.append("\"\"");
+            } else {
+                out.append(ch);
+            }
+        }
+        out.append('"');
     }
 
     static void appendSqlValue(Appendable out, Object value) throws IOException {
@@ -1003,25 +1053,45 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
     }
 
+    /** TOML 1.0 bare keys are limited to ASCII letters, digits, underscores and hyphens. */
     private static boolean isPlainTomlKey(String value) {
         if (value.isEmpty()) {
             return false;
         }
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
-            if (!(Character.isLetterOrDigit(ch) || ch == '_' || ch == '-')) {
+            boolean asciiLetterOrDigit = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9');
+            if (!(asciiLetterOrDigit || ch == '_' || ch == '-')) {
                 return false;
             }
         }
         return true;
     }
 
-    static void appendCsvRow(Appendable out, List<String> values) throws IOException {
+    static void appendCsvRow(Appendable out, List<String> values, CsvFormulaPolicy formulaPolicy) throws IOException {
         for (int i = 0; i < values.size(); i++) {
             if (i > 0) {
                 out.append(',');
             }
-            appendCsvCell(out, values.get(i));
+            String value = values.get(i);
+            appendCsvCell(out, formulaPolicy == CsvFormulaPolicy.NEUTRALIZE ? neutralizeFormula(value) : value);
+        }
+    }
+
+    /** Prefixes an apostrophe to text a spreadsheet would evaluate as a formula; numbers stay unchanged. */
+    private static String neutralizeFormula(String value) {
+        if (value.isEmpty() || "=+-@\t\r".indexOf(value.charAt(0)) < 0 || isDecimalNumber(value)) {
+            return value;
+        }
+        return "'" + value;
+    }
+
+    private static boolean isDecimalNumber(String value) {
+        try {
+            new BigDecimal(value);
+            return true;
+        } catch (NumberFormatException notNumeric) {
+            return false;
         }
     }
 

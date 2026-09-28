@@ -281,7 +281,7 @@ class FluentNamespaceTest {
         assertNotNull(t.paragraph().generate());
         assertNotNull(t.text().generate());
         assertNotNull(t.template("Hello {{name}}").generate());
-        assertNotNull(t.template("Test {{x}}", 42L).generate());
+        assertNotNull(Generators.text(GeneratorConfig.builder().seed(42L).build()).template("Test {{x}}").generate());
         assertNotNull(Generators.text(config).word().generate());
     }
 

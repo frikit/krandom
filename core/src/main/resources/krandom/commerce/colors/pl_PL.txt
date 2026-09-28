@@ -1,0 +1,7 @@
+# Product colors, one per line.
+czerwonym
+niebieskim
+zielonym
+czarnym
+białym
+srebrnym

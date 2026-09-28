@@ -1,0 +1,7 @@
+# Product colors, one per line.
+piros
+kék
+zöld
+fekete
+fehér
+ezüst

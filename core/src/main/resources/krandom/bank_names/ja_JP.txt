@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+第一国民銀行
+グローバル信託銀行
+開拓信用組合
+サミットファイナンシャル
+市民貯蓄銀行

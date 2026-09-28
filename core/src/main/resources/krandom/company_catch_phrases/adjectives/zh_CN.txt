@@ -1,0 +1,8 @@
+# Catch-phrase adjectives, one per line.
+自适应
+统一
+可信
+智能
+前瞻
+便捷
+安全

@@ -18,20 +18,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("PassportGenerator")
-@SuppressWarnings("removal")
 class PassportGeneratorTest {
 
     @RepeatedTest(200)
-    @DisplayName("deprecated no-argument constructor preserves the generic passport format")
+    @DisplayName("realistic policy produces the generic passport format")
     void formatMatches() {
         String passport = new PassportGenerator(GeneratorConfig.builder() .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
         assertTrue(passport.matches("[A-Z][0-9]{8}"), passport);
-    }
-
-    @Test
-    @DisplayName("legacy no-argument constructor is removed in v2")
-    void legacyConstructorIsRemoved() {
-        assertThrows(NoSuchMethodException.class, () -> PassportGenerator.class.getConstructor());
     }
 
     @Test

@@ -92,6 +92,12 @@ public final class ProviderCatalog {
         ProviderValidity.CONFIGURATION_DEPENDENT,
         ProviderTestSafety.CONFIGURATION_DEPENDENT,
         ProviderSafetyPolicy.PHONE_NUMBER);
+    private static final ProviderSafetyMetadata EMAIL_SAFETY = new ProviderSafetyMetadata(
+        ProviderValidity.GUARANTEED,
+        ProviderValidity.NOT_APPLICABLE,
+        ProviderValidity.CONFIGURATION_DEPENDENT,
+        ProviderTestSafety.CONFIGURATION_DEPENDENT,
+        ProviderSafetyPolicy.EMAIL_DOMAIN);
     private static final ProviderSafetyMetadata BANKING_SAFETY = new ProviderSafetyMetadata(
         ProviderValidity.CONFIGURATION_DEPENDENT,
         ProviderValidity.CONFIGURATION_DEPENDENT,
@@ -231,10 +237,12 @@ public final class ProviderCatalog {
                                                           "last_name",
                                                           "lastname"))),
             descriptor("person.email", EmailGenerator.class, EmailGenerator::new, List.of("email"), "email")
-                .withSchemaProjections(projections(stringFormat("person.email",
+                .withSafetyMetadata(EMAIL_SAFETY)
+                .withSchemaProjections(projections(ProviderCatalog.<EmailGenerator>stringFormat("person.email",
                                                                 (provider, config) -> provider.generate(),
                                                                 "email",
-                                                                "email"))),
+                                                                "email")
+                                           .withSafetyMetadata(EMAIL_SAFETY))),
             descriptor("person.username", UsernameGenerator.class, UsernameGenerator::new,
                        List.of("username"), "username")
                 .withSchemaProjections(projections(string("person.username",
@@ -269,10 +277,12 @@ public final class ProviderCatalog {
                                                           "company_name"))),
             descriptor("company.email", CompanyEmailGenerator.class, CompanyEmailGenerator::new,
                        List.of("company_email"), "companyemail")
-                .withSchemaProjections(projections(stringFormat("company.email",
+                .withSafetyMetadata(EMAIL_SAFETY)
+                .withSchemaProjections(projections(ProviderCatalog.<CompanyEmailGenerator>stringFormat("company.email",
                                                                 (provider, config) -> provider.generate(),
                                                                 "email",
-                                                                "company_email"))),
+                                                                "company_email")
+                                           .withSafetyMetadata(EMAIL_SAFETY))),
             descriptor("company.url", CompanyUrlGenerator.class, CompanyUrlGenerator::new,
                        List.of("company_url"), "companyurl")
                 .withSchemaProjections(projections(stringFormat("company.url",

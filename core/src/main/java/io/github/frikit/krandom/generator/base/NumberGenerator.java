@@ -26,10 +26,6 @@ public final class NumberGenerator implements Generator<Number>, Seedable {
         this(GeneratorConfig.defaults());
     }
 
-    public NumberGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
     public NumberGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();

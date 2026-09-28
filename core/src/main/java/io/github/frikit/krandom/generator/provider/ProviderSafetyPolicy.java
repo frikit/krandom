@@ -21,7 +21,10 @@ public enum ProviderSafetyPolicy {
     PHONE_NUMBER("phone-number.safety-policy"),
 
     /** The banking-identifier policy selected in {@link GeneratorConfig}. */
-    BANKING("banking.safety-policy");
+    BANKING("banking.safety-policy"),
+
+    /** The email-domain policy selected in {@link GeneratorConfig}. */
+    EMAIL_DOMAIN("email.domain-policy");
 
     private final String setting;
 
@@ -50,6 +53,7 @@ public enum ProviderSafetyPolicy {
             case PAYMENT_CARD -> selectedConfig.getPaymentCardSafetyPolicy().name();
             case PHONE_NUMBER -> selectedConfig.getPhoneNumberSafetyPolicy().name();
             case BANKING -> selectedConfig.getBankingSafetyPolicy().name();
+            case EMAIL_DOMAIN -> selectedConfig.getEmailDomainPolicy().name();
         };
     }
 }

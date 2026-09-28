@@ -35,7 +35,7 @@ public final class AvatarUrlGenerator implements Generator<String> {
     public AvatarUrlGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
-        this.usernameGenerator = new UsernameGenerator(effective);
+        this.usernameGenerator = new UsernameGenerator(effective.forChildStream("username"));
     }
 
     private static String encode(String value) {

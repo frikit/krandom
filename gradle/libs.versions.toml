@@ -1,31 +1,37 @@
 [versions]
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 jacoco = "0.8.15"
-spotless = "8.10.1"
+spotless = "8.10.3"
 commons-validator = "1.11.0"
-slf4j = "2.0.19"
-logback = "1.6.3"
-kotest = "6.2.4"
+slf4j = "2.0.20"
+logback = "1.6.4"
+kotest = "6.2.5"
 junit-jupiter = "6.1.3"
 junit-platform = "6.1.3"
 objenesis = "3.6"
 jakarta-validation = "3.1.1"
 jspecify = "1.0.1"
-hibernate-validator = "9.1.3.Final"
-jackson = "2.22.2"
+hibernate-validator = "9.1.4.Final"
+jackson = "2.22.3"
 spring-boot = "4.1.1"
-japicmp = "0.26.2"
 cyclonedx = "3.4.1"
 nmcp = "1.6.2"
 pitest = "1.19.0"
+pitest-core = "1.30.0"
+pitest-junit5-plugin = "1.2.3"
 
 [libraries]
+# Tools resolved by the JaCoCo and PIT Gradle plugins (core/build.gradle.kts reads the versions);
+# declared as libraries so Dependabot can see and update them.
+jacoco-agent = { module = "org.jacoco:org.jacoco.agent", version.ref = "jacoco" }
+pitest-command-line = { module = "org.pitest:pitest-command-line", version.ref = "pitest-core" }
+pitest-junit5-plugin = { module = "org.pitest:pitest-junit5-plugin", version.ref = "pitest-junit5-plugin" }
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-property-jvm = { module = "io.kotest:kotest-property-jvm", version.ref = "kotest" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit-jupiter" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }

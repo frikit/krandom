@@ -25,10 +25,6 @@ public final class MonthDayGenerator implements Generator<MonthDay>, Seedable {
         this(GeneratorConfig.defaults());
     }
 
-    public MonthDayGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
     public MonthDayGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();

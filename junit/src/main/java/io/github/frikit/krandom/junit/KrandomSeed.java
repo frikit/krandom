@@ -20,7 +20,9 @@ import java.lang.annotation.Target;
  *
  * <p>Annotating a test (or its class) registers {@link KrandomExtension} automatically, so
  * {@code @KrandomSeed} alone is enough — no separate {@code @ExtendWith} required. A
- * method-level annotation overrides a class-level one.
+ * method-level annotation overrides a class-level one. A class-level annotation also pins the
+ * class-scoped configuration injected into {@code @BeforeAll}/{@code @AfterAll} methods and
+ * {@code PER_CLASS} constructors; a method-level annotation never affects that configuration.
  *
  * <p>Exactly one of {@link #value()} (numeric seed) or {@link #text()} (string seed, derived
  * with the same {@code fnv1a64-v1} algorithm as {@link GeneratorConfig#deriveSeed(String)})

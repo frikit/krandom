@@ -360,11 +360,11 @@ final class SemanticCoherenceAdjuster {
         }
 
         if (canAssign(updatedAtSlot, allowOverwriteExisting)) {
-            updatedAtSlot.setValue(fromInstant(createdAt, updatedAtSlot.rawType()));
+            assignConverted(updatedAtSlot, fromInstant(createdAt, updatedAtSlot.rawType()));
             return;
         }
         if (canAssign(createdAtSlot, allowOverwriteExisting)) {
-            createdAtSlot.setValue(fromInstant(updatedAt, createdAtSlot.rawType()));
+            assignConverted(createdAtSlot, fromInstant(updatedAt, createdAtSlot.rawType()));
         }
     }
 
@@ -380,7 +380,7 @@ final class SemanticCoherenceAdjuster {
         if (birthDate != null) {
             if (age != null && isProtected(ageSlot)) {
                 if (canAssign(birthDateSlot, allowOverwriteExisting)) {
-                    birthDateSlot.setValue(fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
+                    assignConverted(birthDateSlot, fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
                 }
                 return;
             }
@@ -389,14 +389,14 @@ final class SemanticCoherenceAdjuster {
                 return;
             }
             if (canAssign(ageSlot, allowOverwriteExisting)) {
-                ageSlot.setValue(fromAge(derivedAge, ageSlot.rawType()));
+                assignConverted(ageSlot, fromAge(derivedAge, ageSlot.rawType()));
                 return;
             }
             return;
         }
 
         if (age != null && canAssign(birthDateSlot, allowOverwriteExisting)) {
-            birthDateSlot.setValue(fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
+            assignConverted(birthDateSlot, fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
         }
     }
 
@@ -519,8 +519,10 @@ final class SemanticCoherenceAdjuster {
             return true;
         }
 
+        // RELAXED lets declared annotations and bean validation constraints take precedence over
+        // semantics; STRICT deliberately lets semantics win.
         if (config.getSemanticMode() == ObjectGenerationSemanticMode.RELAXED) {
-            if (field.isAnnotationPresent(Randomizer.class)) {
+            if (field.isAnnotationPresent(Randomizer.class) || field.isAnnotationPresent(FakeRange.class)) {
                 return true;
             }
             return BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;
@@ -528,7 +530,7 @@ final class SemanticCoherenceAdjuster {
         return false;
     }
 
-    private Object applyUniqueness(Slot slot, String semanticKey, String candidate) {
+    Object applyUniqueness(Slot slot, String semanticKey, String candidate) {
         if (candidate == null || !isUniqueField(slot.fieldName(), semanticKey)) {
             return candidate;
         }
@@ -539,7 +541,7 @@ final class SemanticCoherenceAdjuster {
                                              config.getUniquenessMaxAttempts());
     }
 
-    private boolean isUniqueField(String fieldName, String semanticKey) {
+    boolean isUniqueField(String fieldName, String semanticKey) {
         String normalizedFieldName = FieldGeneratorResolver.normalizeSemanticFieldName(fieldName);
         Set<String> uniqueFieldNames = config.getUniqueFieldNames();
         if (uniqueFieldNames.contains(normalizedFieldName) || uniqueFieldNames.contains(semanticKey)) {
@@ -553,7 +555,7 @@ final class SemanticCoherenceAdjuster {
         return false;
     }
 
-    private static String uniquifyString(String candidate, int attempt) {
+    static String uniquifyString(String candidate, int attempt) {
         if (attempt == 0) {
             return candidate;
         }
@@ -564,7 +566,7 @@ final class SemanticCoherenceAdjuster {
         return candidate + attempt;
     }
 
-    private static String emailLocalPart(Map<String, Slot> slotsBySemanticKey) {
+    static String emailLocalPart(Map<String, Slot> slotsBySemanticKey) {
         String firstName = normalizedHumanName(stringValue(slotsBySemanticKey.get("firstname")));
         String lastName = normalizedHumanName(stringValue(slotsBySemanticKey.get("lastname")));
         if (firstName != null && lastName != null) {
@@ -606,7 +608,7 @@ final class SemanticCoherenceAdjuster {
         return trimmed == null ? null : trimmed.trim();
     }
 
-    private static String slugFragment(String value) {
+    static String slugFragment(String value) {
         String trimmed = stringValue(value);
         if (trimmed == null) {
             return null;
@@ -621,7 +623,7 @@ final class SemanticCoherenceAdjuster {
         return slug.isEmpty() ? null : slug.toString();
     }
 
-    private static String normalizeDomain(String candidate) {
+    static String normalizeDomain(String candidate) {
         String trimmed = stringValue(candidate);
         if (trimmed == null) {
             return null;
@@ -633,7 +635,7 @@ final class SemanticCoherenceAdjuster {
         return normalized.isBlank() ? null : normalized;
     }
 
-    private static String emailDomain(String email) {
+    static String emailDomain(String email) {
         String trimmed = stringValue(email);
         if (trimmed == null) {
             return null;
@@ -642,7 +644,7 @@ final class SemanticCoherenceAdjuster {
         return atIndex >= 0 && atIndex + 1 < trimmed.length() ? trimmed.substring(atIndex + 1) : null;
     }
 
-    private static String urlHost(String url) {
+    static String urlHost(String url) {
         String trimmed = stringValue(url);
         if (trimmed == null) {
             return null;
@@ -667,7 +669,7 @@ final class SemanticCoherenceAdjuster {
         return slot == null ? null : stringValue(slot.getValue());
     }
 
-    private static Instant toInstant(Object value) {
+    static Instant toInstant(Object value) {
         if (value instanceof Instant instant) {
             return instant;
         }
@@ -683,13 +685,20 @@ final class SemanticCoherenceAdjuster {
         if (value instanceof ZonedDateTime zonedDateTime) {
             return zonedDateTime.toInstant();
         }
+        // java.sql.Date and java.sql.Time throw UnsupportedOperationException from toInstant().
+        if (value instanceof java.sql.Date sqlDate) {
+            return sqlDate.toLocalDate().atStartOfDay().toInstant(ZoneOffset.UTC);
+        }
+        if (value instanceof java.sql.Time) {
+            return null;
+        }
         if (value instanceof java.util.Date date) {
             return date.toInstant();
         }
         return null;
     }
 
-    private static LocalDate toLocalDate(Object value) {
+    static LocalDate toLocalDate(Object value) {
         if (value instanceof LocalDate localDate) {
             return localDate;
         }
@@ -697,11 +706,11 @@ final class SemanticCoherenceAdjuster {
         return instant != null ? instant.atOffset(ZoneOffset.UTC).toLocalDate() : null;
     }
 
-    private static BigDecimal moneyValue(Slot slot) {
+    static BigDecimal moneyValue(Slot slot) {
         return slot == null ? null : moneyValue(slot.getValue());
     }
 
-    private static BigDecimal moneyValue(Object value) {
+    static BigDecimal moneyValue(Object value) {
         if (value == null) {
             return null;
         }
@@ -727,7 +736,7 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    private static Integer toInteger(Object value) {
+    static Integer toInteger(Object value) {
         if (value instanceof Integer integer) {
             return integer;
         }
@@ -736,6 +745,14 @@ final class SemanticCoherenceAdjuster {
         }
         if (value instanceof Short shortValue) {
             return shortValue.intValue();
+        }
+        if (value instanceof Byte byteValue) {
+            return byteValue.intValue();
+        }
+        if (value instanceof Double || value instanceof Float) {
+            // Whole years, like the ages fromAge writes; NaN and out-of-range values have none.
+            double number = ((Number) value).doubleValue();
+            return number >= Integer.MIN_VALUE && number <= Integer.MAX_VALUE ? (int) number : null;
         }
         if (value instanceof String stringValue) {
             try {
@@ -761,11 +778,11 @@ final class SemanticCoherenceAdjuster {
         return value.abs().setScale(2, RoundingMode.HALF_UP);
     }
 
-    private static String currencyCode(Slot slot) {
+    static String currencyCode(Slot slot) {
         return slot == null ? null : currencyCode(slot.getValue());
     }
 
-    private static String currencyCode(Object value) {
+    static String currencyCode(Object value) {
         if (value instanceof io.github.frikit.krandom.generator.finance.Currency currency) {
             return currency.getCode();
         }
@@ -792,7 +809,7 @@ final class SemanticCoherenceAdjuster {
         }
     }
 
-    private static Object moneyValueFor(BigDecimal value, Class<?> rawType, String currencyCode) {
+    static Object moneyValueFor(BigDecimal value, Class<?> rawType, String currencyCode) {
         BigDecimal normalized = normalizeMoney(value);
         if (rawType == BigDecimal.class) {
             return normalized;
@@ -824,7 +841,7 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    private static BigDecimal assignMoney(Slot slot, BigDecimal value, String currencyCode) {
+    static BigDecimal assignMoney(Slot slot, BigDecimal value, String currencyCode) {
         if (slot == null || value == null) {
             return value;
         }
@@ -836,11 +853,11 @@ final class SemanticCoherenceAdjuster {
         return normalizeMoney(value);
     }
 
-    private static Boolean toBoolean(Object value) {
+    static Boolean toBoolean(Object value) {
         return value instanceof Boolean bool ? bool : null;
     }
 
-    private boolean shouldFormatMoneyString(BigDecimal value, Slot slot, boolean allowOverwriteExisting) {
+    boolean shouldFormatMoneyString(BigDecimal value, Slot slot, boolean allowOverwriteExisting) {
         if (value == null || slot == null) {
             return false;
         }
@@ -850,7 +867,7 @@ final class SemanticCoherenceAdjuster {
         return canAssign(slot, allowOverwriteExisting);
     }
 
-    private static boolean isLessThan(BigDecimal left, BigDecimal right) {
+    static boolean isLessThan(BigDecimal left, BigDecimal right) {
         if (left == null || right == null) {
             return false;
         }
@@ -866,27 +883,38 @@ final class SemanticCoherenceAdjuster {
         return LocalDate.now(clock);
     }
 
-    private static Object fromAge(int age, Class<?> rawType) {
+    static Object fromAge(int age, Class<?> rawType) {
         if (rawType == int.class || rawType == Integer.class) {
             return age;
         }
         if (rawType == long.class || rawType == Long.class) {
             return (long) age;
         }
+        // A narrow field keeps its generated value rather than wrapping an age it cannot hold.
         if (rawType == short.class || rawType == Short.class) {
-            return (short) age;
+            return age >= Short.MIN_VALUE && age <= Short.MAX_VALUE ? Short.valueOf((short) age) : null;
+        }
+        if (rawType == byte.class || rawType == Byte.class) {
+            return age >= Byte.MIN_VALUE && age <= Byte.MAX_VALUE ? Byte.valueOf((byte) age) : null;
+        }
+        if (rawType == float.class || rawType == Float.class) {
+            return (float) age;
+        }
+        if (rawType == double.class || rawType == Double.class) {
+            return (double) age;
         }
         if (rawType == String.class) {
             return Integer.toString(age);
         }
-        throw new ObjectGenerationException("Unsupported semantic age type: " + rawType.getName());
+        // The coherence pass cannot represent this age type; the generated value is kept.
+        return null;
     }
 
     private static Object fromLocalDate(LocalDate localDate, Class<?> rawType) {
         return fromInstant(localDate.atStartOfDay().toInstant(ZoneOffset.UTC), rawType);
     }
 
-    private static Boolean activeFromStatus(Object statusValue) {
+    static Boolean activeFromStatus(Object statusValue) {
         if (statusValue == null) {
             return null;
         }
@@ -900,7 +928,7 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    private static Object statusValueFor(boolean active, Class<?> rawType) {
+    static Object statusValueFor(boolean active, Class<?> rawType) {
         if (rawType == String.class) {
             return active ? "ACTIVE" : "INACTIVE";
         }
@@ -922,7 +950,7 @@ final class SemanticCoherenceAdjuster {
         return matches.getFirst();
     }
 
-    private static Object fromInstant(Instant instant, Class<?> rawType) {
+    static Object fromInstant(Instant instant, Class<?> rawType) {
         if (rawType == Instant.class) {
             return instant;
         }
@@ -947,10 +975,17 @@ final class SemanticCoherenceAdjuster {
         if (rawType == java.sql.Timestamp.class) {
             return java.sql.Timestamp.from(instant);
         }
-        throw new ObjectGenerationException("Unsupported semantic timestamp type: " + rawType.getName());
+        // The coherence pass cannot represent this timestamp type; the generated value is kept.
+        return null;
     }
 
-    private interface Slot {
+    private static void assignConverted(Slot slot, Object converted) {
+        if (converted != null) {
+            slot.setValue(converted);
+        }
+    }
+
+    interface Slot {
 
         Class<?> ownerType();
 
@@ -965,7 +1000,7 @@ final class SemanticCoherenceAdjuster {
         void setValue(Object value);
     }
 
-    private static final class ReflectionSlot implements Slot {
+    static final class ReflectionSlot implements Slot {
 
         private final Class<?> ownerType;
         private final Field field;
@@ -973,11 +1008,11 @@ final class SemanticCoherenceAdjuster {
         private final ObjectGenerationFailurePolicy failurePolicy;
         private final int depth;
 
-        private ReflectionSlot(Class<?> ownerType, Field field, Object instance, boolean ignoreErrors) {
+        ReflectionSlot(Class<?> ownerType, Field field, Object instance, boolean ignoreErrors) {
             this(ownerType, field, instance, ignoreErrors, 0);
         }
 
-        private ReflectionSlot(Class<?> ownerType,
+        ReflectionSlot(Class<?> ownerType,
                                Field field,
                                Object instance,
                                boolean ignoreErrors,
@@ -985,7 +1020,7 @@ final class SemanticCoherenceAdjuster {
             this(ownerType, field, instance, ignoreErrors, depth, diagnostic -> {});
         }
 
-        private ReflectionSlot(Class<?> ownerType,
+        ReflectionSlot(Class<?> ownerType,
                                Field field,
                                Object instance,
                                boolean ignoreErrors,

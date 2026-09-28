@@ -1,0 +1,7 @@
+# Product colors, one per line.
+đỏ
+xanh dương
+xanh lá
+đen
+trắng
+bạc

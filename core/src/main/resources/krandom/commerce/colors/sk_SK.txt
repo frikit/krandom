@@ -1,0 +1,7 @@
+# Product colors, one per line.
+červená
+modrá
+zelená
+čierna
+biela
+strieborná

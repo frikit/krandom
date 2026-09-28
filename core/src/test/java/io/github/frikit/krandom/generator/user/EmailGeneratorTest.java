@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,7 +127,7 @@ class EmailGeneratorTest {
 
     @Test
     void testGenerateFreeEmail() {
-        String email = generator.generateFreeEmail();
+        String email = realistic(Locale.US).generateFreeEmail();
         assertNotNull(email);
         assertValidEmail(email);
         String domain = email.substring(email.indexOf('@') + 1);
@@ -147,7 +148,7 @@ class EmailGeneratorTest {
 
     @Test
     void testGetFreeEmailProvider() {
-        String provider = generator.getFreeEmailProvider();
+        String provider = realistic(Locale.US).getFreeEmailProvider();
         assertNotNull(provider);
         assertFalse(provider.isBlank());
         assertFalse(provider.contains("@"));
@@ -156,7 +157,7 @@ class EmailGeneratorTest {
 
     @Test
     void testGenerateFreeEmailDomainAlias() {
-        String provider = generator.generateFreeEmailDomain();
+        String provider = realistic(Locale.US).generateFreeEmailDomain();
         assertNotNull(provider);
         assertFalse(provider.isBlank());
         assertFalse(provider.contains("@"));
@@ -172,35 +173,35 @@ class EmailGeneratorTest {
 
     @Test
     void testGetFreeEmailProviderLocaleAware() {
-        EmailGenerator de = new EmailGenerator(Locale.GERMANY);
-        String provider = de.getFreeEmailProvider();
+        String provider = realistic(Locale.GERMANY).getFreeEmailProvider();
         assertTrue(List.of("gmx.de", "web.de", "gmail.com", "outlook.com").contains(provider));
     }
 
     @Test
     void testGetFreeEmailProviderAllLocaleBranches() {
         assertTrue(List.of("gmx.de", "web.de", "gmail.com", "outlook.com")
-                       .contains(new EmailGenerator(Locale.GERMANY).getFreeEmailProvider()));
+                       .contains(realistic(Locale.GERMANY).getFreeEmailProvider()));
         assertTrue(List.of("orange.fr", "laposte.net", "gmail.com", "outlook.com")
-                       .contains(new EmailGenerator(Locale.FRANCE).getFreeEmailProvider()));
+                       .contains(realistic(Locale.FRANCE).getFreeEmailProvider()));
         assertTrue(List.of("hotmail.es", "gmail.com", "outlook.com", "yahoo.com")
-                       .contains(new EmailGenerator(Locale.of("es", "ES")).getFreeEmailProvider()));
+                       .contains(realistic(Locale.of("es", "ES")).getFreeEmailProvider()));
         assertTrue(List.of("libero.it", "gmail.com", "outlook.com", "yahoo.com")
-                       .contains(new EmailGenerator(Locale.ITALY).getFreeEmailProvider()));
+                       .contains(realistic(Locale.ITALY).getFreeEmailProvider()));
         assertTrue(List.of("uol.com.br", "bol.com.br", "gmail.com", "outlook.com")
-                       .contains(new EmailGenerator(Locale.of("pt", "BR")).getFreeEmailProvider()));
+                       .contains(realistic(Locale.of("pt", "BR")).getFreeEmailProvider()));
         assertTrue(List.of("yahoo.co.jp", "gmail.com", "outlook.com")
-                       .contains(new EmailGenerator(Locale.JAPAN).getFreeEmailProvider()));
+                       .contains(realistic(Locale.JAPAN).getFreeEmailProvider()));
         assertTrue(List.of("qq.com", "163.com", "126.com", "gmail.com")
-                       .contains(new EmailGenerator(Locale.CHINA).getFreeEmailProvider()));
+                       .contains(realistic(Locale.CHINA).getFreeEmailProvider()));
         assertTrue(List.of("gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
                            "protonmail.com", "mail.com", "aol.com", "zoho.com", "gmx.com", "yandex.com",
                            "qq.com")
-                       .contains(new EmailGenerator(Locale.US).getFreeEmailProvider()));
+                       .contains(realistic(Locale.US).getFreeEmailProvider()));
     }
 
     @Test
     void testPopularDomains() {
+        EmailGenerator generator = realistic(Locale.US);
         Set<String> domains = new HashSet<>();
         for (int i = 0; i < 200; i++) {
             String email = generator.generate();
@@ -563,6 +564,13 @@ class EmailGeneratorTest {
     }
 
     // Helper Methods
+
+    private static EmailGenerator realistic(Locale locale) {
+        return new EmailGenerator(GeneratorConfig.builder()
+                                                 .locale(locale)
+                                                 .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                                                 .build());
+    }
 
     private void assertValidEmail(String email) {
         assertNotNull(email);

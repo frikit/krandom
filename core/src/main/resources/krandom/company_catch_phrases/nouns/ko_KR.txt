@@ -1,0 +1,8 @@
+# Catch-phrase nouns, one per line.
+플랫폼
+네트워크
+경험
+엔진
+생태계
+제품군
+프레임워크

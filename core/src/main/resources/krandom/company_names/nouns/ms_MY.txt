@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Penyelesaian
+Sistem
+Teknologi
+Industri
+Perkhidmatan
+Kumpulan
+Rakan Kongsi
+Usaha Niaga
+Sekutu
+Perundingan
+Rangkaian
+Tenaga
+Sumber
+Pengurusan
+Analitik

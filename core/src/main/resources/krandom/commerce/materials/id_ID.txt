@@ -1,0 +1,7 @@
+# Product materials, one per line.
+Baja
+Kayu
+Beton
+Plastik
+Granit
+Katun

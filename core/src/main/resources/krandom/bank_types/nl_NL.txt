@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Retailbank
+Zakenbank
+Investeringsbank
+Kredietunie
+Internetbank

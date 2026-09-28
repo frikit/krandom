@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+高校卒業
+短期大学士
+学士
+修士
+博士
+専門職学位
+職業訓練修了

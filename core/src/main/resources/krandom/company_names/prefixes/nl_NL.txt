@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globale
+Nationale
+Nederlandse
+Verenigde
+Eersteklas
+Geavanceerde
+Strategische
+Dynamische
+Innovatieve
+Professionele
+Digitale
+Nieuwe
+Alfa
+Toonaangevende
+Excellente

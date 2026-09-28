@@ -10,7 +10,10 @@ import java.util.Locale;
 import java.util.Random;
 
 /**
- * Generates Bulgarian EGN (ЕГН) style identifiers — 10 digits in {@code YYMMDDSSSС} format.
+ * Generates Bulgarian EGN (ЕГН) style identifiers — 10 digits in {@code YYMMDDXXXX} format.
+ *
+ * <p>{@code YYMMDD} is a birth date between 1950 and 1999. The four trailing digits are random; no
+ * EGN check digit is computed.
  */
 public final class BgBgNationalIdProvider implements NationalIdProvider {
 
@@ -22,7 +25,7 @@ public final class BgBgNationalIdProvider implements NationalIdProvider {
     @Override
     public String generate(Random random) {
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
-        return String.format("%02d%02d%02d%04d",
+        return String.format(Locale.ROOT, "%02d%02d%02d%04d",
                              date.getYear() % 100,
                              date.getMonthValue(),
                              date.getDayOfMonth(),

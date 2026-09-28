@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Softwareontwikkelaar
+Productmanager
+Data-analist
+UX-ontwerper
+Accountmanager
+Marketingspecialist
+Bedrijfsanalist
+DevOps-engineer
+Site-reliability-engineer
+Engineeringmanager
+Oplossingsarchitect
+Technisch schrijver
+Testengineer
+Projectmanager
+Security-engineer
+Databasebeheerder

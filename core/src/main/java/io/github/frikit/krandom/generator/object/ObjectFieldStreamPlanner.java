@@ -14,8 +14,12 @@ final class ObjectFieldStreamPlanner {
     }
 
     static boolean usesNamedChildStreams(GeneratorConfig config, Long generationSeed) {
-        return generationSeed != null
-            && (config.getObjectFieldStreamPolicy() == ObjectFieldStreamPolicy.INDEPENDENT
-                || config.getGenerationRecipe().isPresent());
+        return usesNamedChildStreams(
+            config.getObjectFieldStreamPolicy(), generationSeed, config.getGenerationRecipe().isPresent());
+    }
+
+    /** Resolvers pass the recipe presence computed once per configuration. */
+    static boolean usesNamedChildStreams(ObjectFieldStreamPolicy policy, Long generationSeed, boolean portableRecipe) {
+        return generationSeed != null && (policy == ObjectFieldStreamPolicy.INDEPENDENT || portableRecipe);
     }
 }

@@ -32,10 +32,10 @@ public final class ProfileGenerator implements Generator<UserProfile> {
 
     public ProfileGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.simpleProfileGenerator = new SimpleProfileGenerator(effective);
-        this.companyNameGenerator = new CompanyNameGenerator(effective);
-        this.professionGenerator = new ProfessionGenerator(effective);
-        this.urlGenerator = new URLGenerator(effective);
+        this.simpleProfileGenerator = new SimpleProfileGenerator(effective.forChildStream("simpleProfile"));
+        this.companyNameGenerator = new CompanyNameGenerator(effective.forChildStream("companyName"));
+        this.professionGenerator = new ProfessionGenerator(effective.forChildStream("profession"));
+        this.urlGenerator = new URLGenerator(effective.forChildStream("uRL"));
     }
 
     /**

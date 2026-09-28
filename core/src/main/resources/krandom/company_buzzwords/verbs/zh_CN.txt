@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+精简
+赋能
+利用
+优化
+协同
+扩展
+交付
+驱动

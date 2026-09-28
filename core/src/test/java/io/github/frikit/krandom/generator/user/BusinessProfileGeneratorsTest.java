@@ -29,7 +29,7 @@ class BusinessProfileGeneratorsTest {
         IndustryGenerator b = new IndustryGenerator(GeneratorConfig.builder().seed(1L).build());
         assertFalse(any.generate().isBlank());
         assertEquals(a.generate(), b.generate());
-        assertThrows(NullPointerException.class, () -> new IndustryGenerator(null));
+        assertThrows(NullPointerException.class, () -> new IndustryGenerator((GeneratorConfig) null));
     }
 
     @Test
@@ -78,13 +78,13 @@ class BusinessProfileGeneratorsTest {
     @Test
     @DisplayName("Null config validation on profile generators")
     void nullConfigValidation() {
-        assertThrows(NullPointerException.class, () -> new JobFieldGenerator(null));
+        assertThrows(NullPointerException.class, () -> new JobFieldGenerator((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> new JobTypeGenerator((GeneratorConfig) null));
         assertThrows(NullPointerException.class, () -> new JobTypeGenerator((Locale) null));
-        assertThrows(NullPointerException.class, () -> new SeniorityGenerator(null));
-        assertThrows(NullPointerException.class, () -> new PositionGenerator(null));
-        assertThrows(NullPointerException.class, () -> new EducationalAttainmentGenerator(null));
-        assertThrows(NullPointerException.class, () -> new MaritalStatusGenerator(null));
+        assertThrows(NullPointerException.class, () -> new SeniorityGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new PositionGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new EducationalAttainmentGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new MaritalStatusGenerator((GeneratorConfig) null));
     }
 
     @Test

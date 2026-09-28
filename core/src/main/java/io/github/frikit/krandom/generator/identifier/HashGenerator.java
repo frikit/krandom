@@ -11,6 +11,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -172,7 +173,7 @@ public final class HashGenerator implements Generator<String> {
             byte[] hashed = digest.digest(bytes);
             StringBuilder out = new StringBuilder(hashed.length * 2);
             for (byte b : hashed) {
-                out.append(String.format("%02x", b));
+                out.append(String.format(Locale.ROOT, "%02x", b));
             }
             return out.toString();
         } catch (NoSuchAlgorithmException e) {

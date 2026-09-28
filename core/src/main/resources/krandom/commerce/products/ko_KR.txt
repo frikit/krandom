@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+의자
+테이블
+컴퓨터
+키보드
+신발
+손목시계

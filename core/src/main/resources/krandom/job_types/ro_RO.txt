@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Normă întreagă
+Normă parțială
+Contract
+Temporar
+Stagiu
+Freelance
+Ucenicie
+Sezonier
+Voluntariat
+La distanță

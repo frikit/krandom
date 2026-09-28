@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Rachunek bieżący
+Rachunek oszczędnościowy
+Rachunek firmowy
+Rachunek wspólny
+Konto płacowe

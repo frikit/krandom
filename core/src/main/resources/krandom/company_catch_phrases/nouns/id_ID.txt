@@ -1,0 +1,8 @@
+# Catch-phrase nouns, one per line.
+Platform
+Jaringan
+Pengalaman
+Mesin
+Ekosistem
+Rangkaian
+Kerangka kerja

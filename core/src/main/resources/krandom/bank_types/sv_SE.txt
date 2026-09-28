@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Konsumentbank
+Affärsbank
+Investmentbank
+Kreditförening
+Internetbank

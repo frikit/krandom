@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.benchmarks;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -27,11 +28,12 @@ public class RegexGeneratorBenchmark {
 
     private static final String SIMPLE_PATTERN = "\\d{3}-\\d{2}-\\d{4}";
     private static final String COMPLEX_PATTERN = "([A-Z]{2}|[A-Z]{3})-\\d{4}-(yes|no|maybe)-[a-z]{3,8}";
+    private static final GeneratorConfig SEEDED = GeneratorConfig.builder().seed(7L).build();
 
     @State(Scope.Benchmark)
     public static class RegexState {
-        public final RegexGenerator simple = new RegexGenerator(SIMPLE_PATTERN, 7L);
-        public final RegexGenerator complex = new RegexGenerator(COMPLEX_PATTERN, 7L);
+        public final RegexGenerator simple = new RegexGenerator(SIMPLE_PATTERN, SEEDED);
+        public final RegexGenerator complex = new RegexGenerator(COMPLEX_PATTERN, SEEDED);
     }
 
     @Benchmark
@@ -46,6 +48,6 @@ public class RegexGeneratorBenchmark {
 
     @Benchmark
     public String constructorHotPathWithCachedParseTree() {
-        return new RegexGenerator(COMPLEX_PATTERN, 7L).generate();
+        return new RegexGenerator(COMPLEX_PATTERN, SEEDED).generate();
     }
 }

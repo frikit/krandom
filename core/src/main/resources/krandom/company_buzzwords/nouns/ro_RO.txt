@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+soluții
+fluxuri de lucru
+infrastructuri
+platforme
+experiențe
+capabilități

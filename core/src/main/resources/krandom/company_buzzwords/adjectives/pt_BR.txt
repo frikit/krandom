@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+multiplataforma
+ponta a ponta
+de excelência
+fluidas
+nativas em nuvem
+orientadas a dados

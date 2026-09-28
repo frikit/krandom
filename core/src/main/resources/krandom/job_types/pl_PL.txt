@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Pełny etat
+Część etatu
+Umowa cywilnoprawna
+Praca tymczasowa
+Staż
+Freelance
+Praktyka zawodowa
+Praca sezonowa
+Wolontariat
+Praca zdalna

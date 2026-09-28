@@ -76,15 +76,15 @@ public final class UsNationalIdProvider implements NationalIdProvider {
     @Override
     public String generate(Random random) {
         if (lastFourOnly) {
-            return String.format("%04d", random.nextInt(9999) + 1);
+            return String.format(Locale.ROOT, "%04d", random.nextInt(9999) + 1);
         }
         int area = random.nextInt(898) + 1;
         if (area >= 666) area++;
         int group = random.nextInt(99) + 1;
         int serial = random.nextInt(9999) + 1;
         if (includeDashes) {
-            return String.format("%03d-%02d-%04d", area, group, serial);
+            return String.format(Locale.ROOT, "%03d-%02d-%04d", area, group, serial);
         }
-        return String.format("%03d%02d%04d", area, group, serial);
+        return String.format(Locale.ROOT, "%03d%02d%04d", area, group, serial);
     }
 }

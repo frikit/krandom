@@ -156,9 +156,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofByte(min, max, seed) returns ByteGenerator")
+    @DisplayName("ofByte(min, max, config) returns ByteGenerator")
     void ofByteSeeded() {
-        assertInstanceOf(ByteGenerator.class, Generators.ofByte((byte) 0, (byte) 10, 1L));
+        assertInstanceOf(ByteGenerator.class, Generators.ofByte((byte) 0, (byte) 10, seeded(1L)));
     }
 
     // ── Short ─────────────────────────────────────────────────────────────────
@@ -176,9 +176,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofShort(min, max, seed) returns ShortGenerator")
+    @DisplayName("ofShort(min, max, config) returns ShortGenerator")
     void ofShortSeeded() {
-        assertInstanceOf(ShortGenerator.class, Generators.ofShort((short) 0, (short) 100, 1L));
+        assertInstanceOf(ShortGenerator.class, Generators.ofShort((short) 0, (short) 100, seeded(1L)));
     }
 
     // ── Int ───────────────────────────────────────────────────────────────────
@@ -196,9 +196,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofInt(min, max, seed) returns IntGenerator")
+    @DisplayName("ofInt(min, max, config) returns IntGenerator")
     void ofIntSeeded() {
-        assertInstanceOf(IntGenerator.class, Generators.ofInt(0, 100, 1L));
+        assertInstanceOf(IntGenerator.class, Generators.ofInt(0, 100, seeded(1L)));
     }
 
     // ── Long ──────────────────────────────────────────────────────────────────
@@ -216,9 +216,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofLong(min, max, seed) returns LongGenerator")
+    @DisplayName("ofLong(min, max, config) returns LongGenerator")
     void ofLongSeeded() {
-        assertInstanceOf(LongGenerator.class, Generators.ofLong(0L, 100L, 1L));
+        assertInstanceOf(LongGenerator.class, Generators.ofLong(0L, 100L, seeded(1L)));
     }
 
     // ── Float ─────────────────────────────────────────────────────────────────
@@ -236,9 +236,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofFloat(min, max, seed) returns FloatGenerator")
+    @DisplayName("ofFloat(min, max, config) returns FloatGenerator")
     void ofFloatSeeded() {
-        assertInstanceOf(FloatGenerator.class, Generators.ofFloat(0f, 1f, 1L));
+        assertInstanceOf(FloatGenerator.class, Generators.ofFloat(0f, 1f, seeded(1L)));
     }
 
     // ── Double ────────────────────────────────────────────────────────────────
@@ -256,9 +256,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofDouble(min, max, seed) returns DoubleGenerator")
+    @DisplayName("ofDouble(min, max, config) returns DoubleGenerator")
     void ofDoubleSeeded() {
-        assertInstanceOf(DoubleGenerator.class, Generators.ofDouble(0.0, 1.0, 1L));
+        assertInstanceOf(DoubleGenerator.class, Generators.ofDouble(0.0, 1.0, seeded(1L)));
     }
 
     // ── Natural ───────────────────────────────────────────────────────────────
@@ -276,9 +276,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofNaturalNumber(min, max, seed) returns NaturalNumberGenerator")
+    @DisplayName("ofNaturalNumber(min, max, config) returns NaturalNumberGenerator")
     void ofNaturalNumberSeeded() {
-        assertInstanceOf(NaturalNumberGenerator.class, Generators.ofNaturalNumber(0, 100, 1L));
+        assertInstanceOf(NaturalNumberGenerator.class, Generators.ofNaturalNumber(0, 100, seeded(1L)));
     }
 
     // ── Normal Distribution ───────────────────────────────────────────────────
@@ -296,9 +296,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofNormal(mean, stdDev, seed) returns NormalDistributionGenerator")
+    @DisplayName("ofNormal(mean, stdDev, config) returns NormalDistributionGenerator")
     void ofNormalSeeded() {
-        assertInstanceOf(NormalDistributionGenerator.class, Generators.ofNormal(0.0, 1.0, 1L));
+        assertInstanceOf(NormalDistributionGenerator.class, Generators.ofNormal(0.0, 1.0, seeded(1L)));
     }
 
     // ── Prime ─────────────────────────────────────────────────────────────────
@@ -316,9 +316,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofPrime(min, max, seed) returns PrimeGenerator")
+    @DisplayName("ofPrime(min, max, config) returns PrimeGenerator")
     void ofPrimeSeeded() {
-        assertInstanceOf(PrimeGenerator.class, Generators.ofPrime(2, 100, 1L));
+        assertInstanceOf(PrimeGenerator.class, Generators.ofPrime(2, 100, seeded(1L)));
     }
 
     // ── Char ──────────────────────────────────────────────────────────────────
@@ -345,9 +345,9 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofBoolean(seed) returns BooleanGenerator")
+    @DisplayName("ofBoolean(config) returns BooleanGenerator")
     void ofBooleanSeeded() {
-        assertInstanceOf(BooleanGenerator.class, Generators.ofBoolean(1L));
+        assertInstanceOf(BooleanGenerator.class, Generators.ofBoolean(seeded(1L)));
     }
 
     // ── String ────────────────────────────────────────────────────────────────
@@ -781,10 +781,11 @@ class GeneratorsTest {
     }
 
     @Test
-    @DisplayName("ofNationalId(locale,seed) fails closed while the explicit policy is reproducible")
+    @DisplayName("seeded ofNationalId(config) fails closed while the explicit policy is reproducible")
     void ofNationalIdSeeded() {
-        NationalIdGenerator a = Generators.ofNationalId(Locale.US, 42L);
-        NationalIdGenerator b = Generators.ofNationalId(Locale.US, 42L);
+        GeneratorConfig defaults = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        NationalIdGenerator a = Generators.ofNationalId(defaults);
+        NationalIdGenerator b = Generators.ofNationalId(defaults);
         assertThrows(IllegalStateException.class, a::generate);
         assertThrows(IllegalStateException.class, b::generate);
 
@@ -1028,5 +1029,9 @@ class GeneratorsTest {
     @DisplayName("forType(unknown type) throws IllegalArgumentException")
     void forTypeUnknownThrows() {
         assertThrows(IllegalArgumentException.class, () -> Generators.forType(Object.class));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

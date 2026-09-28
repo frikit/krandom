@@ -1,0 +1,5 @@
+# Catch-phrase taglines, one per line.
+pro moderní týmy
+pro digitální růst
+pro globální měřítko
+pro měřitelný dopad

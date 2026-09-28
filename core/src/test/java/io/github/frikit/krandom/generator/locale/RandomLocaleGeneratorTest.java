@@ -36,7 +36,7 @@ class RandomLocaleGeneratorTest {
     @Test
     @DisplayName("generateSupportedLocale exposes enum value")
     void generateSupportedLocaleExposesEnumValue() {
-        RandomLocaleGenerator generator = new RandomLocaleGenerator(7L);
+        RandomLocaleGenerator generator = new RandomLocaleGenerator(seeded(7L));
 
         assertNotNull(generator.generateSupportedLocale().locale());
     }
@@ -44,8 +44,8 @@ class RandomLocaleGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGenerationIsReproducible() {
-        RandomLocaleGenerator first = new RandomLocaleGenerator(99L);
-        RandomLocaleGenerator second = new RandomLocaleGenerator(99L);
+        RandomLocaleGenerator first = new RandomLocaleGenerator(seeded(99L));
+        RandomLocaleGenerator second = new RandomLocaleGenerator(seeded(99L));
 
         for (int i = 0; i < 20; i++) {
             assertEquals(first.generate(), second.generate());
@@ -56,7 +56,7 @@ class RandomLocaleGeneratorTest {
     @DisplayName("facade and forType expose locale generator")
     void facadeAndForTypeExposeLocaleGenerator() {
         assertNotNull(Generators.ofLocale().generate());
-        assertNotNull(Generators.ofLocale(1L).generate());
+        assertNotNull(Generators.ofLocale(seeded(1L)).generate());
         assertNotNull(Generators.ofLocale(GeneratorConfig.defaults()).generate());
         assertTrue(SupportedLocale.locales().contains(Generators.forType(Locale.class).generate()));
     }
@@ -65,5 +65,9 @@ class RandomLocaleGeneratorTest {
     @DisplayName("null config throws")
     void nullConfigThrows() {
         assertThrows(NullPointerException.class, () -> new RandomLocaleGenerator(null));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

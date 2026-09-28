@@ -1,0 +1,5 @@
+# Catch-phrase taglines, one per line.
+Modern ekipler için
+Dijital büyüme için
+Küresel ölçek için
+Ölçülebilir etki için

@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,13 +36,13 @@ public final class FinitePoolGenerator<T> implements Generator<T> {
     }
 
     /**
-     * Creates a deterministically seeded pool.
+     * Creates a finite pool whose emission order comes from the configuration's random source.
      *
-     * @param values non-empty values to emit
-     * @param seed deterministic shuffle seed
+     * @param values pool values; must not be null, empty, or contain {@code null}
+     * @param config generator configuration; must not be {@code null}
      */
-    public FinitePoolGenerator(List<T> values, long seed) {
-        this(values, new Random(seed));
+    public FinitePoolGenerator(List<T> values, GeneratorConfig config) {
+        this(values, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
     private FinitePoolGenerator(List<T> values, Random random) {

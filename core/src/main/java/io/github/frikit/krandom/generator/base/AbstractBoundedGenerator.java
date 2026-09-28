@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.BoundedGenerator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
 
 import java.util.Objects;
@@ -38,14 +39,30 @@ public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
     private final T max;
 
     /**
-     * @param min  lower bound (inclusive) used by the no-arg {@link #generate()}
-     * @param max  upper bound (exclusive) used by the no-arg {@link #generate()}
-     * @param seed optional seed for reproducibility
+     * Creates an unseeded bounded generator backed by a fresh {@link Random}.
+     *
+     * @param min lower bound (inclusive) used by the no-arg {@link #generate()}
+     * @param max upper bound (exclusive) used by the no-arg {@link #generate()}
+     * @throws NullPointerException if any argument is {@code null}
      */
-    protected AbstractBoundedGenerator(T min, T max, Long seed) {
+    protected AbstractBoundedGenerator(T min, T max) {
         this.min = Objects.requireNonNull(min, "min must not be null");
         this.max = Objects.requireNonNull(max, "max must not be null");
-        this.random = seed != null ? new Random(seed) : new Random();
+        this.random = new Random();
+    }
+
+    /**
+     * Creates a bounded generator whose randomness comes from a replayable configuration.
+     *
+     * @param min    lower bound (inclusive) used by the no-arg {@link #generate()}
+     * @param max    upper bound (exclusive) used by the no-arg {@link #generate()}
+     * @param config generator configuration supplying the random source; must not be {@code null}
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    protected AbstractBoundedGenerator(T min, T max, GeneratorConfig config) {
+        this.min = Objects.requireNonNull(min, "min must not be null");
+        this.max = Objects.requireNonNull(max, "max must not be null");
+        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
     }
 
     // ── BoundedGenerator ──────────────────────────────────────────────────────

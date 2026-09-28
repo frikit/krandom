@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+לייעל
+לחזק
+למנף
+למטב
+לשלב
+להרחיב
+לספק
+לאפשר

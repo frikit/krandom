@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.network.DomainGenerator;
@@ -17,14 +18,23 @@ import java.util.Random;
 
 /**
  * Generates company-style email addresses.
+ *
+ * <p>The domain label is derived from a company name. Under the default
+ * {@link EmailDomainPolicy#TEST_SAFE_RESERVED_DOMAINS} the label uses the reserved {@code .test}
+ * top-level domain (RFC 2606 / RFC 6761), for example {@code jsmith@acme.test}, so the address can
+ * never reach a real company. {@link EmailDomainPolicy#REALISTIC_UNCLASSIFIED} restores realistic
+ * top-level domains for isolated fixtures.
  */
 public final class CompanyEmailGenerator implements Generator<String> {
+
+    private static final String RESERVED_TLD = "test";
 
     private final Random               random;
     private final FirstNameGenerator   firstNameGenerator;
     private final LastNameGenerator    lastNameGenerator;
     private final CompanyNameGenerator companyNameGenerator;
     private final DomainGenerator      domainGenerator;
+    private final EmailDomainPolicy    emailDomainPolicy;
 
     public CompanyEmailGenerator() {
         this(GeneratorConfig.defaults());
@@ -37,10 +47,11 @@ public final class CompanyEmailGenerator implements Generator<String> {
     public CompanyEmailGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
-        this.firstNameGenerator = new FirstNameGenerator(effective);
-        this.lastNameGenerator = new LastNameGenerator(effective);
-        this.companyNameGenerator = new CompanyNameGenerator(effective);
-        this.domainGenerator = new DomainGenerator(effective);
+        this.firstNameGenerator = new FirstNameGenerator(effective.forChildStream("firstName"));
+        this.lastNameGenerator = new LastNameGenerator(effective.forChildStream("lastName"));
+        this.companyNameGenerator = new CompanyNameGenerator(effective.forChildStream("companyName"));
+        this.domainGenerator = new DomainGenerator(effective.forChildStream("domain"));
+        this.emailDomainPolicy = effective.getEmailDomainPolicy();
     }
 
     private static String normalize(String value) {
@@ -69,7 +80,9 @@ public final class CompanyEmailGenerator implements Generator<String> {
         if (domainLabel.isBlank()) {
             domainLabel = domainGenerator.generateName();
         }
-        String tld = domainGenerator.getTLD();
+        String tld = emailDomainPolicy == EmailDomainPolicy.REALISTIC_UNCLASSIFIED
+            ? domainGenerator.getTLD()
+            : RESERVED_TLD;
         return localPart + "@" + domainLabel + "." + tld;
     }
 

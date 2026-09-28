@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+Stol
+Bord
+Datamaskin
+Tastatur
+Sko
+Klokke

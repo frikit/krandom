@@ -13,8 +13,9 @@ import java.util.Locale;
  *
  * <p>Implement this interface and register an instance with
  * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerRestaurantTypeProvider(RestaurantTypeDataProvider)}
- * to add or override restaurant-type vocabulary for one configuration. The global
- * {@link RestaurantTypeDataRegistry} remains a compatibility bridge.
+ * to add or override restaurant-type vocabulary for one configuration.
+ * {@link RestaurantTypeDataRegistry} holds the built-in vocabulary served by
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
 public interface RestaurantTypeDataProvider {
 

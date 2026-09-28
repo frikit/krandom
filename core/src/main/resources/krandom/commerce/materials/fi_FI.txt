@@ -1,0 +1,7 @@
+# Product materials, one per line.
+teräs
+puu
+betoni
+muovi
+graniitti
+puuvilla

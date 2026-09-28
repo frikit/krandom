@@ -27,15 +27,6 @@ public final class RandomLocaleGenerator implements Generator<Locale> {
     }
 
     /**
-     * Creates a deterministic locale generator using the supplied seed.
-     *
-     * @param seed deterministic seed
-     */
-    public RandomLocaleGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a locale generator with explicit configuration.
      *
      * @param config generator configuration

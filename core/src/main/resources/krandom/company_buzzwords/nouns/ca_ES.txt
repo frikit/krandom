@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+solucions
+infraestructures
+plataformes
+experiències
+capacitats
+operacions

@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.games.dice;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,10 +39,28 @@ import java.util.Random;
 public final class DiceGenerator implements Generator<Integer> {
 
     private final DiceType type;
-    private final Random   random = new Random();
+    private final Random   random;
 
+    /**
+     * Creates a die generator using {@link GeneratorConfig#defaults()}.
+     *
+     * @param type die type; must not be {@code null}
+     */
     public DiceGenerator(DiceType type) {
+        this(type, GeneratorConfig.defaults());
+    }
+
+    /**
+     * Creates a die generator whose rolls come from the configuration's random source, so a
+     * seeded configuration reproduces the same rolls.
+     *
+     * @param type   die type; must not be {@code null}
+     * @param config generator configuration; must not be {@code null}
+     * @throws NullPointerException if {@code type} or {@code config} is {@code null}
+     */
+    public DiceGenerator(DiceType type, GeneratorConfig config) {
         this.type = Objects.requireNonNull(type, "type must not be null");
+        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
     }
 
     public static DiceGenerator d4() {

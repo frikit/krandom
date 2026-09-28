@@ -1,0 +1,21 @@
+# Industry names, one per line.
+Teknik
+Hälso- och sjukvård
+Finans
+Utbildning
+Detaljhandel
+Tillverkning
+Telekommunikation
+Energi
+Transport
+Bygg
+Fastigheter
+Hotell och restaurang
+Media
+Underhållning
+Jordbruk
+Flyg- och rymdindustri
+Fordonsindustri
+Bioteknik
+Konsultverksamhet
+Cybersäkerhet

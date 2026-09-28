@@ -10,16 +10,23 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific state/province name data source.
  *
- * <p>Implement this interface and register an instance with {@link StateDataRegistry} to extend
- * or override state data for any locale — including locales not built into the library.
+ * <p>Implement this interface and register an instance on a configuration-scoped context with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerStateProvider(StateDataProvider)}
+ * to extend or override state data for any locale — including locales not built into the library.
  *
  * <pre>{@code
- * StateDataRegistry.register(new StateDataProvider() {
- *     public Locale getLocale() { return Locale.of("en", "IN"); }
- *     public String[] getStates() { return new String[]{"Maharashtra", "Karnataka", "Tamil Nadu"}; }
- *     public String[] getAbbreviations() { return new String[]{"MH", "KA", "TN"}; }
- * });
- * StateGenerator gen = new StateGenerator(Locale.of("en", "IN"));
+ * DataRegistryContext context = DataRegistryContext.builder()
+ *     .registerStateProvider(new StateDataProvider() {
+ *         public Locale getLocale() { return Locale.of("en", "IN"); }
+ *         public String[] getStates() { return new String[]{"Maharashtra", "Karnataka", "Tamil Nadu"}; }
+ *         public String[] getAbbreviations() { return new String[]{"MH", "KA", "TN"}; }
+ *     })
+ *     .build();
+ * GeneratorConfig config = GeneratorConfig.builder()
+ *     .locale(Locale.of("en", "IN"))
+ *     .registryContext(context)
+ *     .build();
+ * StateGenerator gen = new StateGenerator(config);
  * }</pre>
  *
  * <p>The built-in baseline is seeded by {@link StateDataRegistry} from

@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Teknik
+Pemasaran
+Penjualan
+Keuangan
+Operasional
+Produk
+Sumber daya manusia
+Hukum
+Desain
+Dukungan pelanggan
+Riset
+Ilmu data
+Keamanan
+Pengadaan
+Logistik

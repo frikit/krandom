@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Jurutera perisian
+Pengurus produk
+Penganalisis data
+Pereka UX
+Eksekutif akaun
+Pakar pemasaran
+Penganalisis perniagaan
+Jurutera DevOps
+Jurutera kebolehpercayaan tapak
+Pengurus kejuruteraan
+Arkitek penyelesaian
+Penulis teknikal
+Jurutera jaminan kualiti
+Pengurus projek
+Jurutera keselamatan
+Pentadbir pangkalan data

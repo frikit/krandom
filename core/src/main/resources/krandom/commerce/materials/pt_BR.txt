@@ -1,0 +1,7 @@
+# Product materials, one per line.
+Aço
+Madeira
+Concreto
+Plástico
+Granito
+Algodão

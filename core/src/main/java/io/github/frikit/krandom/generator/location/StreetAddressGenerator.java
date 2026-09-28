@@ -74,10 +74,10 @@ public final class StreetAddressGenerator implements Generator<String> {
         this.streetTypesLong = provider.getStreetTypesLong();
         this.secondaryUnits = loadSecondaryUnits(locale);
 
-        this.cityGenerator = registryContext.isCityRegistered(locale) ? new CityGenerator(config) : null;
-        this.stateGenerator = registryContext.isStateRegistered(locale) ? new StateGenerator(config) : null;
-        this.postalCodeGenerator = new PostalCodeGenerator(config);
-        this.countryGenerator = registryContext.isCountryRegistered(locale) ? new CountryGenerator(config) : null;
+        this.cityGenerator = registryContext.isCityRegistered(locale) ? new CityGenerator(config.forChildStream("city")) : null;
+        this.stateGenerator = registryContext.isStateRegistered(locale) ? new StateGenerator(config.forChildStream("state")) : null;
+        this.postalCodeGenerator = new PostalCodeGenerator(config.forChildStream("postalCode"));
+        this.countryGenerator = registryContext.isCountryRegistered(locale) ? new CountryGenerator(config.forChildStream("country")) : null;
     }
 
     private static String[] loadSecondaryUnits(Locale locale) {

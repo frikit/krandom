@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Estagiário
+Júnior
+Associado
+Pleno
+Sênior
+Líder
+Principal
+Especialista
+Diretor
+Vice-presidente

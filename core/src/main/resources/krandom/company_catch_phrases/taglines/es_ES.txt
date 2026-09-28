@@ -1,0 +1,5 @@
+# Catch-phrase taglines, one per line.
+para equipos modernos
+para crecimiento digital
+para escala global
+para impacto medible

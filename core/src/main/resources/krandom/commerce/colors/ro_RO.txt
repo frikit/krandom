@@ -1,0 +1,7 @@
+# Product colors, one per line.
+roșu
+albastru
+verde
+negru
+alb
+argintiu

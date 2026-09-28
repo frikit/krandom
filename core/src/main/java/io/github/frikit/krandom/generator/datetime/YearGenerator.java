@@ -37,11 +37,16 @@ public final class YearGenerator implements Generator<Year>, Seedable {
         this(minYear, maxYear, GeneratorConfig.defaults());
     }
 
-    public YearGenerator(int minYear, int maxYear, long seed) {
-        this(minYear, maxYear, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    private YearGenerator(int minYear, int maxYear, GeneratorConfig config) {
+    /**
+     * Creates a year generator over {@code [minYear, maxYear]} using the configuration's random
+     * source.
+     *
+     * @param minYear lowest year (inclusive)
+     * @param maxYear highest year (inclusive)
+     * @param config  generator configuration; must not be {@code null}
+     * @throws IllegalArgumentException if {@code minYear > maxYear}
+     */
+    public YearGenerator(int minYear, int maxYear, GeneratorConfig config) {
         if (minYear > maxYear) {
             throw new IllegalArgumentException("minYear must be <= maxYear");
         }

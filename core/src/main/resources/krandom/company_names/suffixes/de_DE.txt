@@ -1,0 +1,9 @@
+# Company legal-form suffixes, one per line.
+GmbH
+AG
+KG
+GmbH & Co. KG
+OHG
+UG (haftungsbeschränkt)
+e.K.
+SE

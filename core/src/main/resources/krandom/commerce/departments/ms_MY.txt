@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Buku
+Elektronik
+Aktiviti Luar
+Rumah
+Mainan
+Taman

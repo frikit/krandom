@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Bežný účet
+Sporiaci účet
+Podnikateľský účet
+Spoločný účet
+Mzdový účet

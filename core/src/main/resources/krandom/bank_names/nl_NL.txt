@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Eerste Nationale Bank
+Globale Trustbank
+Pionier Kredietunie
+Summit Financieel
+Burgerspaarbank

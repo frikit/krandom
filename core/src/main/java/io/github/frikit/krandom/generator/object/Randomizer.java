@@ -21,6 +21,12 @@ import java.lang.annotation.Target;
  *   <li>a no-arg constructor, or</li>
  *   <li>a constructor that matches the declared {@link RandomizerArgument} list.</li>
  * </ul>
+ *
+ * <p>One instance is created per annotated field for the lifetime of a top-level generator, so a
+ * stateful generator such as a sequence keeps its state across generated objects. In a seeded
+ * configuration, generators implementing {@link io.github.frikit.krandom.generator.Seedable} are
+ * reseeded for every object from that object's seeded stream, so they replay from the seed and its
+ * recipe. Other generators control their own randomness, which seeded replay cannot reproduce.
  */
 @Target({ ElementType.FIELD, ElementType.RECORD_COMPONENT })
 @Retention(RetentionPolicy.RUNTIME)

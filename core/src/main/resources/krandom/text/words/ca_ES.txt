@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+dades
+model
+sistema
+senyal
+procés
+anàlisi
+plataforma
+xarxa
+segur
+servei
+estructura
+mòdul
+lògica
+valor
+context
+objectiu

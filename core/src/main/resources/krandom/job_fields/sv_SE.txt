@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Utveckling
+Marknadsföring
+Försäljning
+Ekonomi
+Drift
+Produkt
+Personal
+Juridik
+Design
+Kundtjänst
+Forskning
+Datavetenskap
+Säkerhet
+Inköp
+Logistik

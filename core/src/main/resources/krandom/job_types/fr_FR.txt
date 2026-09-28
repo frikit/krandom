@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Temps plein
+Temps partiel
+Contrat
+Temporaire
+Stage
+Freelance
+Apprentissage
+Saisonnier
+Bénévole
+À distance

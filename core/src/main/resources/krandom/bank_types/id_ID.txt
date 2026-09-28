@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Bank ritel
+Bank komersial
+Bank investasi
+Koperasi simpan pinjam
+Bank digital

@@ -1,0 +1,5 @@
+# Catch-phrase taglines, one per line.
+モダンなチームのための
+デジタル成長のための
+グローバル展開のための
+測定可能な成果のための

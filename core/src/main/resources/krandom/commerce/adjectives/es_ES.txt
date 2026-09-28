@@ -1,0 +1,7 @@
+# Product adjectives, one per line.
+Pequeno
+Elegante
+Rustico
+Practico
+Premium
+Ergonomico

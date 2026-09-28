@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+SMA/SMK
+Diploma (D3)
+Sarjana (S1)
+Magister (S2)
+Doktor (S3)
+Pendidikan profesi
+Sertifikat kompetensi

@@ -40,8 +40,8 @@ class AgeGeneratorTest {
     @Test
     @DisplayName("seeded constructor produces reproducible output")
     void seededReproducibility() {
-        AgeGenerator gen1 = new AgeGenerator(12345L);
-        AgeGenerator gen2 = new AgeGenerator(12345L);
+        AgeGenerator gen1 = new AgeGenerator(seeded(12345L));
+        AgeGenerator gen2 = new AgeGenerator(seeded(12345L));
         List<Integer> list1 = gen1.generateList(50);
         List<Integer> list2 = gen2.generateList(50);
         assertEquals(list1, list2);
@@ -50,8 +50,8 @@ class AgeGeneratorTest {
     @Test
     @DisplayName("different seeds produce different sequences")
     void differentSeeds() {
-        AgeGenerator gen1 = new AgeGenerator(111L);
-        AgeGenerator gen2 = new AgeGenerator(222L);
+        AgeGenerator gen1 = new AgeGenerator(seeded(111L));
+        AgeGenerator gen2 = new AgeGenerator(seeded(222L));
         assertNotEquals(gen1.generateList(50), gen2.generateList(50));
     }
 
@@ -102,8 +102,8 @@ class AgeGeneratorTest {
     @Test
     @DisplayName("AgeType with seed produces reproducible output")
     void ageTypeWithSeed() {
-        AgeGenerator gen1 = new AgeGenerator(AgeType.ADULT, 99L);
-        AgeGenerator gen2 = new AgeGenerator(AgeType.ADULT, 99L);
+        AgeGenerator gen1 = new AgeGenerator(AgeType.ADULT, seeded(99L));
+        AgeGenerator gen2 = new AgeGenerator(AgeType.ADULT, seeded(99L));
         assertEquals(gen1.generateList(30), gen2.generateList(30));
     }
 
@@ -138,7 +138,7 @@ class AgeGeneratorTest {
     @Test
     @DisplayName("null AgeType with seed throws NullPointerException")
     void nullAgeTypeWithSeedThrows() {
-        assertThrows(NullPointerException.class, () -> new AgeGenerator(null, 42L));
+        assertThrows(NullPointerException.class, () -> new AgeGenerator(null, seeded(42L)));
     }
 
     @Test
@@ -230,5 +230,9 @@ class AgeGeneratorTest {
         assertEquals(65, AgeType.ADULT.getMaxAge());
         assertEquals(65, AgeType.SENIOR.getMinAge());
         assertEquals(100, AgeType.SENIOR.getMaxAge());
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

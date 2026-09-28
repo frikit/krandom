@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+deposit
+pengeluaran
+pembayaran
+pemindahan
+bayaran balik
+caj
+faedah
+caj balik

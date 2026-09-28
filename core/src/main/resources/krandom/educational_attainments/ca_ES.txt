@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Batxillerat
+Tècnic superior
+Grau universitari
+Màster
+Doctorat
+Titulació professional
+Certificat de professionalitat

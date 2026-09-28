@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+sadeleştirmek
+güçlendirmek
+değerlendirmek
+optimize etmek
+entegre etmek
+ölçeklendirmek
+sunmak
+mümkün kılmak

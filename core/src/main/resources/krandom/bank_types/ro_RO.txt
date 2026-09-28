@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Bancă de retail
+Bancă comercială
+Bancă de investiții
+Cooperativă de credit
+Bancă online

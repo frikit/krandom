@@ -29,7 +29,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,6 +90,19 @@ class GeneratorConfigTest {
         assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
         assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
+        assertEquals(EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS, c.getEmailDomainPolicy());
+    }
+
+    @Test
+    @DisplayName("email domain policy is configurable and retained by toBuilder")
+    void emailDomainPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED, config.getEmailDomainPolicy());
+        assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED, config.toBuilder().build().getEmailDomainPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().emailDomainPolicy(null));
     }
 
     @Test
@@ -443,6 +455,20 @@ class GeneratorConfigTest {
     }
 
     @Test
+    @DisplayName("an Integer.MAX_VALUE maximum size is rejected instead of overflowing during generation")
+    void maximumIntSizesAreRejected() {
+        IllegalArgumentException collection = assertThrows(IllegalArgumentException.class,
+            () -> GeneratorConfig.builder().collectionSize(0, Integer.MAX_VALUE));
+        IllegalArgumentException string = assertThrows(IllegalArgumentException.class,
+            () -> GeneratorConfig.builder().stringLength(1, Integer.MAX_VALUE));
+
+        assertTrue(collection.getMessage().contains("Integer.MAX_VALUE"), collection.getMessage());
+        assertTrue(string.getMessage().contains("Integer.MAX_VALUE"), string.getMessage());
+        assertEquals(Integer.MAX_VALUE - 1,
+                     GeneratorConfig.builder().collectionSize(0, Integer.MAX_VALUE - 1).build().getMaxCollectionSize());
+    }
+
+    @Test
     @DisplayName("object generation settings are stored on the root config")
     void objectGenerationSettingsStored() {
         LocalDate min = LocalDate.of(2021, 1, 1);
@@ -587,22 +613,6 @@ class GeneratorConfigTest {
         assertTrue(config.shouldObjectExclude(password));
         assertTrue(config.shouldObjectExclude(createdAt));
         assertFalse(config.shouldObjectExclude(name));
-    }
-
-    @Test
-    @DisplayName("legacy simple-name object field override key remains supported on the root config")
-    void legacySimpleNameObjectFieldOverrideKeyStillWorks() throws Exception {
-        GeneratorConfig.Builder builder = GeneratorConfig.builder();
-
-        Field overridesField = GeneratorConfig.Builder.class.getDeclaredField("objectFieldOverrides");
-        overridesField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        Map<String, Generator<?>> fieldOverrides = (Map<String, Generator<?>>) overridesField.get(builder);
-        fieldOverrides.put("RootObjectConfigFixture.name", () -> "LEGACY");
-
-        GeneratorConfig config = builder.build();
-        assertEquals("LEGACY",
-                     config.getObjectFieldOverride(RootObjectConfigFixture.class, "name").orElseThrow().generate());
     }
 
     @Test

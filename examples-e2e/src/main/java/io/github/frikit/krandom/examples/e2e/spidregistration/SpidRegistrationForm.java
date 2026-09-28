@@ -113,7 +113,7 @@ public final class SpidRegistrationForm {
         NationalIdGenerator codiceFiscale = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ITALY).seed(seed) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
         // A CIE is valid for up to ten years.
         int thisYear = LocalDate.now().getYear();
-        YearGenerator expiryYear = new YearGenerator(thisYear + 1, thisYear + 10, seed + 1);
+        YearGenerator expiryYear = new YearGenerator(thisYear + 1, thisYear + 10, GeneratorConfig.builder().seed(seed + 1).build());
 
         return new ObjectFaker<>(SpidRegistration.class, config)
                 // Opaque SPID code assigned by the identity provider (4 letters + 10 digits).

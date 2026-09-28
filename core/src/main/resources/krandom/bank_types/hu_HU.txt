@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Lakossági bank
+Kereskedelmi bank
+Befektetési bank
+Hitelszövetkezet
+Online bank

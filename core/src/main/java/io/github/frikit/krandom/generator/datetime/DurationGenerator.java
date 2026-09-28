@@ -67,7 +67,13 @@ public final class DurationGenerator implements Generator<Duration> {
         if (maxSeconds == minSeconds) {
             return Duration.ofSeconds(minSeconds);
         }
-        long sample = minSeconds + random.nextLong(maxSeconds - minSeconds + 1);
+        long width = maxSeconds - minSeconds;
+        // With minSeconds >= 0 the width never overflows; only the inclusive bound width + 1 can,
+        // and only for the full range [0, Long.MAX_VALUE], whose 2^63 values an unsigned shift of
+        // one random long covers uniformly.
+        long sample = width == Long.MAX_VALUE
+                      ? random.nextLong() >>> 1
+                      : minSeconds + random.nextLong(width + 1);
         return Duration.ofSeconds(sample);
     }
 }

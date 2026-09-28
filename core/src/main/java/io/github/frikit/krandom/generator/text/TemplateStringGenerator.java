@@ -42,16 +42,6 @@ public final class TemplateStringGenerator implements Generator<String> {
     }
 
     /**
-     * Creates a generator with the provided template and seed.
-     *
-     * @param template template with {@code #} and/or {@code ?} placeholders
-     * @param seed     deterministic seed
-     */
-    public TemplateStringGenerator(String template, long seed) {
-        this(template, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a generator with the provided template and config.
      *
      * @param template template with {@code #} and/or {@code ?} placeholders

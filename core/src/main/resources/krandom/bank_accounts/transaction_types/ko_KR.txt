@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+입금
+출금
+결제
+이체
+환불
+수수료
+이자
+지불 거절

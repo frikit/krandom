@@ -8,75 +8,70 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates company catch phrases similar to Faker's {@code catch_phrase()}.
+ * Generates locale-aware company catch phrases similar to Faker's {@code catch_phrase()}.
+ *
+ * <p>Vocabulary and word order are resolved through the configuration's
+ * {@code DataRegistryContext}, which defaults to {@link CompanyCatchPhraseDataRegistry}; locales
+ * without built-in data fall back to the bundled English vocabulary.
  */
 public final class CompanyCatchPhraseGenerator implements Generator<String> {
 
-    private static final LocaleCatchPhraseData EN = new LocaleCatchPhraseData(
-        List.of("Adaptive", "Unified", "Trusted", "Intelligent", "Future-ready", "Effortless", "Secure"),
-        List.of("Platform", "Network", "Experience", "Engine", "Ecosystem", "Suite", "Framework"),
-        List.of("for modern teams", "for digital growth", "for global scale", "for measurable impact")
-    );
+    private static final CompanyCatchPhraseDataProvider DEFAULT_PROVIDER =
+        new BuiltInCompanyCatchPhraseDataProvider(Locale.ROOT, "default");
 
-    private static final Map<String, LocaleCatchPhraseData> DATA_BY_LANGUAGE = dataByLanguage();
+    private final List<String> adjectives;
+    private final List<String> nouns;
+    private final List<String> taglines;
+    private final String       format;
+    private final Random       random;
 
-    private final Locale locale;
-    private final Random random;
-
+    /**
+     * Creates a catch-phrase generator with default configuration.
+     */
     public CompanyCatchPhraseGenerator() {
         this(GeneratorConfig.defaults());
     }
 
+    /**
+     * Creates a catch-phrase generator for the given locale.
+     *
+     * @param locale locale whose vocabulary to use
+     */
     public CompanyCatchPhraseGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
 
+    /**
+     * Creates a catch-phrase generator with the specified configuration (locale + optional seed).
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
     public CompanyCatchPhraseGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.locale = effective.getLocale();
+        CompanyCatchPhraseDataProvider provider = effective.getRegistryContext().companyCatchPhraseProvider(effective.getLocale());
+        CompanyCatchPhraseDataProvider resolved = provider != null ? provider : DEFAULT_PROVIDER;
+        this.adjectives = resolved.getAdjectives();
+        this.nouns = resolved.getNouns();
+        this.taglines = resolved.getTaglines();
+        this.format = resolved.getFormat();
         this.random = effective.createRandom();
-    }
-
-    private static Map<String, LocaleCatchPhraseData> dataByLanguage() {
-        Map<String, LocaleCatchPhraseData> map = new HashMap<>();
-        map.put("en", EN);
-        map.put("es", new LocaleCatchPhraseData(
-            List.of("Innovacion", "Confianza", "Escala", "Impacto", "Agilidad", "Claridad"),
-            List.of("Plataforma", "Red", "Experiencia", "Motor", "Ecosistema", "Suite"),
-            List.of("para equipos modernos", "para crecimiento digital", "para escala global", "para impacto medible")
-        ));
-        map.put("de", new LocaleCatchPhraseData(
-            List.of("Sicher", "Vernetzt", "Skalierbar", "Effizient", "Intelligent", "Modern"),
-            List.of("Plattform", "Netzwerk", "Erlebnis", "Engine", "Oekosystem", "Suite"),
-            List.of("fuer moderne teams", "fuer digitales wachstum", "fuer globale skalierung", "fuer messbaren nutzen")
-        ));
-        map.put("fr", new LocaleCatchPhraseData(
-            List.of("Fiable", "Unifie", "Intelligent", "Moderne", "Agile", "Securise"),
-            List.of("Plateforme", "Reseau", "Experience", "Moteur", "Ecosysteme", "Suite"),
-            List.of("pour equipes modernes", "pour croissance numerique", "pour echelle globale", "pour impact mesurable")
-        ));
-        return Map.copyOf(map);
     }
 
     @Override
     public String generate() {
-        LocaleCatchPhraseData data = DATA_BY_LANGUAGE.getOrDefault(locale.getLanguage(), EN);
-        return data.adjectives().get(random.nextInt(data.adjectives().size())) + " "
-               + data.nouns().get(random.nextInt(data.nouns().size())) + " "
-               + data.taglines().get(random.nextInt(data.taglines().size()));
+        String adjective = pick(adjectives);
+        String noun = pick(nouns);
+        String tagline = pick(taglines);
+        return format.replace("{adjective}", adjective).replace("{noun}", noun).replace("{tagline}", tagline);
     }
 
-
-    private record LocaleCatchPhraseData(List<String> adjectives, List<String> nouns, List<String> taglines) {
-
+    private String pick(List<String> values) {
+        return values.get(random.nextInt(values.size()));
     }
 }

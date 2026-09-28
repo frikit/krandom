@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Ohjelmistokehittäjä
+Tuotepäällikkö
+Data-analyytikko
+UX-suunnittelija
+Asiakkuuspäällikkö
+Markkinointiasiantuntija
+Liiketoiminta-analyytikko
+DevOps-insinööri
+Palveluiden luotettavuusinsinööri
+Kehityspäällikkö
+Ratkaisuarkkitehti
+Tekninen kirjoittaja
+Testausinsinööri
+Projektipäällikkö
+Tietoturva-asiantuntija
+Tietokantojen ylläpitäjä

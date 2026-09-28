@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Kitap
+Elektronik
+Doğa sporları
+Ev
+Oyuncak
+Bahçe

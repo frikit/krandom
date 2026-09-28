@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Cuenta corriente
+Cuenta de ahorro
+Cuenta empresarial
+Cuenta conjunta
+Cuenta nomina

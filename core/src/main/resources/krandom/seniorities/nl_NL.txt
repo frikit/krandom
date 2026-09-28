@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Stagiair
+Junior
+Medewerker
+Medior
+Senior
+Teamleider
+Hoofdspecialist
+Specialist
+Directeur
+Vicepresident

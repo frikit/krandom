@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+stroomlijnen
+versterken
+benutten
+optimaliseren
+integreren
+opschalen
+leveren
+mogelijk maken

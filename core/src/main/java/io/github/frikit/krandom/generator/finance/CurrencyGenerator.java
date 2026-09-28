@@ -68,8 +68,8 @@ import java.util.Random;
  * <p><strong>Seeded Generation:</strong>
  * <pre>{@code
  * // Reproducible currency generation
- * CurrencyGenerator gen1 = new CurrencyGenerator(new GeneratorConfig(12345L));
- * CurrencyGenerator gen2 = new CurrencyGenerator(new GeneratorConfig(12345L));
+ * CurrencyGenerator gen1 = new CurrencyGenerator(GeneratorConfig.builder().seed(12345L).build());
+ * CurrencyGenerator gen2 = new CurrencyGenerator(GeneratorConfig.builder().seed(12345L).build());
  * gen1.generate().equals(gen2.generate());  // true (same sequence)
  * }</pre>
  *
@@ -399,7 +399,7 @@ public final class CurrencyGenerator implements Generator<String> {
      * @return formatted amount with locale currency
      */
     public String generatePriceTag() {
-        return new MoneyGenerator(config).generate();
+        return new MoneyGenerator(config.forChildStream("money")).generate();
     }
 
     /**
@@ -409,7 +409,7 @@ public final class CurrencyGenerator implements Generator<String> {
      * @return formatted amount with locale currency
      */
     public String generatePriceTag(Locale locale) {
-        return new MoneyGenerator(config).generate(locale);
+        return new MoneyGenerator(config.forChildStream("money")).generate(locale);
     }
 
     /**

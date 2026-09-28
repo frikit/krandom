@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Fuldtid
+Deltid
+Kontrakt
+Midlertidig
+Praktik
+Freelance
+Lærlingeforløb
+Sæsonarbejde
+Frivilligt arbejde
+Fjernarbejde

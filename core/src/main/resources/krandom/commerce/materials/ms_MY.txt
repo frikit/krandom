@@ -1,0 +1,7 @@
+# Product materials, one per line.
+Keluli
+Kayu
+Konkrit
+Plastik
+Granit
+Kapas

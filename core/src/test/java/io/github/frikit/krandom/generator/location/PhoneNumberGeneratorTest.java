@@ -211,8 +211,8 @@ class PhoneNumberGeneratorTest {
     }
 
     @Test
-    @DisplayName("unsupported locales remain unclassified under the default phone safety policy")
-    void unsupportedLocalesRemainUnclassifiedByDefault() {
+    @DisplayName("unknown language-only locales resolve to en_US and use the fictional NANPA range by default")
+    void unknownLanguageOnlyLocalesUseFictionalNANPARangeByDefault() {
         Random zeroRandom = new Random() {
             @Override
             public int nextInt(int bound) {
@@ -224,7 +224,7 @@ class PhoneNumberGeneratorTest {
                                                 .random(zeroRandom)
                                                 .build();
 
-        assertEquals("2122000000", new PhoneNumberGenerator(config).generate(false));
+        assertEquals("2125550100", new PhoneNumberGenerator(config).generate(false));
     }
 
     @Test
@@ -937,15 +937,11 @@ class PhoneNumberGeneratorTest {
     // ── Edge cases and variety ────────────────────────────────────────────────
 
     @Test
-    @DisplayName("unsupported locale defaults to US format")
-    void unsupportedLocaleDefaultsToUS() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("xx", "YY"));
-        String phone = gen.generate();
-
-        assertNotNull(phone);
-        // Should use US format as default
-        assertTrue(phone.matches("\\(\\d{3}\\) \\d{3}-\\d{4}|\\d{3}-\\d{3}-\\d{4}"),
-                   "Expected US format for unknown locale, got: " + phone);
+    @DisplayName("an unknown country and language use the documented en_US default")
+    void unknownCountryAndLanguageUseTheDocumentedDefault() {
+        assertEquals(new PhoneNumberGenerator(GeneratorConfig.builder().locale(Locale.US).seed(3L).build()).generateList(20),
+                     new PhoneNumberGenerator(GeneratorConfig.builder().locale(Locale.of("xx", "YY")).seed(3L).build())
+                         .generateList(20));
     }
 
     @Test

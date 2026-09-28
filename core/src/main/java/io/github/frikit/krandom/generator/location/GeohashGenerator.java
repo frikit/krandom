@@ -52,25 +52,6 @@ public final class GeohashGenerator implements Generator<String> {
     }
 
     /**
-     * Creates a deterministic geohash generator with default precision.
-     *
-     * @param seed deterministic seed
-     */
-    public GeohashGenerator(long seed) {
-        this(DEFAULT_PRECISION, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
-     * Creates a deterministic geohash generator with explicit precision.
-     *
-     * @param precision geohash length, 1-12
-     * @param seed      deterministic seed
-     */
-    public GeohashGenerator(int precision, long seed) {
-        this(precision, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a geohash generator with default precision and explicit configuration.
      *
      * @param config generator configuration

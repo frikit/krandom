@@ -214,8 +214,8 @@ public class KrandomProperties {
 
     /**
      * Serialized replay recipe ({@code base64:<url-safe base64>} or the literal serialized form
-     * with {@code \n} escapes). Mutually exclusive with {@code krandom.seed} and
-     * {@code krandom.locale}.
+     * with {@code \n} escapes). Exclusive: every other generation property of this class maps onto
+     * a field the recipe already defines, so setting one of them next to the recipe fails startup.
      */
     private String recipe;
 

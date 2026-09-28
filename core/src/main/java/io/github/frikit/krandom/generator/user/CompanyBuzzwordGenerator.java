@@ -8,75 +8,70 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates company buzzword phrases similar to Faker's {@code bs()}.
+ * Generates locale-aware company buzzword phrases similar to Faker's {@code bs()}.
+ *
+ * <p>Vocabulary and word order are resolved through the configuration's
+ * {@code DataRegistryContext}, which defaults to {@link CompanyBuzzwordDataRegistry}; locales
+ * without built-in data fall back to the bundled English vocabulary.
  */
 public final class CompanyBuzzwordGenerator implements Generator<String> {
 
-    private static final LocaleBuzzwordData EN = new LocaleBuzzwordData(
-        List.of("streamline", "empower", "leverage", "optimize", "synergize", "scale", "deliver", "enable"),
-        List.of("cross-platform", "end-to-end", "best-in-class", "frictionless", "cloud-native", "data-driven"),
-        List.of("solutions", "workflows", "infrastructure", "platforms", "experiences", "capabilities")
-    );
+    private static final CompanyBuzzwordDataProvider DEFAULT_PROVIDER =
+        new BuiltInCompanyBuzzwordDataProvider(Locale.ROOT, "default");
 
-    private static final Map<String, LocaleBuzzwordData> DATA_BY_LANGUAGE = dataByLanguage();
+    private final List<String> verbs;
+    private final List<String> adjectives;
+    private final List<String> nouns;
+    private final String       format;
+    private final Random       random;
 
-    private final Locale locale;
-    private final Random random;
-
+    /**
+     * Creates a buzzword generator with default configuration.
+     */
     public CompanyBuzzwordGenerator() {
         this(GeneratorConfig.defaults());
     }
 
+    /**
+     * Creates a buzzword generator for the given locale.
+     *
+     * @param locale locale whose vocabulary to use
+     */
     public CompanyBuzzwordGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
     }
 
+    /**
+     * Creates a buzzword generator with the specified configuration (locale + optional seed).
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
     public CompanyBuzzwordGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        this.locale = effective.getLocale();
+        CompanyBuzzwordDataProvider provider = effective.getRegistryContext().companyBuzzwordProvider(effective.getLocale());
+        CompanyBuzzwordDataProvider resolved = provider != null ? provider : DEFAULT_PROVIDER;
+        this.verbs = resolved.getVerbs();
+        this.adjectives = resolved.getAdjectives();
+        this.nouns = resolved.getNouns();
+        this.format = resolved.getFormat();
         this.random = effective.createRandom();
-    }
-
-    private static Map<String, LocaleBuzzwordData> dataByLanguage() {
-        Map<String, LocaleBuzzwordData> map = new HashMap<>();
-        map.put("en", EN);
-        map.put("de", new LocaleBuzzwordData(
-            List.of("digitalisiere", "staerke", "optimiere", "automatisiere", "skaliere", "verbinde"),
-            List.of("datenzentrierte", "cloudbasierte", "nahtlose", "integrierte", "effiziente", "modulare"),
-            List.of("prozesse", "plattformen", "netzwerke", "services", "workflows", "loesungen")
-        ));
-        map.put("fr", new LocaleBuzzwordData(
-            List.of("optimiser", "renforcer", "accelerer", "structurer", "connecter", "transformer"),
-            List.of("numerique", "agile", "integree", "modulaire", "fiable", "performante"),
-            List.of("processus", "plateformes", "services", "workflows", "ecosystemes", "solutions")
-        ));
-        map.put("es", new LocaleBuzzwordData(
-            List.of("optimizar", "potenciar", "acelerar", "integrar", "escalar", "automatizar"),
-            List.of("digital", "agil", "integrada", "modular", "segura", "eficiente"),
-            List.of("procesos", "plataformas", "servicios", "flujos", "ecosistemas", "soluciones")
-        ));
-        return Map.copyOf(map);
     }
 
     @Override
     public String generate() {
-        LocaleBuzzwordData data = DATA_BY_LANGUAGE.getOrDefault(locale.getLanguage(), EN);
-        return data.lead().get(random.nextInt(data.lead().size())) + " "
-               + data.middle().get(random.nextInt(data.middle().size())) + " "
-               + data.tail().get(random.nextInt(data.tail().size()));
+        String verb = pick(verbs);
+        String adjective = pick(adjectives);
+        String noun = pick(nouns);
+        return format.replace("{verb}", verb).replace("{adjective}", adjective).replace("{noun}", noun);
     }
 
-
-    private record LocaleBuzzwordData(List<String> lead, List<String> middle, List<String> tail) {
-
+    private String pick(List<String> values) {
+        return values.get(random.nextInt(values.size()));
     }
 }

@@ -119,7 +119,7 @@ public final class TextFormatProvider {
      */
     public String regexify(String pattern) {
         Objects.requireNonNull(pattern, "pattern must not be null");
-        return new RegexGenerator(pattern, random.nextLong()).generate();
+        return new RegexGenerator(pattern, GeneratorConfig.builder().seed(random.nextLong()).build()).generate();
     }
 
     /**

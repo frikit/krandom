@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Inżynier oprogramowania
+Menedżer produktu
+Analityk danych
+Projektant UX
+Opiekun klienta kluczowego
+Specjalista ds. marketingu
+Analityk biznesowy
+Inżynier DevOps
+Inżynier niezawodności serwisów
+Kierownik zespołu inżynierów
+Architekt rozwiązań
+Redaktor techniczny
+Inżynier ds. jakości
+Kierownik projektu
+Inżynier ds. bezpieczeństwa
+Administrator baz danych

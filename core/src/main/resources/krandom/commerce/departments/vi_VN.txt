@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Sách
+Điện tử
+Dã ngoại
+Nhà cửa
+Đồ chơi
+Vườn

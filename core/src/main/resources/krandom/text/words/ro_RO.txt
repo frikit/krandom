@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+date
+model
+sistem
+semnal
+proces
+analiză
+platformă
+rețea
+sigur
+serviciu
+structură
+modul
+logică
+valoare
+context
+obiectiv

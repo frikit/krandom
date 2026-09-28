@@ -1,0 +1,7 @@
+# Catch-phrase nouns, one per line.
+Plataforma
+Red
+Experiencia
+Motor
+Ecosistema
+Suite

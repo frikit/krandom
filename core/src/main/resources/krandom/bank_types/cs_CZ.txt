@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Retailová banka
+Obchodní banka
+Investiční banka
+Družstevní záložna
+Internetová banka

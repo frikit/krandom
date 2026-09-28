@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+고등학교 졸업
+전문학사
+학사
+석사
+박사
+전문석사
+직업훈련 수료

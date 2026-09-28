@@ -1,0 +1,7 @@
+# Product materials, one per line.
+acer
+fusta
+formigó
+plàstic
+granit
+cotó

@@ -60,8 +60,8 @@ public final class ShipmentInfoGenerator implements Generator<ShipmentInfo> {
     public ShipmentInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.uuidGenerator = new UUIDGenerator(config);
-        this.orderInfoGenerator = new OrderInfoGenerator(config);
+        this.uuidGenerator = new UUIDGenerator(config.forChildStream("uUID"));
+        this.orderInfoGenerator = new OrderInfoGenerator(config.forChildStream("orderInfo"));
     }
 
     @Override

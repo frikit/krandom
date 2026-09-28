@@ -41,7 +41,7 @@ dependencies {
     implementation("io.github.frikit:krandom-spring-boot-starter")
     testImplementation("io.github.frikit:krandom-kotest-extensions")
     testImplementation("io.github.frikit:krandom-kotlin-dsl")
-    testImplementation("io.github.frikit:krandom-junit") // JUnit 5 seed extension, from 1.2.0
+    testImplementation("io.github.frikit:krandom-junit") // JUnit Jupiter seed extension, from 1.2.0
 }
 ```
 
@@ -168,4 +168,3 @@ See also:
 - [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }})
 - [Property Testing Integrations]({{ '/guides/property-testing-integrations/' | relative_url }})
 - [Kotlin DSL]({{ '/guides/kotlin-dsl/' | relative_url }})
-- [Migrating to 2.0.0]({{ '/guides/migration-to-v2/' | relative_url }})

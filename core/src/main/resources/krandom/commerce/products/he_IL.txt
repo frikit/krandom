@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+כיסא
+שולחן
+מחשב
+מקלדת
+נעליים
+שעון

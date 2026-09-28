@@ -10,7 +10,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Objects;
 
 /**
- * Jackson utility for krandom integrations.
+ * Jackson 2.x ({@code com.fasterxml.jackson}) utility for krandom integrations.
+ *
+ * <p>This module targets Jackson 2 only; it cannot configure a Jackson 3 ({@code tools.jackson})
+ * mapper such as the one Spring Boot 4 auto-configures by default.
  */
 public final class KrandomJackson {
 

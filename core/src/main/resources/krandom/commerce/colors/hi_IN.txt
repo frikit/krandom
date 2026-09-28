@@ -1,0 +1,7 @@
+# Product colors, one per line.
+लाल
+नीला
+हरा
+काला
+सफ़ेद
+चाँदी

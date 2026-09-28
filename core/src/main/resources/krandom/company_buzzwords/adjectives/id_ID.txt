@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+lintas platform
+menyeluruh
+terbaik di kelasnya
+tanpa hambatan
+berbasis cloud
+berbasis data

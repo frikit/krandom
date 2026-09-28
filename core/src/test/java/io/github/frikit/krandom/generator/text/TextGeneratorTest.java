@@ -86,12 +86,21 @@ class TextGeneratorTest {
     @Test
     @DisplayName("unknown locale language falls back to default vocabulary")
     void unknownLocaleFallback() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(321L).locale(Locale.of("ru", "RU")).build();
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(321L).locale(Locale.of("is", "IS")).build();
         String text = new TextGenerator(cfg).generate(80);
         assertTrue(text.contains("alpha")
                    || text.contains("beta")
                    || text.contains("gamma")
                    || text.contains("delta"));
+    }
+
+    @Test
+    @DisplayName("Russian locale uses Russian vocabulary")
+    void russianVocabulary() {
+        GeneratorConfig cfg = GeneratorConfig.builder().seed(321L).locale(Locale.of("ru", "RU")).build();
+        String text = new TextGenerator(cfg).generate(80);
+        assertTrue(text.codePoints().anyMatch(ch -> Character.UnicodeScript.of(ch) == Character.UnicodeScript.CYRILLIC),
+                   text);
     }
 
     @Test

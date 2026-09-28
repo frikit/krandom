@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+data
+malli
+järjestelmä
+signaali
+prosessi
+analyysi
+alusta
+verkko
+turvallinen
+palvelu
+rakenne
+moduuli
+logiikka
+arvo
+konteksti
+tavoite

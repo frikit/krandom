@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /** Central strict/lenient decision for contextual object-generation failures. */
 final class ObjectGenerationFailurePolicy {
@@ -23,7 +24,7 @@ final class ObjectGenerationFailurePolicy {
 
     private final boolean lenient;
     private final GenerationFailureListener listener;
-    private final Optional<String> replayIdentity;
+    private final Supplier<Optional<String>> replayIdentity;
 
     ObjectGenerationFailurePolicy(boolean lenient) {
         this(lenient, NOOP_LISTENER);
@@ -36,9 +37,23 @@ final class ObjectGenerationFailurePolicy {
     ObjectGenerationFailurePolicy(boolean lenient,
                                   GenerationFailureListener listener,
                                   Optional<String> replayIdentity) {
+        this(lenient, listener, constant(Objects.requireNonNull(replayIdentity, "replayIdentity must not be null")));
+    }
+
+    /**
+     * Creates a policy whose replay identity is computed only when a failure is reported, because
+     * serializing a recipe is far more expensive than the rare failure path that needs it.
+     */
+    ObjectGenerationFailurePolicy(boolean lenient,
+                                  GenerationFailureListener listener,
+                                  Supplier<Optional<String>> replayIdentity) {
         this.lenient = lenient;
         this.listener = Objects.requireNonNull(listener, "listener must not be null");
         this.replayIdentity = Objects.requireNonNull(replayIdentity, "replayIdentity must not be null");
+    }
+
+    private static Supplier<Optional<String>> constant(Optional<String> replayIdentity) {
+        return () -> replayIdentity;
     }
 
     <T> T handle(ObjectGenerationException failure, T fallback) {
@@ -47,7 +62,7 @@ final class ObjectGenerationFailurePolicy {
             () -> new IllegalArgumentException("Failure policy requires structured context", failure));
         Throwable cause = failure.getCause();
         String causeType = cause != null ? cause.getClass().getName() : failure.getClass().getName();
-        notifyListener(new GenerationFailureDiagnostic(context, causeType, replayIdentity));
+        notifyListener(new GenerationFailureDiagnostic(context, causeType, replayIdentity.get()));
         if (!lenient) {
             throw failure;
         }

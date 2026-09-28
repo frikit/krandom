@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Vähittäispankki
+Liikepankki
+Investointipankki
+Luotto-osuuskunta
+Verkkopankki

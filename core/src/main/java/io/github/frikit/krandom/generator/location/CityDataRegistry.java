@@ -16,14 +16,14 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Central registry for locale-specific city name providers.
  *
- * <p>This registry provides city data for {@link CityGenerator} and supports runtime
- * registration of custom providers to add or override city lists for any locale.
+ * <p>This read-only registry holds the built-in city data for {@link CityGenerator} and backs
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  *
  * <p>Built-in support is auto-loaded at class init from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
  *
  * <p>Custom providers registered via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder} override built-in data
- * for the same locale and enable support for additional locales.
+ * for the same locale and enable support for additional locales within that context.
  */
 public final class CityDataRegistry {
 

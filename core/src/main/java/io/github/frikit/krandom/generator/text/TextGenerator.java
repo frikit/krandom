@@ -8,31 +8,30 @@ package io.github.frikit.krandom.generator.text;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
 /**
- * Generates char-limited text blocks and text collections.
+ * Generates char-limited text blocks and text collections from a locale-aware vocabulary.
+ *
+ * <p>The vocabulary is resolved through the configuration's {@code DataRegistryContext}, which
+ * defaults to {@link TextWordDataRegistry}; locales without built-in data fall back to the bundled
+ * English words. A caller-supplied word list in {@link TextOptions} takes precedence over the
+ * locale vocabulary.
  */
 public final class TextGenerator implements Generator<String> {
 
-    private static final List<String> DEFAULT_WORDS = List.of(
-        "alpha", "beta", "gamma", "delta", "vector", "signal", "stream", "token",
-        "cloud", "matrix", "engine", "system", "future", "global", "local", "secure"
-    );
+    private static final TextWordDataProvider DEFAULT_PROVIDER =
+        new BuiltInTextWordDataProvider(Locale.ROOT, "default");
 
-    private static final Map<String, List<String>> WORDS_BY_LANGUAGE = wordsByLanguage();
-
-    private final Random random;
-    private final Locale locale;
+    private final Random       random;
+    private final Locale       locale;
+    private final List<String> localeWords;
 
     public TextGenerator() {
         this(GeneratorConfig.defaults());
@@ -46,45 +45,8 @@ public final class TextGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
-    }
-
-    private static List<String> defaultWordsForLocale(Locale locale) {
-        List<String> words = WORDS_BY_LANGUAGE.get(locale.getLanguage());
-        return words == null ? DEFAULT_WORDS : words;
-    }
-
-    private static Map<String, List<String>> wordsByLanguage() {
-        Map<String, List<String>> map = new HashMap<>();
-        map.put("en", DEFAULT_WORDS);
-        map.put("de", List.of(
-            "daten", "modell", "system", "signal", "prozess", "analyse", "plattform", "netz",
-            "sicher", "service", "struktur", "modul", "logik", "wert", "kontext", "ziel"
-        ));
-        map.put("fr", List.of(
-            "donnee", "modele", "systeme", "signal", "processus", "analyse", "plateforme", "reseau",
-            "secure", "service", "structure", "module", "logique", "valeur", "contexte", "objectif"
-        ));
-        map.put("es", List.of(
-            "dato", "modelo", "sistema", "senal", "proceso", "analisis", "plataforma", "red",
-            "seguro", "servicio", "estructura", "modulo", "logica", "valor", "contexto", "objetivo"
-        ));
-        map.put("it", List.of(
-            "dato", "modello", "sistema", "segnale", "processo", "analisi", "piattaforma", "rete",
-            "sicuro", "servizio", "struttura", "modulo", "logica", "valore", "contesto", "obiettivo"
-        ));
-        map.put("pt", List.of(
-            "dado", "modelo", "sistema", "sinal", "processo", "analise", "plataforma", "rede",
-            "seguro", "servico", "estrutura", "modulo", "logica", "valor", "contexto", "objetivo"
-        ));
-        map.put("ja", List.of(
-            "data", "model", "system", "signal", "process", "analysis", "platform", "network",
-            "secure", "service", "module", "logic", "value", "context", "future", "core"
-        ));
-        map.put("zh", List.of(
-            "data", "model", "system", "signal", "process", "analysis", "platform", "network",
-            "secure", "service", "module", "logic", "value", "context", "future", "core"
-        ));
-        return Map.copyOf(map);
+        TextWordDataProvider provider = config.getRegistryContext().textWordProvider(locale);
+        this.localeWords = (provider != null ? provider : DEFAULT_PROVIDER).getWords();
     }
 
     @Override
@@ -110,7 +72,7 @@ public final class TextGenerator implements Generator<String> {
     public String generate(TextOptions options) {
         Objects.requireNonNull(options, "options must not be null");
         List<String> vocabulary = options.extWordList() == null || options.extWordList().isEmpty()
-                                  ? defaultWordsForLocale(locale)
+                                  ? localeWords
                                   : options.extWordList();
 
         int targetChars = Math.max(1, options.maxChars());

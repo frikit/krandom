@@ -34,8 +34,24 @@ final class ObjectGeneratorConfig {
 
     private final GeneratorConfig generatorConfig;
 
+    private volatile Boolean portableRecipe;
+
     private ObjectGeneratorConfig(GeneratorConfig generatorConfig) {
         this.generatorConfig = Objects.requireNonNull(generatorConfig, "generatorConfig must not be null");
+    }
+
+    /**
+     * Whether the root configuration has a portable recipe. Building a recipe reads the clock and
+     * serializes every setting, so object generation asks once per configuration instead of once
+     * per resolver.
+     */
+    boolean hasPortableRecipe() {
+        Boolean cached = portableRecipe;
+        if (cached == null) {
+            cached = generatorConfig.getGenerationRecipe().isPresent();
+            portableRecipe = cached;
+        }
+        return cached;
     }
 
     /**

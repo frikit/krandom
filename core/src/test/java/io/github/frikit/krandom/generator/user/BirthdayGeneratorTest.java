@@ -61,13 +61,13 @@ class BirthdayGeneratorTest {
         }
     }
 
-    // ── Seeded constructor ─────────────────────────────────────────────────────
+    // ── Seeded configuration ───────────────────────────────────────────────────
 
     @Test
-    @DisplayName("seeded constructor produces reproducible output")
+    @DisplayName("seeded configuration produces reproducible output")
     void seededReproducibility() {
-        BirthdayGenerator gen1 = new BirthdayGenerator(42L);
-        BirthdayGenerator gen2 = new BirthdayGenerator(42L);
+        BirthdayGenerator gen1 = new BirthdayGenerator(seeded(42L));
+        BirthdayGenerator gen2 = new BirthdayGenerator(seeded(42L));
         assertEquals(gen1.generate(), gen2.generate());
     }
 
@@ -118,8 +118,8 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("different seeds produce different dates")
     void differentSeeds() {
-        BirthdayGenerator gen1 = new BirthdayGenerator(1L);
-        BirthdayGenerator gen2 = new BirthdayGenerator(2L);
+        BirthdayGenerator gen1 = new BirthdayGenerator(seeded(1L));
+        BirthdayGenerator gen2 = new BirthdayGenerator(seeded(2L));
         List<LocalDate> list1 = gen1.generateList(20);
         List<LocalDate> list2 = gen2.generateList(20);
         assertNotEquals(list1, list2);
@@ -175,8 +175,8 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("AgeType with seed produces reproducible output")
     void ageTypeWithSeed() {
-        BirthdayGenerator gen1 = new BirthdayGenerator(AgeType.ADULT, 7L);
-        BirthdayGenerator gen2 = new BirthdayGenerator(AgeType.ADULT, 7L);
+        BirthdayGenerator gen1 = new BirthdayGenerator(AgeType.ADULT, seeded(7L));
+        BirthdayGenerator gen2 = new BirthdayGenerator(AgeType.ADULT, seeded(7L));
         assertEquals(gen1.generateList(20), gen2.generateList(20));
     }
 
@@ -189,7 +189,7 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("null AgeType with seed throws NullPointerException")
     void nullAgeTypeWithSeedThrows() {
-        assertThrows(NullPointerException.class, () -> new BirthdayGenerator((Locale) null, 1L));
+        assertThrows(NullPointerException.class, () -> new BirthdayGenerator((AgeType) null, seeded(1L)));
     }
 
     @Test
@@ -259,7 +259,7 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("generateAsString() returns M/d/yyyy format (no zero-padding)")
     void generateAsString() {
-        BirthdayGenerator gen = new BirthdayGenerator(42L);
+        BirthdayGenerator gen = new BirthdayGenerator(seeded(42L));
         String s = gen.generateAsString();
         assertNotNull(s);
         assertTrue(M_D_YYYY.matcher(s).matches(),
@@ -269,7 +269,7 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("generateAsAmericanString() returns MM/dd/yyyy format (zero-padded)")
     void generateAsAmericanString() {
-        BirthdayGenerator gen = new BirthdayGenerator(42L);
+        BirthdayGenerator gen = new BirthdayGenerator(seeded(42L));
         String s = gen.generateAsAmericanString();
         assertNotNull(s);
         assertTrue(MM_DD_YYYY.matcher(s).matches(),
@@ -280,8 +280,8 @@ class BirthdayGeneratorTest {
     @DisplayName("generateAsString and generateAsAmericanString represent the same date")
     void stringAndAmericanSameDateSeeded() {
         // Use the same seed for both generators so they produce the same date
-        BirthdayGenerator gen1 = new BirthdayGenerator(55L);
-        BirthdayGenerator gen2 = new BirthdayGenerator(55L);
+        BirthdayGenerator gen1 = new BirthdayGenerator(seeded(55L));
+        BirthdayGenerator gen2 = new BirthdayGenerator(seeded(55L));
         String s = gen1.generateAsString();
         String american = gen2.generateAsAmericanString();
 
@@ -331,9 +331,9 @@ class BirthdayGeneratorTest {
     // ── Locale-aware generateAsString() ──────────────────────────────────────
 
     @Test
-    @DisplayName("locale==null branch: no-locale constructor still returns M/d/yyyy")
-    void noLocaleBackwardCompat() {
-        BirthdayGenerator gen = new BirthdayGenerator(42L);
+    @DisplayName("locale==null branch: no-locale constructor returns M/d/yyyy")
+    void noLocaleFormat() {
+        BirthdayGenerator gen = new BirthdayGenerator();
         String s = gen.generateAsString();
         assertTrue(M_D_YYYY.matcher(s).matches(), "Expected M/d/yyyy but got: " + s);
         assertNull(gen.getLocale());
@@ -411,7 +411,6 @@ class BirthdayGeneratorTest {
     @DisplayName("getLocale() returns null for no-locale constructors")
     void getLocaleNullForNoLocale() {
         assertNull(new BirthdayGenerator().getLocale());
-        assertNull(new BirthdayGenerator(42L).getLocale());
         assertNull(new BirthdayGenerator(AgeType.ADULT).getLocale());
         assertNull(new BirthdayGenerator(18, 65).getLocale());
     }
@@ -422,9 +421,6 @@ class BirthdayGeneratorTest {
         assertThrows(NullPointerException.class, () -> new BirthdayGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new BirthdayGenerator(AgeType.ADULT, (Locale) null));
         assertThrows(NullPointerException.class, () -> new BirthdayGenerator(18, 65, (Locale) null));
-        assertThrows(NullPointerException.class, () -> new BirthdayGenerator((Locale) null, 1L));
-        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(AgeType.ADULT, (Locale) null, 1L));
-        assertThrows(NullPointerException.class, () -> new BirthdayGenerator(18, 65, (Locale) null, 1L));
     }
 
     @Test
@@ -459,8 +455,8 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("seeded + locale: reproducible sequence")
     void seededWithLocale() {
-        BirthdayGenerator g1 = new BirthdayGenerator(Locale.GERMANY, 42L);
-        BirthdayGenerator g2 = new BirthdayGenerator(Locale.GERMANY, 42L);
+        BirthdayGenerator g1 = new BirthdayGenerator(seeded(Locale.GERMANY, 42L));
+        BirthdayGenerator g2 = new BirthdayGenerator(seeded(Locale.GERMANY, 42L));
         for (int i = 0; i < 20; i++) {
             assertEquals(g1.generateAsString(), g2.generateAsString());
         }
@@ -469,16 +465,24 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("seeded + AgeType + locale: reproducible sequence")
     void seededAgeTypeWithLocale() {
-        BirthdayGenerator g1 = new BirthdayGenerator(AgeType.ADULT, Locale.JAPAN, 99L);
-        BirthdayGenerator g2 = new BirthdayGenerator(AgeType.ADULT, Locale.JAPAN, 99L);
+        BirthdayGenerator g1 = new BirthdayGenerator(AgeType.ADULT, seeded(Locale.JAPAN, 99L));
+        BirthdayGenerator g2 = new BirthdayGenerator(AgeType.ADULT, seeded(Locale.JAPAN, 99L));
         assertEquals(g1.generateList(20), g2.generateList(20));
     }
 
     @Test
     @DisplayName("seeded + range + locale: reproducible sequence")
     void seededRangeWithLocale() {
-        BirthdayGenerator g1 = new BirthdayGenerator(18, 65, Locale.FRANCE, 77L);
-        BirthdayGenerator g2 = new BirthdayGenerator(18, 65, Locale.FRANCE, 77L);
+        BirthdayGenerator g1 = new BirthdayGenerator(18, 65, seeded(Locale.FRANCE, 77L));
+        BirthdayGenerator g2 = new BirthdayGenerator(18, 65, seeded(Locale.FRANCE, 77L));
         assertEquals(g1.generateList(20), g2.generateList(20));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
+    }
+
+    private static GeneratorConfig seeded(Locale locale, long seed) {
+        return GeneratorConfig.builder().locale(locale).seed(seed).build();
     }
 }

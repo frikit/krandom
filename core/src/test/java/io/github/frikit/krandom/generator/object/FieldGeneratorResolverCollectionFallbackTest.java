@@ -44,25 +44,34 @@ class FieldGeneratorResolverCollectionFallbackTest {
         return (List<Object>) method.invoke(null, rawType, values);
     }
 
+    private static final ResolvedType STRING_ELEMENT = ResolvedType.resolve(String.class);
+
     @SuppressWarnings("unchecked")
     private static Set<Object> invokeToSetType(Class<?> rawType, List<Object> values) throws Exception {
-        Method method = FieldGeneratorResolver.class.getDeclaredMethod("toSetType", Class.class, List.class);
+        Method method = FieldGeneratorResolver.class.getDeclaredMethod(
+            "toSetType", Class.class, ResolvedType.class, List.class);
         method.setAccessible(true);
-        return (Set<Object>) method.invoke(null, rawType, values);
+        return (Set<Object>) method.invoke(null, rawType, STRING_ELEMENT, values);
+    }
+
+    private static Queue<Object> invokeToQueueType(Class<?> rawType, List<Object> values) throws Exception {
+        return invokeToQueueType(rawType, STRING_ELEMENT, values);
     }
 
     @SuppressWarnings("unchecked")
-    private static Queue<Object> invokeToQueueType(Class<?> rawType, List<Object> values) throws Exception {
-        Method method = FieldGeneratorResolver.class.getDeclaredMethod("toQueueType", Class.class, List.class);
+    private static Queue<Object> invokeToQueueType(Class<?> rawType, ResolvedType elementType, List<Object> values)
+        throws Exception {
+        Method method = FieldGeneratorResolver.class.getDeclaredMethod(
+            "toQueueType", Class.class, ResolvedType.class, List.class);
         method.setAccessible(true);
-        return (Queue<Object>) method.invoke(null, rawType, values);
+        return (Queue<Object>) method.invoke(null, rawType, elementType, values);
     }
 
     @SuppressWarnings("unchecked")
     private static Map<Object, Object> invokeToMapType(Class<?> rawType) throws Exception {
-        Method method = FieldGeneratorResolver.class.getDeclaredMethod("toMapType", Class.class);
+        Method method = FieldGeneratorResolver.class.getDeclaredMethod("toMapType", Class.class, ResolvedType.class);
         method.setAccessible(true);
-        return (Map<Object, Object>) method.invoke(null, rawType);
+        return (Map<Object, Object>) method.invoke(null, rawType, STRING_ELEMENT);
     }
 
     private static Object invokeInstantiateCollectionType(Class<?> rawType, Class<?> expectedType) throws Exception {
@@ -114,7 +123,8 @@ class FieldGeneratorResolverCollectionFallbackTest {
         assertTrue(concrete.contains("a"));
         assertTrue(concrete.contains("c"));
 
-        Queue<Object> priorityQueue = invokeToQueueType(PriorityQueue.class, Arrays.asList("a", new Object()));
+        Queue<Object> priorityQueue = invokeToQueueType(
+            PriorityQueue.class, ResolvedType.resolve(Object.class), Arrays.asList("a", new Object()));
         assertEquals(PriorityQueue.class, priorityQueue.getClass());
 
         Queue<Object> interfaceQueue = invokeToQueueType(Queue.class, List.of("a", "b"));

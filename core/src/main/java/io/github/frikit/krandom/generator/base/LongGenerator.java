@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 /**
  * Generates random {@link Long} values.
  *
@@ -19,15 +21,31 @@ package io.github.frikit.krandom.generator.base;
 public final class LongGenerator extends AbstractBoundedGenerator<Long> {
 
     public LongGenerator() {
-        super(Long.MIN_VALUE, Long.MAX_VALUE, null);
+        super(Long.MIN_VALUE, Long.MAX_VALUE);
     }
 
     public LongGenerator(long min, long max) {
-        super(min, max, null);
+        super(min, max);
     }
 
-    public LongGenerator(long min, long max, long seed) {
-        super(min, max, seed);
+    /**
+     * Creates a generator over the default range using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public LongGenerator(GeneratorConfig config) {
+        super(Long.MIN_VALUE, Long.MAX_VALUE, config);
+    }
+
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public LongGenerator(long min, long max, GeneratorConfig config) {
+        super(min, max, config);
     }
 
     /**

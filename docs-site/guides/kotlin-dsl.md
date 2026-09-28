@@ -35,14 +35,17 @@ val user = krandom<UserDto> {
 ## Typed Rules and Validation
 
 Prefer property references over string names: they survive renames, and the compiler checks that
-the rule value matches the property type. The string form remains as a compatibility bridge for
-fields that cannot be referenced as Kotlin properties.
+the rule value matches the property type. Use the string form only for fields that cannot be
+referenced as Kotlin properties.
 
 Rules are validated before generation:
 
 - registering two rules for the same field or the same type fails immediately;
-- a rule naming a field that does not exist on the target class fails when the generator is
-  built, listing the known field names.
+- a rule or exclusion naming a field that does not exist on the target class fails when the
+  generator is built, listing the known field names;
+- a rule or exclusion on a computed (`val x get() = ...`) or delegated (`by lazy`) property fails
+  when the generator is built: such properties have no backing field and are not primary-constructor
+  parameters, so nothing could apply to them.
 
 ```kotlin
 val account = krandom<Account> {
@@ -50,6 +53,14 @@ val account = krandom<Account> {
     exclude(Account::internalNotes)    // type-safe exclusion
 }
 ```
+
+Field rules and exclusions are scoped to the generated (root) type (2.6+): `exclude(Customer::name)`
+leaves `Customer.name` at its initial value while a nested `Company.name` is still generated. A field
+inherited from a superclass is matched through that superclass field, so it also applies to other
+subclasses of it in the same object graph. Use `ruleForType` for type-wide rules and the Java
+`ObjectFaker` for nested-path rules. Exclusions on immutable data classes built through the primary
+constructor are not yet honoured by the constructor adapter; exclude those fields on mutable types
+or register a rule instead.
 
 ## Generate Lists
 

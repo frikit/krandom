@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Giải pháp
+Hệ thống
+Công nghệ
+Công nghiệp
+Dịch vụ
+Liên hiệp
+Đối tác
+Đầu tư
+Hợp tác
+Tư vấn
+Mạng lưới
+Phát triển
+Nguồn lực
+Quản lý
+Phân tích

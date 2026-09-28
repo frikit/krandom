@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Techniek
+Marketing
+Verkoop
+Financiën
+Bedrijfsvoering
+Product
+Personeelszaken
+Juridische zaken
+Ontwerp
+Klantenservice
+Onderzoek
+Datawetenschap
+Beveiliging
+Inkoop
+Logistiek

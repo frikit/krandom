@@ -19,7 +19,7 @@ public enum OutputFormat {
     /** Comma-separated values with a header row. */
     CSV,
 
-    /** XML with configurable root and record element names. */
+    /** XML with a {@code records} root element and one {@code record} element per record. */
     XML,
 
     /** SQL {@code INSERT} statements (requires a table name). */

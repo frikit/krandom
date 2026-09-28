@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Bank runcit
+Bank perdagangan
+Bank pelaburan
+Kesatuan kredit
+Bank digital

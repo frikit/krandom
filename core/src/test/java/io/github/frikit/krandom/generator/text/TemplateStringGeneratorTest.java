@@ -21,7 +21,7 @@ class TemplateStringGeneratorTest {
     @Test
     @DisplayName("generate applies bothify to configured template")
     void generateAppliesBothify() {
-        TemplateStringGenerator gen = new TemplateStringGenerator("???-###", 42L);
+        TemplateStringGenerator gen = new TemplateStringGenerator("???-###", seeded(42L));
         String value = gen.generate();
         assertTrue(value.matches("[a-z]{3}-\\d{3}"));
     }
@@ -29,7 +29,7 @@ class TemplateStringGeneratorTest {
     @Test
     @DisplayName("numerify replaces only hash placeholders")
     void numerifyReplacesHashesOnly() {
-        TemplateStringGenerator gen = new TemplateStringGenerator("ABC", 1L);
+        TemplateStringGenerator gen = new TemplateStringGenerator("ABC", seeded(1L));
         String value = gen.numerify("##-??-X");
         assertTrue(value.matches("\\d{2}-\\?\\?-X"));
     }
@@ -37,7 +37,7 @@ class TemplateStringGeneratorTest {
     @Test
     @DisplayName("letterify replaces only question placeholders")
     void letterifyReplacesQuestionsOnly() {
-        TemplateStringGenerator gen = new TemplateStringGenerator("ABC", 1L);
+        TemplateStringGenerator gen = new TemplateStringGenerator("ABC", seeded(1L));
         String value = gen.letterify("##-??-X");
         assertTrue(value.matches("##-[a-z]{2}-X"));
     }
@@ -45,7 +45,7 @@ class TemplateStringGeneratorTest {
     @Test
     @DisplayName("letterify uppercase mode emits uppercase letters")
     void letterifyUppercaseMode() {
-        TemplateStringGenerator gen = new TemplateStringGenerator("ABC", 2L);
+        TemplateStringGenerator gen = new TemplateStringGenerator("ABC", seeded(2L));
         String value = gen.letterify("??", true);
         assertTrue(value.matches("[A-Z]{2}"));
     }
@@ -53,7 +53,7 @@ class TemplateStringGeneratorTest {
     @Test
     @DisplayName("bothify replaces both placeholder types")
     void bothifyReplacesBoth() {
-        TemplateStringGenerator gen = new TemplateStringGenerator("ABC", 3L);
+        TemplateStringGenerator gen = new TemplateStringGenerator("ABC", seeded(3L));
         String value = gen.bothify("??-##");
         assertTrue(value.matches("[a-z]{2}-\\d{2}"));
     }
@@ -61,8 +61,8 @@ class TemplateStringGeneratorTest {
     @Test
     @DisplayName("seeded generation is deterministic")
     void seededDeterminism() {
-        TemplateStringGenerator a = new TemplateStringGenerator("??##", 99L);
-        TemplateStringGenerator b = new TemplateStringGenerator("??##", 99L);
+        TemplateStringGenerator a = new TemplateStringGenerator("??##", seeded(99L));
+        TemplateStringGenerator b = new TemplateStringGenerator("??##", seeded(99L));
         assertEquals(a.generate(), b.generate());
         assertEquals(a.generate(), b.generate());
     }
@@ -92,6 +92,10 @@ class TemplateStringGeneratorTest {
     @DisplayName("Generators factory methods expose template generator")
     void generatorsFactoryMethods() {
         assertNotNull(Generators.ofTemplate("??##").generate());
-        assertNotNull(Generators.ofTemplate("??##", 10L).generate());
+        assertNotNull(Generators.ofTemplate("??##", seeded(10L)).generate());
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

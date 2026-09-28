@@ -37,11 +37,16 @@ public final class YearMonthGenerator implements Generator<YearMonth>, Seedable 
         this(minYear, maxYear, GeneratorConfig.defaults());
     }
 
-    public YearMonthGenerator(int minYear, int maxYear, long seed) {
-        this(minYear, maxYear, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    private YearMonthGenerator(int minYear, int maxYear, GeneratorConfig config) {
+    /**
+     * Creates a year-month generator over years {@code [minYear, maxYear]} using the
+     * configuration's random source.
+     *
+     * @param minYear lowest year (inclusive)
+     * @param maxYear highest year (inclusive)
+     * @param config  generator configuration; must not be {@code null}
+     * @throws IllegalArgumentException if {@code minYear > maxYear}
+     */
+    public YearMonthGenerator(int minYear, int maxYear, GeneratorConfig config) {
         if (minYear > maxYear) {
             throw new IllegalArgumentException("minYear must be <= maxYear");
         }

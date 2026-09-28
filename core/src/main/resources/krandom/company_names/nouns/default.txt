@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Solutions
+Systems
+Technologies
+Industries
+Services
+Group
+Partners
+Ventures
+Associates
+Consulting
+Networks
+Dynamics
+Resources
+Management
+Analytics

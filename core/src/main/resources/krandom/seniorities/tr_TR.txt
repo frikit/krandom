@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Stajyer
+Kıdemsiz
+Uzman yardımcısı
+Orta düzey
+Kıdemli
+Takım lideri
+Baş uzman
+Uzman
+Direktör
+Genel müdür yardımcısı

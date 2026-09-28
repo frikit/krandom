@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 /**
  * Generates random {@link Byte} values.
  *
@@ -18,15 +20,31 @@ package io.github.frikit.krandom.generator.base;
 public final class ByteGenerator extends AbstractBoundedGenerator<Byte> {
 
     public ByteGenerator() {
-        super(Byte.MIN_VALUE, Byte.MAX_VALUE, null);
+        super(Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
 
     public ByteGenerator(byte min, byte max) {
-        super(min, max, null);
+        super(min, max);
     }
 
-    public ByteGenerator(byte min, byte max, long seed) {
-        super(min, max, seed);
+    /**
+     * Creates a generator over the default range using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public ByteGenerator(GeneratorConfig config) {
+        super(Byte.MIN_VALUE, Byte.MAX_VALUE, config);
+    }
+
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public ByteGenerator(byte min, byte max, GeneratorConfig config) {
+        super(min, max, config);
     }
 
     /**

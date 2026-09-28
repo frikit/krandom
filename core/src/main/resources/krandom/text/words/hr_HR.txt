@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+podaci
+model
+sustav
+signal
+proces
+analiza
+platforma
+mreža
+siguran
+usluga
+struktura
+modul
+logika
+vrijednost
+kontekst
+cilj

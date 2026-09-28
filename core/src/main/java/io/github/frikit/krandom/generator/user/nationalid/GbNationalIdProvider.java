@@ -56,6 +56,6 @@ public final class GbNationalIdProvider implements NationalIdProvider {
         int n3 = random.nextInt(100);
         char suffix = SUFFIX_LETTERS[random.nextInt(SUFFIX_LETTERS.length)];
 
-        return String.format("%c%c %02d %02d %02d %c", first, second, n1, n2, n3, suffix);
+        return String.format(Locale.ROOT, "%c%c %02d %02d %02d %c", first, second, n1, n2, n3, suffix);
     }
 }

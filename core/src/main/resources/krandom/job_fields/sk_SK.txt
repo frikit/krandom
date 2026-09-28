@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Vývoj
+Marketing
+Predaj
+Financie
+Prevádzka
+Produkt
+Ľudské zdroje
+Právne oddelenie
+Dizajn
+Zákaznícka podpora
+Výskum
+Dátová veda
+Bezpečnosť
+Nákup
+Logistika

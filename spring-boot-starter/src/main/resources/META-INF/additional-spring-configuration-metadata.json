@@ -50,7 +50,7 @@
     {
       "name": "krandom.recipe",
       "type": "java.lang.String",
-      "description": "Portable serialized generation recipe. It cannot be combined with krandom.seed or krandom.locale."
+      "description": "Portable serialized generation recipe. It is exclusive: startup fails when any other krandom.* generation property that the recipe already defines (seed, locale, clock, bounds, object settings, or policies) is also set."
     },
     {
       "name": "krandom.clock",

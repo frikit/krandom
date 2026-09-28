@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+Chair
+Table
+Computer
+Keyboard
+Shoes
+Watch

@@ -16,7 +16,10 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/** Compare legacy output and opt-in field streams on the same structural workload. */
+/**
+ * Compare legacy output and opt-in field streams on the same workload, both structurally and with
+ * the default {@code RELAXED} field-name semantics that ordinary callers get.
+ */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -28,15 +31,17 @@ public class FieldStreamsBenchmark {
     public String policy;
     @Param({"false", "true"})
     public boolean customized;
+    /** {@code STRUCTURAL_ONLY} isolates stream planning; {@code RELAXED} is the default mode. */
+    @Param({"STRUCTURAL_ONLY", "RELAXED"})
+    public String semanticMode;
     private ObjectGenerator<Fixture> generator;
 
     @Setup
     public void setup() {
         GeneratorConfig.Builder config = GeneratorConfig.builder().seed(42)
             .clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
-            .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY);
-        // The legacy case also runs against 2.2.0 bytecode, which has no explicit policy API.
-        if (!policy.equals("LEGACY")) config.objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(policy));
+            .objectSemanticMode(ObjectGenerationSemanticMode.valueOf(semanticMode))
+            .objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(policy));
         if (customized) config.objectOverride(Fixture.class, "name", () -> "fixed");
         generator = new ObjectGenerator<>(Fixture.class, config.build());
     }

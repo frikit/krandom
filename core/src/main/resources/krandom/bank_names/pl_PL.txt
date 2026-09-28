@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Pierwszy Bank Narodowy
+Bank Globalnego Zaufania
+Kasa Kredytowa Pionier
+Szczyt Finanse
+Obywatelski Bank Oszczędnościowy

@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Knjige
+Elektronika
+Aktivnosti na otvorenom
+Dom
+Igračke
+Vrt

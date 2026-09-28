@@ -45,6 +45,10 @@ structural workloads in this suite. A blank cell means there is no equivalent wo
 zero score. See [METHODOLOGY.md](../docs/benchmarks/METHODOLOGY.md) for the full protocol and
 regression budgets.
 
+The 2026-08-26 Instancio object score was measured with `Instancio.create(type)` on every call.
+`CompetitorObjectBenchmark` now reuses a prebuilt Instancio `Model` like the other libraries reuse
+their prepared generators, so that score is not comparable with later runs.
+
 ### Reports
 
 Accepted benchmark reports are stored in [`docs/benchmarks/`](../docs/benchmarks/) with raw output

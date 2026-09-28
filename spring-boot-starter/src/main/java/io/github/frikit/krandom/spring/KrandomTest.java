@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.OverrideAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTestContextBootstrapper;
+import org.springframework.boot.test.context.filter.annotation.TypeExcludeFilters;
 import org.springframework.test.context.BootstrapWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -55,6 +56,13 @@ import java.lang.annotation.Target;
  * <p>Properties such as {@code krandom.seed} and {@code krandom.locale} are
  * honored via {@code @TestPropertySource} or {@code @SpringBootTest(properties = ...)}.
  *
+ * <p><b>Application components.</b> Like Spring Boot's slices, {@code @KrandomTest} registers a
+ * {@code TypeExcludeFilter}, so components found by the application's component scan (the
+ * {@code @Service}, {@code @Repository}, and {@code @Component} classes of an
+ * {@code @SpringBootApplication}) are not loaded: with auto-configuration disabled they would
+ * otherwise fail on missing infrastructure beans. Add the beans a test needs explicitly with
+ * {@code @Import(MyService.class)} or a nested {@code @TestConfiguration}.
+ *
  * <p><b>Note on placement:</b> this annotation intentionally lives in {@code src/main/java}
  * (not {@code src/test/java}) so it is part of the published artifact and usable from
  * consumers' own test suites — the same packaging approach Spring Boot uses for its
@@ -70,6 +78,7 @@ import java.lang.annotation.Target;
 @BootstrapWith(SpringBootTestContextBootstrapper.class)
 @ExtendWith(SpringExtension.class)
 @OverrideAutoConfiguration(enabled = false)
+@TypeExcludeFilters(KrandomTypeExcludeFilter.class)
 @ImportAutoConfiguration(KrandomAutoConfiguration.class)
 public @interface KrandomTest {
 }

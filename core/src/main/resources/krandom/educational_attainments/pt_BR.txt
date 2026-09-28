@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Ensino médio
+Tecnólogo
+Bacharelado
+Mestrado
+Doutorado
+Especialização
+Curso técnico

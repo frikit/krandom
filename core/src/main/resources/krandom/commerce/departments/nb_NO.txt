@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Bøker
+Elektronikk
+Friluftsliv
+Hjem
+Leker
+Hage

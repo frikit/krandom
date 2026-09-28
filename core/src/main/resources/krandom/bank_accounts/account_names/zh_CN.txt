@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+支票账户
+储蓄账户
+企业账户
+联名账户
+工资账户

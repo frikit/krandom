@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Full-time
+Part-time
+Contract
+Temporary
+Internship
+Freelance
+Apprenticeship
+Seasonal
+Volunteer
+Remote

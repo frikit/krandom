@@ -1,0 +1,7 @@
+# Product materials, one per line.
+ze stali
+z drewna
+z betonu
+z tworzywa
+z granitu
+z bawełny

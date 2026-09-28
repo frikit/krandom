@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Prva nacionalna banka
+Globalna banka povjerenja
+Kreditna unija Pionir
+Vrh Financije
+Građanska štedionica

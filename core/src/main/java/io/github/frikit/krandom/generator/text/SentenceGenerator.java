@@ -40,7 +40,7 @@ public final class SentenceGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
-        this.wordGenerator = new WordGenerator(config);
+        this.wordGenerator = new WordGenerator(config.forChildStream("word"));
     }
 
     /**

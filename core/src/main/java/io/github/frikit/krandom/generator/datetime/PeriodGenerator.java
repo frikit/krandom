@@ -28,10 +28,6 @@ public final class PeriodGenerator implements Generator<Period>, Seedable {
         this(GeneratorConfig.defaults());
     }
 
-    public PeriodGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
     public PeriodGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();

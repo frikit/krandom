@@ -54,11 +54,11 @@ public final class ContactInfoGenerator implements Generator<ContactInfo> {
     public ContactInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.firstNameGenerator = new FirstNameGenerator(config);
-        this.lastNameGenerator = new LastNameGenerator(config);
-        this.genderGenerator = new GenderGenerator(config);
-        this.phoneNumberGenerator = new PhoneNumberGenerator(config);
-        this.emailGenerator = new EmailGenerator(config);
+        this.firstNameGenerator = new FirstNameGenerator(config.forChildStream("firstName"));
+        this.lastNameGenerator = new LastNameGenerator(config.forChildStream("lastName"));
+        this.genderGenerator = new GenderGenerator(config.forChildStream("gender"));
+        this.phoneNumberGenerator = new PhoneNumberGenerator(config.forChildStream("phoneNumber"));
+        this.emailGenerator = new EmailGenerator(config.forChildStream("email"));
     }
 
     @Override

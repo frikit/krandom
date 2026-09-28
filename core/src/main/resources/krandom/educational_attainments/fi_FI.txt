@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Ylioppilastutkinto
+Opistoasteen tutkinto
+Kandidaatin tutkinto
+Maisterin tutkinto
+Tohtorin tutkinto
+Ammattikorkeakoulututkinto
+Ammatillinen perustutkinto

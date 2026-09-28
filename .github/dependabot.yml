@@ -1,5 +1,10 @@
 version: 2
 updates:
+  # Main build. gradle/verification-metadata.xml pins artifact checksums that Dependabot cannot
+  # regenerate, so a Gradle update fails CI until a maintainer checks out its branch, runs
+  # ./scripts/update_verification_metadata.sh, reviews the diff, and pushes it
+  # (docs/development/dependency-reproducibility.md). Grouping minor and patch updates keeps that to
+  # one branch per week; major updates still arrive separately for individual review.
   - package-ecosystem: gradle
     directory: "/"
     schedule:
@@ -7,6 +12,48 @@ updates:
       day: monday
       time: "06:00"
     open-pull-requests-limit: 10
+    groups:
+      gradle-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Standalone consumer examples: no verification metadata, but they pin the main build's Kotlin,
+  # JUnit, and Spring Boot versions. kRandom itself follows developmentVersion, so it is ignored.
+  # One pull request per dependency updates every example directory together.
+  - package-ecosystem: gradle
+    directories:
+      - "/examples/java-gradle"
+      - "/examples/java-gradle-integrations"
+      - "/examples/kotlin-gradle"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "io.github.frikit:*"
+    groups:
+      gradle-examples:
+        group-by: dependency-name
+
+  - package-ecosystem: maven
+    directories:
+      - "/examples/java-maven"
+      - "/examples/java-maven-integrations"
+      - "/examples/kotlin-maven"
+      - "/examples/kotlin-maven-integrations"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "io.github.frikit:*"
+    groups:
+      maven-examples:
+        group-by: dependency-name
+
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
@@ -14,3 +61,7 @@ updates:
       day: monday
       time: "06:00"
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"

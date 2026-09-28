@@ -23,7 +23,7 @@ public final class MsMyNationalIdProvider implements NationalIdProvider {
     public String generate(Random random) {
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
         int state = random.nextInt(14) + 1;
-        return String.format("%02d%02d%02d-%02d-%04d",
+        return String.format(Locale.ROOT, "%02d%02d%02d-%02d-%04d",
                              date.getYear() % 100,
                              date.getMonthValue(),
                              date.getDayOfMonth(),

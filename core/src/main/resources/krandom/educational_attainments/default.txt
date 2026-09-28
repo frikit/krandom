@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+High School
+Associate Degree
+Bachelor's Degree
+Master's Degree
+Doctorate
+Professional Degree
+Vocational Certificate

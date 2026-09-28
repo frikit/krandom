@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+multiplatformă
+integrate
+de top
+fără fricțiuni
+native cloud
+bazate pe date

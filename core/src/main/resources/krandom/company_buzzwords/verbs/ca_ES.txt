@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+optimitzar
+potenciar
+aprofitar
+simplificar
+integrar
+escalar
+lliurar
+habilitar

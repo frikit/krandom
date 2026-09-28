@@ -1,0 +1,7 @@
+# Catch-phrase nouns, one per line.
+Plattform
+Netzwerk
+Erlebnis
+Engine
+Oekosystem
+Suite

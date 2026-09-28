@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Global
+National
+American
+United
+Premier
+Advanced
+Strategic
+Dynamic
+Innovative
+Professional
+Digital
+Next
+Alpha
+Summit
+Apex

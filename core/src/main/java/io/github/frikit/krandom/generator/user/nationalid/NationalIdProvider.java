@@ -11,17 +11,22 @@ import java.util.Random;
 /**
  * Contract for a locale-specific national identity number generator.
  *
- * <p>Implement this interface and register an instance with {@link NationalIdRegistry} to extend or
- * override national ID generation for any locale — including locales not built into the library.
+ * <p>Implement this interface and register an instance on a configuration-scoped context with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerNationalIdProvider(NationalIdProvider)}
+ * to extend or override national ID generation for any locale — including locales not built into the
+ * library.
  *
  * <pre>{@code
- * NationalIdRegistry.register(new NationalIdProvider() {
- *     public Locale getLocale() { return Locale.of("ko", "KR"); }
- *     public String generate(Random random) { return "..."; }
- * });
+ * DataRegistryContext context = DataRegistryContext.builder()
+ *     .registerNationalIdProvider(new NationalIdProvider() {
+ *         public Locale getLocale() { return Locale.of("ko", "KR"); }
+ *         public String generate(Random random) { return "..."; }
+ *     })
+ *     .build();
  * GeneratorConfig config = GeneratorConfig.builder()
  *     .locale(Locale.of("ko", "KR"))
  *     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+ *     .registryContext(context)
  *     .build();
  * NationalIdGenerator gen = new NationalIdGenerator(config);
  * }</pre>

@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Oplossingen
+Systemen
+Technologieën
+Industrieën
+Diensten
+Groep
+Partners
+Participaties
+Maatschappij
+Adviesgroep
+Netwerken
+Dynamiek
+Middelen
+Holding
+Analyses

@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Bank detaliczny
+Bank komercyjny
+Bank inwestycyjny
+Spółdzielcza kasa oszczędnościowo-kredytowa
+Bank internetowy

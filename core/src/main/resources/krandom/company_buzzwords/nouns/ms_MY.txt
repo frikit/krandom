@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+penyelesaian
+aliran kerja
+infrastruktur
+platform
+pengalaman
+keupayaan

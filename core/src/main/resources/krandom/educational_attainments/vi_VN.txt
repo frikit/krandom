@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Tốt nghiệp trung học phổ thông
+Cao đẳng
+Cử nhân
+Thạc sĩ
+Tiến sĩ
+Bằng chuyên môn
+Chứng chỉ nghề

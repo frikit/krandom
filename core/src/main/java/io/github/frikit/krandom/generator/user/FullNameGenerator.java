@@ -62,8 +62,8 @@ public final class FullNameGenerator implements Generator<String> {
      */
     public FullNameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.firstNameGenerator = new FirstNameGenerator(config);
-        this.lastNameGenerator = new LastNameGenerator(config);
+        this.firstNameGenerator = new FirstNameGenerator(config.forChildStream("firstName"));
+        this.lastNameGenerator = new LastNameGenerator(config.forChildStream("lastName"));
         this.generatorsByLocale = new HashMap<>();
         this.generatorsByLocale.put(config.getLocale(),
                                     new NameGenerators(config, firstNameGenerator, lastNameGenerator));
@@ -90,6 +90,9 @@ public final class FullNameGenerator implements Generator<String> {
 
     private static Map<String, Locale> nationalityToLocaleMap() {
         Map<String, Locale> map = new LinkedHashMap<>();
+        // "UK" is the common name of the United Kingdom and must win over the ISO 639 code of
+        // Ukrainian; Ukrainian names stay reachable through "uk_UA", "uk-UA", "UA" and "UK_UA".
+        registerNationalityToken(map, "uk", Locale.UK);
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             Locale locale = supportedLocale.locale();
             registerNationalityToken(map, locale.getLanguage(), locale);
@@ -98,7 +101,6 @@ public final class FullNameGenerator implements Generator<String> {
             registerNationalityToken(map, locale.toLanguageTag(), locale);
             registerNationalityToken(map, supportedLocale.name(), locale);
         }
-        registerNationalityToken(map, "uk", Locale.UK);
         return Map.copyOf(map);
     }
 
@@ -159,7 +161,7 @@ public final class FullNameGenerator implements Generator<String> {
      * @throws UnsupportedOperationException if middle names are not supported for this locale
      */
     public String generateWithMiddleName() {
-        MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config);
+        MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config.forChildStream("middleName"));
         return firstNameGenerator.generate()
                + " " + middleNameGenerator.generate()
                + " " + lastNameGenerator.generate();
@@ -179,7 +181,7 @@ public final class FullNameGenerator implements Generator<String> {
      */
     public String generateWithMiddleName(Gender gender) {
         Objects.requireNonNull(gender, "gender must not be null");
-        MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config);
+        MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config.forChildStream("middleName"));
         return firstNameGenerator.generate(gender)
                + " " + middleNameGenerator.generate(gender)
                + " " + lastNameGenerator.generate();
@@ -197,7 +199,7 @@ public final class FullNameGenerator implements Generator<String> {
      */
     public String generateWithMiddleInitial() {
         return firstNameGenerator.generate()
-               + " " + new MiddleNameGenerator(config).generateInitial()
+               + " " + new MiddleNameGenerator(config.forChildStream("middleName")).generateInitial()
                + " " + lastNameGenerator.generate();
     }
 
@@ -212,7 +214,7 @@ public final class FullNameGenerator implements Generator<String> {
     public String generateWithMiddleInitial(Gender gender) {
         Objects.requireNonNull(gender, "gender must not be null");
         return firstNameGenerator.generate(gender)
-               + " " + new MiddleNameGenerator(config).generateInitial(gender)
+               + " " + new MiddleNameGenerator(config.forChildStream("middleName")).generateInitial(gender)
                + " " + lastNameGenerator.generate();
     }
 
@@ -306,8 +308,8 @@ public final class FullNameGenerator implements Generator<String> {
         GeneratorConfig localeConfig = configForLocale(locale);
         NameGenerators created = new NameGenerators(
             localeConfig,
-            new FirstNameGenerator(localeConfig),
-            new LastNameGenerator(localeConfig)
+            new FirstNameGenerator(localeConfig.forChildStream("firstName")),
+            new LastNameGenerator(localeConfig.forChildStream("lastName"))
         );
         generatorsByLocale.put(locale, created);
         return created;
@@ -344,20 +346,6 @@ public final class FullNameGenerator implements Generator<String> {
         Gender gender,
         String nationality
     ) {
-
-        /**
-         * Backward-compatible constructor with {@code reverse=false}.
-         */
-        public NameOptions(
-            boolean middle,
-            boolean middleInitial,
-            boolean prefix,
-            boolean suffix,
-            Gender gender,
-            String nationality
-        ) {
-            this(middle, middleInitial, prefix, suffix, false, gender, nationality);
-        }
     }
 
 
@@ -388,21 +376,21 @@ public final class FullNameGenerator implements Generator<String> {
 
         private TitleGenerator titleGenerator() {
             if (titleGenerator == null) {
-                titleGenerator = new TitleGenerator(config);
+                titleGenerator = new TitleGenerator(config.forChildStream("title"));
             }
             return titleGenerator;
         }
 
         private SuffixGenerator suffixGenerator() {
             if (suffixGenerator == null) {
-                suffixGenerator = new SuffixGenerator(config);
+                suffixGenerator = new SuffixGenerator(config.forChildStream("suffix"));
             }
             return suffixGenerator;
         }
 
         private MiddleNameGenerator middleNameGenerator() {
             if (middleNameGenerator == null) {
-                middleNameGenerator = new MiddleNameGenerator(config);
+                middleNameGenerator = new MiddleNameGenerator(config.forChildStream("middleName"));
             }
             return middleNameGenerator;
         }

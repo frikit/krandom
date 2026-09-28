@@ -152,7 +152,18 @@ public final class SchemaProjection<T> {
      * @return CSV payload
      */
     public String toCsv(Iterable<? extends T> values) {
-        return Schema.buildString(builder -> writeCsv(builder, values));
+        return toCsv(values, CsvFormulaPolicy.PRESERVE);
+    }
+
+    /**
+     * Renders source objects as CSV, applying a spreadsheet formula policy to every cell.
+     *
+     * @param values        source objects
+     * @param formulaPolicy how cells that spreadsheets would evaluate as formulas are written
+     * @return CSV payload
+     */
+    public String toCsv(Iterable<? extends T> values, CsvFormulaPolicy formulaPolicy) {
+        return Schema.buildString(builder -> writeCsv(builder, values, formulaPolicy));
     }
 
     /**
@@ -163,9 +174,24 @@ public final class SchemaProjection<T> {
      * @throws IOException if writing fails
      */
     public void writeCsv(Appendable out, Iterable<? extends T> values) throws IOException {
+        writeCsv(out, values, CsvFormulaPolicy.PRESERVE);
+    }
+
+    /**
+     * Writes source objects as CSV with projection field names as the header row, applying a
+     * spreadsheet formula policy to every cell.
+     *
+     * @param out           destination
+     * @param values        source objects
+     * @param formulaPolicy how cells that spreadsheets would evaluate as formulas are written
+     * @throws IOException if writing fails
+     */
+    public void writeCsv(Appendable out, Iterable<? extends T> values, CsvFormulaPolicy formulaPolicy)
+        throws IOException {
         Objects.requireNonNull(out, "out must not be null");
+        Objects.requireNonNull(formulaPolicy, "formulaPolicy must not be null");
         List<String> columns = new ArrayList<>(fields.keySet());
-        Schema.appendCsvRow(out, columns);
+        Schema.appendCsvRow(out, columns, formulaPolicy);
         out.append(Schema.NEWLINE);
         for (T value : requireValues(values)) {
             Map<String, Object> row = project(value);
@@ -173,7 +199,7 @@ public final class SchemaProjection<T> {
             for (String column : columns) {
                 cells.add(Schema.toCsvCell(row.get(column)));
             }
-            Schema.appendCsvRow(out, cells);
+            Schema.appendCsvRow(out, cells, formulaPolicy);
             out.append(Schema.NEWLINE);
         }
     }
@@ -249,7 +275,7 @@ public final class SchemaProjection<T> {
                 if (column > 0) {
                     out.append(", ");
                 }
-                Schema.appendSqlIdentifier(out, columns.get(column));
+                Schema.appendSqlColumn(out, columns.get(column));
             }
             out.append(") VALUES (");
             for (int column = 0; column < columns.size(); column++) {

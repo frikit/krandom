@@ -36,7 +36,7 @@ public final class HostnameGenerator implements Generator<String> {
     public HostnameGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
-        this.domainGenerator = new DomainGenerator(effective);
+        this.domainGenerator = new DomainGenerator(effective.forChildStream("domain"));
     }
 
     @Override

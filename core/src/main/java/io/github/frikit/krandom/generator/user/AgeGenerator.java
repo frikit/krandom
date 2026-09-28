@@ -9,7 +9,6 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.Objects;
-import java.util.OptionalLong;
 import java.util.Random;
 
 /**
@@ -19,10 +18,11 @@ import java.util.Random;
  * custom min/max bounds, or the full default range of 1–100.
  *
  * <pre>{@code
- * int age    = new AgeGenerator().generate();                      // 1–100
- * int adult  = new AgeGenerator(AgeType.ADULT).generate();        // 18–65
- * int child  = new AgeGenerator(AgeType.CHILD, 99L).generate();   // 1–12, seeded
- * int custom = new AgeGenerator(21, 30).generate();               // 21–30
+ * GeneratorConfig seeded = GeneratorConfig.builder().seed(99L).build();
+ * int age    = new AgeGenerator().generate();                        // 1–100
+ * int adult  = new AgeGenerator(AgeType.ADULT).generate();          // 18–65
+ * int child  = new AgeGenerator(AgeType.CHILD, seeded).generate();  // 1–12, seeded
+ * int custom = new AgeGenerator(21, 30).generate();                 // 21–30
  * }</pre>
  */
 public final class AgeGenerator implements Generator<Integer> {
@@ -38,14 +38,7 @@ public final class AgeGenerator implements Generator<Integer> {
      * Generates ages in the full range [1, 100].
      */
     public AgeGenerator() {
-        this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.empty());
-    }
-
-    /**
-     * Generates ages in the full range [1, 100] with a fixed seed for reproducible output.
-     */
-    public AgeGenerator(long seed) {
-        this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.of(seed));
+        this(DEFAULT_MIN, DEFAULT_MAX, new Random());
     }
 
     /**
@@ -63,19 +56,7 @@ public final class AgeGenerator implements Generator<Integer> {
     public AgeGenerator(AgeType type) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
              type.getMaxAge(),
-             OptionalLong.empty());
-    }
-
-    /**
-     * Generates ages in the range defined by the given {@link AgeType}, with a fixed seed.
-     *
-     * @param type the age category; must not be {@code null}
-     * @param seed PRNG seed for reproducible output
-     */
-    public AgeGenerator(AgeType type, long seed) {
-        this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-             type.getMaxAge(),
-             OptionalLong.of(seed));
+             new Random());
     }
 
     /**
@@ -97,7 +78,7 @@ public final class AgeGenerator implements Generator<Integer> {
      * @param maxAge maximum age (inclusive, must be ≥ {@code minAge})
      */
     public AgeGenerator(int minAge, int maxAge) {
-        this(minAge, maxAge, OptionalLong.empty());
+        this(minAge, maxAge, new Random());
     }
 
     /**
@@ -109,10 +90,6 @@ public final class AgeGenerator implements Generator<Integer> {
      */
     public AgeGenerator(int minAge, int maxAge, GeneratorConfig config) {
         this(minAge, maxAge, Objects.requireNonNull(config, "config must not be null").createRandom());
-    }
-
-    private AgeGenerator(int minAge, int maxAge, OptionalLong seed) {
-        this(minAge, maxAge, seed.isPresent() ? new Random(seed.getAsLong()) : new Random());
     }
 
     private AgeGenerator(int minAge, int maxAge, Random random) {
@@ -130,7 +107,12 @@ public final class AgeGenerator implements Generator<Integer> {
 
     @Override
     public Integer generate() {
-        return minAge + random.nextInt(maxAge - minAge + 1);
+        int width = maxAge - minAge;
+        // minAge >= 0, so only the full range [0, Integer.MAX_VALUE] overflows width + 1; an
+        // unsigned shift of one random int covers its 2^31 values uniformly.
+        return width == Integer.MAX_VALUE
+               ? random.nextInt() >>> 1
+               : minAge + random.nextInt(width + 1);
     }
 
     /**

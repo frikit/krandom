@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+platformsuafhængige
+helhedsorienterede
+brancheførende
+gnidningsfri
+cloudbaserede
+datadrevne

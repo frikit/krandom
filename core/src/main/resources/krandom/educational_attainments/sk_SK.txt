@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Maturita
+Vyššie odborné vzdelanie
+Bakalár
+Magister
+Doktorát
+Inžiniersky titul
+Výučný list

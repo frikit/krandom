@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Kỹ thuật
+Tiếp thị
+Kinh doanh
+Tài chính
+Vận hành
+Sản phẩm
+Nhân sự
+Pháp chế
+Thiết kế
+Hỗ trợ khách hàng
+Nghiên cứu
+Khoa học dữ liệu
+Bảo mật
+Mua hàng
+Hậu cần

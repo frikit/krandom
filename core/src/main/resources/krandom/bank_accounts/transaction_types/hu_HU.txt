@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+befizetés
+készpénzfelvétel
+fizetés
+átutalás
+visszatérítés
+díj
+kamat
+visszaterhelés

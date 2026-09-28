@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Knihy
+Elektronika
+Outdoor
+Domácnosť
+Hračky
+Záhrada

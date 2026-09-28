@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Bic and Isin generators")
-@SuppressWarnings("removal")
 class BicIsinGeneratorTest {
 
     private static boolean isValidIsin(String isin) {

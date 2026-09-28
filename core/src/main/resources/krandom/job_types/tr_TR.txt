@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Tam zamanlı
+Yarı zamanlı
+Sözleşmeli
+Geçici
+Staj
+Serbest çalışma
+Çıraklık
+Mevsimlik
+Gönüllü
+Uzaktan

@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+wpłata
+wypłata
+płatność
+przelew
+zwrot
+opłata
+odsetki
+obciążenie zwrotne

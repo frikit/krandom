@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+optymalizować
+skalować
+automatyzować
+integrować
+wdrażać
+przyspieszać
+upraszczać
+rozwijać

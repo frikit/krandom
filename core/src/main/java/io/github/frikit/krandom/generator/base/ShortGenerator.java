@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 /**
  * Generates random {@link Short} values.
  *
@@ -18,15 +20,31 @@ package io.github.frikit.krandom.generator.base;
 public final class ShortGenerator extends AbstractBoundedGenerator<Short> {
 
     public ShortGenerator() {
-        super(Short.MIN_VALUE, Short.MAX_VALUE, null);
+        super(Short.MIN_VALUE, Short.MAX_VALUE);
     }
 
     public ShortGenerator(short min, short max) {
-        super(min, max, null);
+        super(min, max);
     }
 
-    public ShortGenerator(short min, short max, long seed) {
-        super(min, max, seed);
+    /**
+     * Creates a generator over the default range using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public ShortGenerator(GeneratorConfig config) {
+        super(Short.MIN_VALUE, Short.MAX_VALUE, config);
+    }
+
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public ShortGenerator(short min, short max, GeneratorConfig config) {
+        super(min, max, config);
     }
 
     /**

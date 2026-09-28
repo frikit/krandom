@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Thực tập sinh
+Nhân viên mới
+Chuyên viên
+Chuyên viên trung cấp
+Chuyên viên cao cấp
+Trưởng nhóm
+Chuyên gia chính
+Chuyên gia
+Giám đốc
+Phó chủ tịch

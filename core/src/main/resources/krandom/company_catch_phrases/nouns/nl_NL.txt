@@ -1,0 +1,8 @@
+# Catch-phrase nouns, one per line.
+oplossing
+omgeving
+dienst
+engine
+aanpak
+suite
+architectuur

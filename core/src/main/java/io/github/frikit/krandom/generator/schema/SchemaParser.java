@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
@@ -27,6 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Parses JSON Schema (Draft 2020-12) or OpenAPI 3.x schema objects into krandom
@@ -277,19 +279,11 @@ public final class SchemaParser {
         String schemaType = typeOf(fieldSchema);
         String format = stringOrNull(fieldSchema.get("format"));
 
-        // Try semantic resolution by field name first for string types
-        if ("string".equals(schemaType) && format == null) {
-            SchemaValueProvider semantic = trySemanticResolve(fieldName, field);
-            if (semantic != null) {
-                return semantic;
-            }
-        }
-
         return switch (schemaType) {
             case "string" -> resolveString(fieldName, fieldSchema, format, field, config);
-            case "integer" -> resolveInteger(fieldSchema, config);
-            case "number" -> resolveNumber(fieldSchema, config);
-            case "boolean" -> resolveBooleanProvider(config);
+            case "integer" -> resolveInteger(fieldSchema);
+            case "number" -> resolveNumber(fieldSchema);
+            case "boolean" -> ctx -> ctx.random().nextBoolean();
             case "array" -> resolveArray(fieldName, fieldSchema, field, config);
             case "object" -> resolveNestedObject(fieldSchema, field, config);
             case "null" -> ctx -> null;
@@ -302,14 +296,14 @@ public final class SchemaParser {
                                                       String format,
                                                       Field field,
                                                       GeneratorConfig config) {
-        // pattern-based generation
+        // Explicit constraints win over field-name semantics: pattern first, then format, and
+        // semantic values only when no length bounds are declared.
         String pattern = stringOrNull(schema.get("pattern"));
         if (pattern != null) {
-            var gen = new RegexGenerator(pattern);
-            return ctx -> gen.generate();
+            new RegexGenerator(pattern); // validate the pattern while parsing
+            return ctx -> matching(pattern, ctx.random().nextLong());
         }
 
-        // format-based generation
         if (format != null) {
             SchemaValueProvider formatProvider = resolveFormat(format, config);
             if (formatProvider != null) {
@@ -317,114 +311,112 @@ public final class SchemaParser {
             }
         }
 
-        // Try semantic field name resolution
-        SchemaValueProvider semantic = trySemanticResolve(fieldName, field);
-        if (semantic != null) {
-            return semantic;
+        if (!schema.containsKey("minLength") && !schema.containsKey("maxLength")) {
+            SchemaValueProvider semantic = trySemanticResolve(fieldName, field);
+            if (semantic != null) {
+                return semantic;
+            }
         }
 
         // Bounded string length
-        int minLength = intOrDefault(schema.get("minLength"), config.getMinStringLength());
-        int maxLength = intOrDefault(schema.get("maxLength"), config.getMaxStringLength());
-        StringGenerator.Builder builder = StringGenerator.builder()
-                                                       .minLength(minLength)
-                                                       .maxLength(maxLength);
-        config.getSeed().ifPresent(builder::seed);
-        var gen = builder.build();
-        return ctx -> gen.generate();
+        // A missing bound defaults within the declared one: maxLength 2 alone must not keep a larger
+        // configured minimum length.
+        int maxLength = intOrDefault(schema.get("maxLength"),
+                                     Math.max(config.getMaxStringLength(), intOrDefault(schema.get("minLength"), 0)));
+        int minLength = intOrDefault(schema.get("minLength"), Math.min(config.getMinStringLength(), maxLength));
+        // Validate the bounds while parsing; values are built from the field's stream.
+        StringGenerator.builder().minLength(minLength).maxLength(maxLength).build();
+        return text(minLength, maxLength);
+    }
+
+    private static String matching(String pattern, long seed) {
+        // Each value draws its own seed from the field's stream, so a fresh generator per value keeps
+        // the record replayable without sharing mutable state; the parsed pattern itself is cached.
+        return new RegexGenerator(pattern, GeneratorConfig.builder().seed(seed).build()).generate();
     }
 
     private static SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
-        return switch (format) {
-            case "email" -> {
-                var gen = Generators.ofEmail(config);
-                yield ctx -> gen.generate();
-            }
-            case "uri", "url" -> {
-                var gen = new URLGenerator(config);
-                yield ctx -> gen.generate();
-            }
-            case "uuid" -> {
-                var gen = new UUIDGenerator(config);
-                yield ctx -> gen.generate().toString();
-            }
-            case "date" -> {
-                var gen = new DateGenerator(config);
-                yield ctx -> gen.generate().toString();
-            }
-            case "date-time" -> {
-                var gen = new LocalDateTimeGenerator(config);
-                yield ctx -> gen.generate().toString();
-            }
-            case "time" -> {
-                var gen = new TimeGenerator(config);
-                yield ctx -> gen.generate().toString();
-            }
-            case "ipv4" -> {
-                var gen = new IPv4Generator(config);
-                yield ctx -> gen.generate();
-            }
-            case "ipv6" -> {
-                var gen = new IPv6Generator(config);
-                yield ctx -> gen.generate();
-            }
-            case "hostname" -> {
-                var gen = new HostnameGenerator(config);
-                yield ctx -> gen.generate();
-            }
+        Function<GeneratorConfig, Generator<?>> factory = switch (format) {
+            case "email" -> Generators::ofEmail;
+            case "uri", "url" -> URLGenerator::new;
+            case "uuid" -> UUIDGenerator::new;
+            case "date" -> DateGenerator::new;
+            case "date-time" -> LocalDateTimeGenerator::new;
+            case "time" -> TimeGenerator::new;
+            case "ipv4" -> IPv4Generator::new;
+            case "ipv6" -> IPv6Generator::new;
+            case "hostname" -> HostnameGenerator::new;
             default -> null;
         };
+        if (factory == null) {
+            return null;
+        }
+        if (config.getSeed().isEmpty()) {
+            // Unseeded, secure, and caller-owned sources keep one generator per field.
+            Generator<?> generator = factory.apply(config);
+            return ctx -> generator.generate().toString();
+        }
+        // A seeded value comes from the field's own stream, so equal formats in different columns
+        // differ and each value replays with its record.
+        return ctx -> factory.apply(config.toBuilder().seed(ctx.random().nextLong()).build()).generate().toString();
     }
 
-    private static SchemaValueProvider resolveInteger(Map<String, Object> schema,
-                                                       GeneratorConfig config) {
+    private static SchemaValueProvider resolveInteger(Map<String, Object> schema) {
         long min = longOrDefault(schema.get("minimum"), Integer.MIN_VALUE);
         long max = longOrDefault(schema.get("maximum"), Integer.MAX_VALUE);
 
         if (schema.containsKey("exclusiveMinimum")) {
-            min = longOrDefault(schema.get("exclusiveMinimum"), min) + 1;
+            long exclusiveMinimum = longOrDefault(schema.get("exclusiveMinimum"), min);
+            if (exclusiveMinimum == Long.MAX_VALUE) {
+                throw emptyRange("integer", schema);
+            }
+            min = exclusiveMinimum + 1;
         }
         if (schema.containsKey("exclusiveMaximum")) {
-            max = longOrDefault(schema.get("exclusiveMaximum"), max) - 1;
+            long exclusiveMaximum = longOrDefault(schema.get("exclusiveMaximum"), max);
+            if (exclusiveMaximum == Long.MIN_VALUE) {
+                throw emptyRange("integer", schema);
+            }
+            max = exclusiveMaximum - 1;
+        }
+        if (min > max) {
+            throw emptyRange("integer", schema);
         }
 
-        // Use int range if values fit; guard against overflow on max + 1
-        if (min >= Integer.MIN_VALUE && max < Integer.MAX_VALUE) {
-            var gen = Generators.ofInt((int) min, (int) max + 1);
-            return ctx -> gen.generate();
+        long lower = min;
+        long upper = max;
+        // Values that fit an int stay Integer; the + 1 below cannot overflow.
+        if (lower >= Integer.MIN_VALUE && upper < Integer.MAX_VALUE) {
+            return ctx -> ctx.random().nextInt((int) lower, (int) upper + 1);
         }
-
-        // For long range, guard against overflow on max + 1
-        if (max < Long.MAX_VALUE) {
-            var gen = Generators.ofLong(min, max + 1);
-            return ctx -> gen.generate();
+        if (upper < Long.MAX_VALUE) {
+            return ctx -> ctx.random().nextLong(lower, upper + 1);
         }
-
-        var gen = Generators.ofLong(min, max);
-        return ctx -> gen.generate();
+        if (lower > Long.MIN_VALUE) {
+            return ctx -> ctx.random().nextLong(lower - 1, upper) + 1;
+        }
+        return ctx -> ctx.random().nextLong();
     }
 
-    private static SchemaValueProvider resolveNumber(Map<String, Object> schema,
-                                                      GeneratorConfig config) {
-        double min = doubleOrDefault(schema.get("minimum"), -1_000_000.0);
-        double max = doubleOrDefault(schema.get("maximum"), 1_000_000.0);
-
+    private static SchemaValueProvider resolveNumber(Map<String, Object> schema) {
+        double lower = doubleOrDefault(schema.get("minimum"), -1_000_000.0);
         if (schema.containsKey("exclusiveMinimum")) {
-            min = doubleOrDefault(schema.get("exclusiveMinimum"), min)
-                  + Double.MIN_VALUE;
+            lower = Math.nextUp(doubleOrDefault(schema.get("exclusiveMinimum"), lower));
         }
-        if (schema.containsKey("exclusiveMaximum")) {
-            max = doubleOrDefault(schema.get("exclusiveMaximum"), max)
-                  - Double.MIN_VALUE;
+        // Draws are half-open, so an inclusive maximum becomes the next representable double.
+        double upperExclusive = schema.containsKey("exclusiveMaximum")
+                                ? doubleOrDefault(schema.get("exclusiveMaximum"), 1_000_000.0)
+                                : Math.nextUp(doubleOrDefault(schema.get("maximum"), 1_000_000.0));
+        if (lower >= upperExclusive) {
+            throw emptyRange("number", schema);
         }
-
-        var gen = Generators.ofDouble(min, max);
-        return ctx -> gen.generate();
+        double origin = lower;
+        double bound = upperExclusive;
+        return ctx -> ctx.random().nextDouble(origin, bound);
     }
 
-    private static SchemaValueProvider resolveBooleanProvider(GeneratorConfig config) {
-        var gen = Generators.ofBoolean();
-        return ctx -> gen.generate();
+    private static IllegalArgumentException emptyRange(String type, Map<String, Object> schema) {
+        return new IllegalArgumentException("JSON Schema " + type + " range has no values: " + schema);
     }
 
     @SuppressWarnings("unchecked")
@@ -441,8 +433,7 @@ public final class SchemaParser {
             itemProvider = resolveProvider(
                 fieldName + "[]", (Map<String, Object>) itemSchema, field, config);
         } else {
-            var gen = Generators.ofString();
-            itemProvider = ctx -> gen.generate();
+            itemProvider = randomText(config);
         }
 
         SchemaValueProvider items = itemProvider;
@@ -491,8 +482,21 @@ public final class SchemaParser {
         if (semantic != null) {
             return semantic;
         }
-        var gen = Generators.ofString();
-        return ctx -> gen.generate();
+        return randomText(config);
+    }
+
+    private static SchemaValueProvider randomText(GeneratorConfig config) {
+        return text(config.getMinStringLength(), config.getMaxStringLength());
+    }
+
+    /** Text drawn from the field's own stream, so seeded schemas replay and equal columns differ. */
+    private static SchemaValueProvider text(int minLength, int maxLength) {
+        return ctx -> StringGenerator.builder()
+                                     .minLength(minLength)
+                                     .maxLength(maxLength)
+                                     .seed(ctx.random().nextLong())
+                                     .build()
+                                     .generate();
     }
 
     private static SchemaValueProvider trySemanticResolve(String fieldName, Field field) {

@@ -11,11 +11,13 @@ import java.util.Random;
 
 /**
  * Generates Finnish personal identity code (henkilötunnus) style identifiers in
- * {@code DDMMYYAXXX} format where A is a century marker.
+ * {@code DDMMYY-XXX} format.
+ *
+ * <p>{@code DDMMYY} is a birth date between 1950 and 1999, so the century sign is always
+ * {@code -}, which denotes the 1900s. {@code XXX} is random and the control character that
+ * completes a real henkilötunnus is not appended, so values do not pass official validation.
  */
 public final class FiFiNationalIdProvider implements NationalIdProvider {
-
-    private static final char[] CENTURY_MARKS = {'-', 'A'};
 
     @Override
     public Locale getLocale() {
@@ -25,12 +27,12 @@ public final class FiFiNationalIdProvider implements NationalIdProvider {
     @Override
     public String generate(Random random) {
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
-        char centuryMark = CENTURY_MARKS[random.nextInt(CENTURY_MARKS.length)];
-        return String.format("%02d%02d%02d%c%03d",
+        // Former century-sign draw: still consumed so every other draw keeps its value.
+        random.nextInt(2);
+        return String.format(Locale.ROOT, "%02d%02d%02d-%03d",
                              date.getDayOfMonth(),
                              date.getMonthValue(),
                              date.getYear() % 100,
-                             centuryMark,
                              random.nextInt(1000));
     }
 }

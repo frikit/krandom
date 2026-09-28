@@ -5,6 +5,9 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
+import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
@@ -48,7 +51,17 @@ public final class NormalDistributionGenerator implements io.github.frikit.krand
      * Create a standard normal distribution generator (mean=0, stdDev=1).
      */
     public NormalDistributionGenerator() {
-        this(0.0, 1.0, null);
+        this(new Random(), 0.0, 1.0);
+    }
+
+    /**
+     * Create a standard normal distribution generator (mean=0, stdDev=1) using the
+     * configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public NormalDistributionGenerator(GeneratorConfig config) {
+        this(Objects.requireNonNull(config, "config must not be null").createRandom(), 0.0, 1.0);
     }
 
     /**
@@ -59,25 +72,29 @@ public final class NormalDistributionGenerator implements io.github.frikit.krand
      * @throws IllegalArgumentException if standardDeviation is negative or zero
      */
     public NormalDistributionGenerator(double mean, double standardDeviation) {
-        this(mean, standardDeviation, null);
+        this(new Random(), mean, standardDeviation);
     }
 
     /**
-     * Create a seeded normal distribution generator.
+     * Create a normal distribution generator using the configuration's random source.
      *
      * @param mean              the mean (μ) of the distribution
      * @param standardDeviation the standard deviation (σ) of the distribution
-     * @param seed              optional seed for reproducibility
+     * @param config            generator configuration; must not be {@code null}
      * @throws IllegalArgumentException if standardDeviation is negative or zero
      */
-    public NormalDistributionGenerator(double mean, double standardDeviation, Long seed) {
+    public NormalDistributionGenerator(double mean, double standardDeviation, GeneratorConfig config) {
+        this(Objects.requireNonNull(config, "config must not be null").createRandom(), mean, standardDeviation);
+    }
+
+    private NormalDistributionGenerator(RandomGenerator random, double mean, double standardDeviation) {
         if (standardDeviation <= 0) {
             throw new IllegalArgumentException(
                 "Standard deviation must be positive, got: " + standardDeviation);
         }
         this.mean = mean;
         this.standardDeviation = standardDeviation;
-        this.random = seed != null ? new Random(seed) : new Random();
+        this.random = random;
     }
 
     /**

@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+인턴
+주니어
+주임
+미들급
+시니어
+팀 리드
+수석 엔지니어
+책임 엔지니어
+이사
+부사장

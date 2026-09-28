@@ -336,12 +336,13 @@ class KrandomAutoConfigurationTest {
     @Test
     @DisplayName("recipe property replays seed, locale, and profile")
     void recipePropertyReplaysConfiguration() {
-        io.github.frikit.krandom.generator.GenerationRecipe recipe =
-            io.github.frikit.krandom.generator.GenerationRecipe.builder()
-                .seed(24680L)
-                .locale(Locale.CANADA_FRENCH)
-                .profile("spring-replay")
-                .build();
+        io.github.frikit.krandom.generator.GenerationRecipe recipe = GeneratorConfig.builder()
+            .seed(24680L)
+            .locale(Locale.CANADA_FRENCH)
+            .generationProfile("spring-replay")
+            .build()
+            .getGenerationRecipe()
+            .orElseThrow();
         String encoded = "base64:" + java.util.Base64.getUrlEncoder().withoutPadding()
             .encodeToString(recipe.serialize().getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
@@ -360,8 +361,9 @@ class KrandomAutoConfigurationTest {
         runner.withPropertyValues("krandom.recipe=base64:xxx", "krandom.seed=1")
               .run(context -> {
                   assertNotNull(context.getStartupFailure());
-                  assertTrue(rootMessage(context.getStartupFailure())
-                      .contains("krandom.recipe or the individual krandom.seed/krandom.locale"));
+                  String message = rootMessage(context.getStartupFailure());
+                  assertTrue(message.contains("Configure krandom.recipe or the individual krandom.* properties")
+                             && message.contains("already defines krandom.seed"), message);
               });
     }
 

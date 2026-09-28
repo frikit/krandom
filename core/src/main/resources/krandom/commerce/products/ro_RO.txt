@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+Scaun
+Masă
+Calculator
+Tastatură
+Pantofi
+Ceas

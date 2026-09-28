@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Toàn thời gian
+Bán thời gian
+Hợp đồng
+Tạm thời
+Thực tập
+Tự do
+Học việc
+Thời vụ
+Tình nguyện
+Làm việc từ xa

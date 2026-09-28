@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+поповнення
+зняття
+платіж
+переказ
+повернення
+комісія
+відсотки
+чарджбек

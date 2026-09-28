@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Pelatih
+Junior
+Eksekutif
+Pertengahan
+Kanan
+Ketua pasukan
+Pakar utama
+Pakar
+Pengarah
+Naib presiden

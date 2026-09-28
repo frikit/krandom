@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -12,7 +14,8 @@ import java.math.RoundingMode;
  * Generates random {@link Float} values.
  *
  * <p>Default range: [{@code 0.0f}, {@code 1.0f}) — matching Java's {@code Random.nextFloat()}.
- * Specify a custom range via the two-/three-arg constructors.
+ * Specify a custom range via the two-/three-arg constructors; a {@link GeneratorConfig} supplies the
+ * random source (seeded, caller-owned, or secure).
  *
  * <p><b>Note:</b> avoid ranges where {@code max - min} overflows {@code Float.MAX_VALUE};
  * use {@link DoubleGenerator} for very wide ranges.
@@ -27,32 +30,74 @@ import java.math.RoundingMode;
  */
 public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
 
-    private final Integer precision;
+    private final Integer         precision;
+    /**
+     * Most recent seed from the configuration or {@link #reseed(long)}; {@code null} when unseeded.
+     */
+    private Long                  seed;
+    /** Configuration whose random source an unseeded precision generator keeps; may be {@code null}. */
+    private final GeneratorConfig config;
 
     public FloatGenerator() {
-        super(0f, 1f, null);
+        super(0f, 1f);
         this.precision = null;
+        this.config = null;
     }
 
     public FloatGenerator(float min, float max) {
-        super(min, max, null);
+        super(min, max);
         this.precision = null;
+        this.config = null;
     }
 
-    public FloatGenerator(float min, float max, long seed) {
-        super(min, max, seed);
-        this.precision = null;
+    /**
+     * Creates a generator over the default range using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public FloatGenerator(GeneratorConfig config) {
+        this(0f, 1f, config);
+    }
+
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source, which
+     * {@link #withPrecision(int)} keeps.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public FloatGenerator(float min, float max, GeneratorConfig config) {
+        this(min, max, config, null);
     }
 
     private FloatGenerator(float min, float max, Long seed, Integer precision) {
-        super(min, max, seed);
+        super(min, max);
         this.precision = precision;
+        this.config = null;
+        if (seed != null) {
+            reseed(seed);
+        }
+    }
+
+    private FloatGenerator(float min, float max, GeneratorConfig config, Integer precision) {
+        super(min, max, config);
+        this.precision = precision;
+        this.seed = config.getSeed().isPresent() ? config.getSeed().getAsLong() : null;
+        this.config = config;
     }
 
     /**
      * Return a new generator that rounds generated values to the specified number of decimal places.
      *
-     * <p>Uses {@link RoundingMode#HALF_UP} for rounding.
+     * <p>Uses {@link RoundingMode#HALF_UP} for rounding. Rounded values always stay inside
+     * [{@code min}, {@code max}): a draw that rounds onto the exclusive maximum or below the
+     * minimum is drawn again.
+     *
+     * <p>The new generator keeps this generator's seed: it is seeded with the configuration seed or,
+     * after {@link #reseed(long)}, with the most recent reseed value, and starts from that seed's
+     * initial state. A generator created from an unseeded configuration keeps that configuration's
+     * random source; any other unseeded generator produces an unseeded precision generator.
      *
      * @param decimals number of decimal places (0-7, float precision limit)
      * @return new generator with fixed precision
@@ -63,29 +108,57 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
             throw new IllegalArgumentException(
                 "Precision must be between 0 and 7, got: " + decimals);
         }
-        Long seed = null; // Cannot extract seed from existing generator
+        if (seed == null && config != null) {
+            return new FloatGenerator(getMin(), getMax(), config, decimals);
+        }
         return new FloatGenerator(getMin(), getMax(), seed, decimals);
+    }
+
+    /**
+     * Reseeds this generator and records the seed for {@link #withPrecision(int)}.
+     *
+     * @param seed new seed
+     */
+    @Override
+    public void reseed(long seed) {
+        super.reseed(seed);
+        this.seed = seed;
     }
 
     /**
      * Generate a float in the half-open range [{@code min}, {@code max}).
      *
      * <p>If precision is set via {@link #withPrecision(int)}, the result is rounded
-     * to the specified number of decimal places.
+     * to the specified number of decimal places and still lies in [{@code min}, {@code max}).
      *
-     * @throws IllegalArgumentException if {@code min >= max}
+     * @throws IllegalArgumentException if {@code min >= max}, or if precision is set and the range
+     *                                  contains no value with that many decimal places
      */
     @Override
     public Float generate(Float min, Float max) {
         validate(min, max);
-                float value = random.nextFloat(min, max);
-
-        if (precision != null) {
-            BigDecimal bd = BigDecimal.valueOf(value);
-            bd = bd.setScale(precision, RoundingMode.HALF_UP);
-            return bd.floatValue();
+        float value = random.nextFloat(min, max);
+        if (precision == null) {
+            return value;
         }
+        float rounded = round(value);
+        while (rounded < min || rounded >= max) {
+            requireRepresentableValue(min, max);
+            rounded = round(random.nextFloat(min, max));
+        }
+        return rounded;
+    }
 
-        return value;
+    private float round(float value) {
+        return BigDecimal.valueOf(value).setScale(precision, RoundingMode.HALF_UP).floatValue();
+    }
+
+    private void requireRepresentableValue(float min, float max) {
+        // Float.toString gives the shortest decimal that identifies the float, e.g. "0.1" for 0.1f.
+        float smallest = new BigDecimal(Float.toString(min)).setScale(precision, RoundingMode.CEILING).floatValue();
+        if (smallest >= max) {
+            throw new IllegalArgumentException("Range [" + min + ", " + max + ") contains no value with "
+                                               + precision + " decimal places");
+        }
     }
 }

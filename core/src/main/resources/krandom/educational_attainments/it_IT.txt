@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Diploma di maturità
+Diploma ITS
+Laurea triennale
+Laurea magistrale
+Dottorato di ricerca
+Laurea a ciclo unico
+Qualifica professionale

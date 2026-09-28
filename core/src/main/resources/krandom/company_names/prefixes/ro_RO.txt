@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globale
+Naționale
+Românești
+Unite
+Superioare
+Avansate
+Strategice
+Dinamice
+Inovatoare
+Profesionale
+Digitale
+Noi
+Alfa
+Performante
+Moderne

@@ -246,6 +246,24 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("construction adapters see field exclusions on the type and its superclasses")
+    void constructionAdapterSeesExclusions() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .objectExcludeField("own")
+                                                .objectExcludeField("inherited")
+                                                .build();
+        ExclusionAdapterFixture excluded = new ObjectGenerator<>(ExclusionAdapterFixture.class, config).generate();
+        assertTrue(excluded.ownExcluded);
+        assertTrue(excluded.inheritedExcluded);
+        assertFalse(excluded.missingExcluded);
+
+        ExclusionAdapterFixture plain = new ObjectGenerator<>(ExclusionAdapterFixture.class).generate();
+        assertFalse(plain.ownExcluded);
+        assertFalse(plain.inheritedExcluded);
+        assertFalse(plain.missingExcluded);
+    }
+
+    @Test
     @DisplayName("construction adapters validate output and preserve structured failures")
     void constructionAdapterFailuresAreContextual() {
         assertConstructionAdapterFailure(NullAdapterFixture.class, IllegalStateException.class);
@@ -474,6 +492,25 @@ class ObjectConstructionPolicyTest {
     }
 
     record FactoryProductValue(String value) implements FactoryProduct {
+    }
+
+    static class ExclusionBase {
+
+        String inherited;
+    }
+
+    static final class ExclusionAdapterFixture extends ExclusionBase {
+
+        final String  own = "own";
+        final boolean ownExcluded;
+        final boolean inheritedExcluded;
+        final boolean missingExcluded;
+
+        ExclusionAdapterFixture(boolean ownExcluded, boolean inheritedExcluded, boolean missingExcluded) {
+            this.ownExcluded = ownExcluded;
+            this.inheritedExcluded = inheritedExcluded;
+            this.missingExcluded = missingExcluded;
+        }
     }
 
     static final class AdapterFixture {

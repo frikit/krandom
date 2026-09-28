@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Fejlesztés
+Marketing
+Értékesítés
+Pénzügy
+Üzemeltetés
+Termékmenedzsment
+Humánerőforrás
+Jogi osztály
+Dizájn
+Ügyfélszolgálat
+Kutatás
+Adattudomány
+Biztonság
+Beszerzés
+Logisztika

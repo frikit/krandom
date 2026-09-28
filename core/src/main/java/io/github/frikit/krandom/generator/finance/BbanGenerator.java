@@ -13,7 +13,20 @@ import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates basic bank account numbers (BBAN-like) for locale countries.
+ * Generates ISO 13616 basic bank account numbers (BBANs) that follow the IBAN-registry structure of
+ * one country.
+ *
+ * <p><strong>Country:</strong> the BBAN country is resolved exactly as for {@link IbanGenerator}:
+ * the configured locale's country when it has an IBAN format built in (AT, BE, BG, BR, CH, CZ, DE,
+ * DK, ES, FI, FR, GB, GR, HR, HU, IE, IL, IT, NL, NO, PL, PT, RO, RU, SA, SE, SK, TR, UA), otherwise
+ * Germany ({@code DE}). Locales of countries without IBANs, such as {@code en_US}, {@code ja_JP},
+ * or {@code zh_CN}, locales without a country, and the default {@code en_US} configuration
+ * therefore produce German 18-digit BBANs rather than a domestic account-number format.
+ *
+ * <p>Each BBAN has the registry length and character classes of the resolved country (for example
+ * {@code 8!n10!n} for DE and {@code 4!a6!n8!n} for GB); for BE, CZ, ES, FI, FR, HR, HU, IT, NO,
+ * PL, PT, and SK its national check digits are valid as well. For the same configuration it equals
+ * the BBAN part of the corresponding {@link IbanGenerator} output.
  *
  * <p>Use an explicit {@link GeneratorConfig} and select
  * {@link BankingSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated compatibility fixtures.
@@ -21,12 +34,16 @@ import java.util.Random;
  */
 public final class BbanGenerator implements Generator<String> {
 
-    private final Locale                locale;
-    private final Random                random;
+    private final Locale              locale;
+    private final Random              random;
     private final BankingSafetyPolicy bankingSafetyPolicy;
 
-
-
+    /**
+     * Creates a BBAN generator for the country resolved from the configured locale.
+     *
+     * @param config the generator configuration; must not be {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
+     */
     public BbanGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.locale = effective.getLocale();
@@ -34,19 +51,15 @@ public final class BbanGenerator implements Generator<String> {
         this.bankingSafetyPolicy = effective.getBankingSafetyPolicy();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalStateException if the configured banking safety policy is
+     *                               {@link BankingSafetyPolicy#DISABLED}
+     */
     @Override
     public String generate() {
         bankingSafetyPolicy.requireRealisticOutput();
-        int length = switch (locale.getCountry()) {
-            case "DE", "FR", "ES", "IT" -> 18;
-            case "GB" -> 18;
-            case "BR" -> 20;
-            default -> 16;
-        };
-        StringBuilder out = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            out.append(random.nextInt(10));
-        }
-        return out.toString();
+        return IbanCountryFormat.forLocale(locale).randomBban(random);
     }
 }

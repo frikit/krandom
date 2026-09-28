@@ -26,10 +26,10 @@ package io.github.frikit.krandom.generator.user;
  *
  * // Use specific format
  * String email1 = gen.generate(EmailFormat.FIRSTNAME_DOT_LASTNAME);
- * // "john.smith@gmail.com"
+ * // "john.smith@example.com"
  *
  * String email2 = gen.generate(EmailFormat.FIRSTINITIAL_LASTNAME);
- * // "jsmith@yahoo.com"
+ * // "jsmith@example.org"
  * }</pre>
  */
 public enum EmailFormat {

@@ -1,0 +1,7 @@
+# Product adjectives, one per line.
+컴팩트
+세련된
+빈티지
+실용적인
+프리미엄
+인체공학적

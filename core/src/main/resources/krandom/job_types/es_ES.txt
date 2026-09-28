@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Tiempo completo
+Medio tiempo
+Contrato
+Temporal
+Pasantía
+Freelance
+Aprendizaje
+Estacional
+Voluntario
+Remoto

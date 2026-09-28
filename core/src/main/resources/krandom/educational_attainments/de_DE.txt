@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Abitur
+Fachschulabschluss
+Bachelorabschluss
+Masterabschluss
+Promotion
+Staatsexamen
+Berufsausbildung

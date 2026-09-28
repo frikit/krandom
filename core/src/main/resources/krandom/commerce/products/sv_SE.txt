@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+Stol
+Bord
+Dator
+Tangentbord
+Skor
+Klocka

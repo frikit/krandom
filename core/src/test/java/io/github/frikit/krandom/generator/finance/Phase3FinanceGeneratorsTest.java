@@ -90,7 +90,6 @@ class Phase3FinanceGeneratorsTest {
 
     @Test
     @DisplayName("crypto generator default and validation branches")
-    @SuppressWarnings("removal")
     void cryptoDefaultAndValidation() {
         CryptoAddressGenerator generator = new CryptoAddressGenerator(GeneratorConfig.builder() .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
         String any = generator.generate();

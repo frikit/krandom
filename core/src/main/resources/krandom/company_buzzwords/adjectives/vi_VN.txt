@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+đa nền tảng
+toàn diện
+hàng đầu
+liền mạch
+trên đám mây
+dựa trên dữ liệu

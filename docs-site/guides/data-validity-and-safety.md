@@ -36,13 +36,36 @@ processor's documented sandbox values and test credentials for integration tests
 ## Phone-number contract
 
 `PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE` is the default for locale-style output. It
-uses [NANPA's fictional, non-working `555-0100` through `555-0199` line-number range](https://www.nanpa.com/numbering/555-line-numbers) for US
-locales, including the language-only English fallback. Other locales remain realistic but unclassified, as do custom phone-number
-templates and generated MSISDNs. `REALISTIC_UNCLASSIFIED` explicitly preserves the prior
+uses [NANPA's fictional, non-working `555-0100` through `555-0199` line-number range](https://www.nanpa.com/numbering/555-line-numbers) for
+North American Numbering Plan locales, which resolve to the United States or Canada (`en_US`,
+`en_CA`, `fr_CA`, and the language-only English fallback). Every other `SupportedLocale` country
+uses its own national format; other locales remain realistic but unclassified, as do custom
+phone-number templates and generated MSISDNs. A locale whose country has no built-in format uses
+the first catalog country of its language (for example `de_LI` uses the German format), and an
+unknown language uses `en_US`. `REALISTIC_UNCLASSIFIED` explicitly preserves the prior
 realistic-looking behavior without a safety claim.
 
 The NANPA allocation does not make the same range safe in countries outside its numbering plan.
 Use a country-specific official test allocation only when the generator documents it.
+
+## Email-domain contract
+
+`EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS` is the default for every domain a generator chooses
+on its own. Personal addresses from `EmailGenerator` (and the contact, person, and profile payloads
+built on it) use only the [RFC 2606](https://www.rfc-editor.org/rfc/rfc2606) reserved domains
+`example.com`, `example.net`, and `example.org`; company addresses from `CompanyEmailGenerator`
+keep the company-derived label under the reserved `.test` top-level domain (for example
+`jsmith@acme.test`). None of these can reach a real mailbox. Local parts are always lowercase ASCII:
+Latin-script names lose their diacritics (German umlauts expand to `ae`/`oe`/`ue`), Cyrillic and
+Greek names are transliterated, and names in other scripts are replaced by romanized names for the
+locale's language.
+
+`EmailDomainPolicy.REALISTIC_UNCLASSIFIED` restores the popular mailbox-provider domains
+(`gmail.com`, `yahoo.com`, …) and realistic company top-level domains for isolated fixtures that
+never send mail. The free-provider methods (`generateFreeEmail`, `getFreeEmailProvider`,
+`generateFreeEmailDomain`) require that opt-in and fail closed otherwise. A domain passed
+explicitly, such as `generate("corp.test")`, is always used verbatim. The selected policy is
+recorded in portable generation recipes as `email.domain-policy`.
 
 ## Fail-closed finance and identity contracts
 

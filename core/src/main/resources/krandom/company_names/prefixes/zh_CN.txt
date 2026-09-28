@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+环球
+国民
+中华
+合众
+卓越
+先进
+战略
+活力
+创新
+专业
+数字
+新一代
+阿尔法
+巅峰
+顶点

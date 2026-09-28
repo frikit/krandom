@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Magang
+Junior
+Staf
+Menengah
+Senior
+Pemimpin tim
+Spesialis utama
+Spesialis
+Direktur
+Wakil presiden

@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+aplikace
+procesy
+infrastruktury
+platformy
+služby
+schopnosti

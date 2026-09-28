@@ -32,9 +32,9 @@ public final class FilePathGenerator implements Generator<String> {
     public FilePathGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.dirPathGenerator = new DirPathGenerator(config);
-        this.fileNameGenerator = new FileNameGenerator(config);
-        this.fileExtensionGenerator = new FileExtensionGenerator(config);
+        this.dirPathGenerator = new DirPathGenerator(config.forChildStream("dirPath"));
+        this.fileNameGenerator = new FileNameGenerator(config.forChildStream("fileName"));
+        this.fileExtensionGenerator = new FileExtensionGenerator(config.forChildStream("fileExtension"));
     }
 
     @Override

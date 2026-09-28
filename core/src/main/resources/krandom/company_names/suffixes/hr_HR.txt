@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+d.o.o.
+d.d.
+j.d.o.o.
+j.t.d.
+k.d.

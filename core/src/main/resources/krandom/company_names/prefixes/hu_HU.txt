@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globális
+Nemzeti
+Magyar
+Egyesült
+Elsőrangú
+Fejlett
+Stratégiai
+Dinamikus
+Innovatív
+Professzionális
+Digitális
+Új
+Alfa
+Vezető
+Modern

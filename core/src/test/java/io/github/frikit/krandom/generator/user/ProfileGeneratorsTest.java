@@ -61,6 +61,24 @@ class ProfileGeneratorsTest {
     }
 
     @Test
+    @DisplayName("simple and full profile birthdays follow the configured clock")
+    void birthdaysFollowTheConfiguredClock() {
+        java.time.Clock clock = java.time.Clock.fixed(java.time.Instant.parse("1990-06-15T00:00:00Z"),
+                                                      java.time.ZoneOffset.UTC);
+        GeneratorConfig config = GeneratorConfig.builder().seed(7L).clock(clock).locale(Locale.US).build();
+        java.time.LocalDate today = java.time.LocalDate.now(clock);
+        SimpleProfileGenerator simple = new SimpleProfileGenerator(config);
+        ProfileGenerator full = new ProfileGenerator(config);
+        for (int i = 0; i < 20; i++) {
+            for (java.time.LocalDate birthdate : java.util.List.of(simple.generate().birthdate(),
+                                                                   full.generate().birthdate())) {
+                assertTrue(birthdate.isBefore(today) && birthdate.isAfter(today.minusYears(102)),
+                           "birthdate " + birthdate + " must be an age of 1-100 years on " + today);
+            }
+        }
+    }
+
+    @Test
     @DisplayName("simple profile can generate both male and female profiles")
     void simpleProfileBothSexes() {
         SimpleProfileGenerator generator = new SimpleProfileGenerator(

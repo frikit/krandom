@@ -53,7 +53,7 @@ public final class MiddleNameGenerator implements Generator<String> {
                 + config.getLocale()
                 + " (" + localeKey(config.getLocale()) + ")");
         }
-        this.firstNameGenerator = new FirstNameGenerator(config);
+        this.firstNameGenerator = new FirstNameGenerator(config.forChildStream("firstName"));
     }
 
     /**

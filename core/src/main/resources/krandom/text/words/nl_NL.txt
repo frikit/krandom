@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+gegevens
+model
+systeem
+signaal
+proces
+analyse
+platform
+netwerk
+veilig
+dienst
+structuur
+module
+logica
+waarde
+context
+doel

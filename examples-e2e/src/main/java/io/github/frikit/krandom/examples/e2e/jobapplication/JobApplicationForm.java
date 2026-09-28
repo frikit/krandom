@@ -132,11 +132,11 @@ public final class JobApplicationForm {
                 // Realistic 18..99-year-old (nested dotted path).
                 .ruleFor("personal.dateOfBirth", () -> dateOfBirth.generate().toString())
                 // Numbers and dates a form would actually validate.
-                .ruleFor("address.yearsAtAddress", Generators.ofInt(0, 40, seed + 1))
-                .ruleFor("role.salaryExpectation", Generators.ofInt(30_000, 200_000, seed + 2))
-                .ruleFor("role.noticePeriodWeeks", Generators.ofInt(0, 12, seed + 3))
+                .ruleFor("address.yearsAtAddress", Generators.ofInt(0, 40, GeneratorConfig.builder().seed(seed + 1).build()))
+                .ruleFor("role.salaryExpectation", Generators.ofInt(30_000, 200_000, GeneratorConfig.builder().seed(seed + 2).build()))
+                .ruleFor("role.noticePeriodWeeks", Generators.ofInt(0, 12, GeneratorConfig.builder().seed(seed + 3).build()))
                 .ruleFor("role.availableFrom",
-                        () -> LocalDate.now().plusDays(Generators.ofInt(0, 90, seed + 4).generate()).toString())
+                        () -> LocalDate.now().plusDays(Generators.ofInt(0, 90, GeneratorConfig.builder().seed(seed + 4).build()).generate()).toString())
                 // Consents and eligibility an applicant would affirm.
                 .ruleFor("rightToWork.eligibleToWorkInCountry", () -> true)
                 .ruleFor("screening.consentToBackgroundCheck", () -> true)

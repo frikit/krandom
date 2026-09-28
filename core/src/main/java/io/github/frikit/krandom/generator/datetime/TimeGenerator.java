@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.security.SecureRandom;
 import java.time.LocalTime;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -96,7 +97,7 @@ public final class TimeGenerator implements Generator<LocalTime> {
      */
     public String generateString() {
         LocalTime time = generate();
-        return String.format("%02d:%02d:%02d",
+        return String.format(Locale.ROOT, "%02d:%02d:%02d",
                              time.getHour(), time.getMinute(), time.getSecond());
     }
 

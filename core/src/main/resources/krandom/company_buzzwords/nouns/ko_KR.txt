@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+솔루션
+워크플로
+인프라
+플랫폼
+경험
+역량

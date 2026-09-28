@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+dato
+modello
+sistema
+segnale
+processo
+analisi
+piattaforma
+rete
+sicuro
+servizio
+struttura
+modulo
+logica
+valore
+contesto
+obiettivo

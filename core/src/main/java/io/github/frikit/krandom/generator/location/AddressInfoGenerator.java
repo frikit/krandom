@@ -51,9 +51,9 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
     public AddressInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.streetAddressGenerator = new StreetAddressGenerator(config);
-        this.postalCodeGenerator = new PostalCodeGenerator(config);
-        this.countryGenerator = new CountryGenerator(config);
+        this.streetAddressGenerator = new StreetAddressGenerator(config.forChildStream("streetAddress"));
+        this.postalCodeGenerator = new PostalCodeGenerator(config.forChildStream("postalCode"));
+        this.countryGenerator = new CountryGenerator(config.forChildStream("country"));
 
         DataRegistryContext registryContext = config.getRegistryContext();
         Locale locale = config.getLocale();

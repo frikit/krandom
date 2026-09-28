@@ -1,0 +1,8 @@
+# Company legal-form suffixes, one per line.
+SA
+SAS
+SARL
+SASU
+EURL
+SNC
+SCOP

@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -91,8 +92,8 @@ class BigDecimalGeneratorTest {
         void seededReproducibility() {
             BigDecimal lo = BigDecimal.ZERO;
             BigDecimal hi = new BigDecimal("100");
-            BigDecimalGenerator a = new BigDecimalGenerator(lo, hi, 2, 42L);
-            BigDecimalGenerator b = new BigDecimalGenerator(lo, hi, 2, 42L);
+            BigDecimalGenerator a = new BigDecimalGenerator(lo, hi, 2, seeded(42L));
+            BigDecimalGenerator b = new BigDecimalGenerator(lo, hi, 2, seeded(42L));
             for (int i = 0; i < SAMPLES; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -155,5 +156,9 @@ class BigDecimalGeneratorTest {
             assertThrows(IllegalArgumentException.class,
                          () -> new BigDecimalGenerator(BigDecimal.ZERO, new BigDecimal(Long.MAX_VALUE), 0));
         }
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

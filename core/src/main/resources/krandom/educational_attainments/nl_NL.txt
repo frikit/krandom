@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Havo/vwo-diploma
+Associate degree
+Bachelordiploma
+Masterdiploma
+Promotie
+Beroepsopleiding (hbo)
+Mbo-diploma

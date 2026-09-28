@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Ngân hàng bán lẻ
+Ngân hàng thương mại
+Ngân hàng đầu tư
+Quỹ tín dụng nhân dân
+Ngân hàng số

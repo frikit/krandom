@@ -1,0 +1,7 @@
+# Store departments, one per line.
+書籍
+家電
+アウトドア
+生活用品
+おもちゃ
+園芸

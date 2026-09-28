@@ -25,18 +25,31 @@ not participate in a release publication.
 
 ## Updating verification metadata
 
-When a reviewed dependency update adds artifacts, generate updated SHA-256 metadata for the build,
-then review all resolved components and artifacts before accepting it:
+When a reviewed dependency update adds artifacts, regenerate the SHA-256 metadata and review all
+resolved components and artifacts before accepting it:
 
 ```bash
-./gradlew --write-verification-metadata sha256 \
-  clean build check checkApiContract :core:javadoc \
-  --max-workers=1 --no-daemon \
-  -x :benchmarks:test -x :benchmarks:check
+JAVA_HOME=<JDK 21+> ./scripts/update_verification_metadata.sh
 ```
 
-This command adds checksums required by the resolved graph; it is not approval to accept the file
-wholesale. Review the XML diff and require all of the following before committing it:
+Gradle records only the artifacts an invocation resolves, including those resolved while tasks run,
+so the script runs every task graph that CI, the release workflow, and `scripts/pre_commit_check.sh`
+use with `--write-verification-metadata sha256`:
+
+| Invocation | Graph |
+| --- | --- |
+| `spotlessCheck build` | compilation, all tests (benchmarks and examples-e2e included), coverage, and Javadoc |
+| `verifyReleaseSboms` | CycloneDX, in its own invocation as in CI |
+| `:core:pitest` | PIT and its JUnit 5 plugin |
+| `nmcpZipAggregation` | publications for Maven Central and Maven local |
+
+Add a new invocation when CI starts resolving a different graph. The consumer builds under
+`examples/` are separate Gradle builds without verification metadata.
+
+On the unchanged dependency set the script is a no-op. It fails if an existing artifact gains a
+second checksum (`<also-trust>`) or a trust exception appears: an artifact that resolves to different
+bytes needs investigation, not acceptance. The script adds checksums; it is not approval to accept
+the file wholesale. Review the XML diff and require all of the following before committing it:
 
 1. Every component is explained by the current build; later additions must match an intended update.
 2. Every new artifact has a SHA-256 checksum and no broad trusted-artifact exception was added.
@@ -44,6 +57,25 @@ wholesale. Review the XML diff and require all of the following before committin
    Central metadata.
 4. `./scripts/pre_commit_check.sh` passes without `--write-verification-metadata` so verification is
    exercised in strict mode.
+
+Gradle keeps existing entries, so checksums for dependencies that are no longer used remain until
+the file is pruned. To prune, move the tracked file out of the repository, run the script to
+bootstrap a new file, and confirm with `git diff` that the regeneration only removes components and
+keeps every retained checksum unchanged.
+
+### Dependabot updates
+
+Dependabot cannot run the script, so its Gradle pull requests fail verification whenever they add
+artifacts. Minor and patch updates of the main build arrive as one grouped pull request each week;
+major updates arrive separately. For each such pull request:
+
+1. Check out its branch and run `./scripts/update_verification_metadata.sh`.
+2. Review the metadata diff with the checklist above; the new components should belong to the
+   updated dependencies.
+3. Commit the metadata to the branch, push, and let CI verify it in strict mode.
+
+The consumer examples under `examples/` receive separate Gradle and Maven pull requests, one per
+dependency across all example directories; they need no metadata update.
 
 Checksums provide integrity after this reviewed baseline is established; they do not prove publisher
 identity. Adding PGP identity verification is a separate hardening step and must not replace SHA-256

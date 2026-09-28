@@ -6,11 +6,12 @@
 package io.github.frikit.krandom.generator.algorithms;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 /**
@@ -134,10 +135,21 @@ public final class FibonacciGenerator implements Generator<Long> {
     private final RandomGenerator random;
 
     /**
-     * Creates a generator backed by the default fast PRNG.
+     * Creates a generator backed by the default fast PRNG ({@link GeneratorConfig#defaults()}).
      */
     public FibonacciGenerator() {
-        this.random = new Random();
+        this(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Creates a generator whose draws come from the configuration's random source, so a seeded
+     * configuration reproduces the same Fibonacci numbers.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
+     */
+    public FibonacciGenerator(GeneratorConfig config) {
+        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
     }
 
     /**

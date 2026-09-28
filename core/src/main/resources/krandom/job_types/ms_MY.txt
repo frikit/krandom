@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Sepenuh masa
+Separuh masa
+Kontrak
+Sementara
+Latihan industri
+Bebas
+Perantisan
+Bermusim
+Sukarela
+Jarak jauh

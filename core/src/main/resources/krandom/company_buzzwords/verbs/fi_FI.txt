@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+tehostaa
+vahvistaa
+hyödyntää
+optimoida
+integroida
+skaalata
+toimittaa
+mahdollistaa

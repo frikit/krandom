@@ -29,10 +29,6 @@ public final class LegacyTimeZoneGenerator implements Generator<TimeZone>, Seeda
         this(GeneratorConfig.defaults());
     }
 
-    public LegacyTimeZoneGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
     public LegacyTimeZoneGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();

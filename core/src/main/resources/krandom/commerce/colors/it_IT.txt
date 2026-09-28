@@ -1,0 +1,7 @@
+# Product colors, one per line.
+rosso
+blu
+verde
+nero
+bianco
+argento

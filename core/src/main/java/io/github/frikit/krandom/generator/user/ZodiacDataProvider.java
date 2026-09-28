@@ -14,8 +14,9 @@ import java.util.Locale;
  * <p>The date boundaries of the tropical zodiac are universal; only the sign <em>names</em> differ by
  * language. Implement this interface and register an instance with
  * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerZodiacProvider(ZodiacDataProvider)}
- * to add or override validated localized sign names for one configuration. The global
- * {@link ZodiacDataRegistry} remains a compatibility bridge.
+ * to add or override validated localized sign names for one configuration.
+ * {@link ZodiacDataRegistry} holds the built-in sign names served by
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  *
  * <p>{@link #getSigns()} must return exactly 12 names in canonical zodiac order, starting with the
  * Aries sign: {@code [Aries, Taurus, Gemini, Cancer, Leo, Virgo, Libra, Scorpio, Sagittarius,

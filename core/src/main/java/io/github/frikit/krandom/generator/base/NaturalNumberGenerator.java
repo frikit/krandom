@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,22 +40,39 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
     private final Set<Integer> excludedValues;
 
     public NaturalNumberGenerator() {
-        super(0, Integer.MAX_VALUE, null);
+        super(0, Integer.MAX_VALUE);
         this.excludedValues = new HashSet<>();
     }
 
     public NaturalNumberGenerator(int min, int max) {
-        super(min, max, null);
+        super(min, max);
         this.excludedValues = new HashSet<>();
     }
 
-    public NaturalNumberGenerator(int min, int max, long seed) {
-        super(min, max, seed);
+    /**
+     * Creates a generator over the default range using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public NaturalNumberGenerator(GeneratorConfig config) {
+        super(0, Integer.MAX_VALUE, config);
         this.excludedValues = new HashSet<>();
     }
 
-    private NaturalNumberGenerator(int min, int max, Long seed, Set<Integer> excludedValues) {
-        super(min, max, seed);
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public NaturalNumberGenerator(int min, int max, GeneratorConfig config) {
+        super(min, max, config);
+        this.excludedValues = new HashSet<>();
+    }
+
+    private NaturalNumberGenerator(int min, int max, Set<Integer> excludedValues) {
+        super(min, max);
         this.excludedValues = new HashSet<>(excludedValues);
     }
 
@@ -72,9 +91,8 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
             newExclusions.add(value);
         }
 
-        // Create new instance with updated exclusions
-        Long seed = null; // Cannot extract seed from existing generator
-        return new NaturalNumberGenerator(getMin(), getMax(), seed, newExclusions);
+        // The copy starts from a fresh unseeded random source; the original's seed is not recorded.
+        return new NaturalNumberGenerator(getMin(), getMax(), newExclusions);
     }
 
     /**

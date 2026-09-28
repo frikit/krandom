@@ -1,0 +1,7 @@
+# Store departments, one per line.
+도서
+전자제품
+아웃도어
+홈
+완구
+원예

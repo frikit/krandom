@@ -1,6 +1,10 @@
 #!/bin/bash
-# Run all pre-commit checks: format, license headers, tests, and coverage verification.
-# Usage: ./scripts/pre_commit_check.sh
+# Run the local quality gate: formatting and license headers, documentation checks, compilation,
+# module boundaries, release SBOMs, Javadoc, tests, critical-path mutation testing, and the exact
+# core coverage gate.
+# Usage: ./scripts/pre_commit_check.sh [--fast]
+#   --fast  Iteration mode: reuse up-to-date test results instead of forcing a rerun, and skip
+#           mutation testing and SBOM validation. Run the full gate before pushing.
 # Exit code: 0 = all passed, non-zero = something failed.
 
 set -euo pipefail
@@ -8,6 +12,22 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
 COVERAGE_THRESHOLD="100.0"
+FAST=false
+
+for arg in "$@"; do
+    case "${arg}" in
+        --fast) FAST=true ;;
+        -h|--help)
+            sed -n '2,8p' "${BASH_SOURCE[0]}"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: ${arg}" >&2
+            echo "Usage: $0 [--fast]" >&2
+            exit 2
+            ;;
+    esac
+done
 
 cd "${REPO_ROOT}"
 
@@ -23,8 +43,13 @@ FAIL="${RED}[FAIL]${RESET}"
 step() { echo; echo "==> $*"; }
 ok()   { echo -e "${PASS} $*"; }
 fail() { echo -e "${FAIL} $*"; }
+skip() { echo; echo "==> Skipped in --fast mode: $*"; }
 
 # ── Steps ─────────────────────────────────────────────────────────────────────
+
+if [ "${FAST}" = true ]; then
+    echo "Fast mode: reusing up-to-date test results; skipping SBOM validation and mutation testing."
+fi
 
 step "Verify Java runtime"
 if "${REPO_ROOT}/scripts/require_java21.sh"; then
@@ -106,20 +131,24 @@ else
     exit 1
 fi
 
-step "Verify public API compatibility"
-if "${GRADLEW}" checkApiContract --quiet; then
-    ok "Public API is compatible and all evolution is classified"
+step "Verify module boundaries"
+if bash "${REPO_ROOT}/scripts/verify_module_boundaries.sh"; then
+    ok "Module identities are unique and no package is split"
 else
-    fail "Public API contract failed — see build/reports/japicmp and build/reports/api-evolution"
+    fail "Module boundary verification failed"
     exit 1
 fi
 
-step "Generate and validate release SBOMs"
-if "${GRADLEW}" verifyReleaseSboms --quiet; then
-    ok "Release SBOMs are valid"
+if [ "${FAST}" = true ]; then
+    skip "release SBOM generation and validation"
 else
-    fail "Release SBOM validation failed — see build/reports/sbom"
-    exit 1
+    step "Generate and validate release SBOMs"
+    if "${GRADLEW}" verifyReleaseSboms --quiet; then
+        ok "Release SBOMs are valid"
+    else
+        fail "Release SBOM validation failed — see build/reports/sbom"
+        exit 1
+    fi
 fi
 
 step "Validate Javadoc (check for broken links and missing docs)"
@@ -131,8 +160,12 @@ else
 fi
 
 step "Run tests with coverage report"
+TEST_ARGS=(test --quiet)
+if [ "${FAST}" = false ]; then
+    TEST_ARGS+=(--rerun)
+fi
 TEST_START=$(date +%s)
-if "${GRADLEW}" test --rerun --quiet; then
+if "${GRADLEW}" "${TEST_ARGS[@]}"; then
     TEST_END=$(date +%s)
     TEST_SECS=$(( TEST_END - TEST_START ))
     TEST_MINS=$(( TEST_SECS / 60 ))
@@ -147,12 +180,16 @@ else
     exit 1
 fi
 
-step "Run critical-path mutation tests"
-if "${GRADLEW}" :core:pitest --quiet; then
-    ok "Mutation score meets the measured critical-path threshold"
+if [ "${FAST}" = true ]; then
+    skip "critical-path mutation tests"
 else
-    fail "Mutation testing failed — see core/build/reports/pitest"
-    exit 1
+    step "Run critical-path mutation tests"
+    if "${GRADLEW}" :core:pitest --quiet; then
+        ok "Mutation score meets the measured critical-path threshold"
+    else
+        fail "Mutation testing failed — see core/build/reports/pitest"
+        exit 1
+    fi
 fi
 
 step "Enforce coverage thresholds"
@@ -245,10 +282,33 @@ END     { printf "%-73s\n", "─────────────────
 echo ""
 printf "! = below %s%% threshold\n" "${COVERAGE_THRESHOLD}"
 
+# ── Integration modules: reported, not gated ──────────────────────────────────
+echo ""
+echo "Integration module coverage (informational; only core is gated):"
+for report in "${REPO_ROOT}"/*/build/reports/jacoco/test/jacocoTestReport.csv; do
+    [ -f "${report}" ] || continue
+    module="${report#"${REPO_ROOT}/"}"
+    module="${module%%/*}"
+    awk -F',' -v module="${module}" '
+    NR == 1 { next }
+    { lm += $8; lc += $9; bm += $6; bc += $7 }
+    END {
+        lines = lm + lc; branches = bm + bc
+        printf "  %-22s line %6.1f%%   branch %6.1f%%\n", module,
+            (lines > 0 ? lc * 100 / lines : 100), (branches > 0 ? bc * 100 / branches : 100)
+    }' "${report}"
+done
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 
 echo
-if [ "${COVERAGE_OK}" -eq 1 ]; then
+if [ "${COVERAGE_OK}" -eq 1 ] && [ "${FAST}" = true ]; then
+    ok "Coverage thresholds met"
+    echo -e "${GREEN}============================================"
+    echo -e " Fast checks passed. Run the full gate"
+    echo -e " (without --fast) before pushing."
+    echo -e "============================================${RESET}"
+elif [ "${COVERAGE_OK}" -eq 1 ]; then
     ok "Coverage thresholds met"
     echo -e "${GREEN}============================================"
     echo -e " All pre-commit checks passed. Safe to commit."

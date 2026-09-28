@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+innskudd
+uttak
+betaling
+overføring
+refusjon
+gebyr
+rente
+tilbakeføring

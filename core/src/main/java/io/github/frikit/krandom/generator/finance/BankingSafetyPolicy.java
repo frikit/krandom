@@ -23,8 +23,9 @@ public enum BankingSafetyPolicy {
     void requireRealisticOutput() {
         if (this == DISABLED) {
             throw new IllegalStateException(
-                "Banking identifier generation is disabled by default; select "
-                + "bankingSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
+                "Banking identifier generation is disabled by default; enable it only for isolated "
+                + "fixtures with GeneratorConfig.builder().bankingSafetyPolicy("
+                + "BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()");
         }
     }
 }

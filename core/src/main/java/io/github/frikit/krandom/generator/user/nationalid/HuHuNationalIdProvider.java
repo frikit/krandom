@@ -12,6 +12,10 @@ import java.util.Random;
 /**
  * Generates Hungarian personal identification number style identifiers in
  * {@code X-YYMMDD-XXXX} format.
+ *
+ * <p>The first digit is 1 (male) or 2 (female), denoting a birth in the 1900s, and {@code YYMMDD}
+ * is a birth date between 1950 and 1999. The four trailing digits are random; no check digit is
+ * computed.
  */
 public final class HuHuNationalIdProvider implements NationalIdProvider {
 
@@ -24,7 +28,7 @@ public final class HuHuNationalIdProvider implements NationalIdProvider {
     public String generate(Random random) {
         int gender = random.nextInt(2) + 1;
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
-        return String.format("%d-%02d%02d%02d-%04d",
+        return String.format(Locale.ROOT, "%d-%02d%02d%02d-%04d",
                              gender,
                              date.getYear() % 100,
                              date.getMonthValue(),

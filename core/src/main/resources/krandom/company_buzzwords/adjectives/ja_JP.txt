@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+クロスプラットフォームの
+エンドツーエンドの
+業界最高水準の
+シームレスな
+クラウドネイティブな
+データドリブンな

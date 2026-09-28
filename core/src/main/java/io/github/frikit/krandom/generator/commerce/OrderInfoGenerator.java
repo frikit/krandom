@@ -63,11 +63,11 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
     public OrderInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.uuidGenerator = new UUIDGenerator(config);
-        this.dateGenerator = new DateGenerator(config);
-        this.currencyGenerator = new CurrencyGenerator(config);
-        this.personInfoGenerator = new PersonInfoGenerator(config);
-        this.productInfoGenerator = new ProductInfoGenerator(config);
+        this.uuidGenerator = new UUIDGenerator(config.forChildStream("uUID"));
+        this.dateGenerator = new DateGenerator(config.forChildStream("date"));
+        this.currencyGenerator = new CurrencyGenerator(config.forChildStream("currency"));
+        this.personInfoGenerator = new PersonInfoGenerator(config.forChildStream("personInfo"));
+        this.productInfoGenerator = new ProductInfoGenerator(config.forChildStream("productInfo"));
         this.shippingAddressGenerator = null;
     }
 
@@ -80,11 +80,11 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
     public OrderInfoGenerator(GeneratorConfig config, AddressInfoGenerator shippingAddressGenerator) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.uuidGenerator = new UUIDGenerator(config);
-        this.dateGenerator = new DateGenerator(config);
-        this.currencyGenerator = new CurrencyGenerator(config);
-        this.personInfoGenerator = new PersonInfoGenerator(config);
-        this.productInfoGenerator = new ProductInfoGenerator(config);
+        this.uuidGenerator = new UUIDGenerator(config.forChildStream("uUID"));
+        this.dateGenerator = new DateGenerator(config.forChildStream("date"));
+        this.currencyGenerator = new CurrencyGenerator(config.forChildStream("currency"));
+        this.personInfoGenerator = new PersonInfoGenerator(config.forChildStream("personInfo"));
+        this.productInfoGenerator = new ProductInfoGenerator(config.forChildStream("productInfo"));
         this.shippingAddressGenerator = Objects.requireNonNull(
             shippingAddressGenerator,
             "shippingAddressGenerator must not be null"
