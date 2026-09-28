@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globální
+Národní
+České
+Spojené
+Prvotřídní
+Pokročilé
+Strategické
+Dynamické
+Inovativní
+Profesionální
+Digitální
+Nové
+Alfa
+Přední
+Moderní

@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+eficientizați
+consolidați
+valorificați
+optimizați
+integrați
+scalați
+livrați
+facilitați

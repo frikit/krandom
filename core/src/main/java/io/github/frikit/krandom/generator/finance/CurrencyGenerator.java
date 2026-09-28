@@ -399,7 +399,7 @@ public final class CurrencyGenerator implements Generator<String> {
      * @return formatted amount with locale currency
      */
     public String generatePriceTag() {
-        return new MoneyGenerator(config).generate();
+        return new MoneyGenerator(config.forChildStream("money")).generate();
     }
 
     /**
@@ -409,7 +409,7 @@ public final class CurrencyGenerator implements Generator<String> {
      * @return formatted amount with locale currency
      */
     public String generatePriceTag(Locale locale) {
-        return new MoneyGenerator(config).generate(locale);
+        return new MoneyGenerator(config.forChildStream("money")).generate(locale);
     }
 
     /**

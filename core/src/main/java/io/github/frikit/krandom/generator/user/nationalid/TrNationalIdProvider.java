@@ -29,7 +29,7 @@ public final class TrNationalIdProvider implements NationalIdProvider {
         }
         digits[9] = computeTenthDigit(digits);
         digits[10] = computeEleventhDigit(digits);
-        return String.format("%d%d%d%d%d%d%d%d%d%d%d",
+        return String.format(Locale.ROOT, "%d%d%d%d%d%d%d%d%d%d%d",
                              digits[0], digits[1], digits[2], digits[3], digits[4],
                              digits[5], digits[6], digits[7], digits[8], digits[9],
                              digits[10]);

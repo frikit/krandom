@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+data
+model
+system
+signal
+proces
+analyse
+platform
+netværk
+sikker
+tjeneste
+struktur
+modul
+logik
+værdi
+kontekst
+mål

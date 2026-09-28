@@ -16,6 +16,22 @@ fail() {
     exit 1
 }
 
+# Fail with <message> when the extended regular expression matches any line of the given files or
+# directories. Uses portable grep (BSD and GNU) and treats grep errors (exit >= 2: missing path,
+# unreadable file, missing tool) as failures, so a renamed file cannot read as "no match".
+# Usage: reject_pattern <message> <ERE> [grep options...] <path>...
+# BSD grep stops parsing options at the first path, so options must precede the paths.
+reject_pattern() {
+    local message="$1" pattern="$2" status=0
+    shift 2
+    grep -rEnI -e "${pattern}" "$@" || status=$?
+    case "${status}" in
+        0) fail "${message}" ;;
+        1) ;;
+        *) fail "could not search for /${pattern}/ (grep exit status ${status})" ;;
+    esac
+}
+
 DEVELOPMENT_VERSION="$(fact developmentVersion)"
 LATEST_GA_VERSION="$(fact latestGaVersion)"
 API_BASELINE_VERSION="$(fact apiBaselineVersion)"
@@ -128,16 +144,15 @@ done
 for term in 'STRIPE_SANDBOX' 'bankingSafetyPolicy' 'nationalIdSafetyPolicy'; do
     grep -Fq "${term}" "${REPO_ROOT}/docs-site/guides/data-validity-and-safety.md" || fail "data validity guide is missing: ${term}"
 done
-if rg -n 'SecureRandom' "${REPO_ROOT}/spring-boot-starter/src/main/java/io/github/frikit/krandom/spring/KrandomProperties.java"; then
-    fail "Spring properties still claim SecureRandom is the unseeded default"
-fi
+reject_pattern "Spring properties still claim SecureRandom is the unseeded default" \
+    'SecureRandom' \
+    "${REPO_ROOT}/spring-boot-starter/src/main/java/io/github/frikit/krandom/spring/KrandomProperties.java"
 
-if rg -n 'io\.github\.frikit:krandom-[^`" ]*:(1\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT)|<version>(1\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT)</version>' \
+reject_pattern "current installation/migration documentation contains stale or snapshot coordinates" \
+    'io\.github\.frikit:krandom-[^`" ]*:(1\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT)|<version>(1\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT)</version>' \
     "${REPO_ROOT}/README.md" \
     "${REPO_ROOT}/docs-site" \
-    "${REPO_ROOT}/docs/migration"; then
-    fail "current installation/migration documentation contains stale or snapshot coordinates"
-fi
+    "${REPO_ROOT}/docs/migration"
 
 EXAMPLE_VERSION_FILES=(
     "examples/java-gradle/build.gradle.kts"
@@ -158,24 +173,21 @@ for example_file in "${EXAMPLE_VERSION_FILES[@]}"; do
     grep -Fq "${DEVELOPMENT_VERSION}" "${REPO_ROOT}/${example_file}" || fail "${example_file} does not use developmentVersion ${DEVELOPMENT_VERSION}"
 done
 
-if rg -n 'Generators\.(constant|pickFrom|pickSetFrom|shuffleOf|uniqueValues)\(' \
+reject_pattern "current public documentation still uses a removed 1.x Generators alias" \
+    'Generators\.(constant|pickFrom|pickSetFrom|shuffleOf|uniqueValues)\(' \
+    --exclude='v1.6-to-v2.md' \
     "${REPO_ROOT}/README.md" \
     "${REPO_ROOT}/docs-site" \
-    "${REPO_ROOT}/docs/migration" \
-    --glob '!v1.6-to-v2.md'; then
-    fail "current public documentation still uses a removed 1.x Generators alias"
-fi
+    "${REPO_ROOT}/docs/migration"
 
-if rg -n 'DataFaker (has no|does not have|does not support) (bulk|schema|export)' \
+reject_pattern "documentation still makes a stale DataFaker bulk/schema capability claim" \
+    'DataFaker (has no|does not have|does not support) (bulk|schema|export)' \
     "${REPO_ROOT}/README.md" \
     "${REPO_ROOT}/docs" \
-    "${REPO_ROOT}/docs-site"; then
-    fail "documentation still makes a stale DataFaker bulk/schema capability claim"
-fi
+    "${REPO_ROOT}/docs-site"
 
-if rg -n '<locale>_(first_male|first_female|last|street_names|street_types_short|street_types_long|secondary_units)\.txt' \
-    "${REPO_ROOT}/docs/locale-contribution-guide.md"; then
-    fail "locale contribution guide still contains the obsolete flat resource layout"
-fi
+reject_pattern "locale contribution guide still contains the obsolete flat resource layout" \
+    '<locale>_(first_male|first_female|last|street_names|street_types_short|street_types_long|secondary_units)\.txt' \
+    "${REPO_ROOT}/docs/locale-contribution-guide.md"
 
 echo "Documentation facts verified: ${LATEST_GA_VERSION} release docs, ${API_BASELINE_VERSION} API baseline, ${DEVELOPMENT_VERSION} development, ${#modules[@]} modules, ${ACTUAL_TOTAL} locale variants."

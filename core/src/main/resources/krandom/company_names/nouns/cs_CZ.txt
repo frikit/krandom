@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+aplikace
+systémy
+technologie
+závody
+služby
+aliance
+spolupráce
+investice
+společnosti
+konzultace
+sítě
+projekty
+zdroje
+operace
+analýzy

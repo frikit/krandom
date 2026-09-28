@@ -172,6 +172,47 @@ class GenerationRecipeTest {
     }
 
     @Test
+    @DisplayName("the default recipe serializes the unique fields in declaration order on every JVM")
+    void defaultRecipeSerializesUniqueFieldsInDeclarationOrder() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+
+        assertEquals(java.util.List.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
+                     java.util.List.copyOf(config.getObjectUniqueFieldNames()));
+        assertEquals("email,emailaddress,username,userhandle,uuid,guid,id",
+                     recipe.getSettings().get("object.unique-fields"));
+        assertTrue(recipe.serialize().contains(
+            "setting.object.unique-fields=email%2Cemailaddress%2Cusername%2Cuserhandle%2Cuuid%2Cguid%2Cid\n"));
+    }
+
+    @Test
+    @DisplayName("records and replays the email domain policy")
+    void replaysEmailDomainPolicy() {
+        GenerationRecipe defaults = GeneratorConfig.builder().seed(42L).build().getGenerationRecipe().orElseThrow();
+        GenerationRecipe realistic = GeneratorConfig.builder()
+                                                    .seed(42L)
+                                                    .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                                                    .build()
+                                                    .getGenerationRecipe()
+                                                    .orElseThrow();
+
+        assertEquals("TEST_SAFE_RESERVED_DOMAINS", defaults.getSettings().get("email.domain-policy"));
+        assertEquals("REALISTIC_UNCLASSIFIED", realistic.getSettings().get("email.domain-policy"));
+        assertEquals(EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS,
+                     GenerationRecipe.parse(defaults.serialize()).toGeneratorConfig().getEmailDomainPolicy());
+        assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED,
+                     GenerationRecipe.parse(realistic.serialize()).toGeneratorConfig().getEmailDomainPolicy());
+    }
+
+    @Test
+    @DisplayName("replays legacy recipes without an email domain setting with the legacy mailbox domains")
+    void replaysLegacyRecipeWithoutEmailDomainPolicy() {
+        GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();
+
+        assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED, recipe.toGeneratorConfig().getEmailDomainPolicy());
+    }
+
+    @Test
     @DisplayName("replays legacy recipes without a phone number safety setting as unclassified")
     void replaysLegacyRecipeWithoutPhoneNumberSafetyPolicy() {
         GenerationRecipe recipe = GenerationRecipe.builder().seed(42L).build();

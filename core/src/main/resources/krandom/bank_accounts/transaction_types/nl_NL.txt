@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+storting
+opname
+betaling
+overboeking
+terugbetaling
+kosten
+rente
+terugboeking

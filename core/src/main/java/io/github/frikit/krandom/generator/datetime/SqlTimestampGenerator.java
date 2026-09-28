@@ -51,7 +51,9 @@ public final class SqlTimestampGenerator implements Generator<Timestamp>, Seedab
     public Timestamp generate() {
         long lo = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
         long hiExclusive = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-        return new Timestamp(lo + random.nextLong(hiExclusive - lo));
+        // The origin/bound form draws exactly like lo + nextLong(hiExclusive - lo) whenever that width
+        // fits in a long, and still samples uniformly when it does not.
+        return new Timestamp(random.nextLong(lo, hiExclusive));
     }
 
     /**

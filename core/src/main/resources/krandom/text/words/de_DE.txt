@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+daten
+modell
+system
+signal
+prozess
+analyse
+plattform
+netz
+sicher
+service
+struktur
+modul
+logik
+wert
+kontext
+ziel

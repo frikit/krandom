@@ -1,0 +1,21 @@
+# Industry names, one per line.
+Tecnologia
+Sanitat
+Finances
+Educació
+Comerç al detall
+Indústria manufacturera
+Telecomunicacions
+Energia
+Transport
+Construcció
+Immobiliària
+Hostaleria
+Mitjans de comunicació
+Entreteniment
+Agricultura
+Aeroespacial
+Automoció
+Biotecnologia
+Consultoria
+Ciberseguretat

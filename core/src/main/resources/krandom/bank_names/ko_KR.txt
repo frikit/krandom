@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+첫걸음은행
+글로벌신탁은행
+개척신용협동조합
+정상파이낸셜
+시민저축은행

@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+einzahlung
+abhebung
+zahlung
+ueberweisung
+rueckerstattung
+gebuehr
+zins
+rueckbuchung

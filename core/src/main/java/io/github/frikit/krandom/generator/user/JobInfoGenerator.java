@@ -45,10 +45,10 @@ public final class JobInfoGenerator implements Generator<JobInfo> {
      */
     public JobInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.jobFieldGenerator = new JobFieldGenerator(config);
-        this.seniorityGenerator = new SeniorityGenerator(config);
-        this.jobTypeGenerator = new JobTypeGenerator(config);
-        this.professionGenerator = new ProfessionGenerator(config);
+        this.jobFieldGenerator = new JobFieldGenerator(config.forChildStream("jobField"));
+        this.seniorityGenerator = new SeniorityGenerator(config.forChildStream("seniority"));
+        this.jobTypeGenerator = new JobTypeGenerator(config.forChildStream("jobType"));
+        this.professionGenerator = new ProfessionGenerator(config.forChildStream("profession"));
     }
 
     @Override

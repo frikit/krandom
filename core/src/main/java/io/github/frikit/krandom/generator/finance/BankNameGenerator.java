@@ -8,30 +8,25 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates locale-aware bank names.
+ * Generates locale-aware fictional bank names.
+ *
+ * <p>Names are resolved through the configuration's {@code DataRegistryContext}, which defaults to
+ * {@link BankNameDataRegistry}; locales without built-in data fall back to the bundled English
+ * names.
  */
 public final class BankNameGenerator implements Generator<String> {
 
-    private static final String[]              DEFAULT_BANKS     = {
-        "First National Bank", "Global Trust Bank", "Pioneer Credit Union", "Summit Financial", "Civic Savings"
-    };
-    private static final Map<String, String[]> BANKS_BY_LANGUAGE = Map.of(
-        "de", new String[] { "Erste Nationalbank", "Global Trust Bank", "Buerger Sparkasse", "Summit Finanz", "Pionier Kreditbank" },
-        "fr", new String[] { "Banque Nationale Premiere", "Banque Confiance Globale", "Epargne Civique", "Finance Sommet", "Credit Pionnier" },
-        "es", new String[] { "Banco Nacional Primero", "Banco Confianza Global", "Ahorro Civico", "Finanzas Cumbre", "Credito Pionero" },
-        "it", new String[] { "Banca Nazionale Prima", "Banca Fiducia Globale", "Risparmio Civico", "Finanza Vertice", "Credito Pioniere" },
-        "pt", new String[] { "Banco Nacional Primeiro", "Banco Confianca Global", "Poupanca Civica", "Financas Pico", "Credito Pioneiro" }
-    );
+    private static final BankNameDataProvider DEFAULT_PROVIDER =
+        new BuiltInBankNameDataProvider(Locale.ROOT, "default");
 
-    private final Locale locale;
-    private final Random random;
+    private final List<String> bankNames;
+    private final Random       random;
 
     public BankNameGenerator() {
         this(GeneratorConfig.defaults());
@@ -43,13 +38,13 @@ public final class BankNameGenerator implements Generator<String> {
 
     public BankNameGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.locale = config.getLocale();
+        BankNameDataProvider provider = config.getRegistryContext().bankNameProvider(config.getLocale());
+        this.bankNames = (provider != null ? provider : DEFAULT_PROVIDER).getBankNames();
         this.random = config.createRandom();
     }
 
     @Override
     public String generate() {
-        String[] values = BANKS_BY_LANGUAGE.getOrDefault(locale.getLanguage(), DEFAULT_BANKS);
-        return values[random.nextInt(values.length)];
+        return bankNames.get(random.nextInt(bankNames.size()));
     }
 }

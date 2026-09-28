@@ -40,7 +40,7 @@ public final class ParagraphGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
-        this.sentenceGenerator = new SentenceGenerator(config);
+        this.sentenceGenerator = new SentenceGenerator(config.forChildStream("sentence"));
     }
 
     /**

@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+alustariippumattomia
+kokonaisvaltaisia
+alan parhaita
+saumattomia
+pilvipohjaisia
+datalähtöisiä

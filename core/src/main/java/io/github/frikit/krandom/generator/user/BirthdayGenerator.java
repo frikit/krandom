@@ -86,7 +86,12 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
 
     /**
      * Generates birthdays for ages [1, 100] with a fixed seed for reproducible output.
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #BirthdayGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public BirthdayGenerator(long seed) {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.of(seed), null);
     }
@@ -117,7 +122,12 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      *
      * @param type the age category; must not be {@code null}
      * @param seed PRNG seed for reproducible output
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #BirthdayGenerator(AgeType, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public BirthdayGenerator(AgeType type, long seed) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
              type.getMaxAge(),
@@ -208,7 +218,12 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      * @param locale the locale used to format output from {@link #generateAsString()};
      *               must not be {@code null}
      * @param seed   PRNG seed for reproducible output
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #BirthdayGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().locale(locale).seed(seed).build()}, which
+     *             produces the same values.
      */
+    @Deprecated(since = "2.6.0")
     public BirthdayGenerator(Locale locale, long seed) {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.of(seed),
              Objects.requireNonNull(locale, "locale must not be null"));
@@ -221,7 +236,12 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      * @param locale the locale used to format output from {@link #generateAsString()};
      *               must not be {@code null}
      * @param seed   PRNG seed for reproducible output
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #BirthdayGenerator(AgeType, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().locale(locale).seed(seed).build()}, which
+     *             produces the same values.
      */
+    @Deprecated(since = "2.6.0")
     public BirthdayGenerator(AgeType type, Locale locale, long seed) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
              type.getMaxAge(),
@@ -237,7 +257,12 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      * @param locale the locale used to format output from {@link #generateAsString()};
      *               must not be {@code null}
      * @param seed   PRNG seed for reproducible output
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #BirthdayGenerator(int, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().locale(locale).seed(seed).build()}, which
+     *             produces the same values.
      */
+    @Deprecated(since = "2.6.0")
     public BirthdayGenerator(int minAge, int maxAge, Locale locale, long seed) {
         this(minAge, maxAge, OptionalLong.of(seed),
              Objects.requireNonNull(locale, "locale must not be null"));

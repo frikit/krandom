@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Plný úvazek
+Částečný úvazek
+Smlouva
+Dočasná práce
+Stáž
+Freelance
+Učňovský poměr
+Sezónní práce
+Dobrovolnictví
+Práce na dálku

@@ -1,0 +1,7 @@
+# Product materials, one per line.
+стомана
+дърво
+бетон
+пластмаса
+гранит
+памук

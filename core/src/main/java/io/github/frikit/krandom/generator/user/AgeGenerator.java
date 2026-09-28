@@ -43,7 +43,11 @@ public final class AgeGenerator implements Generator<Integer> {
 
     /**
      * Generates ages in the full range [1, 100] with a fixed seed for reproducible output.
+     * @deprecated raw seeds bypass replayable recipes; use {@link #AgeGenerator(GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the
+     *             same values.
      */
+    @Deprecated(since = "2.6.0")
     public AgeGenerator(long seed) {
         this(DEFAULT_MIN, DEFAULT_MAX, OptionalLong.of(seed));
     }
@@ -71,7 +75,12 @@ public final class AgeGenerator implements Generator<Integer> {
      *
      * @param type the age category; must not be {@code null}
      * @param seed PRNG seed for reproducible output
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #AgeGenerator(AgeType, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public AgeGenerator(AgeType type, long seed) {
         this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
              type.getMaxAge(),
@@ -130,7 +139,12 @@ public final class AgeGenerator implements Generator<Integer> {
 
     @Override
     public Integer generate() {
-        return minAge + random.nextInt(maxAge - minAge + 1);
+        int width = maxAge - minAge;
+        // minAge >= 0, so only the full range [0, Integer.MAX_VALUE] overflows width + 1; an
+        // unsigned shift of one random int covers its 2^31 values uniformly.
+        return width == Integer.MAX_VALUE
+               ? random.nextInt() >>> 1
+               : minAge + random.nextInt(width + 1);
     }
 
     /**

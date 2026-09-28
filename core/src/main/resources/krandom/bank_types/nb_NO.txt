@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Personbank
+Forretningsbank
+Investeringsbank
+Kredittforening
+Nettbank

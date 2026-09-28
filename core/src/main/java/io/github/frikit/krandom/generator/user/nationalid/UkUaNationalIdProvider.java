@@ -10,6 +10,9 @@ import java.util.Random;
 
 /**
  * Generates Ukrainian taxpayer identification number (IPN) style identifiers — 10 digits.
+ *
+ * <p>All digits are random: the first five do not necessarily count the days to a plausible birth
+ * date, and no check digit is computed.
  */
 public final class UkUaNationalIdProvider implements NationalIdProvider {
 

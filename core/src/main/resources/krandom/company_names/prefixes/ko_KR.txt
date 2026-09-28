@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+글로벌
+내셔널
+코리아
+유나이티드
+프리미어
+어드밴스드
+전략
+다이내믹
+이노베이티브
+프로페셔널
+디지털
+넥스트
+알파
+서밋
+에이펙스

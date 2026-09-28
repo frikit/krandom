@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Lösningar
+System
+Teknologier
+Industrier
+Tjänster
+Grupper
+Partner
+Investeringar
+Kompanjoner
+Konsulter
+Nätverk
+Projekt
+Resurser
+Förvaltningar
+Analyser

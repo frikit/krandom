@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Baccalauréat
+BTS
+Licence
+Master
+Doctorat
+Diplôme d'État
+CAP

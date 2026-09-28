@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+Stolička
+Stôl
+Počítač
+Klávesnica
+Topánky
+Hodinky

@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+全职
+兼职
+合同制
+临时
+实习
+自由职业
+学徒制
+季节性
+志愿者
+远程

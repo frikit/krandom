@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Voltijd
+Deeltijd
+Contract
+Tijdelijk
+Stage
+Freelance
+Leerwerktraject
+Seizoenswerk
+Vrijwilligerswerk
+Thuiswerk

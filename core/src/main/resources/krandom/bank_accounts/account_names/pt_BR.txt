@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Conta corrente
+Conta poupança
+Conta empresarial
+Conta conjunta
+Conta salário

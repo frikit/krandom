@@ -55,7 +55,12 @@ public final class GeohashGenerator implements Generator<String> {
      * Creates a deterministic geohash generator with default precision.
      *
      * @param seed deterministic seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #GeohashGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public GeohashGenerator(long seed) {
         this(DEFAULT_PRECISION, GeneratorConfig.builder().seed(seed).build());
     }
@@ -65,7 +70,12 @@ public final class GeohashGenerator implements Generator<String> {
      *
      * @param precision geohash length, 1-12
      * @param seed      deterministic seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #GeohashGenerator(int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public GeohashGenerator(int precision, long seed) {
         this(precision, GeneratorConfig.builder().seed(seed).build());
     }

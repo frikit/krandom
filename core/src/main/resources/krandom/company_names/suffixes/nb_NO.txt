@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+AS
+ASA
+ANS
+DA
+SA

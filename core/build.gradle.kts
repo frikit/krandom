@@ -47,6 +47,10 @@ tasks.test {
 
 pitest {
     targetClasses.set(setOf(
+        "io.github.frikit.krandom.generator.GenerationRecipe",
+        "io.github.frikit.krandom.generator.GenerationRecipe$*",
+        "io.github.frikit.krandom.generator.GeneratorConfig",
+        "io.github.frikit.krandom.generator.GeneratorConfig$*",
         "io.github.frikit.krandom.generator.color.ColorGenerator",
         "io.github.frikit.krandom.generator.finance.CryptoAddressGenerator",
         "io.github.frikit.krandom.generator.identifier.UUIDGenerator",
@@ -56,16 +60,26 @@ pitest {
         "io.github.frikit.krandom.generator.location.RegistryLookup",
         "io.github.frikit.krandom.generator.object.BeanValidationSupport",
         "io.github.frikit.krandom.generator.object.BuiltInProviderResolver",
+        "io.github.frikit.krandom.generator.object.FieldGeneratorResolver",
+        "io.github.frikit.krandom.generator.object.FieldGeneratorResolver$*",
         "io.github.frikit.krandom.generator.object.ObjectFaker",
         "io.github.frikit.krandom.generator.object.ObjectFieldStreamPlanner",
         "io.github.frikit.krandom.generator.object.ObjectGenerator",
         "io.github.frikit.krandom.generator.object.ObjectModel",
         "io.github.frikit.krandom.generator.object.PropertyPath",
+        "io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster",
+        "io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$*",
         "io.github.frikit.krandom.generator.text.NextWordGenerator",
         "io.github.frikit.krandom.generator.user.EmailGenerator"
     ))
     targetTests.set(setOf(
+        "io.github.frikit.krandom.generator.ChildStreamPolicyTest",
+        "io.github.frikit.krandom.generator.ClockSnapshotTest",
         "io.github.frikit.krandom.generator.EnvironmentDeterminismTest",
+        "io.github.frikit.krandom.generator.GenerationRecipe*",
+        "io.github.frikit.krandom.generator.GeneratorConfigTest",
+        "io.github.frikit.krandom.generator.GeneratorProfileTest",
+        "io.github.frikit.krandom.generator.RandomSourceContractTest",
         "io.github.frikit.krandom.generator.color.ColorGeneratorTest",
         "io.github.frikit.krandom.generator.finance.Phase3FinanceGeneratorsTest",
         "io.github.frikit.krandom.generator.identifier.UUIDGeneratorTest",
@@ -75,7 +89,7 @@ pitest {
         "io.github.frikit.krandom.generator.text.NextWordGeneratorTest",
         "io.github.frikit.krandom.generator.user.EmailGeneratorTest"
     ))
-    junit5PluginVersion.set("1.2.3")
+    junit5PluginVersion.set(libs.versions.pitest.junit5.plugin)
     outputFormats.set(setOf("HTML", "XML"))
     timestampedReports.set(false)
     threads.set(1)
@@ -103,7 +117,7 @@ tasks.register("printRuntimeClasspath") {
 }
 
 jacoco {
-    toolVersion = "0.8.15"
+    toolVersion = libs.versions.jacoco.get()
     reportsDirectory = layout.buildDirectory.dir("jacoco")
 }
 

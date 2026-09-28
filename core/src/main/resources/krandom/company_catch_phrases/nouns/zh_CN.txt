@@ -1,0 +1,8 @@
+# Catch-phrase nouns, one per line.
+平台
+网络
+体验
+引擎
+生态系统
+套件
+框架

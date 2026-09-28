@@ -1,0 +1,7 @@
+# Product materials, one per line.
+acél
+fa
+beton
+műanyag
+gránit
+pamut

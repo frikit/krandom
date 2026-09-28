@@ -6,10 +6,272 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- JUnit failure output prints copyable Gradle (`KRANDOM_JUNIT_RECIPE=base64:... ./gradlew test
+  --tests '<class>' --rerun`) and Maven (`mvn test -Dtest='<class>' -Dkrandom.junit.recipe=...`)
+  replay commands and states whether the recipe clock was read at failure time, captured before
+  injection, or fixed by a replay recipe. `krandom.junit.recipe`, `krandom.junit.seed`, and
+  `krandom.junit.snapshot-clock` are also read as JUnit configuration parameters
+  (`junit-platform.properties`, launcher parameters), with `KRANDOM_JUNIT_SNAPSHOT_CLOCK` as a new
+  environment fallback.
+- `krandom.junit.class-recipe` (`KRANDOM_JUNIT_CLASS_RECIPE`) replays the class-scoped configurations
+  used by `@BeforeAll`/`@AfterAll` and `PER_CLASS` constructors, one `<test class>=base64:<recipe>`
+  entry per class. The printed replay commands include it whenever the failing test's enclosing
+  classes had class-scoped configurations, so class-level fixtures replay with the test's own data.
+- Kotest `checkAllWithRecipe(config, arbFactory, propTestConfig)` snapshots the clock once and uses
+  that snapshot for sampling and the failure recipe.
+- Spring `KrandomObjectFakerFactory.generator(type, streamName)` and `faker(type, streamName)` derive
+  reproducible named child streams; `KrandomProviderCustomizer` beans register providers once when
+  the auto-configured `ProviderHub` is created; the effective recipe is logged at startup.
+- `CsvFormulaPolicy.NEUTRALIZE` for `Schema` and `SchemaProjection` CSV export prefixes cells that
+  spreadsheets would evaluate as formulas; the default output is unchanged.
+- `ObjectConstructionContext.isExcluded(String)` lets construction adapters honour field exclusions.
+- `ChildStreamPolicy` with `GeneratorConfig.Builder#childStreamPolicy` and
+  `GeneratorConfig#forChildStream`: the opt-in `INDEPENDENT` policy gives every child of a seeded
+  composite generator (`PaymentInfoGenerator`, `OrderInfoGenerator`, `PersonInfoGenerator`, and the
+  other built-in composites) its own named stream, so sibling values such as the payment, invoice,
+  and order identifiers of one payment are no longer correlated. It requires a seed and is recorded
+  in recipes as `child-stream-policy`; the default `LEGACY` keeps seeded output unchanged.
+- `EmailDomainPolicy` with `GeneratorConfig.Builder#emailDomainPolicy`, recorded in recipes as
+  `email.domain-policy` and exposed as `ProviderSafetyPolicy.EMAIL_DOMAIN` safety metadata on the
+  `person.email` and `company.email` providers.
+- Locale-aware vocabulary for industries, job fields, seniorities, positions, educational
+  attainment, marital status, employment types, company names, company buzzwords and catch phrases,
+  text words, commerce product vocabulary, database column names, directory names, bank names, bank
+  types and bank-account vocabulary. Each concept follows the resource-backed pattern
+  (`XDataProvider`, read-only `XDataRegistry`, `krandom/<concept>/<locale>.txt`) with an English
+  `default.txt` fallback; all 32 non-English native locales ship real translations of every
+  display vocabulary (database column and directory names keep their English identifiers outside
+  the previously localized languages). Like hobbies or zodiac signs, each concept resolves through
+  the configuration's `DataRegistryContext`, which gains `xProvider`, `isXRegistered`,
+  `xRegisteredKeys`, and `Builder#registerXProvider` for it, so scoped registrations apply and
+  isolated contexts never read the global registries.
+- `Locale` constructors for `IndustryGenerator`, `JobFieldGenerator`, `SeniorityGenerator`,
+  `PositionGenerator`, `EducationalAttainmentGenerator`, `MaritalStatusGenerator` and
+  `CompanyNameGenerator`, plus `Generators.ofX(Locale)` overloads for these and for job types,
+  buzzwords, catch phrases, text, commerce, database, directory paths, bank names and bank types.
+- `GeneratorConfig` constructors for `CoinGenerator`, `DiceGenerator`, `LuhnGenerator`,
+  `FibonacciGenerator`, and for every generator whose only seeded form took a raw `long` seed
+  (numeric, big-number, boolean, regex, normal-distribution, date/time, locale, geohash, selection,
+  template, age and birthday generators), including `DoubleGenerator` and `FloatGenerator`, whose
+  `withPrecision` keeps the configuration's seed or caller-owned source, plus
+  `CharGenerator.letters(GeneratorConfig)`,
+  `StringGenerator.letters(GeneratorConfig)` and `StringGenerator.Builder#config`.
+- `Generators.ofX(GeneratorConfig)` overloads for every no-argument factory (including `ofIban`,
+  `ofUuid`, `ofCoin`, `ofDouble`, `ofFloat` and `ofDice(DiceType, GeneratorConfig)`), and
+  configuration-aware `pick`, `pickSet`, `pool`, `shuffle` and `weighted`.
+- Facade factories `ofFirstName`, `ofLastName`, `ofGender`, `ofAge`, `ofBirthday` and
+  `ofCoordinates` (with `Locale`/`GeneratorConfig` forms where the generator supports them),
+  keeping the facade in step with the fluent namespaces.
+- `Generators.ofUrlObject`, `ofUriObject` and `ofTimeZoneObject` (and
+  `DateTimeGenerators#timeZoneObject`) as the unambiguous object-returning factories.
+
 ### Changed
 
 - Expand critical-path mutation testing to deterministic and safety-sensitive generators, with
-  focused tests for UUID bit layout, crypto-address fail-closed behavior, and next-word boundaries.
+  focused tests for UUID bit layout, crypto-address fail-closed behavior, and next-word boundaries,
+  and to the object engine's `FieldGeneratorResolver` and `SemanticCoherenceAdjuster` plus
+  `GeneratorConfig` and `GenerationRecipe`. Coherence tests call the adjuster's helpers directly
+  instead of through reflection.
+- JUnit constructor parameters under the default lifecycle now share the test method's
+  configuration; `@BeforeAll`/`@AfterAll` and `PER_CLASS` constructor parameters receive a separate
+  class-scoped configuration.
+- Kotest adapters honour the configuration seed: it parents every sample seed and is recorded by
+  `krandomKotestRecipe`, so seeded configurations produce different samples than 2.5.0 for the same
+  Kotest seed (unseeded configurations are unchanged). `kotest-property-jvm` is published as a
+  preferred version, so a consumer's own Kotest 6.1+ declaration is no longer upgraded.
+- Kotlin DSL `exclude(...)` targets the generated type's field instead of every field with that
+  name; unknown exclusions and rules or exclusions on computed or delegated properties fail when the
+  generator is built.
+- Spring `krandom.recipe` now rejects every other generation property it already defines (clock,
+  bounds, object settings, and policies, not only seed and locale); `@KrandomTest` excludes
+  component-scanned application beans like Spring Boot slices (opt in with `@Import`). The
+  single-argument `KrandomAutoConfiguration.providerHub(GeneratorConfig)` is deprecated.
+- `CompetitorObjectBenchmark` reuses a prebuilt Instancio `Model`, and `FieldStreamsBenchmark` also
+  measures the default `RELAXED` semantic mode.
+- `@Randomizer` generators keep one instance per annotated field for the lifetime of a top-level
+  generator, so stateful randomizers keep their state; `Seedable` randomizers are reseeded for every
+  object from its seeded stream and replay from the seed and recipe.
+- With `ObjectFieldStreamPolicy.INDEPENDENT`, an unrelated semantic provider (for example from an
+  installed module) no longer shifts member streams. Seeded `INDEPENDENT` output in `RELAXED` and
+  `STRICT` modes therefore differs from 2.5.0; `LEGACY` output is unchanged.
+- Sorted containers (`SortedSet`, `NavigableSet`, `TreeSet`, `PriorityQueue`, `SortedMap`,
+  `NavigableMap`, `TreeMap`) of comparable elements use natural ordering instead of text ordering.
+- JSON Schema `pattern`, `minLength`, and `maxLength` now win over semantic field names.
+- Object generation builds semantic, temporal, and provider generators on first use and looks up
+  recipe presence and construction adapters once per generator. A portable seeded six-field object
+  now allocates about 0.25 MB instead of 2.2 MB, with byte-identical seeded output.
+- Document that unique fields stay unique for a generator's lifetime and how to reset or disable
+  that tracking.
+- Run the public API contract with the dependency classpaths of both versions instead of ignoring
+  missing supertypes, and read the published-module list from `gradle.properties`. The evolution
+  check tolerates a missing supertype only when it is a class the allowlist classifies, because
+  japicmp removes excluded classes before analysing their subclasses and implementations.
+- Run module-boundary, Markdown-link, 2.2.0 consumer/extension, and previous-Kotest-minor checks in
+  CI; validate the Gradle wrapper; add read-only permissions, superseded-run cancellation, and job
+  timeouts to the CI workflow; require the native-image smoke test in CI.
+- Group Dependabot minor/patch Gradle and GitHub Actions updates, cover the consumer examples, and
+  add `scripts/update_verification_metadata.sh` for regenerating dependency checksums.
+- Add `pre_commit_check.sh --fast`, module-boundary checks in the pre-commit gate, and JaCoCo
+  reports for the integration modules; only `krandom-core` has the exact coverage gate.
+- Email output defaults to `EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS`: `EmailGenerator` and the
+  contact, person, and profile payloads built on it use only `example.com`, `example.net`, and
+  `example.org`, and `CompanyEmailGenerator` uses the reserved `.test` top-level domain, so staging
+  tests can no longer mail real people. `REALISTIC_UNCLASSIFIED` restores mailbox-provider domains;
+  `generateFreeEmail`, `getFreeEmailProvider`, and `generateFreeEmailDomain` require it and fail
+  closed otherwise. Default seeded email output changes.
+
+### Deprecated
+
+- Raw `long seed` constructors and the matching `Generators` overloads (for example
+  `IntGenerator(int, int, long)`, `DoubleGenerator(double, double, long)`,
+  `Generators.ofInt(int, int, long)`, `ofFloat(float, float, long)`, `ofRegex(String, long)`,
+  `ofCalendar(long)`, `ofNationalId(Locale, long)`) and `TextGenerators#template(String, long)`.
+  Each `@deprecated` note names the `GeneratorConfig` replacement, which produces identical values
+  for `GeneratorConfig.builder().seed(seed).build()`.
+- `Generators.ofURL`, `ofURI` and `ofTimeZone` and `DateTimeGenerators#timeZone`: they differed from
+  the text factories `ofUrl`, `ofUri`, `ofTimezone` only by letter case while returning a different
+  type. Use `ofUrlObject`, `ofUriObject`, `ofTimeZoneObject` and `timeZoneObject`.
+
+### Fixed
+
+- A JUnit configuration created for `@BeforeAll` or constructor injection no longer leaks into test
+  methods, so a method-level `@KrandomSeed` applies and the reported seed reproduces the failure.
+- Kotlin DSL rules on fields inherited from a superclass now apply instead of being ignored.
+- Kotlin DSL and other construction-adapter exclusions apply to immutable Kotlin data classes: an
+  excluded optional parameter keeps its default, a nullable one receives `null`, and a required one
+  fails clearly.
+- `@FakeRange` on `int`, `short`, and `byte` fields no longer overflows with the default `max`: a
+  range reaching past the field type's largest value includes it (`@FakeRange(min = 127)` on a
+  `byte` yields `127`), and ranges with no values for the field type fail clearly instead of
+  wrapping.
+- The semantic coherence pass no longer fails objects with `java.sql.Date`/`java.sql.Time`
+  timestamps, `String` birth dates, or other age and timestamp types it cannot represent; `byte`,
+  `float`, and `double` ages follow the birth date, and `RELAXED` mode keeps `@FakeRange` values,
+  whose age then decides the birth date for every supported age type. A `byte` or `short` field
+  keeps its generated value instead of wrapping an age it cannot hold.
+- A `Set` or `Map` that cannot reach its declared `@Size` minimum fails (or honours ignored errors)
+  instead of silently returning fewer elements.
+- Sorted containers of records and other classes no longer fail as unsupported; element types that
+  would only sort by identity hash code fail with context instead of varying between runs. A sorted
+  set counts its elements by its own ordering, so elements that order as equal are replaced before
+  the `@Size` minimum is checked instead of silently shrinking the set.
+- Seeded JSON Schema generation replays: integer, number, boolean, pattern, and untyped values use
+  the per-record field stream. `exclusiveMinimum` excludes non-zero bounds, `maxLength` alone no
+  longer conflicts with the configured minimum length, and empty ranges fail while parsing.
+- Seeded JSON Schema `format` (email, uri, uuid, date, date-time, time, ipv4, ipv6, hostname) and
+  length-bounded string values also come from the per-record field stream. Two columns with the
+  same format or bounds previously repeated each other in every record; their seeded values
+  change. Unseeded, secure, and caller-owned random sources keep one format generator per column.
+- XML export stays well-formed for any text (characters XML 1.0 cannot represent become U+FFFD),
+  SQL export quotes a column name containing dots as one identifier, and TOML export quotes keys
+  outside the ASCII bare-key alphabet.
+- Make documentation-fact guards use portable `grep`; they previously passed silently on CI
+  runners without `rg`. Script search errors and a missing `git` now fail instead of passing, and
+  SIGPIPE-prone pipelines were removed.
+- Keep the Gradle distribution checksum when `upgrade_latest_gradle.sh` updates the wrapper.
+- Email local parts are always lowercase ASCII, matching the documented `yuki.tanaka@…` examples:
+  diacritics are removed (German umlauts expand to `ae`/`oe`/`ue`), Cyrillic and Greek names are
+  transliterated, and names in other scripts use romanized names for the locale's language instead
+  of native-script local parts such as `翔.佐藤@…`. Seeded email output changes.
+- `CountryGenerator.generateCallingCode`, `generateContinent`, and `generateTimezone` indexed
+  `Map.ofEntries` views whose iteration order is randomized per JVM, so seeded output differed on
+  every run; they now select from declaration order. Their seeded values change.
+- Make `IbanGenerator` and `BbanGenerator` follow the ISO 13616 IBAN registry. Both resolve one
+  country and build its registry BBAN (length, letter and digit positions, and national check
+  digits for BE, CZ, ES, FI, FR, HR, HU, IT, NO, PL, PT, and SK); IBANs carry ISO 7064 MOD 97-10
+  check digits as ASCII digits under any JVM default locale. The locale's country is used when it
+  has an IBAN format (AT, BE, BG, BR, CH, CZ, DE, DK, ES, FI, FR, GB, GR, HR, HU, IE, IL, IT, NL,
+  NO, PL, PT, RO, RU, SA, SE, SK, TR, UA); every other locale, including the default `en_US`, now
+  produces German (`DE`) values instead of invalid `US`, `JP`, `CN`, or `AU` IBANs. Seeded IBAN and
+  BBAN output changes; `BankCountryGenerator` output is unchanged.
+- Make `CreditCardGenerator.isValidLuhn` return `false` for input without digits or with any
+  character other than ASCII digits and spaces; it previously stripped every non-digit, so inputs
+  such as `"abc"` or dash-separated numbers passed.
+- Name the exact opt-in in the disabled banking-generation error:
+  `GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()`.
+- Resolve `PhoneNumberGenerator` and `PostalCodeGenerator` formats from the locale's country
+  instead of exact locale keys, so supported regional locales such as `de_AT` or `fr_CA` no longer
+  silently produce US numbers and ZIP codes. A locale whose country has no built-in format, or
+  that has no country, uses the first catalog country of its language (`en` and `en_SG` → US,
+  `de_LI` → DE, `pt` → BR, `ca` → ES, `no` → NO); an unknown language uses `en_US`.
+  `generateCountryCallingCode()` and `generateMsisdn()` use the resolved country instead of `+1`.
+- Add built-in national phone formats (landline and mobile, formatted and unformatted), calling
+  codes, and postal-code formats for every `SupportedLocale` country: DK, FI, HU, RO, SK, UA, BG,
+  HR, GR, TH, VN, ID, MY, IL, CA, NZ, IE, ZA, BE, CH, AT, MX, AR, PT, and TW; `ca_ES` and `en_IN`
+  now use the Spanish and Indian formats. Seeded phone and postal output changes for these
+  previously US-fallback locales and for other locales whose country or language now resolves
+  differently (for example `en_DE`); seeded output of the existing formats is unchanged.
+- Canadian locales (`en_CA`, `fr_CA`) use Canadian area codes and, under the default
+  `PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE`, NANPA's fictional `555-0100` through
+  `555-0199` range like US locales, so they no longer produce potentially real numbers.
+- National IDs documented as checksum-valid now validate against their published rules and
+  samples: Chinese resident IDs use the GB 11643-1999 check character (`11010519491231002X`
+  validates), Australian TFNs keep only weighted sums divisible by 11 (`123 456 782` validates),
+  German Steuer-IDs follow the digit-repetition rule and map check digit 10 to 0, and Italian
+  codici fiscali never encode an impossible day such as 30 February. Seeded output changes for
+  `zh_CN`, `en_AU`, and `de_DE` IDs and for the Italian codes that encoded an impossible date.
+- Danish CPR fixtures (`da_DK`) now carry a century code that matches their 1950-1999 birth date
+  and never the unassigned sequence `0000`; Finnish identity codes (`fi_FI`) always use the 1900s
+  century sign `-`; Slovak birth numbers (`sk_SK`) no longer put 1950-1953 birth dates in the
+  ten-digit form, where they denote births in 2050-2053. Seeded output changes only for the values
+  that violated these rules.
+- `DoubleGenerator.withPrecision` and `FloatGenerator.withPrecision` keep the generator's seed
+  (the constructor seed or the latest `reseed`) instead of dropping it, so identically seeded
+  precision generators replay; rounded values stay inside `[min, max)` (for example
+  `new DoubleGenerator(0, 1).withPrecision(0)` can no longer emit `1`), and ranges without a value
+  at the requested precision are rejected with `IllegalArgumentException`.
+- Range sampling no longer overflows: `DurationGenerator.betweenSeconds(0, Long.MAX_VALUE)`,
+  `DateGenerator.generateYear` over ranges wider than `Integer.MAX_VALUE` (reversed bounds now fail
+  with a clear message), `AgeGenerator(0, Integer.MAX_VALUE)`, and `UtilDateGenerator` /
+  `SqlTimestampGenerator` ranges wider than `Long.MAX_VALUE` milliseconds. Ranges that fit keep
+  their seeded values.
+- `GeneratorConfig.Builder#collectionSize` and `#stringLength` reject `Integer.MAX_VALUE` as the
+  maximum while building the configuration; drawing a size up to it overflowed during generation.
+- `SimpleProfileGenerator` and `ProfileGenerator` birthdays follow the configured clock (including
+  `snapshotClock()`) and random source instead of the system clock, so seeded profiles with a fixed
+  clock replay on any day. Output with the default clock is unchanged.
+- National IDs never borrow another country's identifier: `NationalIdGenerator` resolves the
+  locale's country and fails fast with `UnsupportedOperationException` when that country has no
+  provider, so `en_CA` no longer yields a US SSN, `pt_PT` a Brazilian CPF, `zh_TW` a mainland
+  Chinese ID, or `de_AT` a German tax ID. Another language of a supported country uses that
+  country's provider (`en_IN` → Aadhaar); a language-only locale uses its first catalog country.
+- The default object unique-field names are built in declaration order instead of from a `Set.of`
+  whose iteration order is randomized per JVM, so the default recipe serializes
+  `object.unique-fields` identically on every run.
+- `DataRegistryContext` lookups resolve scoped exact, then global exact, then scoped language, then
+  global language matches. A scoped regional bundle such as `en_IN` no longer replaces another
+  region's built-in data, for example `en_US` names under the default locale.
+- National IDs, postal codes, tax identifiers, and formatted dates and times use ASCII digits under
+  any JVM default locale; under a locale such as `ar-SA` they previously contained Arabic-Indic
+  digits. Output under ASCII-digit default locales is unchanged.
+- `Generators.ofCompanyName(Locale)` and the other vocabulary generators now honour the configured
+  locale instead of always returning English. Seeded English output is unchanged; seeded output for
+  non-English locales changes (also in composites that use these generators).
+- `TextGenerator` Japanese and Chinese vocabularies were English words; they are now real Japanese
+  and Chinese words (seeded `ja`/`zh` text output changes).
+- Commerce product descriptions for `de`, `fr`, `es` and `it` used the English sentence template
+  ("A … in …."); they are now localized (seeded description output changes for those languages;
+  product names are unchanged).
+- `FullNameGenerator` nationality token `"uk"`/`"UK"` now selects British names; it previously
+  resolved to Ukrainian. Ukrainian names remain available through `uk_UA`, `uk-UA`, `UA` and `UK_UA`.
+- `CoinGenerator`, `DiceGenerator`, `LuhnGenerator` and `FibonacciGenerator` ignored configuration
+  and could not be seeded; they now draw from the configuration's random source.
+
+### Documentation
+
+- State that `krandom-jackson` targets Jackson 2.x while Spring Boot 4 defaults to Jackson 3, and
+  document replay commands, clock semantics, class-scoped JUnit configurations, and `@KrandomTest`
+  bean inclusion.
+- The README no longer claims seeded output is stable across JDK builds: zone IDs follow the JDK's
+  tzdata, and ISO country lists and locale display data also follow the running JDK.
+- State in the Javadoc which parts of the Bulgarian, Croatian, Greek, Hungarian, Indonesian,
+  Israeli, Romanian, Thai, Ukrainian, and Vietnamese national-ID fixtures are random, including
+  that no official check digit is computed, and correct the French NIR example key. Their output is
+  unchanged. The migration guides no longer advertise checksum national IDs for every locale.
+- Document the NANP fictional phone range for Canadian locales, the email-domain policy, the
+  country-specific national-ID resolution, and the composite child-stream policy in the guides.
 
 ## [2.5.0] - 2026-09-24
 

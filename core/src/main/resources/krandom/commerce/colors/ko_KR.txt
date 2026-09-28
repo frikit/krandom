@@ -1,0 +1,7 @@
+# Product colors, one per line.
+빨간색
+파란색
+초록색
+검은색
+흰색
+은색

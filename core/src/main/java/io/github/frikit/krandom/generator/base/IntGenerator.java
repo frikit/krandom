@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 /**
  * Generates random {@link Integer} values.
  *
@@ -15,6 +17,7 @@ package io.github.frikit.krandom.generator.base;
  *   int any     = new IntGenerator().generate();
  *   int positive = new IntGenerator(1, Integer.MAX_VALUE).generate();
  *   int roll     = new IntGenerator(1, 7).generate();  // die roll [1..6]
+ *   int seeded   = new IntGenerator(1, 7, GeneratorConfig.builder().seed(42L).build()).generate();
  * }</pre>
  */
 public final class IntGenerator extends AbstractBoundedGenerator<Integer> {
@@ -27,6 +30,38 @@ public final class IntGenerator extends AbstractBoundedGenerator<Integer> {
         super(min, max, null);
     }
 
+    /**
+     * Creates a generator over the default range using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public IntGenerator(GeneratorConfig config) {
+        super(config, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public IntGenerator(int min, int max, GeneratorConfig config) {
+        super(config, min, max);
+    }
+
+    /**
+     * Creates a seeded generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #IntGenerator(int, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public IntGenerator(int min, int max, long seed) {
         super(min, max, seed);
     }

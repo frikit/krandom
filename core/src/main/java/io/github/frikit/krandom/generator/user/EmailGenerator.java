@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
@@ -17,10 +18,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Generates realistic email addresses with locale-aware names.
+ * Generates email addresses with locale-aware names.
  *
- * <p>This generator creates email addresses using locale-appropriate first and last names
- * combined with popular domain names. Supports multiple email formats and custom domains.
+ * <p>This generator creates email addresses from locale-appropriate first and last names.
+ * Supports multiple email formats and custom domains.
  *
  * <p><strong>Supported Formats:</strong>
  * <ul>
@@ -31,37 +32,48 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li><strong>LASTNAME_DOT_FIRSTNAME</strong>: smith.john@example.com</li>
  * </ul>
  *
- * <p><strong>Popular Domains:</strong>
- * gmail.com, yahoo.com, outlook.com, hotmail.com, icloud.com, protonmail.com,
- * mail.com, aol.com, zoho.com, gmx.com, yandex.com, qq.com
+ * <p><strong>Domains:</strong> the domains this generator chooses itself follow
+ * {@link GeneratorConfig#getEmailDomainPolicy()}. The default
+ * {@link EmailDomainPolicy#TEST_SAFE_RESERVED_DOMAINS} uses only the RFC 2606 reserved domains
+ * {@code example.com}, {@code example.net}, and {@code example.org}, so generated addresses can never
+ * reach a real mailbox. {@link EmailDomainPolicy#REALISTIC_UNCLASSIFIED} opts in to popular
+ * mailbox-provider domains (gmail.com, yahoo.com, outlook.com, hotmail.com, icloud.com,
+ * protonmail.com, mail.com, aol.com, zoho.com, gmx.com, yandex.com, qq.com) for isolated fixtures;
+ * the free-provider methods require that opt-in and fail closed otherwise. A domain passed
+ * explicitly by the caller is always used verbatim.
+ *
+ * <p><strong>Local parts</strong> are always lowercase ASCII letters and digits joined by the
+ * format's separator. Latin-script names lose their diacritics (German umlauts expand to
+ * {@code ae}/{@code oe}/{@code ue}); Cyrillic and Greek names are transliterated; names in other
+ * scripts (for example Japanese kanji) are replaced by romanized names for the locale's language.
  *
  * <p><strong>Basic Usage:</strong>
  * <pre>{@code
- * // Random email with popular domain
+ * // Random email with a reserved example domain
  * EmailGenerator gen = new EmailGenerator();
- * String email = gen.generate();               // "john.smith@gmail.com"
+ * String email = gen.generate();               // "john.smith@example.com"
  *
  * // Email with custom domain
- * String corpEmail = gen.generate("example.com");  // "john.smith@example.com"
+ * String corpEmail = gen.generate("corp.test");  // "john.smith@corp.test"
  *
  * // Email with specific format
  * String formatEmail = gen.generate(EmailFormat.FIRSTINITIAL_LASTNAME);
- * // "jsmith@yahoo.com"
+ * // "jsmith@example.org"
  * }</pre>
  *
  * <p><strong>Locale-Aware Generation:</strong>
  * <pre>{@code
  * // US names
  * EmailGenerator usGen = new EmailGenerator(Locale.US);
- * String usEmail = usGen.generate();  // "james.wilson@gmail.com"
+ * String usEmail = usGen.generate();  // "james.wilson@example.com"
  *
  * // German names
  * EmailGenerator deGen = new EmailGenerator(Locale.GERMANY);
- * String deEmail = deGen.generate();  // "hans.mueller@gmail.com"
+ * String deEmail = deGen.generate();  // "hans.mueller@example.net"
  *
- * // Japanese names
+ * // Japanese names are romanized
  * EmailGenerator jpGen = new EmailGenerator(Locale.JAPAN);
- * String jpEmail = jpGen.generate();  // "yuki.tanaka@gmail.com"
+ * String jpEmail = jpGen.generate();  // "yuki.tanaka@example.org"
  * }</pre>
  *
  * <p><strong>Seeded Generation:</strong>
@@ -146,8 +158,8 @@ public final class EmailGenerator implements Generator<String> {
     public EmailGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.firstNameGenerator = new FirstNameGenerator(config);
-        this.lastNameGenerator = new LastNameGenerator(config);
+        this.firstNameGenerator = new FirstNameGenerator(config.forChildStream("firstName"));
+        this.lastNameGenerator = new LastNameGenerator(config.forChildStream("lastName"));
         this.issuedEmails = ConcurrentHashMap.newKeySet();
     }
 
@@ -229,7 +241,11 @@ public final class EmailGenerator implements Generator<String> {
     /**
      * Generates an email address using a commonly used free-email provider domain.
      *
+     * <p>Such an address can belong to a real person, so this method requires
+     * {@link EmailDomainPolicy#REALISTIC_UNCLASSIFIED}.
+     *
      * @return an email with a free provider domain
+     * @throws IllegalStateException under the default reserved-domain policy
      */
     public String generateFreeEmail() {
         return generate(getFreeEmailProvider());
@@ -247,16 +263,28 @@ public final class EmailGenerator implements Generator<String> {
     /**
      * Returns a free-email provider domain.
      *
+     * <p>Requires {@link EmailDomainPolicy#REALISTIC_UNCLASSIFIED}.
+     *
      * @return provider domain (for example, {@code gmail.com})
+     * @throws IllegalStateException under the default reserved-domain policy
      */
     public String getFreeEmailProvider() {
+        if (config.getEmailDomainPolicy() != EmailDomainPolicy.REALISTIC_UNCLASSIFIED) {
+            throw new IllegalStateException(
+                "Free-email provider domains are real mailbox providers and are disabled by default; "
+                + "enable them only for isolated fixtures with GeneratorConfig.builder()"
+                + ".emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED).build()");
+        }
         return getRandomFreeDomain();
     }
 
     /**
      * Returns a free-email provider domain (Faker-style {@code free_email_domain()} equivalent).
      *
+     * <p>Requires {@link EmailDomainPolicy#REALISTIC_UNCLASSIFIED}.
+     *
      * @return provider domain (for example, {@code gmail.com})
+     * @throws IllegalStateException under the default reserved-domain policy
      */
     public String generateFreeEmailDomain() {
         return getFreeEmailProvider();
@@ -268,7 +296,7 @@ public final class EmailGenerator implements Generator<String> {
      * @return a company-style email
      */
     public String generateCompanyEmail() {
-        return new CompanyEmailGenerator(config).generate();
+        return new CompanyEmailGenerator(config.forChildStream("companyEmail")).generate();
     }
 
     /**
@@ -322,8 +350,8 @@ public final class EmailGenerator implements Generator<String> {
      * @return the formatted local part
      */
     private String formatLocalPart(String firstName, String lastName, EmailFormat format) {
-        String first = firstName.toLowerCase(config.getLocale()).replace(" ", "");
-        String last = lastName.toLowerCase(config.getLocale()).replace(" ", "");
+        String first = EmailLocalParts.token(firstName, config.getLocale(), true, random);
+        String last = EmailLocalParts.token(lastName, config.getLocale(), false, random);
 
         return switch (format) {
             case FIRSTNAME_DOT_LASTNAME -> first + "." + last;
@@ -345,12 +373,15 @@ public final class EmailGenerator implements Generator<String> {
     }
 
     /**
-     * Returns a random popular domain.
+     * Returns a random domain allowed by the configured email-domain policy.
      *
      * @return a random domain name
      */
     private String getRandomDomain() {
-        return POPULAR_DOMAINS[random.nextInt(POPULAR_DOMAINS.length)];
+        String[] domains = config.getEmailDomainPolicy() == EmailDomainPolicy.REALISTIC_UNCLASSIFIED
+            ? POPULAR_DOMAINS
+            : SAFE_DOMAINS;
+        return domains[random.nextInt(domains.length)];
     }
 
     private String getRandomFreeDomain() {

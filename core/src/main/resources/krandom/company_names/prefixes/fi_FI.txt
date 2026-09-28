@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globaalit
+Kansalliset
+Suomalaiset
+Yhdistyneet
+Ensiluokkaiset
+Edistyneet
+Strategiset
+Dynaamiset
+Innovatiiviset
+Ammattimaiset
+Digitaaliset
+Uudet
+Alfa
+Johtavat
+Modernit

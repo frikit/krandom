@@ -1,0 +1,7 @@
+# Company legal-form suffixes, one per line.
+S.A.
+S.L.
+S.L.U.
+S.L.L.
+S. Coop.
+S.C.

@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Banca al dettaglio
+Banca commerciale
+Banca d'investimento
+Cooperativa di credito
+Banca online

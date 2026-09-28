@@ -29,6 +29,15 @@ public final class OffsetTimeGenerator implements Generator<OffsetTime>, Seedabl
         this(GeneratorConfig.defaults());
     }
 
+    /**
+     * Creates a seeded offset-time generator.
+     *
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #OffsetTimeGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public OffsetTimeGenerator(long seed) {
         this(GeneratorConfig.builder().seed(seed).build());
     }

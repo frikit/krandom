@@ -45,6 +45,10 @@ if [[ "${action_count}" -eq 0 ]]; then
     fail "no GitHub Actions were found"
 fi
 
+if ! grep -Eq '^[[:space:]-]*uses:[[:space:]]*gradle/actions/wrapper-validation@' "${CI_WORKFLOW}"; then
+    fail "CI must validate the Gradle wrapper JAR with gradle/actions/wrapper-validation"
+fi
+
 mill_checksum="$(sed -En "s/^[[:space:]]*MILL_SHA256:[[:space:]]*['\"]?([0-9a-fA-F]{64})['\"]?[[:space:]]*$/\1/p" "${CI_WORKFLOW}")"
 if [[ ! "${mill_checksum}" =~ ^[0-9a-fA-F]{64}$ ]]; then
     fail "MILL_SHA256 must be one SHA-256 value"

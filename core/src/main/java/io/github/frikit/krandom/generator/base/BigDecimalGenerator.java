@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -38,7 +39,16 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
      * Default range [0, 1&nbsp;000&nbsp;000] with scale 2.
      */
     public BigDecimalGenerator() {
-        this(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_SCALE, null);
+        this(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_SCALE, new Random());
+    }
+
+    /**
+     * Default range [0, 1&nbsp;000&nbsp;000] with scale 2, using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public BigDecimalGenerator(GeneratorConfig config) {
+        this(DEFAULT_MIN, DEFAULT_MAX, DEFAULT_SCALE, config);
     }
 
     /**
@@ -48,7 +58,7 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
      * @param max upper bound (inclusive); must not be {@code null} and must be &gt; {@code min}
      */
     public BigDecimalGenerator(BigDecimal min, BigDecimal max) {
-        this(min, max, DEFAULT_SCALE, null);
+        this(min, max, DEFAULT_SCALE, new Random());
     }
 
     /**
@@ -59,7 +69,19 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
      * @param scale number of decimal places (must be &gt;= 0)
      */
     public BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale) {
-        this(min, max, scale, null);
+        this(min, max, scale, new Random());
+    }
+
+    /**
+     * Custom range and scale using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (inclusive)
+     * @param scale  number of decimal places (must be &gt;= 0)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale, GeneratorConfig config) {
+        this(min, max, scale, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
     /**
@@ -69,12 +91,17 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
      * @param max   upper bound (inclusive)
      * @param scale number of decimal places (must be &gt;= 0)
      * @param seed  PRNG seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #BigDecimalGenerator(BigDecimal, BigDecimal, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale, long seed) {
-        this(min, max, scale, (Long) seed);
+        this(min, max, scale, new Random(seed));
     }
 
-    private BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale, Long seed) {
+    private BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale, Random random) {
         Objects.requireNonNull(min, "min must not be null");
         Objects.requireNonNull(max, "max must not be null");
         if (min.compareTo(max) >= 0) {
@@ -89,7 +116,7 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
         // narrowed silently and could yield an invalid range or out-of-range values.
         this.originInclusive = scaledBound(min);
         this.boundExclusive = boundExclusive(scaledBound(max));
-        this.random = seed != null ? new Random(seed) : new Random();
+        this.random = random;
     }
 
     private long scaledBound(BigDecimal value) {

@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+당좌예금 계좌
+저축예금 계좌
+법인 계좌
+공동명의 계좌
+급여 계좌

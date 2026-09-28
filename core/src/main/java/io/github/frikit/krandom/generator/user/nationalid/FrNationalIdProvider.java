@@ -22,7 +22,7 @@ import java.util.Random;
  *   <li>KK: control key = 97 − (13-digit number mod 97), range [01, 97]
  * </ul>
  *
- * <p>Example: {@code "1 83 05 42 123 456 43"} formatted without spaces.
+ * <p>Example: {@code "1 83 05 42 123 456 92"} formatted without spaces.
  */
 public final class FrNationalIdProvider implements NationalIdProvider {
 
@@ -46,11 +46,11 @@ public final class FrNationalIdProvider implements NationalIdProvider {
         int commune = random.nextInt(999) + 1;         // 001–999
         int order = random.nextInt(999) + 1;         // 001–999
 
-        long number13 = Long.parseLong(String.format("%d%02d%02d%02d%03d%03d",
+        long number13 = Long.parseLong(String.format(Locale.ROOT, "%d%02d%02d%02d%03d%03d",
                                                      gender, year, month, dept, commune, order));
         int key = (int) (97 - (number13 % 97));
 
-        return String.format("%d%02d%02d%02d%03d%03d%02d",
+        return String.format(Locale.ROOT, "%d%02d%02d%02d%03d%03d%02d",
                              gender, year, month, dept, commune, order, key);
     }
 }

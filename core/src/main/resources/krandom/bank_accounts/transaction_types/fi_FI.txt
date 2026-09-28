@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+talletus
+nosto
+maksu
+tilisiirto
+hyvitys
+palkkio
+korko
+takaisinveloitus

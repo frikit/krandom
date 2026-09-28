@@ -1,0 +1,7 @@
+# Product colors, one per line.
+röd
+blå
+grön
+svart
+vit
+silver

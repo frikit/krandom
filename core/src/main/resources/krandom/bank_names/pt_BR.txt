@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Banco Nacional Primeiro
+Banco Confianca Global
+Poupanca Civica
+Financas Pico
+Credito Pioneiro

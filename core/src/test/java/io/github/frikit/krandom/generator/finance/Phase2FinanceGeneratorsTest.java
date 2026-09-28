@@ -30,22 +30,22 @@ class Phase2FinanceGeneratorsTest {
     @DisplayName("IBAN generator returns country+check+body format")
     void iban() {
         String iban = new IbanGenerator(GeneratorConfig.builder().locale(Locale.GERMANY) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
-        assertTrue(iban.matches("[A-Z]{2}\\d{2}\\d+"));
-        assertTrue(iban.length() >= 16);
+        assertTrue(iban.matches("DE\\d{20}"));
     }
 
     @Test
-    @DisplayName("BBAN generator returns numeric account body")
+    @DisplayName("BBAN generator returns the French registry BBAN structure")
     void bban() {
-        assertTrue(new BbanGenerator(GeneratorConfig.builder().locale(Locale.FRANCE) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("\\d+"));
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().locale(Locale.FRANCE) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("\\d{10}[0-9A-Z]{11}\\d{2}"));
     }
 
     @Test
-    @DisplayName("BBAN length varies by locale country")
+    @DisplayName("BBAN structure follows the IBAN registry entry of the resolved country")
     void bbanLengths() {
-        assertEquals(18, new BbanGenerator(GeneratorConfig.builder().locale(Locale.UK) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
-        assertEquals(20, new BbanGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
-        assertEquals(16, new BbanGenerator(GeneratorConfig.builder().locale(Locale.CANADA) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().length());
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().locale(Locale.UK) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("[A-Z]{4}\\d{14}"));
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("\\d{23}[A-Z][0-9A-Z]"));
+        // Canada has no IBAN format, so the documented German default applies.
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().locale(Locale.CANADA) .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate().matches("\\d{18}"));
     }
 
     @Test
@@ -83,15 +83,37 @@ class Phase2FinanceGeneratorsTest {
     }
 
     @Test
-    @DisplayName("legacy no-argument BBAN constructor preserves compatibility output")
-    void legacyNoArgumentBbanConstructor() {
-        assertTrue(new BbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("\\d{16}"));
+    @DisplayName("disabled banking generation explains the GeneratorConfig opt-in")
+    void disabledBankingMessageExplainsOptIn() {
+        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        String expected = "Banking identifier generation is disabled by default; enable it only for "
+                          + "isolated fixtures with GeneratorConfig.builder().bankingSafetyPolicy("
+                          + "BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()";
+
+        for (Runnable generation : new Runnable[] {
+            () -> new BankAccountGenerator(config).generate(),
+            () -> new AbaRoutingGenerator(config).generate(),
+            () -> new BbanGenerator(config).generate(),
+            () -> new IbanGenerator(config).generate(),
+            () -> new BicGenerator(config).generate(),
+            () -> new BankInfoGenerator(config).generate()
+        }) {
+            IllegalStateException exception = assertThrows(IllegalStateException.class, generation::run);
+            assertEquals(expected, exception.getMessage());
+            assertTrue(exception.getMessage().contains("bankingSafetyPolicy"));
+        }
     }
 
     @Test
-    @DisplayName("legacy no-argument IBAN constructor preserves compatibility output")
+    @DisplayName("default-locale BBAN constructor uses the German registry structure")
+    void legacyNoArgumentBbanConstructor() {
+        assertTrue(new BbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("\\d{18}"));
+    }
+
+    @Test
+    @DisplayName("default-locale IBAN constructor emits German IBANs")
     void legacyNoArgumentIbanConstructor() {
-        assertTrue(new IbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("[A-Z]{2}\\d{2}\\d+"));
+        assertTrue(new IbanGenerator(GeneratorConfig.builder().bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED).build()).generate().matches("DE\\d{20}"));
     }
 
     @Test

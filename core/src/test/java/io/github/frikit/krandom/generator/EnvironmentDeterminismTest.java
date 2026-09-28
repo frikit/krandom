@@ -7,8 +7,14 @@ package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.color.ColorFormat;
 import io.github.frikit.krandom.generator.color.ColorGenerator;
+import io.github.frikit.krandom.generator.datetime.DateGenerator;
+import io.github.frikit.krandom.generator.datetime.TimeGenerator;
 import io.github.frikit.krandom.generator.finance.CryptoAddressGenerator;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
+import io.github.frikit.krandom.generator.finance.EinGenerator;
+import io.github.frikit.krandom.generator.location.PostalCodeGenerator;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry;
 import io.github.frikit.krandom.generator.network.SlugGenerator;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaParser;
@@ -26,15 +32,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Isolated
 class EnvironmentDeterminismTest {
 
     private static final Locale TURKISH = Locale.forLanguageTag("tr-TR");
+    /** Formats numbers with Arabic-Indic digits by default. */
+    private static final Locale ARABIC = Locale.forLanguageTag("ar-SA");
 
     private Locale originalDefaultLocale;
 
@@ -123,6 +133,40 @@ class EnvironmentDeterminismTest {
         String rgba = generator.generate(ColorFormat.RGBA);
 
         assertTrue(rgba.matches("rgba\\(\\d{1,3},\\d{1,3},\\d{1,3},\\d\\.\\d{3}\\)"));
+    }
+
+    @Test
+    void nationalIdsUseAsciiDigitsRegardlessOfJvmLocale() {
+        Locale.setDefault(ARABIC);
+        Random random = new Random(7L);
+        for (String key : NationalIdRegistry.registeredKeys()) {
+            NationalIdProvider provider = NationalIdRegistry.forLocale(Locale.forLanguageTag(key.replace('_', '-')));
+            assertNotNull(provider, key);
+            for (int i = 0; i < 20; i++) {
+                assertAsciiDigits(provider.generate(random));
+            }
+        }
+    }
+
+    @Test
+    void formattedNumbersUseAsciiDigitsRegardlessOfJvmLocale() {
+        Locale.setDefault(ARABIC);
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .seed(9L)
+                                                .businessTaxIdentifierSafetyPolicy(
+                                                    BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+        for (int i = 0; i < 20; i++) {
+            assertAsciiDigits(new PostalCodeGenerator(config).generate());
+            assertAsciiDigits(new DateGenerator(config).generateAmerican());
+            assertAsciiDigits(new TimeGenerator(config).generateString());
+            assertAsciiDigits(new EinGenerator(config).generate());
+        }
+    }
+
+    private static void assertAsciiDigits(String value) {
+        assertTrue(value.chars().noneMatch(ch -> Character.isDigit(ch) && (ch < '0' || ch > '9')),
+                   "non-ASCII digits in " + value);
     }
 
     @Test

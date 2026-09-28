@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Diplomă de bacalaureat
+Studii postliceale
+Licență
+Master
+Doctorat
+Diplomă profesională
+Certificat de calificare profesională

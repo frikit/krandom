@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+存款
+取款
+付款
+转账
+退款
+手续费
+利息
+拒付

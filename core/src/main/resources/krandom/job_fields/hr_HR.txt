@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Razvoj
+Marketing
+Prodaja
+Financije
+Operacije
+Proizvod
+Ljudski resursi
+Pravni poslovi
+Dizajn
+Korisnička podrška
+Istraživanje
+Znanost o podacima
+Sigurnost
+Nabava
+Logistika

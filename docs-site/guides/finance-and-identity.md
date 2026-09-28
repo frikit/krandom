@@ -14,8 +14,11 @@ system. Keep generated values inside test-only boundaries and use the external s
 sandbox credentials for payment, onboarding, KYC, account-creation, trading, or blockchain tests.
 
 - Card numbers are issuer-shaped but deliberately fail Luhn by default.
-- US locale-style phone numbers use NANPA's fictional `555-0100` through `555-0199` range by
-  default. Other locales, custom masks, and MSISDN values are unclassified.
+- US and Canadian (NANP) locale-style phone numbers use NANPA's fictional `555-0100` through
+  `555-0199` range by default. Other locales, custom masks, and MSISDN values are unclassified.
+- Email addresses use reserved `example.com`/`example.net`/`example.org` domains and company
+  addresses the reserved `.test` top-level domain by default; realistic mailbox-provider domains
+  require `emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)`.
 - Banking, national-ID, identity-document, business-tax, crypto-address, and securities-identifier
   generators fail closed by default. They require an explicit compatibility policy before they can
   generate realistic-looking values.
@@ -109,7 +112,11 @@ GeneratorConfig nationalIdConfig = GeneratorConfig.builder()
 String nationalId = Generators.ofNationalId(nationalIdConfig).generate();
 ```
 
-National-ID support is locale-aware; unsupported locales fail fast. A realistic-looking national
+National-ID support is locale-aware and country-specific: another language of a supported country
+uses that country's identifier (`en_IN` uses Aadhaar), but a locale whose country has no built-in
+provider fails fast instead of borrowing another country's identifier — `en_CA`, `pt_PT`, `zh_TW`,
+and the other regional variants without their own provider throw `UnsupportedOperationException`
+unless you register a provider for that country. A realistic-looking national
 ID must not be used for identity verification, KYC, account creation, or any production workflow.
 For the complete policy table, see
 [Data Validity and Safety]({{ '/guides/data-validity-and-safety/' | relative_url }}).

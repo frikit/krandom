@@ -13,48 +13,26 @@ import io.github.frikit.krandom.generator.identifier.UpcGenerator;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.security.SecureRandom;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
 /**
  * Generates locale-aware commerce-style product and price data.
+ *
+ * <p>Product vocabulary and the product-name/description formats are resolved through the
+ * configuration's {@code DataRegistryContext}, which defaults to {@link CommerceDataRegistry};
+ * locales without built-in data fall back to the bundled English vocabulary.
  */
 public final class CommerceGenerator implements Generator<String> {
 
-    private static final String[] EN_ADJECTIVES = { "Small", "Sleek", "Rustic", "Practical", "Premium", "Ergonomic" };
-    private static final String[] DE_ADJECTIVES = { "Klein", "Elegant", "Robust", "Praktisch", "Premium", "Ergonomisch" };
-    private static final String[] FR_ADJECTIVES = { "Petit", "Elegant", "Rustique", "Pratique", "Premium", "Ergonomique" };
-    private static final String[] ES_ADJECTIVES = { "Pequeno", "Elegante", "Rustico", "Practico", "Premium", "Ergonomico" };
-    private static final String[] IT_ADJECTIVES = { "Piccolo", "Elegante", "Rustico", "Pratico", "Premium", "Ergonomico" };
-
-    private static final String[] EN_MATERIALS = { "Steel", "Wooden", "Concrete", "Plastic", "Granite", "Cotton" };
-    private static final String[] DE_MATERIALS = { "Stahl", "Holz", "Beton", "Kunststoff", "Granit", "Baumwolle" };
-    private static final String[] FR_MATERIALS = { "Acier", "Bois", "Beton", "Plastique", "Granit", "Coton" };
-    private static final String[] ES_MATERIALS = { "Acero", "Madera", "Hormigon", "Plastico", "Granito", "Algodon" };
-    private static final String[] IT_MATERIALS = { "Acciaio", "Legno", "Cemento", "Plastica", "Granito", "Cotone" };
-
-    private static final String[] EN_PRODUCTS = { "Chair", "Table", "Computer", "Keyboard", "Shoes", "Watch" };
-    private static final String[] DE_PRODUCTS = { "Stuhl", "Tisch", "Computer", "Tastatur", "Schuhe", "Uhr" };
-    private static final String[] FR_PRODUCTS = { "Chaise", "Table", "Ordinateur", "Clavier", "Chaussures", "Montre" };
-    private static final String[] ES_PRODUCTS = { "Silla", "Mesa", "Computadora", "Teclado", "Zapatos", "Reloj" };
-    private static final String[] IT_PRODUCTS = { "Sedia", "Tavolo", "Computer", "Tastiera", "Scarpe", "Orologio" };
-
-    private static final String[] EN_DEPARTMENTS = { "Books", "Electronics", "Outdoors", "Home", "Toys", "Garden" };
-    private static final String[] DE_DEPARTMENTS = { "Buecher", "Elektronik", "Outdoor", "Haushalt", "Spielzeug", "Garten" };
-    private static final String[] FR_DEPARTMENTS = { "Livres", "Electronique", "Plein air", "Maison", "Jouets", "Jardin" };
-    private static final String[] ES_DEPARTMENTS = { "Libros", "Electronica", "Exterior", "Hogar", "Juguetes", "Jardin" };
-    private static final String[] IT_DEPARTMENTS = { "Libri", "Elettronica", "Esterno", "Casa", "Giocattoli", "Giardino" };
-
-    private static final String[] EN_COLORS = { "red", "blue", "green", "black", "white", "silver" };
-    private static final String[] DE_COLORS = { "rot", "blau", "gruen", "schwarz", "weiss", "silber" };
-    private static final String[] FR_COLORS = { "rouge", "bleu", "vert", "noir", "blanc", "argent" };
-    private static final String[] ES_COLORS = { "rojo", "azul", "verde", "negro", "blanco", "plata" };
-    private static final String[] IT_COLORS = { "rosso", "blu", "verde", "nero", "bianco", "argento" };
+    private static final CommerceDataProvider DEFAULT_PROVIDER =
+        new BuiltInCommerceDataProvider(Locale.ROOT, "default");
 
     private final Locale        locale;
     private final Random        random;
+    private final CommerceDataProvider vocabulary;
     private final UpcGenerator  upcGenerator;
     private final IsbnGenerator isbn10Generator;
     private final IsbnGenerator isbn13Generator;
@@ -72,10 +50,12 @@ public final class CommerceGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
-        this.upcGenerator = new UpcGenerator(config);
-        this.isbn10Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, config);
-        this.isbn13Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_13, config);
-        this.eanGenerator = new EanGenerator(config);
+        CommerceDataProvider provider = config.getRegistryContext().commerceProvider(locale);
+        this.vocabulary = provider != null ? provider : DEFAULT_PROVIDER;
+        this.upcGenerator = new UpcGenerator(config.forChildStream("upc"));
+        this.isbn10Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, config.forChildStream("isbn10"));
+        this.isbn13Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_13, config.forChildStream("isbn13"));
+        this.eanGenerator = new EanGenerator(config.forChildStream("ean"));
     }
 
     @Override
@@ -84,11 +64,23 @@ public final class CommerceGenerator implements Generator<String> {
     }
 
     public String generateProductName() {
-        return generateAdjective() + " " + generateMaterial() + " " + generateProduct();
+        String adjective = generateAdjective();
+        String material = generateMaterial();
+        String product = generateProduct();
+        return vocabulary.getProductNameFormat()
+                         .replace("{adjective}", adjective)
+                         .replace("{material}", material)
+                         .replace("{product}", product);
     }
 
     public String generateProductDescription() {
-        return "A " + generateAdjective() + " " + generateProduct() + " in " + generateColor() + ".";
+        String adjective = generateAdjective();
+        String product = generateProduct();
+        String color = generateColor();
+        return vocabulary.getProductDescriptionFormat()
+                         .replace("{adjective}", adjective)
+                         .replace("{product}", product)
+                         .replace("{color}", color);
     }
 
     public String generateDepartment() {
@@ -216,57 +208,27 @@ public final class CommerceGenerator implements Generator<String> {
         return locale;
     }
 
-    private String[] adjectives() {
-        return switch (locale.getLanguage()) {
-            case "de" -> DE_ADJECTIVES;
-            case "fr" -> FR_ADJECTIVES;
-            case "es" -> ES_ADJECTIVES;
-            case "it" -> IT_ADJECTIVES;
-            default -> EN_ADJECTIVES;
-        };
+    private List<String> adjectives() {
+        return vocabulary.getAdjectives();
     }
 
-    private String[] materials() {
-        return switch (locale.getLanguage()) {
-            case "de" -> DE_MATERIALS;
-            case "fr" -> FR_MATERIALS;
-            case "es" -> ES_MATERIALS;
-            case "it" -> IT_MATERIALS;
-            default -> EN_MATERIALS;
-        };
+    private List<String> materials() {
+        return vocabulary.getMaterials();
     }
 
-    private String[] products() {
-        return switch (locale.getLanguage()) {
-            case "de" -> DE_PRODUCTS;
-            case "fr" -> FR_PRODUCTS;
-            case "es" -> ES_PRODUCTS;
-            case "it" -> IT_PRODUCTS;
-            default -> EN_PRODUCTS;
-        };
+    private List<String> products() {
+        return vocabulary.getProducts();
     }
 
-    private String[] departments() {
-        return switch (locale.getLanguage()) {
-            case "de" -> DE_DEPARTMENTS;
-            case "fr" -> FR_DEPARTMENTS;
-            case "es" -> ES_DEPARTMENTS;
-            case "it" -> IT_DEPARTMENTS;
-            default -> EN_DEPARTMENTS;
-        };
+    private List<String> departments() {
+        return vocabulary.getDepartments();
     }
 
-    private String[] colors() {
-        return switch (locale.getLanguage()) {
-            case "de" -> DE_COLORS;
-            case "fr" -> FR_COLORS;
-            case "es" -> ES_COLORS;
-            case "it" -> IT_COLORS;
-            default -> EN_COLORS;
-        };
+    private List<String> colors() {
+        return vocabulary.getColors();
     }
 
-    private String pick(String[] values) {
-        return values[random.nextInt(values.length)];
+    private String pick(List<String> values) {
+        return values.get(random.nextInt(values.size()));
     }
 }

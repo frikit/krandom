@@ -19,8 +19,16 @@ repositories {
 
 dependencies {
     testImplementation("io.github.frikit:krandom-kotest-extensions:2.5.0")
+    // Declare Kotest yourself (6.1 or newer); your version wins.
+    testImplementation("io.kotest:kotest-property:6.1.11")
 }
 ```
+
+The module publishes its `kotest-property-jvm` dependency as a soft, preferred version: when your
+build declares `kotest-property` (or a Kotest BOM), Gradle keeps your Kotest version instead of
+upgrading it to the one kRandom was built with, and Maven's nearest-wins rule does the same. Only a
+build that declares no Kotest property module at all receives the preferred version transitively,
+so declare it explicitly to stay in control.
 
 Usage:
 
@@ -55,6 +63,11 @@ val userArb = krandomReplayObjectArb<UserDto>(
     GeneratorConfig.builder().seed(42L).build()
 )
 ```
+
+The configuration's seed parents every sample seed (2.6+): for the same Kotest seed, `seed(42L)`
+and `seed(43L)` produce different, individually reproducible streams, and an unseeded
+configuration behaves like `seed(0L)`. Kotest's seed still selects the samples, so replay needs
+both the Kotest seed and the configuration (or its recipe, which records the seed).
 
 ## Shrinking for bounded primitives and selections
 
@@ -95,19 +108,37 @@ The module depends on `krandom-core` transitively.
 
 `checkAllWithRecipe(config, arb) { ... }` rethrows a failing property with the portable kRandom
 recipe of the configuration appended below Kotest's own seed report, so a CI failure carries both
-replay halves; `krandomKotestRecipe(config)` returns the same value-free recipe directly.
+replay halves; `krandomKotestRecipe(config)` returns the same value-free recipe directly. That
+recipe reads the configuration's clock when the failure is reported, and the appended header says
+so; use the overload below for time-sensitive properties.
 
 The adapters are verified against the current and previous Kotest minor lines. To run the module
-tests against another version in the supported range:
+tests against another version in the supported range (the repository's dependency-verification
+metadata only lists the default Kotest version, hence the lenient mode):
 
 ```bash
-./gradlew :kotest-extensions:test -PkotestVersion=6.1.11
+./gradlew :kotest-extensions:test -PkotestVersion=6.1.11 --dependency-verification=lenient
 ```
 
 ## Temporal replay with one snapshot (2.3+)
 
-Build the configuration once with `snapshotClock()` before creating an Arb, and pass the same
-configuration to `checkAllWithRecipe`:
+Let `checkAllWithRecipe` take the snapshot (2.6+): pass an Arb factory instead of an Arb. The
+clock of `config` is captured once with `snapshotClock()`, the factory builds the Arb from that
+snapshot, and the failure recipe records the same instant:
+
+```kotlin
+checkAllWithRecipe(GeneratorConfig.builder().seed(42L).build(), { session ->
+    krandomArb(session) { sample -> Generator { DateGenerator(sample).future(7) } }
+}) { date ->
+    // Assert the application contract here.
+}
+```
+
+An optional `PropTestConfig` argument pins Kotest's seed or iteration count on replay, for example
+`checkAllWithRecipe(config, factory, PropTestConfig(seed = 1234L)) { ... }`.
+
+With the Arb-based overload, build the configuration once with `snapshotClock()` before creating
+the Arb, and pass the same configuration to `checkAllWithRecipe`:
 
 ```kotlin
 val session = GeneratorConfig.defaults().snapshotClock()

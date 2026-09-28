@@ -27,7 +27,7 @@ public final class RuNationalIdProvider implements NationalIdProvider {
             digits[i] = random.nextInt(10);
         }
         int check = computeCheckDigits(digits);
-        return String.format("%d%d%d-%d%d%d-%d%d%d %02d",
+        return String.format(Locale.ROOT, "%d%d%d-%d%d%d-%d%d%d %02d",
                              digits[0], digits[1], digits[2],
                              digits[3], digits[4], digits[5],
                              digits[6], digits[7], digits[8],

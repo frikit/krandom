@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Stażysta
+Junior
+Specjalista
+Mid
+Senior
+Lider zespołu
+Główny specjalista
+Ekspert
+Dyrektor
+Wiceprezes

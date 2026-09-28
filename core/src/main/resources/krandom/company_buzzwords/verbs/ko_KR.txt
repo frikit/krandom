@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+간소화
+강화
+활용
+최적화
+통합
+확장
+제공
+실현

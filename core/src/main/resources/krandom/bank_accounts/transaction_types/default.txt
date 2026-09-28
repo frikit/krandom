@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+deposit
+withdrawal
+payment
+transfer
+refund
+fee
+interest
+chargeback

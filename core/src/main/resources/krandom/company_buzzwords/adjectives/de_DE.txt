@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+datenzentrierte
+cloudbasierte
+nahtlose
+integrierte
+effiziente
+modulare

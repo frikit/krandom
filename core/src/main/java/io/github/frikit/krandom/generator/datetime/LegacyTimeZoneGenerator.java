@@ -29,6 +29,15 @@ public final class LegacyTimeZoneGenerator implements Generator<TimeZone>, Seeda
         this(GeneratorConfig.defaults());
     }
 
+    /**
+     * Creates a seeded legacy time-zone generator.
+     *
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #LegacyTimeZoneGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public LegacyTimeZoneGenerator(long seed) {
         this(GeneratorConfig.builder().seed(seed).build());
     }

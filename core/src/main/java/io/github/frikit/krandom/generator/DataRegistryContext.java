@@ -5,9 +5,21 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.commerce.CommerceDataProvider;
+import io.github.frikit.krandom.generator.commerce.CommerceDataRegistry;
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider;
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry;
+import io.github.frikit.krandom.generator.database.DatabaseColumnDataProvider;
+import io.github.frikit.krandom.generator.database.DatabaseColumnDataRegistry;
 import io.github.frikit.krandom.generator.datapack.LocalDataPack;
+import io.github.frikit.krandom.generator.file.DirectoryNameDataProvider;
+import io.github.frikit.krandom.generator.file.DirectoryNameDataRegistry;
+import io.github.frikit.krandom.generator.finance.BankAccountDataProvider;
+import io.github.frikit.krandom.generator.finance.BankAccountDataRegistry;
+import io.github.frikit.krandom.generator.finance.BankNameDataProvider;
+import io.github.frikit.krandom.generator.finance.BankNameDataRegistry;
+import io.github.frikit.krandom.generator.finance.BankTypeDataProvider;
+import io.github.frikit.krandom.generator.finance.BankTypeDataRegistry;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
@@ -21,6 +33,16 @@ import io.github.frikit.krandom.generator.location.StreetAddressDataRegistry;
 import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
 import io.github.frikit.krandom.generator.measurement.MeasurementDataProvider;
 import io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry;
+import io.github.frikit.krandom.generator.text.TextWordDataProvider;
+import io.github.frikit.krandom.generator.text.TextWordDataRegistry;
+import io.github.frikit.krandom.generator.user.CompanyBuzzwordDataProvider;
+import io.github.frikit.krandom.generator.user.CompanyBuzzwordDataRegistry;
+import io.github.frikit.krandom.generator.user.CompanyCatchPhraseDataProvider;
+import io.github.frikit.krandom.generator.user.CompanyCatchPhraseDataRegistry;
+import io.github.frikit.krandom.generator.user.CompanyNameDataProvider;
+import io.github.frikit.krandom.generator.user.CompanyNameDataRegistry;
+import io.github.frikit.krandom.generator.user.EducationalAttainmentDataProvider;
+import io.github.frikit.krandom.generator.user.EducationalAttainmentDataRegistry;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
@@ -31,14 +53,26 @@ import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
 import io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.HobbyDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyDataRegistry;
+import io.github.frikit.krandom.generator.user.IndustryDataProvider;
+import io.github.frikit.krandom.generator.user.IndustryDataRegistry;
+import io.github.frikit.krandom.generator.user.JobFieldDataProvider;
+import io.github.frikit.krandom.generator.user.JobFieldDataRegistry;
+import io.github.frikit.krandom.generator.user.JobTypeDataProvider;
+import io.github.frikit.krandom.generator.user.JobTypeDataRegistry;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.LastNameDataRegistry;
+import io.github.frikit.krandom.generator.user.MaritalStatusDataProvider;
+import io.github.frikit.krandom.generator.user.MaritalStatusDataRegistry;
 import io.github.frikit.krandom.generator.user.NationalityDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityDataRegistry;
+import io.github.frikit.krandom.generator.user.PositionDataProvider;
+import io.github.frikit.krandom.generator.user.PositionDataRegistry;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
 import io.github.frikit.krandom.generator.user.ProfessionDataRegistry;
 import io.github.frikit.krandom.generator.user.PronounDataProvider;
 import io.github.frikit.krandom.generator.user.PronounDataRegistry;
+import io.github.frikit.krandom.generator.user.SeniorityDataProvider;
+import io.github.frikit.krandom.generator.user.SeniorityDataRegistry;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.SuffixDataRegistry;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
@@ -59,6 +93,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Immutable, config-scoped registry view for locale data providers.
@@ -66,6 +102,13 @@ import java.util.Set;
  * <p>By default ({@link #globalDefault()}), lookups delegate to existing static registries.
  * Custom contexts can be built via {@link #builder()} and attached to {@link GeneratorConfig}
  * so tests and embedded runtimes can isolate registry state.
+ *
+ * <p>Provider lookups resolve in this order: a provider registered in this context for the exact
+ * {@code language_COUNTRY} key, the global provider for that exact key, a provider registered in
+ * this context for the language (a regional registration also serves as its language's fallback),
+ * and finally the global language fallback. A scoped regional bundle therefore never replaces
+ * another region's built-in data; for example, an {@code en_IN} bundle leaves {@code en_US} names
+ * unchanged. Isolated contexts skip both global steps.
  */
 public final class DataRegistryContext {
 
@@ -84,6 +127,7 @@ public final class DataRegistryContext {
     private final Map<String, CountryDataProvider>       countries;
     private final Map<String, StreetAddressDataProvider> streetAddresses;
     private final Map<String, NationalIdProvider>        nationalIds;
+    private final Map<String, NationalIdProvider>        nationalIdsByCountry;
     private final Map<String, WeatherDataProvider>       weather;
     private final Map<String, MeasurementDataProvider>   measurements;
     private final Map<String, FinancialTermDataProvider> financialTerms;
@@ -95,6 +139,23 @@ public final class DataRegistryContext {
     private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs;
     private final Map<String, ZodiacDataProvider>         zodiacs;
     private final Map<String, UniversityDataProvider>     universities;
+    private final Map<String, IndustryDataProvider> industries;
+    private final Map<String, JobFieldDataProvider> jobFields;
+    private final Map<String, SeniorityDataProvider> seniorities;
+    private final Map<String, PositionDataProvider> positions;
+    private final Map<String, EducationalAttainmentDataProvider> educationalAttainments;
+    private final Map<String, MaritalStatusDataProvider> maritalStatuses;
+    private final Map<String, JobTypeDataProvider> jobTypes;
+    private final Map<String, CompanyNameDataProvider> companyNames;
+    private final Map<String, CompanyBuzzwordDataProvider> companyBuzzwords;
+    private final Map<String, CompanyCatchPhraseDataProvider> companyCatchPhrases;
+    private final Map<String, TextWordDataProvider> textWords;
+    private final Map<String, CommerceDataProvider> commerce;
+    private final Map<String, DatabaseColumnDataProvider> databaseColumns;
+    private final Map<String, DirectoryNameDataProvider> directoryNames;
+    private final Map<String, BankNameDataProvider> bankNames;
+    private final Map<String, BankTypeDataProvider> bankTypes;
+    private final Map<String, BankAccountDataProvider> bankAccounts;
 
     private DataRegistryContext(Builder builder) {
         this.useGlobalFallback = builder.useGlobalFallback;
@@ -109,6 +170,7 @@ public final class DataRegistryContext {
         this.countries = Map.copyOf(builder.countries);
         this.streetAddresses = Map.copyOf(builder.streetAddresses);
         this.nationalIds = Map.copyOf(builder.nationalIds);
+        this.nationalIdsByCountry = Map.copyOf(builder.nationalIdsByCountry);
         this.weather = Map.copyOf(builder.weather);
         this.measurements = Map.copyOf(builder.measurements);
         this.financialTerms = Map.copyOf(builder.financialTerms);
@@ -120,6 +182,23 @@ public final class DataRegistryContext {
         this.chineseZodiacs = Map.copyOf(builder.chineseZodiacs);
         this.zodiacs = Map.copyOf(builder.zodiacs);
         this.universities = Map.copyOf(builder.universities);
+        this.industries = Map.copyOf(builder.industries);
+        this.jobFields = Map.copyOf(builder.jobFields);
+        this.seniorities = Map.copyOf(builder.seniorities);
+        this.positions = Map.copyOf(builder.positions);
+        this.educationalAttainments = Map.copyOf(builder.educationalAttainments);
+        this.maritalStatuses = Map.copyOf(builder.maritalStatuses);
+        this.jobTypes = Map.copyOf(builder.jobTypes);
+        this.companyNames = Map.copyOf(builder.companyNames);
+        this.companyBuzzwords = Map.copyOf(builder.companyBuzzwords);
+        this.companyCatchPhrases = Map.copyOf(builder.companyCatchPhrases);
+        this.textWords = Map.copyOf(builder.textWords);
+        this.commerce = Map.copyOf(builder.commerce);
+        this.databaseColumns = Map.copyOf(builder.databaseColumns);
+        this.directoryNames = Map.copyOf(builder.directoryNames);
+        this.bankNames = Map.copyOf(builder.bankNames);
+        this.bankTypes = Map.copyOf(builder.bankTypes);
+        this.bankAccounts = Map.copyOf(builder.bankAccounts);
     }
 
     /**
@@ -137,11 +216,7 @@ public final class DataRegistryContext {
     }
 
     public FirstNameDataProvider firstNameProvider(Locale locale) {
-        FirstNameDataProvider provider = findWithFallback(firstNames, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return FirstNameDataRegistry.forLocale(locale);
+        return resolve(firstNames, locale, FirstNameDataRegistry::forLocale, FirstNameDataRegistry::registeredKeys);
     }
 
     public boolean isFirstNameRegistered(Locale locale) {
@@ -153,11 +228,7 @@ public final class DataRegistryContext {
     }
 
     public LastNameDataProvider lastNameProvider(Locale locale) {
-        LastNameDataProvider provider = findWithFallback(lastNames, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return LastNameDataRegistry.forLocale(locale);
+        return resolve(lastNames, locale, LastNameDataRegistry::forLocale, LastNameDataRegistry::registeredKeys);
     }
 
     public boolean isLastNameRegistered(Locale locale) {
@@ -169,11 +240,7 @@ public final class DataRegistryContext {
     }
 
     public GenderDataProvider genderProvider(Locale locale) {
-        GenderDataProvider provider = findWithFallback(genders, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return GenderDataRegistry.forLocale(locale);
+        return resolve(genders, locale, GenderDataRegistry::forLocale, GenderDataRegistry::registeredKeys);
     }
 
     public boolean isGenderRegistered(Locale locale) {
@@ -185,11 +252,7 @@ public final class DataRegistryContext {
     }
 
     public TitleDataProvider titleProvider(Locale locale) {
-        TitleDataProvider provider = findWithFallback(titles, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return TitleDataRegistry.forLocale(locale);
+        return resolve(titles, locale, TitleDataRegistry::forLocale, TitleDataRegistry::registeredKeys);
     }
 
     public boolean isTitleRegistered(Locale locale) {
@@ -201,11 +264,7 @@ public final class DataRegistryContext {
     }
 
     public SuffixDataProvider suffixProvider(Locale locale) {
-        SuffixDataProvider provider = findWithFallback(suffixes, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return SuffixDataRegistry.forLocale(locale);
+        return resolve(suffixes, locale, SuffixDataRegistry::forLocale, SuffixDataRegistry::registeredKeys);
     }
 
     public boolean isSuffixRegistered(Locale locale) {
@@ -217,11 +276,7 @@ public final class DataRegistryContext {
     }
 
     public ProfessionDataProvider professionProvider(Locale locale) {
-        ProfessionDataProvider provider = findWithFallback(professions, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return ProfessionDataRegistry.forLocale(locale);
+        return resolve(professions, locale, ProfessionDataRegistry::forLocale, ProfessionDataRegistry::registeredKeys);
     }
 
     public boolean isProfessionRegistered(Locale locale) {
@@ -233,11 +288,7 @@ public final class DataRegistryContext {
     }
 
     public CityDataProvider cityProvider(Locale locale) {
-        CityDataProvider provider = findWithFallback(cities, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return CityDataRegistry.forLocale(locale);
+        return resolve(cities, locale, CityDataRegistry::forLocale, CityDataRegistry::registeredKeys);
     }
 
     public boolean isCityRegistered(Locale locale) {
@@ -249,11 +300,7 @@ public final class DataRegistryContext {
     }
 
     public StateDataProvider stateProvider(Locale locale) {
-        StateDataProvider provider = findWithFallback(states, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return StateDataRegistry.forLocale(locale);
+        return resolve(states, locale, StateDataRegistry::forLocale, StateDataRegistry::registeredKeys);
     }
 
     public boolean isStateRegistered(Locale locale) {
@@ -265,11 +312,7 @@ public final class DataRegistryContext {
     }
 
     public CountryDataProvider countryProvider(Locale locale) {
-        CountryDataProvider provider = findWithFallback(countries, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return CountryDataRegistry.forLocale(locale);
+        return resolve(countries, locale, CountryDataRegistry::forLocale, CountryDataRegistry::registeredKeys);
     }
 
     public boolean isCountryRegistered(Locale locale) {
@@ -281,11 +324,7 @@ public final class DataRegistryContext {
     }
 
     public StreetAddressDataProvider streetAddressProvider(Locale locale) {
-        StreetAddressDataProvider provider = findWithFallback(streetAddresses, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return StreetAddressDataRegistry.forLocale(locale);
+        return resolve(streetAddresses, locale, StreetAddressDataRegistry::forLocale, StreetAddressDataRegistry::registeredKeys);
     }
 
     public boolean isStreetAddressRegistered(Locale locale) {
@@ -296,10 +335,37 @@ public final class DataRegistryContext {
         return mergeKeys(streetAddresses.keySet(), useGlobalFallback ? StreetAddressDataRegistry.registeredKeys() : Set.of());
     }
 
+    /**
+     * Returns the national-ID provider for a locale.
+     *
+     * <p>National identifiers are country-specific, so a locale with a country resolves the scoped
+     * exact key, the global exact key, the first scoped provider of the same country, and finally
+     * the global provider of the same country; it never falls back to a provider of another country
+     * through its language. A locale without a country resolves the scoped, then the global
+     * language-level entry.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
     public NationalIdProvider nationalIdProvider(Locale locale) {
-        NationalIdProvider provider = findWithFallback(nationalIds, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
+        if (locale == null) {
+            return null;
+        }
+        String country = locale.getCountry();
+        if (country.isEmpty()) {
+            return resolve(nationalIds, locale, NationalIdRegistry::forLocale, NationalIdRegistry::registeredKeys);
+        }
+        String exactKey = locale.getLanguage() + "_" + country;
+        NationalIdProvider scopedExact = nationalIds.get(exactKey);
+        if (scopedExact != null) {
+            return scopedExact;
+        }
+        if (useGlobalFallback && NationalIdRegistry.registeredKeys().contains(exactKey)) {
+            return NationalIdRegistry.forLocale(locale);
+        }
+        NationalIdProvider scopedCountry = nationalIdsByCountry.get(country);
+        if (scopedCountry != null || !useGlobalFallback) {
+            return scopedCountry;
         }
         return NationalIdRegistry.forLocale(locale);
     }
@@ -319,11 +385,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public WeatherDataProvider weatherProvider(Locale locale) {
-        WeatherDataProvider provider = findWithFallback(weather, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return WeatherDataRegistry.forLocale(locale);
+        return resolve(weather, locale, WeatherDataRegistry::forLocale, WeatherDataRegistry::registeredKeys);
     }
 
     /**
@@ -352,11 +414,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public MeasurementDataProvider measurementProvider(Locale locale) {
-        MeasurementDataProvider provider = findWithFallback(measurements, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return MeasurementDataRegistry.forLocale(locale);
+        return resolve(measurements, locale, MeasurementDataRegistry::forLocale, MeasurementDataRegistry::registeredKeys);
     }
 
     /**
@@ -385,11 +443,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public FinancialTermDataProvider financialTermProvider(Locale locale) {
-        FinancialTermDataProvider provider = findWithFallback(financialTerms, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return FinancialTermDataRegistry.forLocale(locale);
+        return resolve(financialTerms, locale, FinancialTermDataRegistry::forLocale, FinancialTermDataRegistry::registeredKeys);
     }
 
     /**
@@ -418,11 +472,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public RestaurantTypeDataProvider restaurantTypeProvider(Locale locale) {
-        RestaurantTypeDataProvider provider = findWithFallback(restaurantTypes, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return RestaurantTypeDataRegistry.forLocale(locale);
+        return resolve(restaurantTypes, locale, RestaurantTypeDataRegistry::forLocale, RestaurantTypeDataRegistry::registeredKeys);
     }
 
     /**
@@ -451,11 +501,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public HobbyDataProvider hobbyProvider(Locale locale) {
-        HobbyDataProvider provider = findWithFallback(hobbies, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return HobbyDataRegistry.forLocale(locale);
+        return resolve(hobbies, locale, HobbyDataRegistry::forLocale, HobbyDataRegistry::registeredKeys);
     }
 
     /**
@@ -484,11 +530,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public NationalityDataProvider nationalityProvider(Locale locale) {
-        NationalityDataProvider provider = findWithFallback(nationalities, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return NationalityDataRegistry.forLocale(locale);
+        return resolve(nationalities, locale, NationalityDataRegistry::forLocale, NationalityDataRegistry::registeredKeys);
     }
 
     /**
@@ -517,11 +559,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public PronounDataProvider pronounProvider(Locale locale) {
-        PronounDataProvider provider = findWithFallback(pronouns, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return PronounDataRegistry.forLocale(locale);
+        return resolve(pronouns, locale, PronounDataRegistry::forLocale, PronounDataRegistry::registeredKeys);
     }
 
     /**
@@ -550,11 +588,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public BloodTypeDataProvider bloodTypeProvider(Locale locale) {
-        BloodTypeDataProvider provider = findWithFallback(bloodTypes, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return BloodTypeDataRegistry.forLocale(locale);
+        return resolve(bloodTypes, locale, BloodTypeDataRegistry::forLocale, BloodTypeDataRegistry::registeredKeys);
     }
 
     /**
@@ -583,11 +617,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public ChineseZodiacDataProvider chineseZodiacProvider(Locale locale) {
-        ChineseZodiacDataProvider provider = findWithFallback(chineseZodiacs, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return ChineseZodiacDataRegistry.forLocale(locale);
+        return resolve(chineseZodiacs, locale, ChineseZodiacDataRegistry::forLocale, ChineseZodiacDataRegistry::registeredKeys);
     }
 
     /**
@@ -616,11 +646,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public ZodiacDataProvider zodiacProvider(Locale locale) {
-        ZodiacDataProvider provider = findWithFallback(zodiacs, locale);
-        if (provider != null || !useGlobalFallback) {
-            return provider;
-        }
-        return ZodiacDataRegistry.forLocale(locale);
+        return resolve(zodiacs, locale, ZodiacDataRegistry::forLocale, ZodiacDataRegistry::registeredKeys);
     }
 
     /**
@@ -652,7 +678,7 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when no local pack is registered
      */
     public UniversityDataProvider universityProvider(Locale locale) {
-        return findWithFallback(universities, locale);
+        return resolve(universities, locale, ignored -> null, Set::of);
     }
 
     /**
@@ -674,6 +700,499 @@ public final class DataRegistryContext {
         return mergeKeys(universities.keySet(), Set.of());
     }
 
+    /**
+     * Returns the industry provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public IndustryDataProvider industryProvider(Locale locale) {
+        return resolve(industries, locale, IndustryDataRegistry::forLocale, IndustryDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve industry vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isIndustryRegistered(Locale locale) {
+        return industryProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable industry locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> industryRegisteredKeys() {
+        return mergeKeys(industries.keySet(), useGlobalFallback ? IndustryDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the job-field provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public JobFieldDataProvider jobFieldProvider(Locale locale) {
+        return resolve(jobFields, locale, JobFieldDataRegistry::forLocale, JobFieldDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve job-field vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isJobFieldRegistered(Locale locale) {
+        return jobFieldProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable job-field locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> jobFieldRegisteredKeys() {
+        return mergeKeys(jobFields.keySet(), useGlobalFallback ? JobFieldDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the seniority provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public SeniorityDataProvider seniorityProvider(Locale locale) {
+        return resolve(seniorities, locale, SeniorityDataRegistry::forLocale, SeniorityDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve seniority vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isSeniorityRegistered(Locale locale) {
+        return seniorityProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable seniority locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> seniorityRegisteredKeys() {
+        return mergeKeys(seniorities.keySet(), useGlobalFallback ? SeniorityDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the position provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public PositionDataProvider positionProvider(Locale locale) {
+        return resolve(positions, locale, PositionDataRegistry::forLocale, PositionDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve position vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isPositionRegistered(Locale locale) {
+        return positionProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable position locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> positionRegisteredKeys() {
+        return mergeKeys(positions.keySet(), useGlobalFallback ? PositionDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the educational-attainment provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public EducationalAttainmentDataProvider educationalAttainmentProvider(Locale locale) {
+        return resolve(educationalAttainments, locale, EducationalAttainmentDataRegistry::forLocale, EducationalAttainmentDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve educational-attainment vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isEducationalAttainmentRegistered(Locale locale) {
+        return educationalAttainmentProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable educational-attainment locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> educationalAttainmentRegisteredKeys() {
+        return mergeKeys(educationalAttainments.keySet(), useGlobalFallback ? EducationalAttainmentDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the marital-status provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public MaritalStatusDataProvider maritalStatusProvider(Locale locale) {
+        return resolve(maritalStatuses, locale, MaritalStatusDataRegistry::forLocale, MaritalStatusDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve marital-status vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isMaritalStatusRegistered(Locale locale) {
+        return maritalStatusProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable marital-status locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> maritalStatusRegisteredKeys() {
+        return mergeKeys(maritalStatuses.keySet(), useGlobalFallback ? MaritalStatusDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the job-type provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public JobTypeDataProvider jobTypeProvider(Locale locale) {
+        return resolve(jobTypes, locale, JobTypeDataRegistry::forLocale, JobTypeDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve job-type vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isJobTypeRegistered(Locale locale) {
+        return jobTypeProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable job-type locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> jobTypeRegisteredKeys() {
+        return mergeKeys(jobTypes.keySet(), useGlobalFallback ? JobTypeDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the company-name provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public CompanyNameDataProvider companyNameProvider(Locale locale) {
+        return resolve(companyNames, locale, CompanyNameDataRegistry::forLocale, CompanyNameDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve company-name vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isCompanyNameRegistered(Locale locale) {
+        return companyNameProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable company-name locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> companyNameRegisteredKeys() {
+        return mergeKeys(companyNames.keySet(), useGlobalFallback ? CompanyNameDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the company-buzzword provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public CompanyBuzzwordDataProvider companyBuzzwordProvider(Locale locale) {
+        return resolve(companyBuzzwords, locale, CompanyBuzzwordDataRegistry::forLocale, CompanyBuzzwordDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve company-buzzword vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isCompanyBuzzwordRegistered(Locale locale) {
+        return companyBuzzwordProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable company-buzzword locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> companyBuzzwordRegisteredKeys() {
+        return mergeKeys(companyBuzzwords.keySet(), useGlobalFallback ? CompanyBuzzwordDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the company catch-phrase provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public CompanyCatchPhraseDataProvider companyCatchPhraseProvider(Locale locale) {
+        return resolve(companyCatchPhrases, locale, CompanyCatchPhraseDataRegistry::forLocale, CompanyCatchPhraseDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve company catch-phrase vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isCompanyCatchPhraseRegistered(Locale locale) {
+        return companyCatchPhraseProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable company catch-phrase locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> companyCatchPhraseRegisteredKeys() {
+        return mergeKeys(companyCatchPhrases.keySet(), useGlobalFallback ? CompanyCatchPhraseDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the text-word provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public TextWordDataProvider textWordProvider(Locale locale) {
+        return resolve(textWords, locale, TextWordDataRegistry::forLocale, TextWordDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve text-word vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isTextWordRegistered(Locale locale) {
+        return textWordProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable text-word locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> textWordRegisteredKeys() {
+        return mergeKeys(textWords.keySet(), useGlobalFallback ? TextWordDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the commerce provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public CommerceDataProvider commerceProvider(Locale locale) {
+        return resolve(commerce, locale, CommerceDataRegistry::forLocale, CommerceDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve commerce vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isCommerceRegistered(Locale locale) {
+        return commerceProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable commerce locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> commerceRegisteredKeys() {
+        return mergeKeys(commerce.keySet(), useGlobalFallback ? CommerceDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the database-column provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public DatabaseColumnDataProvider databaseColumnProvider(Locale locale) {
+        return resolve(databaseColumns, locale, DatabaseColumnDataRegistry::forLocale, DatabaseColumnDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve database-column vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isDatabaseColumnRegistered(Locale locale) {
+        return databaseColumnProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable database-column locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> databaseColumnRegisteredKeys() {
+        return mergeKeys(databaseColumns.keySet(), useGlobalFallback ? DatabaseColumnDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the directory-name provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public DirectoryNameDataProvider directoryNameProvider(Locale locale) {
+        return resolve(directoryNames, locale, DirectoryNameDataRegistry::forLocale, DirectoryNameDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve directory-name vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isDirectoryNameRegistered(Locale locale) {
+        return directoryNameProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable directory-name locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> directoryNameRegisteredKeys() {
+        return mergeKeys(directoryNames.keySet(), useGlobalFallback ? DirectoryNameDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the bank-name provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public BankNameDataProvider bankNameProvider(Locale locale) {
+        return resolve(bankNames, locale, BankNameDataRegistry::forLocale, BankNameDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve bank-name vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isBankNameRegistered(Locale locale) {
+        return bankNameProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable bank-name locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> bankNameRegisteredKeys() {
+        return mergeKeys(bankNames.keySet(), useGlobalFallback ? BankNameDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the bank-type provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public BankTypeDataProvider bankTypeProvider(Locale locale) {
+        return resolve(bankTypes, locale, BankTypeDataRegistry::forLocale, BankTypeDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve bank-type vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isBankTypeRegistered(Locale locale) {
+        return bankTypeProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable bank-type locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> bankTypeRegisteredKeys() {
+        return mergeKeys(bankTypes.keySet(), useGlobalFallback ? BankTypeDataRegistry.registeredKeys() : Set.of());
+    }
+
+    /**
+     * Returns the bank-account provider for a locale, using this context's fallback policy.
+     *
+     * @param locale requested locale
+     * @return matching provider, or {@code null} when none is registered
+     */
+    public BankAccountDataProvider bankAccountProvider(Locale locale) {
+        return resolve(bankAccounts, locale, BankAccountDataRegistry::forLocale, BankAccountDataRegistry::registeredKeys);
+    }
+
+    /**
+     * Reports whether this context can resolve bank-account vocabulary for the locale.
+     *
+     * @param locale requested locale
+     * @return true when a provider is available
+     */
+    public boolean isBankAccountRegistered(Locale locale) {
+        return bankAccountProvider(locale) != null;
+    }
+
+    /**
+     * Returns immutable bank-account locale keys visible to this context.
+     *
+     * @return immutable locale-key snapshot
+     */
+    public Set<String> bankAccountRegisteredKeys() {
+        return mergeKeys(bankAccounts.keySet(), useGlobalFallback ? BankAccountDataRegistry.registeredKeys() : Set.of());
+    }
+
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(locale, "locale");
@@ -688,19 +1207,35 @@ public final class DataRegistryContext {
         }
     }
 
-    private static <T> T findWithFallback(Map<String, T> registry, Locale locale) {
+    /**
+     * Resolves one provider family with the documented precedence: scoped exact, global exact,
+     * scoped language, then global language. A scoped regional registration therefore only acts
+     * as a language fallback for locales that have no exact match anywhere.
+     */
+    private <T> T resolve(Map<String, T> scoped,
+                          Locale locale,
+                          Function<Locale, T> globalLookup,
+                          Supplier<Set<String>> globalKeys) {
         if (locale == null) {
             return null;
         }
         String language = locale.getLanguage();
         String country = locale.getCountry();
         if (!country.isEmpty()) {
-            T exact = registry.get(language + "_" + country);
-            if (exact != null) {
-                return exact;
+            String exactKey = language + "_" + country;
+            T scopedExact = scoped.get(exactKey);
+            if (scopedExact != null) {
+                return scopedExact;
+            }
+            if (useGlobalFallback && globalKeys.get().contains(exactKey)) {
+                return globalLookup.apply(locale);
             }
         }
-        return registry.get(language);
+        T scopedLanguage = scoped.get(language);
+        if (scopedLanguage != null || !useGlobalFallback) {
+            return scopedLanguage;
+        }
+        return globalLookup.apply(locale);
     }
 
     private static Set<String> mergeKeys(Set<String> localKeys, Set<String> globalKeys) {
@@ -835,6 +1370,7 @@ public final class DataRegistryContext {
         private final Map<String, CountryDataProvider>       countries      = new LinkedHashMap<>();
         private final Map<String, StreetAddressDataProvider> streetAddresses = new LinkedHashMap<>();
         private final Map<String, NationalIdProvider>        nationalIds    = new LinkedHashMap<>();
+        private final Map<String, NationalIdProvider>        nationalIdsByCountry = new LinkedHashMap<>();
         private final Map<String, WeatherDataProvider>       weather        = new LinkedHashMap<>();
         private final Map<String, MeasurementDataProvider>   measurements   = new LinkedHashMap<>();
         private final Map<String, FinancialTermDataProvider> financialTerms = new LinkedHashMap<>();
@@ -846,6 +1382,23 @@ public final class DataRegistryContext {
         private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs  = new LinkedHashMap<>();
         private final Map<String, ZodiacDataProvider>         zodiacs        = new LinkedHashMap<>();
         private final Map<String, UniversityDataProvider>     universities   = new LinkedHashMap<>();
+        private final Map<String, IndustryDataProvider> industries = new LinkedHashMap<>();
+        private final Map<String, JobFieldDataProvider> jobFields = new LinkedHashMap<>();
+        private final Map<String, SeniorityDataProvider> seniorities = new LinkedHashMap<>();
+        private final Map<String, PositionDataProvider> positions = new LinkedHashMap<>();
+        private final Map<String, EducationalAttainmentDataProvider> educationalAttainments = new LinkedHashMap<>();
+        private final Map<String, MaritalStatusDataProvider> maritalStatuses = new LinkedHashMap<>();
+        private final Map<String, JobTypeDataProvider> jobTypes = new LinkedHashMap<>();
+        private final Map<String, CompanyNameDataProvider> companyNames = new LinkedHashMap<>();
+        private final Map<String, CompanyBuzzwordDataProvider> companyBuzzwords = new LinkedHashMap<>();
+        private final Map<String, CompanyCatchPhraseDataProvider> companyCatchPhrases = new LinkedHashMap<>();
+        private final Map<String, TextWordDataProvider> textWords = new LinkedHashMap<>();
+        private final Map<String, CommerceDataProvider> commerce = new LinkedHashMap<>();
+        private final Map<String, DatabaseColumnDataProvider> databaseColumns = new LinkedHashMap<>();
+        private final Map<String, DirectoryNameDataProvider> directoryNames = new LinkedHashMap<>();
+        private final Map<String, BankNameDataProvider> bankNames = new LinkedHashMap<>();
+        private final Map<String, BankTypeDataProvider> bankTypes = new LinkedHashMap<>();
+        private final Map<String, BankAccountDataProvider> bankAccounts = new LinkedHashMap<>();
 
         /**
          * Controls whether this context delegates to global static registries when no local value exists.
@@ -968,6 +1521,10 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider, "provider");
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             putWithLanguageFallback(nationalIds, provider.getLocale(), provider);
+            String country = provider.getLocale().getCountry();
+            if (!country.isEmpty()) {
+                nationalIdsByCountry.putIfAbsent(country, provider);
+            }
             return this;
         }
 
@@ -1122,6 +1679,261 @@ public final class DataRegistryContext {
             Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
             validateUniversityData(provider.getUniversities());
             putWithLanguageFallback(universities, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific industry provider in this context.
+         *
+         * @param provider industry vocabulary provider
+         * @return this builder
+         */
+        public Builder registerIndustryProvider(IndustryDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("industries", provider.getIndustries());
+            putWithLanguageFallback(industries, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific job-field provider in this context.
+         *
+         * @param provider job-field vocabulary provider
+         * @return this builder
+         */
+        public Builder registerJobFieldProvider(JobFieldDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("jobFields", provider.getJobFields());
+            putWithLanguageFallback(jobFields, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific seniority provider in this context.
+         *
+         * @param provider seniority vocabulary provider
+         * @return this builder
+         */
+        public Builder registerSeniorityProvider(SeniorityDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("seniorities", provider.getSeniorities());
+            putWithLanguageFallback(seniorities, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific position provider in this context.
+         *
+         * @param provider position vocabulary provider
+         * @return this builder
+         */
+        public Builder registerPositionProvider(PositionDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("positions", provider.getPositions());
+            putWithLanguageFallback(positions, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific educational-attainment provider in this context.
+         *
+         * @param provider educational-attainment vocabulary provider
+         * @return this builder
+         */
+        public Builder registerEducationalAttainmentProvider(EducationalAttainmentDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("educationalAttainments", provider.getEducationalAttainments());
+            putWithLanguageFallback(educationalAttainments, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific marital-status provider in this context.
+         *
+         * @param provider marital-status vocabulary provider
+         * @return this builder
+         */
+        public Builder registerMaritalStatusProvider(MaritalStatusDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("maritalStatuses", provider.getMaritalStatuses());
+            putWithLanguageFallback(maritalStatuses, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific job-type provider in this context.
+         *
+         * @param provider job-type vocabulary provider
+         * @return this builder
+         */
+        public Builder registerJobTypeProvider(JobTypeDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("jobTypes", provider.getJobTypes());
+            putWithLanguageFallback(jobTypes, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific company-name provider in this context.
+         *
+         * @param provider company-name vocabulary provider
+         * @return this builder
+         */
+        public Builder registerCompanyNameProvider(CompanyNameDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("prefixes", provider.getPrefixes());
+            validateTextValues("nouns", provider.getNouns());
+            validateTextValues("suffixes", provider.getSuffixes());
+            validateLabel("nameFormat", provider.getNameFormat());
+            validateLabel("legalNameFormat", provider.getLegalNameFormat());
+            putWithLanguageFallback(companyNames, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific company-buzzword provider in this context.
+         *
+         * @param provider company-buzzword vocabulary provider
+         * @return this builder
+         */
+        public Builder registerCompanyBuzzwordProvider(CompanyBuzzwordDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("verbs", provider.getVerbs());
+            validateTextValues("adjectives", provider.getAdjectives());
+            validateTextValues("nouns", provider.getNouns());
+            validateLabel("format", provider.getFormat());
+            putWithLanguageFallback(companyBuzzwords, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific company catch-phrase provider in this context.
+         *
+         * @param provider company catch-phrase vocabulary provider
+         * @return this builder
+         */
+        public Builder registerCompanyCatchPhraseProvider(CompanyCatchPhraseDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("adjectives", provider.getAdjectives());
+            validateTextValues("nouns", provider.getNouns());
+            validateTextValues("taglines", provider.getTaglines());
+            validateLabel("format", provider.getFormat());
+            putWithLanguageFallback(companyCatchPhrases, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific text-word provider in this context.
+         *
+         * @param provider text-word vocabulary provider
+         * @return this builder
+         */
+        public Builder registerTextWordProvider(TextWordDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("words", provider.getWords());
+            putWithLanguageFallback(textWords, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific commerce provider in this context.
+         *
+         * @param provider commerce vocabulary provider
+         * @return this builder
+         */
+        public Builder registerCommerceProvider(CommerceDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("adjectives", provider.getAdjectives());
+            validateTextValues("materials", provider.getMaterials());
+            validateTextValues("products", provider.getProducts());
+            validateTextValues("departments", provider.getDepartments());
+            validateTextValues("colors", provider.getColors());
+            validateLabel("productNameFormat", provider.getProductNameFormat());
+            validateLabel("productDescriptionFormat", provider.getProductDescriptionFormat());
+            putWithLanguageFallback(commerce, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific database-column provider in this context.
+         *
+         * @param provider database-column vocabulary provider
+         * @return this builder
+         */
+        public Builder registerDatabaseColumnProvider(DatabaseColumnDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("columns", provider.getColumns());
+            putWithLanguageFallback(databaseColumns, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific directory-name provider in this context.
+         *
+         * @param provider directory-name vocabulary provider
+         * @return this builder
+         */
+        public Builder registerDirectoryNameProvider(DirectoryNameDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("directoryNames", provider.getDirectoryNames());
+            putWithLanguageFallback(directoryNames, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific bank-name provider in this context.
+         *
+         * @param provider bank-name vocabulary provider
+         * @return this builder
+         */
+        public Builder registerBankNameProvider(BankNameDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("bankNames", provider.getBankNames());
+            putWithLanguageFallback(bankNames, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific bank-type provider in this context.
+         *
+         * @param provider bank-type vocabulary provider
+         * @return this builder
+         */
+        public Builder registerBankTypeProvider(BankTypeDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("bankTypes", provider.getBankTypes());
+            putWithLanguageFallback(bankTypes, provider.getLocale(), provider);
+            return this;
+        }
+
+        /**
+         * Registers a locale-specific bank-account provider in this context.
+         *
+         * @param provider bank-account vocabulary provider
+         * @return this builder
+         */
+        public Builder registerBankAccountProvider(BankAccountDataProvider provider) {
+            Objects.requireNonNull(provider, "provider");
+            Objects.requireNonNull(provider.getLocale(), "provider.getLocale()");
+            validateTextValues("accountNames", provider.getAccountNames());
+            validateTextValues("transactionTypes", provider.getTransactionTypes());
+            putWithLanguageFallback(bankAccounts, provider.getLocale(), provider);
             return this;
         }
 

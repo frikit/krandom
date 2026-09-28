@@ -1,0 +1,9 @@
+# Directory names, one per line.
+home
+users
+projects
+data
+logs
+tmp
+docs
+assets

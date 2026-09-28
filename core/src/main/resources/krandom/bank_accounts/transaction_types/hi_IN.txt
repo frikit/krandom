@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+जमा
+निकासी
+भुगतान
+अंतरण
+धनवापसी
+शुल्क
+ब्याज
+चार्जबैक

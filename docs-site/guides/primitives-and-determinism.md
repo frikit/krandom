@@ -103,3 +103,25 @@ resolver stream. In the 2.3.0 qualification's three-member structural record, cu
 was about 32k objects/sec with INDEPENDENT versus 101k with LEGACY, with 3.4 times the allocations.
 Existing default throughput stayed within 1% of 2.2.0. These measurements are workload-specific;
 choose stability when it matters and benchmark your own fixture before bulk-generation adoption.
+
+### Composite child streams
+
+Composite value generators such as `PaymentInfoGenerator`, `OrderInfoGenerator`, or
+`PersonInfoGenerator` build their child generators from the same configuration. With a seed, every
+child's random source starts at the same state, so sibling values can be correlated — for example
+the payment, invoice, and order identifiers of one seeded `PaymentInfo` share the same suffix. The
+default `ChildStreamPolicy.LEGACY` keeps that published output unchanged.
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .seed(42L)
+    .childStreamPolicy(ChildStreamPolicy.INDEPENDENT)
+    .build();
+```
+
+With `INDEPENDENT`, each child receives `config.forChildStream(name)`: a copy whose seed is
+`GenerationRecipe.deriveChildSeed(seed, name)` for a stable per-child stream name, so siblings draw
+from independent streams while the output stays reproducible. A numeric or textual seed is
+required. Portable recipes record the explicit policy as `child-stream-policy`; an absent setting
+means LEGACY. Custom composites can adopt the same contract by passing
+`config.forChildStream("childName")` to each child they construct.

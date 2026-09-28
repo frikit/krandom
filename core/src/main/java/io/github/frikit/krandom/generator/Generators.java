@@ -97,6 +97,7 @@ import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.identifier.UpcGenerator;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
+import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.location.GeohashGenerator;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
@@ -153,7 +154,13 @@ import io.github.frikit.krandom.generator.text.SyllableGenerator;
 import io.github.frikit.krandom.generator.text.TemplateStringGenerator;
 import io.github.frikit.krandom.generator.text.TextGenerator;
 import io.github.frikit.krandom.generator.text.WordGenerator;
+import io.github.frikit.krandom.generator.user.AgeGenerator;
+import io.github.frikit.krandom.generator.user.AgeType;
 import io.github.frikit.krandom.generator.user.AvatarUrlGenerator;
+import io.github.frikit.krandom.generator.user.BirthdayGenerator;
+import io.github.frikit.krandom.generator.user.FirstNameGenerator;
+import io.github.frikit.krandom.generator.user.GenderGenerator;
+import io.github.frikit.krandom.generator.user.LastNameGenerator;
 import io.github.frikit.krandom.generator.user.CompanyBuzzwordGenerator;
 import io.github.frikit.krandom.generator.user.CompanyCatchPhraseGenerator;
 import io.github.frikit.krandom.generator.user.CompanyEmailGenerator;
@@ -295,8 +302,8 @@ public final class Generators {
         REGISTRY.put(GregorianCalendar.class, CalendarGenerator::new);
         REGISTRY.put(Locale.class, RandomLocaleGenerator::new);
         REGISTRY.put(UUID.class, UUIDGenerator::new);
-        REGISTRY.put(URI.class, Generators::ofURI);
-        REGISTRY.put(java.net.URL.class, Generators::ofURL);
+        REGISTRY.put(URI.class, Generators::ofUriObject);
+        REGISTRY.put(java.net.URL.class, Generators::ofUrlObject);
         REGISTRY.put(java.util.Date.class, UtilDateGenerator::new);
         REGISTRY.put(java.sql.Date.class, SqlDateGenerator::new);
         REGISTRY.put(java.sql.Time.class, SqlTimeGenerator::new);
@@ -335,12 +342,46 @@ public final class Generators {
         return new ByteGenerator();
     }
 
+    /**
+     * Returns a byte generator over the default range using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return byte generator
+     */
+    public static ByteGenerator ofByte(GeneratorConfig config) {
+        return new ByteGenerator(config);
+    }
+
     // ── Short ─────────────────────────────────────────────────────────────────
 
     public static ByteGenerator ofByte(byte min, byte max) {
         return new ByteGenerator(min, max);
     }
 
+    /**
+     * Returns a byte generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return byte generator
+     */
+    public static ByteGenerator ofByte(byte min, byte max, GeneratorConfig config) {
+        return new ByteGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded byte generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return byte generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofByte(byte, byte, GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public static ByteGenerator ofByte(byte min, byte max, long seed) {
         return new ByteGenerator(min, max, seed);
     }
@@ -349,12 +390,46 @@ public final class Generators {
         return new ShortGenerator();
     }
 
+    /**
+     * Returns a short generator over the default range using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return short generator
+     */
+    public static ShortGenerator ofShort(GeneratorConfig config) {
+        return new ShortGenerator(config);
+    }
+
     // ── Int ───────────────────────────────────────────────────────────────────
 
     public static ShortGenerator ofShort(short min, short max) {
         return new ShortGenerator(min, max);
     }
 
+    /**
+     * Returns a short generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return short generator
+     */
+    public static ShortGenerator ofShort(short min, short max, GeneratorConfig config) {
+        return new ShortGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded short generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return short generator
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #ofShort(short, short, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static ShortGenerator ofShort(short min, short max, long seed) {
         return new ShortGenerator(min, max, seed);
     }
@@ -363,12 +438,46 @@ public final class Generators {
         return new IntGenerator();
     }
 
+    /**
+     * Returns an int generator over the default range using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return int generator
+     */
+    public static IntGenerator ofInt(GeneratorConfig config) {
+        return new IntGenerator(config);
+    }
+
     // ── Natural Number ────────────────────────────────────────────────────────
 
     public static IntGenerator ofInt(int min, int max) {
         return new IntGenerator(min, max);
     }
 
+    /**
+     * Returns an int generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return int generator
+     */
+    public static IntGenerator ofInt(int min, int max, GeneratorConfig config) {
+        return new IntGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded int generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return int generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofInt(int, int, GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public static IntGenerator ofInt(int min, int max, long seed) {
         return new IntGenerator(min, max, seed);
     }
@@ -377,12 +486,46 @@ public final class Generators {
         return new NaturalNumberGenerator();
     }
 
+    /**
+     * Returns a natural-number generator over the default range using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return natural-number generator
+     */
+    public static NaturalNumberGenerator ofNaturalNumber(GeneratorConfig config) {
+        return new NaturalNumberGenerator(config);
+    }
+
     // ── Long ──────────────────────────────────────────────────────────────────
 
     public static NaturalNumberGenerator ofNaturalNumber(int min, int max) {
         return new NaturalNumberGenerator(min, max);
     }
 
+    /**
+     * Returns a natural-number generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return natural-number generator
+     */
+    public static NaturalNumberGenerator ofNaturalNumber(int min, int max, GeneratorConfig config) {
+        return new NaturalNumberGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded natural-number generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return natural-number generator
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #ofNaturalNumber(int, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static NaturalNumberGenerator ofNaturalNumber(int min, int max, long seed) {
         return new NaturalNumberGenerator(min, max, seed);
     }
@@ -391,6 +534,25 @@ public final class Generators {
         return new NumberGenerator();
     }
 
+    /**
+     * Returns a generator of mixed numeric values using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return number generator
+     */
+    public static NumberGenerator ofNumber(GeneratorConfig config) {
+        return new NumberGenerator(config);
+    }
+
+    /**
+     * Returns a seeded generator of mixed numeric values.
+     *
+     * @param seed raw seed
+     * @return number generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofNumber(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static NumberGenerator ofNumber(long seed) {
         return new NumberGenerator(seed);
     }
@@ -399,12 +561,46 @@ public final class Generators {
         return new LongGenerator();
     }
 
+    /**
+     * Returns a long generator over the default range using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return long generator
+     */
+    public static LongGenerator ofLong(GeneratorConfig config) {
+        return new LongGenerator(config);
+    }
+
     // ── Float ─────────────────────────────────────────────────────────────────
 
     public static LongGenerator ofLong(long min, long max) {
         return new LongGenerator(min, max);
     }
 
+    /**
+     * Returns a long generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return long generator
+     */
+    public static LongGenerator ofLong(long min, long max, GeneratorConfig config) {
+        return new LongGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded long generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return long generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofLong(long, long, GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public static LongGenerator ofLong(long min, long max, long seed) {
         return new LongGenerator(min, max, seed);
     }
@@ -413,10 +609,46 @@ public final class Generators {
         return new AtomicIntegerGenerator();
     }
 
+    /**
+     * Returns an {@code AtomicInteger} generator over the default range using explicit
+     * configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return atomic-integer generator
+     */
+    public static AtomicIntegerGenerator ofAtomicInteger(GeneratorConfig config) {
+        return new AtomicIntegerGenerator(config);
+    }
+
     public static AtomicIntegerGenerator ofAtomicInteger(int min, int max) {
         return new AtomicIntegerGenerator(min, max);
     }
 
+    /**
+     * Returns an {@code AtomicInteger} generator over {@code [min, max)} using explicit
+     * configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return atomic-integer generator
+     */
+    public static AtomicIntegerGenerator ofAtomicInteger(int min, int max, GeneratorConfig config) {
+        return new AtomicIntegerGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded {@code AtomicInteger} generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return atomic-integer generator
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #ofAtomicInteger(int, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static AtomicIntegerGenerator ofAtomicInteger(int min, int max, long seed) {
         return new AtomicIntegerGenerator(min, max, seed);
     }
@@ -425,10 +657,44 @@ public final class Generators {
         return new AtomicLongGenerator();
     }
 
+    /**
+     * Returns an {@code AtomicLong} generator over the default range using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return atomic-long generator
+     */
+    public static AtomicLongGenerator ofAtomicLong(GeneratorConfig config) {
+        return new AtomicLongGenerator(config);
+    }
+
     public static AtomicLongGenerator ofAtomicLong(long min, long max) {
         return new AtomicLongGenerator(min, max);
     }
 
+    /**
+     * Returns an {@code AtomicLong} generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return atomic-long generator
+     */
+    public static AtomicLongGenerator ofAtomicLong(long min, long max, GeneratorConfig config) {
+        return new AtomicLongGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded {@code AtomicLong} generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return atomic-long generator
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #ofAtomicLong(long, long, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static AtomicLongGenerator ofAtomicLong(long min, long max, long seed) {
         return new AtomicLongGenerator(min, max, seed);
     }
@@ -437,12 +703,46 @@ public final class Generators {
         return new FloatGenerator();
     }
 
+    /**
+     * Returns a float generator over {@code [0, 1)} using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return float generator
+     */
+    public static FloatGenerator ofFloat(GeneratorConfig config) {
+        return new FloatGenerator(config);
+    }
+
     // ── Double ────────────────────────────────────────────────────────────────
 
     public static FloatGenerator ofFloat(float min, float max) {
         return new FloatGenerator(min, max);
     }
 
+    /**
+     * Returns a float generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return float generator
+     */
+    public static FloatGenerator ofFloat(float min, float max, GeneratorConfig config) {
+        return new FloatGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded float generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return float generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofFloat(float, float, GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public static FloatGenerator ofFloat(float min, float max, long seed) {
         return new FloatGenerator(min, max, seed);
     }
@@ -451,12 +751,46 @@ public final class Generators {
         return new DoubleGenerator();
     }
 
+    /**
+     * Returns a double generator over {@code [0, 1)} using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return double generator
+     */
+    public static DoubleGenerator ofDouble(GeneratorConfig config) {
+        return new DoubleGenerator(config);
+    }
+
     // ── Normal Distribution ───────────────────────────────────────────────────
 
     public static DoubleGenerator ofDouble(double min, double max) {
         return new DoubleGenerator(min, max);
     }
 
+    /**
+     * Returns a double generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return double generator
+     */
+    public static DoubleGenerator ofDouble(double min, double max, GeneratorConfig config) {
+        return new DoubleGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded double generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return double generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofDouble(double, double, GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public static DoubleGenerator ofDouble(double min, double max, long seed) {
         return new DoubleGenerator(min, max, seed);
     }
@@ -465,12 +799,46 @@ public final class Generators {
         return new NormalDistributionGenerator();
     }
 
+    /**
+     * Returns a standard-normal generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return normal-distribution generator
+     */
+    public static NormalDistributionGenerator ofNormal(GeneratorConfig config) {
+        return new NormalDistributionGenerator(config);
+    }
+
     // ── Prime ─────────────────────────────────────────────────────────────────
 
     public static NormalDistributionGenerator ofNormal(double mean, double standardDeviation) {
         return new NormalDistributionGenerator(mean, standardDeviation);
     }
 
+    /**
+     * Returns a normal-distribution generator using explicit configuration.
+     *
+     * @param mean              distribution mean
+     * @param standardDeviation distribution standard deviation; must be positive
+     * @param config            generator configuration; must not be {@code null}
+     * @return normal-distribution generator
+     */
+    public static NormalDistributionGenerator ofNormal(double mean, double standardDeviation, GeneratorConfig config) {
+        return new NormalDistributionGenerator(config, mean, standardDeviation);
+    }
+
+    /**
+     * Returns a seeded normal-distribution generator.
+     *
+     * @param mean              distribution mean
+     * @param standardDeviation distribution standard deviation; must be positive
+     * @param seed              raw seed
+     * @return normal-distribution generator
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #ofNormal(double, double, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static NormalDistributionGenerator ofNormal(double mean, double standardDeviation, long seed) {
         return new NormalDistributionGenerator(mean, standardDeviation, seed);
     }
@@ -479,12 +847,47 @@ public final class Generators {
         return new PrimeGenerator();
     }
 
+    /**
+     * Returns a prime generator over the default range {@code [2, 1000)} using explicit
+     * configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return prime generator
+     */
+    public static PrimeGenerator ofPrime(GeneratorConfig config) {
+        return new PrimeGenerator(config);
+    }
+
     // ── Char ──────────────────────────────────────────────────────────────────
 
     public static PrimeGenerator ofPrime(int min, int max) {
         return new PrimeGenerator(min, max);
     }
 
+    /**
+     * Returns a prime generator over {@code [min, max)} using explicit configuration.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @return prime generator
+     */
+    public static PrimeGenerator ofPrime(int min, int max, GeneratorConfig config) {
+        return new PrimeGenerator(min, max, config);
+    }
+
+    /**
+     * Returns a seeded prime generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @return prime generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofPrime(int, int, GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public static PrimeGenerator ofPrime(int min, int max, long seed) {
         return new PrimeGenerator(min, max, seed);
     }
@@ -496,6 +899,16 @@ public final class Generators {
      */
     public static CharGenerator ofChar() {
         return CharGenerator.letters();
+    }
+
+    /**
+     * Letters (upper + lower) drawn with explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return character generator
+     */
+    public static CharGenerator ofChar(GeneratorConfig config) {
+        return CharGenerator.letters(config);
     }
 
     /**
@@ -511,6 +924,25 @@ public final class Generators {
         return new BooleanGenerator();
     }
 
+    /**
+     * Returns a fair boolean generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return boolean generator
+     */
+    public static BooleanGenerator ofBoolean(GeneratorConfig config) {
+        return new BooleanGenerator(config);
+    }
+
+    /**
+     * Returns a seeded fair boolean generator.
+     *
+     * @param seed raw seed
+     * @return boolean generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofBoolean(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static BooleanGenerator ofBoolean(long seed) {
         return new BooleanGenerator(seed);
     }
@@ -520,6 +952,16 @@ public final class Generators {
      */
     public static StringGenerator ofString() {
         return StringGenerator.letters();
+    }
+
+    /**
+     * Letters only, length 5–20, drawn with explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return string generator
+     */
+    public static StringGenerator ofString(GeneratorConfig config) {
+        return StringGenerator.letters(config);
     }
 
     /**
@@ -537,10 +979,31 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces single decimal digits using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return digit generator
+     */
+    public static DigitGenerator ofDigit(GeneratorConfig config) {
+        return new DigitGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces numbers from '#' placeholder formats.
      */
     public static NumberWithFormatGenerator ofNumberWithFormat() {
         return new NumberWithFormatGenerator();
+    }
+
+    /**
+     * Returns a generator that produces numbers from '#' placeholder formats using explicit
+     * configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return formatted-number generator
+     */
+    public static NumberWithFormatGenerator ofNumberWithFormat(GeneratorConfig config) {
+        return new NumberWithFormatGenerator(config);
     }
 
     /**
@@ -551,8 +1014,27 @@ public final class Generators {
     }
 
     /**
-     * Returns a deterministic generator that produces strings matching the supported subset of regular expressions.
+     * Returns a generator that produces strings matching the supported subset of regular
+     * expressions, using explicit configuration.
+     *
+     * @param pattern simplified regular expression; must not be {@code null}
+     * @param config  generator configuration; must not be {@code null}
+     * @return regex generator
      */
+    public static RegexGenerator ofRegex(String pattern, GeneratorConfig config) {
+        return new RegexGenerator(pattern, config);
+    }
+
+    /**
+     * Returns a deterministic generator that produces strings matching the supported subset of regular expressions.
+     *
+     * @param pattern simplified regular expression; must not be {@code null}
+     * @param seed    raw seed
+     * @return regex generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofRegex(String, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static RegexGenerator ofRegex(String pattern, long seed) {
         return new RegexGenerator(pattern, seed);
     }
@@ -567,10 +1049,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a pydecimal-style generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return decimal generator
+     */
+    public static PyDecimalGenerator ofPyDecimal(GeneratorConfig config) {
+        return new PyDecimalGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces nullable booleans (true/false/null).
      */
     public static NullableBooleanGenerator ofNullableBoolean() {
         return new NullableBooleanGenerator();
+    }
+
+    /**
+     * Returns a nullable-boolean generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return nullable-boolean generator
+     */
+    public static NullableBooleanGenerator ofNullableBoolean(GeneratorConfig config) {
+        return new NullableBooleanGenerator(config);
     }
 
     // ── Games ─────────────────────────────────────────────────────────────────
@@ -583,10 +1085,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a Fibonacci generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return Fibonacci generator
+     */
+    public static FibonacciGenerator ofFibonacci(GeneratorConfig config) {
+        return new FibonacciGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces 10-digit Luhn-valid number strings.
      */
     public static LuhnGenerator ofLuhn() {
         return new LuhnGenerator();
+    }
+
+    /**
+     * Returns a Luhn-valid number generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return Luhn generator
+     */
+    public static LuhnGenerator ofLuhn(GeneratorConfig config) {
+        return new LuhnGenerator(config);
     }
 
     // ── Network ───────────────────────────────────────────────────────────────
@@ -599,10 +1121,31 @@ public final class Generators {
     }
 
     /**
+     * Returns a coin-flip generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return coin generator
+     */
+    public static CoinGenerator ofCoin(GeneratorConfig config) {
+        return new CoinGenerator(config);
+    }
+
+    /**
      * Returns a generator for the given die type (results in {@code [1, sides]}).
      */
     public static DiceGenerator ofDice(DiceType type) {
         return new DiceGenerator(type);
+    }
+
+    /**
+     * Returns a die generator using explicit configuration (results in {@code [1, sides]}).
+     *
+     * @param type   die type; must not be {@code null}
+     * @param config generator configuration; must not be {@code null}
+     * @return die generator
+     */
+    public static DiceGenerator ofDice(DiceType type, GeneratorConfig config) {
+        return new DiceGenerator(type, config);
     }
 
     /**
@@ -613,10 +1156,30 @@ public final class Generators {
     }
 
     /**
+     * Returns an IPv4 address generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return IPv4 generator
+     */
+    public static IPv4Generator ofIPv4(GeneratorConfig config) {
+        return new IPv4Generator(config);
+    }
+
+    /**
      * Returns a generator that produces random IPv6 addresses (RFC 4291 / RFC 5952).
      */
     public static IPv6Generator ofIPv6() {
         return new IPv6Generator();
+    }
+
+    /**
+     * Returns an IPv6 address generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return IPv6 generator
+     */
+    public static IPv6Generator ofIPv6(GeneratorConfig config) {
+        return new IPv6Generator(config);
     }
 
     /**
@@ -627,10 +1190,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a mixed IPv4/IPv6 address generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return IP generator
+     */
+    public static IPGenerator ofIP(GeneratorConfig config) {
+        return new IPGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces TCP/UDP ports in [1, 65535].
      */
     public static PortGenerator ofPort() {
         return new PortGenerator();
+    }
+
+    /**
+     * Returns a port generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return port generator
+     */
+    public static PortGenerator ofPort(GeneratorConfig config) {
+        return new PortGenerator(config);
     }
 
     /**
@@ -641,10 +1224,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a slug generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return slug generator
+     */
+    public static SlugGenerator ofSlug(GeneratorConfig config) {
+        return new SlugGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces browser and bot user-agent strings.
      */
     public static UserAgentGenerator ofUserAgent() {
         return new UserAgentGenerator();
+    }
+
+    /**
+     * Returns a user-agent generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return user-agent generator
+     */
+    public static UserAgentGenerator ofUserAgent(GeneratorConfig config) {
+        return new UserAgentGenerator(config);
     }
 
     /**
@@ -655,10 +1258,30 @@ public final class Generators {
     }
 
     /**
+     * Returns an HTTP status-code generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return HTTP status-code generator
+     */
+    public static HttpStatusCodeGenerator ofHttpStatusCode(GeneratorConfig config) {
+        return new HttpStatusCodeGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces HTTP methods.
      */
     public static HttpMethodGenerator ofHttpMethod() {
         return new HttpMethodGenerator();
+    }
+
+    /**
+     * Returns an HTTP method generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return HTTP method generator
+     */
+    public static HttpMethodGenerator ofHttpMethod(GeneratorConfig config) {
+        return new HttpMethodGenerator(config);
     }
 
     /**
@@ -669,10 +1292,30 @@ public final class Generators {
     }
 
     /**
+     * Returns an HTTP fixture generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return HTTP fixture generator
+     */
+    public static HttpFixtureGenerator ofHttpFixture(GeneratorConfig config) {
+        return new HttpFixtureGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces domain names.
      */
     public static DomainGenerator ofDomain() {
         return new DomainGenerator();
+    }
+
+    /**
+     * Returns a domain-name generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return domain generator
+     */
+    public static DomainGenerator ofDomain(GeneratorConfig config) {
+        return new DomainGenerator(config);
     }
 
     /**
@@ -682,13 +1325,37 @@ public final class Generators {
         return new HostnameGenerator();
     }
 
+    /**
+     * Returns a hostname generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return hostname generator
+     */
+    public static HostnameGenerator ofHostname(GeneratorConfig config) {
+        return new HostnameGenerator(config);
+    }
+
     // ── BigDecimal ────────────────────────────────────────────────────────────
 
     /**
      * Returns a generator that produces URL strings.
+     *
+     * <p>Naming rule: factories returning text keep the plain camel-case name ({@code ofUrl},
+     * {@code ofUri}, {@code ofTimezone}); factories returning the JDK value object end in
+     * {@code Object} ({@link #ofUrlObject()}, {@link #ofUriObject()}, {@link #ofTimeZoneObject()}).
      */
     public static URLGenerator ofUrl() {
         return new URLGenerator();
+    }
+
+    /**
+     * Returns a URL-string generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return URL-string generator
+     */
+    public static URLGenerator ofUrl(GeneratorConfig config) {
+        return new URLGenerator(config);
     }
 
     /**
@@ -699,35 +1366,104 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces {@link URI} values.
+     * Returns a URI-string generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return URI-string generator
      */
-    public static Generator<URI> ofURI() {
-        UriGenerator generator = new UriGenerator();
-        return () -> URI.create(generator.generate());
+    public static UriGenerator ofUri(GeneratorConfig config) {
+        return new UriGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces {@link URI} values (the object form of {@link #ofUri()}).
+     *
+     * @return {@code java.net.URI} generator
+     */
+    public static Generator<URI> ofUriObject() {
+        return ofUriObject(GeneratorConfig.defaults());
     }
 
     /**
      * Returns a generator that produces {@link URI} values using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return {@code java.net.URI} generator
      */
-    public static Generator<URI> ofURI(GeneratorConfig config) {
+    public static Generator<URI> ofUriObject(GeneratorConfig config) {
         UriGenerator generator = new UriGenerator(config);
         return () -> URI.create(generator.generate());
     }
 
     /**
-     * Returns a generator that produces {@link java.net.URL} values.
+     * Returns a generator that produces {@link URI} values.
+     *
+     * @return {@code java.net.URI} generator
+     * @deprecated differs from the text factory {@link #ofUri()} only by letter case; use
+     *             {@link #ofUriObject()}, which returns the same values.
      */
-    public static Generator<java.net.URL> ofURL() {
-        URLGenerator generator = new URLGenerator();
-        return () -> toUrl(URI.create(generator.generate("https")));
+    @Deprecated(since = "2.6.0")
+    public static Generator<URI> ofURI() {
+        return ofUriObject();
+    }
+
+    /**
+     * Returns a generator that produces {@link URI} values using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return {@code java.net.URI} generator
+     * @deprecated differs from the text factory {@link #ofUri(GeneratorConfig)} only by letter case;
+     *             use {@link #ofUriObject(GeneratorConfig)}, which returns the same values.
+     */
+    @Deprecated(since = "2.6.0")
+    public static Generator<URI> ofURI(GeneratorConfig config) {
+        return ofUriObject(config);
+    }
+
+    /**
+     * Returns a generator that produces {@link java.net.URL} values (the object form of
+     * {@link #ofUrl()}).
+     *
+     * @return {@code java.net.URL} generator
+     */
+    public static Generator<java.net.URL> ofUrlObject() {
+        return ofUrlObject(GeneratorConfig.defaults());
     }
 
     /**
      * Returns a generator that produces {@link java.net.URL} values using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return {@code java.net.URL} generator
      */
-    public static Generator<java.net.URL> ofURL(GeneratorConfig config) {
+    public static Generator<java.net.URL> ofUrlObject(GeneratorConfig config) {
         URLGenerator generator = new URLGenerator(config);
         return () -> toUrl(URI.create(generator.generate("https")));
+    }
+
+    /**
+     * Returns a generator that produces {@link java.net.URL} values.
+     *
+     * @return {@code java.net.URL} generator
+     * @deprecated differs from the text factory {@link #ofUrl()} only by letter case; use
+     *             {@link #ofUrlObject()}, which returns the same values.
+     */
+    @Deprecated(since = "2.6.0")
+    public static Generator<java.net.URL> ofURL() {
+        return ofUrlObject();
+    }
+
+    /**
+     * Returns a generator that produces {@link java.net.URL} values using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return {@code java.net.URL} generator
+     * @deprecated differs from the text factory {@link #ofUrl(GeneratorConfig)} only by letter case;
+     *             use {@link #ofUrlObject(GeneratorConfig)}, which returns the same values.
+     */
+    @Deprecated(since = "2.6.0")
+    public static Generator<java.net.URL> ofURL(GeneratorConfig config) {
+        return ofUrlObject(config);
     }
 
     // ── BigInteger ────────────────────────────────────────────────────────────
@@ -737,6 +1473,17 @@ public final class Generators {
      */
     public static BigDecimalGenerator ofBigDecimal() {
         return new BigDecimalGenerator();
+    }
+
+    /**
+     * Returns a generator producing random {@link BigDecimal} values ([0, 1&nbsp;000&nbsp;000],
+     * scale 2) using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return big-decimal generator
+     */
+    public static BigDecimalGenerator ofBigDecimal(GeneratorConfig config) {
+        return new BigDecimalGenerator(config);
     }
 
     /**
@@ -754,6 +1501,17 @@ public final class Generators {
      */
     public static BigIntegerGenerator ofBigInteger() {
         return new BigIntegerGenerator();
+    }
+
+    /**
+     * Returns a generator producing random {@link BigInteger} values ([0, {@link Long#MAX_VALUE}])
+     * using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return big-integer generator
+     */
+    public static BigIntegerGenerator ofBigInteger(GeneratorConfig config) {
+        return new BigIntegerGenerator(config);
     }
 
     // ── Date / Time ───────────────────────────────────────────────────────────
@@ -776,10 +1534,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a color generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return color generator
+     */
+    public static ColorGenerator ofColor(GeneratorConfig config) {
+        return new ColorGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link java.time.LocalDate} values (1970–2100).
      */
     public static DateGenerator ofLocalDate() {
         return new DateGenerator();
+    }
+
+    /**
+     * Returns a {@link java.time.LocalDate} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return local-date generator
+     */
+    public static DateGenerator ofLocalDate(GeneratorConfig config) {
+        return new DateGenerator(config);
     }
 
     /**
@@ -790,10 +1568,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a {@link java.util.Date} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return date generator
+     */
+    public static UtilDateGenerator ofUtilDate(GeneratorConfig config) {
+        return new UtilDateGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link java.sql.Date} values.
      */
     public static SqlDateGenerator ofSqlDate() {
         return new SqlDateGenerator();
+    }
+
+    /**
+     * Returns a {@link java.sql.Date} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return SQL date generator
+     */
+    public static SqlDateGenerator ofSqlDate(GeneratorConfig config) {
+        return new SqlDateGenerator(config);
     }
 
     /**
@@ -804,10 +1602,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a {@link java.sql.Time} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return SQL time generator
+     */
+    public static SqlTimeGenerator ofSqlTime(GeneratorConfig config) {
+        return new SqlTimeGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link java.sql.Timestamp} values.
      */
     public static SqlTimestampGenerator ofSqlTimestamp() {
         return new SqlTimestampGenerator();
+    }
+
+    /**
+     * Returns a {@link java.sql.Timestamp} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return SQL timestamp generator
+     */
+    public static SqlTimestampGenerator ofSqlTimestamp(GeneratorConfig config) {
+        return new SqlTimestampGenerator(config);
     }
 
     /**
@@ -818,10 +1636,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a {@link LocalTime} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return local-time generator
+     */
+    public static TimeGenerator ofLocalTime(GeneratorConfig config) {
+        return new TimeGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link java.time.LocalDateTime} values (1970–2100).
      */
     public static LocalDateTimeGenerator ofLocalDateTime() {
         return new LocalDateTimeGenerator();
+    }
+
+    /**
+     * Returns a {@link java.time.LocalDateTime} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return local-date-time generator
+     */
+    public static LocalDateTimeGenerator ofLocalDateTime(GeneratorConfig config) {
+        return new LocalDateTimeGenerator(config);
     }
 
     /**
@@ -832,10 +1670,30 @@ public final class Generators {
     }
 
     /**
+     * Returns an {@link java.time.Instant} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return instant generator
+     */
+    public static InstantGenerator ofInstant(GeneratorConfig config) {
+        return new InstantGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link java.time.ZonedDateTime} values (1970–2100).
      */
     public static ZonedDateTimeGenerator ofZonedDateTime() {
         return new ZonedDateTimeGenerator();
+    }
+
+    /**
+     * Returns a {@link java.time.ZonedDateTime} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return zoned-date-time generator
+     */
+    public static ZonedDateTimeGenerator ofZonedDateTime(GeneratorConfig config) {
+        return new ZonedDateTimeGenerator(config);
     }
 
     // ── Full name ─────────────────────────────────────────────────────────────
@@ -848,10 +1706,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a {@link java.time.Duration} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return duration generator
+     */
+    public static DurationGenerator ofDuration(GeneratorConfig config) {
+        return new DurationGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link java.time.OffsetDateTime} values.
      */
     public static OffsetDateTimeGenerator ofOffsetDateTime() {
         return new OffsetDateTimeGenerator();
+    }
+
+    /**
+     * Returns a {@link java.time.OffsetDateTime} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return offset-date-time generator
+     */
+    public static OffsetDateTimeGenerator ofOffsetDateTime(GeneratorConfig config) {
+        return new OffsetDateTimeGenerator(config);
     }
 
     /**
@@ -862,10 +1740,30 @@ public final class Generators {
     }
 
     /**
+     * Returns an {@link OffsetTime} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return offset-time generator
+     */
+    public static OffsetTimeGenerator ofOffsetTime(GeneratorConfig config) {
+        return new OffsetTimeGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link Year} values.
      */
     public static YearGenerator ofYear() {
         return new YearGenerator();
+    }
+
+    /**
+     * Returns a {@link Year} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return year generator
+     */
+    public static YearGenerator ofYear(GeneratorConfig config) {
+        return new YearGenerator(config);
     }
 
     /**
@@ -876,10 +1774,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a {@link YearMonth} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return year-month generator
+     */
+    public static YearMonthGenerator ofYearMonth(GeneratorConfig config) {
+        return new YearMonthGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link MonthDay} values.
      */
     public static MonthDayGenerator ofMonthDay() {
         return new MonthDayGenerator();
+    }
+
+    /**
+     * Returns a {@link MonthDay} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return month-day generator
+     */
+    public static MonthDayGenerator ofMonthDay(GeneratorConfig config) {
+        return new MonthDayGenerator(config);
     }
 
     /**
@@ -890,10 +1808,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a {@link Period} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return period generator
+     */
+    public static PeriodGenerator ofPeriod(GeneratorConfig config) {
+        return new PeriodGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random {@link ZoneId} values.
      */
     public static ZoneIdGenerator ofZoneId() {
         return new ZoneIdGenerator();
+    }
+
+    /**
+     * Returns a {@link ZoneId} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return zone-id generator
+     */
+    public static ZoneIdGenerator ofZoneId(GeneratorConfig config) {
+        return new ZoneIdGenerator(config);
     }
 
     /**
@@ -904,10 +1842,45 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces random legacy {@link TimeZone} values.
+     * Returns a {@link ZoneOffset} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return zone-offset generator
      */
-    public static LegacyTimeZoneGenerator ofTimeZone() {
+    public static ZoneOffsetGenerator ofZoneOffset(GeneratorConfig config) {
+        return new ZoneOffsetGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces random legacy {@link TimeZone} values (the object form of
+     * {@link #ofTimezone()}).
+     *
+     * @return legacy time-zone generator
+     */
+    public static LegacyTimeZoneGenerator ofTimeZoneObject() {
         return new LegacyTimeZoneGenerator();
+    }
+
+    /**
+     * Returns a legacy {@link TimeZone} generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return legacy time-zone generator
+     */
+    public static LegacyTimeZoneGenerator ofTimeZoneObject(GeneratorConfig config) {
+        return new LegacyTimeZoneGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces random legacy {@link TimeZone} values.
+     *
+     * @return legacy time-zone generator
+     * @deprecated differs from the text factory {@link #ofTimezone()} only by letter case; use
+     *             {@link #ofTimeZoneObject()}, which returns the same values.
+     */
+    @Deprecated(since = "2.6.0")
+    public static LegacyTimeZoneGenerator ofTimeZone() {
+        return ofTimeZoneObject();
     }
 
     /**
@@ -915,6 +1888,16 @@ public final class Generators {
      */
     public static TimezoneGenerator ofTimezone() {
         return new TimezoneGenerator();
+    }
+
+    /**
+     * Returns a timezone-identifier generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return timezone-identifier generator
+     */
+    public static TimezoneGenerator ofTimezone(GeneratorConfig config) {
+        return new TimezoneGenerator(config);
     }
 
     /**
@@ -926,7 +1909,13 @@ public final class Generators {
 
     /**
      * Returns a deterministic generator that produces legacy {@link Calendar} values.
+     *
+     * @param seed raw seed
+     * @return calendar generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofCalendar(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
      */
+    @Deprecated(since = "2.6.0")
     public static CalendarGenerator ofCalendar(long seed) {
         return new CalendarGenerator(seed);
     }
@@ -961,7 +1950,13 @@ public final class Generators {
 
     /**
      * Returns a deterministic generator that produces locales from the built-in supported locale catalog.
+     *
+     * @param seed raw seed
+     * @return locale generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofLocale(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
      */
+    @Deprecated(since = "2.6.0")
     public static RandomLocaleGenerator ofLocale(long seed) {
         return new RandomLocaleGenerator(seed);
     }
@@ -992,6 +1987,162 @@ public final class Generators {
      */
     public static FullNameGenerator ofFullName(GeneratorConfig config) {
         return new FullNameGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces first names in the default locale.
+     *
+     * @return first-name generator
+     */
+    public static FirstNameGenerator ofFirstName() {
+        return new FirstNameGenerator();
+    }
+
+    /**
+     * Returns a generator that produces first names for a specific locale.
+     *
+     * @param locale locale whose first names to use; must not be {@code null}
+     * @return first-name generator
+     */
+    public static FirstNameGenerator ofFirstName(Locale locale) {
+        return new FirstNameGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware first names with explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return first-name generator
+     */
+    public static FirstNameGenerator ofFirstName(GeneratorConfig config) {
+        return new FirstNameGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces last names in the default locale.
+     *
+     * @return last-name generator
+     */
+    public static LastNameGenerator ofLastName() {
+        return new LastNameGenerator();
+    }
+
+    /**
+     * Returns a generator that produces last names for a specific locale.
+     *
+     * @param locale locale whose last names to use; must not be {@code null}
+     * @return last-name generator
+     */
+    public static LastNameGenerator ofLastName(Locale locale) {
+        return new LastNameGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware last names with explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return last-name generator
+     */
+    public static LastNameGenerator ofLastName(GeneratorConfig config) {
+        return new LastNameGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces gender labels in the default locale.
+     *
+     * @return gender-label generator
+     */
+    public static GenderGenerator ofGender() {
+        return new GenderGenerator();
+    }
+
+    /**
+     * Returns a generator that produces gender labels for a specific locale.
+     *
+     * @param locale locale whose labels to use; must not be {@code null}
+     * @return gender-label generator
+     */
+    public static GenderGenerator ofGender(Locale locale) {
+        return new GenderGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces locale-aware gender labels with explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return gender-label generator
+     */
+    public static GenderGenerator ofGender(GeneratorConfig config) {
+        return new GenderGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces ages in the default range.
+     *
+     * @return age generator
+     */
+    public static AgeGenerator ofAge() {
+        return new AgeGenerator();
+    }
+
+    /**
+     * Returns an age generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return age generator
+     */
+    public static AgeGenerator ofAge(GeneratorConfig config) {
+        return new AgeGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces ages within an age category.
+     *
+     * @param type age category; must not be {@code null}
+     * @return age generator
+     */
+    public static AgeGenerator ofAge(AgeType type) {
+        return new AgeGenerator(type);
+    }
+
+    /**
+     * Returns a generator that produces ages within an age category using explicit configuration.
+     *
+     * @param type   age category; must not be {@code null}
+     * @param config generator configuration; must not be {@code null}
+     * @return age generator
+     */
+    public static AgeGenerator ofAge(AgeType type, GeneratorConfig config) {
+        return new AgeGenerator(type, config);
+    }
+
+    /**
+     * Returns a generator that produces birthdays in the default locale.
+     *
+     * @return birthday generator
+     */
+    public static BirthdayGenerator ofBirthday() {
+        return new BirthdayGenerator();
+    }
+
+    /**
+     * Returns a generator that produces birthdays formatted for a specific locale.
+     *
+     * @param locale locale used for formatting; must not be {@code null}
+     * @return birthday generator
+     */
+    public static BirthdayGenerator ofBirthday(Locale locale) {
+        return new BirthdayGenerator(locale);
+    }
+
+    /**
+     * Returns a birthday generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return birthday generator
+     */
+    public static BirthdayGenerator ofBirthday(GeneratorConfig config) {
+        return new BirthdayGenerator(config);
     }
 
     /**
@@ -1377,6 +2528,35 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that produces locale-aware coordinates in the default locale.
+     *
+     * @return coordinates generator
+     */
+    public static CoordinatesGenerator ofCoordinates() {
+        return new CoordinatesGenerator();
+    }
+
+    /**
+     * Returns a generator that produces coordinates within a specific locale's region.
+     *
+     * @param locale locale whose region to use; must not be {@code null}
+     * @return coordinates generator
+     */
+    public static CoordinatesGenerator ofCoordinates(Locale locale) {
+        return new CoordinatesGenerator(locale);
+    }
+
+    /**
+     * Returns a coordinates generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return coordinates generator
+     */
+    public static CoordinatesGenerator ofCoordinates(GeneratorConfig config) {
+        return new CoordinatesGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces geohashes from locale-aware coordinates.
      */
     public static GeohashGenerator ofGeohash() {
@@ -1392,14 +2572,28 @@ public final class Generators {
 
     /**
      * Returns a deterministic generator that produces geohashes with default precision.
+     *
+     * @param seed raw seed
+     * @return geohash generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofGeohash(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
      */
+    @Deprecated(since = "2.6.0")
     public static GeohashGenerator ofGeohash(long seed) {
         return new GeohashGenerator(seed);
     }
 
     /**
      * Returns a deterministic generator that produces geohashes with explicit precision.
+     *
+     * @param precision geohash length
+     * @param seed      raw seed
+     * @return geohash generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofGeohash(int, GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public static GeohashGenerator ofGeohash(int precision, long seed) {
         return new GeohashGenerator(precision, seed);
     }
@@ -1429,7 +2623,7 @@ public final class Generators {
      * Returns a generator that produces company names for a specific locale configuration.
      */
     public static CompanyNameGenerator ofCompanyName(Locale locale) {
-        return new CompanyNameGenerator(GeneratorConfig.builder().locale(locale).build());
+        return new CompanyNameGenerator(locale);
     }
 
     /**
@@ -1468,10 +2662,50 @@ public final class Generators {
     }
 
     /**
+     * Returns a company buzzword generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return buzzword generator
+     */
+    public static CompanyBuzzwordGenerator ofCompanyBuzzword(GeneratorConfig config) {
+        return new CompanyBuzzwordGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized company buzzword phrases for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return companyBuzzwordGenerator
+     */
+    public static CompanyBuzzwordGenerator ofCompanyBuzzword(Locale locale) {
+        return new CompanyBuzzwordGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces company catch phrases.
      */
     public static CompanyCatchPhraseGenerator ofCompanyCatchPhrase() {
         return new CompanyCatchPhraseGenerator();
+    }
+
+    /**
+     * Returns a company catch-phrase generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return catch-phrase generator
+     */
+    public static CompanyCatchPhraseGenerator ofCompanyCatchPhrase(GeneratorConfig config) {
+        return new CompanyCatchPhraseGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized company catch phrases for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return companyCatchPhraseGenerator
+     */
+    public static CompanyCatchPhraseGenerator ofCompanyCatchPhrase(Locale locale) {
+        return new CompanyCatchPhraseGenerator(Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -1482,10 +2716,50 @@ public final class Generators {
     }
 
     /**
+     * Returns an industry generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return industry generator
+     */
+    public static IndustryGenerator ofIndustry(GeneratorConfig config) {
+        return new IndustryGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized industry names for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return industryGenerator
+     */
+    public static IndustryGenerator ofIndustry(Locale locale) {
+        return new IndustryGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces job field categories.
      */
     public static JobFieldGenerator ofJobField() {
         return new JobFieldGenerator();
+    }
+
+    /**
+     * Returns a job-field generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return job-field generator
+     */
+    public static JobFieldGenerator ofJobField(GeneratorConfig config) {
+        return new JobFieldGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized job field names for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return jobFieldGenerator
+     */
+    public static JobFieldGenerator ofJobField(Locale locale) {
+        return new JobFieldGenerator(Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -1496,10 +2770,50 @@ public final class Generators {
     }
 
     /**
+     * Returns an employment-type generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return employment-type generator
+     */
+    public static JobTypeGenerator ofJobType(GeneratorConfig config) {
+        return new JobTypeGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized employment type values for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return jobTypeGenerator
+     */
+    public static JobTypeGenerator ofJobType(Locale locale) {
+        return new JobTypeGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces job seniority labels.
      */
     public static SeniorityGenerator ofSeniority() {
         return new SeniorityGenerator();
+    }
+
+    /**
+     * Returns a seniority generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return seniority generator
+     */
+    public static SeniorityGenerator ofSeniority(GeneratorConfig config) {
+        return new SeniorityGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized seniority labels for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return seniorityGenerator
+     */
+    public static SeniorityGenerator ofSeniority(Locale locale) {
+        return new SeniorityGenerator(Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -1510,6 +2824,26 @@ public final class Generators {
     }
 
     /**
+     * Returns a position generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return position generator
+     */
+    public static PositionGenerator ofPosition(GeneratorConfig config) {
+        return new PositionGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized position titles for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return positionGenerator
+     */
+    public static PositionGenerator ofPosition(Locale locale) {
+        return new PositionGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces educational attainment values.
      */
     public static EducationalAttainmentGenerator ofEducationalAttainment() {
@@ -1517,10 +2851,50 @@ public final class Generators {
     }
 
     /**
+     * Returns an educational-attainment generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return educational-attainment generator
+     */
+    public static EducationalAttainmentGenerator ofEducationalAttainment(GeneratorConfig config) {
+        return new EducationalAttainmentGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized educational attainment values for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return educationalAttainmentGenerator
+     */
+    public static EducationalAttainmentGenerator ofEducationalAttainment(Locale locale) {
+        return new EducationalAttainmentGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces marital status values.
      */
     public static MaritalStatusGenerator ofMaritalStatus() {
         return new MaritalStatusGenerator();
+    }
+
+    /**
+     * Returns a marital-status generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return marital-status generator
+     */
+    public static MaritalStatusGenerator ofMaritalStatus(GeneratorConfig config) {
+        return new MaritalStatusGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized marital status values for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return maritalStatusGenerator
+     */
+    public static MaritalStatusGenerator ofMaritalStatus(Locale locale) {
+        return new MaritalStatusGenerator(Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -1650,8 +3024,26 @@ public final class Generators {
     }
 
     /**
-     * Returns a fail-closed seeded CPF generator.
+     * Returns a CPF generator using explicit configuration; the configuration's locale is replaced
+     * by {@code pt_BR} while its seed, clock and safety policies are kept.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return CPF generator (fails closed unless the configuration opts into realistic national IDs)
      */
+    public static NationalIdGenerator ofCpf(GeneratorConfig config) {
+        return ofNationalId(Objects.requireNonNull(config, "config must not be null").toBuilder()
+                                   .locale(Locale.of("pt", "BR")).build());
+    }
+
+    /**
+     * Returns a fail-closed seeded CPF generator.
+     *
+     * @param seed raw seed
+     * @return CPF generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofCpf(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public static NationalIdGenerator ofCpf(long seed) {
         return ofNationalId(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).seed(seed).build());
     }
@@ -1922,10 +3314,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a file-extension generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return file-extension generator
+     */
+    public static FileExtensionGenerator ofFileExtension(GeneratorConfig config) {
+        return new FileExtensionGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces file names and file names with extensions.
      */
     public static FileNameGenerator ofFileName() {
         return new FileNameGenerator();
+    }
+
+    /**
+     * Returns a file-name generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return file-name generator
+     */
+    public static FileNameGenerator ofFileName(GeneratorConfig config) {
+        return new FileNameGenerator(config);
     }
 
     /**
@@ -1936,10 +3348,40 @@ public final class Generators {
     }
 
     /**
+     * Returns a directory-path generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return directory-path generator
+     */
+    public static DirPathGenerator ofDirPath(GeneratorConfig config) {
+        return new DirPathGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized directory paths for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return dirPathGenerator
+     */
+    public static DirPathGenerator ofDirPath(Locale locale) {
+        return new DirPathGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces locale-aware file paths.
      */
     public static FilePathGenerator ofFilePath() {
         return new FilePathGenerator();
+    }
+
+    /**
+     * Returns a file-path generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return file-path generator
+     */
+    public static FilePathGenerator ofFilePath(GeneratorConfig config) {
+        return new FilePathGenerator(config);
     }
 
     /**
@@ -1950,6 +3392,16 @@ public final class Generators {
     }
 
     /**
+     * Returns a MIME-type generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return MIME-type generator
+     */
+    public static MimeTypeGenerator ofMimeType(GeneratorConfig config) {
+        return new MimeTypeGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces semantic version strings.
      */
     public static SemverGenerator ofSemver() {
@@ -1957,10 +3409,40 @@ public final class Generators {
     }
 
     /**
+     * Returns a semantic-version generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return semantic-version generator
+     */
+    public static SemverGenerator ofSemver(GeneratorConfig config) {
+        return new SemverGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces commerce products/departments/prices.
      */
     public static CommerceGenerator ofCommerce() {
         return new CommerceGenerator();
+    }
+
+    /**
+     * Returns a commerce generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return commerce generator
+     */
+    public static CommerceGenerator ofCommerce(GeneratorConfig config) {
+        return new CommerceGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized commerce product vocabulary for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return commerceGenerator
+     */
+    public static CommerceGenerator ofCommerce(Locale locale) {
+        return new CommerceGenerator(Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -2078,10 +3560,32 @@ public final class Generators {
     }
 
     /**
+     * Returns a SWIFT/BIC generator using explicit configuration (fails closed unless the
+     * configuration selects a banking safety policy that permits realistic output).
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return BIC generator
+     */
+    public static BicGenerator ofBic(GeneratorConfig config) {
+        return new BicGenerator(config);
+    }
+
+    /**
      * Returns a fail-closed generator for BBAN values.
      */
     public static BbanGenerator ofBban() {
         return new BbanGenerator(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Returns a BBAN generator using explicit configuration (fails closed unless the configuration
+     * selects a banking safety policy that permits realistic output).
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return BBAN generator
+     */
+    public static BbanGenerator ofBban(GeneratorConfig config) {
+        return new BbanGenerator(config);
     }
 
     /**
@@ -2092,10 +3596,32 @@ public final class Generators {
     }
 
     /**
+     * Returns an IBAN generator using explicit configuration (fails closed unless the configuration
+     * selects a banking safety policy that permits realistic output).
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return IBAN generator
+     */
+    public static IbanGenerator ofIban(GeneratorConfig config) {
+        return new IbanGenerator(config);
+    }
+
+    /**
      * Returns a fail-closed generator for ABA routing numbers.
      */
     public static AbaRoutingGenerator ofAbaRouting() {
         return new AbaRoutingGenerator(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Returns an ABA routing-number generator using explicit configuration (fails closed unless the
+     * configuration selects a banking safety policy that permits realistic output).
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return ABA routing-number generator
+     */
+    public static AbaRoutingGenerator ofAbaRouting(GeneratorConfig config) {
+        return new AbaRoutingGenerator(config);
     }
 
     /**
@@ -2106,10 +3632,31 @@ public final class Generators {
     }
 
     /**
+     * Returns a bank-country generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return bank-country generator
+     */
+    public static BankCountryGenerator ofBankCountry(GeneratorConfig config) {
+        return new BankCountryGenerator(config);
+    }
+
+    /**
      * Returns a fail-closed generator for account numbers, names, and transaction types.
      */
     public static BankAccountGenerator ofBankAccount() {
         return new BankAccountGenerator(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Returns a bank-account generator using explicit configuration (account numbers fail closed
+     * unless the configuration selects a banking safety policy that permits realistic output).
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return bank-account generator
+     */
+    public static BankAccountGenerator ofBankAccount(GeneratorConfig config) {
+        return new BankAccountGenerator(config);
     }
 
     /**
@@ -2141,6 +3688,26 @@ public final class Generators {
     }
 
     /**
+     * Returns a bank-name generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return bank-name generator
+     */
+    public static BankNameGenerator ofBankName(GeneratorConfig config) {
+        return new BankNameGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized fictional bank names for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return bankNameGenerator
+     */
+    public static BankNameGenerator ofBankName(Locale locale) {
+        return new BankNameGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces locale-aware bank type labels.
      */
     public static BankTypeGenerator ofBankType() {
@@ -2148,10 +3715,40 @@ public final class Generators {
     }
 
     /**
+     * Returns a bank-type generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return bank-type generator
+     */
+    public static BankTypeGenerator ofBankType(GeneratorConfig config) {
+        return new BankTypeGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized bank type labels for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return bankTypeGenerator
+     */
+    public static BankTypeGenerator ofBankType(Locale locale) {
+        return new BankTypeGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces currency codes and metadata.
      */
     public static CurrencyGenerator ofCurrency() {
         return new CurrencyGenerator();
+    }
+
+    /**
+     * Returns a currency generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return currency generator
+     */
+    public static CurrencyGenerator ofCurrency(GeneratorConfig config) {
+        return new CurrencyGenerator(config);
     }
 
     /**
@@ -2197,10 +3794,31 @@ public final class Generators {
     }
 
     /**
+     * Returns a card-expiration generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return card-expiration generator
+     */
+    public static CardExpirationGenerator ofCardExpiration(GeneratorConfig config) {
+        return new CardExpirationGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces credit card values.
      */
     public static CreditCardGenerator ofCreditCard() {
         return new CreditCardGenerator();
+    }
+
+    /**
+     * Returns a credit-card generator using explicit configuration (seed, locale and payment-card
+     * safety policy).
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return credit-card generator
+     */
+    public static CreditCardGenerator ofCreditCard(GeneratorConfig config) {
+        return new CreditCardGenerator(config);
     }
 
     /**
@@ -2346,7 +3964,15 @@ public final class Generators {
 
     /**
      * Returns a fail-closed seeded national-ID generator.
+     *
+     * @param locale national-ID locale; must not be {@code null}
+     * @param seed   raw seed
+     * @return national-ID generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofNationalId(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().locale(locale).seed(seed).build()}, which produces
+     *             the same values.
      */
+    @Deprecated(since = "2.6.0")
     public static NationalIdGenerator ofNationalId(Locale locale, long seed) {
         return new NationalIdGenerator(GeneratorConfig.builder().locale(locale).seed(seed).build());
     }
@@ -2387,10 +4013,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a password generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return password generator
+     */
+    public static PasswordGenerator ofPassword(GeneratorConfig config) {
+        return new PasswordGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces avatar image URLs.
      */
     public static AvatarUrlGenerator ofAvatarUrl() {
         return new AvatarUrlGenerator();
+    }
+
+    /**
+     * Returns an avatar-URL generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return avatar-URL generator
+     */
+    public static AvatarUrlGenerator ofAvatarUrl(GeneratorConfig config) {
+        return new AvatarUrlGenerator(config);
     }
 
     /**
@@ -2401,10 +4047,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a version-string generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return version generator
+     */
+    public static VersionGenerator ofVersion(GeneratorConfig config) {
+        return new VersionGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces platform identifiers.
      */
     public static PlatformIdGenerator ofPlatformId() {
         return new PlatformIdGenerator();
+    }
+
+    /**
+     * Returns a platform-identifier generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return platform-identifier generator
+     */
+    public static PlatformIdGenerator ofPlatformId(GeneratorConfig config) {
+        return new PlatformIdGenerator(config);
     }
 
     // ── Lorem Ipsum ───────────────────────────────────────────────────────────
@@ -2417,6 +4083,16 @@ public final class Generators {
     }
 
     /**
+     * Returns an exception-payload generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return exception-payload generator
+     */
+    public static ExceptionPayloadGenerator ofExceptionPayload(GeneratorConfig config) {
+        return new ExceptionPayloadGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces database column/type values.
      */
     public static DatabaseGenerator ofDatabase() {
@@ -2424,10 +4100,40 @@ public final class Generators {
     }
 
     /**
+     * Returns a database column/type generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return database generator
+     */
+    public static DatabaseGenerator ofDatabase(GeneratorConfig config) {
+        return new DatabaseGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized database column names for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return databaseGenerator
+     */
+    public static DatabaseGenerator ofDatabase(Locale locale) {
+        return new DatabaseGenerator(Objects.requireNonNull(locale, "locale must not be null"));
+    }
+
+    /**
      * Returns a generator that produces Lorem Ipsum sentences (default {@link LoremIpsumGenerator.Mode#SENTENCE}).
      */
     public static LoremIpsumGenerator ofLoremIpsum() {
         return new LoremIpsumGenerator();
+    }
+
+    /**
+     * Returns a Lorem Ipsum sentence generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return Lorem Ipsum generator
+     */
+    public static LoremIpsumGenerator ofLoremIpsum(GeneratorConfig config) {
+        return new LoremIpsumGenerator(config);
     }
 
     /**
@@ -2441,10 +4147,31 @@ public final class Generators {
     }
 
     /**
+     * Returns a Lorem Ipsum generator in the specified mode using explicit configuration.
+     *
+     * @param mode   output mode; must not be {@code null}
+     * @param config generator configuration; must not be {@code null}
+     * @return Lorem Ipsum generator
+     */
+    public static LoremIpsumGenerator ofLoremIpsum(LoremIpsumGenerator.Mode mode, GeneratorConfig config) {
+        return new LoremIpsumGenerator(mode, config);
+    }
+
+    /**
      * Returns a generator that produces natural-looking pseudo-words.
      */
     public static WordGenerator ofWord() {
         return new WordGenerator();
+    }
+
+    /**
+     * Returns a pseudo-word generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return word generator
+     */
+    public static WordGenerator ofWord(GeneratorConfig config) {
+        return new WordGenerator(config);
     }
 
     /**
@@ -2455,10 +4182,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a syllable generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return syllable generator
+     */
+    public static SyllableGenerator ofSyllable(GeneratorConfig config) {
+        return new SyllableGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces locale-aware pseudo-natural sentences.
      */
     public static SentenceGenerator ofSentence() {
         return new SentenceGenerator();
+    }
+
+    /**
+     * Returns a sentence generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return sentence generator
+     */
+    public static SentenceGenerator ofSentence(GeneratorConfig config) {
+        return new SentenceGenerator(config);
     }
 
     /**
@@ -2469,10 +4216,40 @@ public final class Generators {
     }
 
     /**
+     * Returns a paragraph generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return paragraph generator
+     */
+    public static ParagraphGenerator ofParagraph(GeneratorConfig config) {
+        return new ParagraphGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces char-limited text blocks.
      */
     public static TextGenerator ofText() {
         return new TextGenerator();
+    }
+
+    /**
+     * Returns a text-block generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return text generator
+     */
+    public static TextGenerator ofText(GeneratorConfig config) {
+        return new TextGenerator(config);
+    }
+
+    /**
+     * Returns a generator of localized text blocks for a specific locale.
+     *
+     * @param locale locale whose vocabulary to use; must not be {@code null}
+     * @return textGenerator
+     */
+    public static TextGenerator ofText(Locale locale) {
+        return new TextGenerator(Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     // ── MAC address ───────────────────────────────────────────────────────────
@@ -2484,11 +4261,31 @@ public final class Generators {
         return new TemplateStringGenerator(template);
     }
 
+    /**
+     * Returns a template generator supporting DataFaker-style {@code #} and {@code ?} placeholders,
+     * using explicit configuration.
+     *
+     * @param template template text; must not be {@code null}
+     * @param config   generator configuration; must not be {@code null}
+     * @return template generator
+     */
+    public static TemplateStringGenerator ofTemplate(String template, GeneratorConfig config) {
+        return new TemplateStringGenerator(template, config);
+    }
+
     // ── ISBN ──────────────────────────────────────────────────────────────────
 
     /**
      * Returns a seeded template generator supporting DataFaker-style {@code #} and {@code ?} placeholders.
+     *
+     * @param template template text; must not be {@code null}
+     * @param seed     raw seed
+     * @return template generator
+     * @deprecated raw seeds bypass replayable recipes; use {@link #ofTemplate(String, GeneratorConfig)}
+     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public static TemplateStringGenerator ofTemplate(String template, long seed) {
         return new TemplateStringGenerator(template, seed);
     }
@@ -2502,7 +4299,15 @@ public final class Generators {
 
     /**
      * Returns a deterministic provider-template generator resolving tokens such as {@code "{firstname}"}.
+     *
+     * @param template template text; must not be {@code null}
+     * @param seed     raw seed
+     * @return provider-template generator
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #ofProviderTemplate(String, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
      */
+    @Deprecated(since = "2.6.0")
     public static ProviderTemplateGenerator ofProviderTemplate(String template, long seed) {
         return new ProviderTemplateGenerator(template, seed);
     }
@@ -2546,10 +4351,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a MAC-address generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return MAC-address generator
+     */
+    public static MacAddressGenerator ofMacAddress(GeneratorConfig config) {
+        return new MacAddressGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces random ISBN-13 numbers.
      */
     public static IsbnGenerator ofIsbn() {
         return new IsbnGenerator();
+    }
+
+    /**
+     * Returns an ISBN-13 generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return ISBN generator
+     */
+    public static IsbnGenerator ofIsbn(GeneratorConfig config) {
+        return new IsbnGenerator(config);
     }
 
     /**
@@ -2563,10 +4388,31 @@ public final class Generators {
     }
 
     /**
+     * Returns an ISBN generator in the specified format using explicit configuration.
+     *
+     * @param type   ISBN format; must not be {@code null}
+     * @param config generator configuration; must not be {@code null}
+     * @return ISBN generator
+     */
+    public static IsbnGenerator ofIsbn(IsbnGenerator.IsbnType type, GeneratorConfig config) {
+        return new IsbnGenerator(type, config);
+    }
+
+    /**
      * Returns a generator that produces UUID values.
      */
     public static UUIDGenerator ofUuid() {
         return new UUIDGenerator();
+    }
+
+    /**
+     * Returns a UUID generator using explicit configuration (seed and clock).
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return UUID generator
+     */
+    public static UUIDGenerator ofUuid(GeneratorConfig config) {
+        return new UUIDGenerator(config);
     }
 
     /**
@@ -2577,10 +4423,30 @@ public final class Generators {
     }
 
     /**
+     * Returns a hash generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return hash generator
+     */
+    public static HashGenerator ofHash(GeneratorConfig config) {
+        return new HashGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces masked identifier strings.
      */
     public static IdentifierMaskGenerator ofIdentifierMask() {
         return new IdentifierMaskGenerator();
+    }
+
+    /**
+     * Returns a masked-identifier generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return masked-identifier generator
+     */
+    public static IdentifierMaskGenerator ofIdentifierMask(GeneratorConfig config) {
+        return new IdentifierMaskGenerator(config);
     }
 
     // ── Schema / Field (Mimesis-style bulk generation) ──────────────────────
@@ -2593,10 +4459,30 @@ public final class Generators {
     }
 
     /**
+     * Returns an EAN generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return EAN generator
+     */
+    public static EanGenerator ofEan(GeneratorConfig config) {
+        return new EanGenerator(config);
+    }
+
+    /**
      * Returns a generator that produces UPC-A values.
      */
     public static UpcGenerator ofUpc() {
         return new UpcGenerator();
+    }
+
+    /**
+     * Returns a UPC-A generator using explicit configuration.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return UPC-A generator
+     */
+    public static UpcGenerator ofUpc(GeneratorConfig config) {
+        return new UpcGenerator(config);
     }
 
     /**
@@ -2730,6 +4616,19 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that picks one element from the source list using explicit
+     * configuration, so a seeded configuration reproduces the same picks.
+     *
+     * @param source source list; must not be {@code null} or empty
+     * @param config generator configuration; must not be {@code null}
+     * @param <T>    element type
+     * @return pick generator
+     */
+    public static <T> PickGenerator<T> pick(List<T> source, GeneratorConfig config) {
+        return new PickGenerator<>(source, config);
+    }
+
+    /**
      * Returns a generator that picks {@code count} distinct elements without replacement.
      *
      * @since 1.6
@@ -2739,10 +4638,36 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that picks {@code count} distinct elements without replacement using
+     * explicit configuration.
+     *
+     * @param source source list; must not be {@code null}
+     * @param count  number of distinct elements per call
+     * @param config generator configuration; must not be {@code null}
+     * @param <T>    element type
+     * @return pick-set generator
+     */
+    public static <T> PickSetGenerator<T> pickSet(List<T> source, int count, GeneratorConfig config) {
+        return new PickSetGenerator<>(source, count, config);
+    }
+
+    /**
      * Returns a finite pool that emits every value at most once before exhaustion.
      */
     public static <T> FinitePoolGenerator<T> pool(List<T> values) {
         return new FinitePoolGenerator<>(values);
+    }
+
+    /**
+     * Returns a finite pool whose emission order comes from explicit configuration.
+     *
+     * @param values pool values; must not be {@code null} or empty
+     * @param config generator configuration; must not be {@code null}
+     * @param <T>    element type
+     * @return finite pool generator
+     */
+    public static <T> FinitePoolGenerator<T> pool(List<T> values, GeneratorConfig config) {
+        return new FinitePoolGenerator<>(values, config);
     }
 
     /**
@@ -2773,10 +4698,35 @@ public final class Generators {
     }
 
     /**
+     * Returns a generator that returns shuffled copies of the list using explicit configuration.
+     *
+     * @param source source list; must not be {@code null}
+     * @param config generator configuration; must not be {@code null}
+     * @param <T>    element type
+     * @return shuffle generator
+     */
+    public static <T> ShuffleGenerator<T> shuffle(List<T> source, GeneratorConfig config) {
+        return new ShuffleGenerator<>(source, config);
+    }
+
+    /**
      * Returns a weighted generator that selects values according to positive integer weights.
      */
     public static <T> WeightedGenerator<T> weighted(List<T> values, List<Integer> weights) {
         return new WeightedGenerator<>(values, weights);
+    }
+
+    /**
+     * Returns a weighted generator using explicit configuration.
+     *
+     * @param values  candidate values; must not be {@code null} or empty
+     * @param weights positive weights parallel to {@code values}
+     * @param config  generator configuration; must not be {@code null}
+     * @param <T>     element type
+     * @return weighted generator
+     */
+    public static <T> WeightedGenerator<T> weighted(List<T> values, List<Integer> weights, GeneratorConfig config) {
+        return new WeightedGenerator<>(values, weights, config);
     }
 
     /**

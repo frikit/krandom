@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globais
+Nacionais
+Brasileiras
+Unidas
+Superiores
+Avançadas
+Estratégicas
+Dinâmicas
+Inovadoras
+Profissionais
+Digitais
+Modernas
+Alfa
+Líderes
+Premium

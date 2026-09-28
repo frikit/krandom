@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+数据
+模型
+系统
+信号
+流程
+分析
+平台
+网络
+安全
+服务
+模块
+逻辑
+价值
+上下文
+未来
+核心

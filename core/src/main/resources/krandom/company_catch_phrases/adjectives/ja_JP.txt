@@ -1,0 +1,8 @@
+# Catch-phrase adjectives, one per line.
+適応型
+統合型
+信頼の
+インテリジェントな
+未来対応型
+シンプルな
+セキュアな

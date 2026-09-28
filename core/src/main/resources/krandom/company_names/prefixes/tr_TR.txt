@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Küresel
+Ulusal
+Türk
+Birleşik
+Seçkin
+İleri
+Stratejik
+Dinamik
+Yenilikçi
+Profesyonel
+Dijital
+Yeni
+Alfa
+Lider
+Modern

@@ -32,7 +32,7 @@ public final class UriGenerator implements Generator<String> {
     public UriGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
-        this.urlGenerator = new URLGenerator(effective);
+        this.urlGenerator = new URLGenerator(effective.forChildStream("uRL"));
     }
 
     @Override

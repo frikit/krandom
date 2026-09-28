@@ -1,0 +1,7 @@
+# Marital status values, one per line.
+Kawaler/panna
+Żonaty/zamężna
+Rozwiedziony/rozwiedziona
+Wdowiec/wdowa
+W separacji
+Związek nieformalny

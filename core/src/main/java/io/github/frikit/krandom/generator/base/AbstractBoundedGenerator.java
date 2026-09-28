@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.BoundedGenerator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
 
 import java.util.Objects;
@@ -46,6 +47,24 @@ public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
         this.min = Objects.requireNonNull(min, "min must not be null");
         this.max = Objects.requireNonNull(max, "max must not be null");
         this.random = seed != null ? new Random(seed) : new Random();
+    }
+
+    /**
+     * Creates a bounded generator whose randomness comes from a replayable configuration.
+     *
+     * <p>A seeded configuration produces exactly the same values as the legacy
+     * {@code (min, max, seed)} form with the same seed. The configuration comes first so that
+     * existing {@code super(min, max, null)} calls stay unambiguous.
+     *
+     * @param config generator configuration supplying the random source; must not be {@code null}
+     * @param min    lower bound (inclusive) used by the no-arg {@link #generate()}
+     * @param max    upper bound (exclusive) used by the no-arg {@link #generate()}
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    protected AbstractBoundedGenerator(GeneratorConfig config, T min, T max) {
+        this.min = Objects.requireNonNull(min, "min must not be null");
+        this.max = Objects.requireNonNull(max, "max must not be null");
+        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
     }
 
     // ── BoundedGenerator ──────────────────────────────────────────────────────

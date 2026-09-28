@@ -1,0 +1,7 @@
+# Marital status values, one per line.
+未婚
+既婚
+離婚
+死別
+別居
+事実婚

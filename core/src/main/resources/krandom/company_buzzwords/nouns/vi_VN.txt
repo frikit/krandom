@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+giải pháp
+quy trình
+hạ tầng
+nền tảng
+trải nghiệm
+năng lực

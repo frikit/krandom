@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+ООД
+ЕООД
+АД
+ЕАД
+СД

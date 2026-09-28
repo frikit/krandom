@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+주식회사
+유한회사
+합자회사
+합명회사
+유한책임회사

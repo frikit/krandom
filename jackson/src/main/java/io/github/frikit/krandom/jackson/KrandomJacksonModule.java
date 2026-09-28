@@ -14,7 +14,8 @@ import io.github.frikit.krandom.generator.schema.Schema;
 import java.io.IOException;
 
 /**
- * Jackson module for krandom integration.
+ * Jackson 2.x ({@code com.fasterxml.jackson}) module for krandom integration; it cannot be
+ * registered with a Jackson 3 ({@code tools.jackson}) mapper.
  */
 public final class KrandomJacksonModule extends SimpleModule {
 

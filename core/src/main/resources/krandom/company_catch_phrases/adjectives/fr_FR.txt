@@ -1,0 +1,7 @@
+# Catch-phrase adjectives, one per line.
+Fiable
+Unifie
+Intelligent
+Moderne
+Agile
+Securise

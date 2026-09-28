@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+ingrés
+reintegrament
+pagament
+transferència
+reemborsament
+comissió
+interès
+retrocessió

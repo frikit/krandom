@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user.nationalid;
 
+import java.time.YearMonth;
 import java.util.Locale;
 import java.util.Random;
 
@@ -18,7 +19,8 @@ import java.util.Random;
  *   <li>2 digits: birth year (YY)
  *   <li>1 letter: birth month (A=Jan, B=Feb, C=Mar, D=Apr, E=May, H=Jun,
  *                              L=Jul, M=Aug, P=Sep, R=Oct, S=Nov, T=Dec)
- *   <li>2 digits: birth day (01–31 male, 41–71 female)
+ *   <li>2 digits: birth day (01–31 male, 41–71 female), always a real day of the encoded month
+ *       (29 February only when YY is a multiple of 4)
  *   <li>4 chars: municipality code (1 letter + 3 digits)
  *   <li>1 char: check character (A–Z, computed from positions 1–15)
  * </ul>
@@ -94,13 +96,19 @@ public final class ItNationalIdProvider implements NationalIdProvider {
         String surname = randomConsonants(random, 3);
         String firstName = randomConsonants(random, 3);
         int year = random.nextInt(100);
-        char monthCode = MONTH_CODES.charAt(random.nextInt(12));
+        int monthIndex = random.nextInt(12);
+        char monthCode = MONTH_CODES.charAt(monthIndex);
         boolean male = random.nextBoolean();
-        int day = male ? (random.nextInt(31) + 1) : (random.nextInt(31) + 41);
+        // YY leaves the century open: 29 February is real whenever YY is a multiple of 4 (2000 was a
+        // leap year), which is exactly when 2000 + YY is a leap year. Impossible days are clamped to
+        // the month end, so every real date keeps its previous seeded value.
+        int monthLength = YearMonth.of(2000 + year, monthIndex + 1).lengthOfMonth();
+        int dayOfMonth = Math.min(random.nextInt(31) + 1, monthLength);
+        int day = male ? dayOfMonth : dayOfMonth + 40;
         char muniLetter = (char) ('A' + random.nextInt(26));
         int muniDigits = random.nextInt(1000);
 
-        String first15 = String.format("%s%s%02d%c%02d%c%03d",
+        String first15 = String.format(Locale.ROOT, "%s%s%02d%c%02d%c%03d",
                                        surname, firstName, year, monthCode, day, muniLetter, muniDigits);
 
         char checkChar = computeCheckChar(first15);

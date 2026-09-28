@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+sandalye
+masa
+bilgisayar
+klavye
+ayakkabı
+kol saati

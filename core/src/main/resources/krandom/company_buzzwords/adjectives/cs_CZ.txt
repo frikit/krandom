@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+multiplatformní
+komplexní
+špičkové
+bezproblémové
+cloudové
+daty řízené

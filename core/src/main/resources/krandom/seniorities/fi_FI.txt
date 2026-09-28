@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Harjoittelija
+Nuorempi asiantuntija
+Asiantuntija
+Kokenut asiantuntija
+Vanhempi asiantuntija
+Tiiminvetäjä
+Pääasiantuntija
+Erityisasiantuntija
+Johtaja
+Varatoimitusjohtaja

@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Mjukvaruutvecklare
+Produktchef
+Dataanalytiker
+UX-designer
+Kundansvarig säljare
+Marknadsföringsspecialist
+Verksamhetsanalytiker
+DevOps-ingenjör
+Driftsäkerhetsingenjör
+Utvecklingschef
+Lösningsarkitekt
+Teknisk skribent
+Testingenjör
+Projektledare
+Säkerhetsingenjör
+Databasadministratör

@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Llibres
+Electrònica
+Aire lliure
+Llar
+Joguines
+Jardí

@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+vklad
+výběr
+platba
+převod
+vrácení peněz
+poplatek
+úrok
+zpětné zúčtování

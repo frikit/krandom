@@ -51,13 +51,13 @@ public final class CompanyInfoGenerator implements Generator<CompanyInfo> {
      */
     public CompanyInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.companyNameGenerator = new CompanyNameGenerator(config);
-        this.industryGenerator = new IndustryGenerator(config);
-        this.catchPhraseGenerator = new CompanyCatchPhraseGenerator(config);
-        this.buzzwordGenerator = new CompanyBuzzwordGenerator(config);
-        this.emailGenerator = new CompanyEmailGenerator(config);
-        this.phoneNumberGenerator = new PhoneNumberGenerator(config);
-        this.addressInfoGenerator = new AddressInfoGenerator(config);
+        this.companyNameGenerator = new CompanyNameGenerator(config.forChildStream("companyName"));
+        this.industryGenerator = new IndustryGenerator(config.forChildStream("industry"));
+        this.catchPhraseGenerator = new CompanyCatchPhraseGenerator(config.forChildStream("companyCatchPhrase"));
+        this.buzzwordGenerator = new CompanyBuzzwordGenerator(config.forChildStream("companyBuzzword"));
+        this.emailGenerator = new CompanyEmailGenerator(config.forChildStream("companyEmail"));
+        this.phoneNumberGenerator = new PhoneNumberGenerator(config.forChildStream("phoneNumber"));
+        this.addressInfoGenerator = new AddressInfoGenerator(config.forChildStream("addressInfo"));
     }
 
     @Override

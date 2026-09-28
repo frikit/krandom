@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Retail Bank
+Commercial Bank
+Investment Bank
+Credit Union
+Online Bank

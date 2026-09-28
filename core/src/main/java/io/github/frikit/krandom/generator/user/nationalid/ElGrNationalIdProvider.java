@@ -10,6 +10,8 @@ import java.util.Random;
 
 /**
  * Generates Greek AFM (ΑΦΜ — Αριθμός Φορολογικού Μητρώου) style identifiers — 9 digits.
+ *
+ * <p>All digits are random; no AFM check digit is computed.
  */
 public final class ElGrNationalIdProvider implements NationalIdProvider {
 

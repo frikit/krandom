@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Softvérový inžinier
+Produktový manažér
+Dátový analytik
+UX dizajnér
+Obchodný zástupca pre kľúčových zákazníkov
+Marketingový špecialista
+Biznis analytik
+DevOps inžinier
+Inžinier spoľahlivosti služieb
+Vedúci vývoja
+Architekt riešení
+Technický redaktor
+Tester
+Projektový manažér
+Bezpečnostný inžinier
+Správca databáz

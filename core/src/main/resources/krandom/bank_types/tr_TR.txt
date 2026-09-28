@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Perakende banka
+Ticari banka
+Yatırım bankası
+Kredi kooperatifi
+Dijital banka

@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+cross-platform
+end-to-end
+best-in-class
+frictionless
+cloud-native
+data-driven

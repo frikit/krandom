@@ -6,7 +6,9 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
+import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
@@ -24,7 +26,8 @@ import java.util.random.RandomGenerator;
  *   boolean biased = new BooleanGenerator().withLikelihood(80).generate();
  *
  *   // Deterministic for tests
- *   List<Boolean> flips = new BooleanGenerator(12345L).withLikelihood(75).generateList(100);
+ *   GeneratorConfig config = GeneratorConfig.builder().seed(12345L).build();
+ *   List<Boolean> flips = new BooleanGenerator(config).withLikelihood(75).generateList(100);
  * }</pre>
  */
 public final class BooleanGenerator implements Generator<Boolean> {
@@ -41,8 +44,24 @@ public final class BooleanGenerator implements Generator<Boolean> {
     }
 
     /**
-     * Uses a seeded {@link Random} for deterministic, reproducible output with 50% likelihood.
+     * Uses the configuration's random source with 50% likelihood.
+     *
+     * @param config generator configuration; must not be {@code null}
      */
+    public BooleanGenerator(GeneratorConfig config) {
+        this(Objects.requireNonNull(config, "config must not be null").createRandom(), 50);
+    }
+
+    /**
+     * Uses a seeded {@link Random} for deterministic, reproducible output with 50% likelihood.
+     *
+     * @param seed raw seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #BooleanGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public BooleanGenerator(long seed) {
         this.random = new Random(seed);
         this.likelihood = 50;

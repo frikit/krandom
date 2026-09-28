@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Banque Nationale Premiere
+Banque Confiance Globale
+Epargne Civique
+Finance Sommet
+Credit Pionnier

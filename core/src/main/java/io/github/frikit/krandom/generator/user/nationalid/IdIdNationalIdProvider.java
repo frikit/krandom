@@ -10,6 +10,8 @@ import java.util.Random;
 
 /**
  * Generates Indonesian NIK (Nomor Induk Kependudukan) style identifiers — 16 digits.
+ *
+ * <p>All digits are random, so they do not necessarily encode a real region code or birth date.
  */
 public final class IdIdNationalIdProvider implements NationalIdProvider {
 

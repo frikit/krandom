@@ -455,8 +455,8 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `OptionalRandomizer` | Object optional field handling or wrap a generator with `Optional.ofNullable(...)` |
 | `LocaleRandomizer` | `Generators.ofLocale()` / `RandomLocaleGenerator` |
 | `UUIDRandomizer` | `Generators.ofUuid()` / `Generators.identifier().uuid()` / `UUIDGenerator` (`ofUuid()` is the only UUID facade spelling) |
-| `UriRandomizer` | `Generators.ofURI()` for `URI`, or `Generators.ofUri()` for URI strings (upper-case names return JDK objects; lower-case names return text) |
-| `UrlRandomizer` | `Generators.ofURL()` for `URL`, or `Generators.ofUrl()` for URL strings (upper-case names return JDK objects; lower-case names return text) |
+| `UriRandomizer` | `Generators.ofUriObject()` for `URI`, or `Generators.ofUri()` for URI strings (`…Object` names return JDK objects; plain names return text) |
+| `UrlRandomizer` | `Generators.ofUrlObject()` for `URL`, or `Generators.ofUrl()` for URL strings (`…Object` names return JDK objects; plain names return text) |
 | `DateRandomizer` | `Generators.ofUtilDate()` / `UtilDateGenerator` |
 | `DateRangeRandomizer` | `new UtilDateGenerator(minDate, maxDate)` after converting bounds to `LocalDate`, or `objectDateRange(...)` for object fields |
 | `SqlDateRandomizer` | `Generators.ofSqlDate()` / `SqlDateGenerator` |
@@ -488,7 +488,7 @@ k-random exposes randomizer classes such as `StringRandomizer`, `EmailRandomizer
 | `PeriodRandomizer` | `Generators.ofPeriod()` / `Generators.datetime().period()` |
 | `ZoneIdRandomizer` | `Generators.ofZoneId()` / `Generators.datetime().zoneId()` |
 | `ZoneOffsetRandomizer` | `Generators.ofZoneOffset()` / `Generators.datetime().zoneOffset()` |
-| `TimeZoneRandomizer` | `Generators.ofTimeZone()` / `Generators.datetime().timeZone()` |
+| `TimeZoneRandomizer` | `Generators.ofTimeZoneObject()` / `Generators.datetime().timeZoneObject()` |
 | `DayRandomizer` | `Generators.ofInt(1, 29)` |
 | `HourRandomizer` | `Generators.ofInt(0, 24)` or `new TimeGenerator().generateHour24()` |
 | `MinuteRandomizer` | `Generators.ofInt(0, 60)` or `new TimeGenerator().generateMinute()` |

@@ -8,8 +8,8 @@ stop hand-stitching "DataFaker for fields + Instancio/EasyRandom for structure."
 
 **Pros of krandom**
 - Realistic field data **and** full object/record graphs in one library.
-- 50 supported locale variants (35 native datasets and 15 curated fallbacks), checksum national IDs,
-  schema output (JSONL/JSON/CSV/XML/SQL/YAML/TOML) and existing-object projection.
+- 50 supported locale variants (35 native datasets and 15 curated fallbacks), national IDs for
+  34 countries (checksum-valid where the identifier defines a check digit), schema output (JSONL/JSON/CSV/XML/SQL/YAML/TOML) and existing-object projection.
 - A DataFaker-expression adapter, so you can port `#{Provider.method}` strings as-is.
 
 **What DataFaker still has that krandom doesn't**

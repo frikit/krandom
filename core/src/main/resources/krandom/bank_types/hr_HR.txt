@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Banka za stanovništvo
+Poslovna banka
+Investicijska banka
+Kreditna unija
+Internetska banka

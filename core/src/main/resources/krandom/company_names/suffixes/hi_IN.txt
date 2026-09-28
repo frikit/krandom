@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+प्राइवेट लिमिटेड
+लिमिटेड
+एलएलपी
+एंड कंपनी
+उद्योग

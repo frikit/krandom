@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+零售银行
+商业银行
+投资银行
+信用合作社
+网上银行

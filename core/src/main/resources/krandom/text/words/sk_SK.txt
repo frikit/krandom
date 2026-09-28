@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+dáta
+model
+systém
+signál
+proces
+analýza
+platforma
+sieť
+bezpečný
+služba
+štruktúra
+modul
+logika
+hodnota
+kontext
+cieľ

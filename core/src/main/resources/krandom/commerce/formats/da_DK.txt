@@ -1,0 +1,3 @@
+# Line 1: product name from {adjective}, {material}, {product}; line 2: description from {adjective}, {product}, {color}.
+{product} i {material}, model {adjective}
+{product}, model {adjective}, i farven {color}.

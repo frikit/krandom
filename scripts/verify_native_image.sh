@@ -1,11 +1,14 @@
 #!/bin/bash
 # Verify the core artifact can become a GraalVM native executable when native-image is available.
+# Locally a missing native-image skips the check; set KRANDOM_REQUIRE_NATIVE_IMAGE=true (as CI does)
+# to fail instead, so a job that promises this gate cannot pass without running it.
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SMOKE_SOURCE="${REPO_ROOT}/scripts/native-image-smoke/NativeImageSmoke.java"
 REFLECTION_CONFIG="${REPO_ROOT}/scripts/native-image-smoke/reflect-config.json"
+REQUIRE_NATIVE_IMAGE="${KRANDOM_REQUIRE_NATIVE_IMAGE:-false}"
 WORK_DIRECTORY="$(mktemp -d "${TMPDIR:-/tmp}/krandom-native-image.XXXXXX")"
 
 cleanup() {
@@ -14,15 +17,22 @@ cleanup() {
 trap cleanup EXIT
 
 if ! command -v native-image >/dev/null 2>&1; then
+    if [[ "${REQUIRE_NATIVE_IMAGE}" == "true" ]]; then
+        echo "Native-image smoke check failed: GraalVM native-image is not on PATH and KRANDOM_REQUIRE_NATIVE_IMAGE=true." >&2
+        exit 1
+    fi
     echo "Native-image smoke check skipped: GraalVM native-image is not installed."
     exit 0
 fi
 
+DEVELOPMENT_VERSION="$(awk -F= '$1 == "developmentVersion" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
+
 "${REPO_ROOT}/gradlew" :core:jar --quiet
 
-CORE_JAR="$(find "${REPO_ROOT}/core/build/libs" -maxdepth 1 -name 'core-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' -print -quit)"
-if [[ -z "${CORE_JAR}" ]]; then
-    echo "Native-image smoke check failed: core jar was not produced." >&2
+# Select the jar for the current development version; build/libs can hold stale release jars.
+CORE_JAR="${REPO_ROOT}/core/build/libs/core-${DEVELOPMENT_VERSION}.jar"
+if [[ -z "${DEVELOPMENT_VERSION}" || ! -f "${CORE_JAR}" ]]; then
+    echo "Native-image smoke check failed: core jar was not produced at ${CORE_JAR}." >&2
     exit 1
 fi
 
@@ -40,7 +50,7 @@ native-image \
     -H:Name=krandom-native-image-smoke \
     -H:Path="${WORK_DIRECTORY}"
 
-RESULT="$(${WORK_DIRECTORY}/krandom-native-image-smoke)"
+RESULT="$("${WORK_DIRECTORY}/krandom-native-image-smoke")"
 [[ "${RESULT}" == "native-image-smoke-passed" ]] || {
     echo "Native-image smoke check failed: got '${RESULT}'." >&2
     exit 1

@@ -1,0 +1,8 @@
+# Catch-phrase adjectives, one per line.
+Adaptiv
+Enhetlig
+Pålitlig
+Intelligent
+Framtidssäker
+Smidig
+Säker

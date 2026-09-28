@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+Kft.
+Zrt.
+Nyrt.
+Bt.
+Kkt.

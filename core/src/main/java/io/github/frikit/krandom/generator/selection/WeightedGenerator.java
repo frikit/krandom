@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.List;
 import java.util.Objects;
@@ -34,12 +35,28 @@ public final class WeightedGenerator<T> implements Generator<T> {
     }
 
     /**
+     * Creates a weighted generator whose draws come from the configuration's random source.
+     *
+     * @param values  candidate values; must not be null or empty
+     * @param weights positive weights parallel to {@code values}
+     * @param config generator configuration; must not be {@code null}
+     */
+    public WeightedGenerator(List<T> values, List<Integer> weights, GeneratorConfig config) {
+        this(values, weights, Objects.requireNonNull(config, "config must not be null").createRandom());
+    }
+
+    /**
      * Creates a weighted generator with deterministic seed support.
      *
      * @param values  values to choose from; must not be null/empty
      * @param weights positive weights; same size as values
      * @param seed    deterministic seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #WeightedGenerator(List, List, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public WeightedGenerator(List<T> values, List<Integer> weights, long seed) {
         this(values, weights, new Random(seed));
     }

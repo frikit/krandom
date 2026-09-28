@@ -1,0 +1,7 @@
+# Product adjectives, one per line.
+小型
+洗練された
+素朴な
+実用的な
+プレミアム
+人間工学に基づいた

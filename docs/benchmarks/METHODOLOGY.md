@@ -14,6 +14,20 @@ DataFaker's manual fixture construction is a semantic fixture workload. Easy Ran
 are structural object-generation workloads in this suite. A blank competitor cell means the suite
 does not contain an equivalent workload; it is not a zero score.
 
+## Workload fairness
+
+Per-invocation benchmarks measure generation, not setup. Every library reuses state prepared once
+per JMH thread: krandom reuses its `ObjectGenerator`, DataFaker its `Faker`, Easy Random its
+`EasyRandom` instance, and Instancio a prebuilt `Model` created with `Instancio.of(type).toModel()`
+and passed to `Instancio.create(model)`. Instancio's `Instancio.create(type)` shortcut would rebuild
+its API specification on every call and is not used for per-object scores. Bulk benchmarks build
+the Instancio list specification once per batch, so that setup is amortized over the batch size.
+
+`FieldStreamsBenchmark` reports every stream policy with `STRUCTURAL_ONLY` semantics, which isolates
+stream planning, and with the default `RELAXED` semantics that ordinary callers get, which includes
+semantic field-name routing. Compare policies within one semantic mode; the gap between the two
+modes is the semantic-routing cost, not a stream-policy cost.
+
 ## Publication protocol
 
 A publishable run uses three forks, three warmup iterations, five measurement iterations, one

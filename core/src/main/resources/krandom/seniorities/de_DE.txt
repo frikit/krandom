@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Praktikant
+Junior
+Sachbearbeiter
+Berufserfahren
+Senior
+Teamleiter
+Leitender Experte
+Fachexperte
+Direktor
+Vizepräsident

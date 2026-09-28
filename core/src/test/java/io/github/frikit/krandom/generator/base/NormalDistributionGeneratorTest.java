@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("NormalDistributionGenerator")
 class NormalDistributionGeneratorTest {
+
+    @Test
+    @SuppressWarnings("deprecation")
+    @DisplayName("a null legacy seed still selects the unseeded constructor, and the config form replays it")
+    void nullLegacySeedKeepsCompilingAndConfigFormReplaysSeed() {
+        NormalDistributionGenerator unseeded = new NormalDistributionGenerator(5.0, 2.0, null);
+        GeneratorConfig seeded = GeneratorConfig.builder().seed(3L).build();
+
+        assertEquals(5.0, unseeded.getMean());
+        assertEquals(2.0, unseeded.getStandardDeviation());
+        assertEquals(new NormalDistributionGenerator(5.0, 2.0, 3L).generateList(10),
+                     new NormalDistributionGenerator(seeded, 5.0, 2.0).generateList(10));
+    }
 
     @Test
     @DisplayName("generate retries when first u1 is zero")

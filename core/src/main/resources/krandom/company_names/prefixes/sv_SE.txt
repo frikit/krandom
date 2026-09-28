@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globala
+Nationella
+Svenska
+Förenade
+Främsta
+Avancerade
+Strategiska
+Dynamiska
+Innovativa
+Professionella
+Digitala
+Nya
+Alfa
+Ledande
+Moderna

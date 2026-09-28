@@ -14,6 +14,7 @@ import io.github.frikit.krandom.generator.base.IntGenerator
 import io.github.frikit.krandom.generator.base.LongGenerator
 import io.github.frikit.krandom.generator.selection.PickGenerator
 import io.kotest.property.Arb
+import io.kotest.property.PropTestConfig
 import io.kotest.property.RandomSource
 import io.kotest.property.Shrinker
 import io.kotest.property.arbitrary.DoubleShrinker
@@ -26,9 +27,10 @@ import kotlin.math.nextDown
  * Creates a Kotest [Arb] from a factory that receives a fresh, host-seeded kRandom configuration
  * for every sample.
  *
- * The [config] supplies locale, clock, safety, and object-generation settings. Kotest's
- * [RandomSource] supplies the per-case random draw, so rerunning a Kotest seed reproduces the same
- * sequence without sharing mutable generator state between cases.
+ * The [config] supplies locale, clock, safety, and object-generation settings, and its seed (`0`
+ * when unseeded) parents every sample seed. Kotest's [RandomSource] supplies the per-case random
+ * draw, so rerunning a Kotest seed with the same configuration reproduces the same sequence without
+ * sharing mutable generator state between cases.
  *
  * @throws IllegalArgumentException when [config] uses a caller-owned, secure, callback-backed, or
  * custom-registry random source that cannot be converted into a portable seed-owned configuration
@@ -42,7 +44,7 @@ fun <T> krandomArb(
 
 /**
  * Creates a replay-safe Kotest [Arb] for objects by deriving a fresh kRandom configuration from
- * every host [RandomSource] draw.
+ * every host [RandomSource] draw, parented by the seed of [config] (`0` when unseeded).
  */
 inline fun <reified T : Any> krandomReplayObjectArb(
     config: GeneratorConfig = GeneratorConfig.defaults()
@@ -133,33 +135,26 @@ fun <T : Any> krandomPickArb(source: List<T>): Arb<T> {
 /**
  * Returns the portable, value-free kRandom recipe for [config] as used by the Kotest adapters.
  *
- * The Kotest seed printed on failure fully determines the generated values; this recipe carries
- * the configuration portion (locale, clock, profile, safety and construction policies) needed to
- * reconstruct the same [GeneratorConfig] on another machine.
+ * Together with the Kotest seed printed on failure, this recipe determines the generated values:
+ * it carries the parent seed of every sample (the configured seed, or `0` when [config] is
+ * unseeded) and the configuration (locale, clock, profile, safety and construction policies)
+ * needed to reconstruct the same [GeneratorConfig] on another machine. A live clock is read when
+ * this function is called; snapshot the configuration first for temporal replay.
  *
  * @throws IllegalArgumentException when [config] cannot be converted into a portable
  * seed-owned configuration
  */
-fun krandomKotestRecipe(config: GeneratorConfig = GeneratorConfig.defaults()): String {
-    val portable = try {
-        config.toBuilder().seed(0L).build()
-    } catch (exception: IllegalStateException) {
-        throw IllegalArgumentException(
-            "Kotest integration requires a seed-owned GeneratorConfig; caller-owned, secure, " +
-                "factory-backed, and custom-registry random sources are not replayable",
-            exception
-        )
-    }
-    val recipe = portable.generationRecipe.orElseThrow {
-        IllegalArgumentException("Kotest integration requires a portable seed-owned GeneratorConfig")
-    }
-    return recipe.serializeForDiagnostics()
-}
+fun krandomKotestRecipe(config: GeneratorConfig = GeneratorConfig.defaults()): String =
+    config.kotestPortableRecipe().serializeForDiagnostics()
 
 /**
  * Runs [io.kotest.property.checkAll] over [arb] and, when the property fails, rethrows the
  * assertion error with the kRandom recipe of [config] appended alongside Kotest's own seed
- * report, so a CI failure carries both replay halves. For temporal replay, call
+ * report, so a CI failure carries both replay halves.
+ *
+ * The recipe's clock is read from [config] when the failure is reported, which the appended
+ * header states. For temporal replay prefer the `checkAllWithRecipe(config, arbFactory)` overload,
+ * which snapshots the clock once for sampling and the recipe, or call
  * [GeneratorConfig.snapshotClock] before creating the Arb and pass that same configuration here.
  * This helper cannot recover the clock used earlier by an independently constructed Arb.
  */
@@ -173,8 +168,50 @@ suspend fun <A> checkAllWithRecipe(
     } catch (failure: AssertionError) {
         throw AssertionError(
             (failure.message ?: "Property failed") +
-                "\n\nkRandom recipe (configuration portion; combine with the Kotest seed above):\n" +
+                "\n\nkRandom recipe (configuration portion; combine with the Kotest seed above; clock read " +
+                "when the failure was reported unless the configuration was snapshotted before sampling):\n" +
                 krandomKotestRecipe(config),
+            failure
+        )
+    }
+}
+
+/**
+ * Runs [io.kotest.property.checkAll] with one clock snapshot shared by sampling and the failure
+ * recipe.
+ *
+ * The clock of [config] is captured once with [GeneratorConfig.snapshotClock]; [arbFactory]
+ * receives that snapshot, so every sample sees the same instant, and a failing property is rethrown
+ * with the recipe of the same snapshot appended below Kotest's seed report. Replaying the Kotest seed
+ * (for example through [propTestConfig]) with a configuration rebuilt from that recipe reproduces the
+ * failing samples, including time-relative values.
+ *
+ * ```kotlin
+ * checkAllWithRecipe(config, { session ->
+ *     krandomArb(session) { sample -> Generator { DateGenerator(sample).future(7) } }
+ * }) { date ->
+ *     // assert the application contract
+ * }
+ * ```
+ *
+ * @throws IllegalArgumentException before sampling when [config] cannot be converted into a
+ * portable seed-owned configuration
+ */
+suspend fun <A> checkAllWithRecipe(
+    config: GeneratorConfig,
+    arbFactory: (GeneratorConfig) -> Arb<A>,
+    propTestConfig: PropTestConfig = PropTestConfig(),
+    property: suspend (A) -> Unit
+) {
+    val session = config.snapshotClock()
+    val recipe = krandomKotestRecipe(session)
+    try {
+        io.kotest.property.checkAll(propTestConfig, arbFactory(session)) { value -> property(value) }
+    } catch (failure: AssertionError) {
+        throw AssertionError(
+            (failure.message ?: "Property failed") +
+                "\n\nkRandom recipe (configuration portion with the clock snapshotted before sampling; " +
+                "combine with the Kotest seed above):\n" + recipe,
             failure
         )
     }
@@ -194,8 +231,23 @@ private class PickShrinker<T>(private val source: List<T>) : Shrinker<T> {
 
 @PublishedApi
 internal fun GeneratorConfig.forKotestSample(randomSource: RandomSource): GeneratorConfig {
+    val recipe = kotestPortableRecipe()
+    val hostDraw = randomSource.random.nextLong()
+    val childSeed = GenerationRecipe.deriveChildSeed(
+        recipe.seed,
+        "kotest|source=${randomSource.seed}|draw=$hostDraw"
+    )
+    return toBuilder().seed(childSeed).build()
+}
+
+/**
+ * Returns the portable recipe whose seed parents every Kotest sample: the configured seed (a text
+ * seed contributes its derived numeric seed), or `0` for an unseeded configuration.
+ */
+private fun GeneratorConfig.kotestPortableRecipe(): GenerationRecipe {
+    val parentSeed = if (seed.isPresent) seed.asLong else 0L
     val portable = try {
-        toBuilder().seed(0L).build()
+        toBuilder().seed(parentSeed).build()
     } catch (exception: IllegalStateException) {
         throw IllegalArgumentException(
             "Kotest integration requires a seed-owned GeneratorConfig; caller-owned, secure, " +
@@ -203,15 +255,9 @@ internal fun GeneratorConfig.forKotestSample(randomSource: RandomSource): Genera
             exception
         )
     }
-    val recipe = portable.generationRecipe.orElseThrow {
+    return portable.generationRecipe.orElseThrow {
         IllegalArgumentException("Kotest integration requires a portable seed-owned GeneratorConfig")
     }
-    val hostDraw = randomSource.random.nextLong()
-    val childSeed = GenerationRecipe.deriveChildSeed(
-        recipe.seed,
-        "kotest|source=${randomSource.seed}|draw=$hostDraw"
-    )
-    return portable.toBuilder().seed(childSeed).build()
 }
 
 private fun kotestChildSeed(randomSource: RandomSource): Long {

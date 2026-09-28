@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,12 +36,28 @@ public final class PickSetGenerator<T> implements Generator<List<T>> {
     }
 
     /**
+     * Creates a pick-set generator whose draws come from the configuration's random source.
+     *
+     * @param source source list; must not be null
+     * @param count  number of distinct elements to pick; must be in {@code [0, source.size()]}
+     * @param config generator configuration; must not be {@code null}
+     */
+    public PickSetGenerator(List<T> source, int count, GeneratorConfig config) {
+        this(source, count, Objects.requireNonNull(config, "config must not be null").createRandom());
+    }
+
+    /**
      * Creates a pick-set generator with deterministic seed support.
      *
      * @param source source list; must not be null
      * @param count  number of unique elements to pick
      * @param seed   deterministic seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #PickSetGenerator(List, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public PickSetGenerator(List<T> source, int count, long seed) {
         this(source, count, new Random(seed));
     }

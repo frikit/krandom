@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+streamline
+empower
+leverage
+optimize
+synergize
+scale
+deliver
+enable

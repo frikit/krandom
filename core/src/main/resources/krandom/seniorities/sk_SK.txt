@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Stážista
+Junior
+Špecialista
+Medior
+Senior
+Vedúci tímu
+Hlavný špecialista
+Expert
+Riaditeľ
+Viceprezident

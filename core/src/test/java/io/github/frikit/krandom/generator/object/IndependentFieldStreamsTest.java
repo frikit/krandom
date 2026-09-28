@@ -5,10 +5,12 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.extension.KRandomModule;
 import io.github.frikit.krandom.generator.extension.KRandomModuleContext;
+import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
 import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
@@ -52,6 +54,39 @@ class IndependentFieldStreamsTest {
                 assertEquals(expected.values, actual.values);
             }
             assertTrue(changed.getGenerationRecipe().isEmpty(), "custom configuration must not claim portable replay");
+        }
+    }
+
+    public enum Color { RED, GREEN, BLUE, BLACK, WHITE, ORANGE, PURPLE }
+    public static class SemanticFixture { public List<Integer> values; public Color color; public Child child; public int score; }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static final KRandomModule UNRELATED_SEMANTIC_PROVIDER = new KRandomModule() {
+        public String id() { return "unrelated.semantic"; }
+        public void configure(KRandomModuleContext context) {
+            context.registerProvider(ProviderDescriptor.builder("unrelated.flavor", (Class) Generator.class,
+                    cfg -> (Generator<String>) () -> "vanilla")
+                .semanticKeys("favoriteflavor").build());
+        }
+    };
+
+    @Test
+    void unrelatedSemanticProvidersDoNotShiftIndependentMemberStreams() {
+        for (ObjectGenerationSemanticMode mode : List.of(ObjectGenerationSemanticMode.RELAXED,
+                                                          ObjectGenerationSemanticMode.STRICT)) {
+            GeneratorConfig config = independent().toBuilder().objectSemanticMode(mode).build();
+            GeneratorConfig withModule = config.toBuilder().install(UNRELATED_SEMANTIC_PROVIDER).build();
+            ObjectGenerator<SemanticFixture> plain = new ObjectGenerator<>(SemanticFixture.class, config);
+            ObjectGenerator<SemanticFixture> custom = new ObjectGenerator<>(SemanticFixture.class, withModule);
+            for (int i = 0; i < 5; i++) {
+                SemanticFixture expected = plain.generate();
+                SemanticFixture actual = custom.generate();
+                assertEquals(expected.values, actual.values, mode + " values");
+                assertEquals(expected.color, actual.color, mode + " color");
+                assertEquals(expected.score, actual.score, mode + " score");
+                assertEquals(expected.child.name, actual.child.name, mode + " child.name");
+                assertEquals(expected.child.age, actual.child.age, mode + " child.age");
+            }
         }
     }
 

@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Teljes munkaidő
+Részmunkaidő
+Szerződéses
+Határozott idejű
+Gyakornoki
+Szabadúszó
+Tanulószerződés
+Idénymunka
+Önkéntes munka
+Távmunka

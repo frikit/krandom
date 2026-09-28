@@ -306,6 +306,7 @@ final class BeanValidationSupport {
         }
     }
 
+    @SuppressWarnings("deprecation") // seeds come from the engine's replayable streams
     private static Generator<String> textGeneratorFor(TextConstraint constraints, Random random) {
         List<Generator<String>> sources = new ArrayList<>();
         for (TextPattern pattern : constraints.patterns()) {

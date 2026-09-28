@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Wykształcenie średnie
+Wykształcenie policealne
+Licencjat
+Magister
+Doktor
+Tytuł inżyniera
+Wykształcenie zasadnicze zawodowe

@@ -24,20 +24,25 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p><b>Lookup order</b>
  * <ol>
  *   <li>Exact {@code language_COUNTRY} match (e.g. {@code "en_US"})
- *   <li>Language-only match (e.g. {@code "en"})
+ *   <li>For a locale with a country: the first provider registered for that country, so another
+ *       language of a supported country uses the country's identifier (e.g. {@code en_IN} uses the
+ *       {@code hi_IN} Aadhaar provider). A national identifier is country-specific, so a locale
+ *       whose country has no provider never borrows another country's identifier through its
+ *       language: {@code en_CA}, {@code pt_PT}, and {@code zh_TW} resolve to {@code null}.
+ *   <li>For a locale without a country: the language-level entry (e.g. {@code "en"})
  *   <li>{@code null} — the caller is responsible for handling the missing case (typically by
  *       throwing {@link UnsupportedOperationException})
  * </ol>
  *
  * <p><b>Language-level fallback</b><br>
- * The first provider registered for a given language becomes the language-level fallback for that
- * language. Subsequent registrations for the same language update the exact key only, leaving the
- * language fallback untouched — unless the new provider's locale has no country component (e.g.
- * {@code Locale.of("en")}), in which case it explicitly replaces the language-level entry.
+ * The first provider registered for a given language becomes the language-level entry used by
+ * locales without a country, such as {@code Locale.ENGLISH}.
  */
 public final class NationalIdRegistry {
 
     private static final ConcurrentHashMap<String, NationalIdProvider> REGISTRY =
+        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, NationalIdProvider> BY_COUNTRY =
         new ConcurrentHashMap<>();
 
     static {
@@ -84,31 +89,28 @@ public final class NationalIdRegistry {
     }
 
     /**
-     * Returns {@code true} if the registry contains an entry for the given locale (exact
-     * {@code language_COUNTRY} match or language-only match).
+     * Returns {@code true} if {@link #forLocale(Locale)} resolves a provider for the given locale.
      */
     public static boolean isRegistered(Locale locale) {
-        if (locale == null) return false;
-        String lang = locale.getLanguage();
-        String country = locale.getCountry();
-        if (!country.isEmpty() && REGISTRY.containsKey(lang + "_" + country)) return true;
-        return REGISTRY.containsKey(lang);
+        return forLocale(locale) != null;
     }
 
     /**
-     * Returns the best-matching provider for the given locale.
+     * Returns the best-matching provider for the given locale, following the documented lookup
+     * order.
      *
-     * @return the provider, or {@code null} if none is registered for the locale or its language
+     * @return the provider, or {@code null} if none is registered for the locale's country (or,
+     *         for a locale without a country, for its language)
      */
     public static @Nullable NationalIdProvider forLocale(@Nullable Locale locale) {
         if (locale == null) return null;
         String lang = locale.getLanguage();
         String country = locale.getCountry();
-        if (!country.isEmpty()) {
-            NationalIdProvider exact = REGISTRY.get(lang + "_" + country);
-            if (exact != null) return exact;
+        if (country.isEmpty()) {
+            return REGISTRY.get(lang);
         }
-        return REGISTRY.get(lang);
+        NationalIdProvider exact = REGISTRY.get(lang + "_" + country);
+        return exact != null ? exact : BY_COUNTRY.get(country);
     }
 
     /**
@@ -130,5 +132,6 @@ public final class NationalIdRegistry {
         String country = provider.getLocale().getCountry();
         REGISTRY.put(lang + "_" + country, provider);
         REGISTRY.putIfAbsent(lang, provider);
+        BY_COUNTRY.putIfAbsent(country, provider);
     }
 }

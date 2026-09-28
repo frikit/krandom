@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+Kerusi
+Meja
+Komputer
+Papan Kekunci
+Kasut
+Jam Tangan

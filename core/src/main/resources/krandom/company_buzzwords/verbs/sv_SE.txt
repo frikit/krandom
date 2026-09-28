@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+effektivisera
+stärka
+utnyttja
+optimera
+integrera
+skala upp
+leverera
+möjliggöra

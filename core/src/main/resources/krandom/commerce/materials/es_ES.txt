@@ -1,0 +1,7 @@
+# Product materials, one per line.
+Acero
+Madera
+Hormigon
+Plastico
+Granito
+Algodon

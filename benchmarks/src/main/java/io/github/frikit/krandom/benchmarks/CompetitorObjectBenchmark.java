@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
 import org.instancio.Instancio;
+import org.instancio.Model;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -80,7 +81,14 @@ public class CompetitorObjectBenchmark {
     }
 
     // ── Instancio state ──────────────────────────────────────────────────────
-    // Instancio uses a stateless API — no pre-created state needed.
+    // The other libraries reuse prebuilt generators, so Instancio reuses a prebuilt Model: each
+    // invocation measures object creation, not re-parsing the Instancio API specification.
+
+    @State(Scope.Thread)
+    public static class InstancioState {
+        public final Model<BenchmarkFixtures.ComparableUser> model =
+            Instancio.of(BenchmarkFixtures.ComparableUser.class).toModel();
+    }
 
     // ── Benchmarks ───────────────────────────────────────────────────────────
 
@@ -112,7 +120,7 @@ public class CompetitorObjectBenchmark {
     }
 
     @Benchmark
-    public BenchmarkFixtures.ComparableUser instancioObject() {
-        return Instancio.create(BenchmarkFixtures.ComparableUser.class);
+    public BenchmarkFixtures.ComparableUser instancioObject(InstancioState state) {
+        return Instancio.create(state.model);
     }
 }

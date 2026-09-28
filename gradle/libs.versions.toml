@@ -18,8 +18,13 @@ japicmp = "0.26.2"
 cyclonedx = "3.4.1"
 nmcp = "1.6.2"
 pitest = "1.19.0"
+pitest-junit5-plugin = "1.2.3"
 
 [libraries]
+# Tools resolved by the JaCoCo and PIT Gradle plugins (core/build.gradle.kts reads the versions);
+# declared as libraries so Dependabot can see and update them.
+jacoco-agent = { module = "org.jacoco:org.jacoco.agent", version.ref = "jacoco" }
+pitest-junit5-plugin = { module = "org.pitest:pitest-junit5-plugin", version.ref = "pitest-junit5-plugin" }
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }

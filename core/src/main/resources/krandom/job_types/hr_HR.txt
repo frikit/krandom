@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Puno radno vrijeme
+Nepuno radno vrijeme
+Ugovor o djelu
+Privremeni posao
+Stažiranje
+Slobodnjak
+Naukovanje
+Sezonski posao
+Volontiranje
+Rad na daljinu

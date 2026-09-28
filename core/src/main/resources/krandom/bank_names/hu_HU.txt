@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Első Nemzeti Bank
+Globális Bizalmi Bank
+Úttörő Hitelszövetkezet
+Csúcs Pénzügyi
+Polgári Takarékpénztár

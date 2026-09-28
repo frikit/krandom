@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Çözümler
+Sistemler
+Teknolojiler
+Sanayi
+Hizmetler
+Grup
+Ortaklar
+Yatırımlar
+Ortaklık
+Danışmanlık
+Ağlar
+Projeler
+Kaynaklar
+Yönetim
+Analitik

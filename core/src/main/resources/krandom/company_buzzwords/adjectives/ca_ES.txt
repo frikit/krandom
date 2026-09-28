@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+multiplataforma
+integrals
+de primer nivell
+fluides
+basades en el núvol
+orientades a dades

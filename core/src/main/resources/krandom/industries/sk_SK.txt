@@ -1,0 +1,21 @@
+# Industry names, one per line.
+Technológie
+Zdravotníctvo
+Financie
+Vzdelávanie
+Maloobchod
+Výroba
+Telekomunikácie
+Energetika
+Doprava
+Stavebníctvo
+Nehnuteľnosti
+Pohostinstvo
+Médiá
+Zábava
+Poľnohospodárstvo
+Letecký a kozmický priemysel
+Automobilový priemysel
+Biotechnológie
+Poradenstvo
+Kybernetická bezpečnosť

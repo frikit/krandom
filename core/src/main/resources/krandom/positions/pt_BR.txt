@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Engenheiro de software
+Gerente de produto
+Analista de dados
+Designer de UX
+Executivo de contas
+Especialista em marketing
+Analista de negócios
+Engenheiro DevOps
+Engenheiro de confiabilidade de sites
+Gerente de engenharia
+Arquiteto de soluções
+Redator técnico
+Analista de QA
+Gerente de projetos
+Engenheiro de segurança
+Administrador de banco de dados

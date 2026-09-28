@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+SPM
+Diploma
+Ijazah sarjana muda
+Ijazah sarjana
+Ijazah kedoktoran
+Ijazah profesional
+Sijil Kemahiran Malaysia

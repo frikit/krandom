@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+egyszerűsíteni
+megerősíteni
+kiaknázni
+optimalizálni
+integrálni
+skálázni
+szállítani
+lehetővé tenni

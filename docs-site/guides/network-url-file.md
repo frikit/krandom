@@ -25,8 +25,9 @@ String full = urls.generateWithPathAndQuery();
 ```
 
 `ofUrl()` and `ofUri()` produce text values. When an API needs parsed JDK objects instead, use
-`Generators.ofURL()` for `java.net.URL` or `Generators.ofURI()` for `java.net.URI`. The distinction
-is intentional: lowercase names describe a text format and uppercase names describe the JDK type.
+`Generators.ofUrlObject()` for `java.net.URL` or `Generators.ofUriObject()` for `java.net.URI`
+(each also accepts a `GeneratorConfig`). The former case twins `ofURL()`/`ofURI()` are deprecated
+because they differed from the text factories only by letter case.
 
 ## File-oriented values
 

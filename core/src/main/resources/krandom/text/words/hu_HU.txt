@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+adat
+modell
+rendszer
+jel
+folyamat
+elemzés
+platform
+hálózat
+biztonságos
+szolgáltatás
+struktúra
+modul
+logika
+érték
+kontextus
+cél

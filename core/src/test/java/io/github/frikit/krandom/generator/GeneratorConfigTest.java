@@ -91,6 +91,19 @@ class GeneratorConfigTest {
         assertEquals(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, c.getPhoneNumberSafetyPolicy());
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
         assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
+        assertEquals(EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS, c.getEmailDomainPolicy());
+    }
+
+    @Test
+    @DisplayName("email domain policy is configurable and retained by toBuilder")
+    void emailDomainPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                                                .build();
+
+        assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED, config.getEmailDomainPolicy());
+        assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED, config.toBuilder().build().getEmailDomainPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().emailDomainPolicy(null));
     }
 
     @Test
@@ -440,6 +453,20 @@ class GeneratorConfigTest {
     void collectionSizeMaxBelowMinThrows() {
         assertThrows(IllegalArgumentException.class,
                      () -> GeneratorConfig.builder().collectionSize(5, 3));
+    }
+
+    @Test
+    @DisplayName("an Integer.MAX_VALUE maximum size is rejected instead of overflowing during generation")
+    void maximumIntSizesAreRejected() {
+        IllegalArgumentException collection = assertThrows(IllegalArgumentException.class,
+            () -> GeneratorConfig.builder().collectionSize(0, Integer.MAX_VALUE));
+        IllegalArgumentException string = assertThrows(IllegalArgumentException.class,
+            () -> GeneratorConfig.builder().stringLength(1, Integer.MAX_VALUE));
+
+        assertTrue(collection.getMessage().contains("Integer.MAX_VALUE"), collection.getMessage());
+        assertTrue(string.getMessage().contains("Integer.MAX_VALUE"), string.getMessage());
+        assertEquals(Integer.MAX_VALUE - 1,
+                     GeneratorConfig.builder().collectionSize(0, Integer.MAX_VALUE - 1).build().getMaxCollectionSize());
     }
 
     @Test

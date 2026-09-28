@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+aplikacije
+platforme
+tehnologije
+tvornice
+usluge
+grupacije
+zajednice
+investicije
+udruge
+konzultacije
+mreže
+inicijative
+energije
+operacije
+analize

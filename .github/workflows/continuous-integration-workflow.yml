@@ -5,10 +5,21 @@ on:
     branches: [ main ]
   pull_request:
 
+permissions:
+  contents: read
+
+# A newer push to a pull request cancels its superseded run; every push to main keeps its own run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Job timeouts are 4-5x the slowest successful runs observed in September 2026 (build 7 min,
+# native image 4.5 min, mutation 6 min, examples 6 min), so they only stop hung jobs.
 jobs:
   build:
     name: Test & Coverage (Java ${{ matrix.java }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -16,6 +27,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
       - name: Set up Java ${{ matrix.java }} (Temurin)
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
@@ -30,11 +44,20 @@ jobs:
       - name: Verify documentation facts
         run: ./scripts/verify_documentation_facts.sh
 
+      - name: Verify repository Markdown links
+        run: ./scripts/verify_markdown_links.sh
+
       - name: Verify pinned build inputs
         run: ./scripts/verify_build_input_pins.sh
 
       - name: Build and verify
         run: ./gradlew clean build check checkApiContract --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
+
+      - name: Verify module boundaries
+        run: ./scripts/verify_module_boundaries.sh
+
+      - name: Verify 2.x consumer and extension compatibility
+        run: ./gradlew verifyV2ConsumerCompatibility --stacktrace --console=plain --max-workers=1 --no-daemon
 
       # CycloneDX attaches direct-BOM artifacts lazily. Keep SBOM generation in
       # its own Gradle invocation so the build graph cannot consume that variant
@@ -50,12 +73,40 @@ jobs:
           files: core/build/jacoco/jacoco.xml
           fail_ci_if_error: false
 
-  native-image:
-    name: GraalVM Native Image Smoke (Java 25)
+  kotest-previous-minor:
+    name: Kotest Previous Minor Line (Java 21)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Test Kotest adapters against the previous Kotest minor line
+        run: ./scripts/verify_kotest_previous_minor.sh --stacktrace --console=plain --max-workers=1 --no-daemon
+
+  native-image:
+    name: GraalVM Native Image Smoke (Java 25)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
       - name: Set up GraalVM with Native Image
         uses: graalvm/setup-graalvm@0426e2e191540e8514dff98dc52a5f5146a2a276 # v1.6.6
@@ -69,14 +120,22 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build and run native-image smoke fixture
+        env:
+          KRANDOM_REQUIRE_NATIVE_IMAGE: "true"
         run: ./scripts/verify_native_image.sh
 
   mutation-pilot:
     name: Critical-path Mutation (Java 21)
     runs-on: ubuntu-latest
+    # The object engine, GeneratorConfig and GenerationRecipe joined the mutation targets on
+    # 2026-09-27, roughly tripling the analysis (about 7 minutes locally); re-measure on CI.
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
       - name: Set up Java 21 (Temurin)
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
@@ -94,12 +153,16 @@ jobs:
   examples:
     name: Examples (Local Maven Snapshot)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       MILL_VERSION: '1.1.6'
       MILL_SHA256: 'af73fadc1fa005e43962bcd529690f448592f4e0786a90b712ac6509378a9eb2'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
       - name: Set up Java 21 (Temurin)
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0

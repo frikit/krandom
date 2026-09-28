@@ -116,6 +116,31 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("seeded calling-code, continent and timezone sequences use a JVM-independent order")
+    void seededCountryMetadataSequencesAreJvmIndependent() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+        CountryGenerator calling = new CountryGenerator(config);
+        CountryGenerator continent = new CountryGenerator(config);
+        CountryGenerator timezone = new CountryGenerator(config);
+
+        List<String> callingCodes = new java.util.ArrayList<>();
+        List<String> continents = new java.util.ArrayList<>();
+        List<String> timezones = new java.util.ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            callingCodes.add(calling.generateCallingCode());
+            continents.add(continent.generateContinent());
+            timezones.add(timezone.generateTimezone());
+        }
+
+        assertEquals(List.of("+64", "+49", "+966", "+886", "+1", "+380", "+34", "+32"), callingCodes);
+        assertEquals(List.of("Oceania", "Europe", "Asia", "Asia", "North America", "Europe", "Europe", "Europe"),
+                     continents);
+        assertEquals(List.of("Pacific/Auckland", "Europe/Berlin", "Asia/Riyadh", "Asia/Taipei",
+                             "America/New_York", "Europe/Kyiv", "Europe/Madrid", "Europe/Brussels"),
+                     timezones);
+    }
+
+    @Test
     @DisplayName("current-country helper metadata is available for every built-in locale country")
     void currentCountryMetadataHelpersSupportAllBuiltInLocales() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {

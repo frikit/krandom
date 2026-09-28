@@ -56,7 +56,12 @@ public final class CalendarGenerator implements Generator<Calendar> {
      * Creates a deterministic calendar generator using the supplied seed.
      *
      * @param seed deterministic seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #CalendarGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public CalendarGenerator(long seed) {
         this(GeneratorConfig.builder().seed(seed).build());
     }

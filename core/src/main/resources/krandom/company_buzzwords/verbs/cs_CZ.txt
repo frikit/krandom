@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+optimalizovat
+posilovat
+využívat
+zjednodušovat
+integrovat
+škálovat
+dodávat
+umožňovat

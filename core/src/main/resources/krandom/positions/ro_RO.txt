@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Inginer software
+Manager de produs
+Analist de date
+Designer UX
+Executiv de vânzări
+Specialist în marketing
+Analist de afaceri
+Inginer DevOps
+Inginer de fiabilitate a site-urilor
+Manager de inginerie
+Arhitect de soluții
+Redactor tehnic
+Inginer QA
+Manager de proiect
+Inginer de securitate
+Administrator de baze de date

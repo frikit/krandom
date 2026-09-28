@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+uplata
+isplata
+plaćanje
+prijenos
+povrat
+naknada
+kamata
+povrat terećenja

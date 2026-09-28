@@ -1,0 +1,7 @@
+# Catch-phrase adjectives, one per line.
+Innovacion
+Confianza
+Escala
+Impacto
+Agilidad
+Claridad

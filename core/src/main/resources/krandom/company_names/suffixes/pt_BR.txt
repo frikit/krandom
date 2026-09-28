@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+Ltda.
+S.A.
+SLU
+ME
+EPP

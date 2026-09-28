@@ -1,0 +1,21 @@
+# Industry names, one per line.
+Tehnologija
+Zdravstvo
+Financije
+Obrazovanje
+Maloprodaja
+Proizvodnja
+Telekomunikacije
+Energetika
+Promet
+Graditeljstvo
+Nekretnine
+Ugostiteljstvo
+Mediji
+Zabava
+Poljoprivreda
+Zrakoplovna i svemirska industrija
+Automobilska industrija
+Biotehnologija
+Savjetovanje
+Kibernetička sigurnost

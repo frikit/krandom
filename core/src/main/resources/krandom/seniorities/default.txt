@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Intern
+Junior
+Associate
+Mid-level
+Senior
+Lead
+Principal
+Staff
+Director
+Vice President

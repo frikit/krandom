@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Praktikant
+Junior
+Medarbeider
+Erfaren
+Senior
+Teamleder
+Hovedspesialist
+Spesialist
+Direktør
+Visepresident

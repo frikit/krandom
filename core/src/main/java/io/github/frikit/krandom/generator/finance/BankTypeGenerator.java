@@ -8,30 +8,25 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
-import java.security.SecureRandom;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
 /**
  * Generates locale-aware bank type labels.
+ *
+ * <p>Labels are resolved through the configuration's {@code DataRegistryContext}, which defaults to
+ * {@link BankTypeDataRegistry}; locales without built-in data fall back to the bundled English
+ * labels.
  */
 public final class BankTypeGenerator implements Generator<String> {
 
-    private static final String[]              DEFAULT_TYPES     = {
-        "Retail Bank", "Commercial Bank", "Investment Bank", "Credit Union", "Online Bank"
-    };
-    private static final Map<String, String[]> TYPES_BY_LANGUAGE = Map.of(
-        "de", new String[] { "Privatkundenbank", "Geschaeftsbank", "Investmentbank", "Kreditgenossenschaft", "Online-Bank" },
-        "fr", new String[] { "Banque de detail", "Banque commerciale", "Banque d'investissement", "Cooperative de credit", "Banque en ligne" },
-        "es", new String[] { "Banco minorista", "Banco comercial", "Banco de inversion", "Cooperativa de credito", "Banco en linea" },
-        "it", new String[] { "Banca al dettaglio", "Banca commerciale", "Banca d'investimento", "Cooperativa di credito", "Banca online" },
-        "pt", new String[] { "Banco de varejo", "Banco comercial", "Banco de investimento", "Cooperativa de credito", "Banco online" }
-    );
+    private static final BankTypeDataProvider DEFAULT_PROVIDER =
+        new BuiltInBankTypeDataProvider(Locale.ROOT, "default");
 
-    private final Locale locale;
-    private final Random random;
+    private final List<String> bankTypes;
+    private final Random       random;
 
     public BankTypeGenerator() {
         this(GeneratorConfig.defaults());
@@ -43,13 +38,13 @@ public final class BankTypeGenerator implements Generator<String> {
 
     public BankTypeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        this.locale = config.getLocale();
+        BankTypeDataProvider provider = config.getRegistryContext().bankTypeProvider(config.getLocale());
+        this.bankTypes = (provider != null ? provider : DEFAULT_PROVIDER).getBankTypes();
         this.random = config.createRandom();
     }
 
     @Override
     public String generate() {
-        String[] values = TYPES_BY_LANGUAGE.getOrDefault(locale.getLanguage(), DEFAULT_TYPES);
-        return values[random.nextInt(values.length)];
+        return bankTypes.get(random.nextInt(bankTypes.size()));
     }
 }

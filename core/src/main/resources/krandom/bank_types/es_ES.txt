@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+Banco minorista
+Banco comercial
+Banco de inversion
+Cooperativa de credito
+Banco en linea

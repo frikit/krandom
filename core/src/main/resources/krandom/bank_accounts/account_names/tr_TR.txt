@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Vadesiz hesap
+Vadeli tasarruf hesabı
+Ticari hesap
+Ortak hesap
+Maaş hesabı

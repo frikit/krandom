@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Kỹ sư phần mềm
+Quản lý sản phẩm
+Chuyên viên phân tích dữ liệu
+Nhà thiết kế UX
+Chuyên viên quản lý khách hàng
+Chuyên viên tiếp thị
+Chuyên viên phân tích nghiệp vụ
+Kỹ sư DevOps
+Kỹ sư độ tin cậy hệ thống
+Quản lý kỹ thuật
+Kiến trúc sư giải pháp
+Người viết tài liệu kỹ thuật
+Kỹ sư kiểm thử
+Quản lý dự án
+Kỹ sư bảo mật
+Quản trị viên cơ sở dữ liệu

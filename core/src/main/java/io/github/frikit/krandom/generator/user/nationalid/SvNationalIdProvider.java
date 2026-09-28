@@ -26,13 +26,13 @@ public final class SvNationalIdProvider implements NationalIdProvider {
     public String generate(Random random) {
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
         int individual = random.nextInt(1_000);
-        String body = String.format("%02d%02d%02d%03d",
+        String body = String.format(Locale.ROOT, "%02d%02d%02d%03d",
                                     date.getYear() % 100,
                                     date.getMonthValue(),
                                     date.getDayOfMonth(),
                                     individual);
         int check = luhnCheckDigit(body);
-        return String.format("%04d%02d%02d-%03d%d",
+        return String.format(Locale.ROOT, "%04d%02d%02d-%03d%d",
                              date.getYear(), date.getMonthValue(), date.getDayOfMonth(),
                              individual, check);
     }

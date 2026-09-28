@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+effektivisere
+styrke
+utnytte
+optimalisere
+integrere
+skalere
+levere
+muliggjøre

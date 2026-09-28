@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+ソリューション
+ワークフロー
+インフラ
+プラットフォーム
+顧客体験
+ケイパビリティ

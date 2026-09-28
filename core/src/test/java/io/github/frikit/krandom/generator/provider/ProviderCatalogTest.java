@@ -110,6 +110,29 @@ class ProviderCatalogTest {
     }
 
     @Test
+    @DisplayName("email providers expose the configuration-aware email-domain safety policy")
+    void emailProvidersExposeEmailDomainSafetyPolicy() {
+        for (String key : List.of("person.email", "company.email")) {
+            ProviderDescriptor<?> descriptor = descriptorFor(key);
+            ProviderSafetyMetadata metadata = descriptor.getSafetyMetadata();
+
+            assertEquals(ProviderValidity.GUARANTEED, metadata.formatValidity(), key);
+            assertEquals(ProviderValidity.NOT_APPLICABLE, metadata.checksumValidity(), key);
+            assertEquals(ProviderValidity.CONFIGURATION_DEPENDENT, metadata.semanticPlausibility(), key);
+            assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, metadata.testSafety(), key);
+            assertEquals(ProviderSafetyPolicy.EMAIL_DOMAIN, metadata.safetyPolicy().orElseThrow(), key);
+            assertEquals(metadata, descriptor.getSchemaProjections().getFirst().getSafetyMetadata(), key);
+        }
+        assertEquals("email.domain-policy", ProviderSafetyPolicy.EMAIL_DOMAIN.getSetting());
+        assertEquals("TEST_SAFE_RESERVED_DOMAINS", ProviderSafetyPolicy.EMAIL_DOMAIN.selectedValue(GeneratorConfig.defaults()));
+        assertEquals("REALISTIC_UNCLASSIFIED",
+                     ProviderSafetyPolicy.EMAIL_DOMAIN.selectedValue(
+                         GeneratorConfig.builder()
+                                        .emailDomainPolicy(io.github.frikit.krandom.generator.EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                                        .build()));
+    }
+
+    @Test
     @DisplayName("unclassified descriptors make no validity or test-safety claim")
     void unclassifiedDescriptorsMakeNoSafetyClaim() {
         ProviderSafetyMetadata metadata = descriptor("text", List.of()).getSafetyMetadata();

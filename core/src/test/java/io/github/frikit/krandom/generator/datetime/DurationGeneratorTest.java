@@ -96,4 +96,29 @@ class DurationGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> gen.between(Duration.ofSeconds(-1), Duration.ofSeconds(1)));
         assertThrows(IllegalArgumentException.class, () -> gen.between(Duration.ofSeconds(5), Duration.ofSeconds(1)));
     }
+
+    @Test
+    @DisplayName("the full non-negative second range samples without overflow")
+    void fullSecondRangeDoesNotOverflow() {
+        DurationGenerator gen = new DurationGenerator(GeneratorConfig.builder().seed(13L).build());
+
+        for (int i = 0; i < 1_000; i++) {
+            Duration duration = gen.betweenSeconds(0, Long.MAX_VALUE);
+            assertTrue(!duration.isNegative(), duration.toString());
+        }
+        Duration full = new DurationGenerator(GeneratorConfig.builder().seed(13L).build())
+            .between(Duration.ZERO, Duration.ofSeconds(Long.MAX_VALUE));
+        assertEquals(new DurationGenerator(GeneratorConfig.builder().seed(13L).build()).betweenSeconds(0, Long.MAX_VALUE),
+                     full);
+    }
+
+    @Test
+    @DisplayName("ranges that fit keep their seeded values")
+    void fittingRangesKeepSeededValues() {
+        DurationGenerator gen = new DurationGenerator(GeneratorConfig.builder().seed(17L).build());
+        java.util.Random reference = new java.util.Random(17L);
+
+        assertEquals(Duration.ofSeconds(10 + reference.nextLong(91)), gen.betweenSeconds(10, 100));
+        assertEquals(Duration.ofSeconds(1 + reference.nextLong(Long.MAX_VALUE)), gen.betweenSeconds(1, Long.MAX_VALUE));
+    }
 }

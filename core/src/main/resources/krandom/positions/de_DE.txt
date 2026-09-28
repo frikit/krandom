@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Softwareentwickler
+Produktmanager
+Datenanalyst
+UX-Designer
+Key-Account-Manager
+Marketingspezialist
+Businessanalyst
+DevOps-Ingenieur
+Site-Reliability-Ingenieur
+Entwicklungsleiter
+Lösungsarchitekt
+Technischer Redakteur
+Testingenieur
+Projektmanager
+Sicherheitsingenieur
+Datenbankadministrator

@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Books
+Electronics
+Outdoors
+Home
+Toys
+Garden

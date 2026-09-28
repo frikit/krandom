@@ -46,9 +46,9 @@ public final class PersonInfoGenerator implements Generator<PersonInfo> {
      */
     public PersonInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.contactInfoGenerator = new ContactInfoGenerator(config);
-        this.addressInfoGenerator = new AddressInfoGenerator(config);
-        this.passwordGenerator = new PasswordGenerator(config);
+        this.contactInfoGenerator = new ContactInfoGenerator(config.forChildStream("contactInfo"));
+        this.addressInfoGenerator = new AddressInfoGenerator(config.forChildStream("addressInfo"));
+        this.passwordGenerator = new PasswordGenerator(config.forChildStream("password"));
     }
 
     @Override

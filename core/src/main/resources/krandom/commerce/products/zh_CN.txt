@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+椅子
+桌子
+电脑
+键盘
+鞋子
+手表

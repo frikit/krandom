@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Szoftverfejlesztő
+Termékmenedzser
+Adatelemző
+UX-tervező
+Kulcsügyfél-menedzser
+Marketingszakértő
+Üzleti elemző
+DevOps-mérnök
+Üzemeltetés-megbízhatósági mérnök
+Fejlesztési vezető
+Megoldástervező
+Műszaki író
+Tesztmérnök
+Projektmenedzser
+Biztonsági mérnök
+Adatbázis-adminisztrátor

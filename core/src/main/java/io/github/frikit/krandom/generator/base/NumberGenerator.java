@@ -26,6 +26,16 @@ public final class NumberGenerator implements Generator<Number>, Seedable {
         this(GeneratorConfig.defaults());
     }
 
+    /**
+     * Creates a seeded number generator.
+     *
+     * @param seed raw seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #NumberGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public NumberGenerator(long seed) {
         this(GeneratorConfig.builder().seed(seed).build());
     }

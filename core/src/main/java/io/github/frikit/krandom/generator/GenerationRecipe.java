@@ -397,6 +397,10 @@ public final class GenerationRecipe {
         if (streamPolicy != null) {
             builder.objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(streamPolicy));
         }
+        String childStreamPolicy = settings.get("child-stream-policy");
+        if (childStreamPolicy != null) {
+            builder.childStreamPolicy(ChildStreamPolicy.valueOf(childStreamPolicy));
+        }
         String charset = settings.get("charset");
         if (charset != null) {
             builder.charset(Charset.forName(charset));
@@ -424,6 +428,7 @@ public final class GenerationRecipe {
         applyPhoneNumberSafetyPolicy(builder);
         applyNationalIdSafetyPolicy(builder);
         applyIdentityDocumentSafetyPolicy(builder);
+        applyEmailDomainPolicy(builder);
         applyEnum(builder, "object.semantic-mode", builder::objectSemanticMode);
         applyDouble(builder, "object.null-probability", builder::objectNullProbability);
         applyDouble(builder, "object.optional-empty-probability", builder::objectOptionalEmptyProbability);
@@ -508,6 +513,15 @@ public final class GenerationRecipe {
         builder.identityDocumentSafetyPolicy(policy);
     }
 
+    private void applyEmailDomainPolicy(GeneratorConfig.Builder builder) {
+        // Recipes written before the policy existed replay the legacy mailbox-provider domains.
+        String value = settings.get("email.domain-policy");
+        EmailDomainPolicy policy = value == null
+            ? EmailDomainPolicy.REALISTIC_UNCLASSIFIED
+            : EmailDomainPolicy.valueOf(value);
+        builder.emailDomainPolicy(policy);
+    }
+
     private void applyDateRange(GeneratorConfig.Builder builder) {
         String min = settings.get("object.date-min");
         String max = settings.get("object.date-max");
@@ -538,14 +552,14 @@ public final class GenerationRecipe {
 
     private static boolean isKnownSetting(String key) {
         return switch (key) {
-            case "object.field-stream-policy", "charset", "string.min", "string.max", "collection.min", "collection.max", "object.max-depth",
+            case "object.field-stream-policy", "child-stream-policy", "charset", "string.min", "string.max", "collection.min", "collection.max", "object.max-depth",
                  "object.pool-size", "object.override-default-initialization", "object.ignore-errors",
                  "object.semantic-mode", "object.null-probability", "object.optional-empty-probability",
                  "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
                  "payment.card-safety-policy", "banking.safety-policy", "phone-number.safety-policy",
                  "national-id.safety-policy", "identity-document.safety-policy",
                  "business-tax-identifier.safety-policy", "crypto-address.safety-policy",
-                 "securities-identifier.safety-policy" -> true;
+                 "securities-identifier.safety-policy", "email.domain-policy" -> true;
             default -> false;
         };
     }

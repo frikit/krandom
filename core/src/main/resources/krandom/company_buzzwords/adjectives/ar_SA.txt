@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+متعددة المنصات
+متكاملة
+رائدة
+سلسة
+سحابية
+قائمة على البيانات

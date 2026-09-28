@@ -1,0 +1,7 @@
+# Product adjectives, one per line.
+קומפקט
+אלגנט
+כפרי
+פרקטי
+פרימיום
+ארגונומי

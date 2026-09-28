@@ -1,0 +1,7 @@
+# Product colors, one per line.
+แดง
+น้ำเงิน
+เขียว
+ดำ
+ขาว
+เงิน

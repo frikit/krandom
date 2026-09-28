@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+解决方案
+工作流
+基础设施
+平台
+体验
+能力

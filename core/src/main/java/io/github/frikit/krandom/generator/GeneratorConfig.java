@@ -126,6 +126,8 @@ public final class GeneratorConfig {
     private final PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
     private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
+    private final EmailDomainPolicy emailDomainPolicy;
+    private final ChildStreamPolicy childStreamPolicy;
     private final String       providerDatasetVersion;
     private final List<KRandomModule> modules;
     private final KRandomExtensionRegistry extensionRegistry;
@@ -181,6 +183,8 @@ public final class GeneratorConfig {
         this.phoneNumberSafetyPolicy = b.phoneNumberSafetyPolicy;
         this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
         this.identityDocumentSafetyPolicy = b.identityDocumentSafetyPolicy;
+        this.emailDomainPolicy = b.emailDomainPolicy;
+        this.childStreamPolicy = b.childStreamPolicy;
         this.providerDatasetVersion = b.providerDatasetVersion;
     }
 
@@ -222,6 +226,38 @@ public final class GeneratorConfig {
      */
     public ObjectFieldStreamPolicy getObjectFieldStreamPolicy() {
         return objectFieldStreamPolicy;
+    }
+
+    /**
+     * Returns the child-stream policy used by composite generators. The default preserves legacy
+     * output.
+     *
+     * @return configured child-stream policy
+     */
+    public ChildStreamPolicy getChildStreamPolicy() {
+        return childStreamPolicy;
+    }
+
+    /**
+     * Returns the configuration a composite generator passes to one named child generator.
+     *
+     * <p>Under {@link ChildStreamPolicy#LEGACY} this configuration is returned unchanged, so
+     * children of a seeded composite start in the same state as each other. Under
+     * {@link ChildStreamPolicy#INDEPENDENT} the result is a copy whose numeric seed is
+     * {@link GenerationRecipe#deriveChildSeed(long, String)} of this seed and {@code streamName};
+     * the copy keeps the independent policy, so nested composites derive their own children from
+     * it. Stream names are stable structural identifiers, unique among one parent's children.
+     *
+     * @param streamName non-blank, stable name of the child stream
+     * @return configuration for the child generator
+     * @throws IllegalArgumentException if {@code streamName} is blank or spans lines
+     */
+    public GeneratorConfig forChildStream(String streamName) {
+        Objects.requireNonNull(streamName, "streamName must not be null");
+        if (childStreamPolicy == ChildStreamPolicy.LEGACY) {
+            return this;
+        }
+        return toBuilder().seed(GenerationRecipe.deriveChildSeed(seed.getAsLong(), streamName)).build();
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────
@@ -327,9 +363,10 @@ public final class GeneratorConfig {
     /**
      * Enforceable policy for locale-style phone-number output.
      *
-     * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for US locales.
-     * Other locales and custom phone-number templates remain unclassified rather than
-     * being presented as non-routable.
+     * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for North American
+     * Numbering Plan (NANP) locales, which resolve to the United States or Canada ({@code en_US},
+     * {@code en_CA}, {@code fr_CA}, and the language-only {@code en}). Other locales and custom
+     * phone-number templates remain unclassified rather than being presented as non-routable.
      */
     public PhoneNumberSafetyPolicy getPhoneNumberSafetyPolicy() {
         return phoneNumberSafetyPolicy;
@@ -356,6 +393,21 @@ public final class GeneratorConfig {
      */
     public IdentityDocumentSafetyPolicy getIdentityDocumentSafetyPolicy() {
         return identityDocumentSafetyPolicy;
+    }
+
+    /**
+     * Enforceable policy for the domains of generated email addresses.
+     *
+     * <p>The default {@link EmailDomainPolicy#TEST_SAFE_RESERVED_DOMAINS} uses only reserved
+     * domains ({@code example.com}, {@code example.net}, {@code example.org}, and the {@code .test}
+     * top-level domain) so generated addresses can never reach a real mailbox.
+     * {@link EmailDomainPolicy#REALISTIC_UNCLASSIFIED} is an explicit opt-in for popular
+     * mailbox-provider domains in isolated fixtures.
+     *
+     * @return configured email-domain policy
+     */
+    public EmailDomainPolicy getEmailDomainPolicy() {
+        return emailDomainPolicy;
     }
 
     /**
@@ -689,6 +741,7 @@ public final class GeneratorConfig {
                                                                      nationalIdSafetyPolicy.name())
                                                             .setting("identity-document.safety-policy",
                                                                      identityDocumentSafetyPolicy.name())
+                                                            .setting("email.domain-policy", emailDomainPolicy.name())
                                                             .setting("charset", charset.name())
                                                             .setting("string.min", Integer.toString(minStringLength))
                                                             .setting("string.max", Integer.toString(maxStringLength))
@@ -717,6 +770,9 @@ public final class GeneratorConfig {
         }
         if (objectFieldStreamPolicy != ObjectFieldStreamPolicy.LEGACY) {
             recipe.setting("object.field-stream-policy", objectFieldStreamPolicy.name());
+        }
+        if (childStreamPolicy != ChildStreamPolicy.LEGACY) {
+            recipe.setting("child-stream-policy", childStreamPolicy.name());
         }
         return Optional.of(recipe.build());
     }
@@ -830,8 +886,10 @@ public final class GeneratorConfig {
         private SemanticFieldRegistry objectSemanticRegistry = SemanticFieldRegistry.defaults();
         private double            objectNullProbability;
         private double            objectOptionalEmptyProbability;
+        // A List keeps the declaration order; Set.of iteration order is randomized per JVM and
+        // would make the serialized default recipe differ between runs.
         private Set<String>       objectUniqueFieldNames = new LinkedHashSet<>(
-            Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"));
+            List.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"));
         private int               objectUniquenessMaxAttempts = DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS;
         private final Map<Class<?>, Generator<?>>           objectTypeOverrides           = new HashMap<>();
         private final Map<String, Generator<?>>             objectFieldOverrides          = new HashMap<>();
@@ -861,6 +919,8 @@ public final class GeneratorConfig {
         private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
+        private EmailDomainPolicy emailDomainPolicy = EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
+        private ChildStreamPolicy childStreamPolicy = ChildStreamPolicy.LEGACY;
         private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
         private final List<KRandomModule> modules = new ArrayList<>();
 
@@ -915,6 +975,8 @@ public final class GeneratorConfig {
             this.phoneNumberSafetyPolicy = source.phoneNumberSafetyPolicy;
             this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
             this.identityDocumentSafetyPolicy = source.identityDocumentSafetyPolicy;
+            this.emailDomainPolicy = source.emailDomainPolicy;
+            this.childStreamPolicy = source.childStreamPolicy;
             this.providerDatasetVersion = source.providerDatasetVersion;
             this.modules.addAll(source.modules);
         }
@@ -1023,6 +1085,9 @@ public final class GeneratorConfig {
         public Builder stringLength(int min, int max) {
             if (min < 1) throw new IllegalArgumentException("min string length must be >= 1");
             if (max < min) throw new IllegalArgumentException("max string length must be >= min");
+            if (max == Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("max string length must be below Integer.MAX_VALUE");
+            }
             this.minStringLength = min;
             this.maxStringLength = max;
             return this;
@@ -1034,6 +1099,9 @@ public final class GeneratorConfig {
         public Builder collectionSize(int min, int max) {
             if (min < 0) throw new IllegalArgumentException("min collection size must be >= 0");
             if (max < min) throw new IllegalArgumentException("max collection size must be >= min");
+            if (max == Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("max collection size must be below Integer.MAX_VALUE");
+            }
             this.minCollectionSize = min;
             this.maxCollectionSize = max;
             return this;
@@ -1155,6 +1223,23 @@ public final class GeneratorConfig {
          */
         public Builder objectFieldStreamPolicy(ObjectFieldStreamPolicy policy) {
             this.objectFieldStreamPolicy = Objects.requireNonNull(policy, "objectFieldStreamPolicy");
+            return this;
+        }
+
+        /**
+         * Chooses how composite generators seed their child generators.
+         *
+         * <p>{@link ChildStreamPolicy#INDEPENDENT} derives one named stream per child so seeded
+         * sibling values (for example the payment, invoice, and order identifiers of one payment)
+         * are not correlated. It requires a numeric or textual seed at build time and is recorded
+         * in portable recipes. {@link ChildStreamPolicy#LEGACY} preserves the existing default
+         * output.
+         *
+         * @param policy non-null child-stream policy
+         * @return this builder
+         */
+        public Builder childStreamPolicy(ChildStreamPolicy policy) {
+            this.childStreamPolicy = Objects.requireNonNull(policy, "childStreamPolicy");
             return this;
         }
 
@@ -1446,8 +1531,10 @@ public final class GeneratorConfig {
         /**
          * Selects the enforceable policy for locale-style phone-number output.
          *
-         * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for US locales.
-         * Other locales and custom templates remain unclassified.
+         * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for North American
+         * Numbering Plan (NANP) locales, which resolve to the United States or Canada
+         * ({@code en_US}, {@code en_CA}, {@code fr_CA}, and the language-only {@code en}). Other
+         * locales and custom templates remain unclassified.
          *
          * @param phoneNumberSafetyPolicy locale-style phone-number safety policy
          * @return this builder
@@ -1487,6 +1574,21 @@ public final class GeneratorConfig {
         public Builder identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy) {
             this.identityDocumentSafetyPolicy = Objects.requireNonNull(
                 identityDocumentSafetyPolicy, "identityDocumentSafetyPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for the domains of generated email addresses.
+         *
+         * <p>The default is {@link EmailDomainPolicy#TEST_SAFE_RESERVED_DOMAINS}. Select
+         * {@link EmailDomainPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures that never
+         * send mail; it restores popular mailbox-provider domains such as {@code gmail.com}.
+         *
+         * @param emailDomainPolicy email-domain policy
+         * @return this builder
+         */
+        public Builder emailDomainPolicy(EmailDomainPolicy emailDomainPolicy) {
+            this.emailDomainPolicy = Objects.requireNonNull(emailDomainPolicy, "emailDomainPolicy must not be null");
             return this;
         }
 
@@ -1548,6 +1650,9 @@ public final class GeneratorConfig {
             if (objectFieldStreamPolicy == ObjectFieldStreamPolicy.INDEPENDENT
                 && effectiveSeed(numericSeed, stringSeed).isEmpty()) {
                 throw new IllegalStateException("Independent object field streams require a numeric or textual seed");
+            }
+            if (childStreamPolicy == ChildStreamPolicy.INDEPENDENT && effectiveSeed(numericSeed, stringSeed).isEmpty()) {
+                throw new IllegalStateException("Independent child streams require a numeric or textual seed");
             }
             return new GeneratorConfig(this);
         }

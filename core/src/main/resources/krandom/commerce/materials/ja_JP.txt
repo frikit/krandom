@@ -1,0 +1,7 @@
+# Product materials, one per line.
+スチール
+木
+コンクリート
+プラスチック
+御影石
+綿

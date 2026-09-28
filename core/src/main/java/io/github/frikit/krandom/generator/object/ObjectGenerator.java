@@ -31,6 +31,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
@@ -61,6 +62,13 @@ import java.util.stream.Collectors;
  * constructor argument receives a named child stream. Adding an unrelated member therefore does
  * not perturb existing members; nested objects establish their own member streams from the parent
  * member seed. Caller-owned, secure, and unseeded configurations retain sequential behavior.
+ *
+ * <p><b>Unique fields</b> ({@code id} and {@code email} unless configured with
+ * {@link GeneratorConfig.Builder#objectUniqueFields(String...)}) stay unique across every object a
+ * generator produces, including nested objects. The generator remembers each value it hands out, so
+ * memory grows with the number of generated unique values: create a new generator to start a fresh
+ * uniqueness scope, or configure no unique fields ({@code objectUniqueFields()}) for unbounded
+ * streams.
  *
  * <p><b>Usage</b>
  * <pre>{@code
@@ -500,9 +508,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private T generateClass(FieldGeneratorResolver resolver,
                             SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
-        ObjectConstructionAdapter adapter = constructionAdapterFor(type);
-        if (adapter != null) {
-            return constructWithAdapter(adapter, resolver);
+        Optional<ObjectConstructionAdapter> adapter =
+            uniqueFieldTracker.constructionAdapter(type, ObjectGenerator::constructionAdapterFor);
+        if (adapter.isPresent()) {
+            return constructWithAdapter(adapter.get(), resolver);
         }
         if (requiresKotlinConstructionAdapter(type)) {
             throw new ReflectiveOperationException(
@@ -531,7 +540,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     depth,
                     element,
                     memberStreamIdentity(type, "constructor", memberName)),
-                this::hasExplicitConstructionOverride));
+                this::hasExplicitConstructionOverride,
+                this::isExcludedConstructionMember));
             if (value == null) {
                 throw new IllegalStateException(adapter.getClass().getName() + " returned null");
             }
@@ -546,6 +556,21 @@ public final class ObjectGenerator<T> implements Generator<T> {
         } catch (RuntimeException e) {
             throw constructionFailure(e);
         }
+    }
+
+    /**
+     * Applies the same field-exclusion rules as record and class population to a constructor
+     * parameter, through the property's backing field declared on the type or a superclass.
+     */
+    private boolean isExcludedConstructionMember(String memberName) {
+        for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
+            try {
+                return config.shouldExclude(current.getDeclaredField(memberName));
+            } catch (NoSuchFieldException notDeclaredHere) {
+                // Keep looking in the superclass.
+            }
+        }
+        return false;
     }
 
     private boolean hasExplicitConstructionOverride(String memberName, Class<?> rawType) {

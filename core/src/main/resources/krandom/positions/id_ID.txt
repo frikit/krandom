@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Insinyur perangkat lunak
+Manajer produk
+Analis data
+Desainer UX
+Eksekutif akun
+Spesialis pemasaran
+Analis bisnis
+Insinyur DevOps
+Insinyur keandalan situs
+Manajer teknik
+Arsitek solusi
+Penulis teknis
+Insinyur penjaminan mutu
+Manajer proyek
+Insinyur keamanan
+Administrator basis data

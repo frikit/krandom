@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Bøger
+Elektronik
+Friluftsliv
+Bolig
+Legetøj
+Have

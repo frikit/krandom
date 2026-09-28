@@ -26,9 +26,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -55,23 +53,23 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("utility methods normalize strings and URLs")
     void utilityMethodsNormalizeStringsAndUrls() throws Exception {
-        assertNull(invokeStatic("normalizeDomain", new Class<?>[] { String.class }, (Object) null));
-        assertEquals("example.com", invokeStatic("normalizeDomain", new Class<?>[] { String.class }, " WWW.Example.Com "));
-        assertNull(invokeStatic("normalizeDomain", new Class<?>[] { String.class }, " www. "));
-        assertNull(invokeStatic("emailDomain", new Class<?>[] { String.class }, (Object) null));
-        assertNull(invokeStatic("emailDomain", new Class<?>[] { String.class }, "missing-at"));
-        assertNull(invokeStatic("emailDomain", new Class<?>[] { String.class }, "user@"));
-        assertEquals("example.com", invokeStatic("emailDomain", new Class<?>[] { String.class }, "user@example.com"));
-        assertNull(invokeStatic("urlHost", new Class<?>[] { String.class }, (Object) null));
-        assertEquals("www.example.com", invokeStatic("urlHost", new Class<?>[] { String.class }, "https://www.example.com/path"));
-        assertNull(invokeStatic("urlHost", new Class<?>[] { String.class }, "not a uri"));
-        assertNull(invokeStatic("urlHost", new Class<?>[] { String.class }, "mailto:test@example.com"));
-        assertNull(invokeStatic("slugFragment", new Class<?>[] { String.class }, (Object) null));
-        assertEquals("alicesmith", invokeStatic("slugFragment", new Class<?>[] { String.class }, "Alice Smith"));
-        assertNull(invokeStatic("slugFragment", new Class<?>[] { String.class }, "ÄÖÜ"));
+        assertNull(SemanticCoherenceAdjuster.normalizeDomain(null));
+        assertEquals("example.com", SemanticCoherenceAdjuster.normalizeDomain(" WWW.Example.Com "));
+        assertNull(SemanticCoherenceAdjuster.normalizeDomain(" www. "));
+        assertNull(SemanticCoherenceAdjuster.emailDomain(null));
+        assertNull(SemanticCoherenceAdjuster.emailDomain("missing-at"));
+        assertNull(SemanticCoherenceAdjuster.emailDomain("user@"));
+        assertEquals("example.com", SemanticCoherenceAdjuster.emailDomain("user@example.com"));
+        assertNull(SemanticCoherenceAdjuster.urlHost(null));
+        assertEquals("www.example.com", SemanticCoherenceAdjuster.urlHost("https://www.example.com/path"));
+        assertNull(SemanticCoherenceAdjuster.urlHost("not a uri"));
+        assertNull(SemanticCoherenceAdjuster.urlHost("mailto:test@example.com"));
+        assertNull(SemanticCoherenceAdjuster.slugFragment(null));
+        assertEquals("alicesmith", SemanticCoherenceAdjuster.slugFragment("Alice Smith"));
+        assertNull(SemanticCoherenceAdjuster.slugFragment("ÄÖÜ"));
         assertEquals("alice.smith1@example.com",
-                     invokeStatic("uniquifyString", new Class<?>[] { String.class, int.class }, "alice.smith@example.com", 1));
-        assertEquals("fullName1", invokeStatic("uniquifyString", new Class<?>[] { String.class, int.class }, "fullName", 1));
+                     SemanticCoherenceAdjuster.uniquifyString("alice.smith@example.com", 1));
+        assertEquals("fullName1", SemanticCoherenceAdjuster.uniquifyString("fullName", 1));
     }
 
     @Test
@@ -80,73 +78,68 @@ class SemanticCoherenceAdjusterTest {
         ManualNameHolder nameHolder = new ManualNameHolder();
         nameHolder.firstName = "Alice";
         nameHolder.lastName = "Smith";
-        assertEquals("alice.smith", invokeStatic("emailLocalPart", new Class<?>[] { java.util.Map.class },
-                                                 slotMap(nameHolder, "firstName", "lastName")));
+        assertEquals("alice.smith", SemanticCoherenceAdjuster.emailLocalPart(slotMap(nameHolder, "firstName", "lastName")));
 
         ManualNameHolder prince = new ManualNameHolder();
         prince.fullName = "Prince";
-        assertEquals("prince", invokeStatic("emailLocalPart", new Class<?>[] { java.util.Map.class },
-                                            slotMap(prince, "fullName")));
+        assertEquals("prince", SemanticCoherenceAdjuster.emailLocalPart(slotMap(prince, "fullName")));
 
         ManualNameHolder ada = new ManualNameHolder();
         ada.fullName = "Ada Lovelace";
-        assertEquals("ada.lovelace", invokeStatic("emailLocalPart", new Class<?>[] { java.util.Map.class },
-                                                  slotMap(ada, "fullName")));
+        assertEquals("ada.lovelace", SemanticCoherenceAdjuster.emailLocalPart(slotMap(ada, "fullName")));
 
         ManualNameHolder invalidFirst = new ManualNameHolder();
         invalidFirst.firstName = "ÄÖÜ";
         invalidFirst.lastName = "Smith";
-        assertNull(invokeStatic("emailLocalPart", new Class<?>[] { java.util.Map.class },
-                                slotMap(invalidFirst, "firstName", "lastName")));
+        assertNull(SemanticCoherenceAdjuster.emailLocalPart(slotMap(invalidFirst, "firstName", "lastName")));
 
         ManualNameHolder invalidLast = new ManualNameHolder();
         invalidLast.firstName = "Ada";
         invalidLast.lastName = "ÄÖÜ";
-        assertNull(invokeStatic("emailLocalPart", new Class<?>[] { java.util.Map.class },
-                                slotMap(invalidLast, "firstName", "lastName")));
+        assertNull(SemanticCoherenceAdjuster.emailLocalPart(slotMap(invalidLast, "firstName", "lastName")));
 
         ManualNameHolder invalidFull = new ManualNameHolder();
         invalidFull.fullName = "ÄÖÜ Smith";
-        assertNull(invokeStatic("emailLocalPart", new Class<?>[] { java.util.Map.class },
-                                slotMap(invalidFull, "fullName")));
+        assertNull(SemanticCoherenceAdjuster.emailLocalPart(slotMap(invalidFull, "fullName")));
 
         ManualNameHolder invalidFullLast = new ManualNameHolder();
         invalidFullLast.fullName = "Ada ÄÖÜ";
-        assertNull(invokeStatic("emailLocalPart", new Class<?>[] { java.util.Map.class },
-                                slotMap(invalidFullLast, "fullName")));
+        assertNull(SemanticCoherenceAdjuster.emailLocalPart(slotMap(invalidFullLast, "fullName")));
 
-        assertNull(invokeStatic("emailLocalPart", new Class<?>[] { java.util.Map.class }, Map.of()));
+        assertNull(SemanticCoherenceAdjuster.emailLocalPart(Map.of()));
 
         Instant instant = Instant.parse("2026-04-20T12:34:56Z");
-        assertSame(instant, invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class }, instant, Instant.class));
+        assertSame(instant, SemanticCoherenceAdjuster.fromInstant(instant, Instant.class));
         assertEquals(LocalDate.of(2026, 4, 20),
-                     invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class }, instant, LocalDate.class));
+                     SemanticCoherenceAdjuster.fromInstant(instant, LocalDate.class));
         assertEquals(LocalDateTime.of(2026, 4, 20, 12, 34, 56),
-                     invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class }, instant, LocalDateTime.class));
+                     SemanticCoherenceAdjuster.fromInstant(instant, LocalDateTime.class));
         assertEquals(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC),
-                     invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class }, instant, OffsetDateTime.class));
+                     SemanticCoherenceAdjuster.fromInstant(instant, OffsetDateTime.class));
         assertEquals(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC),
-                     invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class }, instant, ZonedDateTime.class));
+                     SemanticCoherenceAdjuster.fromInstant(instant, ZonedDateTime.class));
         assertEquals(java.util.Date.from(instant),
-                     invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class }, instant, java.util.Date.class));
+                     SemanticCoherenceAdjuster.fromInstant(instant, java.util.Date.class));
         assertEquals(java.sql.Date.valueOf(LocalDate.of(2026, 4, 20)),
-                     invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class }, instant, java.sql.Date.class));
+                     SemanticCoherenceAdjuster.fromInstant(instant, java.sql.Date.class));
         assertEquals(java.sql.Timestamp.from(instant),
-                     invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class }, instant, java.sql.Timestamp.class));
+                     SemanticCoherenceAdjuster.fromInstant(instant, java.sql.Timestamp.class));
 
-        assertEquals(instant, invokeStatic("toInstant", new Class<?>[] { Object.class }, instant));
+        assertEquals(instant, SemanticCoherenceAdjuster.toInstant(instant));
         assertEquals(Instant.parse("2026-04-20T00:00:00Z"),
-                     invokeStatic("toInstant", new Class<?>[] { Object.class }, LocalDate.of(2026, 4, 20)));
-        assertEquals(instant, invokeStatic("toInstant", new Class<?>[] { Object.class }, LocalDateTime.ofInstant(instant, ZoneOffset.UTC)));
-        assertEquals(instant, invokeStatic("toInstant", new Class<?>[] { Object.class }, OffsetDateTime.ofInstant(instant, ZoneOffset.UTC)));
-        assertEquals(instant, invokeStatic("toInstant", new Class<?>[] { Object.class }, ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)));
-        assertEquals(instant, invokeStatic("toInstant", new Class<?>[] { Object.class }, java.util.Date.from(instant)));
-        assertNull(invokeStatic("toInstant", new Class<?>[] { Object.class }, 123L));
+                     SemanticCoherenceAdjuster.toInstant(LocalDate.of(2026, 4, 20)));
+        assertEquals(instant, SemanticCoherenceAdjuster.toInstant(LocalDateTime.ofInstant(instant, ZoneOffset.UTC)));
+        assertEquals(instant, SemanticCoherenceAdjuster.toInstant(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC)));
+        assertEquals(instant, SemanticCoherenceAdjuster.toInstant(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)));
+        assertEquals(instant, SemanticCoherenceAdjuster.toInstant(java.util.Date.from(instant)));
+        assertNull(SemanticCoherenceAdjuster.toInstant(123L));
 
-        ObjectGenerationException exception = assertThrows(ObjectGenerationException.class,
-                                                           () -> invokeStatic("fromInstant", new Class<?>[] { Instant.class, Class.class },
-                                                                              instant, String.class));
-        assertTrue(exception.getMessage().contains("Unsupported semantic timestamp type"));
+        java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.of(2026, 1, 2));
+        assertEquals(LocalDate.of(2026, 1, 2).atStartOfDay().toInstant(ZoneOffset.UTC),
+                     SemanticCoherenceAdjuster.toInstant(sqlDate));
+        assertNull(SemanticCoherenceAdjuster.toInstant(java.sql.Time.valueOf("10:15:30")));
+
+        assertNull(SemanticCoherenceAdjuster.fromInstant(instant, String.class));
     }
 
     @Test
@@ -154,50 +147,61 @@ class SemanticCoherenceAdjusterTest {
     void ageAndStatusUtilityMethodsCoverConversionAndFallbackBranches() throws Exception {
         Instant instant = Instant.parse("2026-04-20T12:34:56Z");
         assertEquals(LocalDate.of(2026, 4, 20),
-                     invokeStatic("toLocalDate", new Class<?>[] { Object.class }, LocalDate.of(2026, 4, 20)));
+                     SemanticCoherenceAdjuster.toLocalDate(LocalDate.of(2026, 4, 20)));
         assertEquals(LocalDate.of(2026, 4, 20),
-                     invokeStatic("toLocalDate", new Class<?>[] { Object.class }, java.util.Date.from(instant)));
-        assertNull(invokeStatic("toLocalDate", new Class<?>[] { Object.class }, "bad-date"));
+                     SemanticCoherenceAdjuster.toLocalDate(java.util.Date.from(instant)));
+        assertNull(SemanticCoherenceAdjuster.toLocalDate("bad-date"));
 
-        assertEquals(42, invokeStatic("toInteger", new Class<?>[] { Object.class }, 42));
-        assertEquals(42, invokeStatic("toInteger", new Class<?>[] { Object.class }, 42L));
-        assertEquals(42, invokeStatic("toInteger", new Class<?>[] { Object.class }, (short) 42));
-        assertEquals(42, invokeStatic("toInteger", new Class<?>[] { Object.class }, " 42 "));
-        assertNull(invokeStatic("toInteger", new Class<?>[] { Object.class }, Long.MIN_VALUE));
-        assertNull(invokeStatic("toInteger", new Class<?>[] { Object.class }, Long.MAX_VALUE));
-        assertNull(invokeStatic("toInteger", new Class<?>[] { Object.class }, "forty-two"));
-        assertNull(invokeStatic("toInteger", new Class<?>[] { Object.class }, 42.0));
+        assertEquals(42, SemanticCoherenceAdjuster.toInteger(42));
+        assertEquals(42, SemanticCoherenceAdjuster.toInteger(42L));
+        assertEquals(42, SemanticCoherenceAdjuster.toInteger((short) 42));
+        assertEquals(42, SemanticCoherenceAdjuster.toInteger(" 42 "));
+        assertNull(SemanticCoherenceAdjuster.toInteger(Long.MIN_VALUE));
+        assertNull(SemanticCoherenceAdjuster.toInteger(Long.MAX_VALUE));
+        assertNull(SemanticCoherenceAdjuster.toInteger("forty-two"));
+        assertEquals(42, SemanticCoherenceAdjuster.toInteger((byte) 42));
+        assertEquals(42, SemanticCoherenceAdjuster.toInteger(42.9));
+        assertEquals(42, SemanticCoherenceAdjuster.toInteger(42.5f));
+        assertNull(SemanticCoherenceAdjuster.toInteger(Double.NaN));
+        assertNull(SemanticCoherenceAdjuster.toInteger(1e10));
+        assertNull(SemanticCoherenceAdjuster.toInteger(new BigDecimal("42")));
 
-        assertEquals(Boolean.TRUE, invokeStatic("toBoolean", new Class<?>[] { Object.class }, Boolean.TRUE));
-        assertNull(invokeStatic("toBoolean", new Class<?>[] { Object.class }, "true"));
+        assertEquals(Boolean.TRUE, SemanticCoherenceAdjuster.toBoolean(Boolean.TRUE));
+        assertNull(SemanticCoherenceAdjuster.toBoolean("true"));
 
-        assertEquals(42, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, int.class));
-        assertEquals(42L, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, long.class));
-        assertEquals(42L, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, Long.class));
-        assertEquals((short) 42, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, short.class));
-        assertEquals((short) 42, invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, Short.class));
-        assertEquals("42", invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, String.class));
+        assertEquals(42, SemanticCoherenceAdjuster.fromAge(42, int.class));
+        assertEquals(42L, SemanticCoherenceAdjuster.fromAge(42, long.class));
+        assertEquals(42L, SemanticCoherenceAdjuster.fromAge(42, Long.class));
+        assertEquals((short) 42, SemanticCoherenceAdjuster.fromAge(42, short.class));
+        assertEquals((short) 42, SemanticCoherenceAdjuster.fromAge(42, Short.class));
+        assertEquals("42", SemanticCoherenceAdjuster.fromAge(42, String.class));
 
-        ObjectGenerationException ageException =
-            assertThrows(ObjectGenerationException.class,
-                         () -> invokeStatic("fromAge", new Class<?>[] { int.class, Class.class }, 42, Double.class));
-        assertTrue(ageException.getMessage().contains("Unsupported semantic age type"));
+        assertEquals(42.0, SemanticCoherenceAdjuster.fromAge(42, Double.class));
+        assertEquals(42.0f, SemanticCoherenceAdjuster.fromAge(42, float.class));
+        assertEquals((byte) 42, SemanticCoherenceAdjuster.fromAge(42, byte.class));
+        assertNull(SemanticCoherenceAdjuster.fromAge(200, Byte.class));
+        assertEquals(Byte.MIN_VALUE, SemanticCoherenceAdjuster.fromAge(Byte.MIN_VALUE, byte.class));
+        assertNull(SemanticCoherenceAdjuster.fromAge(-129, byte.class));
+        assertEquals(Short.MIN_VALUE, SemanticCoherenceAdjuster.fromAge(Short.MIN_VALUE, short.class));
+        assertNull(SemanticCoherenceAdjuster.fromAge(Short.MAX_VALUE + 1, short.class));
+        assertNull(SemanticCoherenceAdjuster.fromAge(Short.MIN_VALUE - 1, Short.class));
+        assertNull(SemanticCoherenceAdjuster.fromAge(42, java.math.BigDecimal.class));
 
-        assertNull(invokeStatic("activeFromStatus", new Class<?>[] { Object.class }, (Object) null));
-        assertEquals(Boolean.TRUE, invokeStatic("activeFromStatus", new Class<?>[] { Object.class }, "ENABLED"));
-        assertEquals(Boolean.FALSE, invokeStatic("activeFromStatus", new Class<?>[] { Object.class }, "archived"));
-        assertNull(invokeStatic("activeFromStatus", new Class<?>[] { Object.class }, "pending"));
+        assertNull(SemanticCoherenceAdjuster.activeFromStatus((Object) null));
+        assertEquals(Boolean.TRUE, SemanticCoherenceAdjuster.activeFromStatus("ENABLED"));
+        assertEquals(Boolean.FALSE, SemanticCoherenceAdjuster.activeFromStatus("archived"));
+        assertNull(SemanticCoherenceAdjuster.activeFromStatus("pending"));
 
-        assertEquals("ACTIVE", invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, true, String.class));
-        assertEquals("INACTIVE", invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, false, String.class));
+        assertEquals("ACTIVE", SemanticCoherenceAdjuster.statusValueFor(true, String.class));
+        assertEquals("INACTIVE", SemanticCoherenceAdjuster.statusValueFor(false, String.class));
         assertEquals(ManualLifecycleState.ACTIVE,
-                     invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, true,
+                     SemanticCoherenceAdjuster.statusValueFor(true,
                                   ManualLifecycleState.class));
         assertEquals(ManualLifecycleState.DISABLED,
-                     invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, false,
+                     SemanticCoherenceAdjuster.statusValueFor(false,
                                   ManualLifecycleState.class));
-        assertNull(invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, true, Integer.class));
-        assertNull(invokeStatic("statusValueFor", new Class<?>[] { boolean.class, Class.class }, true,
+        assertNull(SemanticCoherenceAdjuster.statusValueFor(true, Integer.class));
+        assertNull(SemanticCoherenceAdjuster.statusValueFor(true,
                                 PendingOnlyLifecycleState.class));
     }
 
@@ -205,131 +209,80 @@ class SemanticCoherenceAdjusterTest {
     @DisplayName("money and currency utility methods cover parsing and formatting branches")
     void moneyAndCurrencyUtilityMethodsCoverParsingAndFormattingBranches() throws Exception {
         assertEquals(new BigDecimal("12.35"),
-                     invokeStatic("moneyValue", new Class<?>[] { Object.class }, "USD 12.345"));
+                     SemanticCoherenceAdjuster.moneyValue("USD 12.345"));
         assertEquals(new BigDecimal("42.00"),
-                     invokeStatic("moneyValue", new Class<?>[] { Object.class }, 42));
+                     SemanticCoherenceAdjuster.moneyValue(42));
         assertEquals(new BigDecimal("42.00"),
-                     invokeStatic("moneyValue", new Class<?>[] { Object.class }, BigInteger.valueOf(42)));
+                     SemanticCoherenceAdjuster.moneyValue(BigInteger.valueOf(42)));
         assertEquals(new BigDecimal("7.50"),
-                     invokeStatic("moneyValue", new Class<?>[] { Object.class }, 7.5d));
-        assertNull(invokeStatic("moneyValue", new Class<?>[] { Object.class }, "not-money"));
-        assertNull(invokeStatic("moneyValue", new Class<?>[] { Object.class }, LocalDate.now()));
+                     SemanticCoherenceAdjuster.moneyValue(7.5d));
+        assertNull(SemanticCoherenceAdjuster.moneyValue("not-money"));
+        assertNull(SemanticCoherenceAdjuster.moneyValue(LocalDate.now()));
 
         assertEquals("USD",
-                     invokeStatic("currencyCode", new Class<?>[] { Object.class },
-                                  io.github.frikit.krandom.generator.finance.Currency.USD));
+                     SemanticCoherenceAdjuster.currencyCode(io.github.frikit.krandom.generator.finance.Currency.USD));
         assertEquals("EUR",
-                     invokeStatic("currencyCode", new Class<?>[] { Object.class }, java.util.Currency.getInstance("EUR")));
-        assertEquals("SAR", invokeStatic("currencyCode", new Class<?>[] { Object.class }, "sar"));
-        assertEquals("BHD", invokeStatic("currencyCode", new Class<?>[] { Object.class }, "bhd"));
-        assertNull(invokeStatic("currencyCode", new Class<?>[] { Object.class }, 123));
-        assertNull(invokeStatic("currencyCode", new Class<?>[] { Object.class }, "   "));
-        assertNull(invokeStatic("currencyCode", new Class<?>[] { Object.class }, "not-a-currency"));
+                     SemanticCoherenceAdjuster.currencyCode(java.util.Currency.getInstance("EUR")));
+        assertEquals("SAR", SemanticCoherenceAdjuster.currencyCode("sar"));
+        assertEquals("BHD", SemanticCoherenceAdjuster.currencyCode("bhd"));
+        assertNull(SemanticCoherenceAdjuster.currencyCode(123));
+        assertNull(SemanticCoherenceAdjuster.currencyCode("   "));
+        assertNull(SemanticCoherenceAdjuster.currencyCode("not-a-currency"));
 
         assertEquals("USD 12.35",
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), String.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, "USD"));
         assertEquals("12.35",
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), String.class, null));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, null));
         assertEquals(new BigDecimal("12.35"),
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), BigDecimal.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigDecimal.class, "USD"));
         assertEquals(BigInteger.valueOf(12),
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), BigInteger.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigInteger.class, "USD"));
         assertEquals((byte) 12,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), byte.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), byte.class, "USD"));
         assertEquals((byte) 12,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), Byte.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Byte.class, "USD"));
         assertEquals((short) 12,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), Short.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Short.class, "USD"));
         assertEquals((short) 12,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), short.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), short.class, "USD"));
         assertEquals(12,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), Integer.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Integer.class, "USD"));
         assertEquals(12,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), int.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), int.class, "USD"));
         assertEquals(12L,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), Long.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Long.class, "USD"));
         assertEquals(12L,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), long.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), long.class, "USD"));
         assertEquals(12.35f,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), Float.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Float.class, "USD"));
         assertEquals(12.35f,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), float.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), float.class, "USD"));
         assertEquals(12.35d,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), Double.class, "USD"));
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Double.class, "USD"));
         assertEquals(12.35d,
-                     invokeStatic("moneyValueFor",
-                                  new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                  new BigDecimal("12.345"), double.class, "USD"));
-        assertNull(invokeStatic("moneyValueFor",
-                                new Class<?>[] { BigDecimal.class, Class.class, String.class },
-                                new BigDecimal("12.345"), LocalDate.class, "USD"));
-
-        Class<?> slotType = Class.forName("io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$Slot");
+                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), double.class, "USD"));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), LocalDate.class, "USD"));
         assertEquals(new BigDecimal("1.00"),
-                     invokeStatic("assignMoney",
-                                  new Class<?>[] { slotType, BigDecimal.class, String.class },
-                                  null, new BigDecimal("1.00"), "USD"));
+                     SemanticCoherenceAdjuster.assignMoney(null, new BigDecimal("1.00"), "USD"));
 
         ManualMoneyHolder nullMoneyHolder = new ManualMoneyHolder();
-        Object priceSlot = rawSlot(nullMoneyHolder, "price");
-        assertNull(invokeStatic("assignMoney",
-                                new Class<?>[] { slotType, BigDecimal.class, String.class },
-                                priceSlot, null, "USD"));
+        SemanticCoherenceAdjuster.Slot priceSlot = rawSlot(nullMoneyHolder, "price");
+        assertNull(SemanticCoherenceAdjuster.assignMoney(priceSlot, null, "USD"));
 
         UnsupportedMoneyTarget unsupportedMoneyTarget = new UnsupportedMoneyTarget();
-        Object unsupportedSlot = rawSlot(unsupportedMoneyTarget, "value");
+        SemanticCoherenceAdjuster.Slot unsupportedSlot = rawSlot(unsupportedMoneyTarget, "value");
         assertEquals(new BigDecimal("2.00"),
-                     invokeStatic("assignMoney",
-                                  new Class<?>[] { slotType, BigDecimal.class, String.class },
-                                  unsupportedSlot, new BigDecimal("2.00"), "USD"));
+                     SemanticCoherenceAdjuster.assignMoney(unsupportedSlot, new BigDecimal("2.00"), "USD"));
         assertNull(unsupportedMoneyTarget.value);
 
         SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualStringMoneyHolder stringHolder = new ManualStringMoneyHolder();
-        Object stringPriceSlot = rawSlot(stringHolder, "price");
-        assertFalse((Boolean) invokeInstance(adjuster, "shouldFormatMoneyString",
-                                             new Class<?>[] { BigDecimal.class, slotType, boolean.class },
-                                             new BigDecimal("1.00"), null, true));
-        assertFalse((Boolean) invokeInstance(adjuster, "shouldFormatMoneyString",
-                                             new Class<?>[] { BigDecimal.class, slotType, boolean.class },
-                                             null, stringPriceSlot, true));
-        assertFalse((Boolean) invokeInstance(adjuster, "shouldFormatMoneyString",
-                                             new Class<?>[] { BigDecimal.class, slotType, boolean.class },
-                                             new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true));
+        SemanticCoherenceAdjuster.Slot stringPriceSlot = rawSlot(stringHolder, "price");
+        assertFalse((Boolean) adjuster.shouldFormatMoneyString(new BigDecimal("1.00"), null, true));
+        assertFalse((Boolean) adjuster.shouldFormatMoneyString(null, stringPriceSlot, true));
+        assertFalse((Boolean) adjuster.shouldFormatMoneyString(new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true));
 
-        assertFalse((Boolean) invokeStatic("isLessThan",
-                                           new Class<?>[] { BigDecimal.class, BigDecimal.class },
-                                           new BigDecimal("1.00"), null));
+        assertFalse((Boolean) SemanticCoherenceAdjuster.isLessThan(new BigDecimal("1.00"), null));
     }
 
     @Test
@@ -1047,37 +1000,26 @@ class SemanticCoherenceAdjusterTest {
         SemanticCoherenceAdjuster aliasAdjuster =
             new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().uniqueFields("emailaddress").build(),
                                           new UniqueFieldTracker());
-        assertTrue((Boolean) invokeInstance(aliasAdjuster, "isUniqueField",
-                                            new Class<?>[] { String.class, String.class }, "email", "email"));
+        assertTrue((Boolean) aliasAdjuster.isUniqueField("email", "email"));
 
         SemanticCoherenceAdjuster semanticAdjuster =
             new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().uniqueFields("email").build(),
                                           new UniqueFieldTracker());
-        assertTrue((Boolean) invokeInstance(semanticAdjuster, "isUniqueField",
-                                            new Class<?>[] { String.class, String.class }, "customField", "email"));
+        assertTrue((Boolean) semanticAdjuster.isUniqueField("customField", "email"));
 
-        Object slot = slotMap(new ManualEmailHolder(), "email").get("email");
-        Class<?> slotType = Class.forName("io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$Slot");
-        assertNull(invokeInstance(semanticAdjuster, "applyUniqueness",
-                                  new Class<?>[] { slotType, String.class, String.class }, slot, "email", null));
+        SemanticCoherenceAdjuster.Slot slot = slotMap(new ManualEmailHolder(), "email").get("email");
+        assertNull(semanticAdjuster.applyUniqueness(slot, "email", null));
     }
 
     @Test
     @DisplayName("reflection slots wrap read and write failures")
     void reflectionSlotsWrapReadAndWriteFailures() throws Exception {
-        Constructor<?> constructor = Class.forName("io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$ReflectionSlot")
-                                         .getDeclaredConstructor(
-                                             Class.class, Field.class, Object.class, boolean.class, int.class);
-        constructor.setAccessible(true);
-
         PrivateValueHolder privateHolder = new PrivateValueHolder();
         Field privateField = PrivateValueHolder.class.getDeclaredField("value");
-        Object slot = constructor.newInstance(PrivateValueHolder.class, privateField, privateHolder, false, 3);
+        SemanticCoherenceAdjuster.Slot slot =
+            new SemanticCoherenceAdjuster.ReflectionSlot(PrivateValueHolder.class, privateField, privateHolder, false, 3);
 
-        Method getValue = slot.getClass().getDeclaredMethod("getValue");
-        getValue.setAccessible(true);
-        ObjectGenerationException readException =
-            assertThrows(ObjectGenerationException.class, () -> invokeMethod(slot, getValue));
+        ObjectGenerationException readException = assertThrows(ObjectGenerationException.class, slot::getValue);
         GenerationFailureContext readContext = readException.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.REFLECTION, readContext.category());
         assertEquals(GenerationOperation.READ, readContext.operation());
@@ -1085,17 +1027,15 @@ class SemanticCoherenceAdjusterTest {
         assertEquals(String.class.getTypeName(), readContext.declaredType());
         assertEquals(3, readContext.depth());
 
-        Object lenientReadSlot = constructor.newInstance(
-            PrivateValueHolder.class, privateField, privateHolder, true, 3);
-        assertNull(invokeMethod(lenientReadSlot, getValue));
+        SemanticCoherenceAdjuster.Slot lenientReadSlot =
+            new SemanticCoherenceAdjuster.ReflectionSlot(PrivateValueHolder.class, privateField, privateHolder, true, 3);
+        assertNull(lenientReadSlot.getValue());
 
         Field publicField = PublicValueHolder.class.getDeclaredField("value");
-        Object strictSlot = constructor.newInstance(
+        SemanticCoherenceAdjuster.Slot strictSlot = new SemanticCoherenceAdjuster.ReflectionSlot(
             PublicValueHolder.class, publicField, new PublicValueHolder(), false, 4);
-        Method setValue = strictSlot.getClass().getDeclaredMethod("setValue", Object.class);
-        setValue.setAccessible(true);
         ObjectGenerationException writeException =
-            assertThrows(ObjectGenerationException.class, () -> invokeMethod(strictSlot, setValue, 123));
+            assertThrows(ObjectGenerationException.class, () -> strictSlot.setValue(123));
         GenerationFailureContext writeContext = writeException.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.ASSIGNMENT, writeContext.category());
         assertEquals(GenerationOperation.ALIGN_SEMANTICS, writeContext.operation());
@@ -1104,37 +1044,24 @@ class SemanticCoherenceAdjusterTest {
         assertEquals(4, writeContext.depth());
 
         PublicValueHolder ignored = new PublicValueHolder();
-        Object lenientSlot = constructor.newInstance(PublicValueHolder.class, publicField, ignored, true, 4);
-        assertDoesNotThrow(() -> invokeMethod(lenientSlot, setValue, 123));
+        SemanticCoherenceAdjuster.Slot lenientSlot =
+            new SemanticCoherenceAdjuster.ReflectionSlot(PublicValueHolder.class, publicField, ignored, true, 4);
+        assertDoesNotThrow(() -> lenientSlot.setValue(123));
         assertEquals("ok", ignored.value);
     }
 
     @Test
     @DisplayName("lenient reflection diagnostics contain context but no field values")
     void lenientReflectionDiagnosticsAreSanitized() throws Exception {
-        Constructor<?> constructor = Class.forName(
-            "io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$ReflectionSlot")
-                                              .getDeclaredConstructor(
-                                                  Class.class,
-                                                  Field.class,
-                                                  Object.class,
-                                                  boolean.class,
-                                                  int.class,
-                                                  GenerationFailureListener.class);
-        constructor.setAccessible(true);
         List<GenerationFailureDiagnostic> diagnostics = new java.util.ArrayList<>();
         GenerationFailureListener listener = diagnostics::add;
         Field privateField = PrivateValueHolder.class.getDeclaredField("value");
-        Object readSlot = constructor.newInstance(
+        SemanticCoherenceAdjuster.Slot readSlot = new SemanticCoherenceAdjuster.ReflectionSlot(
             PrivateValueHolder.class, privateField, new PrivateValueHolder(), true, 3, listener);
-        Method getValue = readSlot.getClass().getDeclaredMethod("getValue");
-        getValue.setAccessible(true);
 
         Field publicField = PublicValueHolder.class.getDeclaredField("value");
-        Object writeSlot = constructor.newInstance(
+        SemanticCoherenceAdjuster.Slot writeSlot = new SemanticCoherenceAdjuster.ReflectionSlot(
             PublicValueHolder.class, publicField, new PublicValueHolder(), true, 4, listener);
-        Method setValue = writeSlot.getClass().getDeclaredMethod("setValue", Object.class);
-        setValue.setAccessible(true);
 
         Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerationFailurePolicy.class);
         ListAppender<ILoggingEvent> appender = new ListAppender<>();
@@ -1143,8 +1070,8 @@ class SemanticCoherenceAdjusterTest {
         logger.setLevel(Level.DEBUG);
         logger.addAppender(appender);
         try {
-            assertNull(invokeMethod(readSlot, getValue));
-            assertDoesNotThrow(() -> invokeMethod(writeSlot, setValue, 123));
+            assertNull(readSlot.getValue());
+            assertDoesNotThrow(() -> writeSlot.setValue(123));
 
             List<String> messages = appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
             assertTrue(messages.stream().anyMatch(message -> message.contains("PrivateValueHolder.value")));
@@ -1161,36 +1088,13 @@ class SemanticCoherenceAdjusterTest {
         }
     }
 
-    private static Object invokeStatic(String name, Class<?>[] parameterTypes, Object... args) throws Exception {
-        Method method = SemanticCoherenceAdjuster.class.getDeclaredMethod(name, parameterTypes);
-        method.setAccessible(true);
-        return invokeMethod(null, method, args);
-    }
-
-    private static Object invokeInstance(Object target, String name, Class<?>[] parameterTypes, Object... args) throws Exception {
-        Method method = SemanticCoherenceAdjuster.class.getDeclaredMethod(name, parameterTypes);
-        method.setAccessible(true);
-        return invokeMethod(target, method, args);
-    }
-
-    private static Object invokeMethod(Object target, Method method, Object... args) throws Exception {
-        try {
-            return method.invoke(target, args);
-        } catch (java.lang.reflect.InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof Exception exception) {
-                throw exception;
-            }
-            throw e;
-        }
-    }
-
     private static List<Field> declaredFields(Class<?> type) {
         return List.of(type.getDeclaredFields());
     }
 
-    private static Map<String, Object> slotMap(Object instance, String... fieldNames) throws Exception {
-        Map<String, Object> slots = new java.util.LinkedHashMap<>();
+    private static Map<String, SemanticCoherenceAdjuster.Slot> slotMap(Object instance, String... fieldNames)
+        throws Exception {
+        Map<String, SemanticCoherenceAdjuster.Slot> slots = new java.util.LinkedHashMap<>();
         for (String fieldName : fieldNames) {
             String semanticKey = FieldGeneratorResolver.semanticKeyForFieldName(fieldName);
             slots.put(semanticKey, rawSlot(instance, fieldName));
@@ -1198,13 +1102,10 @@ class SemanticCoherenceAdjusterTest {
         return slots;
     }
 
-    private static Object rawSlot(Object instance, String fieldName) throws Exception {
-        Constructor<?> constructor = Class.forName("io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$ReflectionSlot")
-                                         .getDeclaredConstructor(Class.class, Field.class, Object.class, boolean.class);
-        constructor.setAccessible(true);
+    private static SemanticCoherenceAdjuster.Slot rawSlot(Object instance, String fieldName) throws Exception {
         Field field = instance.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
-        return constructor.newInstance(instance.getClass(), field, instance, false);
+        return new SemanticCoherenceAdjuster.ReflectionSlot(instance.getClass(), field, instance, false);
     }
 
     static class ManualCoherenceHolder {

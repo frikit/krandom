@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+çözümleri
+iş akışlarını
+altyapıları
+platformları
+deneyimleri
+yetkinlikleri

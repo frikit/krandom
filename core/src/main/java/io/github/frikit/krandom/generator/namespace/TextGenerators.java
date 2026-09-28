@@ -41,6 +41,17 @@ public final class TextGenerators {
 
     public TemplateStringGenerator template(String template) { return new TemplateStringGenerator(template, config); }
 
+    /**
+     * Returns a seeded template generator that ignores this namespace's configuration.
+     *
+     * @param template template text; must not be {@code null}
+     * @param seed     raw seed
+     * @return template generator
+     * @deprecated raw seeds bypass replayable recipes and this namespace's configuration; use
+     *             {@code Generators.text(GeneratorConfig.builder().seed(seed).build()).template(template)}
+     *             or {@link #template(String)} on a seeded namespace, which produces the same values.
+     */
+    @Deprecated(since = "2.6.0")
     public TemplateStringGenerator template(String template, long seed) { return new TemplateStringGenerator(template, seed); }
 
     public ProviderTemplateGenerator providerTemplate(String template) {

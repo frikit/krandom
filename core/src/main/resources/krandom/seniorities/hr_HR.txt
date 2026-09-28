@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Pripravnik
+Junior
+Suradnik
+Medior
+Senior
+Voditelj tima
+Glavni stručnjak
+Stručnjak
+Direktor
+Potpredsjednik

@@ -44,7 +44,12 @@ public final class ProviderTemplateGenerator implements Generator<String> {
      *
      * @param template template text
      * @param seed     deterministic seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #ProviderTemplateGenerator(String, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public ProviderTemplateGenerator(String template, long seed) {
         this(template, GeneratorConfig.builder().seed(seed).build());
     }

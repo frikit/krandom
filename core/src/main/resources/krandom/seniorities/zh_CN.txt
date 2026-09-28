@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+实习生
+初级
+助理
+中级
+高级
+组长
+首席
+资深专家
+总监
+副总裁

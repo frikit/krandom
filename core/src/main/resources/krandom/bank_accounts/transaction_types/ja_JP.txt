@@ -1,0 +1,9 @@
+# Bank transaction types (lowercase), one per line.
+入金
+出金
+支払い
+振込
+返金
+手数料
+利息
+チャージバック

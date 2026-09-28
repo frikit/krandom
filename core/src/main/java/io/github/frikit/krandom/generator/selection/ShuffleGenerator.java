@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,11 +34,26 @@ public final class ShuffleGenerator<T> implements Generator<List<T>> {
     }
 
     /**
+     * Creates a shuffle generator whose permutations come from the configuration's random source.
+     *
+     * @param source source list; must not be null
+     * @param config generator configuration; must not be {@code null}
+     */
+    public ShuffleGenerator(List<T> source, GeneratorConfig config) {
+        this(source, Objects.requireNonNull(config, "config must not be null").createRandom());
+    }
+
+    /**
      * Creates a shuffle generator with deterministic seed support.
      *
      * @param source source list; must not be null
      * @param seed   deterministic seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #ShuffleGenerator(List, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public ShuffleGenerator(List<T> source, long seed) {
         this(source, new Random(seed));
     }

@@ -509,6 +509,54 @@ class CreditCardGeneratorTest {
     }
 
     @Test
+    @DisplayName("isValidLuhn returns false when the input has no digits")
+    void luhnInputWithoutDigits() {
+        assertFalse(CreditCardGenerator.isValidLuhn("abc"));
+        assertFalse(CreditCardGenerator.isValidLuhn("a"));
+        assertFalse(CreditCardGenerator.isValidLuhn(" "));
+        assertFalse(CreditCardGenerator.isValidLuhn("   "));
+        assertFalse(CreditCardGenerator.isValidLuhn("-"));
+    }
+
+    @Test
+    @DisplayName("isValidLuhn returns false when digits are mixed with letters")
+    void luhnDigitsMixedWithLetters() {
+        assertFalse(CreditCardGenerator.isValidLuhn("12a4"));
+        assertFalse(CreditCardGenerator.isValidLuhn("0a"));
+        // The digits alone would pass Luhn; the letter must still invalidate the input.
+        assertFalse(CreditCardGenerator.isValidLuhn("4532a148803436464"));
+        assertFalse(CreditCardGenerator.isValidLuhn("4532148803436464x"));
+    }
+
+    @Test
+    @DisplayName("isValidLuhn accepts only spaces as digit-group separators")
+    void luhnSeparators() {
+        assertTrue(CreditCardGenerator.isValidLuhn("4532 1488 0343 6464"));
+        assertTrue(CreditCardGenerator.isValidLuhn(" 3782 822463 10005 "));
+        assertFalse(CreditCardGenerator.isValidLuhn("4532-1488-0343-6464"));
+        assertFalse(CreditCardGenerator.isValidLuhn("4532\t1488\t0343\t6464"));
+        assertFalse(CreditCardGenerator.isValidLuhn("4532.1488.0343.6464"));
+    }
+
+    @Test
+    @DisplayName("isValidLuhn accepts only ASCII digits")
+    void luhnNonAsciiDigits() {
+        // Arabic-Indic digits for the Luhn-valid 4532148803436464.
+        assertFalse(CreditCardGenerator.isValidLuhn("٤٥٣٢١٤٨٨٠٣٤٣٦٤٦٤"));
+        // Fullwidth digits for the Luhn-valid 6011111111111117.
+        assertFalse(CreditCardGenerator.isValidLuhn("６０１１１１１１１１１１１１１７"));
+    }
+
+    @Test
+    @DisplayName("isValidLuhn checks the digit sum of short digit strings")
+    void luhnShortDigitStrings() {
+        assertTrue(CreditCardGenerator.isValidLuhn("0"));
+        assertTrue(CreditCardGenerator.isValidLuhn("18"));
+        assertFalse(CreditCardGenerator.isValidLuhn("1"));
+        assertFalse(CreditCardGenerator.isValidLuhn("19"));
+    }
+
+    @Test
     @DisplayName("all card types pass Luhn validation")
     void allCardTypesPassLuhn() {
         CardType[] types = { CardType.VISA, CardType.MASTERCARD, CardType.AMEX,

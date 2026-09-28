@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Becario
+Junior
+Asociado
+Intermedio
+Sénior
+Responsable
+Experto principal
+Especialista
+Director
+Vicepresidente

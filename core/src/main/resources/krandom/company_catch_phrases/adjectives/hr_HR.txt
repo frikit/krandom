@@ -1,0 +1,8 @@
+# Catch-phrase adjectives, one per line.
+Prilagodljiva
+Jedinstvena
+Pouzdana
+Inteligentna
+Napredna
+Jednostavna
+Sigurna

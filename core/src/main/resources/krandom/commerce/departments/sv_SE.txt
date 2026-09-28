@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Böcker
+Elektronik
+Friluftsliv
+Hem
+Leksaker
+Trädgård

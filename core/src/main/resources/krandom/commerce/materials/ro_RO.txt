@@ -1,0 +1,7 @@
+# Product materials, one per line.
+oțel
+lemn
+beton
+plastic
+granit
+bumbac

@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+크로스 플랫폼
+엔드투엔드
+업계 최고 수준의
+원활한
+클라우드 네이티브
+데이터 기반

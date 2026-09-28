@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+wieloplatformowe
+kompleksowe
+najlepsze w klasie
+bezproblemowe
+chmurowe
+oparte na danych

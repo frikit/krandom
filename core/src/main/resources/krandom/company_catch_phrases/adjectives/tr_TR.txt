@@ -1,0 +1,8 @@
+# Catch-phrase adjectives, one per line.
+uyarlanabilir
+birleşik
+güvenilir
+akıllı
+geleceğe hazır
+zahmetsiz
+güvenli

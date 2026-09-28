@@ -34,11 +34,31 @@ public final class AtomicIntegerGenerator implements Generator<AtomicInteger>, S
         this(min, max, GeneratorConfig.defaults());
     }
 
+    /**
+     * Creates a seeded generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #AtomicIntegerGenerator(int, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public AtomicIntegerGenerator(int min, int max, long seed) {
         this(min, max, GeneratorConfig.builder().seed(seed).build());
     }
 
-    private AtomicIntegerGenerator(int min, int max, GeneratorConfig config) {
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @throws IllegalArgumentException if {@code min >= max}
+     */
+    public AtomicIntegerGenerator(int min, int max, GeneratorConfig config) {
         if (min >= max) {
             throw new IllegalArgumentException("min must be less than max, got: min=" + min + ", max=" + max);
         }

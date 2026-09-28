@@ -1,0 +1,7 @@
+# Marital status values, one per line.
+Bujang
+Berkahwin
+Bercerai
+Balu/duda
+Berpisah
+Tinggal bersama

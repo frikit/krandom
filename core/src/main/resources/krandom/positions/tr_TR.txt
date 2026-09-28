@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Yazılım mühendisi
+Ürün yöneticisi
+Veri analisti
+UX tasarımcısı
+Müşteri temsilcisi
+Pazarlama uzmanı
+İş analisti
+DevOps mühendisi
+Site güvenilirlik mühendisi
+Mühendislik müdürü
+Çözüm mimarı
+Teknik yazar
+Kalite güvence mühendisi
+Proje yöneticisi
+Güvenlik mühendisi
+Veritabanı yöneticisi

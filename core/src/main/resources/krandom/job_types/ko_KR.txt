@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+정규직
+파트타임
+계약직
+임시직
+인턴십
+프리랜서
+도제
+계절직
+자원봉사
+원격 근무

@@ -30,7 +30,12 @@ public final class RandomLocaleGenerator implements Generator<Locale> {
      * Creates a deterministic locale generator using the supplied seed.
      *
      * @param seed deterministic seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #RandomLocaleGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public RandomLocaleGenerator(long seed) {
         this(GeneratorConfig.builder().seed(seed).build());
     }

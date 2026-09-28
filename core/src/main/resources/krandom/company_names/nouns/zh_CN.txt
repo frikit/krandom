@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+信息
+系统
+科技
+实业
+服务
+集团
+伙伴
+创投
+联合
+咨询
+网络
+动力
+资源
+管理
+数据

@@ -1,0 +1,8 @@
+# Catch-phrase nouns, one per line.
+Plataforma
+Xarxa
+Experiència
+Tecnologia
+Solució
+Suite
+Arquitectura

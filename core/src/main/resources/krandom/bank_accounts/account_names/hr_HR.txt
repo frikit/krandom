@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Tekući račun
+Štedni račun
+Poslovni račun
+Zajednički račun
+Račun za plaću

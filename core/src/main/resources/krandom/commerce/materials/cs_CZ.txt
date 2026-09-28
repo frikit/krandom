@@ -1,0 +1,7 @@
+# Product materials, one per line.
+ocel
+dřevo
+beton
+plast
+žula
+bavlna

@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+multipiattaforma
+integrate
+eccellenti
+fluide
+basate sul cloud
+guidate dai dati

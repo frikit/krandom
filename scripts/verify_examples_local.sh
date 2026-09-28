@@ -6,8 +6,19 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
 DEFAULT_VERSION="$(awk -F= '$1 == "developmentVersion" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
+PUBLISHED_MODULES="$(awk -F= '$1 == "publishedModules" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
 VERSION="${KRANDOM_VERSION:-${DEFAULT_VERSION}}"
 REQUIRE_SCALA_TOOLS="${KRANDOM_REQUIRE_SCALA_TOOLS:-false}"
+
+if [[ -z "${PUBLISHED_MODULES}" ]]; then
+    echo "gradle.properties must define publishedModules." >&2
+    exit 1
+fi
+PUBLISH_TASKS=()
+IFS=',' read -r -a published_modules <<< "${PUBLISHED_MODULES}"
+for module in "${published_modules[@]}"; do
+    PUBLISH_TASKS+=(":${module}:publishToMavenLocal")
+done
 
 step() { echo; echo "==> $*"; }
 
@@ -29,13 +40,7 @@ cd "${REPO_ROOT}"
 
 step "Publish krandom modules ${VERSION} to Maven local"
 "${GRADLEW}" \
-    :bom:publishToMavenLocal \
-    :core:publishToMavenLocal \
-    :jackson:publishToMavenLocal \
-    :junit:publishToMavenLocal \
-    :spring-boot-starter:publishToMavenLocal \
-    :kotest-extensions:publishToMavenLocal \
-    :kotlin-dsl:publishToMavenLocal \
+    "${PUBLISH_TASKS[@]}" \
     -PreleaseVersion="${VERSION}" \
     --no-daemon \
     --console=plain

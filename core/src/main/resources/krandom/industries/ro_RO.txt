@@ -1,0 +1,21 @@
+# Industry names, one per line.
+Tehnologie
+Sănătate
+Finanțe
+Educație
+Comerț cu amănuntul
+Producție
+Telecomunicații
+Energie
+Transport
+Construcții
+Imobiliare
+Ospitalitate
+Media
+Divertisment
+Agricultură
+Industria aerospațială
+Industria auto
+Biotehnologie
+Consultanță
+Securitate cibernetică

@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Jornada completa
+Mitja jornada
+Contracte
+Temporal
+Pràctiques
+Autònom
+Aprenentatge
+De temporada
+Voluntariat
+Teletreball

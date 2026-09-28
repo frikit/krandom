@@ -1,0 +1,7 @@
+# Store departments, one per line.
+Cărți
+Electronice
+Activități în aer liber
+Casă
+Jucării
+Grădină

@@ -23,9 +23,10 @@ generator where shown by the API.
 ## Network and internet
 
 - `ofIPv4`, `ofIPv6`, `ofIP`, `ofPort`, `ofMacAddress`
-- `ofDomain`, `ofHostname`, `ofUrl` (text URL), `ofUri` (text URI), `ofURI`
-  (`URI` object), `ofURL` (`URL` object), `ofSlug`, `ofUserAgent`. Lowercase `Url`/`Uri`
-  names generate text; uppercase `URL`/`URI` names generate the corresponding JDK object.
+- `ofDomain`, `ofHostname`, `ofUrl` (text URL), `ofUri` (text URI), `ofUriObject`
+  (`URI` object), `ofUrlObject` (`URL` object), `ofSlug`, `ofUserAgent`. Plain names generate
+  text; the `…Object` names generate the corresponding JDK object. The case twins `ofURL`/`ofURI`
+  are deprecated.
 - `ofHttpMethod`, `ofHttpStatusCode`, `ofHttpFixture`
 
 ## Date, time, and locale

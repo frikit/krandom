@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Mühendislik
+Pazarlama
+Satış
+Finans
+Operasyon
+Ürün
+İnsan kaynakları
+Hukuk
+Tasarım
+Müşteri desteği
+Araştırma
+Veri bilimi
+Güvenlik
+Satın alma
+Lojistik

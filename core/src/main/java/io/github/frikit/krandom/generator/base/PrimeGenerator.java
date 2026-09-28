@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +48,43 @@ public final class PrimeGenerator extends AbstractBoundedGenerator<Integer> {
         validatePrimes();
     }
 
+    /**
+     * Creates a generator over the default range {@code [2, 1000)} using the configuration's
+     * random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public PrimeGenerator(GeneratorConfig config) {
+        this(2, 1000, config);
+    }
+
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     * @throws IllegalStateException if no prime exists in the range
+     */
+    public PrimeGenerator(int min, int max, GeneratorConfig config) {
+        super(config, min, max);
+        validate(min, max);
+        this.primes = computePrimesInRange(min, max);
+        validatePrimes();
+    }
+
+    /**
+     * Creates a seeded generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #PrimeGenerator(int, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public PrimeGenerator(int min, int max, long seed) {
         super(min, max, seed);
         validate(min, max);

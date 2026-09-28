@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+跨平台
+端到端
+一流的
+无缝的
+云原生
+数据驱动的

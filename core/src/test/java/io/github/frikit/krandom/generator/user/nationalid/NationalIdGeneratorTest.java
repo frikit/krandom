@@ -32,10 +32,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class NationalIdGeneratorTest {
 
     @Test
-    @DisplayName("built-in providers cover every SupportedLocale")
+    @DisplayName("built-in providers cover every native SupportedLocale country")
     void builtInProvidersCoverEverySupportedLocale() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             Locale locale = supportedLocale.locale();
+            if (supportedLocale.resourceFallbackLocale().isPresent() && !"IN".equals(locale.getCountry())) {
+                // Curated regional variants have no identifier of their own country; see
+                // NationalIdLocaleResolutionTest for the fail-fast contract.
+                continue;
+            }
             assertTrue(NationalIdRegistry.isRegistered(locale), supportedLocale.name());
             String nationalId = new NationalIdGenerator(GeneratorConfig.builder().locale(locale).seed(123L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
             assertNotNull(nationalId, supportedLocale.name());
@@ -264,34 +269,21 @@ class NationalIdGeneratorTest {
         }
 
         @Test
-        @DisplayName("computeRemainder returns 0 for weighted-sum-divisible input")
-        void computeRemainderZeroBranch() {
-            // Weights: 1,4,3,7,5,8,6,9,10
-            // Construct digits so sum % 11 == 0
-            // Use: all zeros except first = 1 (sum = 1*1 = 1, not 0); let's find a valid set
-            // 11*1=11 → need sum=11: d0*1 + d1*4 = 11 → d0=7,d1=1: 7+4=11 ✓, rest 0
-            int[] digits = { 7, 1, 0, 0, 0, 0, 0, 0, 0 };
-            assertEquals(0, AuNationalIdProvider.computeRemainder(digits));
+        @DisplayName("published TFN sample passes the independent validator; a wrong check digit fails")
+        void publishedSampleValidates() {
+            // Wikipedia "Tax file number" worked example: weighted sum 253 = 11 x 23.
+            assertTrue(NationalIdTier1ValidityTest.AuTaxFileNumber.isValid("123 456 782"));
+            assertFalse(NationalIdTier1ValidityTest.AuTaxFileNumber.isValid("123 456 789"));
         }
 
         @Test
-        @DisplayName("computeRemainder returns non-zero for valid TFN digit array")
-        void computeRemainderNonZero() {
-            // d0=1, rest 0: sum = 1*1 = 1 → remainder = 1
-            int[] digits = { 1, 0, 0, 0, 0, 0, 0, 0, 0 };
-            assertEquals(1, AuNationalIdProvider.computeRemainder(digits));
-        }
-
-        @Test
-        @DisplayName("generated TFNs always have non-zero remainder")
+        @DisplayName("generated TFNs have a weighted sum divisible by 11")
         void checksumValid() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("en", "AU")).seed(5L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
             for (int i = 0; i < 200; i++) {
-                String tfn = gen.generate().replace(" ", "");
-                int[] digits = new int[9];
-                for (int j = 0; j < 9; j++) digits[j] = tfn.charAt(j) - '0';
-                assertNotEquals(0, AuNationalIdProvider.computeRemainder(digits),
-                                "TFN checksum remainder should not be 0: " + tfn);
+                String tfn = gen.generate();
+                assertTrue(NationalIdTier1ValidityTest.AuTaxFileNumber.isValid(tfn),
+                           "TFN weighted sum must be divisible by 11: " + tfn);
             }
         }
 
@@ -376,40 +368,17 @@ class NationalIdGeneratorTest {
         }
 
         @Test
-        @DisplayName("check digit satisfies ISO 7064 Mod 11,10")
+        @DisplayName("ELSTER samples and generated IDs satisfy the digit-repetition and MOD 11,10 rules")
         void checkDigitValid() {
+            // ELSTER "Prüfung der Steuer- und Steueridentifikationsnummer", Tabelle 2-1.
+            for (String sample : List.of("86095742719", "47036892816", "65929970489")) {
+                assertTrue(NationalIdTier1ValidityTest.DeSteuerId.isValid(sample), sample);
+            }
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.GERMANY).seed(30L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
-                int[] digits = new int[11];
-                for (int j = 0; j < 11; j++) digits[j] = id.charAt(j) - '0';
-                int expected = DeNationalIdProvider.computeCheckDigit(digits);
-                assertEquals(expected, digits[10], "Wrong check digit in: " + id);
+                assertTrue(NationalIdTier1ValidityTest.DeSteuerId.isValid(id), "Invalid Steuer-ID: " + id);
             }
-        }
-
-        @Test
-        @DisplayName("computeCheckDigit sum==0 branch: sum=(0+product)%10==0 triggers sum=10")
-        void sumZeroBranch() {
-            // product starts at 10; first digit 5: sum=(5+10)%10=5→product=(10)%11=10
-            // second digit 5: sum=(5+10)%10=5→product=10
-            // ... if we force sum to be 0: (d+product)%10==0 when d+product is divisible by 10
-            // Start: product=10; d0=0: sum=(0+10)%10=0 → sum=10 (branch hit!) → product=(20)%11=9
-            int[] digits = new int[11];
-            // digits[0]=0 forces sum=0 branch on first iteration
-            // But wait, the first digit of Steuer-ID must be 1-9. In the generate() method we
-            // enforce this. But computeCheckDigit() itself just takes any int array.
-            // Let's use digits[0]=0 to trigger the branch directly.
-            digits[0] = 0; // forces (0+10)%10=0 → sum=10 branch
-            // Fill rest with 0s
-            int result = DeNationalIdProvider.computeCheckDigit(digits);
-            // product after digit[0]: sum=(0+10)%10=0→10, product=(20)%11=9
-            // digits[1..9]=0: sum=(0+9)%10=9→product=(18)%11=7; sum=(0+7)%10=7→product=(14)%11=3
-            // sum=(0+3)%10=3→product=6; sum=(0+6)%10=6→product=12%11=1;
-            // sum=(0+1)%10=1→product=2; sum=(0+2)%10=2→product=4; sum=(0+4)%10=4→product=8;
-            // sum=(0+8)%10=8→product=16%11=5; sum=(0+5)%10=5→product=10%11=10
-            // check_digit=11-10=1
-            assertEquals(1, result);
         }
 
         @Test
@@ -475,10 +444,7 @@ class NationalIdGeneratorTest {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.JAPAN).seed(50L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
-                int[] digits = new int[11];
-                for (int j = 0; j < 11; j++) digits[j] = id.charAt(j) - '0';
-                int expected = JpNationalIdProvider.computeCheckDigit(digits);
-                assertEquals(expected, id.charAt(11) - '0', "Wrong check digit in: " + id);
+                assertTrue(NationalIdTier1ValidityTest.JpMyNumber.isValid(id), "Wrong check digit in: " + id);
             }
         }
 
@@ -632,16 +598,8 @@ class NationalIdGeneratorTest {
         void verifierDigitsValid() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).seed(90L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
             for (int i = 0; i < 200; i++) {
-                String cpf = gen.generate().replaceAll("[^\\d]", "");
-                int[] d = new int[9];
-                for (int j = 0; j < 9; j++) d[j] = cpf.charAt(j) - '0';
-                int v1 = BrNationalIdProvider.computeVerifier(d, 10);
-                int[] d10 = new int[10];
-                System.arraycopy(d, 0, d10, 0, 9);
-                d10[9] = v1;
-                int v2 = BrNationalIdProvider.computeVerifier(d10, 11);
-                assertEquals(v1, cpf.charAt(9) - '0', "Wrong v1 in CPF: " + cpf);
-                assertEquals(v2, cpf.charAt(10) - '0', "Wrong v2 in CPF: " + cpf);
+                String cpf = gen.generate();
+                assertTrue(NationalIdTier1ValidityTest.BrCpf.isValid(cpf), "Wrong verifier digits in CPF: " + cpf);
             }
         }
 
@@ -709,19 +667,14 @@ class NationalIdGeneratorTest {
         }
 
         @Test
-        @DisplayName("check character is valid ISO 7064 Mod 11,2 result")
+        @DisplayName("check character is the ISO 7064 MOD 11-2 value of GB 11643-1999")
         void checkCharValid() {
-            int[] weights = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 };
-            String checkChars = "10X98765432";
+            // GB 11643-1999 example quoted by Wikipedia "Resident Identity Card".
+            assertTrue(NationalIdTier1ValidityTest.CnResidentIdentityNumber.isValid("11010519491231002X"));
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.CHINA).seed(102L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
-                int sum = 0;
-                for (int j = 0; j < 17; j++) {
-                    sum += (id.charAt(j) - '0') * weights[j];
-                }
-                char expected = checkChars.charAt((12 - (sum % 11)) % 11);
-                assertEquals(expected, id.charAt(17), "Wrong check char in: " + id);
+                assertTrue(NationalIdTier1ValidityTest.CnResidentIdentityNumber.isValid(id), "Wrong check char in: " + id);
             }
         }
 
@@ -742,13 +695,11 @@ class NationalIdGeneratorTest {
     class RegistryTests {
 
         @Test
-        @DisplayName("language-only fallback works")
+        @DisplayName("language-only fallback works; a foreign country never borrows the language's identifier")
         void languageOnlyFallback() {
-            // "en_ZZ" should fall back to the "en" entry seeded from UsNationalIdProvider
-            Locale enZz = Locale.of("en", "ZZ");
-            assertTrue(NationalIdRegistry.isRegistered(enZz));
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(enZz) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ENGLISH) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
             assertNotNull(gen.generate());
+            assertFalse(NationalIdRegistry.isRegistered(Locale.of("en", "ZZ")));
         }
 
         @Test

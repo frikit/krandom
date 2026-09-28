@@ -1,0 +1,7 @@
+# Company legal-form suffixes, one per line.
+Oy
+Oyj
+Ky
+Ay
+Osk
+Tmi

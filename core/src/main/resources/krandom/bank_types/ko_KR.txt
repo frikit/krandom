@@ -1,0 +1,6 @@
+# Bank type labels, one per line.
+소매은행
+상업은행
+투자은행
+신용협동조합
+인터넷전문은행

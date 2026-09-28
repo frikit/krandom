@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+SL
+SA
+SLU
+SCCL
+SLL

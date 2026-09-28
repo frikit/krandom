@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+高中
+大专
+学士
+硕士
+博士
+专业学位
+职业资格证书

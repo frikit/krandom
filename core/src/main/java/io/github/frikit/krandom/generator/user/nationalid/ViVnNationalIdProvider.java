@@ -10,6 +10,9 @@ import java.util.Random;
 
 /**
  * Generates Vietnamese citizen identity card (CCCD) style identifiers — 12 digits.
+ *
+ * <p>All digits are random, so they do not necessarily encode a real province code, sex and century,
+ * or birth year.
  */
 public final class ViVnNationalIdProvider implements NationalIdProvider {
 

@@ -1,0 +1,7 @@
+# Company buzzword verbs, one per line.
+optimiser
+renforcer
+accelerer
+structurer
+connecter
+transformer

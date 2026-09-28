@@ -40,7 +40,7 @@ public final class WordGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
-        this.syllableGenerator = new SyllableGenerator(config);
+        this.syllableGenerator = new SyllableGenerator(config.forChildStream("syllable"));
     }
 
     /**

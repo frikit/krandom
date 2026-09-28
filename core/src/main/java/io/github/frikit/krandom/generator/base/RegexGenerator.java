@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,7 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * String yn = new RegexGenerator("(yes|no)").generate();      // "yes" or "no"
  *
  * // Seeded for reproducibility
- * String fixed = new RegexGenerator("\\d{4}", 42L).generate();
+ * String fixed = new RegexGenerator("\\d{4}", GeneratorConfig.builder().seed(42L).build()).generate();
  * }</pre>
  *
  * <p><b>Integration with ObjectGenerator</b>
@@ -135,12 +136,31 @@ public final class RegexGenerator implements Generator<String> {
 
 
     /**
+     * Creates a regex generator whose randomness comes from the configuration, so a seeded
+     * configuration reproduces the same strings.
+     *
+     * @param pattern the simplified regex pattern; must not be {@code null}
+     * @param config  generator configuration; must not be {@code null}
+     * @throws IllegalArgumentException if the pattern contains unsupported or malformed syntax
+     */
+    public RegexGenerator(String pattern, GeneratorConfig config) {
+        Objects.requireNonNull(pattern, "pattern must not be null");
+        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
+        this.root = parsePattern(pattern);
+    }
+
+    /**
      * Creates a seeded regex generator for reproducible output.
      *
      * @param pattern the simplified regex pattern; must not be {@code null}
      * @param seed    PRNG seed for deterministic output
      * @throws IllegalArgumentException if the pattern contains unsupported or malformed syntax
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #RegexGenerator(String, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
      */
+    @Deprecated(since = "2.6.0")
     public RegexGenerator(String pattern, long seed) {
         Objects.requireNonNull(pattern, "pattern must not be null");
         this.random = new Random(seed);

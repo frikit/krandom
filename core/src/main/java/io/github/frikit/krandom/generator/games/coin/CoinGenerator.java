@@ -6,8 +6,10 @@
 package io.github.frikit.krandom.generator.games.coin;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -21,6 +23,9 @@ import java.util.Random;
  *   CoinResult    side = coin.generate();           // HEAD or TAIL
  *   List<CoinResult> flips = coin.flip(10);         // 10 results
  *
+ *   // Reproducible flips from a replayable configuration
+ *   CoinGenerator seeded = new CoinGenerator(GeneratorConfig.builder().seed(42L).build());
+ *
  *   // Via the Generators factory
  *   CoinResult r = Generators.ofCoin().generate();
  * }</pre>
@@ -32,7 +37,25 @@ public final class CoinGenerator implements Generator<CoinResult> {
      */
     public static final int MAX_ALLOWED_SIZE = Short.MAX_VALUE;
 
-    private final Random random = new Random();
+    private final Random random;
+
+    /**
+     * Creates a coin generator using {@link GeneratorConfig#defaults()}.
+     */
+    public CoinGenerator() {
+        this(GeneratorConfig.defaults());
+    }
+
+    /**
+     * Creates a coin generator whose flips come from the configuration's random source, so a
+     * seeded configuration reproduces the same sequence of flips.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
+     */
+    public CoinGenerator(GeneratorConfig config) {
+        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
+    }
 
     @Override
     public CoinResult generate() {

@@ -25,6 +25,15 @@ public final class MonthDayGenerator implements Generator<MonthDay>, Seedable {
         this(GeneratorConfig.defaults());
     }
 
+    /**
+     * Creates a seeded month-day generator.
+     *
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #MonthDayGenerator(GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public MonthDayGenerator(long seed) {
         this(GeneratorConfig.builder().seed(seed).build());
     }

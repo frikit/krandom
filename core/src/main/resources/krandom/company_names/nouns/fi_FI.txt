@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Ratkaisut
+Järjestelmät
+Teknologiat
+Tehtaat
+Palvelut
+Yhtymät
+Kumppanit
+Sijoitukset
+Osakkaat
+Konsultit
+Verkostot
+Projektit
+Resurssit
+Toiminnot
+Analyysit

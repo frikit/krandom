@@ -13,6 +13,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -163,25 +164,35 @@ public final class CreditCardGenerator implements Generator<String> {
     /**
      * Validates a card number using the Luhn algorithm.
      *
-     * @param cardNumber the card number to validate (digits only)
-     * @return {@code true} if valid, {@code false} otherwise
+     * <p>The input must consist of ASCII digits {@code 0}-{@code 9}, optionally grouped with space
+     * characters as in the formatted output of {@link #generate()}; spaces are ignored. Any other
+     * character, such as a letter, a dash, a tab, or a non-ASCII digit, makes the input invalid, and
+     * so does an input without any digit.
+     *
+     * @param cardNumber the card number to validate; may be {@code null}
+     * @return {@code true} if the input is well-formed and its digits pass the Luhn checksum;
+     *         {@code false} for {@code null}, empty, or malformed input or a failed checksum
      */
     public static boolean isValidLuhn(String cardNumber) {
-        if (cardNumber == null || cardNumber.isEmpty()) {
+        if (cardNumber == null) {
             return false;
         }
 
-        // Remove any non-digit characters
-        cardNumber = cardNumber.replaceAll("\\D", "");
-
         int sum = 0;
-        boolean alternate = false;
+        int digits = 0;
 
-        // Process from right to left
+        // Process from right to left, doubling every second digit.
         for (int i = cardNumber.length() - 1; i >= 0; i--) {
-            int digit = Character.getNumericValue(cardNumber.charAt(i));
+            char ch = cardNumber.charAt(i);
+            if (ch == ' ') {
+                continue;
+            }
+            if (ch < '0' || ch > '9') {
+                return false;
+            }
 
-            if (alternate) {
+            int digit = ch - '0';
+            if (digits % 2 == 1) {
                 digit *= 2;
                 if (digit > 9) {
                     digit = digit - 9;
@@ -189,10 +200,10 @@ public final class CreditCardGenerator implements Generator<String> {
             }
 
             sum += digit;
-            alternate = !alternate;
+            digits++;
         }
 
-        return (sum % 10) == 0;
+        return digits > 0 && sum % 10 == 0;
     }
 
     /**
@@ -517,6 +528,6 @@ public final class CreditCardGenerator implements Generator<String> {
         int cvvLength = type.getCvvLength();
         int maxValue = (int) Math.pow(10, cvvLength);
         int cvvValue = random.nextInt(maxValue);
-        return String.format("%0" + cvvLength + "d", cvvValue);
+        return String.format(Locale.ROOT, "%0" + cvvLength + "d", cvvValue);
     }
 }

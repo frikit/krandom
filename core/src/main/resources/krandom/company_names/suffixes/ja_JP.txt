@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+株式会社
+合同会社
+有限会社
+合資会社
+合名会社

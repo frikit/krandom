@@ -1,0 +1,7 @@
+# Product materials, one per line.
+staal
+hout
+beton
+kunststof
+graniet
+katoen

@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+वैश्विक
+राष्ट्रीय
+भारतीय
+संयुक्त
+प्रमुख
+उन्नत
+रणनीतिक
+गतिशील
+नवोन्मेषी
+पेशेवर
+डिजिटल
+नवीन
+अल्फ़ा
+शिखर
+सर्वोच्च

@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.GenerationRecipe;
+import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
@@ -101,6 +102,7 @@ import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -196,7 +198,7 @@ final class FieldGeneratorResolver {
     private final boolean               namedChildStreams;
     private final Random                sequenceRandom;
     private final Map<Class<?>, Generator<?>> builtins;
-    private final Map<String, Generator<?>>   semanticStringGenerators;
+    private final SemanticStringGenerators    semanticStringGenerators;
     private final Map<String, Map<Class<?>, Generator<?>>> semanticTypedGenerators;
     private final ObjectGenerationSemanticMode semanticMode;
     private final SemanticFieldRegistry       semanticRegistry;
@@ -216,25 +218,27 @@ final class FieldGeneratorResolver {
         this.pool = pool;
         this.uniqueFieldTracker = uniqueFieldTracker;
         this.generationSeed = generationSeed;
-        this.namedChildStreams = ObjectFieldStreamPlanner.usesNamedChildStreams(this.generatorConfig, generationSeed);
+        this.namedChildStreams = ObjectFieldStreamPlanner.usesNamedChildStreams(
+            this.generatorConfig.getObjectFieldStreamPolicy(), generationSeed, config.hasPortableRecipe());
         this.sequenceRandom = generationSeed != null ? new Random(generationSeed) : this.generatorConfig.createRandom();
         this.builtins = buildBuiltins(config, this.generatorConfig, this.sequenceRandom);
         this.semanticRegistry = config.getSemanticRegistry();
         this.semanticMode = config.getSemanticMode();
         if (semanticMode == ObjectGenerationSemanticMode.STRUCTURAL_ONLY) {
-            this.semanticStringGenerators = Map.of();
+            this.semanticStringGenerators = SemanticStringGenerators.NONE;
             this.semanticTypedGenerators = Map.of();
         } else {
-            this.semanticStringGenerators =
-                buildSemanticStringGenerators(this.generatorConfig, this.sequenceRandom, this.semanticRegistry);
+            this.semanticStringGenerators = buildSemanticStringGenerators(
+                this.generatorConfig, this.sequenceRandom, this.semanticRegistry, independentSemanticSeed(generationSeed));
             this.semanticTypedGenerators =
                 buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
         }
         this.uniqueFieldNames = config.getUniqueFieldNames();
+        GeneratorConfig recipeSource = this.generatorConfig;
         this.failurePolicy = new ObjectGenerationFailurePolicy(
             config.isIgnoreErrors(),
             generatorConfig.getGenerationFailureListener(),
-            generatorConfig.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics));
+            () -> recipeSource.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics));
         this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
         this.objectPath = Objects.requireNonNull(objectPath, "objectPath must not be null");
     }
@@ -259,15 +263,16 @@ final class FieldGeneratorResolver {
         Generator<Long> longGenerator = longGenerator(longSeed, seedSource, Long.MIN_VALUE, Long.MAX_VALUE);
         Generator<Float> floatGenerator = floatGenerator(floatSeed, seedSource, 0f, 1f, null);
         Generator<Double> doubleGenerator = doubleGenerator(doubleSeed, seedSource, 0.0, 1.0, null);
-        Generator<Character> charGenerator = charGenerator(charSeed, seedSource);
+        Generator<Character> charGenerator = lazyGenerator(() -> charGenerator(charSeed, seedSource));
         Generator<Boolean> booleanGenerator = booleanGenerator(booleanSeed, seedSource);
-        Generator<String> stringGenerator = buildStringGenerator(
-            generatorConfig, nextDeterministicSeed(generatorConfig, seedSource), seedSource);
+        Long stringSeed = nextDeterministicSeed(generatorConfig, seedSource);
+        Generator<String> stringGenerator = lazyGenerator(
+            () -> buildStringGenerator(generatorConfig, stringSeed, seedSource));
         Generator<BigDecimal> bigDecimalGenerator = bigDecimalGenerator(
             nextDeterministicSeed(generatorConfig, seedSource), seedSource, "0", "1000000", 2);
         Generator<BigInteger> bigIntegerGenerator = bigIntegerGenerator(
             nextDeterministicSeed(generatorConfig, seedSource), seedSource, 0L, Long.MAX_VALUE);
-        Generator<Number> numberGenerator = new NumberGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        Generator<Number> numberGenerator = lazyGenerator(lazyDerived(generatorConfig, seedSource, NumberGenerator::new));
         Generator<AtomicInteger> atomicIntegerGenerator = () -> new AtomicInteger(intGenerator.generate());
         Generator<AtomicLong> atomicLongGenerator = () -> new AtomicLong(longGenerator.generate());
 
@@ -297,7 +302,7 @@ final class FieldGeneratorResolver {
         LocalDate lo = cfg.getDateMin() != null ? cfg.getDateMin() : LocalDate.of(1970, 1, 1);
         LocalDate hi = cfg.getDateMax() != null ? cfg.getDateMax() : LocalDate.of(2100, 12, 31);
         Generator<LocalDate> localDateGenerator = buildDateGenerator(generatorConfig, seedSource, lo, hi);
-        Generator<LocalTime> localTimeGenerator = new TimeGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        Generator<LocalTime> localTimeGenerator = lazyGenerator(lazyDerived(generatorConfig, seedSource, TimeGenerator::new));
         Generator<LocalDateTime> localDateTimeGenerator = buildLocalDateTimeGenerator(generatorConfig, seedSource, lo, hi);
         Generator<Instant> instantGenerator = buildInstantGenerator(generatorConfig, seedSource, lo, hi);
         Generator<ZonedDateTime> zonedDateTimeGenerator = buildZonedDateTimeGenerator(generatorConfig, seedSource, lo, hi);
@@ -322,14 +327,16 @@ final class FieldGeneratorResolver {
         Generator<ZoneOffset> zoneOffsetGenerator = () -> ZoneOffset.ofTotalSeconds(zoneOffsetRandom.nextInt(-72, 73) * 15 * 60);
         Generator<java.util.Date> utilDateGenerator = buildUtilDateGenerator(generatorConfig, seedSource, lo, hi);
         Generator<java.sql.Date> sqlDateGenerator = buildSqlDateGenerator(generatorConfig, seedSource, lo, hi);
-        Generator<java.sql.Time> sqlTimeGenerator = new SqlTimeGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
+        Generator<java.sql.Time> sqlTimeGenerator =
+            lazyGenerator(lazyDerived(generatorConfig, seedSource, SqlTimeGenerator::new));
         Generator<java.sql.Timestamp> sqlTimestampGenerator = buildSqlTimestampGenerator(generatorConfig, seedSource, lo, hi);
-        Generator<UUID> uuidGenerator = new UUIDGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
-        Generator<TimeZone> timeZoneGenerator = new LegacyTimeZoneGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
-        UriGenerator uriStringGenerator = new UriGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
-        URLGenerator urlStringGenerator = new URLGenerator(derivedGeneratorConfig(generatorConfig, seedSource));
-        Generator<URI> uriGenerator = () -> URI.create(uriStringGenerator.generate());
-        Generator<java.net.URL> urlGenerator = () -> toUrl(URI.create(urlStringGenerator.generate("https")));
+        Generator<UUID> uuidGenerator = lazyGenerator(lazyDerived(generatorConfig, seedSource, UUIDGenerator::new));
+        Generator<TimeZone> timeZoneGenerator =
+            lazyGenerator(lazyDerived(generatorConfig, seedSource, LegacyTimeZoneGenerator::new));
+        Supplier<UriGenerator> uriStringGenerator = lazyDerived(generatorConfig, seedSource, UriGenerator::new);
+        Supplier<URLGenerator> urlStringGenerator = lazyDerived(generatorConfig, seedSource, URLGenerator::new);
+        Generator<URI> uriGenerator = () -> URI.create(uriStringGenerator.get().generate());
+        Generator<java.net.URL> urlGenerator = () -> toUrl(URI.create(urlStringGenerator.get().generate("https")));
 
         m.put(LocalDate.class, localDateGenerator);
         m.put(LocalTime.class, localTimeGenerator);
@@ -368,9 +375,39 @@ final class FieldGeneratorResolver {
         return config.getSeed().isPresent() ? seedSource.nextLong() : null;
     }
 
-    private static GeneratorConfig derivedGeneratorConfig(GeneratorConfig config, Random seedSource) {
-        Long seed = nextDeterministicSeed(config, seedSource);
+    private static GeneratorConfig configWithSeed(GeneratorConfig config, Long seed) {
         return seed != null ? config.toBuilder().seed(seed).build() : config;
+    }
+
+    /**
+     * Draws the derived configuration's seed now, keeping the resolver's draw order unchanged, but
+     * builds the configuration and generator only on first use. A resolver is created for every
+     * object (and every member with named streams), and most of its generators are never used.
+     */
+    private static <G> Supplier<G> lazyDerived(GeneratorConfig config,
+                                               Random seedSource,
+                                               Function<GeneratorConfig, G> factory) {
+        Long seed = nextDeterministicSeed(config, seedSource);
+        return lazy(() -> factory.apply(configWithSeed(config, seed)));
+    }
+
+    private static <T> Generator<T> lazyGenerator(Supplier<? extends Generator<T>> factory) {
+        Supplier<? extends Generator<T>> generator = lazy(factory);
+        return () -> generator.get().generate();
+    }
+
+    private static <G> Supplier<G> lazy(Supplier<G> factory) {
+        return new Supplier<>() {
+            private G value;
+
+            @Override
+            public G get() {
+                if (value == null) {
+                    value = factory.get();
+                }
+                return value;
+            }
+        };
     }
 
     private static Random randomFor(GeneratorConfig config, Random seedSource) {
@@ -389,6 +426,8 @@ final class FieldGeneratorResolver {
         return () -> OBJECT_CHARACTER_POOL.charAt(source.nextInt(OBJECT_CHARACTER_POOL.length()));
     }
 
+    // The engine derives these seeds from its own replayable streams; a config per generator would only add cost.
+    @SuppressWarnings("deprecation")
     private static Generator<Boolean> booleanGenerator(Long seed, Random source) {
         if (seed != null) {
             return new BooleanGenerator(seed);
@@ -418,11 +457,13 @@ final class FieldGeneratorResolver {
         return builder.seed(seed).build();
     }
 
+    @SuppressWarnings("deprecation")
     private static Generator<Byte> byteGenerator(Long seed, Random source, byte min, byte maxExclusive) {
         return seed != null ? new ByteGenerator(min, maxExclusive, seed)
                             : () -> (byte) source.nextInt(min, maxExclusive);
     }
 
+    @SuppressWarnings("deprecation")
     private static Generator<Short> shortGenerator(Long seed, Random source, short min, short maxExclusive) {
         return seed != null ? new ShortGenerator(min, maxExclusive, seed)
                             : () -> (short) source.nextInt(min, maxExclusive);
@@ -433,13 +474,15 @@ final class FieldGeneratorResolver {
                                                            LocalDate min,
                                                            LocalDate max) {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
-            return new DateGenerator(derivedGeneratorConfig(config, seedSource));
+            return lazyGenerator(lazyDerived(config, seedSource, DateGenerator::new));
         }
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
-            DateGenerator generator = new DateGenerator(min, max);
-            generator.reseed(seed);
-            return generator;
+            return lazyGenerator(() -> {
+                DateGenerator generator = new DateGenerator(min, max);
+                generator.reseed(seed);
+                return generator;
+            });
         }
         return () -> randomDate(seedSource, min, max);
     }
@@ -449,13 +492,15 @@ final class FieldGeneratorResolver {
                                                                         LocalDate min,
                                                                         LocalDate max) {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
-            return new LocalDateTimeGenerator(derivedGeneratorConfig(config, seedSource));
+            return lazyGenerator(lazyDerived(config, seedSource, LocalDateTimeGenerator::new));
         }
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
-            LocalDateTimeGenerator generator = new LocalDateTimeGenerator(min, max);
-            generator.reseed(seed);
-            return generator;
+            return lazyGenerator(() -> {
+                LocalDateTimeGenerator generator = new LocalDateTimeGenerator(min, max);
+                generator.reseed(seed);
+                return generator;
+            });
         }
         return () -> randomLocalDateTime(seedSource, min, max);
     }
@@ -465,13 +510,15 @@ final class FieldGeneratorResolver {
                                                             LocalDate min,
                                                             LocalDate max) {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
-            return new InstantGenerator(derivedGeneratorConfig(config, seedSource));
+            return lazyGenerator(lazyDerived(config, seedSource, InstantGenerator::new));
         }
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
-            InstantGenerator generator = new InstantGenerator(min, max);
-            generator.reseed(seed);
-            return generator;
+            return lazyGenerator(() -> {
+                InstantGenerator generator = new InstantGenerator(min, max);
+                generator.reseed(seed);
+                return generator;
+            });
         }
         return () -> randomDate(seedSource, min, max).atStartOfDay().toInstant(ZoneOffset.UTC);
     }
@@ -481,13 +528,15 @@ final class FieldGeneratorResolver {
                                                                         LocalDate min,
                                                                         LocalDate max) {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
-            return new ZonedDateTimeGenerator(derivedGeneratorConfig(config, seedSource));
+            return lazyGenerator(lazyDerived(config, seedSource, ZonedDateTimeGenerator::new));
         }
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
-            ZonedDateTimeGenerator generator = new ZonedDateTimeGenerator(min, max);
-            generator.reseed(seed);
-            return generator;
+            return lazyGenerator(() -> {
+                ZonedDateTimeGenerator generator = new ZonedDateTimeGenerator(min, max);
+                generator.reseed(seed);
+                return generator;
+            });
         }
         return () -> ZonedDateTime.of(
             randomLocalDateTime(seedSource, min, max),
@@ -499,13 +548,15 @@ final class FieldGeneratorResolver {
                                                                     LocalDate min,
                                                                     LocalDate max) {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
-            return new UtilDateGenerator(derivedGeneratorConfig(config, seedSource));
+            return lazyGenerator(lazyDerived(config, seedSource, UtilDateGenerator::new));
         }
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
-            UtilDateGenerator generator = new UtilDateGenerator(min, max);
-            generator.reseed(seed);
-            return generator;
+            return lazyGenerator(() -> {
+                UtilDateGenerator generator = new UtilDateGenerator(min, max);
+                generator.reseed(seed);
+                return generator;
+            });
         }
         long minMillis = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
         long maxExclusiveMillis = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
@@ -517,13 +568,15 @@ final class FieldGeneratorResolver {
                                                                   LocalDate min,
                                                                   LocalDate max) {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
-            return new SqlDateGenerator(derivedGeneratorConfig(config, seedSource));
+            return lazyGenerator(lazyDerived(config, seedSource, SqlDateGenerator::new));
         }
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
-            SqlDateGenerator generator = new SqlDateGenerator(min, max);
-            generator.reseed(seed);
-            return generator;
+            return lazyGenerator(() -> {
+                SqlDateGenerator generator = new SqlDateGenerator(min, max);
+                generator.reseed(seed);
+                return generator;
+            });
         }
         return () -> java.sql.Date.valueOf(randomDate(seedSource, min, max));
     }
@@ -533,13 +586,15 @@ final class FieldGeneratorResolver {
                                                                             LocalDate min,
                                                                             LocalDate max) {
         if (min.equals(LocalDate.of(1970, 1, 1)) && max.equals(LocalDate.of(2100, 12, 31))) {
-            return new SqlTimestampGenerator(derivedGeneratorConfig(config, seedSource));
+            return lazyGenerator(lazyDerived(config, seedSource, SqlTimestampGenerator::new));
         }
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
-            SqlTimestampGenerator generator = new SqlTimestampGenerator(min, max);
-            generator.reseed(seed);
-            return generator;
+            return lazyGenerator(() -> {
+                SqlTimestampGenerator generator = new SqlTimestampGenerator(min, max);
+                generator.reseed(seed);
+                return generator;
+            });
         }
         long minMillis = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
         long maxExclusiveMillis = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
@@ -556,28 +611,112 @@ final class FieldGeneratorResolver {
             LocalTime.of(source.nextInt(24), source.nextInt(60), source.nextInt(60)));
     }
 
-    private static Map<String, Generator<?>> buildSemanticStringGenerators(GeneratorConfig config,
-                                                                          Random seedSource,
-                                                                          SemanticFieldRegistry semanticRegistry) {
-        Map<String, Generator<?>> generators = new HashMap<>();
-        for (String semanticKey : semanticRegistry.providerBackedSemanticKeys()) {
-            registerSemantic(generators, config, seedSource,
-                             derivedConfig -> buildProviderBackedSemanticGenerator(derivedConfig, semanticRegistry, semanticKey),
-                             semanticKey);
-        }
-        registerSemantic(generators, config, seedSource, FieldGeneratorResolver::newStatusStringGenerator, "status");
-        return Collections.unmodifiableMap(generators);
+    /**
+     * The seed from which {@link ObjectFieldStreamPolicy#INDEPENDENT} member streams derive their
+     * provider-backed semantic generators, or {@code null} for every other stream model.
+     */
+    private Long independentSemanticSeed(Long generationSeed) {
+        return generationSeed != null
+               && generatorConfig.getObjectFieldStreamPolicy() == ObjectFieldStreamPolicy.INDEPENDENT
+               ? generationSeed
+               : null;
     }
 
-    private static void registerSemantic(Map<String, Generator<?>> generators,
-                                         GeneratorConfig config,
-                                         Random seedSource,
-                                         Function<GeneratorConfig, Generator<?>> factory,
-                                         String semanticKey) {
-        try {
-            generators.put(semanticKey, factory.apply(derivedGeneratorConfig(config, seedSource)));
-        } catch (UnsupportedOperationException ignored) {
-            // Locale/provider not available — fall back to generic type resolution.
+    private static SemanticStringGenerators buildSemanticStringGenerators(GeneratorConfig config,
+                                                                         Random seedSource,
+                                                                         SemanticFieldRegistry semanticRegistry,
+                                                                         Long independentSemanticSeed) {
+        Set<String> providerKeys = semanticRegistry.providerBackedSemanticKeys();
+        long[] providerSeeds = null;
+        // The number of provider-backed keys depends on installed modules. INDEPENDENT member streams
+        // must not shift when an unrelated provider is registered, so they derive each key's seed by
+        // name; every other seeded stream draws one seed per key in registry order.
+        if (independentSemanticSeed == null && config.getSeed().isPresent()) {
+            providerSeeds = new long[providerKeys.size()];
+            for (int i = 0; i < providerSeeds.length; i++) {
+                providerSeeds[i] = seedSource.nextLong();
+            }
+        }
+        Long statusSeed = nextDeterministicSeed(config, seedSource);
+        return new LazySemanticGenerators(
+            providerKeys,
+            providerSeeds,
+            independentSemanticSeed,
+            (key, seed) -> buildProviderBackedSemanticGenerator(configWithSeed(config, seed), semanticRegistry, key),
+            () -> newStatusStringGenerator(configWithSeed(config, statusSeed)));
+    }
+
+    /** Looks up a provider-backed semantic string generator by semantic key. */
+    @FunctionalInterface
+    private interface SemanticStringGenerators {
+
+        /** Structural-only generation has no semantic string generators. */
+        SemanticStringGenerators NONE = semanticKey -> null;
+
+        Generator<?> get(String semanticKey);
+    }
+
+    /**
+     * Provider-backed semantic generators, built on first use. Each key's seed is drawn when the
+     * resolver is created, in the same order as eager construction, so seeded output is unchanged;
+     * only the cost of building generators a type never uses is avoided.
+     */
+    private static final class LazySemanticGenerators implements SemanticStringGenerators {
+
+        private final Set<String> providerKeys;
+        private final long[] providerSeeds;
+        private final Long independentSeed;
+        private final BiFunction<String, Long, Generator<?>> providerFactory;
+        private final Supplier<Generator<?>> statusFactory;
+        private final Map<String, Optional<Generator<?>>> built = new HashMap<>();
+
+        private LazySemanticGenerators(Set<String> providerKeys,
+                                       long[] providerSeeds,
+                                       Long independentSeed,
+                                       BiFunction<String, Long, Generator<?>> providerFactory,
+                                       Supplier<Generator<?>> statusFactory) {
+            this.providerKeys = providerKeys;
+            this.providerSeeds = providerSeeds;
+            this.independentSeed = independentSeed;
+            this.providerFactory = providerFactory;
+            this.statusFactory = statusFactory;
+        }
+
+        @Override
+        public Generator<?> get(String semanticKey) {
+            Optional<Generator<?>> generator = built.get(semanticKey);
+            if (generator == null) {
+                generator = construct(semanticKey);
+                built.put(semanticKey, generator);
+            }
+            return generator.orElse(null);
+        }
+
+        private Optional<Generator<?>> construct(String semanticKey) {
+            try {
+                // The status generator replaces any provider registered under the same key.
+                if ("status".equals(semanticKey)) {
+                    return Optional.of(statusFactory.get());
+                }
+                int index = 0;
+                for (String key : providerKeys) {
+                    if (key.equals(semanticKey)) {
+                        return Optional.of(providerFactory.apply(key, seedFor(key, index)));
+                    }
+                    index++;
+                }
+                return Optional.empty();
+            } catch (UnsupportedOperationException unavailable) {
+                // Locale/provider not available — fall back to generic type resolution.
+                return Optional.empty();
+            }
+        }
+
+        private Long seedFor(String key, int index) {
+            if (independentSeed != null) {
+                return GenerationRecipe.deriveChildSeed(independentSeed, "semantic:" + key);
+            }
+            return providerSeeds != null ? Long.valueOf(providerSeeds[index]) : null;
         }
     }
 
@@ -646,7 +785,8 @@ final class FieldGeneratorResolver {
 
         Generator<Long> stringIdGenerator = longGenerator(
             nextDeterministicSeed(config, seedSource), seedSource, 1L, Long.MAX_VALUE);
-        registerTypedSemantic(generators, "id", UUID.class, new UUIDGenerator(derivedGeneratorConfig(config, seedSource)));
+        registerTypedSemantic(generators, "id", UUID.class,
+                              lazyGenerator(lazyDerived(config, seedSource, UUIDGenerator::new)));
         registerTypedSemantic(generators, "id", String.class, () -> Long.toString(stringIdGenerator.generate()));
         registerTypedSemantic(generators, "id", BigInteger.class,
                               bigIntegerGenerator(nextDeterministicSeed(config, seedSource), seedSource,
@@ -668,21 +808,23 @@ final class FieldGeneratorResolver {
         registerTypedSemantic(generators, "active", boolean.class, activeGenerator);
         registerTypedSemantic(generators, "active", Boolean.class, activeGenerator);
 
-        CoordinatesGenerator coordinatesGenerator = new CoordinatesGenerator(derivedGeneratorConfig(config, seedSource));
-        registerTypedSemantic(generators, "latitude", double.class, (Generator<Double>) coordinatesGenerator::generateLatitude);
-        registerTypedSemantic(generators, "latitude", Double.class, (Generator<Double>) coordinatesGenerator::generateLatitude);
-        registerTypedSemantic(generators, "latitude", float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLatitude());
-        registerTypedSemantic(generators, "latitude", Float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLatitude());
+        Supplier<CoordinatesGenerator> coordinates = lazyDerived(config, seedSource, CoordinatesGenerator::new);
+        Generator<Double> latitude = () -> coordinates.get().generateLatitude();
+        Generator<Double> longitude = () -> coordinates.get().generateLongitude();
+        registerTypedSemantic(generators, "latitude", double.class, latitude);
+        registerTypedSemantic(generators, "latitude", Double.class, latitude);
+        registerTypedSemantic(generators, "latitude", float.class, (Generator<Float>) () -> latitude.generate().floatValue());
+        registerTypedSemantic(generators, "latitude", Float.class, (Generator<Float>) () -> latitude.generate().floatValue());
         registerTypedSemantic(generators, "latitude", BigDecimal.class,
-                              () -> BigDecimal.valueOf(coordinatesGenerator.generateLatitude())
+                              () -> BigDecimal.valueOf(latitude.generate())
                                               .setScale(6, java.math.RoundingMode.HALF_UP));
 
-        registerTypedSemantic(generators, "longitude", double.class, (Generator<Double>) coordinatesGenerator::generateLongitude);
-        registerTypedSemantic(generators, "longitude", Double.class, (Generator<Double>) coordinatesGenerator::generateLongitude);
-        registerTypedSemantic(generators, "longitude", float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLongitude());
-        registerTypedSemantic(generators, "longitude", Float.class, (Generator<Float>) () -> (float) coordinatesGenerator.generateLongitude());
+        registerTypedSemantic(generators, "longitude", double.class, longitude);
+        registerTypedSemantic(generators, "longitude", Double.class, longitude);
+        registerTypedSemantic(generators, "longitude", float.class, (Generator<Float>) () -> longitude.generate().floatValue());
+        registerTypedSemantic(generators, "longitude", Float.class, (Generator<Float>) () -> longitude.generate().floatValue());
         registerTypedSemantic(generators, "longitude", BigDecimal.class,
-                              () -> BigDecimal.valueOf(coordinatesGenerator.generateLongitude())
+                              () -> BigDecimal.valueOf(longitude.generate())
                                               .setScale(6, java.math.RoundingMode.HALF_UP));
 
         Map<String, Map<Class<?>, Generator<?>>> unmodifiable = new HashMap<>(generators.size());
@@ -764,6 +906,7 @@ final class FieldGeneratorResolver {
         return provider;
     }
 
+    @SuppressWarnings("deprecation")
     private static Generator<BigDecimal> bigDecimalGenerator(Long seed,
                                                              Random source,
                                                              String min,
@@ -780,6 +923,7 @@ final class FieldGeneratorResolver {
         return () -> BigDecimal.valueOf(source.nextLong(originInclusive, boundExclusive), scale);
     }
 
+    @SuppressWarnings("deprecation")
     private static Generator<BigInteger> bigIntegerGenerator(Long seed,
                                                              Random source,
                                                              long min,
@@ -792,14 +936,17 @@ final class FieldGeneratorResolver {
         return () -> BigInteger.valueOf(source.nextLong(min, maxExclusive));
     }
 
+    @SuppressWarnings("deprecation")
     private static Generator<Integer> intGenerator(Long seed, Random source, int min, int maxExclusive) {
         return seed != null ? new IntGenerator(min, maxExclusive, seed) : () -> source.nextInt(min, maxExclusive);
     }
 
+    @SuppressWarnings("deprecation")
     private static Generator<Long> longGenerator(Long seed, Random source, long min, long maxExclusive) {
         return seed != null ? new LongGenerator(min, maxExclusive, seed) : () -> source.nextLong(min, maxExclusive);
     }
 
+    @SuppressWarnings("deprecation")
     private static Generator<Double> doubleGenerator(Long seed,
                                                      Random source,
                                                      double min,
@@ -815,6 +962,7 @@ final class FieldGeneratorResolver {
         };
     }
 
+    @SuppressWarnings("deprecation")
     private static Generator<Float> floatGenerator(Long seed,
                                                    Random source,
                                                    float min,
@@ -840,9 +988,9 @@ final class FieldGeneratorResolver {
     }
 
     private static Generator<String> buildLocaleCurrencyCodeGenerator(GeneratorConfig config, Random seedSource) {
-        CurrencyGenerator generator = BuiltInProviderResolver.provider(
-            "finance.currency", derivedGeneratorConfig(config, seedSource), CurrencyGenerator.class);
-        return () -> generator.generateCurrencyIsoCode(config.getLocale());
+        Supplier<CurrencyGenerator> generator = lazyDerived(config, seedSource, derived -> BuiltInProviderResolver.provider(
+            "finance.currency", derived, CurrencyGenerator.class));
+        return () -> generator.get().generateCurrencyIsoCode(config.getLocale());
     }
 
     private static Generator<io.github.frikit.krandom.generator.finance.Currency> buildLibraryCurrencyGenerator(GeneratorConfig config,
@@ -1001,6 +1149,48 @@ final class FieldGeneratorResolver {
         return ResolvedType.resolve(containerContract.getTypeParameters()[index], bindings);
     }
 
+    /**
+     * Follows the whole binding chain: {@code SortedSet<P>} resolves {@code Set}'s {@code E} to
+     * {@code SortedSet}'s {@code E}, and only that resolves to {@code P}.
+     */
+    private static ResolvedType mostSpecific(ResolvedType type) {
+        ResolvedType current = type;
+        while (current.effectiveType() != null) {
+            current = current.effectiveType();
+        }
+        return current;
+    }
+
+    private static boolean isSortedContainer(Class<?> rawType) {
+        return rawType == TreeSet.class || rawType == SortedSet.class || rawType == NavigableSet.class
+               || rawType == PriorityQueue.class
+               || rawType == TreeMap.class || rawType == SortedMap.class || rawType == NavigableMap.class;
+    }
+
+    /**
+     * Sorted containers need an element order. Comparable elements use their natural order and
+     * other types their value-based {@code toString()}. Types that only inherit
+     * {@link Object#toString()} would be ordered by identity hash codes, which differ between runs.
+     */
+    private static boolean hasDeterministicOrder(ResolvedType elementType) {
+        Class<?> type = mostSpecific(elementType).rawClass();
+        return Comparable.class.isAssignableFrom(type) || overridesToString(type);
+    }
+
+    private static boolean overridesToString(Class<?> type) {
+        try {
+            return type.getMethod("toString").getDeclaringClass() != Object.class;
+        } catch (NoSuchMethodException interfaceWithoutToString) {
+            return false;
+        }
+    }
+
+    private static Comparator<Object> sortedOrderFor(ResolvedType elementType) {
+        return Comparable.class.isAssignableFrom(mostSpecific(elementType).rawClass())
+               ? null
+               : Comparator.comparing(String::valueOf);
+    }
+
     private boolean hasResolvedArguments(Type type, Class<?> containerContract) {
         for (int i = 0; i < containerContract.getTypeParameters().length; i++) {
             if (!containerArgument(type, containerContract, i).isResolved()) {
@@ -1010,11 +1200,11 @@ final class FieldGeneratorResolver {
         return true;
     }
 
-    private static Set<Object> toSetType(Class<?> rawType, List<Object> values) {
+    private static Set<Object> toSetType(Class<?> rawType, ResolvedType elementType, List<Object> values) {
         if (rawType == TreeSet.class
             || rawType == SortedSet.class
             || rawType == NavigableSet.class) {
-            Set<Object> set = new TreeSet<>(Comparator.comparing(String::valueOf));
+            Set<Object> set = new TreeSet<>(sortedOrderFor(elementType));
             set.addAll(values);
             return set;
         }
@@ -1070,9 +1260,9 @@ final class FieldGeneratorResolver {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static Queue<Object> toQueueType(Class<?> rawType, List<Object> values) {
+    private static Queue<Object> toQueueType(Class<?> rawType, ResolvedType elementType, List<Object> values) {
         if (rawType == PriorityQueue.class) {
-            Queue<Object> queue = new PriorityQueue<>(Comparator.comparing(String::valueOf));
+            Queue<Object> queue = new PriorityQueue<>(sortedOrderFor(elementType));
             queue.addAll(values);
             return queue;
         }
@@ -1089,11 +1279,11 @@ final class FieldGeneratorResolver {
         return null;
     }
 
-    private static Map<Object, Object> toMapType(Class<?> rawType) {
+    private static Map<Object, Object> toMapType(Class<?> rawType, ResolvedType keyType) {
         if (rawType == TreeMap.class
             || rawType == SortedMap.class
             || rawType == NavigableMap.class) {
-            return new TreeMap<>(Comparator.comparing(String::valueOf));
+            return new TreeMap<>(sortedOrderFor(keyType));
         }
         Map<Object, Object> concrete = instantiateCollectionType(rawType, Map.class);
         if (concrete != null) {
@@ -1209,10 +1399,14 @@ final class FieldGeneratorResolver {
         long max = annotation.max();
         Long seed = nextDeterministicSeed(generatorConfig, sequenceRandom);
         if (rawType == int.class || rawType == Integer.class) {
-            return intGenerator(seed, sequenceRandom, (int) min, (int) max);
+            long[] range = narrowFakeRange(min, max, Integer.MIN_VALUE, Integer.MAX_VALUE + 1L, "int");
+            return range[1] > Integer.MAX_VALUE
+                   ? longGenerator(seed, sequenceRandom, range[0], range[1]).map(Long::intValue)
+                   : intGenerator(seed, sequenceRandom, (int) range[0], (int) range[1]);
         }
         if (rawType == long.class || rawType == Long.class) {
-            return longGenerator(seed, sequenceRandom, min, max);
+            long[] range = narrowFakeRange(min, max, Long.MIN_VALUE, Long.MAX_VALUE, "long");
+            return longGenerator(seed, sequenceRandom, range[0], range[1]);
         }
         if (rawType == double.class || rawType == Double.class) {
             return doubleGenerator(seed, sequenceRandom, min, max, null);
@@ -1221,21 +1415,62 @@ final class FieldGeneratorResolver {
             return floatGenerator(seed, sequenceRandom, min, max, null);
         }
         if (rawType == short.class || rawType == Short.class) {
-            return shortGenerator(seed, sequenceRandom, (short) min, (short) max);
+            long[] range = narrowFakeRange(min, max, Short.MIN_VALUE, Short.MAX_VALUE + 1L, "short");
+            return range[1] > Short.MAX_VALUE
+                   ? intGenerator(seed, sequenceRandom, (int) range[0], (int) range[1]).map(Integer::shortValue)
+                   : shortGenerator(seed, sequenceRandom, (short) range[0], (short) range[1]);
         }
         if (rawType == byte.class || rawType == Byte.class) {
-            return byteGenerator(seed, sequenceRandom, (byte) min, (byte) max);
+            long[] range = narrowFakeRange(min, max, Byte.MIN_VALUE, Byte.MAX_VALUE + 1L, "byte");
+            return range[1] > Byte.MAX_VALUE
+                   ? intGenerator(seed, sequenceRandom, (int) range[0], (int) range[1]).map(Integer::byteValue)
+                   : byteGenerator(seed, sequenceRandom, (byte) range[0], (byte) range[1]);
         }
         return null;
     }
 
-    private static Generator<?> annotationRandomizerFor(AnnotatedElement element,
-                                                        Class<?> ownerType,
-                                                        String fieldName,
-                                                        int depth) {
+    /**
+     * Narrows {@link FakeRange} bounds to an integral field type. The default {@code max} is
+     * {@link Long#MAX_VALUE}, so a plain cast would overflow for {@code int}, {@code short} and
+     * {@code byte} fields. A range that reaches past the type's largest value includes it, so the
+     * returned exclusive bound can be one above that value; callers then sample a wider type.
+     */
+    private static long[] narrowFakeRange(long min,
+                                          long maxExclusive,
+                                          long typeMin,
+                                          long typeMaxExclusive,
+                                          String typeName) {
+        long narrowedMin = Math.max(min, typeMin);
+        long narrowedMax = Math.min(maxExclusive, typeMaxExclusive);
+        if (narrowedMin >= narrowedMax) {
+            throw new IllegalArgumentException(
+                "@FakeRange(min = " + min + ", max = " + maxExclusive + ") has no " + typeName + " values");
+        }
+        return new long[] {narrowedMin, narrowedMax};
+    }
+
+    private Generator<?> annotationRandomizerFor(AnnotatedElement element,
+                                                 Class<?> ownerType,
+                                                 String fieldName,
+                                                 int depth) {
         Randomizer annotation = element.getAnnotation(Randomizer.class);
         if (annotation == null) return null;
         Class<? extends Generator<?>> generatorType = annotation.value();
+        Generator<?> generator = uniqueFieldTracker.randomizer(
+            element, () -> constructRandomizer(element, generatorType, ownerType, fieldName, depth));
+        if (generationSeed != null && generator instanceof Seedable seedable) {
+            // Seedable randomizers follow the object's seeded stream like built-in generators. The seed
+            // is derived by name, so no other member's draws shift.
+            seedable.reseed(GenerationRecipe.deriveChildSeed(generationSeed, "randomizer:" + memberPath(fieldName)));
+        }
+        return () -> generateWithRandomizerContext(generator, generatorType, ownerType, fieldName, depth);
+    }
+
+    private static Generator<?> constructRandomizer(AnnotatedElement element,
+                                                    Class<? extends Generator<?>> generatorType,
+                                                    Class<?> ownerType,
+                                                    String fieldName,
+                                                    int depth) {
         try {
             RandomizerArgument[] args = element.getAnnotationsByType(RandomizerArgument.class);
             Class<?>[] parameterTypes = new Class<?>[args.length];
@@ -1246,8 +1481,7 @@ final class FieldGeneratorResolver {
             }
             Constructor<? extends Generator<?>> ctor = generatorType.getDeclaredConstructor(parameterTypes);
             ctor.setAccessible(true);
-            Generator<?> generator = ctor.newInstance(parameterValues);
-            return () -> generateWithRandomizerContext(generator, generatorType, ownerType, fieldName, depth);
+            return ctor.newInstance(parameterValues);
         } catch (InvocationTargetException e) {
             throw randomizerFailure(
                 GenerationOperation.CONSTRUCT, generatorType, ownerType, fieldName, depth, e.getTargetException());
@@ -1505,16 +1739,24 @@ final class FieldGeneratorResolver {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
             ResolvedType elem = containerArgument(genericType, Set.class, 0);
+            if (isSortedContainer(rawType) && !hasDeterministicOrder(elem)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
             int elementCount = nextCollectionSize(element);
-            Set<Object> values = new LinkedHashSet<>();
+            // A sorted set keeps one element per ordering key, so count distinct elements by that order.
+            Set<Object> values = isSortedContainer(rawType) ? new TreeSet<>(sortedOrderFor(elem)) : new LinkedHashSet<>();
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (values.size() < elementCount && attempts++ < maxAttempts) {
                 values.add(resolveAndGenerate(
                     elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
             }
+            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(values.size(), element);
+            if (shortfall != null) {
+                return handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, shortfall);
+            }
             try {
-                return toSetType(rawType, new ArrayList<>(values));
+                return toSetType(rawType, elem, new ArrayList<>(values));
             } catch (CollectionInsertionFailure failure) {
                 return handleCollectionInsertionFailure(
                     ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
@@ -1531,6 +1773,9 @@ final class FieldGeneratorResolver {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
             ResolvedType elem = containerArgument(genericType, containerContract, 0);
+            if (isSortedContainer(rawType) && !hasDeterministicOrder(elem)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
             int elementCount = nextCollectionSize(element);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
@@ -1541,7 +1786,7 @@ final class FieldGeneratorResolver {
                 if (List.class.isAssignableFrom(rawType)) {
                     return toListType(rawType, els);
                 }
-                return toQueueType(rawType, els);
+                return toQueueType(rawType, elem, els);
             } catch (CollectionInsertionFailure failure) {
                 return handleCollectionInsertionFailure(
                     ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
@@ -1558,9 +1803,12 @@ final class FieldGeneratorResolver {
             }
             ResolvedType k = containerArgument(genericType, Map.class, 0);
             ResolvedType v = containerArgument(genericType, Map.class, 1);
+            if (isSortedContainer(rawType) && !hasDeterministicOrder(k)) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            }
             Map<Object, Object> map;
             try {
-                map = toMapType(rawType);
+                map = toMapType(rawType, k);
             } catch (CollectionConstructionFailure failure) {
                 return handleCollectionConstructionFailure(
                     ownerType, fieldName, genericType, currentDepth, failure.constructionCause());
@@ -1599,6 +1847,10 @@ final class FieldGeneratorResolver {
                             null);
                     }
                 }
+            }
+            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(map.size(), element);
+            if (shortfall != null) {
+                return handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, shortfall);
             }
             if (rawType == Map.class) {
                 return Collections.unmodifiableMap(map);
@@ -1896,7 +2148,7 @@ final class FieldGeneratorResolver {
                                       Class<?> ownerType,
                                       int currentDepth,
                                       AnnotatedElement element) {
-        ResolvedType generationType = Objects.requireNonNullElse(type.effectiveType(), type);
+        ResolvedType generationType = mostSpecific(type);
         Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
         return resolveAndGenerate(
             generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, element);
@@ -1970,6 +2222,21 @@ final class FieldGeneratorResolver {
             return parameter.getAnnotatedType();
         }
         return null;
+    }
+
+    /**
+     * Distinct-element containers can end up smaller than requested when the element domain is
+     * small (a {@code Set<Boolean>} holds at most two values). That is fine for the default size,
+     * but a declared minimum must not be violated silently.
+     */
+    private static BeanValidationSupport.ConstraintConflictException sizeShortfall(int reached,
+                                                                                   AnnotatedElement element) {
+        BeanValidationSupport.SizeRange declared = BeanValidationSupport.sizeRangeFor(element);
+        if (declared == null || reached >= declared.min()) {
+            return null;
+        }
+        return new BeanValidationSupport.ConstraintConflictException(
+            "only " + reached + " distinct values available for a declared minimum size of " + declared.min());
     }
 
     private int nextCollectionSize(AnnotatedElement element) {

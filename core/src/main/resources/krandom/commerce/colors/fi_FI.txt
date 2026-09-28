@@ -1,0 +1,7 @@
+# Product colors, one per line.
+punainen
+sininen
+vihreä
+musta
+valkoinen
+hopea

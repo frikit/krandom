@@ -1,0 +1,3 @@
+# Line 1: bare company name from {prefix} and {noun}; line 2: legal name from {name} and {suffix}.
+{noun} {prefix}
+{name} {suffix}

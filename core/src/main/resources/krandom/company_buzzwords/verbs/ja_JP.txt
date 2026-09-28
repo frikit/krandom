@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+効率化
+強化
+活用
+最適化
+統合
+拡張
+提供
+実現

@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Heltid
+Deltid
+Konsultuppdrag
+Visstidsanställning
+Praktik
+Frilans
+Lärlingsanställning
+Säsongsarbete
+Volontärarbete
+Distansarbete

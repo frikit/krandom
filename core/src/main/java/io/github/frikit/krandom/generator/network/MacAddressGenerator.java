@@ -86,7 +86,7 @@ public final class MacAddressGenerator implements Generator<String> {
         StringBuilder sb = new StringBuilder(17);
         for (int i = 0; i < 6; i++) {
             if (i > 0) sb.append(separator);
-            sb.append(String.format("%02X", random.nextInt(256)));
+            sb.append(String.format(Locale.ROOT, "%02X", random.nextInt(256)));
         }
         return sb.toString();
     }

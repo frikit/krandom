@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+Công ty TNHH
+Công ty Cổ phần
+Tập đoàn
+Công ty Hợp danh
+Doanh nghiệp tư nhân

@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+višeplatformske
+cjelovite
+vrhunske
+besprijekorne
+oblačne
+podatkovno vođene

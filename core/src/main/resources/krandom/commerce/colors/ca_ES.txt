@@ -1,0 +1,7 @@
+# Product colors, one per line.
+vermell
+blau
+verd
+negre
+blanc
+platejat

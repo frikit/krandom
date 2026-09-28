@@ -1,0 +1,11 @@
+# Employment type values, one per line.
+Heltid
+Deltid
+Oppdrag
+Midlertidig
+Praksisplass
+Frilans
+Lærling
+Sesongarbeid
+Frivillig
+Fjernarbeid

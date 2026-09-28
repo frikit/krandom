@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Inginerie
+Marketing
+Vânzări
+Finanțe
+Operațiuni
+Produs
+Resurse umane
+Juridic
+Design
+Asistență clienți
+Cercetare
+Știința datelor
+Securitate
+Achiziții
+Logistică

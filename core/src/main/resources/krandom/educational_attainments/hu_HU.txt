@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Érettségi
+Felsőfokú szakképzés
+Alapdiploma (BSc/BA)
+Mesterdiploma (MSc/MA)
+Doktori fokozat (PhD)
+Osztatlan mesterképzés
+Szakmunkás-bizonyítvány

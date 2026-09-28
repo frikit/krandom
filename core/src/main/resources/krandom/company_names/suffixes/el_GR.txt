@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+Α.Ε.
+Ε.Π.Ε.
+Ι.Κ.Ε.
+Ο.Ε.
+Ε.Ε.

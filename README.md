@@ -13,10 +13,10 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 |:---|:---|
 | `bom` | Maven/Gradle bill of materials for aligning published module versions |
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
-| `jackson` | Jackson integration on top of `core` |
-| `junit` | JUnit 5 extension: per-test seeds, `@KrandomSeed` pinning, failure-seed reporting |
+| `jackson` | Jackson 2.x (`com.fasterxml.jackson`) integration on top of `core`; not a Jackson 3 (`tools.jackson`) module |
+| `junit` | JUnit 5 extension: per-test seeds, `@KrandomSeed` pinning, failure-seed reporting with Gradle/Maven replay commands |
 | `spring-boot-starter` | Spring Boot 4.x auto-configuration for `core` (requires Spring Boot 4.x on the consumer) |
-| `kotest-extensions` | Kotest `Arb` adapters for property-based tests |
+| `kotest-extensions` | Kotest `Arb` adapters for property-based tests (declare your own Kotest 6.1+ `kotest-property`) |
 | `kotlin-dsl` | Kotlin DSL for object generation rules |
 | `benchmarks` | JMH and macro-profile workloads, including competitor comparisons |
 | `examples/` | Consumer examples for Java, Kotlin, and Scala build-tool combinations using `core` directly |
@@ -129,7 +129,7 @@ Generator<String> emails = Generators.threadLocal(() -> Generators.ofEmail(confi
 - **`ProviderHub`** registration is thread-safe; complete all registration before sharing the hub for lookups.
 - **`ObjectGenerator` / `ObjectFaker` / `Schema`** are stateful per generation call and must be confined to one thread (one instance per thread).
 
-**Determinism.** A fixed seed reproduces output only under **single-threaded** use of a given instance — concurrent calls race on PRNG call order. For reproducible per-thread data, derive a distinct seed per thread (e.g. `baseSeed ^ threadId`) and build one seeded config per thread. Seeded object-graph output is also stable across JDK builds and vendors: fields are populated in a name-sorted order rather than the JVM's unspecified reflection order.
+**Determinism.** A fixed seed reproduces output only under **single-threaded** use of a given instance — concurrent calls race on PRNG call order. For reproducible per-thread data, derive a distinct seed per thread (e.g. `baseSeed ^ threadId`) and build one seeded config per thread. Object generation does not depend on the JVM's unspecified reflection order: fields are populated in a name-sorted order. Seeded output is not guaranteed to be identical across JDK builds, however: values drawn from JDK-supplied data — time-zone IDs from the JDK's tzdata (`ZoneIdGenerator`, `TimezoneGenerator`, zoned date-times), ISO country lists, and locale display names and date formats — follow the running JDK, so pin the JDK version when fixtures must match byte-for-byte across machines.
 
 ## Object semantic aliases
 
@@ -153,7 +153,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 ./scripts/verify_examples_local.sh
 ```
 
-`pre_commit_check.sh` runs formatting, markdown checks, compilation, tests, Javadoc validation, coverage verification, and now fails fast when Java 21+ is not active.
+`pre_commit_check.sh` runs formatting, Markdown, link, and documentation-fact checks, compilation, the public API contract, module boundaries, release SBOM validation, Javadoc, tests, critical-path mutation testing, and the exact core coverage gate, and fails fast when Java 21+ is not active. `--fast` reuses up-to-date test results and skips mutation testing and SBOM validation while iterating.
 
 `verify_examples_local.sh` publishes all current `krandom-*` consumer artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set.
 

@@ -15,14 +15,14 @@ A classified schema reference exports the same claims through its `x-krandom-saf
 | `person.full_name` | `FullNameGenerator` | `full_name`, `name` | `fullname` | `unclassified` | `person.full_name` (aliases: `full_name`, `fullname`, `name`) |
 | `person.first_name` | `FirstNameGenerator` | `first_name` | `firstname` | `unclassified` | `person.first_name` (aliases: `first_name`, `firstname`) |
 | `person.last_name` | `LastNameGenerator` | `last_name` | `lastname` | `unclassified` | `person.last_name` (aliases: `last_name`, `lastname`) |
-| `person.email` | `EmailGenerator` | `email` | `email` | `unclassified` | `person.email` (aliases: `email`) |
+| `person.email` | `EmailGenerator` | `email` | `email` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `person.email` (aliases: `email`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
 | `person.username` | `UsernameGenerator` | `username` | `username` | `unclassified` | `person.username` (aliases: `username`) |
 | `person.contact_info` | `ContactInfoGenerator` | `contact_info` |  | `unclassified` | `person.contact_info` (aliases: `contact_info`) |
 | `person.person_info` | `PersonInfoGenerator` | `person_info` |  | `unclassified` | `person.person_info` (aliases: `person_info`) |
 | `person.job_info` | `JobInfoGenerator` | `job_info` |  | `unclassified` | `person.job_info` (aliases: `job_info`) |
 | `person` | `FullNameGenerator` |  |  | `unclassified` | `person` |
 | `company.name` | `CompanyNameGenerator` | `company_name` | `companyname` | `unclassified` | `company.name` (aliases: `company_name`) |
-| `company.email` | `CompanyEmailGenerator` | `company_email` | `companyemail` | `unclassified` | `company.email` (aliases: `company_email`) |
+| `company.email` | `CompanyEmailGenerator` | `company_email` | `companyemail` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `company.email` (aliases: `company_email`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
 | `company.url` | `CompanyUrlGenerator` | `company_url` | `companyurl` | `unclassified` | `company.url` (aliases: `company_url`) |
 | `company.buzzword` | `CompanyBuzzwordGenerator` | `company_buzzword` |  | `unclassified` | `company.buzzword` (aliases: `company_buzzword`) |
 | `company.catch_phrase` | `CompanyCatchPhraseGenerator` | `company_catch_phrase` |  | `unclassified` | `company.catch_phrase` (aliases: `company_catch_phrase`) |

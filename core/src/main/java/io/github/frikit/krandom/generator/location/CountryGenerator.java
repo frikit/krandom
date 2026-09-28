@@ -11,6 +11,8 @@ import io.github.frikit.krandom.generator.DataRegistryContext;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -82,7 +84,7 @@ public final class CountryGenerator implements Generator<String> {
         Map.entry("PT", "620"),
         Map.entry("TW", "158")
     );
-    private static final Map<String, String> CALLING_BY_COUNTRY   = Map.ofEntries(
+    private static final Map<String, String> CALLING_BY_COUNTRY   = orderedMap(
         Map.entry("US", "+1"),
         Map.entry("GB", "+44"),
         Map.entry("AU", "+61"),
@@ -129,7 +131,7 @@ public final class CountryGenerator implements Generator<String> {
         Map.entry("PT", "+351"),
         Map.entry("TW", "+886")
     );
-    private static final Map<String, String> CONTINENT_BY_COUNTRY = Map.ofEntries(
+    private static final Map<String, String> CONTINENT_BY_COUNTRY = orderedMap(
         Map.entry("US", "North America"),
         Map.entry("GB", "Europe"),
         Map.entry("AU", "Oceania"),
@@ -176,7 +178,7 @@ public final class CountryGenerator implements Generator<String> {
         Map.entry("PT", "Europe"),
         Map.entry("TW", "Asia")
     );
-    private static final Map<String, String> TIMEZONE_BY_COUNTRY  = Map.ofEntries(
+    private static final Map<String, String> TIMEZONE_BY_COUNTRY  = orderedMap(
         Map.entry("US", "America/New_York"),
         Map.entry("GB", "Europe/London"),
         Map.entry("AU", "Australia/Sydney"),
@@ -223,6 +225,11 @@ public final class CountryGenerator implements Generator<String> {
         Map.entry("PT", "Europe/Lisbon"),
         Map.entry("TW", "Asia/Taipei")
     );
+    // Random selection indexes these declaration-ordered snapshots; Map.of/Map.ofEntries iteration
+    // order is randomized per JVM and must never feed seeded output.
+    private static final List<String>        CALLING_CODES        = List.copyOf(CALLING_BY_COUNTRY.values());
+    private static final List<String>        CONTINENTS           = List.copyOf(CONTINENT_BY_COUNTRY.values());
+    private static final List<String>        TIMEZONES            = List.copyOf(TIMEZONE_BY_COUNTRY.values());
 
     private final GeneratorConfig config;
     private final Random          random;
@@ -268,6 +275,15 @@ public final class CountryGenerator implements Generator<String> {
      */
     public CountryGenerator(Locale locale) {
         this(GeneratorConfig.builder().locale(locale).build());
+    }
+
+    @SafeVarargs
+    private static Map<String, String> orderedMap(Map.Entry<String, String>... entries) {
+        Map<String, String> ordered = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : entries) {
+            ordered.put(entry.getKey(), entry.getValue());
+        }
+        return Collections.unmodifiableMap(ordered);
     }
 
     private static String[] loadIsoAlpha3Codes() {
@@ -407,8 +423,7 @@ public final class CountryGenerator implements Generator<String> {
      * @return calling code such as {@code +44}
      */
     public String generateCallingCode() {
-        List<String> values = List.copyOf(CALLING_BY_COUNTRY.values());
-        return values.get(random.nextInt(values.size()));
+        return CALLING_CODES.get(random.nextInt(CALLING_CODES.size()));
     }
 
     /**
@@ -431,8 +446,7 @@ public final class CountryGenerator implements Generator<String> {
      * @return continent label
      */
     public String generateContinent() {
-        List<String> values = List.copyOf(CONTINENT_BY_COUNTRY.values());
-        return values.get(random.nextInt(values.size()));
+        return CONTINENTS.get(random.nextInt(CONTINENTS.size()));
     }
 
     /**
@@ -455,8 +469,7 @@ public final class CountryGenerator implements Generator<String> {
      * @return timezone id
      */
     public String generateTimezone() {
-        List<String> values = List.copyOf(TIMEZONE_BY_COUNTRY.values());
-        return values.get(random.nextInt(values.size()));
+        return TIMEZONES.get(random.nextInt(TIMEZONES.size()));
     }
 
     /**

@@ -24,6 +24,6 @@ public final class CaEsNationalIdProvider implements NationalIdProvider {
     public String generate(Random random) {
         int number = random.nextInt(100_000_000);
         char letter = CHECK_LETTERS.charAt(number % 23);
-        return String.format("%08d%c", number, letter);
+        return String.format(Locale.ROOT, "%08d%c", number, letter);
     }
 }

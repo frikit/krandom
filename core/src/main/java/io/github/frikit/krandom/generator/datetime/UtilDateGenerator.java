@@ -51,7 +51,9 @@ public final class UtilDateGenerator implements Generator<Date>, Seedable {
     public Date generate() {
         long lo = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
         long hiExclusive = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-        return new Date(lo + random.nextLong(hiExclusive - lo));
+        // The origin/bound form draws exactly like lo + nextLong(hiExclusive - lo) whenever that width
+        // fits in a long, and still samples uniformly when it does not.
+        return new Date(random.nextLong(lo, hiExclusive));
     }
 
     /**

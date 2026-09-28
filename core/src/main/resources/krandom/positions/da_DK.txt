@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Softwareudvikler
+Produktchef
+Dataanalytiker
+UX-designer
+Kundeansvarlig sælger
+Marketingspecialist
+Forretningsanalytiker
+DevOps-ingeniør
+Driftssikkerhedsingeniør
+Udviklingschef
+Løsningsarkitekt
+Teknisk skribent
+Testingeniør
+Projektleder
+Sikkerhedsingeniør
+Databaseadministrator

@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+data
+model
+sistem
+isyarat
+proses
+analisis
+platform
+rangkaian
+selamat
+perkhidmatan
+struktur
+modul
+logik
+nilai
+konteks
+matlamat

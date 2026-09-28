@@ -37,13 +37,12 @@ public final class SimpleProfileGenerator implements Generator<SimpleProfile> {
     public SimpleProfileGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
-        this.usernameGenerator = new UsernameGenerator(effective);
-        this.fullNameGenerator = new FullNameGenerator(effective);
-        this.addressGenerator = new StreetAddressGenerator(effective);
-        this.emailGenerator = new EmailGenerator(effective);
-        this.birthdayGenerator = effective.getSeed().isPresent()
-                                 ? new BirthdayGenerator(effective.getLocale(), effective.getSeed().getAsLong())
-                                 : new BirthdayGenerator(effective.getLocale());
+        this.usernameGenerator = new UsernameGenerator(effective.forChildStream("username"));
+        this.fullNameGenerator = new FullNameGenerator(effective.forChildStream("fullName"));
+        this.addressGenerator = new StreetAddressGenerator(effective.forChildStream("streetAddress"));
+        this.emailGenerator = new EmailGenerator(effective.forChildStream("email"));
+        // The child configuration carries the seed, random source, and clock that birthdays follow.
+        this.birthdayGenerator = new BirthdayGenerator(effective.forChildStream("birthday"));
     }
 
     @Override

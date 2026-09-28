@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+s.r.o.
+a.s.
+v.o.s.
+k.s.
+družstvo

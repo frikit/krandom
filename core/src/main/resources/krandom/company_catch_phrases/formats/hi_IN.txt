@@ -1,0 +1,2 @@
+# Catch-phrase format using {adjective}, {noun} and {tagline}.
+{tagline} {adjective} {noun}

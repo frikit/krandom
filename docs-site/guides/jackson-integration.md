@@ -8,6 +8,16 @@ permalink: /guides/jackson-integration/
 
 Use `krandom-jackson` when you want Jackson to understand kRandom schema definitions.
 
+## Jackson 2.x only
+
+`krandom-jackson` is built for **Jackson 2.x** (`com.fasterxml.jackson.core:jackson-databind`,
+packages `com.fasterxml.jackson.*`) and brings `jackson-databind` 2.x transitively.
+`KrandomJacksonModule` extends Jackson 2's `SimpleModule`; it cannot be registered with a Jackson 3
+(`tools.jackson.*`) mapper. Spring Boot 4 defaults to Jackson 3, so its auto-configured
+`JsonMapper` does not pick the module up: use a Jackson 2 `ObjectMapper`, for example
+`KrandomJackson.newObjectMapper()`, for kRandom schema serialization. Jackson 2 and Jackson 3 use
+different packages and coexist on one classpath.
+
 ## Dependency
 
 Use Maven Central:

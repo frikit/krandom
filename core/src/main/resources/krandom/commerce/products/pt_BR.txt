@@ -1,0 +1,7 @@
+# Product nouns, one per line.
+Cadeira
+Mesa
+Computador
+Teclado
+Tênis
+Relógio

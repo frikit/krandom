@@ -42,7 +42,7 @@ public final class NlNationalIdProvider implements NationalIdProvider {
                        + 3 * digits[6]) % 11;
         digits[7] = CHECK_PAIRS[residue][0];
         digits[8] = CHECK_PAIRS[residue][1];
-        return String.format("%d%d%d%d%d%d%d%d%d",
+        return String.format(Locale.ROOT, "%d%d%d%d%d%d%d%d%d",
                              digits[0], digits[1], digits[2], digits[3], digits[4],
                              digits[5], digits[6], digits[7], digits[8]);
     }

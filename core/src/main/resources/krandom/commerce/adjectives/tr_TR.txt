@@ -1,0 +1,7 @@
+# Product adjectives, one per line.
+Kompakt
+Şık
+Rustik
+Pratik
+Premium
+Ergonomik

@@ -8,6 +8,8 @@ package io.github.frikit.krandom.dsl
 import io.github.frikit.krandom.generator.Generator
 import io.github.frikit.krandom.generator.GeneratorConfig
 import io.github.frikit.krandom.generator.`object`.ObjectGenerator
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
@@ -92,6 +94,7 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
         .objectOverrideDefaultInitialization(true)
     private val fieldOverrides = mutableMapOf<String, Generator<*>>()
     private val typeOverrides = mutableMapOf<Class<*>, Generator<*>>()
+    private val exclusions = linkedSetOf<String>()
 
     /**
      * Configures the underlying [GeneratorConfig].
@@ -180,29 +183,36 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
     }
 
     /**
-     * Excludes a property from generation through a type-safe reference.
+     * Excludes a property of the generated type from generation through a type-safe reference.
+     *
+     * The exclusion is scoped to the generated (root) type's field: a nested object's field with
+     * the same name is still generated. A field inherited from a superclass is matched by that
+     * superclass field wherever it appears in the object graph. Computed and delegated properties
+     * have no backing field to exclude and are rejected when the generator is built.
      */
     fun exclude(property: KProperty1<T, *>) {
         exclude(property.name)
     }
 
     /**
-     * Excludes a field by name from generation.
+     * Excludes a field of the generated type by name from generation.
+     *
+     * Like the property-reference form, the exclusion is scoped to the generated (root) type's
+     * field; unknown names fail when the generator is built.
      */
     fun exclude(fieldName: String) {
-        configBuilder.objectExcludeField(fieldName)
+        exclusions += fieldName
     }
 
     @PublishedApi
     internal fun build(): ObjectGenerator<T> {
-        val known = knownFieldNames()
-        val unknown = fieldOverrides.keys.filterNot { it in known }
-        require(unknown.isEmpty()) {
-            "Unknown field rule(s) ${unknown.sorted()} for ${type.name}; " +
-                "known fields: ${known.sorted()}"
-        }
+        val targets = RuleTargets(type)
         for ((fieldName, generator) in fieldOverrides) {
-            configBuilder.objectOverride(type, fieldName, generator)
+            configBuilder.objectOverride(targets.ruleOwner(fieldName, "rule"), fieldName, generator)
+        }
+        for (fieldName in exclusions) {
+            val excluded = targets.backingField(fieldName)
+            configBuilder.objectExclude { candidate -> candidate == excluded }
         }
         for ((clazz, generator) in typeOverrides) {
             @Suppress("UNCHECKED_CAST")
@@ -221,23 +231,74 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
         return ObjectGenerator(type, configBuilder.build())
     }
 
-    private fun knownFieldNames(): Set<String> {
-        val names = mutableSetOf<String>()
-        var current: Class<*>? = type
-        while (current != null && current != Any::class.java) {
-            current.declaredFields.forEach { field -> names += field.name }
-            current = current.superclass
-        }
-        // Kotlin metadata adds primary-constructor parameters and member properties that have no
-        // backing Java field visible above; reflection over synthetic/local classes can fail, and
-        // that supplementary lookup must not block validation of the Java field names.
-        runCatching {
-            type.kotlin.primaryConstructor?.parameters?.forEach { parameter ->
-                parameter.name?.let { names += it }
+    /**
+     * Resolves rule and exclusion names against what object generation can actually target: Java
+     * fields of the generated type and its superclasses, and Kotlin primary-constructor parameters.
+     */
+    private class RuleTargets(private val type: Class<*>) {
+
+        private val fields = LinkedHashMap<String, Field>()
+        private val constructorParameters = mutableSetOf<String>()
+        private val memberPropertiesWithoutField = mutableSetOf<String>()
+
+        init {
+            var current: Class<*>? = type
+            while (current != null && current != Any::class.java) {
+                current.declaredFields
+                    .filterNot { field -> Modifier.isStatic(field.modifiers) }
+                    .forEach { field -> fields.putIfAbsent(field.name, field) }
+                current = current.superclass
             }
-            type.kotlin.memberProperties.forEach { property -> names += property.name }
+            // Reflection over synthetic/local classes can fail; that supplementary Kotlin lookup
+            // must not block validation of the Java field names collected above.
+            runCatching {
+                type.kotlin.primaryConstructor?.parameters?.forEach { parameter ->
+                    parameter.name?.let { constructorParameters += it }
+                }
+                type.kotlin.memberProperties
+                    .map { property -> property.name }
+                    .filterNot { name -> name in fields || name in constructorParameters }
+                    .forEach { name -> memberPropertiesWithoutField += name }
+            }
         }
-        return names
+
+        /**
+         * Returns the owner type under which a field rule is looked up: the generated type for its
+         * own fields and constructor parameters, or the declaring superclass for inherited fields.
+         */
+        fun ruleOwner(name: String, kind: String): Class<*> {
+            val field = fields[name]
+            return when {
+                field != null && field.declaringClass == type -> type
+                name in constructorParameters -> type
+                field != null -> field.declaringClass
+                else -> throw unresolved(name, kind)
+            }
+        }
+
+        /** Returns the backing field an exclusion matches. */
+        fun backingField(name: String): Field =
+            fields[name] ?: if (name in constructorParameters) {
+                throw IllegalArgumentException(
+                    "Cannot exclude constructor parameter '$name' of ${type.name}: it has no backing " +
+                        "field; declare it as a property or register a rule instead"
+                )
+            } else {
+                throw unresolved(name, "exclusion")
+            }
+
+        private fun unresolved(name: String, kind: String): IllegalArgumentException =
+            if (name in memberPropertiesWithoutField) {
+                IllegalArgumentException(
+                    "Property '$name' of ${type.name} has no backing field (computed or delegated) and " +
+                        "is not a primary-constructor parameter, so a $kind cannot apply to it"
+                )
+            } else {
+                IllegalArgumentException(
+                    "Unknown field $kind [$name] for ${type.name}; known fields: " +
+                        (fields.keys + constructorParameters).toSortedSet()
+                )
+            }
     }
 
     companion object {

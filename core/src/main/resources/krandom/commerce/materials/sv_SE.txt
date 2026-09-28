@@ -1,0 +1,7 @@
+# Product materials, one per line.
+stål
+trä
+betong
+plast
+granit
+bomull

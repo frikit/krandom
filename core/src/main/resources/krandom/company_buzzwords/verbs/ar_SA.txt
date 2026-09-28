@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+تبسيط
+تمكين
+توظيف
+تحسين
+دمج
+توسيع
+تقديم
+تفعيل

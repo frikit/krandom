@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Prvá národná banka
+Globálna dôveryhodná banka
+Družstevná záložňa Priekopník
+Vrchol Financie
+Občianska sporiteľňa

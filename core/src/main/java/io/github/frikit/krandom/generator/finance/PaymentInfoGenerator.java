@@ -66,10 +66,10 @@ public final class PaymentInfoGenerator implements Generator<PaymentInfo> {
     public PaymentInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.uuidGenerator = new UUIDGenerator(config);
-        this.invoiceInfoGenerator = new InvoiceInfoGenerator(config);
-        this.creditCardInfoGenerator = new CreditCardInfoGenerator(config);
-        this.bankInfoGenerator = new BankInfoGenerator(config);
+        this.uuidGenerator = new UUIDGenerator(config.forChildStream("uUID"));
+        this.invoiceInfoGenerator = new InvoiceInfoGenerator(config.forChildStream("invoiceInfo"));
+        this.creditCardInfoGenerator = new CreditCardInfoGenerator(config.forChildStream("creditCardInfo"));
+        this.bankInfoGenerator = new BankInfoGenerator(config.forChildStream("bankInfo"));
     }
 
     @Override

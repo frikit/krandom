@@ -1,0 +1,7 @@
+# Marital status values, one per line.
+Độc thân
+Đã kết hôn
+Đã ly hôn
+Góa
+Ly thân
+Sống chung như vợ chồng

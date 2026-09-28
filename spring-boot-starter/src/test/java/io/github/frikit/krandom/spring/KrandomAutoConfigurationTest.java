@@ -360,8 +360,9 @@ class KrandomAutoConfigurationTest {
         runner.withPropertyValues("krandom.recipe=base64:xxx", "krandom.seed=1")
               .run(context -> {
                   assertNotNull(context.getStartupFailure());
-                  assertTrue(rootMessage(context.getStartupFailure())
-                      .contains("krandom.recipe or the individual krandom.seed/krandom.locale"));
+                  String message = rootMessage(context.getStartupFailure());
+                  assertTrue(message.contains("Configure krandom.recipe or the individual krandom.* properties")
+                             && message.contains("already defines krandom.seed"), message);
               });
     }
 

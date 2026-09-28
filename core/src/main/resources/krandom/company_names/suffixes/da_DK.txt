@@ -1,0 +1,6 @@
+# Company legal-form suffixes, one per line.
+ApS
+A/S
+I/S
+K/S
+P/S

@@ -1,0 +1,7 @@
+# Company buzzword adjectives, one per line.
+חוצי פלטפורמות
+מקצה לקצה
+מובילים
+חלקים
+מבוססי ענן
+מונחי נתונים

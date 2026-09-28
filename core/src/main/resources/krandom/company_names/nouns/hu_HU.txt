@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Megoldások
+Rendszerek
+Technológiák
+Ipari Művek
+Szolgáltatások
+Csoport
+Partnerek
+Befektetések
+Társulás
+Tanácsadás
+Hálózatok
+Projektek
+Erőforrások
+Menedzsment
+Elemzések

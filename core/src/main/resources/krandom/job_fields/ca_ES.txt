@@ -1,0 +1,16 @@
+# Job field (department) names, one per line.
+Enginyeria
+Màrqueting
+Vendes
+Finances
+Operacions
+Producte
+Recursos humans
+Jurídic
+Disseny
+Atenció al client
+Recerca
+Ciència de dades
+Seguretat
+Compres
+Logística

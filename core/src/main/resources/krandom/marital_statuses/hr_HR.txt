@@ -1,0 +1,7 @@
+# Marital status values, one per line.
+Neoženjen/neudana
+Oženjen/udana
+Razveden/a
+Udovac/udovica
+Rastavljen/a
+Životno partnerstvo

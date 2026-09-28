@@ -1,0 +1,7 @@
+# Product materials, one per line.
+钢制
+木制
+混凝土
+塑料
+花岗岩
+棉质

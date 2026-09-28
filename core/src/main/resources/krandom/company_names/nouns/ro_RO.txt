@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Soluții
+Sisteme
+Tehnologii
+Industrii
+Servicii
+Alianțe
+Parteneriate
+Investiții
+Asociații
+Consultanțe
+Rețele
+Energii
+Resurse
+Operațiuni
+Analize

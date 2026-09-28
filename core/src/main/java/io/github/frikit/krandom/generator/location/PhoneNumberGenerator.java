@@ -17,16 +17,31 @@ import java.util.Random;
 /**
  * Generates locale-specific phone numbers.
  *
- * <p>This generator creates phone numbers that match the format conventions of each supported
- * locale. By default, US locale-style output uses NANPA's fictional non-working {@code 555-0100}
- * through {@code 555-0199} range. Other locales retain realistic output but are
- * unclassified and must not be treated as non-routable. Phone numbers can be generated as
- * formatted (with separators) or unformatted (digits only), and where culturally relevant, as
- * landline or mobile numbers.
+ * <p>This generator creates phone numbers that match the national format conventions of the
+ * country resolved from the configured locale. By default, output for the North American
+ * Numbering Plan (NANP) countries of the built-in catalog, the United States and Canada, uses
+ * NANPA's fictional non-working {@code 555-0100} through {@code 555-0199} range. Other countries
+ * retain realistic output but are unclassified and must not be treated as non-routable. Phone
+ * numbers can be generated as formatted (with separators) or unformatted (digits only), and where
+ * the national numbering plan distinguishes them, as landline or mobile numbers.
  *
- * <p>Built-in support follows the full locale catalog used by the address and identity
- * generators. Supported built-in locales no longer silently fall back to US phone formats when
- * the locale catalog expands.
+ * <p>The format country is resolved once, when the generator is created:
+ * <ol>
+ *   <li>A locale whose country has a built-in format uses it. The language does not change
+ *       the format: {@code en_CA} and {@code fr_CA} share the Canadian NANP format, and
+ *       {@code de_AT} uses the Austrian national format.</li>
+ *   <li>A locale without a country, or whose country has no built-in format, uses the country of
+ *       the first {@link io.github.frikit.krandom.generator.locale.SupportedLocale} constant, in
+ *       catalog order, with that language: {@code en} and {@code en_SG} resolve to the United
+ *       States, {@code de_LI} to Germany, {@code pt} to Brazil, {@code zh} to China, and
+ *       {@code ca} to Spain. The legacy code {@code no} resolves to Norway.</li>
+ *   <li>A locale whose language is empty or not in the catalog, such as {@link Locale#ROOT} or
+ *       {@code xx_YY}, uses the documented default {@code en_US}.</li>
+ * </ol>
+ *
+ * <p>Every country of the built-in {@code SupportedLocale} catalog has a built-in format, so
+ * supported locales never fall back to US phone formats. {@link #generateCountryCallingCode()}
+ * and {@link #generateMsisdn()} use the same resolved country.
  *
  * <p>Example usage:
  * <pre>{@code
@@ -74,7 +89,32 @@ public final class PhoneNumberGenerator implements Generator<String> {
         Map.entry("NO", "+47"),
         Map.entry("CZ", "+420"),
         Map.entry("SA", "+966"),
-        Map.entry("IN", "+91")
+        Map.entry("IN", "+91"),
+        Map.entry("DK", "+45"),
+        Map.entry("FI", "+358"),
+        Map.entry("HU", "+36"),
+        Map.entry("RO", "+40"),
+        Map.entry("SK", "+421"),
+        Map.entry("UA", "+380"),
+        Map.entry("BG", "+359"),
+        Map.entry("HR", "+385"),
+        Map.entry("GR", "+30"),
+        Map.entry("TH", "+66"),
+        Map.entry("VN", "+84"),
+        Map.entry("ID", "+62"),
+        Map.entry("MY", "+60"),
+        Map.entry("IL", "+972"),
+        Map.entry("CA", "+1"),
+        Map.entry("NZ", "+64"),
+        Map.entry("IE", "+353"),
+        Map.entry("ZA", "+27"),
+        Map.entry("BE", "+32"),
+        Map.entry("CH", "+41"),
+        Map.entry("AT", "+43"),
+        Map.entry("MX", "+52"),
+        Map.entry("AR", "+54"),
+        Map.entry("PT", "+351"),
+        Map.entry("TW", "+886")
     );
 
     private static final int NANPA_FICTITIOUS_EXCHANGE = 555;
@@ -103,6 +143,13 @@ public final class PhoneNumberGenerator implements Generator<String> {
         916, 917, 918, 919, 920, 925, 928, 929, 930, 931, 934, 936, 937, 938, 940, 941,
         947, 949, 951, 952, 954, 956, 959, 970, 971, 972, 973, 975, 978, 979, 980, 984,
         985, 989
+    };
+
+    // Canadian NANP area codes
+    private static final int[] CA_AREA_CODES = {
+        204, 226, 236, 249, 250, 289, 306, 343, 365, 367, 403, 416, 418, 431, 437, 438, 450, 506,
+        514, 519, 548, 579, 581, 587, 604, 613, 639, 647, 672, 705, 709, 742, 778, 780, 782, 807,
+        819, 825, 867, 873, 902, 905
     };
 
     // UK area codes for landlines
@@ -335,6 +382,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
     private final GeneratorConfig config;
     private final Random          random;
     private final Locale          locale;
+    private final String          country;
 
     /**
      * Creates a generator using US locale with default config.
@@ -347,11 +395,12 @@ public final class PhoneNumberGenerator implements Generator<String> {
      * Creates a generator using the given config.
      *
      * @param config the generator configuration; must not be {@code null}
-     * @throws NullPointerException if {@code config} is {@code null}
+      * @throws NullPointerException if {@code config} is {@code null}
      */
     public PhoneNumberGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
+        this.country = FormatCountryResolver.resolveSupportedCountry(locale, COUNTRY_CALLING_CODES.keySet());
         this.random = config.createRandom();
     }
 
@@ -416,9 +465,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
     /**
      * Generates a phone number with control over formatting and mobile/landline type.
      *
-     * <p>The {@code mobile} parameter affects output for locales where there's a
-     * cultural distinction (UK, AU, FR, ES, IT, etc.). For locales without this
-     * distinction (US, BR), the parameter is ignored.
+     * <p>The {@code mobile} parameter selects between mobile and landline numbers for countries
+     * whose national numbering plan distinguishes them. For countries without this distinction
+     * (the NANP countries US and CA, and Mexico), the parameter is ignored.
      *
      * @param formatted {@code true} for formatted output, {@code false} for digits only
      * @param mobile    {@code true} for mobile number, {@code false} for landline
@@ -426,38 +475,29 @@ public final class PhoneNumberGenerator implements Generator<String> {
      * @return a phone number string
      */
     public String generate(boolean formatted, boolean mobile) {
-        String localeKey = getLocaleKey(locale);
-
-        return switch (localeKey) {
-            case "en_US" -> generateUSPhone(formatted);
-            case "en" -> generateUSPhone(formatted);
-            case "en_GB" -> generateUKPhone(formatted, mobile);
-            case "en_AU" -> generateAustralianPhone(formatted, mobile);
-            case "de_DE" -> generateGermanPhone(formatted, mobile);
-            case "de" -> generateGermanPhone(formatted, mobile);
-            case "fr_FR" -> generateFrenchPhone(formatted, mobile);
-            case "fr" -> generateFrenchPhone(formatted, mobile);
-            case "es_ES" -> generateSpanishPhone(formatted, mobile);
-            case "es" -> generateSpanishPhone(formatted, mobile);
-            case "it_IT" -> generateItalianPhone(formatted, mobile);
-            case "it" -> generateItalianPhone(formatted, mobile);
-            case "pt_BR" -> generateBrazilianPhone(formatted, mobile);
-            case "pt" -> generateBrazilianPhone(formatted, mobile);
-            case "ja_JP" -> generateJapanesePhone(formatted, mobile);
-            case "ja" -> generateJapanesePhone(formatted, mobile);
-            case "zh_CN" -> generateChinesePhone(formatted, mobile);
-            case "zh" -> generateChinesePhone(formatted, mobile);
-            case "nl_NL", "nl" -> generateDutchPhone(formatted, mobile);
-            case "pl_PL", "pl" -> generatePolishPhone(formatted, mobile);
-            case "ru_RU", "ru" -> generateRussianPhone(formatted, mobile);
-            case "ko_KR", "ko" -> generateKoreanPhone(formatted, mobile);
-            case "tr_TR", "tr" -> generateTurkishPhone(formatted, mobile);
-            case "sv_SE", "sv" -> generateSwedishPhone(formatted, mobile);
-            case "nb_NO", "nb", "no_NO", "no" -> generateNorwegianPhone(formatted, mobile);
-            case "cs_CZ", "cs" -> generateCzechPhone(formatted, mobile);
-            case "ar_SA", "ar" -> generateSaudiPhone(formatted, mobile);
-            case "hi_IN", "hi" -> generateIndianPhone(formatted, mobile);
-            default -> generateUSPhone(formatted); // Default to US format
+        return switch (country) {
+            case "US" -> generateNanpPhone(formatted, US_AREA_CODES);
+            case "CA" -> generateNanpPhone(formatted, CA_AREA_CODES);
+            case "GB" -> generateUKPhone(formatted, mobile);
+            case "AU" -> generateAustralianPhone(formatted, mobile);
+            case "DE" -> generateGermanPhone(formatted, mobile);
+            case "FR" -> generateFrenchPhone(formatted, mobile);
+            case "ES" -> generateSpanishPhone(formatted, mobile);
+            case "IT" -> generateItalianPhone(formatted, mobile);
+            case "BR" -> generateBrazilianPhone(formatted, mobile);
+            case "JP" -> generateJapanesePhone(formatted, mobile);
+            case "CN" -> generateChinesePhone(formatted, mobile);
+            case "NL" -> generateDutchPhone(formatted, mobile);
+            case "PL" -> generatePolishPhone(formatted, mobile);
+            case "RU" -> generateRussianPhone(formatted, mobile);
+            case "KR" -> generateKoreanPhone(formatted, mobile);
+            case "TR" -> generateTurkishPhone(formatted, mobile);
+            case "SE" -> generateSwedishPhone(formatted, mobile);
+            case "NO" -> generateNorwegianPhone(formatted, mobile);
+            case "CZ" -> generateCzechPhone(formatted, mobile);
+            case "SA" -> generateSaudiPhone(formatted, mobile);
+            case "IN" -> generateIndianPhone(formatted, mobile);
+            default -> PhoneNumberLayouts.forCountry(country).generate(random, formatted, mobile);
         };
     }
 
@@ -471,16 +511,18 @@ public final class PhoneNumberGenerator implements Generator<String> {
     }
 
     /**
-     * Returns the locale country calling code (for example, {@code +1}, {@code +44}).
+     * Returns the calling code of the country resolved from the locale (for example, {@code +1},
+     * {@code +44}); a language-only locale uses its resolved country as well.
      *
      * @return country calling code
      */
     public String generateCountryCallingCode() {
-        return COUNTRY_CALLING_CODES.getOrDefault(locale.getCountry(), "+1");
+        return COUNTRY_CALLING_CODES.get(country);
     }
 
     /**
-     * Generates an MSISDN-like numeric string (14-15 digits, country code + subscriber digits).
+     * Generates an MSISDN-like numeric string (14-15 digits, the resolved country's calling code
+     * followed by subscriber digits).
      *
      * @return MSISDN digits only
      */
@@ -536,8 +578,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     // ── Format generators ─────────────────────────────────────────────────────
 
-    private String generateUSPhone(boolean formatted) {
-        int areaCode = US_AREA_CODES[random.nextInt(US_AREA_CODES.length)];
+    private String generateNanpPhone(boolean formatted, int[] areaCodes) {
+        int areaCode = areaCodes[random.nextInt(areaCodes.length)];
         boolean fictionalNanpaRange = usesFictionalNANPARange();
         int exchange = fictionalNanpaRange
             ? NANPA_FICTITIOUS_EXCHANGE
@@ -547,14 +589,14 @@ public final class PhoneNumberGenerator implements Generator<String> {
             : random.nextInt(10000);
 
         if (formatted) {
-            // Randomly choose between two common US formats
+            // Randomly choose between two common NANP formats
             if (random.nextBoolean()) {
-                return String.format("(%03d) %03d-%04d", areaCode, exchange, number);
+                return String.format(Locale.ROOT, "(%03d) %03d-%04d", areaCode, exchange, number);
             } else {
-                return String.format("%03d-%03d-%04d", areaCode, exchange, number);
+                return String.format(Locale.ROOT, "%03d-%03d-%04d", areaCode, exchange, number);
             }
         }
-        return String.format("%03d%03d%04d", areaCode, exchange, number);
+        return String.format(Locale.ROOT, "%03d%03d%04d", areaCode, exchange, number);
     }
 
     private String generateUKPhone(boolean formatted, boolean mobile) {
@@ -563,9 +605,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int number = random.nextInt(1000000);
 
             if (formatted) {
-                return String.format("%s %06d", prefix, number);
+                return String.format(Locale.ROOT, "%s %06d", prefix, number);
             }
-            return prefix + String.format("%06d", number);
+            return prefix + String.format(Locale.ROOT, "%06d", number);
         } else {
             String areaCode = UK_LANDLINE_CODES[random.nextInt(UK_LANDLINE_CODES.length)];
             int numberLength = areaCode.equals("020") ? 8 :
@@ -578,18 +620,18 @@ public final class PhoneNumberGenerator implements Generator<String> {
                     // London format: 020 7946 0958
                     int part1 = number / 10000;
                     int part2 = number % 10000;
-                    return String.format("%s %04d %04d", areaCode, part1, part2);
+                    return String.format(Locale.ROOT, "%s %04d %04d", areaCode, part1, part2);
                 } else if (areaCode.length() == 5) {
                     // 5-digit area code: 01202 123456
-                    return String.format("%s %0" + numberLength + "d", areaCode, number);
+                    return String.format(Locale.ROOT, "%s %0" + numberLength + "d", areaCode, number);
                 } else {
                     // 4-digit area code: 0161 496 0123
                     int part1 = number / 10000;
                     int part2 = number % 10000;
-                    return String.format("%s %03d %04d", areaCode, part1, part2);
+                    return String.format(Locale.ROOT, "%s %03d %04d", areaCode, part1, part2);
                 }
             }
-            return areaCode + String.format("%0" + numberLength + "d", number);
+            return areaCode + String.format(Locale.ROOT, "%0" + numberLength + "d", number);
         }
     }
 
@@ -601,9 +643,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             if (formatted) {
                 int part1 = number / 1000;
                 int part2 = number % 1000;
-                return String.format("%s %03d %03d", prefix, part1, part2);
+                return String.format(Locale.ROOT, "%s %03d %03d", prefix, part1, part2);
             }
-            return prefix + String.format("%06d", number);
+            return prefix + String.format(Locale.ROOT, "%06d", number);
         } else {
             String areaCode = AU_LANDLINE_CODES[random.nextInt(AU_LANDLINE_CODES.length)];
             int number = random.nextInt(100000000);
@@ -611,9 +653,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             if (formatted) {
                 int part1 = number / 10000;
                 int part2 = number % 10000;
-                return String.format("%s %04d %04d", areaCode, part1, part2);
+                return String.format(Locale.ROOT, "%s %04d %04d", areaCode, part1, part2);
             }
-            return areaCode + String.format("%08d", number);
+            return areaCode + String.format(Locale.ROOT, "%08d", number);
         }
     }
 
@@ -623,17 +665,17 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int number = random.nextInt(100000000);
 
             if (formatted) {
-                return String.format("%s %08d", prefix, number);
+                return String.format(Locale.ROOT, "%s %08d", prefix, number);
             }
-            return prefix + String.format("%08d", number);
+            return prefix + String.format(Locale.ROOT, "%08d", number);
         } else {
             String areaCode = DE_LANDLINE_CODES[random.nextInt(DE_LANDLINE_CODES.length)];
             int number = random.nextInt(100000000);
 
             if (formatted) {
-                return String.format("%s %08d", areaCode, number);
+                return String.format(Locale.ROOT, "%s %08d", areaCode, number);
             }
-            return areaCode + String.format("%08d", number);
+            return areaCode + String.format(Locale.ROOT, "%08d", number);
         }
     }
 
@@ -651,9 +693,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
         int part5 = 10 + random.nextInt(90);
 
         if (formatted) {
-            return String.format("%s %02d %02d %02d %02d", prefix, part2, part3, part4, part5);
+            return String.format(Locale.ROOT, "%s %02d %02d %02d %02d", prefix, part2, part3, part4, part5);
         }
-        return String.format("%s%02d%02d%02d%02d", prefix, part2, part3, part4, part5);
+        return String.format(Locale.ROOT, "%s%02d%02d%02d%02d", prefix, part2, part3, part4, part5);
     }
 
     private String generateSpanishPhone(boolean formatted, boolean mobile) {
@@ -664,9 +706,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int part4 = 10 + random.nextInt(90);
 
             if (formatted) {
-                return String.format("%s %02d %02d %02d", prefix, part2, part3, part4);
+                return String.format(Locale.ROOT, "%s %02d %02d %02d", prefix, part2, part3, part4);
             }
-            return String.format("%s%02d%02d%02d", prefix, part2, part3, part4);
+            return String.format(Locale.ROOT, "%s%02d%02d%02d", prefix, part2, part3, part4);
         } else {
             String areaCode = ES_LANDLINE_CODES[random.nextInt(ES_LANDLINE_CODES.length)];
             int part2 = 100 + random.nextInt(900);
@@ -674,9 +716,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int part4 = 10 + random.nextInt(90);
 
             if (formatted) {
-                return String.format("%s %03d %02d %02d", areaCode, part2, part3, part4);
+                return String.format(Locale.ROOT, "%s %03d %02d %02d", areaCode, part2, part3, part4);
             }
-            return String.format("%s%03d%02d%02d", areaCode, part2, part3, part4);
+            return String.format(Locale.ROOT, "%s%03d%02d%02d", areaCode, part2, part3, part4);
         }
     }
 
@@ -688,9 +730,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             if (formatted) {
                 int part1 = number / 10000;
                 int part2 = number % 10000;
-                return String.format("%s %03d %04d", prefix, part1, part2);
+                return String.format(Locale.ROOT, "%s %03d %04d", prefix, part1, part2);
             }
-            return prefix + String.format("%07d", number);
+            return prefix + String.format(Locale.ROOT, "%07d", number);
         } else {
             String areaCode = IT_LANDLINE_CODES[random.nextInt(IT_LANDLINE_CODES.length)];
             int numberDigits = 10 - areaCode.length();
@@ -700,9 +742,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             if (formatted) {
                 int part1 = number / 10000;
                 int part2 = number % 10000;
-                return String.format("%s %04d %04d", areaCode, part1, part2);
+                return String.format(Locale.ROOT, "%s %04d %04d", areaCode, part1, part2);
             }
-            return areaCode + String.format("%0" + numberDigits + "d", number);
+            return areaCode + String.format(Locale.ROOT, "%0" + numberDigits + "d", number);
         }
     }
 
@@ -715,9 +757,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int part2 = random.nextInt(10000);
 
             if (formatted) {
-                return String.format("(%s) %d-%04d", areaCode, part1, part2);
+                return String.format(Locale.ROOT, "(%s) %d-%04d", areaCode, part1, part2);
             }
-            return String.format("%s%d%04d", areaCode, part1, part2);
+            return String.format(Locale.ROOT, "%s%d%04d", areaCode, part1, part2);
         } else {
             // Landline: 8 digits (3xxx-xxxx or 2xxx-xxxx)
             int firstDigit = random.nextBoolean() ? 2 : 3;
@@ -725,9 +767,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int part2 = random.nextInt(10000);
 
             if (formatted) {
-                return String.format("(%s) %04d-%04d", areaCode, part1, part2);
+                return String.format(Locale.ROOT, "(%s) %04d-%04d", areaCode, part1, part2);
             }
-            return String.format("%s%04d%04d", areaCode, part1, part2);
+            return String.format(Locale.ROOT, "%s%04d%04d", areaCode, part1, part2);
         }
     }
 
@@ -738,18 +780,18 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int part3 = random.nextInt(10000);
 
             if (formatted) {
-                return String.format("%s-%04d-%04d", prefix, part2, part3);
+                return String.format(Locale.ROOT, "%s-%04d-%04d", prefix, part2, part3);
             }
-            return String.format("%s%04d%04d", prefix, part2, part3);
+            return String.format(Locale.ROOT, "%s%04d%04d", prefix, part2, part3);
         } else {
             String areaCode = JP_LANDLINE_CODES[random.nextInt(JP_LANDLINE_CODES.length)];
             int part2 = 1000 + random.nextInt(9000);
             int part3 = random.nextInt(10000);
 
             if (formatted) {
-                return String.format("%s-%04d-%04d", areaCode, part2, part3);
+                return String.format(Locale.ROOT, "%s-%04d-%04d", areaCode, part2, part3);
             }
-            return String.format("%s%04d%04d", areaCode, part2, part3);
+            return String.format(Locale.ROOT, "%s%04d%04d", areaCode, part2, part3);
         }
     }
 
@@ -760,17 +802,17 @@ public final class PhoneNumberGenerator implements Generator<String> {
             int part3 = random.nextInt(10000);
 
             if (formatted) {
-                return String.format("%s %04d %04d", prefix, part2, part3);
+                return String.format(Locale.ROOT, "%s %04d %04d", prefix, part2, part3);
             }
-            return String.format("%s%04d%04d", prefix, part2, part3);
+            return String.format(Locale.ROOT, "%s%04d%04d", prefix, part2, part3);
         } else {
             String areaCode = CN_LANDLINE_CODES[random.nextInt(CN_LANDLINE_CODES.length)];
             int number = random.nextInt(100000000);
 
             if (formatted) {
-                return String.format("%s-%08d", areaCode, number);
+                return String.format(Locale.ROOT, "%s-%08d", areaCode, number);
             }
-            return String.format("%s%08d", areaCode, number);
+            return String.format(Locale.ROOT, "%s%08d", areaCode, number);
         }
     }
 
@@ -908,24 +950,14 @@ public final class PhoneNumberGenerator implements Generator<String> {
     // ── Helper methods ────────────────────────────────────────────────────────
 
     private String digits(int count) {
-        return String.format("%0" + count + "d", random.nextInt((int) Math.pow(10, count)));
+        return String.format(Locale.ROOT, "%0" + count + "d", random.nextInt((int) Math.pow(10, count)));
     }
 
+    /**
+     * Only NANP countries reach this check: every NANP locale uses the fictional range unless
+     * realistic output was explicitly requested.
+     */
     private boolean usesFictionalNANPARange() {
-        if (config.getPhoneNumberSafetyPolicy() != PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE) {
-            return false;
-        }
-        String country = locale.getCountry();
-        return "US".equals(country) || (country.isEmpty() && "en".equals(locale.getLanguage()));
-    }
-
-    private String getLocaleKey(Locale loc) {
-        String language = loc.getLanguage();
-        String country = loc.getCountry();
-
-        if (!country.isEmpty()) {
-            return language + "_" + country;
-        }
-        return language;
+        return config.getPhoneNumberSafetyPolicy() == PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
     }
 }

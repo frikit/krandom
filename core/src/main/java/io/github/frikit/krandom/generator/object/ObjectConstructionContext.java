@@ -38,19 +38,27 @@ public final class ObjectConstructionContext<T> {
         boolean hasExplicitOverride(String memberName, Class<?> rawType);
     }
 
+    @FunctionalInterface
+    interface ExclusionLookup {
+
+        boolean isExcluded(String memberName);
+    }
+
     private final Class<T>              type;
     private final String                path;
     private final Class<?>              ownerType;
     private final int                   depth;
     private final ValueResolver         valueResolver;
     private final ExplicitOverrideLookup explicitOverrideLookup;
+    private final ExclusionLookup       exclusionLookup;
 
     ObjectConstructionContext(Class<T> type,
                               String path,
                               Class<?> ownerType,
                               int depth,
                               ValueResolver valueResolver,
-                              ExplicitOverrideLookup explicitOverrideLookup) {
+                              ExplicitOverrideLookup explicitOverrideLookup,
+                              ExclusionLookup exclusionLookup) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.path = Objects.requireNonNull(path, "path must not be null");
         this.ownerType = Objects.requireNonNull(ownerType, "ownerType must not be null");
@@ -58,6 +66,7 @@ public final class ObjectConstructionContext<T> {
         this.valueResolver = Objects.requireNonNull(valueResolver, "valueResolver must not be null");
         this.explicitOverrideLookup = Objects.requireNonNull(
             explicitOverrideLookup, "explicitOverrideLookup must not be null");
+        this.exclusionLookup = Objects.requireNonNull(exclusionLookup, "exclusionLookup must not be null");
     }
 
     /**
@@ -118,5 +127,20 @@ public final class ObjectConstructionContext<T> {
         return explicitOverrideLookup.hasExplicitOverride(
             Objects.requireNonNull(memberName, "memberName must not be null"),
             Objects.requireNonNull(rawType, "rawType must not be null"));
+    }
+
+    /**
+     * Returns whether an exclusion rule (for example {@code objectExclude} or a Kotlin DSL
+     * {@code exclude}) targets the property behind this constructor parameter.
+     *
+     * <p>Exclusions win over overrides, as they do for fields. Adapters should keep the language
+     * default of an excluded optional parameter, pass {@code null} for an excluded nullable one, and
+     * fail for an excluded parameter that is required and not nullable.
+     *
+     * @param memberName constructor parameter and property name
+     * @return {@code true} when generation must not supply a value for this parameter
+     */
+    public boolean isExcluded(String memberName) {
+        return exclusionLookup.isExcluded(Objects.requireNonNull(memberName, "memberName must not be null"));
     }
 }

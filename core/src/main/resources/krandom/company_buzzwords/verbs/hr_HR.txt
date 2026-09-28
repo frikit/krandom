@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+optimizirati
+osnažiti
+iskoristiti
+pojednostaviti
+integrirati
+skalirati
+isporučiti
+omogućiti

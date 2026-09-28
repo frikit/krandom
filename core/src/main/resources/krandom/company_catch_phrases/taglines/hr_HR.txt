@@ -1,0 +1,5 @@
+# Catch-phrase taglines, one per line.
+za moderne timove
+za digitalni rast
+za globalne razmjere
+za mjerljiv učinak

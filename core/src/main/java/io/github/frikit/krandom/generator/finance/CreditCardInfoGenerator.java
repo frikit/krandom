@@ -47,7 +47,7 @@ public final class CreditCardInfoGenerator implements Generator<CreditCardInfo> 
      */
     public CreditCardInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.creditCardGenerator = new CreditCardGenerator(config);
+        this.creditCardGenerator = new CreditCardGenerator(config.forChildStream("creditCard"));
     }
 
     @Override

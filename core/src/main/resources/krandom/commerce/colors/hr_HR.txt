@@ -1,0 +1,7 @@
+# Product colors, one per line.
+crvena
+plava
+zelena
+crna
+bijela
+srebrna

@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Srednja stručna sprema
+Viša stručna sprema
+Prvostupnik
+Magistar struke
+Doktorat
+Integrirani studij
+Svjedodžba o stručnom osposobljavanju

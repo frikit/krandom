@@ -1,0 +1,17 @@
+# Text vocabulary words, one per line.
+veri
+model
+sistem
+sinyal
+süreç
+analiz
+platform
+ağ
+güvenli
+hizmet
+yapı
+modül
+mantık
+değer
+bağlam
+hedef

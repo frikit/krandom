@@ -1,0 +1,9 @@
+# Company buzzword verbs, one per line.
+tinh gọn
+tăng cường
+khai thác
+tối ưu hóa
+tích hợp
+mở rộng
+cung cấp
+hỗ trợ

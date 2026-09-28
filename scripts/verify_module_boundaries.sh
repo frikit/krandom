@@ -1,13 +1,29 @@
 #!/usr/bin/env bash
 # Verifies JPMS module boundaries across every published jar (master plan Step 3.8):
 #  - each jar declares a module identity (module-info.class or Automatic-Module-Name);
-#  - module names are unique;
+#  - module names are unique and match the compatibility contract below;
 #  - no package is split across two published jars.
+# The module list comes from `publishedModules` in gradle.properties (the BOM has no jar).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-MODULES=(core jackson junit kotlin-dsl kotest-extensions spring-boot-starter)
+gradle_property() {
+    awk -F= -v key="$1" '$1 == key { print substr($0, index($0, "=") + 1) }' gradle.properties
+}
+
+DEVELOPMENT_VERSION="$(gradle_property developmentVersion)"
+PUBLISHED_MODULES="$(gradle_property publishedModules)"
+if [[ -z "${DEVELOPMENT_VERSION}" || -z "${PUBLISHED_MODULES}" ]]; then
+    echo "FAIL: gradle.properties must define developmentVersion and publishedModules" >&2
+    exit 1
+fi
+
+MODULES=()
+IFS=',' read -r -a published <<< "${PUBLISHED_MODULES}"
+for module in "${published[@]}"; do
+    [[ "${module}" == "bom" ]] || MODULES+=("${module}")
+done
 
 GRADLEW=./gradlew
 if [[ -n "${JAVA_HOME:-}" ]]; then
@@ -15,7 +31,11 @@ if [[ -n "${JAVA_HOME:-}" ]]; then
 fi
 
 echo "Assembling published jars..."
-"${GRADLEW}" --quiet $(printf ':%s:jar ' "${MODULES[@]}")
+jar_tasks=()
+for module in "${MODULES[@]}"; do
+    jar_tasks+=(":${module}:jar")
+done
+"${GRADLEW}" --quiet "${jar_tasks[@]}"
 
 WORKDIR=$(mktemp -d)
 trap 'rm -rf "${WORKDIR}"' EXIT
@@ -27,20 +47,20 @@ NAMES_FILE="${WORKDIR}/names.txt"
 
 fail=0
 for module in "${MODULES[@]}"; do
-    jar_path=$(find "${module}/build/libs" -maxdepth 1 -name '*.jar' \
-        ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -1)
-    if [[ -z "${jar_path}" ]]; then
-        echo "FAIL: no jar found for ${module}" >&2
+    # Select the jar for the current development version; build/libs can hold stale release jars.
+    jar_path="${module}/build/libs/${module}-${DEVELOPMENT_VERSION}.jar"
+    if [[ ! -f "${jar_path}" ]]; then
+        echo "FAIL: no jar found for ${module} at ${jar_path}" >&2
         fail=1
         continue
     fi
 
+    # Search captured output instead of piping into `grep -q`: under pipefail an early-exiting
+    # reader turns the writer's SIGPIPE into a pipeline failure even when the pattern matched.
     listing=$(unzip -l "${jar_path}")
 
     module_name=""
-    # grep on a captured listing: `unzip -l | grep -q` under pipefail reports unzip's SIGPIPE
-    # as a pipeline failure even when the pattern matched.
-    if printf '%s\n' "${listing}" | grep 'module-info.class' > /dev/null; then
+    if grep -q 'module-info\.class$' <<< "${listing}"; then
         jar_tool="${JAVA_HOME:+${JAVA_HOME}/bin/}jar"
         module_name=$("${jar_tool}" --describe-module --file "${jar_path}" \
             | awk 'NR==1 {print $1}' | cut -d@ -f1)
@@ -59,16 +79,14 @@ for module in "${MODULES[@]}"; do
     echo "OK: ${module} -> ${module_name} (${identity})"
     echo "${module_name} ${module}" >> "${NAMES_FILE}"
 
-    printf '%s\n' "${listing}" \
-        | awk '{print $4}' \
-        | grep '\.class$' \
-        | grep -v 'module-info.class' \
-        | grep -v 'META-INF/' \
-        | sed 's|/[^/]*\.class$||' \
-        | sort -u \
-        | while read -r pkg; do
-            echo "${pkg} ${module}" >> "${PACKAGES_FILE}"
-        done
+    # Packages of every class outside META-INF/ (versioned classes included in their base package).
+    awk -v module="${module}" '
+        $4 ~ /\.class$/ && $4 !~ /(^|\/)module-info\.class$/ && $4 !~ /^META-INF\// {
+            package = $4
+            sub(/\/[^\/]*\.class$/, "", package)
+            print package " " module
+        }
+    ' <<< "${listing}" | sort -u >> "${PACKAGES_FILE}"
 done
 
 EXPECTED_NAMES="io.github.frikit.krandom core
@@ -94,7 +112,7 @@ split_packages=$(sort -u "${PACKAGES_FILE}" | awk '{print $1}' | sort | uniq -d)
 if [[ -n "${split_packages}" ]]; then
     echo "FAIL: packages split across published jars:" >&2
     for pkg in ${split_packages}; do
-        grep "^${pkg} " "${PACKAGES_FILE}" | sort -u >&2
+        awk -v package="${pkg}" '$1 == package' "${PACKAGES_FILE}" | sort -u >&2
     done
     fail=1
 fi

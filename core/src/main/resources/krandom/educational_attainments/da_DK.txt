@@ -1,0 +1,8 @@
+# Educational attainment levels, one per line.
+Studentereksamen
+Erhvervsakademiuddannelse
+Bacheloruddannelse
+Kandidatuddannelse
+Ph.d.-grad
+Professionsbachelor
+Svendebrev

@@ -1,0 +1,7 @@
+# Company buzzword nouns, one per line.
+prozesse
+plattformen
+netzwerke
+services
+workflows
+loesungen

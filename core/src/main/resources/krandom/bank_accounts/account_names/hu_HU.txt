@@ -1,0 +1,6 @@
+# Bank account names, one per line.
+Folyószámla
+Megtakarítási számla
+Vállalati számla
+Közös számla
+Bérszámla

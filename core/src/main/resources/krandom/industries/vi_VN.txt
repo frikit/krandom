@@ -1,0 +1,21 @@
+# Industry names, one per line.
+Công nghệ
+Y tế
+Tài chính
+Giáo dục
+Bán lẻ
+Sản xuất
+Viễn thông
+Năng lượng
+Vận tải
+Xây dựng
+Bất động sản
+Khách sạn và nhà hàng
+Truyền thông
+Giải trí
+Nông nghiệp
+Hàng không vũ trụ
+Ô tô
+Công nghệ sinh học
+Tư vấn
+An ninh mạng

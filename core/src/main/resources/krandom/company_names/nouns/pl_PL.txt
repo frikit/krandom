@@ -1,0 +1,16 @@
+# Company-name business nouns, one per line.
+Rozwiązania
+Systemy
+Technologie
+Zakłady
+Usługi
+Holdingi
+Sojusze
+Inwestycje
+Stowarzyszenia
+Konsultacje
+Sieci
+Projekty
+Zasoby
+Operacje
+Analizy

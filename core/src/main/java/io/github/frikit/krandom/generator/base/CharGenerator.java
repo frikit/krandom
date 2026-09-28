@@ -6,9 +6,11 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
@@ -54,6 +56,17 @@ public final class CharGenerator implements Generator<Character> {
      */
     public static CharGenerator letters() {
         return builder().uppercase().lowercase().build();
+    }
+
+    /**
+     * Uppercase + lowercase letters drawn with the configuration's random source, so a seeded
+     * configuration reproduces the same characters.
+     *
+     * @param config generator configuration; must not be {@code null}
+     * @return a letter generator backed by the configuration's random source
+     */
+    public static CharGenerator letters(GeneratorConfig config) {
+        return letters().withRandom(Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
     /**
@@ -172,6 +185,10 @@ public final class CharGenerator implements Generator<Character> {
      */
     public CharGenerator withSeed(long seed) {
         return new CharGenerator(pool.clone(), new Random(seed));
+    }
+
+    CharGenerator withRandom(RandomGenerator randomSource) {
+        return new CharGenerator(pool.clone(), randomSource);
     }
 
     // ── Builder ───────────────────────────────────────────────────────────────

@@ -1,0 +1,17 @@
+# Job position titles, one per line.
+Enginyer de programari
+Responsable de producte
+Analista de dades
+Dissenyador UX
+Executiu de comptes
+Especialista en màrqueting
+Analista de negoci
+Enginyer DevOps
+Enginyer de fiabilitat de llocs
+Responsable d'enginyeria
+Arquitecte de solucions
+Redactor tècnic
+Enginyer de qualitat
+Cap de projecte
+Enginyer de seguretat
+Administrador de bases de dades

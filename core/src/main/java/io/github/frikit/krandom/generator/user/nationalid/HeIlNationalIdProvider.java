@@ -10,6 +10,8 @@ import java.util.Random;
 
 /**
  * Generates Israeli Teudat Zehut style identifiers — 9 digits.
+ *
+ * <p>All digits are random; no identity-number check digit is computed.
  */
 public final class HeIlNationalIdProvider implements NationalIdProvider {
 

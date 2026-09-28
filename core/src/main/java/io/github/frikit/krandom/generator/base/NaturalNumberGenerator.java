@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,6 +49,40 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
         this.excludedValues = new HashSet<>();
     }
 
+    /**
+     * Creates a generator over the default range using the configuration's random source.
+     *
+     * @param config generator configuration; must not be {@code null}
+     */
+    public NaturalNumberGenerator(GeneratorConfig config) {
+        super(config, 0, Integer.MAX_VALUE);
+        this.excludedValues = new HashSet<>();
+    }
+
+    /**
+     * Creates a generator over {@code [min, max)} using the configuration's random source.
+     *
+     * @param min    lower bound (inclusive)
+     * @param max    upper bound (exclusive)
+     * @param config generator configuration; must not be {@code null}
+     */
+    public NaturalNumberGenerator(int min, int max, GeneratorConfig config) {
+        super(config, min, max);
+        this.excludedValues = new HashSet<>();
+    }
+
+    /**
+     * Creates a seeded generator over {@code [min, max)}.
+     *
+     * @param min  lower bound (inclusive)
+     * @param max  upper bound (exclusive)
+     * @param seed raw seed
+     * @deprecated raw seeds bypass replayable recipes; use
+     *             {@link #NaturalNumberGenerator(int, int, GeneratorConfig)} with
+     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
+     *             values.
+     */
+    @Deprecated(since = "2.6.0")
     public NaturalNumberGenerator(int min, int max, long seed) {
         super(min, max, seed);
         this.excludedValues = new HashSet<>();

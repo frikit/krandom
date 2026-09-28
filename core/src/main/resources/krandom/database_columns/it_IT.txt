@@ -1,0 +1,11 @@
+# Database column names, one per line.
+id
+creato_il
+aggiornato_il
+utente_id
+ordine_id
+stato
+nome
+descrizione
+importo
+metadati

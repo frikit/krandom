@@ -9,6 +9,7 @@ python3 - "${REPO_ROOT}" <<'PY'
 from pathlib import Path
 from urllib.parse import unquote
 import re
+import subprocess
 import sys
 
 root = Path(sys.argv[1]).resolve()
@@ -17,7 +18,24 @@ link_pattern = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 errors = []
 checked = 0
 
-for markdown in sorted(root.rglob("*.md")):
+
+def markdown_files():
+    """Tracked and untracked, non-ignored Markdown files; a plain tree walk outside Git."""
+    try:
+        listed = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.md"],
+            check=True,
+            capture_output=True,
+        ).stdout.decode("utf-8")
+        return sorted({root / path for path in listed.split("\0") if path and (root / path).is_file()})
+    except (OSError, subprocess.CalledProcessError):
+        return sorted(
+            path for path in root.rglob("*.md")
+            if not any(part in excluded_parts for part in path.relative_to(root).parts)
+        )
+
+
+for markdown in markdown_files():
     relative = markdown.relative_to(root)
     if any(part in excluded_parts for part in relative.parts):
         continue

@@ -44,7 +44,7 @@ public final class OffsetDateTimeGenerator implements Generator<OffsetDateTime> 
     public OffsetDateTimeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        this.dateTimeGenerator = new LocalDateTimeGenerator(config);
+        this.dateTimeGenerator = new LocalDateTimeGenerator(config.forChildStream("localDateTime"));
     }
 
     @Override

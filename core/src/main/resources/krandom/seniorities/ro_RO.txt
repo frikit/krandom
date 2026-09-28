@@ -1,0 +1,11 @@
+# Job seniority labels, one per line.
+Stagiar
+Junior
+Asociat
+Mediu
+Senior
+Lider de echipă
+Specialist principal
+Expert
+Director
+Vicepreședinte

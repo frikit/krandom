@@ -1,0 +1,16 @@
+# Company-name descriptor words, one per line (placed by company_names/formats).
+Globals
+Nacionals
+Catalanes
+Unides
+Superiors
+Avançades
+Estratègiques
+Dinàmiques
+Innovadores
+Professionals
+Digitals
+Noves
+Alfa
+Cim
+Àpex

@@ -1,0 +1,7 @@
+# Product colors, one per line.
+أحمر
+أزرق
+أخضر
+أسود
+أبيض
+فضي

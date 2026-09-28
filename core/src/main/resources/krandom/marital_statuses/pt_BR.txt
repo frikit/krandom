@@ -1,0 +1,7 @@
+# Marital status values, one per line.
+Solteiro(a)
+Casado(a)
+Divorciado(a)
+Viúvo(a)
+Separado(a)
+União estável

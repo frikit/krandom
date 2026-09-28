@@ -1,0 +1,6 @@
+# Fictional bank names, one per line.
+Primer Banc Nacional
+Banc de Confiança Global
+Cooperativa de Crèdit Pionera
+Cim Finances
+Caixa d'Estalvis Cívica

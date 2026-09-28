@@ -1,0 +1,7 @@
+# Product colors, one per line.
+אדום
+כחול
+ירוק
+שחור
+לבן
+כסוף

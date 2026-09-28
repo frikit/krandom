@@ -1,0 +1,7 @@
+# Catch-phrase adjectives, one per line.
+Sicher
+Vernetzt
+Skalierbar
+Effizient
+Intelligent
+Modern

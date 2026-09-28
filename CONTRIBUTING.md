@@ -25,19 +25,69 @@ java -version   # must report 21+
    ./scripts/pre_commit_check.sh
    ```
 
-   This runs formatting, markdown checks, compilation, tests, Javadoc validation, and coverage verification.
+   The full gate applies formatting and license headers, then verifies Markdown formatting,
+   repository and docs-site links, documentation facts, pinned build inputs, compilation, the public
+   API contract, module boundaries, release SBOMs, Javadoc, all tests (forced to rerun), critical-path
+   mutation testing, and exact core coverage.
+
+   While iterating, `./scripts/pre_commit_check.sh --fast` keeps formatting, documentation checks,
+   compilation, the API contract, module boundaries, tests, and the core coverage gate, but reuses
+   up-to-date test results and skips mutation testing and SBOM validation. Run the full gate before
+   pushing.
 
 5. **Open a pull request** against `main`.
 
 ## Code quality gates
 
-- **Coverage**: the build enforces exact 100% line, branch, instruction, method, class, and complexity coverage via JaCoCo. New code must be covered by tests.
+- **Coverage**: `krandom-core` enforces exact 100% line, branch, instruction, method, class, and
+  complexity coverage via JaCoCo; its report is uploaded to Codecov. New core code must be covered
+  by tests. The integration modules (`jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`,
+  and `kotlin-dsl`) generate JaCoCo reports in `<module>/build/reports/jacoco/test` without a
+  coverage gate; the pre-commit summary prints their line and branch coverage. New integration
+  code still needs behavior tests.
 - **Mutation testing**: deterministic, safety-sensitive, object, and schema paths must retain at
   least an 85% mutation score and 98% mutated-class line coverage. Expand targets incrementally
   around meaningful branching, review survivors by behavior, and do not treat 100% as a goal when
   equivalent or implementation-only mutations remain.
+- **Public API contract**: `./gradlew checkApiContract` compares every published jar with the
+  `apiBaselineVersion` release using japicmp and the dependency classpaths of both versions.
+  Incompatible changes fail, and every compatible change must be classified in
+  `config/api-evolution-allowlist.txt`.
+- **Module boundaries**: `scripts/verify_module_boundaries.sh` keeps JPMS module names stable and
+  rejects packages split across published jars.
+- **Release SBOMs**: `./gradlew verifyReleaseSboms` generates and validates the CycloneDX JSON and XML
+  SBOM of every published module.
+- **Documentation**: the pre-commit gate checks Markdown formatting, repository and docs-site
+  links, and the version, module, and locale facts in `gradle.properties`. CI checks the same
+  formatting, repository links, and facts; the documentation workflow checks docs-site links.
+- **Dependency integrity**: dependencies resolve against reviewed SHA-256 checksums in
+  `gradle/verification-metadata.xml`; see [dependency reproducibility](docs/development/dependency-reproducibility.md)
+  for updating it, including for Dependabot pull requests.
 - **Formatting**: Spotless enforces consistent formatting and MIT license headers. Run `./gradlew spotlessApply` to fix formatting issues.
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
+
+CI additionally builds on Java 21 and 25, runs a compiled 2.2.0 consumer and extension against the
+candidate (`./gradlew verifyV2ConsumerCompatibility`), tests the Kotest adapters against the previous
+Kotest minor line (`scripts/verify_kotest_previous_minor.sh`), requires the GraalVM native-image
+smoke test, and runs every consumer example against the locally published snapshot.
+
+## Maintenance tools
+
+These scripts are run by hand; none of them is part of the pre-commit gate.
+
+- `scripts/update_verification_metadata.sh` records checksums for every CI and pre-commit task
+  graph after a dependency update.
+- `scripts/upgrade_latest_gradle.sh` moves the Gradle wrapper to the latest release with its pinned
+  distribution checksum; Dependabot normally proposes wrapper updates.
+- `scripts/verify_examples_local.sh` publishes the snapshot to Maven local and runs the consumer
+  examples; `KRANDOM_REQUIRE_SCALA_TOOLS=true` makes missing sbt or Mill an error.
+- `scripts/verify_native_image.sh` builds the native-image smoke fixture. It skips when
+  `native-image` is missing unless `KRANDOM_REQUIRE_NATIVE_IMAGE=true`, which CI sets.
+- `scripts/verify_kotest_previous_minor.sh` runs the Kotest adapter tests on the previous Kotest
+  minor line.
+- `scripts/run_benchmarks.sh` runs JMH and regenerates the benchmark dashboard.
+- `scripts/verify_release_rehearsal.sh` and `scripts/verify_examples_central.sh` are release steps
+  described in the [release runbook](docs/release-runbook.md).
 
 ## What makes a good contribution
 
@@ -58,7 +108,7 @@ java -version   # must report 21+
 - Include tests for new functionality.
 - Update relevant documentation if the public API changes.
 - Classify every public API change against the released baseline and update the current implementation/release plan.
-- Ensure `./scripts/pre_commit_check.sh` passes locally before requesting review.
+- Ensure the full `./scripts/pre_commit_check.sh` (without `--fast`) passes locally before requesting review.
 - Write a clear PR description explaining *what* and *why*.
 
 ## Reporting issues
