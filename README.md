@@ -14,7 +14,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 | `bom` | Maven/Gradle bill of materials for aligning published module versions |
 | `core` | Main implementation: generators, object generation, schema DSL, provider hub |
 | `jackson` | Jackson 2.x (`com.fasterxml.jackson`) integration on top of `core`; not a Jackson 3 (`tools.jackson`) module |
-| `junit` | JUnit 5 extension: per-test seeds, `@KrandomSeed` pinning, failure-seed reporting with Gradle/Maven replay commands |
+| `junit` | JUnit Jupiter extension: per-test seeds, `@KrandomSeed` pinning, failure-seed reporting with Gradle/Maven replay commands |
 | `spring-boot-starter` | Spring Boot 4.x auto-configuration for `core` (requires Spring Boot 4.x on the consumer) |
 | `kotest-extensions` | Kotest `Arb` adapters for property-based tests |
 | `kotlin-dsl` | Kotlin DSL for object generation rules |

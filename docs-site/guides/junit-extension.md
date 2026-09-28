@@ -6,7 +6,7 @@ permalink: /guides/junit-extension/
 
 # JUnit Extension
 
-`krandom-junit` ships a JUnit 5 extension that fixes the kRandom seed per test and reports it
+`krandom-junit` ships a JUnit Jupiter extension that fixes the kRandom seed per test and reports it
 when a test fails, so a failure caused by random data is always reproducible.
 
 ```kotlin

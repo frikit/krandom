@@ -89,6 +89,7 @@ pitest {
         "io.github.frikit.krandom.generator.text.NextWordGeneratorTest",
         "io.github.frikit.krandom.generator.user.EmailGeneratorTest"
     ))
+    pitestVersion.set(libs.versions.pitest.core)
     junit5PluginVersion.set(libs.versions.pitest.junit5.plugin)
     outputFormats.set(setOf("HTML", "XML"))
     timestampedReports.set(false)

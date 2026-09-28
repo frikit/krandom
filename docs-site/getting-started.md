@@ -41,7 +41,7 @@ dependencies {
     implementation("io.github.frikit:krandom-spring-boot-starter")
     testImplementation("io.github.frikit:krandom-kotest-extensions")
     testImplementation("io.github.frikit:krandom-kotlin-dsl")
-    testImplementation("io.github.frikit:krandom-junit") // JUnit 5 seed extension, from 1.2.0
+    testImplementation("io.github.frikit:krandom-junit") // JUnit Jupiter seed extension, from 1.2.0
 }
 ```
 

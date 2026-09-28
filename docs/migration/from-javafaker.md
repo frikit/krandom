@@ -15,7 +15,7 @@ Two paths:
 
 **Pros**: maintained; realistic field data **and** object-graph generation in one
 library; 50 supported locale variants (35 native datasets and 15 curated fallbacks); schema export;
-Spring Boot / JUnit 5 / kotest integrations.
+Spring Boot / JUnit Jupiter / kotest integrations.
 **Cons / gaps**: kRandom intentionally omits novelty and fandom catalogs from core; use DataFaker
 or a local, provenance-declared data pack when those datasets are required.
 

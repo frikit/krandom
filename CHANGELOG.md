@@ -117,6 +117,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   tests can no longer mail real people. `REALISTIC_UNCLASSIFIED` restores mailbox-provider domains;
   `generateFreeEmail`, `getFreeEmailProvider`, and `generateFreeEmailDomain` require it and fail
   closed otherwise. Default seeded email output changes.
+- Update Jackson Databind to 2.22.3, which fixes two denial-of-service issues (CVE-2026-91776,
+  CVE-2026-91777), Kotlin to 2.4.20, Kotest to 6.2.5, SLF4J to 2.0.20, and the Gradle wrapper to
+  9.8.0. Refresh test and build tooling: Logback 1.6.4, Hibernate Validator 9.1.4.Final, Spotless
+  8.10.3, and PIT 1.30.0, which is now pinned in the version catalog.
+- Update the Instancio benchmark competitor to 6.1.0 and align the consumer examples with Kotlin
+  2.4.20, Maven Surefire 3.6.0, sbt 1.13.0, and Mill 1.1.10. Refresh the GitHub Action pins
+  (setup-java 6.0.1, Codecov 7.1.1, Coursier 3.0.3) and label every pin with its exact release.
 
 ### Deprecated
 
@@ -281,6 +288,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   unchanged. The migration guides no longer advertise checksum national IDs for every locale.
 - Document the NANP fictional phone range for Canadian locales, the email-domain policy, the
   country-specific national-ID resolution, and the composite child-stream policy in the guides.
+- Describe `krandom-junit` as a JUnit Jupiter extension: it builds on JUnit Jupiter 6, not JUnit 5.
 
 ## [2.5.0] - 2026-09-24
 
