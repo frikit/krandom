@@ -109,7 +109,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Group Dependabot minor/patch Gradle and GitHub Actions updates, cover the consumer examples, and
   add `scripts/update_verification_metadata.sh` for regenerating dependency checksums.
 - Add `pre_commit_check.sh --fast`, module-boundary checks in the pre-commit gate, and JaCoCo
-  reports for the integration modules; only `krandom-core` has the exact coverage gate.
+  reports for the integration modules; only `krandom-core` has the exact coverage gate and is
+  uploaded to Codecov.
 - Email output defaults to `EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS`: `EmailGenerator` and the
   contact, person, and profile payloads built on it use only `example.com`, `example.net`, and
   `example.org`, and `CompanyEmailGenerator` uses the reserved `.test` top-level domain, so staging

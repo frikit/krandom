@@ -68,6 +68,8 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: core/build/jacoco/jacoco.xml
+          # Integration modules write JaCoCo reports too; only core is gated at 100% and uploaded.
+          disable_search: true
           fail_ci_if_error: false
 
   native-image:
