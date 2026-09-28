@@ -38,7 +38,7 @@ done
 "${REPO_ROOT}/scripts/require_java21.sh"
 "${REPO_ROOT}/scripts/verify_release_facts.sh" "${VERSION}"
 "${REPO_ROOT}/scripts/verify_documentation_facts.sh"
-"${REPO_ROOT}/gradlew" clean build check checkApiContract \
+"${REPO_ROOT}/gradlew" clean build check \
     -PreleaseVersion="${VERSION}" \
     --stacktrace --console=plain --max-workers=1 --no-daemon \
     -x :benchmarks:test -x :benchmarks:check

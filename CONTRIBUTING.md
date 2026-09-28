@@ -26,14 +26,13 @@ java -version   # must report 21+
    ```
 
    The full gate applies formatting and license headers, then verifies Markdown formatting,
-   repository and docs-site links, documentation facts, pinned build inputs, compilation, the public
-   API contract, module boundaries, release SBOMs, Javadoc, all tests (forced to rerun), critical-path
-   mutation testing, and exact core coverage.
+   repository and docs-site links, documentation facts, pinned build inputs, compilation, module
+   boundaries, release SBOMs, Javadoc, all tests (forced to rerun), critical-path mutation testing,
+   and exact core coverage.
 
    While iterating, `./scripts/pre_commit_check.sh --fast` keeps formatting, documentation checks,
-   compilation, the API contract, module boundaries, tests, and the core coverage gate, but reuses
-   up-to-date test results and skips mutation testing and SBOM validation. Run the full gate before
-   pushing.
+   compilation, module boundaries, tests, and the core coverage gate, but reuses up-to-date test
+   results and skips mutation testing and SBOM validation. Run the full gate before pushing.
 
 5. **Open a pull request** against `main`.
 
@@ -49,12 +48,8 @@ java -version   # must report 21+
   least an 85% mutation score and 98% mutated-class line coverage. Expand targets incrementally
   around meaningful branching, review survivors by behavior, and do not treat 100% as a goal when
   equivalent or implementation-only mutations remain.
-- **Public API contract**: `./gradlew checkApiContract` compares every published jar with the
-  `apiBaselineVersion` release using japicmp and the dependency classpaths of both versions.
-  Incompatible changes fail, and every compatible change must be classified in
-  `config/api-evolution-allowlist.txt`.
-- **Module boundaries**: `scripts/verify_module_boundaries.sh` keeps JPMS module names stable and
-  rejects packages split across published jars.
+- **Module boundaries**: `scripts/verify_module_boundaries.sh` requires a unique JPMS module name
+  for every published jar and rejects packages split across published jars.
 - **Release SBOMs**: `./gradlew verifyReleaseSboms` generates and validates the CycloneDX JSON and XML
   SBOM of every published module.
 - **Documentation**: the pre-commit gate checks Markdown formatting, repository and docs-site
@@ -66,10 +61,8 @@ java -version   # must report 21+
 - **Formatting**: Spotless enforces consistent formatting and MIT license headers. Run `./gradlew spotlessApply` to fix formatting issues.
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
 
-CI additionally builds on Java 21 and 25, runs a compiled 2.2.0 consumer and extension against the
-candidate (`./gradlew verifyV2ConsumerCompatibility`), tests the Kotest adapters against the previous
-Kotest minor line (`scripts/verify_kotest_previous_minor.sh`), requires the GraalVM native-image
-smoke test, and runs every consumer example against the locally published snapshot.
+CI additionally builds on Java 21 and 25, requires the GraalVM native-image smoke test, and runs every
+consumer example against the locally published snapshot.
 
 ## Maintenance tools
 
@@ -83,8 +76,6 @@ These scripts are run by hand; none of them is part of the pre-commit gate.
   examples; `KRANDOM_REQUIRE_SCALA_TOOLS=true` makes missing sbt or Mill an error.
 - `scripts/verify_native_image.sh` builds the native-image smoke fixture. It skips when
   `native-image` is missing unless `KRANDOM_REQUIRE_NATIVE_IMAGE=true`, which CI sets.
-- `scripts/verify_kotest_previous_minor.sh` runs the Kotest adapter tests on the previous Kotest
-  minor line.
 - `scripts/run_benchmarks.sh` runs JMH and regenerates the benchmark dashboard.
 - `scripts/verify_release_rehearsal.sh` and `scripts/verify_examples_central.sh` are release steps
   described in the [release runbook](docs/release-runbook.md).
@@ -107,7 +98,8 @@ These scripts are run by hand; none of them is part of the pre-commit gate.
 - Keep PRs focused on a single concern.
 - Include tests for new functionality.
 - Update relevant documentation if the public API changes.
-- Classify every public API change against the released baseline and update the current implementation/release plan.
+- Describe user-visible changes, including changed or removed API, in the `Unreleased` section of
+  [CHANGELOG.md](CHANGELOG.md).
 - Ensure the full `./scripts/pre_commit_check.sh` (without `--fast`) passes locally before requesting review.
 - Write a clear PR description explaining *what* and *why*.
 

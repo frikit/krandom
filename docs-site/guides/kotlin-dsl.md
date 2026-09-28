@@ -35,8 +35,8 @@ val user = krandom<UserDto> {
 ## Typed Rules and Validation
 
 Prefer property references over string names: they survive renames, and the compiler checks that
-the rule value matches the property type. The string form remains as a compatibility bridge for
-fields that cannot be referenced as Kotlin properties.
+the rule value matches the property type. Use the string form only for fields that cannot be
+referenced as Kotlin properties.
 
 Rules are validated before generation:
 

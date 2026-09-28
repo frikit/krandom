@@ -38,11 +38,10 @@ use with `--write-verification-metadata sha256`:
 
 | Invocation | Graph |
 | --- | --- |
-| `spotlessCheck build checkApiContract generatePublicApiInventory verifyV2ConsumerCompatibility` | compilation, all tests (benchmarks and examples-e2e included), coverage, Javadoc, API baselines and dependency classpaths, and the 2.2.0 consumer |
+| `spotlessCheck build` | compilation, all tests (benchmarks and examples-e2e included), coverage, and Javadoc |
 | `verifyReleaseSboms` | CycloneDX, in its own invocation as in CI |
 | `:core:pitest` | PIT and its JUnit 5 plugin |
 | `nmcpZipAggregation` | publications for Maven Central and Maven local |
-| `scripts/verify_kotest_previous_minor.sh` | the previous Kotest minor line |
 
 Add a new invocation when CI starts resolving a different graph. The consumer builds under
 `examples/` are separate Gradle builds without verification metadata.
@@ -75,10 +74,8 @@ major updates arrive separately. For each such pull request:
    updated dependencies.
 3. Commit the metadata to the branch, push, and let CI verify it in strict mode.
 
-When the Kotest minor line changes, also move `KOTEST_PREVIOUS_MINOR_VERSION` in
-`scripts/verify_kotest_previous_minor.sh` to the newest patch of the previous minor line before
-regenerating. The consumer examples under `examples/` receive separate Gradle and Maven pull
-requests, one per dependency across all example directories; they need no metadata update.
+The consumer examples under `examples/` receive separate Gradle and Maven pull requests, one per
+dependency across all example directories; they need no metadata update.
 
 Checksums provide integrity after this reviewed baseline is established; they do not prove publisher
 identity. Adding PGP identity verification is a separate hardening step and must not replace SHA-256

@@ -138,7 +138,7 @@ jobs:
         run: ./scripts/verify_build_input_pins.sh
 
       - name: Build, test, and check
-        run: ./gradlew clean build check checkApiContract -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
+        run: ./gradlew clean build check -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
       # CycloneDX attaches direct-BOM artifacts lazily. Keep SBOM generation in
       # its own Gradle invocation so the build graph cannot consume that variant

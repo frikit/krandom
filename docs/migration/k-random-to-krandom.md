@@ -651,6 +651,6 @@ krandom's native defaults remain different: unseeded random source, string lengt
 
 ## Tracked Gaps
 
-This guide is the maintained migration baseline. Broader fixture-control priorities and the v3
-release gate are tracked in the
+This guide is the maintained migration baseline. Broader fixture-control priorities and release
+gates are tracked in the
 [`product roadmap`](../development/market-leadership-roadmap.md).

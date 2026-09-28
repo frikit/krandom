@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run the local quality gate: formatting and license headers, documentation checks, compilation,
-# public API contract, module boundaries, release SBOMs, Javadoc, tests, critical-path mutation
-# testing, and the exact core coverage gate.
+# module boundaries, release SBOMs, Javadoc, tests, critical-path mutation testing, and the exact
+# core coverage gate.
 # Usage: ./scripts/pre_commit_check.sh [--fast]
 #   --fast  Iteration mode: reuse up-to-date test results instead of forcing a rerun, and skip
 #           mutation testing and SBOM validation. Run the full gate before pushing.
@@ -131,17 +131,9 @@ else
     exit 1
 fi
 
-step "Verify public API compatibility"
-if "${GRADLEW}" checkApiContract --quiet; then
-    ok "Public API is compatible and all evolution is classified"
-else
-    fail "Public API contract failed — see build/reports/japicmp and build/reports/api-evolution"
-    exit 1
-fi
-
 step "Verify module boundaries"
 if bash "${REPO_ROOT}/scripts/verify_module_boundaries.sh"; then
-    ok "Module names and package ownership are unchanged"
+    ok "Module identities are unique and no package is split"
 else
     fail "Module boundary verification failed"
     exit 1

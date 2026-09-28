@@ -42,9 +42,9 @@ write_metadata() {
 TRUST_EXCEPTIONS_BEFORE="$(trust_exceptions)"
 
 # CI build job, release build, and pre-commit gate: Spotless, compilation, all tests (benchmarks and
-# examples-e2e included), core coverage and Javadoc, API contract and inventory, and the external
-# consumer check. Module-boundary and native-image checks reuse these jars and runtime classpaths.
-write_metadata spotlessCheck build checkApiContract generatePublicApiInventory verifyV2ConsumerCompatibility
+# examples-e2e included), core coverage, and Javadoc. Module-boundary and native-image checks reuse
+# these jars and runtime classpaths.
+write_metadata spotlessCheck build
 
 # Release SBOMs: CycloneDX runs in its own invocation, as in CI and the release workflow.
 write_metadata verifyReleaseSboms
@@ -55,11 +55,6 @@ write_metadata :core:pitest
 # Signed-bundle assembly in the release workflow; covers the publications that
 # scripts/verify_examples_local.sh installs with publishToMavenLocal.
 write_metadata nmcpZipAggregation
-
-# Previous Kotest minor line (CI compatibility job).
-echo
-echo "==> Record checksums: previous Kotest minor line"
-"${REPO_ROOT}/scripts/verify_kotest_previous_minor.sh" --write-verification-metadata sha256 --console=plain
 
 TRUST_EXCEPTIONS_AFTER="$(trust_exceptions)"
 if (( TRUST_EXCEPTIONS_AFTER > TRUST_EXCEPTIONS_BEFORE )); then

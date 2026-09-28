@@ -10,7 +10,7 @@ advantages are deterministic replay, coherent object fixtures, explicit safety c
 performance evidence, and a small extension boundary.
 
 The latest delivery record is in [`release-2.5.0-plan.md`](release-2.5.0-plan.md). This roadmap sets
-product priorities; it does not authorize a tag, publication, or breaking API change.
+product priorities; it does not authorize a tag or publication.
 
 ## Product principles
 
@@ -44,13 +44,8 @@ with current kRandom guidance.
 
 ## Ordered priorities
 
-### P0 — Deliver compatible fixture improvements
-
-- Completed in 2.3.0: profile rollback, explicit replay snapshots, and opt-in independent
-  field streams, without changing existing defaults.
-- Keep qualifying old consumers and recipes before every additive fixture feature.
-- Reconsider v3 only after consumer evidence justifies an incompatible default or API change;
-  do not create a major version merely to reorganize internals.
+Only the current release line is maintained; a priority may change defaults or remove API when
+the result is better for current users, and the changelog records every such change.
 
 ### P1 — Fixture control and diagnosis
 
@@ -63,8 +58,6 @@ with current kRandom guidance.
 ### P1 — Extension and data ecosystem
 
 - Generalize verified local data packs without runtime network loading.
-- Publish an extension compatibility kit against the oldest supported release and the development
-  line.
 - Require source, license, checksum, safety class, bounded size, owner, and invariant tests for
   every contributed dataset.
 - Add integration modules only after two consumers or one strategic pilot demonstrate demand.
@@ -73,23 +66,23 @@ with current kRandom guidance.
 
 - Keep migration examples compiling in clean Maven, Gradle, sbt, Mill, JPMS, Kotlin, and Spring
   consumers.
-- Track benchmark regressions on comparable environments and retain raw results.
+- Track benchmark regressions on comparable environments and retain raw results; back model or
+  stream refactoring with comparable-machine JMH evidence against the documented budgets.
 - Measure real migrations and rollback cost before making broad leadership claims.
+- Extend native-image evidence beyond core (records, reflection, localized resources, and a custom
+  module) before claiming native support for the Spring and Kotlin modules.
 
 ## Release gates
 
-A v3 release candidate requires all of the following:
+A release candidate requires all of the following:
 
-- one approved, documented major-version contract;
-- an exact public API diff against the latest released baseline;
-- compile-tested migration examples and rollback guidance;
 - exact 100% JaCoCo instruction, line, branch, complexity, method, and class coverage;
 - measured critical-path mutation thresholds;
 - Java 21 and current-JDK CI, native-image smoke, JPMS, and all consumer examples;
+- a changelog entry for every user-visible change, including removed or changed API;
 - release rehearsal, Central-only verification, SBOMs, provenance, and recoverable publication.
 
-V3 remains deferred until a concrete incompatible contract earns approval. Public installation
-guidance follows the latest stable 2.x release.
+Public installation guidance follows the latest stable release.
 
 ## Non-goals
 
@@ -97,4 +90,3 @@ guidance follows the latest stable 2.x release.
 - Runtime network loading, hidden telemetry, or global mutable registries.
 - A new module, SPI, or abstraction without consumer evidence.
 - A broad “number one” claim based on one benchmark, provider count, downloads, or stars.
-- Breaking working APIs only to make the version number look significant.

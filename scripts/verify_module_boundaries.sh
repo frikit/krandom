@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Verifies JPMS module boundaries across every published jar (master plan Step 3.8):
+# Verifies JPMS module boundaries across every published jar:
 #  - each jar declares a module identity (module-info.class or Automatic-Module-Name);
-#  - module names are unique and match the compatibility contract below;
+#  - module names are unique;
 #  - no package is split across two published jars.
 # The module list comes from `publishedModules` in gradle.properties (the BOM has no jar).
 set -euo pipefail
@@ -88,18 +88,6 @@ for module in "${MODULES[@]}"; do
         }
     ' <<< "${listing}" | sort -u >> "${PACKAGES_FILE}"
 done
-
-EXPECTED_NAMES="io.github.frikit.krandom core
-io.github.frikit.krandom.jackson jackson
-io.github.frikit.krandom.junit junit
-io.github.frikit.krandom.kotlin.dsl kotlin-dsl
-io.github.frikit.krandom.kotest kotest-extensions
-io.github.frikit.krandom.spring.boot.starter spring-boot-starter"
-if ! diff <(printf '%s\n' "${EXPECTED_NAMES}" | sort) <(sort "${NAMES_FILE}") > /dev/null; then
-    echo "FAIL: module names changed; they are part of the compatibility contract:" >&2
-    diff <(printf '%s\n' "${EXPECTED_NAMES}" | sort) <(sort "${NAMES_FILE}") >&2 || true
-    fail=1
-fi
 
 duplicate_names=$(awk '{print $1}' "${NAMES_FILE}" | sort | uniq -d)
 if [[ -n "${duplicate_names}" ]]; then

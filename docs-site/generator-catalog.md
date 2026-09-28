@@ -101,11 +101,6 @@ fixtures; see [Finance and Identity]({{ '/guides/finance-and-identity/' | relati
 - `pick`, `pickSet`, `shuffle`, `weighted`, `unique`, `repeat`, `sequence`, `pool`
 - `threadLocal` supplies one generator instance per calling thread.
 
-The removed 1.x aliases (`constant`, `pickFrom`, `pickSetFrom`, `shuffleOf`, and
-`uniqueValues`) are not available in 2.0.0. See the
-[1.x-to-2.0.0 migration guide](https://github.com/frikit/krandom/blob/main/docs/migration/v1.6-to-v2.md)
-for exact replacements.
-
 ## Domain namespaces
 
 For discoverability, the same families are grouped under `person`, `finance`, `location`,

@@ -79,8 +79,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   class-scoped configuration.
 - Kotest adapters honour the configuration seed: it parents every sample seed and is recorded by
   `krandomKotestRecipe`, so seeded configurations produce different samples than 2.5.0 for the same
-  Kotest seed (unseeded configurations are unchanged). `kotest-property-jvm` is published as a
-  preferred version, so a consumer's own Kotest 6.1+ declaration is no longer upgraded.
+  Kotest seed (unseeded configurations are unchanged).
 - Kotlin DSL `exclude(...)` targets the generated type's field instead of every field with that
   name; unknown exclusions and rules or exclusions on computed or delegated properties fail when the
   generator is built.
@@ -104,13 +103,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   now allocates about 0.25 MB instead of 2.2 MB, with byte-identical seeded output.
 - Document that unique fields stay unique for a generator's lifetime and how to reset or disable
   that tracking.
-- Run the public API contract with the dependency classpaths of both versions instead of ignoring
-  missing supertypes, and read the published-module list from `gradle.properties`. The evolution
-  check tolerates a missing supertype only when it is a class the allowlist classifies, because
-  japicmp removes excluded classes before analysing their subclasses and implementations.
-- Run module-boundary, Markdown-link, 2.2.0 consumer/extension, and previous-Kotest-minor checks in
-  CI; validate the Gradle wrapper; add read-only permissions, superseded-run cancellation, and job
-  timeouts to the CI workflow; require the native-image smoke test in CI.
+- Read the published-module list from `gradle.properties`.
+- Run module-boundary and Markdown-link checks in CI; validate the Gradle wrapper; add read-only
+  permissions, superseded-run cancellation, and job timeouts to the CI workflow; require the
+  native-image smoke test in CI.
 - Group Dependabot minor/patch Gradle and GitHub Actions updates, cover the consumer examples, and
   add `scripts/update_verification_metadata.sh` for regenerating dependency checksums.
 - Add `pre_commit_check.sh --fast`, module-boundary checks in the pre-commit gate, and JaCoCo
@@ -133,6 +129,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `Generators.ofURL`, `ofURI` and `ofTimeZone` and `DateTimeGenerators#timeZone`: they differed from
   the text factories `ofUrl`, `ofUri`, `ofTimezone` only by letter case while returning a different
   type. Use `ofUrlObject`, `ofUriObject`, `ofTimeZoneObject` and `timeZoneObject`.
+
+### Removed
+
+- Compatibility obligations toward earlier releases. Only the current release is maintained, and a
+  release no longer promises API, behavior, or generated-output compatibility with earlier ones
+  (see `VERSIONING.md`).
+- The japicmp public API gate (`checkApiContract`, `checkApiCompatibility`, `checkApiEvolution`,
+  `config/api-compatibility-excludes.txt`, `config/api-evolution-allowlist.txt`, and the
+  `apiBaselineVersion` fact), the `generatePublicApiInventory` report, the check that ran a 2.2.0
+  consumer and extension on the candidate (`verifyV2ConsumerCompatibility`), and the CI job that
+  tested the Kotest adapters against the previous Kotest minor line (`-PkotestVersion`).
+- The 1.x-to-2.0.0 migration guides and the deferred major-version plan. The release-facts check
+  now finds the previous release in the changelog.
 
 ### Fixed
 

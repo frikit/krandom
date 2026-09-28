@@ -15,7 +15,6 @@ in Git and release tags instead of duplicated as completed plans and dated revie
 ## Migrate
 
 - [k-random to kRandom](migration/k-random-to-krandom.md)
-- [1.x to 2.0.0](migration/v1.6-to-v2.md)
 - [DataFaker to kRandom](migration/from-datafaker.md)
 - [Easy Random to kRandom](migration/from-easyrandom.md)
 - [Instancio to kRandom](migration/from-instancio.md)
@@ -25,7 +24,6 @@ in Git and release tags instead of duplicated as completed plans and dated revie
 
 - [Contributing](../CONTRIBUTING.md) — workflow, quality gates, and maintenance tools
 - [2.5.0 release plan](development/release-2.5.0-plan.md) — latest qualification and publication record
-- [Major-version decision](development/v3-preparation-plan.md) — conditions for revisiting v3
 - [Product roadmap](development/market-leadership-roadmap.md) — priorities and release gates
 - [Dependency reproducibility](development/dependency-reproducibility.md) — build-input policy and
   verification-metadata updates

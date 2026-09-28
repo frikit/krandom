@@ -80,8 +80,8 @@ JAVA_HOME=<JDK 21+> ./scripts/verify_release_rehearsal.sh 2.4.0
 ```
 
 The rehearsal validates SemVer, requires that `v2.4.0` does not already exist locally, verifies the
-runbook recovery markers, and runs API compatibility plus release-SBOM checks with
-`-PreleaseVersion=2.4.0`. It never reads publication credentials, tags a commit, uploads artifacts,
+runbook recovery markers, and runs the release-facts, documentation-facts, build, and release-SBOM
+checks with `-PreleaseVersion=2.4.0`. It never reads publication credentials, tags a commit, uploads artifacts,
 or contacts Maven Central.
 
 If a release workflow fails, first identify the last completed step and check Central Portal before
@@ -111,12 +111,10 @@ unless it resolves to that same commit.
 - Run the Central-only consumer gate after the coordinates are visible:
   `KRANDOM_VERSION=<version> ./scripts/verify_examples_central.sh`. It exercises a plain-Java
   Maven/Gradle consumer and a Kotlin/Spring Maven consumer without Maven-local resolution.
-- Land a follow-up version-facts commit on `main`. Update `apiBaselineVersion`
-  to the released version, set `developmentVersion` to the next `*-SNAPSHOT`,
-  and retain `latestGaVersion` at the release just published. Then run
-  `./scripts/verify_documentation_facts.sh`; this moves the next
-  API-compatibility baseline forward without changing the published install
-  guidance.
+- Land a follow-up version-facts commit on `main`: set `developmentVersion` to
+  the next `*-SNAPSHOT` and retain `latestGaVersion` at the release just
+  published. Then run `./scripts/verify_documentation_facts.sh`; the published
+  install guidance stays unchanged.
 - Confirm the GitHub Pages deployment includes that follow-up documentation
   commit before announcing the release broadly.
 

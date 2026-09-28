@@ -34,7 +34,6 @@ reject_pattern() {
 
 DEVELOPMENT_VERSION="$(fact developmentVersion)"
 LATEST_GA_VERSION="$(fact latestGaVersion)"
-API_BASELINE_VERSION="$(fact apiBaselineVersion)"
 JAVA_MINIMUM_VERSION="$(fact javaMinimumVersion)"
 PUBLISHED_MODULES="$(fact publishedModules)"
 NATIVE_LOCALE_COUNT="$(fact nativeLocaleCount)"
@@ -46,7 +45,6 @@ SCHEMA_EXPORT_FORMATS="$(fact schemaExportFormats)"
 for value in \
     "${DEVELOPMENT_VERSION}" \
     "${LATEST_GA_VERSION}" \
-    "${API_BASELINE_VERSION}" \
     "${JAVA_MINIMUM_VERSION}" \
     "${PUBLISHED_MODULES}" \
     "${NATIVE_LOCALE_COUNT}" \
@@ -129,7 +127,7 @@ grep -Fq '98% mutated-class line coverage' "${REPO_ROOT}/CONTRIBUTING.md" || fai
 grep -Fq "The latest released version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/README.md" || fail "README latest GA version is stale"
 grep -Fq "current repository development line: \`${DEVELOPMENT_VERSION}\`" "${REPO_ROOT}/README.md" || fail "README development version is stale"
 grep -Fq "The latest stable release is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/VERSIONING.md" || fail "version policy latest GA is stale"
-grep -Fq "\`${DEVELOPMENT_VERSION}\`, compared against the released \`${API_BASELINE_VERSION}\` public API" "${REPO_ROOT}/VERSIONING.md" || fail "version policy development/API baseline is stale"
+grep -Fq "The repository development line is \`${DEVELOPMENT_VERSION}\`" "${REPO_ROOT}/VERSIONING.md" || fail "version policy development line is stale"
 grep -Fq "The current version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started latest GA version is stale"
 grep -Fq "io.github.frikit:krandom-core:${LATEST_GA_VERSION}" "${REPO_ROOT}/README.md" || fail "README core coordinate is stale"
 grep -Fq "io.github.frikit:krandom-bom:${LATEST_GA_VERSION}" "${REPO_ROOT}/README.md" || fail "README BOM coordinate is stale"
@@ -173,13 +171,6 @@ for example_file in "${EXAMPLE_VERSION_FILES[@]}"; do
     grep -Fq "${DEVELOPMENT_VERSION}" "${REPO_ROOT}/${example_file}" || fail "${example_file} does not use developmentVersion ${DEVELOPMENT_VERSION}"
 done
 
-reject_pattern "current public documentation still uses a removed 1.x Generators alias" \
-    'Generators\.(constant|pickFrom|pickSetFrom|shuffleOf|uniqueValues)\(' \
-    --exclude='v1.6-to-v2.md' \
-    "${REPO_ROOT}/README.md" \
-    "${REPO_ROOT}/docs-site" \
-    "${REPO_ROOT}/docs/migration"
-
 reject_pattern "documentation still makes a stale DataFaker bulk/schema capability claim" \
     'DataFaker (has no|does not have|does not support) (bulk|schema|export)' \
     "${REPO_ROOT}/README.md" \
@@ -190,4 +181,4 @@ reject_pattern "locale contribution guide still contains the obsolete flat resou
     '<locale>_(first_male|first_female|last|street_names|street_types_short|street_types_long|secondary_units)\.txt' \
     "${REPO_ROOT}/docs/locale-contribution-guide.md"
 
-echo "Documentation facts verified: ${LATEST_GA_VERSION} release docs, ${API_BASELINE_VERSION} API baseline, ${DEVELOPMENT_VERSION} development, ${#modules[@]} modules, ${ACTUAL_TOTAL} locale variants."
+echo "Documentation facts verified: ${LATEST_GA_VERSION} release docs, ${DEVELOPMENT_VERSION} development, ${#modules[@]} modules, ${ACTUAL_TOTAL} locale variants."

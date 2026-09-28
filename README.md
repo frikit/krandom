@@ -16,7 +16,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 | `jackson` | Jackson 2.x (`com.fasterxml.jackson`) integration on top of `core`; not a Jackson 3 (`tools.jackson`) module |
 | `junit` | JUnit 5 extension: per-test seeds, `@KrandomSeed` pinning, failure-seed reporting with Gradle/Maven replay commands |
 | `spring-boot-starter` | Spring Boot 4.x auto-configuration for `core` (requires Spring Boot 4.x on the consumer) |
-| `kotest-extensions` | Kotest `Arb` adapters for property-based tests (declare your own Kotest 6.1+ `kotest-property`) |
+| `kotest-extensions` | Kotest `Arb` adapters for property-based tests |
 | `kotlin-dsl` | Kotlin DSL for object generation rules |
 | `benchmarks` | JMH and macro-profile workloads, including competitor comparisons |
 | `examples/` | Consumer examples for Java, Kotlin, and Scala build-tool combinations using `core` directly |
@@ -153,7 +153,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 ./scripts/verify_examples_local.sh
 ```
 
-`pre_commit_check.sh` runs formatting, Markdown, link, and documentation-fact checks, compilation, the public API contract, module boundaries, release SBOM validation, Javadoc, tests, critical-path mutation testing, and the exact core coverage gate, and fails fast when Java 21+ is not active. `--fast` reuses up-to-date test results and skips mutation testing and SBOM validation while iterating.
+`pre_commit_check.sh` runs formatting, Markdown, link, and documentation-fact checks, compilation, module boundaries, release SBOM validation, Javadoc, tests, critical-path mutation testing, and the exact core coverage gate, and fails fast when Java 21+ is not active. `--fast` reuses up-to-date test results and skips mutation testing and SBOM validation while iterating.
 
 `verify_examples_local.sh` publishes all current `krandom-*` consumer artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set.
 
@@ -231,11 +231,11 @@ Consumer examples live in [`examples/`](examples/). They are test-based examples
 - Scala + sbt
 - Scala + Mill
 
-## Versioning and compatibility
+## Versioning
 
-kRandom follows [Semantic Versioning](https://semver.org). The full policy —
-Java support window, Spring Boot compatibility, seed/output stability, and
-deprecation rules — is documented in [VERSIONING.md](VERSIONING.md).
+Only the latest release is maintained, and releases carry no compatibility promise for earlier
+versions. [VERSIONING.md](VERSIONING.md) documents the determinism contract and platform
+requirements; check the [changelog](CHANGELOG.md) before upgrading.
 
 ## Getting help
 
@@ -248,7 +248,6 @@ deprecation rules — is documented in [VERSIONING.md](VERSIONING.md).
 - Docs URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
 - Maintained project docs: [`docs/`](docs/)
 - k-random migration guide: [`docs/migration/k-random-to-krandom.md`](docs/migration/k-random-to-krandom.md)
-- 1.x-to-2.0.0 migration guide: [`docs/migration/v1.6-to-v2.md`](docs/migration/v1.6-to-v2.md)
 
 GitHub Pages deployment is wired through [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml).
 

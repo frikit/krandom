@@ -74,8 +74,8 @@ PaymentMethod payment = new ObjectGenerator<>(PaymentMethod.class, config).gener
 Factories must return a non-null value assignable to the registered type. They are the preferred
 escape hatch for third-party, abstract, or deliberately immutable types.
 
-`UNSAFE_CONSTRUCTOR_BYPASS` is a temporary compatibility option for classes that relied on the
-legacy Objenesis fallback:
+`UNSAFE_CONSTRUCTOR_BYPASS` opts into Objenesis allocation for classes with no usable constructor;
+prefer a type factory where one is possible:
 
 ```java
 GeneratorConfig legacy = GeneratorConfig.builder()

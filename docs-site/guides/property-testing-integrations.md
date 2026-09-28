@@ -19,16 +19,11 @@ repositories {
 
 dependencies {
     testImplementation("io.github.frikit:krandom-kotest-extensions:2.5.0")
-    // Declare Kotest yourself (6.1 or newer); your version wins.
-    testImplementation("io.kotest:kotest-property:6.1.11")
 }
 ```
 
-The module publishes its `kotest-property-jvm` dependency as a soft, preferred version: when your
-build declares `kotest-property` (or a Kotest BOM), Gradle keeps your Kotest version instead of
-upgrading it to the one kRandom was built with, and Maven's nearest-wins rule does the same. Only a
-build that declares no Kotest property module at all receives the preferred version transitively,
-so declare it explicitly to stay in control.
+The module brings `kotest-property` transitively at the Kotest version it is built and tested with;
+keep your other Kotest modules on that same version.
 
 Usage:
 
@@ -111,14 +106,6 @@ recipe of the configuration appended below Kotest's own seed report, so a CI fai
 replay halves; `krandomKotestRecipe(config)` returns the same value-free recipe directly. That
 recipe reads the configuration's clock when the failure is reported, and the appended header says
 so; use the overload below for time-sensitive properties.
-
-The adapters are verified against the current and previous Kotest minor lines. To run the module
-tests against another version in the supported range (the repository's dependency-verification
-metadata only lists the default Kotest version, hence the lenient mode):
-
-```bash
-./gradlew :kotest-extensions:test -PkotestVersion=6.1.11 --dependency-verification=lenient
-```
 
 ## Temporal replay with one snapshot (2.3+)
 
