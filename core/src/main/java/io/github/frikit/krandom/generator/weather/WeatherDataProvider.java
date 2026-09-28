@@ -11,8 +11,11 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific list of weather-condition names.
  *
- * <p>Implement this interface and register an instance with {@link WeatherDataRegistry} to add or
- * override the weather vocabulary for any locale.
+ * <p>Implement this interface and register an instance on a configuration-scoped context with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerWeatherProvider(WeatherDataProvider)}
+ * to add or override the weather vocabulary for any locale. {@link WeatherDataRegistry} holds the
+ * built-in vocabulary served by
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
 public interface WeatherDataProvider {
 

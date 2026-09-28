@@ -13,8 +13,9 @@ import java.util.Locale;
  *
  * <p>Implement this interface and register an instance with
  * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerHobbyProvider(HobbyDataProvider)}
- * to add or override hobby vocabulary for one configuration. The global {@link HobbyDataRegistry}
- * remains a compatibility bridge.
+ * to add or override hobby vocabulary for one configuration. {@link HobbyDataRegistry} holds the
+ * built-in vocabulary served by
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
 public interface HobbyDataProvider {
 

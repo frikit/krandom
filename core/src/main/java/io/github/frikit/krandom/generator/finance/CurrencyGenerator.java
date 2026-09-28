@@ -68,8 +68,8 @@ import java.util.Random;
  * <p><strong>Seeded Generation:</strong>
  * <pre>{@code
  * // Reproducible currency generation
- * CurrencyGenerator gen1 = new CurrencyGenerator(new GeneratorConfig(12345L));
- * CurrencyGenerator gen2 = new CurrencyGenerator(new GeneratorConfig(12345L));
+ * CurrencyGenerator gen1 = new CurrencyGenerator(GeneratorConfig.builder().seed(12345L).build());
+ * CurrencyGenerator gen2 = new CurrencyGenerator(GeneratorConfig.builder().seed(12345L).build());
  * gen1.generate().equals(gen2.generate());  // true (same sequence)
  * }</pre>
  *

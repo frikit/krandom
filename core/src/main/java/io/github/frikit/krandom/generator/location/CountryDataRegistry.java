@@ -17,8 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Pre-seeded at class-load time with every built-in locale from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
- * Custom providers can be added at any time via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}, replacing
- * any existing provider for the same locale key.
+ * Custom providers are registered per configuration via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder};
+ * within that context they take precedence over the built-in provider for the same locale key.
  *
  * <p><b>Lookup order</b>
  * <ol>

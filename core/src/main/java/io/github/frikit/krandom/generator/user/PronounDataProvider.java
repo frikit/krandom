@@ -14,8 +14,9 @@ import java.util.Locale;
  * <p>Each entry is a {@code subject/object} pair (e.g. {@code "they/them"}, {@code "он/его"}). Implement
  * this interface and register an instance with
  * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerPronounProvider(PronounDataProvider)}
- * to add or override validated pronoun sets for one configuration. The global
- * {@link PronounDataRegistry} remains a compatibility bridge.
+ * to add or override validated pronoun sets for one configuration. {@link PronounDataRegistry}
+ * holds the built-in pronoun sets served by
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
 public interface PronounDataProvider {
 

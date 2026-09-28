@@ -11,8 +11,11 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific list of measurement-unit names.
  *
- * <p>Implement this interface and register an instance with {@link MeasurementDataRegistry} to add
- * or override the measurement vocabulary for any locale.
+ * <p>Implement this interface and register an instance on a configuration-scoped context with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerMeasurementProvider(MeasurementDataProvider)}
+ * to add or override the measurement vocabulary for any locale. {@link MeasurementDataRegistry}
+ * holds the built-in vocabulary served by
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
 public interface MeasurementDataProvider {
 

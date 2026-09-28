@@ -10,15 +10,22 @@ import java.util.Locale;
 /**
  * Contract for a locale-specific city name data source.
  *
- * <p>Implement this interface and register an instance with {@link CityDataRegistry} to extend
- * or override city data for any locale — including locales not built into the library.
+ * <p>Implement this interface and register an instance on a configuration-scoped context with
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerCityProvider(CityDataProvider)}
+ * to extend or override city data for any locale — including locales not built into the library.
  *
  * <pre>{@code
- * CityDataRegistry.register(new CityDataProvider() {
- *     public Locale getLocale() { return Locale.of("ko", "KR"); }
- *     public String[] getCities() { return new String[]{"서울", "부산", "인천"}; }
- * });
- * CityGenerator gen = new CityGenerator(Locale.of("ko", "KR"));
+ * DataRegistryContext context = DataRegistryContext.builder()
+ *     .registerCityProvider(new CityDataProvider() {
+ *         public Locale getLocale() { return Locale.of("ko", "KR"); }
+ *         public String[] getCities() { return new String[]{"서울", "부산", "인천"}; }
+ *     })
+ *     .build();
+ * GeneratorConfig config = GeneratorConfig.builder()
+ *     .locale(Locale.of("ko", "KR"))
+ *     .registryContext(context)
+ *     .build();
+ * CityGenerator gen = new CityGenerator(config);
  * }</pre>
  *
  * <p>The built-in baseline is seeded by {@link CityDataRegistry} from

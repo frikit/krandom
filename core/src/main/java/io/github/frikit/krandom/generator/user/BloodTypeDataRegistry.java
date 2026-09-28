@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale} that <em>has</em> a
  * {@code krandom/bloodtypes/<locale>.txt} resource. Locales without a file are intentionally not
  * registered, so {@link BloodTypeGenerator} falls back to the bundled global distribution. Custom
- * providers can be added at any time via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
+ * providers are registered per configuration via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  *
  * <p><b>Lookup order</b>
  * <ol>

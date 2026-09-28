@@ -99,7 +99,7 @@ import java.util.function.Supplier;
 /**
  * Immutable, config-scoped registry view for locale data providers.
  *
- * <p>By default ({@link #globalDefault()}), lookups delegate to existing static registries.
+ * <p>By default ({@link #globalDefault()}), lookups delegate to the built-in static registries.
  * Custom contexts can be built via {@link #builder()} and attached to {@link GeneratorConfig}
  * so tests and embedded runtimes can isolate registry state.
  *
@@ -202,7 +202,7 @@ public final class DataRegistryContext {
     }
 
     /**
-     * Returns the global context that delegates to legacy static registries.
+     * Returns the default context that delegates to the built-in static registries.
      */
     public static DataRegistryContext globalDefault() {
         return GLOBAL_DEFAULT;
