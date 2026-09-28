@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 jacoco = "0.8.15"
 spotless = "8.10.1"
 commons-validator = "1.11.0"
