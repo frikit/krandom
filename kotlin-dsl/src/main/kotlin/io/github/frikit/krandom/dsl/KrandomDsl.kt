@@ -122,9 +122,9 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
     /**
      * Registers a field-level override by field name.
      *
-     * This string form is the compatibility bridge for fields that cannot be referenced as a
-     * Kotlin property; prefer the type-safe [rule] overload with a property reference. Unknown
-     * field names fail when the generator is built.
+     * Use this string form only for fields that cannot be referenced as a Kotlin property;
+     * prefer the type-safe [rule] overload with a property reference. Unknown field names fail
+     * when the generator is built.
      *
      * ```kotlin
      * rule("firstName") { "Ada" }

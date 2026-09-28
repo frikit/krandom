@@ -85,8 +85,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   generator is built.
 - Spring `krandom.recipe` now rejects every other generation property it already defines (clock,
   bounds, object settings, and policies, not only seed and locale); `@KrandomTest` excludes
-  component-scanned application beans like Spring Boot slices (opt in with `@Import`). The
-  single-argument `KrandomAutoConfiguration.providerHub(GeneratorConfig)` is deprecated.
+  component-scanned application beans like Spring Boot slices (opt in with `@Import`).
 - `CompetitorObjectBenchmark` reuses a prebuilt Instancio `Model`, and `FieldStreamsBenchmark` also
   measures the default `RELAXED` semantic mode.
 - `@Randomizer` generators keep one instance per annotated field for the lifetime of a top-level
@@ -124,20 +123,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Update the Instancio benchmark competitor to 6.1.0 and align the consumer examples with Kotlin
   2.4.20, Maven Surefire 3.6.0, sbt 1.13.0, and Mill 1.1.10. Refresh the GitHub Action pins
   (setup-java 6.0.1, Codecov 7.1.1, Coursier 3.0.3) and label every pin with its exact release.
+- Seeded `@FakeRange` doubles and floats with `min >= max` fail with the JDK's
+  `bound must be greater than origin` message, like unseeded ones.
 
-### Deprecated
+### Removed
 
-- Raw `long seed` constructors and the matching `Generators` overloads (for example
+- Raw `long seed` constructors and the matching `Generators` factories (for example
   `IntGenerator(int, int, long)`, `DoubleGenerator(double, double, long)`,
   `Generators.ofInt(int, int, long)`, `ofFloat(float, float, long)`, `ofRegex(String, long)`,
   `ofCalendar(long)`, `ofNationalId(Locale, long)`) and `TextGenerators#template(String, long)`.
-  Each `@deprecated` note names the `GeneratorConfig` replacement, which produces identical values
-  for `GeneratorConfig.builder().seed(seed).build()`.
-- `Generators.ofURL`, `ofURI` and `ofTimeZone` and `DateTimeGenerators#timeZone`: they differed from
-  the text factories `ofUrl`, `ofUri`, `ofTimezone` only by letter case while returning a different
-  type. Use `ofUrlObject`, `ofUriObject`, `ofTimeZoneObject` and `timeZoneObject`.
-
-### Removed
+  Pass `GeneratorConfig.builder().seed(seed).build()` to the `GeneratorConfig` form instead; it
+  produces the same values. Schema regex columns now build such a configuration per value, which
+  costs about 0.3 µs more per value.
+- `Generators.ofURL`, `ofURI` and `ofTimeZone` and `DateTimeGenerators#timeZone`, which differed
+  from the text factories `ofUrl`, `ofUri`, `ofTimezone` only by letter case while returning a
+  different type. Use `ofUrlObject`, `ofUriObject`, `ofTimeZoneObject` and `timeZoneObject`.
+- The protected `AbstractBoundedGenerator(min, max, Long)` and `(GeneratorConfig, min, max)`
+  constructors: subclasses use `(min, max)` or `(min, max, GeneratorConfig)`.
+  `NormalDistributionGenerator(GeneratorConfig, double, double)` is now
+  `NormalDistributionGenerator(double, double, GeneratorConfig)`.
+- The single-argument Spring `KrandomAutoConfiguration.providerHub(GeneratorConfig)` and the
+  six-argument `FullNameGenerator.NameOptions` constructor.
+- Replay of recipes without the safety-policy and email-domain settings, which only releases before
+  those policies wrote: `GenerationRecipe#toGeneratorConfig()` now fails with
+  `Recipe requires setting: <key>`. Field overrides are looked up by fully-qualified owner name
+  only.
 
 - Compatibility obligations toward earlier releases. Only the current release is maintained, and a
   release no longer promises API, behavior, or generated-output compatibility with earlier ones
@@ -289,6 +299,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Document the NANP fictional phone range for Canadian locales, the email-domain policy, the
   country-specific national-ID resolution, and the composite child-stream policy in the guides.
 - Describe `krandom-junit` as a JUnit Jupiter extension: it builds on JUnit Jupiter 6, not JUnit 5.
+- Data provider and registry Javadoc shows configuration-scoped registration through a
+  `DataRegistryContext` instead of the global registry API that 2.0.0 removed.
 
 ## [2.5.0] - 2026-09-24
 
