@@ -45,22 +45,6 @@ public final class WeightedGenerator<T> implements Generator<T> {
         this(values, weights, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
-    /**
-     * Creates a weighted generator with deterministic seed support.
-     *
-     * @param values  values to choose from; must not be null/empty
-     * @param weights positive weights; same size as values
-     * @param seed    deterministic seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #WeightedGenerator(List, List, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public WeightedGenerator(List<T> values, List<Integer> weights, long seed) {
-        this(values, weights, new Random(seed));
-    }
-
     private WeightedGenerator(List<T> values, List<Integer> weights, Random random) {
         Objects.requireNonNull(values, "values must not be null");
         Objects.requireNonNull(weights, "weights must not be null");

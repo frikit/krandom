@@ -41,21 +41,6 @@ public final class PickGenerator<T> implements Generator<T> {
         this(source, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
-    /**
-     * Creates a pick generator with deterministic seed support.
-     *
-     * @param source source list; must not be null or empty
-     * @param seed   deterministic seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #PickGenerator(List, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public PickGenerator(List<T> source, long seed) {
-        this(source, new Random(seed));
-    }
-
     private PickGenerator(List<T> source, Random random) {
         Objects.requireNonNull(source, "source must not be null");
         if (source.isEmpty()) {

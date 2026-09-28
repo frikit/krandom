@@ -63,10 +63,10 @@ class GeneratorTest {
         String serialized = original.getGenerationRecipe().orElseThrow().serialize();
         GeneratorConfig replayed = GenerationRecipe.parse(serialized).toGeneratorConfig();
 
-        Generator<String> first = new IntGenerator(0, 1_000, original.getSeed().getAsLong())
+        Generator<String> first = new IntGenerator(0, 1_000, original)
             .map(value -> "v-" + value)
             .filter(value -> !value.endsWith("7"));
-        Generator<String> second = new IntGenerator(0, 1_000, replayed.getSeed().getAsLong())
+        Generator<String> second = new IntGenerator(0, 1_000, replayed)
             .map(value -> "v-" + value)
             .filter(value -> !value.endsWith("7"));
 

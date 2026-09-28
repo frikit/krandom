@@ -28,19 +28,6 @@ public final class PeriodGenerator implements Generator<Period>, Seedable {
         this(GeneratorConfig.defaults());
     }
 
-    /**
-     * Creates a seeded period generator.
-     *
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #PeriodGenerator(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public PeriodGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
     public PeriodGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();

@@ -77,7 +77,7 @@ class CalendarGeneratorTest {
     @DisplayName("forType and facade expose calendar generator")
     void forTypeAndFacadeExposeCalendarGenerator() {
         assertNotNull(Generators.ofCalendar().generate());
-        assertNotNull(Generators.ofCalendar(1L).generate());
+        assertNotNull(Generators.ofCalendar(seeded(1L)).generate());
         assertNotNull(Generators.ofCalendar(GeneratorConfig.defaults()).generate());
         assertNotNull(Generators.ofCalendar(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2)).generate());
         assertNotNull(Generators.ofCalendar(LocalDate.of(2024, 1, 1),
@@ -95,5 +95,9 @@ class CalendarGeneratorTest {
                      () -> new CalendarGenerator(LocalDate.of(2024, 1, 2), LocalDate.of(2024, 1, 1)));
         assertThrows(IllegalArgumentException.class,
                      () -> new CalendarGenerator(LocalDate.of(2024, 1, 1), null, GeneratorConfig.defaults()));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

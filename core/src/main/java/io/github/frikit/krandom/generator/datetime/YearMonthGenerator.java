@@ -38,19 +38,6 @@ public final class YearMonthGenerator implements Generator<YearMonth>, Seedable 
     }
 
     /**
-     * Creates a seeded year-month generator.
-     *
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #YearMonthGenerator(int, int, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public YearMonthGenerator(int minYear, int maxYear, long seed) {
-        this(minYear, maxYear, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a year-month generator over years {@code [minYear, maxYear]} using the
      * configuration's random source.
      *

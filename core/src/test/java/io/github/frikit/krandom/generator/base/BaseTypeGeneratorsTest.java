@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
@@ -58,8 +59,8 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("same seed produces identical sequence")
         void seededReproducibility() {
-            ByteGenerator a = new ByteGenerator((byte) -10, (byte) 10, 42L);
-            ByteGenerator b = new ByteGenerator((byte) -10, (byte) 10, 42L);
+            ByteGenerator a = new ByteGenerator((byte) -10, (byte) 10, seeded(42L));
+            ByteGenerator b = new ByteGenerator((byte) -10, (byte) 10, seeded(42L));
             for (int i = 0; i < 50; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -100,8 +101,8 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("same seed produces identical sequence")
         void seededReproducibility() {
-            ShortGenerator a = new ShortGenerator((short) 0, (short) 1000, 7L);
-            ShortGenerator b = new ShortGenerator((short) 0, (short) 1000, 7L);
+            ShortGenerator a = new ShortGenerator((short) 0, (short) 1000, seeded(7L));
+            ShortGenerator b = new ShortGenerator((short) 0, (short) 1000, seeded(7L));
             for (int i = 0; i < 50; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -154,8 +155,8 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("same seed produces identical sequence")
         void seededReproducibility() {
-            IntGenerator a = new IntGenerator(0, 1000, 99L);
-            IntGenerator b = new IntGenerator(0, 1000, 99L);
+            IntGenerator a = new IntGenerator(0, 1000, seeded(99L));
+            IntGenerator b = new IntGenerator(0, 1000, seeded(99L));
             for (int i = 0; i < 50; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -250,8 +251,8 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("same seed produces identical sequence")
         void seededReproducibility() {
-            LongGenerator a = new LongGenerator(0L, Long.MAX_VALUE, 123L);
-            LongGenerator b = new LongGenerator(0L, Long.MAX_VALUE, 123L);
+            LongGenerator a = new LongGenerator(0L, Long.MAX_VALUE, seeded(123L));
+            LongGenerator b = new LongGenerator(0L, Long.MAX_VALUE, seeded(123L));
             for (int i = 0; i < 50; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -295,8 +296,8 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("same seed produces identical sequence")
         void seededReproducibility() {
-            FloatGenerator a = new FloatGenerator(0f, 100f, 55L);
-            FloatGenerator b = new FloatGenerator(0f, 100f, 55L);
+            FloatGenerator a = new FloatGenerator(0f, 100f, seeded(55L));
+            FloatGenerator b = new FloatGenerator(0f, 100f, seeded(55L));
             for (int i = 0; i < 50; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -312,7 +313,7 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("withPrecision(2) rounds to 2 decimal places")
         void withPrecisionTwo() {
-            FloatGenerator gen = new FloatGenerator(0.0f, 100.0f, 42L).withPrecision(2);
+            FloatGenerator gen = new FloatGenerator(0.0f, 100.0f, seeded(42L)).withPrecision(2);
             for (int i = 0; i < 50; i++) {
                 float v = gen.generate();
                 // Multiply by 100 and check if it's close to an integer
@@ -379,8 +380,8 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("same seed produces identical sequence")
         void seededReproducibility() {
-            DoubleGenerator a = new DoubleGenerator(0.0, 1.0, 77L);
-            DoubleGenerator b = new DoubleGenerator(0.0, 1.0, 77L);
+            DoubleGenerator a = new DoubleGenerator(0.0, 1.0, seeded(77L));
+            DoubleGenerator b = new DoubleGenerator(0.0, 1.0, seeded(77L));
             for (int i = 0; i < 50; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -396,7 +397,7 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("withPrecision(2) rounds to 2 decimal places")
         void withPrecisionTwo() {
-            DoubleGenerator gen = new DoubleGenerator(0.0, 100.0, 42L).withPrecision(2);
+            DoubleGenerator gen = new DoubleGenerator(0.0, 100.0, seeded(42L)).withPrecision(2);
             for (int i = 0; i < 50; i++) {
                 double v = gen.generate();
                 // Multiply by 100 and check if it's close to an integer
@@ -527,8 +528,8 @@ class BaseTypeGeneratorsTest {
         @Test
         @DisplayName("same seed produces identical sequence")
         void seededReproducibility() {
-            BooleanGenerator a = new BooleanGenerator(3L);
-            BooleanGenerator b = new BooleanGenerator(3L);
+            BooleanGenerator a = new BooleanGenerator(seeded(3L));
+            BooleanGenerator b = new BooleanGenerator(seeded(3L));
             for (int i = 0; i < 50; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -769,5 +770,9 @@ class BaseTypeGeneratorsTest {
             assertThrows(IllegalArgumentException.class,
                          () -> Generators.ofInt().generateList(-1));
         }
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

@@ -45,21 +45,6 @@ public final class FinitePoolGenerator<T> implements Generator<T> {
         this(values, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
-    /**
-     * Creates a deterministically seeded pool.
-     *
-     * @param values non-empty values to emit
-     * @param seed deterministic shuffle seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #FinitePoolGenerator(List, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public FinitePoolGenerator(List<T> values, long seed) {
-        this(values, new Random(seed));
-    }
-
     private FinitePoolGenerator(List<T> values, Random random) {
         Objects.requireNonNull(values, "values must not be null");
         if (values.isEmpty()) {

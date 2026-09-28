@@ -42,21 +42,6 @@ public final class TemplateStringGenerator implements Generator<String> {
     }
 
     /**
-     * Creates a generator with the provided template and seed.
-     *
-     * @param template template with {@code #} and/or {@code ?} placeholders
-     * @param seed     deterministic seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #TemplateStringGenerator(String, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public TemplateStringGenerator(String template, long seed) {
-        this(template, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a generator with the provided template and config.
      *
      * @param template template with {@code #} and/or {@code ?} placeholders

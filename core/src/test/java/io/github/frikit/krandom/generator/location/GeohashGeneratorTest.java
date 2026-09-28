@@ -31,7 +31,7 @@ class GeohashGeneratorTest {
     @Test
     @DisplayName("generate uses configured precision")
     void generateUsesConfiguredPrecision() {
-        assertEquals(7, new GeohashGenerator(7, 123L).generate().length());
+        assertEquals(7, new GeohashGenerator(7, seeded(123L)).generate().length());
     }
 
     @Test
@@ -64,8 +64,8 @@ class GeohashGeneratorTest {
     void facadeExposesGeohashGenerator() {
         assertNotNull(Generators.ofGeohash().generate());
         assertNotNull(Generators.ofGeohash(6).generate());
-        assertNotNull(Generators.ofGeohash(1L).generate());
-        assertNotNull(Generators.ofGeohash(6, 1L).generate());
+        assertNotNull(Generators.ofGeohash(seeded(1L)).generate());
+        assertNotNull(Generators.ofGeohash(6, seeded(1L)).generate());
         assertNotNull(Generators.ofGeohash(GeneratorConfig.defaults()).generate());
         assertNotNull(Generators.ofGeohash(6, GeneratorConfig.defaults()).generate());
     }
@@ -81,5 +81,9 @@ class GeohashGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> GeohashGenerator.encode(0.0, 181.0));
         assertThrows(IllegalArgumentException.class, () -> GeohashGenerator.encode(0.0, -181.0));
         assertThrows(NullPointerException.class, () -> new GeohashGenerator((GeneratorConfig) null));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

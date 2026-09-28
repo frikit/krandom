@@ -28,19 +28,6 @@ public final class ZoneIdGenerator implements Generator<ZoneId>, Seedable {
         this(GeneratorConfig.defaults());
     }
 
-    /**
-     * Creates a seeded zone-id generator.
-     *
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ZoneIdGenerator(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public ZoneIdGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
     public ZoneIdGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();

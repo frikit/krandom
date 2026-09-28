@@ -70,22 +70,6 @@ public final class BigIntegerGenerator implements Generator<BigInteger> {
         this(min, max, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
-    /**
-     * Custom range with PRNG seed for reproducible output.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (inclusive)
-     * @param seed PRNG seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #BigIntegerGenerator(BigInteger, BigInteger, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public BigIntegerGenerator(BigInteger min, BigInteger max, long seed) {
-        this(min, max, new Random(seed));
-    }
-
     private BigIntegerGenerator(BigInteger min, BigInteger max, Random random) {
         Objects.requireNonNull(min, "min must not be null");
         Objects.requireNonNull(max, "max must not be null");

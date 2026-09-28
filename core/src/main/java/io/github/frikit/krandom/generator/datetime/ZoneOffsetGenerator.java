@@ -27,19 +27,6 @@ public final class ZoneOffsetGenerator implements Generator<ZoneOffset>, Seedabl
         this(GeneratorConfig.defaults());
     }
 
-    /**
-     * Creates a seeded zone-offset generator.
-     *
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ZoneOffsetGenerator(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public ZoneOffsetGenerator(long seed) {
-        this(GeneratorConfig.builder().seed(seed).build());
-    }
-
     public ZoneOffsetGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();

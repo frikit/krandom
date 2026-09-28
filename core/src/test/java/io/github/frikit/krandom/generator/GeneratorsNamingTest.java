@@ -5,8 +5,6 @@
  */
 package io.github.frikit.krandom.generator;
 
-import io.github.frikit.krandom.generator.datetime.LegacyTimeZoneGenerator;
-import io.github.frikit.krandom.generator.namespace.DateTimeGenerators;
 import io.github.frikit.krandom.generator.user.AgeType;
 import io.github.frikit.krandom.generator.user.GenderGenerator;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * facade must expose the person helpers that the fluent namespaces already offer.
  */
 @DisplayName("Generators facade naming")
-@SuppressWarnings("deprecation")
 class GeneratorsNamingTest {
 
     private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-01-15T10:00:00Z"), ZoneOffset.UTC);
@@ -61,8 +58,8 @@ class GeneratorsNamingTest {
     }
 
     @Nested
-    @DisplayName("value-object replacements for case twins")
-    class ValueObjectReplacements {
+    @DisplayName("value-object factories")
+    class ValueObjectFactories {
 
         @Test
         @DisplayName("ofUrlObject returns java.net.URL values and honours configuration")
@@ -90,43 +87,17 @@ class GeneratorsNamingTest {
         }
 
         @Test
-        @DisplayName("deprecated case twins delegate to the replacements")
-        void deprecatedTwinsDelegate() {
-            assertEquals(render(Generators.ofUrlObject(seeded(8L)), URL::toString, 5),
-                         render(Generators.ofURL(seeded(8L)), URL::toString, 5));
-            assertEquals(render(Generators.ofUriObject(seeded(9L)), URI::toString, 5),
-                         render(Generators.ofURI(seeded(9L)), URI::toString, 5));
-            assertEquals("https", Generators.ofURL().generate().getProtocol());
-            assertNotNull(Generators.ofURI().generate());
-            assertInstanceOf(LegacyTimeZoneGenerator.class, Generators.ofTimeZone());
-        }
-
-        @Test
-        @DisplayName("forType resolves URL and URI through the replacements")
+        @DisplayName("forType resolves URL and URI through the value-object factories")
         void forTypeStillResolves() {
             assertInstanceOf(URL.class, Generators.forType(URL.class).generate());
             assertInstanceOf(URI.class, Generators.forType(URI.class).generate());
         }
 
         @Test
-        @DisplayName("case twins are deprecated and point to documented replacements")
-        void caseTwinsAreDeprecated() throws NoSuchMethodException {
-            assertTrue(Generators.class.getMethod("ofURL").isAnnotationPresent(Deprecated.class));
-            assertTrue(Generators.class.getMethod("ofURL", GeneratorConfig.class).isAnnotationPresent(Deprecated.class));
-            assertTrue(Generators.class.getMethod("ofURI").isAnnotationPresent(Deprecated.class));
-            assertTrue(Generators.class.getMethod("ofURI", GeneratorConfig.class).isAnnotationPresent(Deprecated.class));
-            assertTrue(Generators.class.getMethod("ofTimeZone").isAnnotationPresent(Deprecated.class));
-            assertTrue(DateTimeGenerators.class.getMethod("timeZone").isAnnotationPresent(Deprecated.class));
-            assertFalse(Generators.class.getMethod("ofUrl").isAnnotationPresent(Deprecated.class));
-            assertFalse(Generators.class.getMethod("ofUri").isAnnotationPresent(Deprecated.class));
-            assertFalse(Generators.class.getMethod("ofTimezone").isAnnotationPresent(Deprecated.class));
-        }
-
-        @Test
-        @DisplayName("date-time namespace exposes the legacy time-zone replacement")
-        void namespaceReplacement() {
-            assertEquals(render(Generators.datetime(seeded(3L)).timeZoneObject(), TimeZone::getID, 5),
-                         render(Generators.datetime(seeded(3L)).timeZone(), TimeZone::getID, 5));
+        @DisplayName("date-time namespace exposes the same legacy time-zone generator as the facade")
+        void namespaceTimeZoneObject() {
+            assertEquals(render(Generators.ofTimeZoneObject(seeded(3L)), TimeZone::getID, 5),
+                         render(Generators.datetime(seeded(3L)).timeZoneObject(), TimeZone::getID, 5));
         }
     }
 
@@ -135,13 +106,13 @@ class GeneratorsNamingTest {
     class CaseInsensitiveUniqueness {
 
         @Test
-        @DisplayName("non-deprecated facade methods never differ only by letter case")
+        @DisplayName("facade methods never differ only by letter case")
         void facadeHasNoCaseTwins() {
             assertNoCaseTwins(Generators.class, true);
         }
 
         @Test
-        @DisplayName("non-deprecated namespace methods never differ only by letter case")
+        @DisplayName("namespace methods never differ only by letter case")
         void namespacesHaveNoCaseTwins() {
             for (Class<?> namespace : FacadeNamespaceParityTest.namespaceTypes()) {
                 assertNoCaseTwins(namespace, false);
@@ -152,7 +123,6 @@ class GeneratorsNamingTest {
             Map<String, TreeSet<String>> byLowerCase = Arrays.stream(type.getMethods())
                 .filter(method -> method.getDeclaringClass() == type)
                 .filter(method -> Modifier.isStatic(method.getModifiers()) == staticMethods)
-                .filter(method -> !method.isAnnotationPresent(Deprecated.class))
                 .map(Method::getName)
                 .collect(Collectors.groupingBy(name -> name.toLowerCase(Locale.ROOT), TreeMap::new,
                                                Collectors.toCollection(TreeSet::new)));

@@ -77,7 +77,7 @@ List<Map<String, Object>> batch = orders.generateBatch(50);
 ## Mixed random strategy in tests
 
 ```java
-Generator<Integer> stableIds = Generators.ofInt(1000, 9999, 77L);
+Generator<Integer> stableIds = Generators.ofInt(1000, 9999, GeneratorConfig.builder().seed(77L).build());
 Generator<String> uniqueEmails = Generators.unique(Generators.ofEmail());
 
 for (int i = 0; i < 20; i++) {

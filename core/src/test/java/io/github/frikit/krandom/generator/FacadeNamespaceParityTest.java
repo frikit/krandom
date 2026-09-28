@@ -71,7 +71,6 @@ class FacadeNamespaceParityTest {
         return Arrays.stream(namespace.getMethods())
             .filter(method -> method.getDeclaringClass() == namespace)
             .filter(method -> !Modifier.isStatic(method.getModifiers()))
-            .filter(method -> !method.isAnnotationPresent(Deprecated.class))
             .toList();
     }
 

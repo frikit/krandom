@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -75,8 +76,8 @@ class RegexGeneratorTest {
     @Test
     @DisplayName("same seed produces same output on every call")
     void seededReproducibility() {
-        RegexGenerator g1 = new RegexGenerator("\\d{4}[A-Z]{3}", 99L);
-        RegexGenerator g2 = new RegexGenerator("\\d{4}[A-Z]{3}", 99L);
+        RegexGenerator g1 = new RegexGenerator("\\d{4}[A-Z]{3}", seeded(99L));
+        RegexGenerator g2 = new RegexGenerator("\\d{4}[A-Z]{3}", seeded(99L));
         for (int i = 0; i < 20; i++) {
             assertEquals(g1.generate(), g2.generate(), "seeded generators must produce identical output");
         }
@@ -582,5 +583,9 @@ class RegexGeneratorTest {
             assertThrows(IllegalArgumentException.class,
                          () -> new RegexGenerator("a{1234567890123456789}"));
         }
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

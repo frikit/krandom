@@ -35,22 +35,6 @@ public final class AtomicLongGenerator implements Generator<AtomicLong>, Seedabl
     }
 
     /**
-     * Creates a seeded generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #AtomicLongGenerator(long, long, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public AtomicLongGenerator(long min, long max, long seed) {
-        this(min, max, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a generator over {@code [min, max)} using the configuration's random source.
      *
      * @param min    lower bound (inclusive)

@@ -64,8 +64,9 @@ class DocumentationSnippetsTest {
                            .charGenerator(CharGenerator.alphanumeric())
         ).generate();
 
-        IntGenerator a = Generators.ofInt(1, 100, 123L);
-        IntGenerator b = Generators.ofInt(1, 100, 123L);
+        GeneratorConfig seeded = GeneratorConfig.builder().seed(123L).build();
+        IntGenerator a = Generators.ofInt(1, 100, seeded);
+        IntGenerator b = Generators.ofInt(1, 100, seeded);
 
         List<String> colors = List.of("red", "green", "blue");
         String one = Generators.pick(colors).generate();
@@ -210,7 +211,7 @@ class DocumentationSnippetsTest {
         )));
 
         List<Map<String, Object>> batch = orders.generateBatch(5);
-        Generator<Integer> stableIds = Generators.ofInt(1000, 9999, 77L);
+        Generator<Integer> stableIds = Generators.ofInt(1000, 9999, GeneratorConfig.builder().seed(77L).build());
         UniqueGenerator<String> uniqueEmails = Generators.unique(Generators.ofEmail());
 
         assertTrue(user.get("id").toString().contains("-"));

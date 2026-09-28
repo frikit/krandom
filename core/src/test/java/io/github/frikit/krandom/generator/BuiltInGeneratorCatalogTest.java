@@ -61,16 +61,16 @@ class BuiltInGeneratorCatalogTest {
         assertInstanceOf(AtomicInteger.class, Generators.ofAtomicInteger().generate());
         assertInstanceOf(AtomicLong.class, Generators.ofAtomicLong().generate());
 
-        AtomicInteger boundedInteger = Generators.ofAtomicInteger(10, 20, 42L).generate();
+        AtomicInteger boundedInteger = Generators.ofAtomicInteger(10, 20, seeded(42L)).generate();
         AtomicInteger unseededBoundedInteger = Generators.ofAtomicInteger(10, 20).generate();
-        AtomicLong boundedLong = Generators.ofAtomicLong(100L, 200L, 42L).generate();
+        AtomicLong boundedLong = Generators.ofAtomicLong(100L, 200L, seeded(42L)).generate();
         AtomicLong unseededBoundedLong = Generators.ofAtomicLong(100L, 200L).generate();
 
         assertTrue(boundedInteger.get() >= 10 && boundedInteger.get() < 20);
         assertTrue(unseededBoundedInteger.get() >= 10 && unseededBoundedInteger.get() < 20);
         assertTrue(boundedLong.get() >= 100L && boundedLong.get() < 200L);
         assertTrue(unseededBoundedLong.get() >= 100L && unseededBoundedLong.get() < 200L);
-        assertEquals(Generators.ofNumber(123L).generate(), Generators.ofNumber(123L).generate());
+        assertEquals(Generators.ofNumber(seeded(123L)).generate(), Generators.ofNumber(seeded(123L)).generate());
     }
 
     @Test
@@ -82,10 +82,10 @@ class BuiltInGeneratorCatalogTest {
         assertThrows(IllegalArgumentException.class, () -> number.generate(20, 10));
         assertThrows(NullPointerException.class, () -> new NumberGenerator(null));
         number.reseed(99L);
-        assertEquals(new NumberGenerator(99L).generate(), number.generate());
+        assertEquals(new NumberGenerator(seeded(99L)).generate(), number.generate());
 
-        assertThrows(IllegalArgumentException.class, () -> new AtomicIntegerGenerator(20, 10, 5L));
-        AtomicIntegerGenerator atomicInteger = new AtomicIntegerGenerator(10, 20, 5L);
+        assertThrows(IllegalArgumentException.class, () -> new AtomicIntegerGenerator(20, 10, seeded(5L)));
+        AtomicIntegerGenerator atomicInteger = new AtomicIntegerGenerator(10, 20, seeded(5L));
         assertNotNull(new AtomicIntegerGenerator(GeneratorConfig.builder().seed(3L).build()).generate());
         assertNotNull(new AtomicIntegerGenerator(0, 1).generate());
         int integerValue = atomicInteger.generate().get();
@@ -93,9 +93,9 @@ class BuiltInGeneratorCatalogTest {
         assertThrows(IllegalArgumentException.class, () -> new AtomicIntegerGenerator(1, 1));
         assertThrows(NullPointerException.class, () -> new AtomicIntegerGenerator(null));
         atomicInteger.reseed(123L);
-        assertEquals(new AtomicIntegerGenerator(10, 20, 123L).generate().get(), atomicInteger.generate().get());
+        assertEquals(new AtomicIntegerGenerator(10, 20, seeded(123L)).generate().get(), atomicInteger.generate().get());
 
-        AtomicLongGenerator atomicLong = new AtomicLongGenerator(10L, 20L, 5L);
+        AtomicLongGenerator atomicLong = new AtomicLongGenerator(10L, 20L, seeded(5L));
         assertNotNull(new AtomicLongGenerator(GeneratorConfig.builder().seed(3L).build()).generate());
         assertNotNull(new AtomicLongGenerator(0L, 1L).generate());
         long longValue = atomicLong.generate().get();
@@ -103,7 +103,7 @@ class BuiltInGeneratorCatalogTest {
         assertThrows(IllegalArgumentException.class, () -> new AtomicLongGenerator(1L, 1L));
         assertThrows(NullPointerException.class, () -> new AtomicLongGenerator(null));
         atomicLong.reseed(123L);
-        assertEquals(new AtomicLongGenerator(10L, 20L, 123L).generate().get(), atomicLong.generate().get());
+        assertEquals(new AtomicLongGenerator(10L, 20L, seeded(123L)).generate().get(), atomicLong.generate().get());
     }
 
     @Test
@@ -115,7 +115,7 @@ class BuiltInGeneratorCatalogTest {
         assertNotNull(Generators.ofSentence().generate());
         assertNotNull(Generators.ofParagraph().generate());
 
-        String value = Generators.ofRegex("[A-Z]{2}\\d{3}", 99L).generate();
+        String value = Generators.ofRegex("[A-Z]{2}\\d{3}", seeded(99L)).generate();
         assertTrue(value.matches("[A-Z]{2}\\d{3}"), "Expected regex-compatible value, got: " + value);
         assertTrue(Generators.ofRegex("\\d{2}").generate().matches("\\d{2}"));
     }
@@ -141,7 +141,7 @@ class BuiltInGeneratorCatalogTest {
         assertInstanceOf(Period.class, Generators.ofPeriod().generate());
         assertInstanceOf(ZoneId.class, Generators.ofZoneId().generate());
         assertInstanceOf(ZoneOffset.class, Generators.ofZoneOffset().generate());
-        assertInstanceOf(TimeZone.class, Generators.ofTimeZone().generate());
+        assertInstanceOf(TimeZone.class, Generators.ofTimeZoneObject().generate());
 
         DateTimeGenerators datetime = Generators.datetime(GeneratorConfig.builder().seed(31L).build());
         assertInstanceOf(java.util.Date.class, datetime.utilDate().generate());
@@ -157,7 +157,7 @@ class BuiltInGeneratorCatalogTest {
         assertInstanceOf(Period.class, datetime.period().generate());
         assertInstanceOf(ZoneId.class, datetime.zoneId().generate());
         assertInstanceOf(ZoneOffset.class, datetime.zoneOffset().generate());
-        assertInstanceOf(TimeZone.class, datetime.timeZone().generate());
+        assertInstanceOf(TimeZone.class, datetime.timeZoneObject().generate());
     }
 
     @Test
@@ -174,43 +174,43 @@ class BuiltInGeneratorCatalogTest {
         assertThrows(IllegalArgumentException.class, () -> new YearGenerator(2030, 2020));
         assertThrows(IllegalArgumentException.class, () -> new YearMonthGenerator(2030, 2020));
 
-        YearGenerator year = new YearGenerator(2020, 2025, 9L);
+        YearGenerator year = new YearGenerator(2020, 2025, seeded(9L));
         assertNotNull(new YearGenerator(2020, 2025).generate());
         Year generatedYear = year.generate();
         assertTrue(generatedYear.getValue() >= 2020 && generatedYear.getValue() <= 2025);
         year.reseed(12L);
-        assertEquals(new YearGenerator(2020, 2025, 12L).generate(), year.generate());
+        assertEquals(new YearGenerator(2020, 2025, seeded(12L)).generate(), year.generate());
 
-        YearMonthGenerator yearMonth = new YearMonthGenerator(2020, 2025, 9L);
+        YearMonthGenerator yearMonth = new YearMonthGenerator(2020, 2025, seeded(9L));
         assertNotNull(new YearMonthGenerator(2020, 2025).generate());
         YearMonth generatedYearMonth = yearMonth.generate();
         assertTrue(generatedYearMonth.getYear() >= 2020 && generatedYearMonth.getYear() <= 2025);
         yearMonth.reseed(12L);
-        assertEquals(new YearMonthGenerator(2020, 2025, 12L).generate(), yearMonth.generate());
+        assertEquals(new YearMonthGenerator(2020, 2025, seeded(12L)).generate(), yearMonth.generate());
 
-        OffsetTimeGenerator offsetTime = new OffsetTimeGenerator(9L);
+        OffsetTimeGenerator offsetTime = new OffsetTimeGenerator(seeded(9L));
         offsetTime.reseed(12L);
-        assertEquals(new OffsetTimeGenerator(12L).generate(), offsetTime.generate());
+        assertEquals(new OffsetTimeGenerator(seeded(12L)).generate(), offsetTime.generate());
 
-        MonthDayGenerator monthDay = new MonthDayGenerator(9L);
+        MonthDayGenerator monthDay = new MonthDayGenerator(seeded(9L));
         monthDay.reseed(12L);
-        assertEquals(new MonthDayGenerator(12L).generate(), monthDay.generate());
+        assertEquals(new MonthDayGenerator(seeded(12L)).generate(), monthDay.generate());
 
-        PeriodGenerator period = new PeriodGenerator(9L);
+        PeriodGenerator period = new PeriodGenerator(seeded(9L));
         period.reseed(12L);
-        assertEquals(new PeriodGenerator(12L).generate(), period.generate());
+        assertEquals(new PeriodGenerator(seeded(12L)).generate(), period.generate());
 
-        ZoneIdGenerator zoneId = new ZoneIdGenerator(9L);
+        ZoneIdGenerator zoneId = new ZoneIdGenerator(seeded(9L));
         zoneId.reseed(12L);
-        assertEquals(new ZoneIdGenerator(12L).generate(), zoneId.generate());
+        assertEquals(new ZoneIdGenerator(seeded(12L)).generate(), zoneId.generate());
 
-        ZoneOffsetGenerator zoneOffset = new ZoneOffsetGenerator(9L);
+        ZoneOffsetGenerator zoneOffset = new ZoneOffsetGenerator(seeded(9L));
         zoneOffset.reseed(12L);
-        assertEquals(new ZoneOffsetGenerator(12L).generate(), zoneOffset.generate());
+        assertEquals(new ZoneOffsetGenerator(seeded(12L)).generate(), zoneOffset.generate());
 
-        LegacyTimeZoneGenerator timeZone = new LegacyTimeZoneGenerator(9L);
+        LegacyTimeZoneGenerator timeZone = new LegacyTimeZoneGenerator(seeded(9L));
         timeZone.reseed(12L);
-        assertEquals(new LegacyTimeZoneGenerator(12L).generate(), timeZone.generate());
+        assertEquals(new LegacyTimeZoneGenerator(seeded(12L)).generate(), timeZone.generate());
     }
 
     @Test
@@ -220,10 +220,10 @@ class BuiltInGeneratorCatalogTest {
         assertEquals("fixed", Generators.ofConstant("fixed").generate());
         assertInstanceOf(Locale.class, Generators.ofLocale().generate());
         assertInstanceOf(UUID.class, Generators.ofUuid().generate());
-        assertInstanceOf(URI.class, Generators.ofURI().generate());
-        assertInstanceOf(java.net.URL.class, Generators.ofURL().generate());
-        assertInstanceOf(URI.class, Generators.ofURI(GeneratorConfig.builder().seed(7L).build()).generate());
-        assertInstanceOf(java.net.URL.class, Generators.ofURL(GeneratorConfig.builder().seed(7L).build()).generate());
+        assertInstanceOf(URI.class, Generators.ofUriObject().generate());
+        assertInstanceOf(java.net.URL.class, Generators.ofUrlObject().generate());
+        assertInstanceOf(URI.class, Generators.ofUriObject(GeneratorConfig.builder().seed(7L).build()).generate());
+        assertInstanceOf(java.net.URL.class, Generators.ofUrlObject(GeneratorConfig.builder().seed(7L).build()).generate());
 
         assertInstanceOf(String.class, Generators.ofUri().generate());
         assertInstanceOf(String.class, Generators.ofUrl().generate());
@@ -315,5 +315,9 @@ class BuiltInGeneratorCatalogTest {
         TimeZone timeZone;
         URI uri;
         java.net.URL url;
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

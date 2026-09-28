@@ -10,6 +10,8 @@ import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -41,6 +43,17 @@ class ObjectGeneratorDeterminismTest {
         List<OrderFixture> second = Generators.ofObject(OrderFixture.class, deterministicConfig(100L)).generateList(4);
 
         assertEquals(first, second);
+    }
+
+    @Test
+    @DisplayName("every built-in scalar field type repeats with the same configured seed")
+    void builtInScalarFieldsRepeatWithSameSeed() {
+        List<ScalarFixture> first = Generators.ofObject(ScalarFixture.class, deterministicConfig(512L)).generateList(3);
+        List<ScalarFixture> second = Generators.ofObject(ScalarFixture.class, deterministicConfig(512L)).generateList(3);
+        List<ScalarFixture> different = Generators.ofObject(ScalarFixture.class, deterministicConfig(513L)).generateList(3);
+
+        assertEquals(first, second);
+        assertNotEquals(first, different);
     }
 
     @Test
@@ -101,6 +114,19 @@ class ObjectGeneratorDeterminismTest {
     ) {}
 
     record CustomerFixture(String name, boolean active) {}
+
+    record ScalarFixture(
+        byte tiny,
+        short small,
+        int whole,
+        long wide,
+        float single,
+        double precise,
+        boolean flag,
+        char letter,
+        BigDecimal decimal,
+        BigInteger huge
+    ) {}
 
     record ExternalId(String value) {}
 }

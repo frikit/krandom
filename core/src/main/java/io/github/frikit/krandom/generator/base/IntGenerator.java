@@ -23,11 +23,11 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 public final class IntGenerator extends AbstractBoundedGenerator<Integer> {
 
     public IntGenerator() {
-        super(Integer.MIN_VALUE, Integer.MAX_VALUE, null);
+        super(Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
     public IntGenerator(int min, int max) {
-        super(min, max, null);
+        super(min, max);
     }
 
     /**
@@ -36,7 +36,7 @@ public final class IntGenerator extends AbstractBoundedGenerator<Integer> {
      * @param config generator configuration; must not be {@code null}
      */
     public IntGenerator(GeneratorConfig config) {
-        super(config, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        super(Integer.MIN_VALUE, Integer.MAX_VALUE, config);
     }
 
     /**
@@ -47,23 +47,7 @@ public final class IntGenerator extends AbstractBoundedGenerator<Integer> {
      * @param config generator configuration; must not be {@code null}
      */
     public IntGenerator(int min, int max, GeneratorConfig config) {
-        super(config, min, max);
-    }
-
-    /**
-     * Creates a seeded generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #IntGenerator(int, int, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public IntGenerator(int min, int max, long seed) {
-        super(min, max, seed);
+        super(min, max, config);
     }
 
     /**

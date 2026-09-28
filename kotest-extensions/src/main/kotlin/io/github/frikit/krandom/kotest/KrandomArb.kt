@@ -67,7 +67,7 @@ fun krandomIntArb(min: Int, max: Int): Arb<Int> {
     val hi = max - 1
     val edges = listOf(lo, hi, -1, 0, 1).filter { it in lo..hi }.distinct()
     return arbitrary(edges, IntShrinker(lo..hi)) { randomSource ->
-        IntGenerator(min, max, kotestChildSeed(randomSource)).generate()
+        IntGenerator(min, max, kotestChildConfig(randomSource)).generate()
     }
 }
 
@@ -86,7 +86,7 @@ fun krandomLongArb(min: Long, max: Long): Arb<Long> {
     val hi = max - 1
     val edges = listOf(lo, hi, -1L, 0L, 1L).filter { it in lo..hi }.distinct()
     return arbitrary(edges, LongShrinker(lo..hi)) { randomSource ->
-        LongGenerator(min, max, kotestChildSeed(randomSource)).generate()
+        LongGenerator(min, max, kotestChildConfig(randomSource)).generate()
     }
 }
 
@@ -111,7 +111,7 @@ fun krandomDoubleArb(min: Double, max: Double): Arb<Double> {
         DoubleShrinker.shrink(value).filter { it >= lo && it < hiExclusive }
     }
     return arbitrary(edges, shrinker) { randomSource ->
-        DoubleGenerator(min, max, kotestChildSeed(randomSource)).generate()
+        DoubleGenerator(min, max, kotestChildConfig(randomSource)).generate()
     }
 }
 
@@ -128,7 +128,7 @@ fun <T : Any> krandomPickArb(source: List<T>): Arb<T> {
     require(source.isNotEmpty()) { "source must not be empty" }
     val elements = source.toList()
     return arbitrary(listOf(elements.first()), PickShrinker(elements)) { randomSource ->
-        PickGenerator(elements, kotestChildSeed(randomSource)).generate()
+        PickGenerator(elements, kotestChildConfig(randomSource)).generate()
     }
 }
 
@@ -260,10 +260,11 @@ private fun GeneratorConfig.kotestPortableRecipe(): GenerationRecipe {
     }
 }
 
-private fun kotestChildSeed(randomSource: RandomSource): Long {
+private fun kotestChildConfig(randomSource: RandomSource): GeneratorConfig {
     val hostDraw = randomSource.random.nextLong()
-    return GenerationRecipe.deriveChildSeed(
+    val childSeed = GenerationRecipe.deriveChildSeed(
         0L,
         "kotest|source=${randomSource.seed}|draw=$hostDraw"
     )
+    return GeneratorConfig.builder().seed(childSeed).build()
 }

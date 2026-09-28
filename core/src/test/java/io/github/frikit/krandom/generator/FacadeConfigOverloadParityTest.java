@@ -5,6 +5,22 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.base.AtomicIntegerGenerator;
+import io.github.frikit.krandom.generator.base.AtomicLongGenerator;
+import io.github.frikit.krandom.generator.base.ByteGenerator;
+import io.github.frikit.krandom.generator.base.IntGenerator;
+import io.github.frikit.krandom.generator.base.LongGenerator;
+import io.github.frikit.krandom.generator.base.NaturalNumberGenerator;
+import io.github.frikit.krandom.generator.base.NormalDistributionGenerator;
+import io.github.frikit.krandom.generator.base.PrimeGenerator;
+import io.github.frikit.krandom.generator.base.RegexGenerator;
+import io.github.frikit.krandom.generator.base.ShortGenerator;
+import io.github.frikit.krandom.generator.selection.FinitePoolGenerator;
+import io.github.frikit.krandom.generator.selection.PickGenerator;
+import io.github.frikit.krandom.generator.selection.PickSetGenerator;
+import io.github.frikit.krandom.generator.selection.ShuffleGenerator;
+import io.github.frikit.krandom.generator.selection.WeightedGenerator;
+import io.github.frikit.krandom.generator.text.TemplateStringGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
@@ -45,7 +60,7 @@ class FacadeConfigOverloadParityTest {
     }
 
     @Test
-    @DisplayName("every non-deprecated no-arg factory has an ofX(GeneratorConfig) overload")
+    @DisplayName("every no-arg factory has an ofX(GeneratorConfig) overload")
     void everyNoArgFactoryHasConfigOverload() {
         Set<String> withConfig = publicStaticFactories().stream()
             .filter(method -> Arrays.equals(method.getParameterTypes(), new Class<?>[] {GeneratorConfig.class}))
@@ -53,34 +68,11 @@ class FacadeConfigOverloadParityTest {
             .collect(Collectors.toSet());
         List<String> missing = publicStaticFactories().stream()
             .filter(method -> method.getParameterCount() == 0)
-            .filter(method -> !method.isAnnotationPresent(Deprecated.class))
             .map(Method::getName)
             .filter(name -> !withConfig.contains(name))
             .sorted()
             .toList();
         assertTrue(missing.isEmpty(), "missing ofX(GeneratorConfig) overloads: " + missing);
-    }
-
-    @Test
-    @DisplayName("deprecated no-arg factories name a replacement that has a configuration overload")
-    void deprecatedFactoriesPointToConfigurableReplacements() {
-        Set<String> withConfig = publicStaticFactories().stream()
-            .filter(method -> Arrays.equals(method.getParameterTypes(), new Class<?>[] {GeneratorConfig.class}))
-            .filter(method -> !method.isAnnotationPresent(Deprecated.class))
-            .map(Method::getName)
-            .collect(Collectors.toSet());
-        Map<String, String> replacements = Map.of(
-            "ofURL", "ofUrlObject",
-            "ofURI", "ofUriObject",
-            "ofTimeZone", "ofTimeZoneObject");
-        publicStaticFactories().stream()
-            .filter(method -> method.getParameterCount() == 0)
-            .filter(method -> method.isAnnotationPresent(Deprecated.class))
-            .forEach(method -> {
-                String replacement = replacements.get(method.getName());
-                assertTrue(replacement != null, "unexpected deprecated no-arg factory " + method.getName());
-                assertTrue(withConfig.contains(replacement), replacement + " lacks a configuration overload");
-            });
     }
 
     @Test
@@ -104,30 +96,31 @@ class FacadeConfigOverloadParityTest {
     }
 
     @Test
-    @DisplayName("parameterised configuration overloads reproduce their deprecated long-seed twins")
-    @SuppressWarnings("deprecation")
-    void parameterisedOverloadsMatchLegacySeeds() {
-        long seed = 77L;
-        GeneratorConfig config = GeneratorConfig.builder().seed(seed).build();
+    @DisplayName("parameterised configuration overloads match their generator constructors")
+    void parameterisedOverloadsMatchConstructors() {
+        // A seeded configuration hands every generator a fresh random source at the same state, so
+        // the facade and the constructor it delegates to must produce the same sequence.
+        GeneratorConfig config = GeneratorConfig.builder().seed(77L).build();
         List<String> items = List.of("a", "b", "c", "d", "e");
-        assertEquals(Generators.ofByte((byte) 1, (byte) 90, seed).generateList(20),
+        assertEquals(new ByteGenerator((byte) 1, (byte) 90, config).generateList(20),
                      Generators.ofByte((byte) 1, (byte) 90, config).generateList(20));
-        assertEquals(Generators.ofShort((short) 1, (short) 900, seed).generateList(20),
+        assertEquals(new ShortGenerator((short) 1, (short) 900, config).generateList(20),
                      Generators.ofShort((short) 1, (short) 900, config).generateList(20));
-        assertEquals(Generators.ofInt(1, 9000, seed).generateList(20), Generators.ofInt(1, 9000, config).generateList(20));
-        assertEquals(Generators.ofNaturalNumber(0, 500, seed).generateList(20),
+        assertEquals(new IntGenerator(1, 9000, config).generateList(20), Generators.ofInt(1, 9000, config).generateList(20));
+        assertEquals(new NaturalNumberGenerator(0, 500, config).generateList(20),
                      Generators.ofNaturalNumber(0, 500, config).generateList(20));
-        assertEquals(Generators.ofLong(1L, 90_000L, seed).generateList(20),
+        assertEquals(new LongGenerator(1L, 90_000L, config).generateList(20),
                      Generators.ofLong(1L, 90_000L, config).generateList(20));
-        assertEquals(Generators.ofAtomicInteger(1, 50, seed).generateList(20).stream().map(Object::toString).toList(),
+        assertEquals(new AtomicIntegerGenerator(1, 50, config).generateList(20).stream().map(Object::toString).toList(),
                      Generators.ofAtomicInteger(1, 50, config).generateList(20).stream().map(Object::toString).toList());
-        assertEquals(Generators.ofAtomicLong(1L, 50L, seed).generateList(20).stream().map(Object::toString).toList(),
+        assertEquals(new AtomicLongGenerator(1L, 50L, config).generateList(20).stream().map(Object::toString).toList(),
                      Generators.ofAtomicLong(1L, 50L, config).generateList(20).stream().map(Object::toString).toList());
-        assertEquals(Generators.ofNormal(5.0, 2.0, seed).generateList(20), Generators.ofNormal(5.0, 2.0, config).generateList(20));
-        assertEquals(Generators.ofPrime(2, 500, seed).generateList(20), Generators.ofPrime(2, 500, config).generateList(20));
-        assertEquals(Generators.ofRegex("[A-F]{4}", seed).generateList(20),
+        assertEquals(new NormalDistributionGenerator(5.0, 2.0, config).generateList(20),
+                     Generators.ofNormal(5.0, 2.0, config).generateList(20));
+        assertEquals(new PrimeGenerator(2, 500, config).generateList(20), Generators.ofPrime(2, 500, config).generateList(20));
+        assertEquals(new RegexGenerator("[A-F]{4}", config).generateList(20),
                      Generators.ofRegex("[A-F]{4}", config).generateList(20));
-        assertEquals(Generators.ofTemplate("##-??", seed).generateList(20),
+        assertEquals(new TemplateStringGenerator("##-??", config).generateList(20),
                      Generators.ofTemplate("##-??", config).generateList(20));
         assertEquals(Generators.text(config).loremIpsum(io.github.frikit.krandom.generator.text.LoremIpsumGenerator.Mode.WORD)
                          .generateList(10),
@@ -137,19 +130,13 @@ class FacadeConfigOverloadParityTest {
                          .generateList(10),
                      Generators.ofIsbn(io.github.frikit.krandom.generator.identifier.IsbnGenerator.IsbnType.ISBN_10, config)
                          .generateList(10));
-        assertEquals(new io.github.frikit.krandom.generator.selection.PickGenerator<>(items, seed).generateList(20),
-                     Generators.pick(items, config).generateList(20));
-        assertEquals(new io.github.frikit.krandom.generator.selection.PickSetGenerator<>(items, 2, seed).generateList(10),
+        assertEquals(new PickGenerator<>(items, config).generateList(20), Generators.pick(items, config).generateList(20));
+        assertEquals(new PickSetGenerator<>(items, 2, config).generateList(10),
                      Generators.pickSet(items, 2, config).generateList(10));
-        assertEquals(new io.github.frikit.krandom.generator.selection.FinitePoolGenerator<>(items, seed).generateList(5),
-                     Generators.pool(items, config).generateList(5));
-        assertEquals(new io.github.frikit.krandom.generator.selection.ShuffleGenerator<>(items, seed).generateList(5),
-                     Generators.shuffle(items, config).generateList(5));
-        assertEquals(new io.github.frikit.krandom.generator.selection.WeightedGenerator<>(items, List.of(1, 2, 3, 4, 5), seed)
-                         .generateList(20),
+        assertEquals(new FinitePoolGenerator<>(items, config).generateList(5), Generators.pool(items, config).generateList(5));
+        assertEquals(new ShuffleGenerator<>(items, config).generateList(5), Generators.shuffle(items, config).generateList(5));
+        assertEquals(new WeightedGenerator<>(items, List.of(1, 2, 3, 4, 5), config).generateList(20),
                      Generators.weighted(items, List.of(1, 2, 3, 4, 5), config).generateList(20));
-        assertTrue(new io.github.frikit.krandom.generator.base.NormalDistributionGenerator(0.0, 1.0, (Long) null)
-                       .generateList(5).stream().allMatch(Double::isFinite));
     }
 
     private static List<String> sample(Method method) throws ReflectiveOperationException {

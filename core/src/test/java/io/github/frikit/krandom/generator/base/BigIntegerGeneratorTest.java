@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -69,8 +70,8 @@ class BigIntegerGeneratorTest {
         void seededReproducibility() {
             BigInteger lo = BigInteger.ZERO;
             BigInteger hi = BigInteger.valueOf(1_000_000L);
-            BigIntegerGenerator a = new BigIntegerGenerator(lo, hi, 42L);
-            BigIntegerGenerator b = new BigIntegerGenerator(lo, hi, 42L);
+            BigIntegerGenerator a = new BigIntegerGenerator(lo, hi, seeded(42L));
+            BigIntegerGenerator b = new BigIntegerGenerator(lo, hi, seeded(42L));
             for (int i = 0; i < SAMPLES; i++) {
                 assertEquals(a.generate(), b.generate());
             }
@@ -111,5 +112,9 @@ class BigIntegerGeneratorTest {
             assertThrows(IllegalArgumentException.class,
                          () -> new BigIntegerGenerator(v, v));
         }
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

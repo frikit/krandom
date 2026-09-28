@@ -25,8 +25,7 @@ generator where shown by the API.
 - `ofIPv4`, `ofIPv6`, `ofIP`, `ofPort`, `ofMacAddress`
 - `ofDomain`, `ofHostname`, `ofUrl` (text URL), `ofUri` (text URI), `ofUriObject`
   (`URI` object), `ofUrlObject` (`URL` object), `ofSlug`, `ofUserAgent`. Plain names generate
-  text; the `…Object` names generate the corresponding JDK object. The case twins `ofURL`/`ofURI`
-  are deprecated.
+  text; the `…Object` names generate the corresponding JDK object.
 - `ofHttpMethod`, `ofHttpStatusCode`, `ofHttpFixture`
 
 ## Date, time, and locale
@@ -34,7 +33,7 @@ generator where shown by the API.
 - `ofLocalDate`, `ofLocalTime`, `ofLocalDateTime`, `ofInstant`, `ofZonedDateTime`,
   `ofOffsetDateTime`, `ofOffsetTime`
 - `ofDuration`, `ofPeriod`, `ofYear`, `ofYearMonth`, `ofMonthDay`, `ofZoneId`,
-  `ofZoneOffset`, `ofTimeZone`, `ofTimezone`, `ofCalendar`
+  `ofZoneOffset`, `ofTimezone` (text), `ofTimeZoneObject` (`TimeZone` object), `ofCalendar`
 - `ofUtilDate`, `ofSqlDate`, `ofSqlTime`, `ofSqlTimestamp`, `ofLocale`
 
 ## People, location, and profiles

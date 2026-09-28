@@ -53,21 +53,6 @@ public final class BooleanGenerator implements Generator<Boolean> {
     }
 
     /**
-     * Uses a seeded {@link Random} for deterministic, reproducible output with 50% likelihood.
-     *
-     * @param seed raw seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #BooleanGenerator(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public BooleanGenerator(long seed) {
-        this.random = new Random(seed);
-        this.likelihood = 50;
-    }
-
-    /**
      * Private constructor for creating instances with custom likelihood.
      *
      * @param random     the random generator

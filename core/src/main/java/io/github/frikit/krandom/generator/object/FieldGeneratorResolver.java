@@ -13,18 +13,10 @@ import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
-import io.github.frikit.krandom.generator.base.BigDecimalGenerator;
 import io.github.frikit.krandom.generator.base.BigIntegerGenerator;
-import io.github.frikit.krandom.generator.base.BooleanGenerator;
-import io.github.frikit.krandom.generator.base.ByteGenerator;
 import io.github.frikit.krandom.generator.base.CharGenerator;
-import io.github.frikit.krandom.generator.base.DoubleGenerator;
 import io.github.frikit.krandom.generator.base.EnumGenerator;
-import io.github.frikit.krandom.generator.base.FloatGenerator;
-import io.github.frikit.krandom.generator.base.IntGenerator;
-import io.github.frikit.krandom.generator.base.LongGenerator;
 import io.github.frikit.krandom.generator.base.NumberGenerator;
-import io.github.frikit.krandom.generator.base.ShortGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.InstantGenerator;
@@ -426,13 +418,25 @@ final class FieldGeneratorResolver {
         return () -> OBJECT_CHARACTER_POOL.charAt(source.nextInt(OBJECT_CHARACTER_POOL.length()));
     }
 
-    // The engine derives these seeds from its own replayable streams; a config per generator would only add cost.
-    @SuppressWarnings("deprecation")
+    /**
+     * Returns the random source of one scalar generator: a fresh {@link Random} started from the
+     * engine-derived seed when the configuration is seeded, otherwise the resolver's shared source.
+     *
+     * <p>A resolver is created for every object, so the scalar generators below draw from this
+     * source directly instead of building a seeded {@link GeneratorConfig} per generator. Each draws
+     * exactly what the corresponding base generator draws, so seeded output is unchanged.
+     */
+    private static Random streamFor(Long seed, Random source) {
+        return seed != null ? new Random(seed) : source;
+    }
+
     private static Generator<Boolean> booleanGenerator(Long seed, Random source) {
-        if (seed != null) {
-            return new BooleanGenerator(seed);
+        if (seed == null) {
+            return source::nextBoolean;
         }
-        return source::nextBoolean;
+        Random random = new Random(seed);
+        // The even-odds draw of BooleanGenerator, which seeded objects have always used.
+        return () -> random.nextInt(100) < 50;
     }
 
     private static Generator<String> buildStringGenerator(GeneratorConfig config, Long seed, Random source) {
@@ -457,16 +461,14 @@ final class FieldGeneratorResolver {
         return builder.seed(seed).build();
     }
 
-    @SuppressWarnings("deprecation")
     private static Generator<Byte> byteGenerator(Long seed, Random source, byte min, byte maxExclusive) {
-        return seed != null ? new ByteGenerator(min, maxExclusive, seed)
-                            : () -> (byte) source.nextInt(min, maxExclusive);
+        Random random = streamFor(seed, source);
+        return () -> (byte) random.nextInt(min, maxExclusive);
     }
 
-    @SuppressWarnings("deprecation")
     private static Generator<Short> shortGenerator(Long seed, Random source, short min, short maxExclusive) {
-        return seed != null ? new ShortGenerator(min, maxExclusive, seed)
-                            : () -> (short) source.nextInt(min, maxExclusive);
+        Random random = streamFor(seed, source);
+        return () -> (short) random.nextInt(min, maxExclusive);
     }
 
     private static Generator<LocalDate> buildDateGenerator(GeneratorConfig config,
@@ -906,7 +908,6 @@ final class FieldGeneratorResolver {
         return provider;
     }
 
-    @SuppressWarnings("deprecation")
     private static Generator<BigDecimal> bigDecimalGenerator(Long seed,
                                                              Random source,
                                                              String min,
@@ -914,66 +915,58 @@ final class FieldGeneratorResolver {
                                                              int scale) {
         BigDecimal lower = new BigDecimal(min);
         BigDecimal upper = new BigDecimal(max);
-        if (seed != null) {
-            return new BigDecimalGenerator(lower, upper, scale, seed);
-        }
         long originInclusive = lower.scaleByPowerOfTen(scale).toBigInteger().longValueExact();
         long boundExclusive = Math.addExact(
             upper.scaleByPowerOfTen(scale).toBigInteger().longValueExact(), 1L);
-        return () -> BigDecimal.valueOf(source.nextLong(originInclusive, boundExclusive), scale);
+        Random random = streamFor(seed, source);
+        return () -> BigDecimal.valueOf(random.nextLong(originInclusive, boundExclusive), scale);
     }
 
-    @SuppressWarnings("deprecation")
     private static Generator<BigInteger> bigIntegerGenerator(Long seed,
                                                              Random source,
                                                              long min,
                                                              long maxExclusive) {
         if (seed != null) {
+            // Seeded values keep BigIntegerGenerator's rejection sampling; its configuration is built
+            // only when the object actually has such a field.
             BigInteger lower = BigInteger.valueOf(min);
             BigInteger upper = BigInteger.valueOf(Math.max(min + 1, maxExclusive));
-            return new BigIntegerGenerator(lower, upper, seed);
+            return lazyGenerator(
+                () -> new BigIntegerGenerator(lower, upper, GeneratorConfig.builder().seed(seed).build()));
         }
         return () -> BigInteger.valueOf(source.nextLong(min, maxExclusive));
     }
 
-    @SuppressWarnings("deprecation")
     private static Generator<Integer> intGenerator(Long seed, Random source, int min, int maxExclusive) {
-        return seed != null ? new IntGenerator(min, maxExclusive, seed) : () -> source.nextInt(min, maxExclusive);
+        Random random = streamFor(seed, source);
+        return () -> random.nextInt(min, maxExclusive);
     }
 
-    @SuppressWarnings("deprecation")
     private static Generator<Long> longGenerator(Long seed, Random source, long min, long maxExclusive) {
-        return seed != null ? new LongGenerator(min, maxExclusive, seed) : () -> source.nextLong(min, maxExclusive);
+        Random random = streamFor(seed, source);
+        return () -> random.nextLong(min, maxExclusive);
     }
 
-    @SuppressWarnings("deprecation")
     private static Generator<Double> doubleGenerator(Long seed,
                                                      Random source,
                                                      double min,
                                                      double max,
                                                      Integer precision) {
-        if (seed != null) {
-            DoubleGenerator generator = new DoubleGenerator(min, max, seed);
-            return precision == null ? generator : () -> round(generator.generate(), precision);
-        }
+        Random random = streamFor(seed, source);
         return () -> {
-            double value = source.nextDouble(min, max);
+            double value = random.nextDouble(min, max);
             return precision == null ? value : round(value, precision);
         };
     }
 
-    @SuppressWarnings("deprecation")
     private static Generator<Float> floatGenerator(Long seed,
                                                    Random source,
                                                    float min,
                                                    float max,
                                                    Integer precision) {
-        if (seed != null) {
-            FloatGenerator generator = new FloatGenerator(min, max, seed);
-            return precision == null ? generator : () -> (float) round(generator.generate(), precision);
-        }
+        Random random = streamFor(seed, source);
         return () -> {
-            float value = source.nextFloat(min, max);
+            float value = random.nextFloat(min, max);
             return precision == null ? value : (float) round(value, precision);
         };
     }

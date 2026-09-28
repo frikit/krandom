@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -88,8 +89,8 @@ class BooleanGeneratorTest {
         @DisplayName("should be deterministic with same seed")
         void shouldBeDeterministicWithSameSeed() {
             long seed = 12345L;
-            BooleanGenerator gen1 = new BooleanGenerator(seed);
-            BooleanGenerator gen2 = new BooleanGenerator(seed);
+            BooleanGenerator gen1 = new BooleanGenerator(seeded(seed));
+            BooleanGenerator gen2 = new BooleanGenerator(seeded(seed));
 
             List<Boolean> values1 = gen1.generateList(100);
             List<Boolean> values2 = gen2.generateList(100);
@@ -100,8 +101,8 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("should be different with different seeds")
         void shouldBeDifferentWithDifferentSeeds() {
-            BooleanGenerator gen1 = new BooleanGenerator(11111L);
-            BooleanGenerator gen2 = new BooleanGenerator(22222L);
+            BooleanGenerator gen1 = new BooleanGenerator(seeded(11111L));
+            BooleanGenerator gen2 = new BooleanGenerator(seeded(22222L));
 
             List<Boolean> values1 = gen1.generateList(100);
             List<Boolean> values2 = gen2.generateList(100);
@@ -112,7 +113,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("should generate both values with seeded generator")
         void shouldGenerateBothValuesWithSeed() {
-            BooleanGenerator generator = new BooleanGenerator(99999L);
+            BooleanGenerator generator = new BooleanGenerator(seeded(99999L));
             Set<Boolean> values = new HashSet<>();
 
             for (int i = 0; i < 100; i++) {
@@ -151,7 +152,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("withLikelihood(50) should generate both values")
         void likelihood50ShouldGenerateBothValues() {
-            BooleanGenerator generator = new BooleanGenerator(42L).withLikelihood(50);
+            BooleanGenerator generator = new BooleanGenerator(seeded(42L)).withLikelihood(50);
             Set<Boolean> values = new HashSet<>();
 
             for (int i = 0; i < 100; i++) {
@@ -201,8 +202,8 @@ class BooleanGeneratorTest {
         @DisplayName("seeded generator with likelihood should be deterministic")
         void seededWithLikelihoodShouldBeDeterministic() {
             long seed = 54321L;
-            BooleanGenerator gen1 = new BooleanGenerator(seed).withLikelihood(75);
-            BooleanGenerator gen2 = new BooleanGenerator(seed).withLikelihood(75);
+            BooleanGenerator gen1 = new BooleanGenerator(seeded(seed)).withLikelihood(75);
+            BooleanGenerator gen2 = new BooleanGenerator(seeded(seed)).withLikelihood(75);
 
             List<Boolean> values1 = gen1.generateList(100);
             List<Boolean> values2 = gen2.generateList(100);
@@ -213,7 +214,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("likelihood 0 with seed should always be false")
         void likelihood0WithSeedShouldAlwaysBeFalse() {
-            BooleanGenerator generator = new BooleanGenerator(777L).withLikelihood(0);
+            BooleanGenerator generator = new BooleanGenerator(seeded(777L)).withLikelihood(0);
 
             List<Boolean> values = generator.generateList(100);
             assertTrue(values.stream().allMatch(v -> !v), "All should be false");
@@ -222,7 +223,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("likelihood 100 with seed should always be true")
         void likelihood100WithSeedShouldAlwaysBeTrue() {
-            BooleanGenerator generator = new BooleanGenerator(888L).withLikelihood(100);
+            BooleanGenerator generator = new BooleanGenerator(seeded(888L)).withLikelihood(100);
 
             List<Boolean> values = generator.generateList(100);
             assertTrue(values.stream().allMatch(v -> v), "All should be true");
@@ -280,7 +281,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("default likelihood should be approximately 50%")
         void defaultLikelihoodShouldBe50Percent() {
-            BooleanGenerator generator = new BooleanGenerator(42L);
+            BooleanGenerator generator = new BooleanGenerator(seeded(42L));
 
             long trueCount = generator.stream()
                                       .limit(SAMPLE_SIZE)
@@ -295,7 +296,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("likelihood 25 should produce ~25% true")
         void likelihood25ShouldProduce25PercentTrue() {
-            BooleanGenerator generator = new BooleanGenerator(123L).withLikelihood(25);
+            BooleanGenerator generator = new BooleanGenerator(seeded(123L)).withLikelihood(25);
 
             long trueCount = generator.stream()
                                       .limit(SAMPLE_SIZE)
@@ -310,7 +311,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("likelihood 75 should produce ~75% true")
         void likelihood75ShouldProduce75PercentTrue() {
-            BooleanGenerator generator = new BooleanGenerator(456L).withLikelihood(75);
+            BooleanGenerator generator = new BooleanGenerator(seeded(456L)).withLikelihood(75);
 
             long trueCount = generator.stream()
                                       .limit(SAMPLE_SIZE)
@@ -325,7 +326,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("likelihood 80 should produce ~80% true")
         void likelihood80ShouldProduce80PercentTrue() {
-            BooleanGenerator generator = new BooleanGenerator(789L).withLikelihood(80);
+            BooleanGenerator generator = new BooleanGenerator(seeded(789L)).withLikelihood(80);
 
             long trueCount = generator.stream()
                                       .limit(SAMPLE_SIZE)
@@ -340,7 +341,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("likelihood 10 should produce ~10% true")
         void likelihood10ShouldProduce10PercentTrue() {
-            BooleanGenerator generator = new BooleanGenerator(321L).withLikelihood(10);
+            BooleanGenerator generator = new BooleanGenerator(seeded(321L)).withLikelihood(10);
 
             long trueCount = generator.stream()
                                       .limit(SAMPLE_SIZE)
@@ -361,7 +362,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("likelihood 1 should produce very few true values")
         void likelihood1ShouldProduceVeryFewTrue() {
-            BooleanGenerator generator = new BooleanGenerator(111L).withLikelihood(1);
+            BooleanGenerator generator = new BooleanGenerator(seeded(111L)).withLikelihood(1);
 
             long trueCount = generator.stream()
                                       .limit(1000)
@@ -375,7 +376,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("likelihood 99 should produce very few false values")
         void likelihood99ShouldProduceVeryFewFalse() {
-            BooleanGenerator generator = new BooleanGenerator(222L).withLikelihood(99);
+            BooleanGenerator generator = new BooleanGenerator(seeded(222L)).withLikelihood(99);
 
             long falseCount = generator.stream()
                                        .limit(1000)
@@ -389,7 +390,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("multiple calls should be independent")
         void multipleCallsShouldBeIndependent() {
-            BooleanGenerator generator = new BooleanGenerator(555L).withLikelihood(75);
+            BooleanGenerator generator = new BooleanGenerator(seeded(555L)).withLikelihood(75);
 
             Boolean first = generator.generate();
             Boolean second = generator.generate();
@@ -417,7 +418,7 @@ class BooleanGeneratorTest {
         @Test
         @DisplayName("should work with stream operations")
         void shouldWorkWithStreamOperations() {
-            BooleanGenerator generator = new BooleanGenerator(999L).withLikelihood(60);
+            BooleanGenerator generator = new BooleanGenerator(seeded(999L)).withLikelihood(60);
 
             long trueCount = generator.stream()
                                       .limit(1000)
@@ -438,5 +439,9 @@ class BooleanGeneratorTest {
             assertNotNull(gen1.generate());
             assertNotNull(gen2.generate());
         }
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

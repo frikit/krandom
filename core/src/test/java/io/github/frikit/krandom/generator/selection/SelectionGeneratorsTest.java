@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.selection;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
@@ -38,8 +39,8 @@ class SelectionGeneratorsTest {
     @DisplayName("PickGenerator seeded constructor is deterministic")
     void pickGeneratorSeededIsDeterministic() {
         List<String> source = List.of("x", "y", "z");
-        PickGenerator<String> a = new PickGenerator<>(source, 123L);
-        PickGenerator<String> b = new PickGenerator<>(source, 123L);
+        PickGenerator<String> a = new PickGenerator<>(source, seeded(123L));
+        PickGenerator<String> b = new PickGenerator<>(source, seeded(123L));
 
         for (int i = 0; i < 20; i++) {
             assertEquals(a.generate(), b.generate());
@@ -50,7 +51,7 @@ class SelectionGeneratorsTest {
     @DisplayName("PickSetGenerator returns distinct elements")
     void pickSetReturnsDistinct() {
         List<Integer> source = IntStream.rangeClosed(1, 10).boxed().toList();
-        PickSetGenerator<Integer> gen = new PickSetGenerator<>(source, 5, 123L);
+        PickSetGenerator<Integer> gen = new PickSetGenerator<>(source, 5, seeded(123L));
 
         List<Integer> picked = gen.generate();
         assertEquals(5, picked.size());
@@ -61,7 +62,7 @@ class SelectionGeneratorsTest {
     @Test
     @DisplayName("PickSetGenerator returns empty list when count is zero")
     void pickSetZeroCountReturnsEmpty() {
-        PickSetGenerator<Integer> gen = new PickSetGenerator<>(List.of(1, 2, 3), 0, 7L);
+        PickSetGenerator<Integer> gen = new PickSetGenerator<>(List.of(1, 2, 3), 0, seeded(7L));
         assertEquals(List.of(), gen.generate());
     }
 
@@ -69,7 +70,7 @@ class SelectionGeneratorsTest {
     @DisplayName("ShuffleGenerator returns shuffled copy with same members")
     void shuffleReturnsPermutation() {
         List<Integer> source = List.of(1, 2, 3, 4, 5, 6);
-        ShuffleGenerator<Integer> gen = new ShuffleGenerator<>(source, 42L);
+        ShuffleGenerator<Integer> gen = new ShuffleGenerator<>(source, seeded(42L));
 
         List<Integer> shuffled = gen.generate();
         assertEquals(source.size(), shuffled.size());
@@ -82,7 +83,7 @@ class SelectionGeneratorsTest {
         WeightedGenerator<String> gen = new WeightedGenerator<>(
             List.of("heads", "tails"),
             List.of(7, 3),
-            42L
+            seeded(42L)
         );
 
         int heads = 0;
@@ -216,9 +217,8 @@ class SelectionGeneratorsTest {
     }
 
     @Test
-    @SuppressWarnings("removal")
-    @DisplayName("Generators.uniqueValues alias wraps source generator")
-    void generatorsUniqueValuesAliasWorks() {
+    @DisplayName("Generators.unique wraps source generator")
+    void generatorsUniqueWrapsSource() {
         Generator<Integer> bounded = new Generator<>() {
 
             private int n = 0;
@@ -255,5 +255,9 @@ class SelectionGeneratorsTest {
                      () -> new WeightedGenerator<>(List.of("a", "b"), List.of(Integer.MAX_VALUE, 1)));
         assertThrows(IllegalArgumentException.class, () -> new UniqueGenerator<>(() -> 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new RepeatGenerator<>(() -> 1, -1));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

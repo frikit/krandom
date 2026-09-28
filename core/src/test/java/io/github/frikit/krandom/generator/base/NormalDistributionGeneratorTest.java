@@ -25,16 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class NormalDistributionGeneratorTest {
 
     @Test
-    @SuppressWarnings("deprecation")
-    @DisplayName("a null legacy seed still selects the unseeded constructor, and the config form replays it")
-    void nullLegacySeedKeepsCompilingAndConfigFormReplaysSeed() {
-        NormalDistributionGenerator unseeded = new NormalDistributionGenerator(5.0, 2.0, null);
-        GeneratorConfig seeded = GeneratorConfig.builder().seed(3L).build();
+    @DisplayName("the configuration form keeps its parameters and replays its seed")
+    void configFormKeepsParametersAndReplaysSeed() {
+        NormalDistributionGenerator generator = new NormalDistributionGenerator(5.0, 2.0, seeded(3L));
 
-        assertEquals(5.0, unseeded.getMean());
-        assertEquals(2.0, unseeded.getStandardDeviation());
-        assertEquals(new NormalDistributionGenerator(5.0, 2.0, 3L).generateList(10),
-                     new NormalDistributionGenerator(seeded, 5.0, 2.0).generateList(10));
+        assertEquals(5.0, generator.getMean());
+        assertEquals(2.0, generator.getStandardDeviation());
+        assertEquals(new NormalDistributionGenerator(5.0, 2.0, seeded(3L)).generateList(10),
+                     generator.generateList(10));
     }
 
     @Test
@@ -83,7 +81,7 @@ class NormalDistributionGeneratorTest {
         @DisplayName("should generate values around mean=0")
         void shouldGenerateAroundZero() {
             // Seeded so the tolerance check is deterministic instead of failing ~0.27% of runs by chance.
-            NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0, 42L);
+            NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0, seeded(42L));
             List<Double> values = new ArrayList<>();
 
             for (int i = 0; i < 1000; i++) {
@@ -101,7 +99,7 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should follow 68-95-99.7 rule (empirical rule)")
         void shouldFollowEmpiricalRule() {
-            NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0, 42L);
+            NormalDistributionGenerator generator = new NormalDistributionGenerator(0.0, 1.0, seeded(42L));
             int total = 10000;
             int within1Sigma = 0;
             int within2Sigma = 0;
@@ -146,7 +144,7 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should generate IQ-like distribution (mean=100, stdDev=15)")
         void shouldGenerateIQDistribution() {
-            NormalDistributionGenerator generator = new NormalDistributionGenerator(100.0, 15.0, 42L);
+            NormalDistributionGenerator generator = new NormalDistributionGenerator(100.0, 15.0, seeded(42L));
             List<Double> values = new ArrayList<>();
 
             for (int i = 0; i < 1000; i++) {
@@ -170,7 +168,7 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should generate heights distribution (mean=170, stdDev=10)")
         void shouldGenerateHeightsDistribution() {
-            NormalDistributionGenerator generator = new NormalDistributionGenerator(170.0, 10.0, 42L);
+            NormalDistributionGenerator generator = new NormalDistributionGenerator(170.0, 10.0, seeded(42L));
             int total = 1000;
             int count = 0;
 
@@ -210,8 +208,8 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should produce identical sequences with same seed")
         void shouldProduceIdenticalSequences() {
-            NormalDistributionGenerator gen1 = new NormalDistributionGenerator(0.0, 1.0, 42L);
-            NormalDistributionGenerator gen2 = new NormalDistributionGenerator(0.0, 1.0, 42L);
+            NormalDistributionGenerator gen1 = new NormalDistributionGenerator(0.0, 1.0, seeded(42L));
+            NormalDistributionGenerator gen2 = new NormalDistributionGenerator(0.0, 1.0, seeded(42L));
 
             for (int i = 0; i < 50; i++) {
                 assertEquals(gen1.generate(), gen2.generate(),
@@ -222,8 +220,8 @@ class NormalDistributionGeneratorTest {
         @Test
         @DisplayName("should produce different sequences with different seeds")
         void shouldProduceDifferentSequences() {
-            NormalDistributionGenerator gen1 = new NormalDistributionGenerator(0.0, 1.0, 42L);
-            NormalDistributionGenerator gen2 = new NormalDistributionGenerator(0.0, 1.0, 99L);
+            NormalDistributionGenerator gen1 = new NormalDistributionGenerator(0.0, 1.0, seeded(42L));
+            NormalDistributionGenerator gen2 = new NormalDistributionGenerator(0.0, 1.0, seeded(99L));
 
             List<Double> seq1 = new ArrayList<>();
             List<Double> seq2 = new ArrayList<>();
@@ -307,5 +305,9 @@ class NormalDistributionGeneratorTest {
             assertTrue(Math.abs(mean - 50.0) < 1.0,
                        "List mean should be close to 50, got: " + mean);
         }
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

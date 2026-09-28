@@ -63,7 +63,7 @@ class SequenceAndFinitePoolGeneratorTest {
 
     @Test
     void finitePoolEmitsEveryValueOnceThenExhausts() {
-        FinitePoolGenerator<String> pool = new FinitePoolGenerator<>(List.of("one", "two", "three"), 2L);
+        FinitePoolGenerator<String> pool = new FinitePoolGenerator<>(List.of("one", "two", "three"), seeded(2L));
 
         List<String> values = List.of(pool.generate(), pool.generate(), pool.generate());
 
@@ -78,5 +78,9 @@ class SequenceAndFinitePoolGeneratorTest {
         assertThrows(NullPointerException.class, () -> new FinitePoolGenerator<>(List.of("one", null)));
         assertTrue(List.of("a", "b").contains(Generators.pool(List.of("a", "b")).generate()));
         assertTrue(List.of("a", "b").contains(new FinitePoolGenerator<>(List.of("a", "b")).generate()));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

@@ -46,22 +46,6 @@ public final class PickSetGenerator<T> implements Generator<List<T>> {
         this(source, count, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
-    /**
-     * Creates a pick-set generator with deterministic seed support.
-     *
-     * @param source source list; must not be null
-     * @param count  number of unique elements to pick
-     * @param seed   deterministic seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #PickSetGenerator(List, int, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public PickSetGenerator(List<T> source, int count, long seed) {
-        this(source, count, new Random(seed));
-    }
-
     private PickSetGenerator(List<T> source, int count, Random random) {
         Objects.requireNonNull(source, "source must not be null");
         if (count < 0) {

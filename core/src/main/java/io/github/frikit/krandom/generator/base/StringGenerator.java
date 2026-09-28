@@ -55,7 +55,7 @@ public final class StringGenerator implements Generator<String> {
     private StringGenerator(Builder b) {
         if (b.config != null) {
             // Characters and lengths both draw from the configuration's random source; a seeded
-            // configuration therefore matches the legacy seed(long) output exactly.
+            // configuration therefore matches the Builder.seed(long) output exactly.
             this.charGenerator = b.charGenerator.withRandom(b.config.createRandom());
             this.random = b.config.createRandom();
         } else if (b.seed != null) {

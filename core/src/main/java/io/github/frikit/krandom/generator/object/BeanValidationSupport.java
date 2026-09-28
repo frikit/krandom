@@ -27,6 +27,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
 
 import java.lang.reflect.AnnotatedElement;
@@ -306,21 +307,19 @@ final class BeanValidationSupport {
         }
     }
 
-    @SuppressWarnings("deprecation") // seeds come from the engine's replayable streams
     private static Generator<String> textGeneratorFor(TextConstraint constraints, Random random) {
         List<Generator<String>> sources = new ArrayList<>();
         for (TextPattern pattern : constraints.patterns()) {
             if (pattern.source()) {
                 try {
-                    sources.add(new RegexGenerator(pattern.expression(), random.nextLong()));
+                    sources.add(regexGenerator(pattern.expression(), random));
                 } catch (IllegalArgumentException unsupportedPattern) {
                     throw conflict("text constraint uses unsupported regular-expression syntax");
                 }
             }
         }
         if (constraints.email()) {
-            sources.add(new RegexGenerator(
-                "[a-z]{4,8}@[a-z]{3,8}\\.(com|net|org)", random.nextLong()));
+            sources.add(regexGenerator("[a-z]{4,8}@[a-z]{3,8}\\.(com|net|org)", random));
         }
         Generator<String> numericSource = numericStringGeneratorFor(constraints.numeric(), random);
         if (numericSource != null) {
@@ -339,6 +338,11 @@ final class BeanValidationSupport {
             }
             throw conflict("text constraints did not produce a value in the bounded search budget");
         };
+    }
+
+    // Each regex source replays from its own seed, drawn from the engine's replayable stream.
+    private static RegexGenerator regexGenerator(String expression, Random random) {
+        return new RegexGenerator(expression, GeneratorConfig.builder().seed(random.nextLong()).build());
     }
 
     record TextPattern(String expression, java.util.regex.Pattern compiled, boolean source) {}

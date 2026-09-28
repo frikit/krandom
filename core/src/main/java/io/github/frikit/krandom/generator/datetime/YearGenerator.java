@@ -38,19 +38,6 @@ public final class YearGenerator implements Generator<Year>, Seedable {
     }
 
     /**
-     * Creates a seeded year generator.
-     *
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #YearGenerator(int, int, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public YearGenerator(int minYear, int maxYear, long seed) {
-        this(minYear, maxYear, GeneratorConfig.builder().seed(seed).build());
-    }
-
-    /**
      * Creates a year generator over {@code [minYear, maxYear]} using the configuration's random
      * source.
      *

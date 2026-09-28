@@ -21,11 +21,11 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 public final class LongGenerator extends AbstractBoundedGenerator<Long> {
 
     public LongGenerator() {
-        super(Long.MIN_VALUE, Long.MAX_VALUE, null);
+        super(Long.MIN_VALUE, Long.MAX_VALUE);
     }
 
     public LongGenerator(long min, long max) {
-        super(min, max, null);
+        super(min, max);
     }
 
     /**
@@ -34,7 +34,7 @@ public final class LongGenerator extends AbstractBoundedGenerator<Long> {
      * @param config generator configuration; must not be {@code null}
      */
     public LongGenerator(GeneratorConfig config) {
-        super(config, Long.MIN_VALUE, Long.MAX_VALUE);
+        super(Long.MIN_VALUE, Long.MAX_VALUE, config);
     }
 
     /**
@@ -45,23 +45,7 @@ public final class LongGenerator extends AbstractBoundedGenerator<Long> {
      * @param config generator configuration; must not be {@code null}
      */
     public LongGenerator(long min, long max, GeneratorConfig config) {
-        super(config, min, max);
-    }
-
-    /**
-     * Creates a seeded generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #LongGenerator(long, long, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public LongGenerator(long min, long max, long seed) {
-        super(min, max, seed);
+        super(min, max, config);
     }
 
     /**

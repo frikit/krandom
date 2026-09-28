@@ -149,24 +149,6 @@ public final class RegexGenerator implements Generator<String> {
         this.root = parsePattern(pattern);
     }
 
-    /**
-     * Creates a seeded regex generator for reproducible output.
-     *
-     * @param pattern the simplified regex pattern; must not be {@code null}
-     * @param seed    PRNG seed for deterministic output
-     * @throws IllegalArgumentException if the pattern contains unsupported or malformed syntax
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #RegexGenerator(String, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public RegexGenerator(String pattern, long seed) {
-        Objects.requireNonNull(pattern, "pattern must not be null");
-        this.random = new Random(seed);
-        this.root = parsePattern(pattern);
-    }
-
     static int parsedPatternCacheSize() {
         return PARSED_PATTERNS.size();
     }

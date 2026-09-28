@@ -20,14 +20,14 @@ class SeedableTest {
     @Test
     @DisplayName("AbstractBoundedGenerator implements Seedable")
     void boundedGeneratorIsSeedable() {
-        IntGenerator gen = new IntGenerator(1, 100, 42L);
+        IntGenerator gen = new IntGenerator(1, 100, seeded(42L));
         assertInstanceOf(Seedable.class, gen);
     }
 
     @Test
     @DisplayName("reseed produces deterministic sequence")
     void reseedProducesDeterministicSequence() {
-        IntGenerator gen = new IntGenerator(1, 1000, 42L);
+        IntGenerator gen = new IntGenerator(1, 1000, seeded(42L));
         int first = gen.generate();
         int second = gen.generate();
 
@@ -39,17 +39,17 @@ class SeedableTest {
     @Test
     @DisplayName("Seedable.reseed works on multiple generator types")
     void seedableWorksOnMultipleTypes() {
-        LongGenerator longGen = new LongGenerator(1L, 1000L, 42L);
+        LongGenerator longGen = new LongGenerator(1L, 1000L, seeded(42L));
         long longVal = longGen.generate();
         longGen.reseed(42L);
         assertEquals(longVal, longGen.generate());
 
-        DoubleGenerator doubleGen = new DoubleGenerator(0.0, 1.0, 42L);
+        DoubleGenerator doubleGen = new DoubleGenerator(0.0, 1.0, seeded(42L));
         double doubleVal = doubleGen.generate();
         doubleGen.reseed(42L);
         assertEquals(doubleVal, doubleGen.generate());
 
-        FloatGenerator floatGen = new FloatGenerator(0f, 1f, 42L);
+        FloatGenerator floatGen = new FloatGenerator(0f, 1f, seeded(42L));
         float floatVal = floatGen.generate();
         floatGen.reseed(42L);
         assertEquals(floatVal, floatGen.generate());
@@ -58,7 +58,7 @@ class SeedableTest {
     @Test
     @DisplayName("typed Seedable reseed restores a generator's sequence")
     void typedSeedableReseedRestoresSequence() {
-        IntGenerator gen = new IntGenerator(1, 1000, 42L);
+        IntGenerator gen = new IntGenerator(1, 1000, seeded(42L));
         int first = gen.generate();
 
         Generator<Integer> asGenerator = gen;
@@ -108,23 +108,27 @@ class SeedableTest {
     @Test
     @DisplayName("independently constructed generators with the same seed produce identical sequences")
     void sameSeedSameSequenceAcrossInstances() {
-        assertEquals(new IntGenerator(1, 1000, 42L).generateList(25),
-                     new IntGenerator(1, 1000, 42L).generateList(25));
-        assertEquals(new LongGenerator(1L, 1_000_000L, 7L).generateList(25),
-                     new LongGenerator(1L, 1_000_000L, 7L).generateList(25));
-        assertEquals(new DoubleGenerator(0.0, 1.0, 99L).generateList(25),
-                     new DoubleGenerator(0.0, 1.0, 99L).generateList(25));
+        assertEquals(new IntGenerator(1, 1000, seeded(42L)).generateList(25),
+                     new IntGenerator(1, 1000, seeded(42L)).generateList(25));
+        assertEquals(new LongGenerator(1L, 1_000_000L, seeded(7L)).generateList(25),
+                     new LongGenerator(1L, 1_000_000L, seeded(7L)).generateList(25));
+        assertEquals(new DoubleGenerator(0.0, 1.0, seeded(99L)).generateList(25),
+                     new DoubleGenerator(0.0, 1.0, seeded(99L)).generateList(25));
     }
 
     @Test
     @DisplayName("string seed produces the same sequence as its derived numeric seed")
     void stringSeedMatchesDerivedNumericSeed() {
         long derived = GeneratorConfig.deriveSeed("regression-seed");
-        IntGenerator fromNumeric = new IntGenerator(1, 1000, derived);
+        IntGenerator fromNumeric = new IntGenerator(1, 1000, seeded(derived));
 
-        IntGenerator fromText = new IntGenerator(1, 1000, 1L);
+        IntGenerator fromText = new IntGenerator(1, 1000, seeded(1L));
         fromText.reseed(GeneratorConfig.deriveSeed("regression-seed"));
 
         assertEquals(fromNumeric.generateList(25), fromText.generateList(25));
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

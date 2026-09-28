@@ -20,11 +20,11 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 public final class ByteGenerator extends AbstractBoundedGenerator<Byte> {
 
     public ByteGenerator() {
-        super(Byte.MIN_VALUE, Byte.MAX_VALUE, null);
+        super(Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
 
     public ByteGenerator(byte min, byte max) {
-        super(min, max, null);
+        super(min, max);
     }
 
     /**
@@ -33,7 +33,7 @@ public final class ByteGenerator extends AbstractBoundedGenerator<Byte> {
      * @param config generator configuration; must not be {@code null}
      */
     public ByteGenerator(GeneratorConfig config) {
-        super(config, Byte.MIN_VALUE, Byte.MAX_VALUE);
+        super(Byte.MIN_VALUE, Byte.MAX_VALUE, config);
     }
 
     /**
@@ -44,23 +44,7 @@ public final class ByteGenerator extends AbstractBoundedGenerator<Byte> {
      * @param config generator configuration; must not be {@code null}
      */
     public ByteGenerator(byte min, byte max, GeneratorConfig config) {
-        super(config, min, max);
-    }
-
-    /**
-     * Creates a seeded generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ByteGenerator(byte, byte, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public ByteGenerator(byte min, byte max, long seed) {
-        super(min, max, seed);
+        super(min, max, config);
     }
 
     /**

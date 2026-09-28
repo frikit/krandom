@@ -370,22 +370,6 @@ public final class Generators {
         return new ByteGenerator(min, max, config);
     }
 
-    /**
-     * Returns a seeded byte generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return byte generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofByte(byte, byte, GeneratorConfig)}
-     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static ByteGenerator ofByte(byte min, byte max, long seed) {
-        return new ByteGenerator(min, max, seed);
-    }
-
     public static ShortGenerator ofShort() {
         return new ShortGenerator();
     }
@@ -416,22 +400,6 @@ public final class Generators {
      */
     public static ShortGenerator ofShort(short min, short max, GeneratorConfig config) {
         return new ShortGenerator(min, max, config);
-    }
-
-    /**
-     * Returns a seeded short generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return short generator
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ofShort(short, short, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static ShortGenerator ofShort(short min, short max, long seed) {
-        return new ShortGenerator(min, max, seed);
     }
 
     public static IntGenerator ofInt() {
@@ -466,22 +434,6 @@ public final class Generators {
         return new IntGenerator(min, max, config);
     }
 
-    /**
-     * Returns a seeded int generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return int generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofInt(int, int, GeneratorConfig)}
-     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static IntGenerator ofInt(int min, int max, long seed) {
-        return new IntGenerator(min, max, seed);
-    }
-
     public static NaturalNumberGenerator ofNaturalNumber() {
         return new NaturalNumberGenerator();
     }
@@ -514,22 +466,6 @@ public final class Generators {
         return new NaturalNumberGenerator(min, max, config);
     }
 
-    /**
-     * Returns a seeded natural-number generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return natural-number generator
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ofNaturalNumber(int, int, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static NaturalNumberGenerator ofNaturalNumber(int min, int max, long seed) {
-        return new NaturalNumberGenerator(min, max, seed);
-    }
-
     public static NumberGenerator ofNumber() {
         return new NumberGenerator();
     }
@@ -542,19 +478,6 @@ public final class Generators {
      */
     public static NumberGenerator ofNumber(GeneratorConfig config) {
         return new NumberGenerator(config);
-    }
-
-    /**
-     * Returns a seeded generator of mixed numeric values.
-     *
-     * @param seed raw seed
-     * @return number generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofNumber(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static NumberGenerator ofNumber(long seed) {
-        return new NumberGenerator(seed);
     }
 
     public static LongGenerator ofLong() {
@@ -589,22 +512,6 @@ public final class Generators {
         return new LongGenerator(min, max, config);
     }
 
-    /**
-     * Returns a seeded long generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return long generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofLong(long, long, GeneratorConfig)}
-     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static LongGenerator ofLong(long min, long max, long seed) {
-        return new LongGenerator(min, max, seed);
-    }
-
     public static AtomicIntegerGenerator ofAtomicInteger() {
         return new AtomicIntegerGenerator();
     }
@@ -637,22 +544,6 @@ public final class Generators {
         return new AtomicIntegerGenerator(min, max, config);
     }
 
-    /**
-     * Returns a seeded {@code AtomicInteger} generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return atomic-integer generator
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ofAtomicInteger(int, int, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static AtomicIntegerGenerator ofAtomicInteger(int min, int max, long seed) {
-        return new AtomicIntegerGenerator(min, max, seed);
-    }
-
     public static AtomicLongGenerator ofAtomicLong() {
         return new AtomicLongGenerator();
     }
@@ -681,22 +572,6 @@ public final class Generators {
      */
     public static AtomicLongGenerator ofAtomicLong(long min, long max, GeneratorConfig config) {
         return new AtomicLongGenerator(min, max, config);
-    }
-
-    /**
-     * Returns a seeded {@code AtomicLong} generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return atomic-long generator
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ofAtomicLong(long, long, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static AtomicLongGenerator ofAtomicLong(long min, long max, long seed) {
-        return new AtomicLongGenerator(min, max, seed);
     }
 
     public static FloatGenerator ofFloat() {
@@ -731,22 +606,6 @@ public final class Generators {
         return new FloatGenerator(min, max, config);
     }
 
-    /**
-     * Returns a seeded float generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return float generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofFloat(float, float, GeneratorConfig)}
-     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static FloatGenerator ofFloat(float min, float max, long seed) {
-        return new FloatGenerator(min, max, seed);
-    }
-
     public static DoubleGenerator ofDouble() {
         return new DoubleGenerator();
     }
@@ -779,22 +638,6 @@ public final class Generators {
         return new DoubleGenerator(min, max, config);
     }
 
-    /**
-     * Returns a seeded double generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return double generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofDouble(double, double, GeneratorConfig)}
-     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static DoubleGenerator ofDouble(double min, double max, long seed) {
-        return new DoubleGenerator(min, max, seed);
-    }
-
     public static NormalDistributionGenerator ofNormal() {
         return new NormalDistributionGenerator();
     }
@@ -824,23 +667,7 @@ public final class Generators {
      * @return normal-distribution generator
      */
     public static NormalDistributionGenerator ofNormal(double mean, double standardDeviation, GeneratorConfig config) {
-        return new NormalDistributionGenerator(config, mean, standardDeviation);
-    }
-
-    /**
-     * Returns a seeded normal-distribution generator.
-     *
-     * @param mean              distribution mean
-     * @param standardDeviation distribution standard deviation; must be positive
-     * @param seed              raw seed
-     * @return normal-distribution generator
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ofNormal(double, double, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static NormalDistributionGenerator ofNormal(double mean, double standardDeviation, long seed) {
-        return new NormalDistributionGenerator(mean, standardDeviation, seed);
+        return new NormalDistributionGenerator(mean, standardDeviation, config);
     }
 
     public static PrimeGenerator ofPrime() {
@@ -874,22 +701,6 @@ public final class Generators {
      */
     public static PrimeGenerator ofPrime(int min, int max, GeneratorConfig config) {
         return new PrimeGenerator(min, max, config);
-    }
-
-    /**
-     * Returns a seeded prime generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @return prime generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofPrime(int, int, GeneratorConfig)}
-     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static PrimeGenerator ofPrime(int min, int max, long seed) {
-        return new PrimeGenerator(min, max, seed);
     }
 
     // ── Boolean ───────────────────────────────────────────────────────────────
@@ -932,19 +743,6 @@ public final class Generators {
      */
     public static BooleanGenerator ofBoolean(GeneratorConfig config) {
         return new BooleanGenerator(config);
-    }
-
-    /**
-     * Returns a seeded fair boolean generator.
-     *
-     * @param seed raw seed
-     * @return boolean generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofBoolean(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static BooleanGenerator ofBoolean(long seed) {
-        return new BooleanGenerator(seed);
     }
 
     /**
@@ -1023,20 +821,6 @@ public final class Generators {
      */
     public static RegexGenerator ofRegex(String pattern, GeneratorConfig config) {
         return new RegexGenerator(pattern, config);
-    }
-
-    /**
-     * Returns a deterministic generator that produces strings matching the supported subset of regular expressions.
-     *
-     * @param pattern simplified regular expression; must not be {@code null}
-     * @param seed    raw seed
-     * @return regex generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofRegex(String, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static RegexGenerator ofRegex(String pattern, long seed) {
-        return new RegexGenerator(pattern, seed);
     }
 
     // ── Algorithms ────────────────────────────────────────────────────────────
@@ -1396,31 +1180,6 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces {@link URI} values.
-     *
-     * @return {@code java.net.URI} generator
-     * @deprecated differs from the text factory {@link #ofUri()} only by letter case; use
-     *             {@link #ofUriObject()}, which returns the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static Generator<URI> ofURI() {
-        return ofUriObject();
-    }
-
-    /**
-     * Returns a generator that produces {@link URI} values using explicit configuration.
-     *
-     * @param config generator configuration; must not be {@code null}
-     * @return {@code java.net.URI} generator
-     * @deprecated differs from the text factory {@link #ofUri(GeneratorConfig)} only by letter case;
-     *             use {@link #ofUriObject(GeneratorConfig)}, which returns the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static Generator<URI> ofURI(GeneratorConfig config) {
-        return ofUriObject(config);
-    }
-
-    /**
      * Returns a generator that produces {@link java.net.URL} values (the object form of
      * {@link #ofUrl()}).
      *
@@ -1439,31 +1198,6 @@ public final class Generators {
     public static Generator<java.net.URL> ofUrlObject(GeneratorConfig config) {
         URLGenerator generator = new URLGenerator(config);
         return () -> toUrl(URI.create(generator.generate("https")));
-    }
-
-    /**
-     * Returns a generator that produces {@link java.net.URL} values.
-     *
-     * @return {@code java.net.URL} generator
-     * @deprecated differs from the text factory {@link #ofUrl()} only by letter case; use
-     *             {@link #ofUrlObject()}, which returns the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static Generator<java.net.URL> ofURL() {
-        return ofUrlObject();
-    }
-
-    /**
-     * Returns a generator that produces {@link java.net.URL} values using explicit configuration.
-     *
-     * @param config generator configuration; must not be {@code null}
-     * @return {@code java.net.URL} generator
-     * @deprecated differs from the text factory {@link #ofUrl(GeneratorConfig)} only by letter case;
-     *             use {@link #ofUrlObject(GeneratorConfig)}, which returns the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static Generator<java.net.URL> ofURL(GeneratorConfig config) {
-        return ofUrlObject(config);
     }
 
     // ── BigInteger ────────────────────────────────────────────────────────────
@@ -1872,18 +1606,6 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces random legacy {@link TimeZone} values.
-     *
-     * @return legacy time-zone generator
-     * @deprecated differs from the text factory {@link #ofTimezone()} only by letter case; use
-     *             {@link #ofTimeZoneObject()}, which returns the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static LegacyTimeZoneGenerator ofTimeZone() {
-        return ofTimeZoneObject();
-    }
-
-    /**
      * Returns a generator that produces timezone identifiers.
      */
     public static TimezoneGenerator ofTimezone() {
@@ -1905,19 +1627,6 @@ public final class Generators {
      */
     public static CalendarGenerator ofCalendar() {
         return new CalendarGenerator();
-    }
-
-    /**
-     * Returns a deterministic generator that produces legacy {@link Calendar} values.
-     *
-     * @param seed raw seed
-     * @return calendar generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofCalendar(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static CalendarGenerator ofCalendar(long seed) {
-        return new CalendarGenerator(seed);
     }
 
     /**
@@ -1946,19 +1655,6 @@ public final class Generators {
      */
     public static RandomLocaleGenerator ofLocale() {
         return new RandomLocaleGenerator();
-    }
-
-    /**
-     * Returns a deterministic generator that produces locales from the built-in supported locale catalog.
-     *
-     * @param seed raw seed
-     * @return locale generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofLocale(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static RandomLocaleGenerator ofLocale(long seed) {
-        return new RandomLocaleGenerator(seed);
     }
 
     /**
@@ -2571,34 +2267,6 @@ public final class Generators {
     }
 
     /**
-     * Returns a deterministic generator that produces geohashes with default precision.
-     *
-     * @param seed raw seed
-     * @return geohash generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofGeohash(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static GeohashGenerator ofGeohash(long seed) {
-        return new GeohashGenerator(seed);
-    }
-
-    /**
-     * Returns a deterministic generator that produces geohashes with explicit precision.
-     *
-     * @param precision geohash length
-     * @param seed      raw seed
-     * @return geohash generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofGeohash(int, GeneratorConfig)}
-     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static GeohashGenerator ofGeohash(int precision, long seed) {
-        return new GeohashGenerator(precision, seed);
-    }
-
-    /**
      * Returns a generator that produces geohashes using explicit configuration.
      */
     public static GeohashGenerator ofGeohash(GeneratorConfig config) {
@@ -3033,19 +2701,6 @@ public final class Generators {
     public static NationalIdGenerator ofCpf(GeneratorConfig config) {
         return ofNationalId(Objects.requireNonNull(config, "config must not be null").toBuilder()
                                    .locale(Locale.of("pt", "BR")).build());
-    }
-
-    /**
-     * Returns a fail-closed seeded CPF generator.
-     *
-     * @param seed raw seed
-     * @return CPF generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofCpf(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static NationalIdGenerator ofCpf(long seed) {
-        return ofNationalId(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).seed(seed).build());
     }
 
     /**
@@ -3963,21 +3618,6 @@ public final class Generators {
     }
 
     /**
-     * Returns a fail-closed seeded national-ID generator.
-     *
-     * @param locale national-ID locale; must not be {@code null}
-     * @param seed   raw seed
-     * @return national-ID generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofNationalId(GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().locale(locale).seed(seed).build()}, which produces
-     *             the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static NationalIdGenerator ofNationalId(Locale locale, long seed) {
-        return new NationalIdGenerator(GeneratorConfig.builder().locale(locale).seed(seed).build());
-    }
-
-    /**
      * Returns a national-id generator with explicit configuration.
      */
     public static NationalIdGenerator ofNationalId(GeneratorConfig config) {
@@ -4276,40 +3916,10 @@ public final class Generators {
     // ── ISBN ──────────────────────────────────────────────────────────────────
 
     /**
-     * Returns a seeded template generator supporting DataFaker-style {@code #} and {@code ?} placeholders.
-     *
-     * @param template template text; must not be {@code null}
-     * @param seed     raw seed
-     * @return template generator
-     * @deprecated raw seeds bypass replayable recipes; use {@link #ofTemplate(String, GeneratorConfig)}
-     *             with {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static TemplateStringGenerator ofTemplate(String template, long seed) {
-        return new TemplateStringGenerator(template, seed);
-    }
-
-    /**
      * Returns a provider-template generator resolving tokens such as {@code "{firstname}"}.
      */
     public static ProviderTemplateGenerator ofProviderTemplate(String template) {
         return new ProviderTemplateGenerator(template);
-    }
-
-    /**
-     * Returns a deterministic provider-template generator resolving tokens such as {@code "{firstname}"}.
-     *
-     * @param template template text; must not be {@code null}
-     * @param seed     raw seed
-     * @return provider-template generator
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #ofProviderTemplate(String, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same values.
-     */
-    @Deprecated(since = "2.6.0")
-    public static ProviderTemplateGenerator ofProviderTemplate(String template, long seed) {
-        return new ProviderTemplateGenerator(template, seed);
     }
 
     /**

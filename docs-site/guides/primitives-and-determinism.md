@@ -20,11 +20,13 @@ String token = Generators.ofString(
 
 ## Reproducible sequences
 
-Use seeded constructors or `GeneratorConfig`:
+Build generators from a seeded `GeneratorConfig`. Each generator created from the same seeded
+configuration starts from the same random state:
 
 ```java
-IntGenerator a = Generators.ofInt(1, 100, 123L);
-IntGenerator b = Generators.ofInt(1, 100, 123L);
+GeneratorConfig seeded = GeneratorConfig.builder().seed(123L).build();
+IntGenerator a = Generators.ofInt(1, 100, seeded);
+IntGenerator b = Generators.ofInt(1, 100, seeded);
 
 assert a.generate() == b.generate();
 assert a.generate() == b.generate();

@@ -329,9 +329,10 @@ public final class SchemaParser {
         return text(minLength, maxLength);
     }
 
-    @SuppressWarnings("deprecation") // a raw seed per value avoids building a config for every value
     private static String matching(String pattern, long seed) {
-        return new RegexGenerator(pattern, seed).generate();
+        // Each value draws its own seed from the field's stream, so a fresh generator per value keeps
+        // the record replayable without sharing mutable state; the parsed pattern itself is cached.
+        return new RegexGenerator(pattern, GeneratorConfig.builder().seed(seed).build()).generate();
     }
 
     private static SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {

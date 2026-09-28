@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -163,8 +164,8 @@ class PrimeGeneratorTest {
         @Test
         @DisplayName("should produce identical sequences with same seed")
         void shouldProduceIdenticalSequences() {
-            PrimeGenerator gen1 = new PrimeGenerator(2, 100, 42L);
-            PrimeGenerator gen2 = new PrimeGenerator(2, 100, 42L);
+            PrimeGenerator gen1 = new PrimeGenerator(2, 100, seeded(42L));
+            PrimeGenerator gen2 = new PrimeGenerator(2, 100, seeded(42L));
 
             for (int i = 0; i < 50; i++) {
                 assertEquals(gen1.generate(), gen2.generate(),
@@ -175,8 +176,8 @@ class PrimeGeneratorTest {
         @Test
         @DisplayName("should produce different sequences with different seeds")
         void shouldProduceDifferentSequences() {
-            PrimeGenerator gen1 = new PrimeGenerator(2, 100, 42L);
-            PrimeGenerator gen2 = new PrimeGenerator(2, 100, 99L);
+            PrimeGenerator gen1 = new PrimeGenerator(2, 100, seeded(42L));
+            PrimeGenerator gen2 = new PrimeGenerator(2, 100, seeded(99L));
 
             Set<Integer> seq1 = new HashSet<>();
             Set<Integer> seq2 = new HashSet<>();
@@ -209,5 +210,9 @@ class PrimeGeneratorTest {
                 assertTrue(prime >= 2 && prime < 50);
             }
         }
+    }
+
+    private static GeneratorConfig seeded(long seed) {
+        return GeneratorConfig.builder().seed(seed).build();
     }
 }

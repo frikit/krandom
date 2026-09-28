@@ -32,21 +32,20 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
 
     private final Integer         precision;
     /**
-     * Most recent seed from the constructor, the configuration, or {@link #reseed(long)};
-     * {@code null} when unseeded.
+     * Most recent seed from the configuration or {@link #reseed(long)}; {@code null} when unseeded.
      */
     private Long                  seed;
     /** Configuration whose random source an unseeded precision generator keeps; may be {@code null}. */
     private final GeneratorConfig config;
 
     public FloatGenerator() {
-        super(0f, 1f, null);
+        super(0f, 1f);
         this.precision = null;
         this.config = null;
     }
 
     public FloatGenerator(float min, float max) {
-        super(min, max, null);
+        super(min, max);
         this.precision = null;
         this.config = null;
     }
@@ -72,34 +71,17 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
         this(min, max, config, null);
     }
 
-    /**
-     * Creates a seeded generator over {@code [min, max)}.
-     *
-     * @param min  lower bound (inclusive)
-     * @param max  upper bound (exclusive)
-     * @param seed raw seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #FloatGenerator(float, float, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public FloatGenerator(float min, float max, long seed) {
-        super(min, max, seed);
-        this.precision = null;
-        this.seed = seed;
-        this.config = null;
-    }
-
     private FloatGenerator(float min, float max, Long seed, Integer precision) {
-        super(min, max, seed);
+        super(min, max);
         this.precision = precision;
-        this.seed = seed;
         this.config = null;
+        if (seed != null) {
+            reseed(seed);
+        }
     }
 
     private FloatGenerator(float min, float max, GeneratorConfig config, Integer precision) {
-        super(config, min, max);
+        super(min, max, config);
         this.precision = precision;
         this.seed = config.getSeed().isPresent() ? config.getSeed().getAsLong() : null;
         this.config = config;
@@ -112,7 +94,7 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
      * [{@code min}, {@code max}): a draw that rounds onto the exclusive maximum or below the
      * minimum is drawn again.
      *
-     * <p>The new generator keeps this generator's seed: it is seeded with the constructor seed or,
+     * <p>The new generator keeps this generator's seed: it is seeded with the configuration seed or,
      * after {@link #reseed(long)}, with the most recent reseed value, and starts from that seed's
      * initial state. A generator created from an unseeded configuration keeps that configuration's
      * random source; any other unseeded generator produces an unseeded precision generator.

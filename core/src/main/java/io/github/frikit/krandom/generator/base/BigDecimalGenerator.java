@@ -84,23 +84,6 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
         this(min, max, scale, Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
-    /**
-     * Custom range, scale, and PRNG seed for reproducible output.
-     *
-     * @param min   lower bound (inclusive)
-     * @param max   upper bound (inclusive)
-     * @param scale number of decimal places (must be &gt;= 0)
-     * @param seed  PRNG seed
-     * @deprecated raw seeds bypass replayable recipes; use
-     *             {@link #BigDecimalGenerator(BigDecimal, BigDecimal, int, GeneratorConfig)} with
-     *             {@code GeneratorConfig.builder().seed(seed).build()}, which produces the same
-     *             values.
-     */
-    @Deprecated(since = "2.6.0")
-    public BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale, long seed) {
-        this(min, max, scale, new Random(seed));
-    }
-
     private BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale, Random random) {
         Objects.requireNonNull(min, "min must not be null");
         Objects.requireNonNull(max, "max must not be null");
