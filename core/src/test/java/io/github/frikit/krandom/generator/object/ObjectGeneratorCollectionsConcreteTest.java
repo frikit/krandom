@@ -5,6 +5,9 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -110,10 +113,24 @@ class ObjectGeneratorCollectionsConcreteTest {
     }
 
     @Test
-    @DisplayName("non-constructible concrete map subtype resolves to null without throwing")
-    void nonConstructibleConcreteMapSubtypeResolvesToNull() {
-        NonConstructibleMapHolder value = assertDoesNotThrow(
+    @DisplayName("non-constructible concrete map subtype fails contextually in strict mode")
+    void nonConstructibleConcreteMapSubtypeFailsContextually() {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
             () -> new ObjectGenerator<>(NonConstructibleMapHolder.class).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
+        assertEquals("NonConstructibleMapHolder.customMap", context.path());
+        assertTrue(error.getCause() instanceof UnsupportedOperationException);
+    }
+
+    @Test
+    @DisplayName("non-constructible concrete map subtype resolves to null in lenient mode")
+    void nonConstructibleConcreteMapSubtypeResolvesToNullWhenLenient() {
+        GeneratorConfig config = GeneratorConfig.builder().objectIgnoreErrors(true).build();
+        NonConstructibleMapHolder value = assertDoesNotThrow(
+            () -> new ObjectGenerator<>(NonConstructibleMapHolder.class, config).generate());
         assertNull(value.customMap);
     }
 

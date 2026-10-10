@@ -38,6 +38,12 @@ dependencies {
     testImplementation(libs.logback.classic)
 }
 
+// Test fixtures keep their constructor parameter names so the object engine resolves constructor
+// arguments by name, as it does for consumers that compile with -parameters.
+tasks.compileTestJava {
+    options.compilerArgs.add("-parameters")
+}
+
 tasks.test {
     useJUnitPlatform()
     jvmArgs("-Xmx512m")

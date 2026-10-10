@@ -271,6 +271,50 @@ class FieldGeneratorResolverCollectionFallbackTest {
             Arguments.of("FailingMapConstructorHolder.values", FailingMapConstructorHolder.class));
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("nonConstructibleCollectionHolders")
+    @DisplayName("strict non-constructible collection subtype fails contextually instead of staying null")
+    void strictNonConstructibleCollectionFailsContextually(String expectedPath, Class<?> holderType) {
+        ObjectGenerationException error = assertThrows(
+            ObjectGenerationException.class,
+            () -> new ObjectGenerator<>(holderType, collectionFailureConfig(false)).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
+        assertEquals(GenerationOperation.CONSTRUCT, context.operation());
+        assertEquals(expectedPath, context.path());
+        assertTrue(error.getCause() instanceof UnsupportedOperationException);
+        assertTrue(error.getCause().getMessage().contains("no-argument constructor"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("nonConstructibleCollectionHolders")
+    @DisplayName("lenient non-constructible collection subtype returns null and notifies the listener")
+    void lenientNonConstructibleCollectionReturnsNull(String expectedPath, Class<?> holderType) throws Exception {
+        List<String> notifiedPaths = new ArrayList<>();
+        GeneratorConfig config = GeneratorConfig.builder()
+                                                .collectionSize(1, 1)
+                                                .objectIgnoreErrors(true)
+                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                                                .generationFailureListener(
+                                                    diagnostic -> notifiedPaths.add(diagnostic.context().path()))
+                                                .build();
+        Object holder = new ObjectGenerator<>(holderType, config).generate();
+        var field = holderType.getDeclaredField("values");
+        field.setAccessible(true);
+
+        assertNull(field.get(holder), expectedPath);
+        assertEquals(List.of(expectedPath), notifiedPaths);
+    }
+
+    private static Stream<Arguments> nonConstructibleCollectionHolders() {
+        return Stream.of(
+            Arguments.of("NonConstructibleListHolder.values", NonConstructibleListHolder.class),
+            Arguments.of("NonConstructibleSetHolder.values", NonConstructibleSetHolder.class),
+            Arguments.of("NonConstructibleQueueHolder.values", NonConstructibleQueueHolder.class),
+            Arguments.of("NonConstructibleMapHolder.values", NonConstructibleMapHolder.class));
+    }
+
     private static GeneratorConfig mapFailureConfig(boolean ignoreErrors) {
         return GeneratorConfig.builder()
                               .collectionSize(1, 1)
@@ -404,6 +448,26 @@ class FieldGeneratorResolverCollectionFallbackTest {
 
         private NoDefaultCtorMap(String ignored) {
         }
+    }
+
+    static final class NonConstructibleListHolder {
+
+        NoDefaultCtorList<String> values;
+    }
+
+    static final class NonConstructibleSetHolder {
+
+        NoDefaultCtorSet<String> values;
+    }
+
+    static final class NonConstructibleQueueHolder {
+
+        NoDefaultCtorQueue<String> values;
+    }
+
+    static final class NonConstructibleMapHolder {
+
+        NoDefaultCtorMap<String, Integer> values;
     }
 
     static final class ThrowingPutMap<K, V> extends LinkedHashMap<K, V> {

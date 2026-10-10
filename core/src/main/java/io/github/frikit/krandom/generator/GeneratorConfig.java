@@ -108,6 +108,7 @@ public final class GeneratorConfig {
     private final List<FieldGeneratorOverride>          objectPredicateFieldOverrides;
     private final List<ContextualFieldGeneratorOverride> objectContextualPredicateFieldOverrides;
     private final List<Predicate<Field>>                objectExclusionPredicates;
+    private final java.util.Set<String>                 objectExcludedFieldNames;
     private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates;
     private final Map<Class<?>, Class<?>>               objectSubtypes;
     private final Locale       locale;
@@ -165,6 +166,8 @@ public final class GeneratorConfig {
         this.objectContextualPredicateFieldOverrides =
             Collections.unmodifiableList(new ArrayList<>(b.objectContextualPredicateFieldOverrides));
         this.objectExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectExclusionPredicates));
+        this.objectExcludedFieldNames =
+            Collections.unmodifiableSet(new java.util.LinkedHashSet<>(b.objectExcludedFieldNames));
         this.objectTypeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectTypeExclusionPredicates));
         this.objectSubtypes = Collections.unmodifiableMap(new HashMap<>(b.objectSubtypes));
         this.locale = b.locale;
@@ -627,6 +630,17 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Returns {@code true} if {@link Builder#objectExcludeField(String)} excluded {@code name}.
+     *
+     * <p>Unlike {@link #shouldObjectExclude(Field)}, this answers for members that no field backs,
+     * such as constructor parameters.
+     */
+    public boolean isObjectFieldNameExcluded(String name) {
+        Objects.requireNonNull(name, "name must not be null");
+        return objectExcludedFieldNames.contains(name);
+    }
+
+    /**
      * Locale for locale-aware generators (names, addresses, etc.). Default: {@link Locale#US}.
      */
     public Locale getLocale() {
@@ -884,6 +898,7 @@ public final class GeneratorConfig {
         private final List<ContextualFieldGeneratorOverride> objectContextualPredicateFieldOverrides =
             new ArrayList<>();
         private final List<Predicate<Field>>                objectExclusionPredicates     = new ArrayList<>();
+        private final java.util.Set<String>                 objectExcludedFieldNames      = new java.util.LinkedHashSet<>();
         private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates = new ArrayList<>();
         private final Map<Class<?>, Class<?>>               objectSubtypes                = new HashMap<>();
         private Locale            locale            = Locale.US;
@@ -942,6 +957,7 @@ public final class GeneratorConfig {
             this.objectPredicateFieldOverrides.addAll(source.objectPredicateFieldOverrides);
             this.objectContextualPredicateFieldOverrides.addAll(source.objectContextualPredicateFieldOverrides);
             this.objectExclusionPredicates.addAll(source.objectExclusionPredicates);
+            this.objectExcludedFieldNames.addAll(source.objectExcludedFieldNames);
             this.objectTypeExclusionPredicates.addAll(source.objectTypeExclusionPredicates);
             this.objectSubtypes.putAll(source.objectSubtypes);
             this.locale = source.locale;
@@ -1309,6 +1325,11 @@ public final class GeneratorConfig {
 
         /**
          * Register a field-level override for object generation.
+         *
+         * <p>{@code fieldName} names a field, a record component, or a constructor parameter of
+         * {@code ownerType}. Constructor parameters match by name only when the owner was compiled
+         * with {@code -parameters}; otherwise they are addressed by position as
+         * {@code constructorArg0}, {@code constructorArg1}, and so on.
          */
         public <T extends @Nullable Object> Builder objectOverride(Class<?> ownerType, String fieldName, Generator<T> generator) {
             Objects.requireNonNull(ownerType, "ownerType must not be null");
@@ -1373,10 +1394,12 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Exclude all object fields whose name equals {@code name}.
+         * Exclude all object fields whose name equals {@code name}, and constructor parameters of
+         * that name even when no field backs them.
          */
         public Builder objectExcludeField(String name) {
             Objects.requireNonNull(name, "name must not be null");
+            objectExcludedFieldNames.add(name);
             return objectExclude(field -> field.getName().equals(name));
         }
 

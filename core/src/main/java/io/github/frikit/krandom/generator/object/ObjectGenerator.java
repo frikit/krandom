@@ -489,7 +489,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
         Constructor<T> canonical = type.getDeclaredConstructor(meta.paramTypes());
         ensureAccessible(canonical, type);
-        return canonical.newInstance(args);
+        try {
+            return canonical.newInstance(args);
+        } catch (IllegalArgumentException argumentMismatch) {
+            // An override or provider produced a value the canonical constructor cannot accept.
+            throw constructionFailure(argumentMismatch);
+        }
     }
 
     private static RecordMeta buildRecordMeta(Class<?> recordType) {
@@ -563,6 +568,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * parameter, through the property's backing field declared on the type or a superclass.
      */
     private boolean isExcludedConstructionMember(String memberName) {
+        // A name exclusion applies to the member itself, whether or not a field backs it.
+        if (config.getGeneratorConfig().isObjectFieldNameExcluded(memberName)) {
+            return true;
+        }
         for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
             try {
                 return config.shouldExclude(current.getDeclaredField(memberName));
@@ -666,8 +675,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Instantiate {@code type} without populating fields.
      *
      * <p>Attempts to use a no-arg constructor first (public or package-private). In safe mode, one
-     * unambiguous declared constructor is resolved when no no-arg constructor exists. The unsafe
-     * compatibility policy instead preserves the legacy Objenesis fallback.
+     * unambiguous declared constructor is resolved when no no-arg constructor exists; its parameters
+     * are resolved by name when the type was compiled with {@code -parameters} and as
+     * {@code constructorArg<index>} otherwise. The unsafe compatibility policy instead preserves the
+     * legacy Objenesis fallback.
      *
      * <p>Any {@link ReflectiveOperationException} thrown by {@link Constructor#newInstance}
      * (e.g. {@link java.lang.reflect.InvocationTargetException} when the constructor body
@@ -722,16 +733,29 @@ public final class ObjectGenerator<T> implements Generator<T> {
         Object[] arguments = new Object[parameters.length];
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
+            // Parameter names are only available when the owner was compiled with -parameters.
+            // With names, a parameter behaves like the field it initializes: by-name overrides,
+            // exclusions, and semantic resolution apply. Without names it is addressed by position.
+            String memberName = parameter.isNamePresent() ? parameter.getName() : "constructorArg" + index;
+            if (parameter.isNamePresent() && isExcludedConstructionMember(memberName)) {
+                arguments[index] = defaultForType(parameter.getType());
+                continue;
+            }
             arguments[index] = resolver.resolveAndGenerateMember(
                 parameter.getParameterizedType(),
                 parameter.getType(),
-                "constructorArg" + index,
+                memberName,
                 type,
                 depth,
                 parameter,
-                memberStreamIdentity(type, "constructor", Integer.toString(index)));
+                memberStreamIdentity(type, "constructor", memberName));
         }
-        return constructor.newInstance(arguments);
+        try {
+            return constructor.newInstance(arguments);
+        } catch (IllegalArgumentException argumentMismatch) {
+            // An override or provider produced a value the constructor cannot accept.
+            throw constructionFailure(argumentMismatch);
+        }
     }
 
     /**

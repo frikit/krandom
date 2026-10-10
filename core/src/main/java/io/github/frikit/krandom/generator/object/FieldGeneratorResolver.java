@@ -1204,6 +1204,12 @@ final class FieldGeneratorResolver {
         if (rawType == Set.class) {
             return new LinkedHashSet<>(values);
         }
+        if (rawType == java.util.EnumSet.class) {
+            // EnumSet is abstract and has no constructor; it must be created for its element type.
+            Set<Object> enumSet = newEnumSet(mostSpecific(elementType).rawClass());
+            addAllOrThrow(enumSet, values);
+            return enumSet;
+        }
         Set<Object> concrete = instantiateCollectionType(rawType, Set.class);
         if (concrete != null) {
             addAllOrThrow(concrete, values);
@@ -1278,6 +1284,10 @@ final class FieldGeneratorResolver {
             || rawType == NavigableMap.class) {
             return new TreeMap<>(sortedOrderFor(keyType));
         }
+        if (rawType == java.util.EnumMap.class) {
+            // EnumMap has no no-argument constructor; it must be created for its key type.
+            return newEnumMap(mostSpecific(keyType).rawClass());
+        }
         Map<Object, Object> concrete = instantiateCollectionType(rawType, Map.class);
         if (concrete != null) {
             return concrete;
@@ -1287,6 +1297,29 @@ final class FieldGeneratorResolver {
         }
         // Unknown concrete map subtype with no usable constructor.
         return null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Set<Object> newEnumSet(Class<?> enumType) {
+        return java.util.EnumSet.noneOf(requireEnum(enumType));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Map<Object, Object> newEnumMap(Class<?> enumType) {
+        return new java.util.EnumMap(requireEnum(enumType));
+    }
+
+    /**
+     * A wildcard such as {@code EnumSet<? extends Enum<?>>} resolves to {@link Enum} itself, which
+     * names no constants. Report it as a construction failure so the failure policy applies.
+     */
+    @SuppressWarnings("rawtypes")
+    private static Class requireEnum(Class<?> type) {
+        if (!type.isEnum()) {
+            throw new CollectionConstructionFailure(new IllegalArgumentException(
+                "EnumSet and EnumMap need a concrete enum type argument, got " + type.getName()));
+        }
+        return type;
     }
 
     @SuppressWarnings("unchecked")
@@ -1749,7 +1782,10 @@ final class FieldGeneratorResolver {
                 return handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, shortfall);
             }
             try {
-                return toSetType(rawType, elem, new ArrayList<>(values));
+                Set<Object> set = toSetType(rawType, elem, new ArrayList<>(values));
+                return set != null
+                       ? set
+                       : handleNonConstructibleCollection(rawType, genericType, ownerType, fieldName, currentDepth);
             } catch (CollectionInsertionFailure failure) {
                 return handleCollectionInsertionFailure(
                     ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
@@ -1776,10 +1812,12 @@ final class FieldGeneratorResolver {
                     elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
             }
             try {
-                if (List.class.isAssignableFrom(rawType)) {
-                    return toListType(rawType, els);
-                }
-                return toQueueType(rawType, elem, els);
+                Collection<Object> collection = List.class.isAssignableFrom(rawType)
+                                                ? toListType(rawType, els)
+                                                : toQueueType(rawType, elem, els);
+                return collection != null
+                       ? collection
+                       : handleNonConstructibleCollection(rawType, genericType, ownerType, fieldName, currentDepth);
             } catch (CollectionInsertionFailure failure) {
                 return handleCollectionInsertionFailure(
                     ownerType, fieldName, genericType, currentDepth, failure.insertionCause());
@@ -1807,7 +1845,7 @@ final class FieldGeneratorResolver {
                     ownerType, fieldName, genericType, currentDepth, failure.constructionCause());
             }
             if (map == null) {
-                return null;
+                return handleNonConstructibleCollection(rawType, genericType, ownerType, fieldName, currentDepth);
             }
             int elementCount = nextCollectionSize(element);
             int attempts = 0;
@@ -2110,6 +2148,26 @@ final class FieldGeneratorResolver {
                 context,
                 cause),
             null);
+    }
+
+    /**
+     * A concrete collection subtype that is neither built in nor instantiable through a no-argument
+     * constructor cannot be populated. Report it through the failure policy instead of silently
+     * leaving the member {@code null}: strict mode throws, lenient mode returns {@code null} and
+     * notifies the listener.
+     */
+    private Object handleNonConstructibleCollection(Class<?> rawType,
+                                                    Type declaredType,
+                                                    Class<?> ownerType,
+                                                    String fieldName,
+                                                    int depth) {
+        return handleCollectionConstructionFailure(
+            ownerType,
+            fieldName,
+            declaredType,
+            depth,
+            new UnsupportedOperationException(
+                "No usable no-argument constructor for " + rawType.getName()));
     }
 
     private Object handleCollectionConstructionFailure(Class<?> ownerType,

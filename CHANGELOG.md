@@ -163,6 +163,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- `EnumSet` and `EnumMap` members are generated as real `EnumSet` and `EnumMap` instances. Before,
+  an `EnumMap` field was silently left `null` in every mode without notifying the failure listener,
+  and an `EnumSet` record component failed with a raw `IllegalArgumentException`.
+- A concrete collection subtype without a usable no-argument constructor is reported through the
+  failure policy: strict mode throws a contextual `CONSTRUCTION` failure, lenient mode returns
+  `null` and notifies the listener. Previously the member was silently `null` in both modes.
+- A value that a record's canonical constructor or a class's single declared constructor cannot
+  accept (for example a by-name override of the wrong type) is a contextual `CONSTRUCTION` failure
+  instead of a raw `IllegalArgumentException`.
+- Constructor parameters of a class built through its single declared constructor are resolved by
+  parameter name when the class was compiled with `-parameters`: by-name overrides, exclusions
+  (`objectExcludeField` by parameter name, whether or not a field backs it, or `@Exclude` on the
+  backing field), and semantic providers such as `firstName` or `email` now apply, and
+  `ObjectFieldStreamPolicy.INDEPENDENT` keys the parameter stream by name. Without compiled
+  parameter names the positional `constructorArg<index>` keys remain and also become the
+  `INDEPENDENT` stream identity, which was previously the bare index. Seeded output for
+  constructor-built classes therefore changes in both cases. `GeneratorConfig` gains
+  `isObjectFieldNameExcluded(String)`.
 - A JUnit configuration created for `@BeforeAll` or constructor injection no longer leaks into test
   methods, so a method-level `@KrandomSeed` applies and the reported seed reproduces the failure.
 - Kotlin DSL rules on fields inherited from a superclass now apply instead of being ignored.
