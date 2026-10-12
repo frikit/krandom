@@ -41,9 +41,11 @@ java -version   # must report 21+
 - **Coverage**: `krandom-core` enforces exact 100% line, branch, instruction, method, class, and
   complexity coverage via JaCoCo; its report is uploaded to Codecov. New core code must be covered
   by tests. The integration modules (`jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`,
-  and `kotlin-dsl`) generate JaCoCo reports in `<module>/build/reports/jacoco/test` without a
-  coverage gate; the pre-commit summary prints their line and branch coverage. New integration
-  code still needs behavior tests.
+  and `kotlin-dsl`) generate JaCoCo reports in `<module>/build/reports/jacoco/test` and enforce
+  per-module line and branch floors (`integrationCoverageFloors` in the root `build.gradle.kts`,
+  set to the values measured when the floors were introduced); the pre-commit summary prints their
+  line and branch coverage. Raise a module's floor when you add tests; new integration code still
+  needs behavior tests.
 - **Mutation testing**: deterministic, safety-sensitive, object, and schema paths must retain at
   least an 85% mutation score and 98% mutated-class line coverage. Expand targets incrementally
   around meaningful branching, review survivors by behavior, and do not treat 100% as a goal when

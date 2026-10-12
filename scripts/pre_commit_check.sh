@@ -192,9 +192,10 @@ else
     fi
 fi
 
-step "Enforce coverage thresholds"
+step "Enforce coverage thresholds (core exact 100%, integration module floors)"
 COVERAGE_OK=0
-"${GRADLEW}" :core:jacocoTestCoverageVerification --quiet && COVERAGE_OK=1 || true
+# The unqualified task name runs the verification of every module that defines one.
+"${GRADLEW}" jacocoTestCoverageVerification --quiet && COVERAGE_OK=1 || true
 
 # ── Coverage report — always printed ──────────────────────────────────────────
 
@@ -284,7 +285,7 @@ printf "! = below %s%% threshold\n" "${COVERAGE_THRESHOLD}"
 
 # ── Integration modules: reported, not gated ──────────────────────────────────
 echo ""
-echo "Integration module coverage (informational; only core is gated):"
+echo "Integration module coverage (line/branch floors enforced by each module's jacocoTestCoverageVerification):"
 for report in "${REPO_ROOT}"/*/build/reports/jacoco/test/jacocoTestReport.csv; do
     [ -f "${report}" ] || continue
     module="${report#"${REPO_ROOT}/"}"
@@ -314,6 +315,6 @@ elif [ "${COVERAGE_OK}" -eq 1 ]; then
     echo -e " All pre-commit checks passed. Safe to commit."
     echo -e "============================================${RESET}"
 else
-    fail "Coverage below threshold — see core/build/jacoco/html/index.html"
+    fail "Coverage below threshold — see core/build/jacoco/html/index.html or <module>/build/reports/jacoco/test/html/index.html"
     exit 1
 fi

@@ -151,10 +151,24 @@ tasks.register("verifyReleaseSboms") {
     }
 }
 
-// Integration modules generate JaCoCo reports (build/reports/jacoco/test) for visibility. Only :core
-// enforces the exact 100% gate (core/build.gradle.kts) and uploads to Codecov.
+// Integration modules generate JaCoCo reports (build/reports/jacoco/test) and enforce the line and
+// branch floors below so coverage cannot regress silently. Only :core enforces the exact 100% gate
+// (core/build.gradle.kts) and uploads to Codecov.
 val coverageReportModules = jarModules - "core"
 val jacocoToolVersion = libs.versions.jacoco.get()
+
+// Covered ratios measured on 2026-10-12 (line to branch). Raise a floor when tests are added;
+// never lower one without a changelog entry explaining why.
+val integrationCoverageFloors = mapOf(
+    "jackson" to ("1.00" to "1.00"),
+    "junit" to ("0.97" to "0.93"),
+    "spring-boot-starter" to ("0.96" to "0.82"),
+    "kotest-extensions" to ("0.90" to "0.78"),
+    "kotlin-dsl" to ("0.85" to "0.85")
+)
+check(integrationCoverageFloors.keys == coverageReportModules) {
+    "integrationCoverageFloors must list exactly the integration modules: $coverageReportModules"
+}
 
 subprojects {
     if (name in coverageReportModules) {
@@ -171,6 +185,41 @@ subprojects {
         }
         tasks.withType<Test>().configureEach {
             finalizedBy("jacocoTestReport")
+        }
+        val (lineFloor, branchFloor) = integrationCoverageFloors.getValue(name)
+        // The module applies its JVM plugin after this block runs, so wire the tasks lazily.
+        pluginManager.withPlugin("java-base") {
+            // JaCoCo skips verification silently when no execution data exists; fail loudly instead.
+            val executionData = layout.buildDirectory.file("jacoco/test.exec")
+            val requireExecutionData = tasks.register("requireJacocoExecutionData") {
+                description = "Fails when the test task left no JaCoCo execution data to verify."
+                dependsOn("test")
+                doLast {
+                    check(executionData.get().asFile.isFile) {
+                        "No JaCoCo execution data at ${executionData.get().asFile}; the coverage floor cannot be verified"
+                    }
+                }
+            }
+            tasks.withType<JacocoCoverageVerification>().configureEach {
+                dependsOn(requireExecutionData)
+                violationRules {
+                    rule {
+                        limit {
+                            counter = "LINE"
+                            value = "COVEREDRATIO"
+                            minimum = lineFloor.toBigDecimal()
+                        }
+                        limit {
+                            counter = "BRANCH"
+                            value = "COVEREDRATIO"
+                            minimum = branchFloor.toBigDecimal()
+                        }
+                    }
+                }
+            }
+            tasks.named("check") {
+                dependsOn("jacocoTestCoverageVerification")
+            }
         }
     }
 }
