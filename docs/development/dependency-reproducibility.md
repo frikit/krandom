@@ -69,10 +69,18 @@ Dependabot cannot run the script, so its Gradle pull requests fail verification 
 artifacts. Minor and patch updates of the main build arrive as one grouped pull request each week;
 major updates arrive separately. For each such pull request:
 
-1. Check out its branch and run `./scripts/update_verification_metadata.sh`.
+1. Run `./scripts/fix_dependabot_pr.sh <pull-request-number>`. It checks the branch out into a
+   temporary worktree, runs `update_verification_metadata.sh` under every JDK in
+   `KRANDOM_METADATA_JDKS` (set it to a JDK 21 and a JDK 25 directory, colon-separated: CI on
+   Linux/Java 25 resolves POM and Gradle-module entries that a Java 21 run can miss), commits the
+   metadata on the branch, and prints the added components.
 2. Review the metadata diff with the checklist above; the new components should belong to the
    updated dependencies.
-3. Commit the metadata to the branch, push, and let CI verify it in strict mode.
+3. Push from the kept worktree with the command the script prints and let CI verify it in strict
+   mode (pass `--push` to the first run to push without the review pause). A rerun refuses to
+   touch a branch that is still checked out in a kept worktree or that carries local commits the
+   remote lacks. Dependabot stops rebasing a branch that carries manual commits; comment
+   `@dependabot rebase` if the base moves.
 
 The consumer examples under `examples/` receive separate Gradle and Maven pull requests, one per
 dependency across all example directories; they need no metadata update.

@@ -70,6 +70,9 @@ These scripts are run by hand; none of them is part of the pre-commit gate.
 
 - `scripts/update_verification_metadata.sh` records checksums for every CI and pre-commit task
   graph after a dependency update.
+- `scripts/fix_dependabot_pr.sh <pull-request-number>` runs that update for a Dependabot branch in
+  a temporary worktree under the JDKs in `KRANDOM_METADATA_JDKS` and commits the result; see
+  [dependency reproducibility](docs/development/dependency-reproducibility.md).
 - `scripts/upgrade_latest_gradle.sh` moves the Gradle wrapper to the latest release with its pinned
   distribution checksum; Dependabot normally proposes wrapper updates.
 - `scripts/verify_examples_local.sh` publishes the snapshot to Maven local and runs the consumer

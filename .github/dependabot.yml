@@ -1,8 +1,8 @@
 version: 2
 updates:
   # Main build. gradle/verification-metadata.xml pins artifact checksums that Dependabot cannot
-  # regenerate, so a Gradle update fails CI until a maintainer checks out its branch, runs
-  # ./scripts/update_verification_metadata.sh, reviews the diff, and pushes it
+  # regenerate, so a Gradle update fails CI until a maintainer runs
+  # ./scripts/fix_dependabot_pr.sh <number>, reviews the diff, and pushes it
   # (docs/development/dependency-reproducibility.md). Grouping minor and patch updates keeps that to
   # one branch per week; major updates still arrive separately for individual review.
   - package-ecosystem: gradle
