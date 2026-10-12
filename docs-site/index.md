@@ -27,6 +27,7 @@ This site is focused on the Java side only.
 - [Examples]({{ '/examples/' | relative_url }})
 - [Guides]({{ '/guides/' | relative_url }})
 - [FAQ]({{ '/faq/' | relative_url }})
+- [API Reference (Javadoc)](https://javadoc.io/doc/io.github.frikit/krandom-core)
 
 ## Design direction (current)
 

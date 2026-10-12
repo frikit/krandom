@@ -306,6 +306,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Documentation
 
+- Link the Javadoc API reference on javadoc.io from the README and the docs site, and align
+  `SECURITY.md` with the single-maintained-release policy in `VERSIONING.md`.
 - State that `krandom-jackson` targets Jackson 2.x while Spring Boot 4 defaults to Jackson 3, and
   document replay commands, clock semantics, class-scoped JUnit configurations, and `@KrandomTest`
   bean inclusion.
