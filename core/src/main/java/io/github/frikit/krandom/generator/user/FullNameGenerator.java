@@ -354,9 +354,9 @@ public final class FullNameGenerator implements Generator<String> {
         private final GeneratorConfig     config;
         private final FirstNameGenerator  firstNameGenerator;
         private final LastNameGenerator   lastNameGenerator;
-        private       TitleGenerator      titleGenerator;
-        private       SuffixGenerator     suffixGenerator;
-        private       MiddleNameGenerator middleNameGenerator;
+        private       @org.jspecify.annotations.Nullable TitleGenerator      titleGenerator;
+        private       @org.jspecify.annotations.Nullable SuffixGenerator     suffixGenerator;
+        private       @org.jspecify.annotations.Nullable MiddleNameGenerator middleNameGenerator;
 
         private NameGenerators(GeneratorConfig config,
                                FirstNameGenerator firstNameGenerator,

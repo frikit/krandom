@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator;
 
+import org.jspecify.annotations.Nullable;
+
 import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
@@ -83,7 +85,7 @@ public final class GenerationRecipe {
     private final String                    recipeVersion;
     private final String                    algorithm;
     private final long                      seed;
-    private final String                    seedText;
+    private final @Nullable String          seedText;
     private final Locale                    locale;
     private final Instant                   clockInstant;
     private final ZoneId                    clockZone;
@@ -233,7 +235,7 @@ public final class GenerationRecipe {
     }
 
     /** @return original textual seed, or {@code null} when a numeric seed was used */
-    public String getSeedText() {
+    public @Nullable String getSeedText() {
         return seedText;
     }
 
@@ -477,19 +479,19 @@ public final class GenerationRecipe {
         return value;
     }
 
-    private Integer integerSetting(String key) {
+    private @Nullable Integer integerSetting(String key) {
         String value = settings.get(key);
         return value == null ? null : Integer.valueOf(value);
     }
 
-    private static int requirePair(String key, Integer value) {
+    private static int requirePair(String key, @Nullable Integer value) {
         if (value == null) {
             throw new IllegalArgumentException("Recipe requires setting: " + key);
         }
         return value;
     }
 
-    private static String requirePair(String key, String value) {
+    private static String requirePair(String key, @Nullable String value) {
         if (value == null) {
             throw new IllegalArgumentException("Recipe requires setting: " + key);
         }
@@ -632,7 +634,7 @@ public final class GenerationRecipe {
         private String                    recipeVersion = RECIPE_VERSION;
         private String                    algorithm = ALGORITHM;
         private long                      seed;
-        private String                    seedText;
+        private @Nullable String          seedText;
         private Locale                    locale = Locale.US;
         private Instant                   clockInstant = Instant.EPOCH;
         private ZoneId                    clockZone = ZoneId.of("UTC");

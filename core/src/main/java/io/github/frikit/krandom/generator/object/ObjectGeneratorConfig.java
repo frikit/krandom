@@ -34,7 +34,7 @@ final class ObjectGeneratorConfig {
 
     private final GeneratorConfig generatorConfig;
 
-    private volatile Boolean portableRecipe;
+    private volatile @org.jspecify.annotations.Nullable Boolean portableRecipe;
 
     private ObjectGeneratorConfig(GeneratorConfig generatorConfig) {
         this.generatorConfig = Objects.requireNonNull(generatorConfig, "generatorConfig must not be null");
@@ -127,11 +127,11 @@ final class ObjectGeneratorConfig {
         return generatorConfig.getObjectUniquenessMaxAttempts();
     }
 
-    public LocalDate getDateMin() {
+    public @org.jspecify.annotations.Nullable LocalDate getDateMin() {
         return generatorConfig.getObjectDateMin();
     }
 
-    public LocalDate getDateMax() {
+    public @org.jspecify.annotations.Nullable LocalDate getDateMax() {
         return generatorConfig.getObjectDateMax();
     }
 
@@ -180,7 +180,7 @@ final class ObjectGeneratorConfig {
     public static final class Builder {
 
         private GeneratorConfig                             rootConfig;
-        private GeneratorConfig.Builder                     rootBuilder;
+        private GeneratorConfig.@org.jspecify.annotations.Nullable Builder rootBuilder;
         private final List<Consumer<GeneratorConfig.Builder>> localOperations = new ArrayList<>();
 
         private Builder(GeneratorConfig generatorConfig) {

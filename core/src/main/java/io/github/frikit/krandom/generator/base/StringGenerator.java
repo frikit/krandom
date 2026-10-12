@@ -210,8 +210,8 @@ public final class StringGenerator implements Generator<String> {
         private CharGenerator   charGenerator = CharGenerator.letters();
         private int             minLength     = 5;
         private int             maxLength     = 20;
-        private Long            seed          = null;
-        private GeneratorConfig config        = null;
+        private @org.jspecify.annotations.Nullable Long seed = null;
+        private @org.jspecify.annotations.Nullable GeneratorConfig config = null;
 
         /**
          * Character source for string generation; defaults to {@link CharGenerator#letters()}.

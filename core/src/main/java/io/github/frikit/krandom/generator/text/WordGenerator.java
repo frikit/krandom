@@ -167,7 +167,8 @@ public final class WordGenerator implements Generator<String> {
      * @param syllables optional syllable count (positive)
      * @param length    optional exact character length (positive)
      */
-    public record WordOptions(Integer syllables, Integer length) {
+    public record WordOptions(@org.jspecify.annotations.Nullable Integer syllables,
+                              @org.jspecify.annotations.Nullable Integer length) {
 
         public WordOptions {
             if (syllables != null && syllables <= 0) {

@@ -56,7 +56,8 @@ final class ObjectGenerationFailurePolicy {
         return () -> replayIdentity;
     }
 
-    <T> T handle(ObjectGenerationException failure, T fallback) {
+    @org.jspecify.annotations.Nullable Object handle(ObjectGenerationException failure,
+                                                     @org.jspecify.annotations.Nullable Object fallback) {
         Objects.requireNonNull(failure, "failure must not be null");
         GenerationFailureContext context = failure.getContext().orElseThrow(
             () -> new IllegalArgumentException("Failure policy requires structured context", failure));

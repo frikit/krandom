@@ -14,6 +14,7 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
@@ -51,9 +52,9 @@ final class SemanticCoherenceAdjuster {
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
     private final SemanticFieldRegistry semanticRegistry;
-    private final Long generationSeed;
+    private final @Nullable Long generationSeed;
     private final int depth;
-    private       AddressInfo addressInfo;
+    private       @Nullable AddressInfo addressInfo;
     private       boolean     addressInfoResolved;
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker) {
@@ -62,13 +63,13 @@ final class SemanticCoherenceAdjuster {
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
                               UniqueFieldTracker uniqueFieldTracker,
-                              Long generationSeed) {
+                              @Nullable Long generationSeed) {
         this(config, uniqueFieldTracker, generationSeed, 0);
     }
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
                               UniqueFieldTracker uniqueFieldTracker,
-                              Long generationSeed,
+                              @Nullable Long generationSeed,
                               int depth) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
@@ -104,7 +105,7 @@ final class SemanticCoherenceAdjuster {
     void adjustRecordArguments(Class<?> ownerType,
                                RecordComponent[] components,
                                Field[] backingFields,
-                               Object[] args) {
+                               @Nullable Object[] args) {
         Objects.requireNonNull(ownerType, "ownerType must not be null");
         Objects.requireNonNull(components, "components must not be null");
         Objects.requireNonNull(backingFields, "backingFields must not be null");
@@ -183,7 +184,7 @@ final class SemanticCoherenceAdjuster {
                            allowOverwriteExisting);
     }
 
-    private void assignAddressField(Slot slot,
+    private void assignAddressField(@Nullable Slot slot,
                                     String semanticKey,
                                     String value,
                                     boolean allowOverwriteExisting) {
@@ -197,7 +198,7 @@ final class SemanticCoherenceAdjuster {
         slot.setValue(applyUniqueness(slot, semanticKey, normalized));
     }
 
-    private AddressInfo coherentAddressInfo() {
+    private @Nullable AddressInfo coherentAddressInfo() {
         if (addressInfoResolved) {
             return addressInfo;
         }
@@ -213,19 +214,21 @@ final class SemanticCoherenceAdjuster {
         return addressInfo;
     }
 
-    private String harmonizeDomain(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
+    private @Nullable String harmonizeDomain(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
         Slot domainSlot = slotsBySemanticKey.get("domain");
-        String resolvedDomain = normalizeDomain(stringValue(domainSlot));
-        if (resolvedDomain != null) {
-            if (canAssign(domainSlot, allowOverwriteExisting)) {
-                Object assigned = applyUniqueness(domainSlot, "domain", resolvedDomain);
-                domainSlot.setValue(assigned);
-                resolvedDomain = normalizeDomain(stringValue(assigned));
+        if (domainSlot != null) {
+            String declaredDomain = normalizeDomain(stringValue(domainSlot.getValue()));
+            if (declaredDomain != null) {
+                if (canAssign(domainSlot, allowOverwriteExisting)) {
+                    Object assigned = applyUniqueness(domainSlot, "domain", declaredDomain);
+                    domainSlot.setValue(assigned);
+                    return normalizeDomain(stringValue(assigned));
+                }
+                return declaredDomain;
             }
-            return resolvedDomain;
         }
 
-        resolvedDomain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("email"))));
+        String resolvedDomain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("email"))));
         if (resolvedDomain == null) {
             resolvedDomain = normalizeDomain(urlHost(stringValue(slotsBySemanticKey.get("url"))));
         }
@@ -233,7 +236,7 @@ final class SemanticCoherenceAdjuster {
             resolvedDomain = normalizeDomain(domainFromCompany(stringValue(slotsBySemanticKey.get("companyname"))));
         }
 
-        if (resolvedDomain != null && canAssign(domainSlot, allowOverwriteExisting)) {
+        if (resolvedDomain != null && domainSlot != null && canAssign(domainSlot, allowOverwriteExisting)) {
             Object assigned = applyUniqueness(domainSlot, "domain", resolvedDomain);
             domainSlot.setValue(assigned);
             resolvedDomain = normalizeDomain(stringValue(assigned));
@@ -258,7 +261,9 @@ final class SemanticCoherenceAdjuster {
         fullNameSlot.setValue(applyUniqueness(fullNameSlot, "fullname", firstName + " " + lastName));
     }
 
-    private void harmonizeEmail(Map<String, Slot> slotsBySemanticKey, String resolvedDomain, boolean allowOverwriteExisting) {
+    private void harmonizeEmail(Map<String, Slot> slotsBySemanticKey,
+                                @Nullable String resolvedDomain,
+                                boolean allowOverwriteExisting) {
         Slot emailSlot = slotsBySemanticKey.get("email");
         if (emailSlot == null || !canAssign(emailSlot, allowOverwriteExisting)) {
             return;
@@ -283,7 +288,9 @@ final class SemanticCoherenceAdjuster {
         emailSlot.setValue(applyUniqueness(emailSlot, "email", localPart + "@" + domain));
     }
 
-    private void harmonizeCompanyEmail(Map<String, Slot> slotsBySemanticKey, String resolvedDomain, boolean allowOverwriteExisting) {
+    private void harmonizeCompanyEmail(Map<String, Slot> slotsBySemanticKey,
+                                       @Nullable String resolvedDomain,
+                                       boolean allowOverwriteExisting) {
         Slot companyEmailSlot = slotsBySemanticKey.get("companyemail");
         if (companyEmailSlot == null || !canAssign(companyEmailSlot, allowOverwriteExisting)) {
             return;
@@ -323,7 +330,9 @@ final class SemanticCoherenceAdjuster {
         urlSlot.setValue(applyUniqueness(urlSlot, "url", "https://www." + domain));
     }
 
-    private void harmonizeCompanyUrl(Map<String, Slot> slotsBySemanticKey, String resolvedDomain, boolean allowOverwriteExisting) {
+    private void harmonizeCompanyUrl(Map<String, Slot> slotsBySemanticKey,
+                                     @Nullable String resolvedDomain,
+                                     boolean allowOverwriteExisting) {
         Slot companyUrlSlot = slotsBySemanticKey.get("companyurl");
         if (companyUrlSlot == null || !canAssign(companyUrlSlot, allowOverwriteExisting)) {
             return;
@@ -488,7 +497,7 @@ final class SemanticCoherenceAdjuster {
         }
     }
 
-    private boolean canAssign(Slot slot, boolean allowOverwriteExisting) {
+    private boolean canAssign(@Nullable Slot slot, boolean allowOverwriteExisting) {
         if (slot == null || isProtected(slot)) {
             return false;
         }
@@ -530,7 +539,7 @@ final class SemanticCoherenceAdjuster {
         return false;
     }
 
-    Object applyUniqueness(Slot slot, String semanticKey, String candidate) {
+    @Nullable Object applyUniqueness(Slot slot, String semanticKey, @Nullable String candidate) {
         if (candidate == null || !isUniqueField(slot.fieldName(), semanticKey)) {
             return candidate;
         }
@@ -566,7 +575,7 @@ final class SemanticCoherenceAdjuster {
         return candidate + attempt;
     }
 
-    static String emailLocalPart(Map<String, Slot> slotsBySemanticKey) {
+    static @Nullable String emailLocalPart(Map<String, Slot> slotsBySemanticKey) {
         String firstName = normalizedHumanName(stringValue(slotsBySemanticKey.get("firstname")));
         String lastName = normalizedHumanName(stringValue(slotsBySemanticKey.get("lastname")));
         if (firstName != null && lastName != null) {
@@ -598,17 +607,17 @@ final class SemanticCoherenceAdjuster {
         return stringValue(slotsBySemanticKey.get("companyname")) != null ? "hello" : null;
     }
 
-    private static String domainFromCompany(String companyName) {
+    private static @Nullable String domainFromCompany(@Nullable String companyName) {
         String slug = slugFragment(companyName);
         return slug != null ? slug + ".com" : null;
     }
 
-    private static String normalizedHumanName(String value) {
+    private static @Nullable String normalizedHumanName(@Nullable String value) {
         String trimmed = stringValue(value);
         return trimmed == null ? null : trimmed.trim();
     }
 
-    static String slugFragment(String value) {
+    static @Nullable String slugFragment(@Nullable String value) {
         String trimmed = stringValue(value);
         if (trimmed == null) {
             return null;
@@ -623,7 +632,7 @@ final class SemanticCoherenceAdjuster {
         return slug.isEmpty() ? null : slug.toString();
     }
 
-    static String normalizeDomain(String candidate) {
+    static @Nullable String normalizeDomain(@Nullable String candidate) {
         String trimmed = stringValue(candidate);
         if (trimmed == null) {
             return null;
@@ -635,7 +644,7 @@ final class SemanticCoherenceAdjuster {
         return normalized.isBlank() ? null : normalized;
     }
 
-    static String emailDomain(String email) {
+    static @Nullable String emailDomain(@Nullable String email) {
         String trimmed = stringValue(email);
         if (trimmed == null) {
             return null;
@@ -644,7 +653,7 @@ final class SemanticCoherenceAdjuster {
         return atIndex >= 0 && atIndex + 1 < trimmed.length() ? trimmed.substring(atIndex + 1) : null;
     }
 
-    static String urlHost(String url) {
+    static @Nullable String urlHost(@Nullable String url) {
         String trimmed = stringValue(url);
         if (trimmed == null) {
             return null;
@@ -657,7 +666,7 @@ final class SemanticCoherenceAdjuster {
         }
     }
 
-    private static String stringValue(Object value) {
+    private static @Nullable String stringValue(@Nullable Object value) {
         if (value == null) {
             return null;
         }
@@ -665,11 +674,11 @@ final class SemanticCoherenceAdjuster {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    private static String stringValue(Slot slot) {
+    private static @Nullable String stringValue(@Nullable Slot slot) {
         return slot == null ? null : stringValue(slot.getValue());
     }
 
-    static Instant toInstant(Object value) {
+    static @Nullable Instant toInstant(@Nullable Object value) {
         if (value instanceof Instant instant) {
             return instant;
         }
@@ -698,7 +707,7 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    static LocalDate toLocalDate(Object value) {
+    static @Nullable LocalDate toLocalDate(@Nullable Object value) {
         if (value instanceof LocalDate localDate) {
             return localDate;
         }
@@ -706,11 +715,11 @@ final class SemanticCoherenceAdjuster {
         return instant != null ? instant.atOffset(ZoneOffset.UTC).toLocalDate() : null;
     }
 
-    static BigDecimal moneyValue(Slot slot) {
+    static @Nullable BigDecimal moneyValue(@Nullable Slot slot) {
         return slot == null ? null : moneyValue(slot.getValue());
     }
 
-    static BigDecimal moneyValue(Object value) {
+    static @Nullable BigDecimal moneyValue(@Nullable Object value) {
         if (value == null) {
             return null;
         }
@@ -736,7 +745,7 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    static Integer toInteger(Object value) {
+    static @Nullable Integer toInteger(@Nullable Object value) {
         if (value instanceof Integer integer) {
             return integer;
         }
@@ -764,7 +773,7 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    private String localeCurrentCountry() {
+    private @Nullable String localeCurrentCountry() {
         Locale locale = config.getGeneratorConfig().getLocale();
         boolean localeHasNoCountry = locale.getCountry().isBlank();
         boolean localeRegistered = config.getGeneratorConfig().getRegistryContext().isCountryRegistered(locale);
@@ -778,11 +787,11 @@ final class SemanticCoherenceAdjuster {
         return value.abs().setScale(2, RoundingMode.HALF_UP);
     }
 
-    static String currencyCode(Slot slot) {
+    static @Nullable String currencyCode(@Nullable Slot slot) {
         return slot == null ? null : currencyCode(slot.getValue());
     }
 
-    static String currencyCode(Object value) {
+    static @Nullable String currencyCode(@Nullable Object value) {
         if (value instanceof io.github.frikit.krandom.generator.finance.Currency currency) {
             return currency.getCode();
         }
@@ -809,7 +818,7 @@ final class SemanticCoherenceAdjuster {
         }
     }
 
-    static Object moneyValueFor(BigDecimal value, Class<?> rawType, String currencyCode) {
+    static @Nullable Object moneyValueFor(BigDecimal value, Class<?> rawType, @Nullable String currencyCode) {
         BigDecimal normalized = normalizeMoney(value);
         if (rawType == BigDecimal.class) {
             return normalized;
@@ -841,7 +850,9 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    static BigDecimal assignMoney(Slot slot, BigDecimal value, String currencyCode) {
+    static @Nullable BigDecimal assignMoney(@Nullable Slot slot,
+                                            @Nullable BigDecimal value,
+                                            @Nullable String currencyCode) {
         if (slot == null || value == null) {
             return value;
         }
@@ -853,11 +864,11 @@ final class SemanticCoherenceAdjuster {
         return normalizeMoney(value);
     }
 
-    static Boolean toBoolean(Object value) {
+    static @Nullable Boolean toBoolean(@Nullable Object value) {
         return value instanceof Boolean bool ? bool : null;
     }
 
-    boolean shouldFormatMoneyString(BigDecimal value, Slot slot, boolean allowOverwriteExisting) {
+    boolean shouldFormatMoneyString(@Nullable BigDecimal value, @Nullable Slot slot, boolean allowOverwriteExisting) {
         if (value == null || slot == null) {
             return false;
         }
@@ -867,7 +878,7 @@ final class SemanticCoherenceAdjuster {
         return canAssign(slot, allowOverwriteExisting);
     }
 
-    static boolean isLessThan(BigDecimal left, BigDecimal right) {
+    static boolean isLessThan(@Nullable BigDecimal left, @Nullable BigDecimal right) {
         if (left == null || right == null) {
             return false;
         }
@@ -883,7 +894,7 @@ final class SemanticCoherenceAdjuster {
         return LocalDate.now(clock);
     }
 
-    static Object fromAge(int age, Class<?> rawType) {
+    static @Nullable Object fromAge(int age, Class<?> rawType) {
         if (rawType == int.class || rawType == Integer.class) {
             return age;
         }
@@ -910,11 +921,11 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    private static Object fromLocalDate(LocalDate localDate, Class<?> rawType) {
+    private static @Nullable Object fromLocalDate(LocalDate localDate, Class<?> rawType) {
         return fromInstant(localDate.atStartOfDay().toInstant(ZoneOffset.UTC), rawType);
     }
 
-    static Boolean activeFromStatus(Object statusValue) {
+    static @Nullable Boolean activeFromStatus(@Nullable Object statusValue) {
         if (statusValue == null) {
             return null;
         }
@@ -928,7 +939,7 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    static Object statusValueFor(boolean active, Class<?> rawType) {
+    static @Nullable Object statusValueFor(boolean active, Class<?> rawType) {
         if (rawType == String.class) {
             return active ? "ACTIVE" : "INACTIVE";
         }
@@ -950,7 +961,7 @@ final class SemanticCoherenceAdjuster {
         return matches.getFirst();
     }
 
-    static Object fromInstant(Instant instant, Class<?> rawType) {
+    static @Nullable Object fromInstant(Instant instant, Class<?> rawType) {
         if (rawType == Instant.class) {
             return instant;
         }
@@ -979,7 +990,7 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    private static void assignConverted(Slot slot, Object converted) {
+    private static void assignConverted(Slot slot, @Nullable Object converted) {
         if (converted != null) {
             slot.setValue(converted);
         }
@@ -995,9 +1006,9 @@ final class SemanticCoherenceAdjuster {
 
         Field annotatedElement();
 
-        Object getValue();
+        @Nullable Object getValue();
 
-        void setValue(Object value);
+        void setValue(@Nullable Object value);
     }
 
     static final class ReflectionSlot implements Slot {
@@ -1054,7 +1065,7 @@ final class SemanticCoherenceAdjuster {
         }
 
         @Override
-        public Object getValue() {
+        public @Nullable Object getValue() {
             try {
                 return field.get(instance);
             } catch (IllegalAccessException e) {
@@ -1071,7 +1082,7 @@ final class SemanticCoherenceAdjuster {
         }
 
         @Override
-        public void setValue(Object value) {
+        public void setValue(@Nullable Object value) {
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
@@ -1106,10 +1117,14 @@ final class SemanticCoherenceAdjuster {
         private final Class<?> ownerType;
         private final RecordComponent component;
         private final Field backingField;
-        private final Object[] args;
+        private final @Nullable Object[] args;
         private final int index;
 
-        private RecordSlot(Class<?> ownerType, RecordComponent component, Field backingField, Object[] args, int index) {
+        private RecordSlot(Class<?> ownerType,
+                           RecordComponent component,
+                           Field backingField,
+                           @Nullable Object[] args,
+                           int index) {
             this.ownerType = ownerType;
             this.component = component;
             this.backingField = backingField;
@@ -1138,12 +1153,12 @@ final class SemanticCoherenceAdjuster {
         }
 
         @Override
-        public Object getValue() {
+        public @Nullable Object getValue() {
             return args[index];
         }
 
         @Override
-        public void setValue(Object value) {
+        public void setValue(@Nullable Object value) {
             args[index] = value;
         }
     }

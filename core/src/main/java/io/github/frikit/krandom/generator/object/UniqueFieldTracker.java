@@ -39,7 +39,7 @@ final class UniqueFieldTracker {
     private final Map<Class<?>, Optional<ObjectConstructionAdapter>> constructionAdapters = new HashMap<>();
 
     Optional<ObjectConstructionAdapter> constructionAdapter(Class<?> type,
-                                                            Function<Class<?>, ObjectConstructionAdapter> lookup) {
+                                                            Function<Class<?>, @org.jspecify.annotations.Nullable ObjectConstructionAdapter> lookup) {
         Optional<ObjectConstructionAdapter> adapter = constructionAdapters.get(type);
         if (adapter == null) {
             adapter = Optional.ofNullable(lookup.apply(type));

@@ -48,7 +48,9 @@ public class ObjectGenerationException extends RuntimeException {
      * @param context machine-readable generation context
      * @param cause   original cause
      */
-    public ObjectGenerationException(String message, GenerationFailureContext context, Throwable cause) {
+    public ObjectGenerationException(String message,
+                                     GenerationFailureContext context,
+                                     @org.jspecify.annotations.Nullable Throwable cause) {
         super(message, cause);
         this.context = Objects.requireNonNull(context, "context must not be null");
     }

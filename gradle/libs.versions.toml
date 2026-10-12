@@ -19,6 +19,9 @@ nmcp = "1.6.2"
 pitest = "1.19.0"
 pitest-core = "1.30.0"
 pitest-junit5-plugin = "1.2.3"
+errorprone = "2.50.0"
+errorprone-plugin = "5.1.1"
+nullaway = "0.14.2"
 
 [libraries]
 # Tools resolved by the JaCoCo and PIT Gradle plugins (core/build.gradle.kts reads the versions);
@@ -26,6 +29,9 @@ pitest-junit5-plugin = "1.2.3"
 jacoco-agent = { module = "org.jacoco:org.jacoco.agent", version.ref = "jacoco" }
 pitest-command-line = { module = "org.pitest:pitest-command-line", version.ref = "pitest-core" }
 pitest-junit5-plugin = { module = "org.pitest:pitest-junit5-plugin", version.ref = "pitest-junit5-plugin" }
+# Nullness verification for core main sources (core/build.gradle.kts): Error Prone runs NullAway only.
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -52,3 +58,4 @@ spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 cyclonedx = { id = "org.cyclonedx.bom", version.ref = "cyclonedx" }
 nmcp-aggregation = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }
 pitest = { id = "info.solidsoft.pitest", version.ref = "pitest" }
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }

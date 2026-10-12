@@ -33,7 +33,7 @@ public final class StreetAddressDataRegistry {
     /**
      * Returns provider for locale.
      */
-    public static StreetAddressDataProvider forLocale(Locale locale) {
+    public static @org.jspecify.annotations.Nullable StreetAddressDataProvider forLocale(Locale locale) {
         return RegistryLookup.findWithFallback(providers, locale);
     }
 

@@ -69,7 +69,7 @@ public final class SemanticFieldRegistry {
      * @param fieldName field name to look up
      * @return canonical semantic key, or {@code null} when no alias matches
      */
-    public String semanticKeyForFieldName(String fieldName) {
+    public @org.jspecify.annotations.Nullable String semanticKeyForFieldName(String fieldName) {
         return keysByAlias.get(normalizeFieldName(fieldName));
     }
 
@@ -89,7 +89,7 @@ public final class SemanticFieldRegistry {
      * @param semanticKey canonical or aliased semantic key
      * @return provider name, or {@code null} when the key is not provider-backed
      */
-    public String semanticProviderNameFor(String semanticKey) {
+    public @org.jspecify.annotations.Nullable String semanticProviderNameFor(String semanticKey) {
         return providerNamesByKey.get(canonicalKeyFor(semanticKey));
     }
 

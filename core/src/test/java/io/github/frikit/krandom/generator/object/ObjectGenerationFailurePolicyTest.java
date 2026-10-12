@@ -67,7 +67,7 @@ class ObjectGenerationFailurePolicyTest {
         try {
             List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
             String fallback = new String("fallback");
-            String result = new ObjectGenerationFailurePolicy(true, diagnostics::add).handle(failure(), fallback);
+            Object result = new ObjectGenerationFailurePolicy(true, diagnostics::add).handle(failure(), fallback);
 
             assertSame(fallback, result);
             GenerationFailureDiagnostic diagnostic = diagnostics.getFirst();

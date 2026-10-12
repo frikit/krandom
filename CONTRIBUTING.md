@@ -48,6 +48,9 @@ java -version   # must report 21+
   least an 85% mutation score and 98% mutated-class line coverage. Expand targets incrementally
   around meaningful branching, review survivors by behavior, and do not treat 100% as a goal when
   equivalent or implementation-only mutations remain.
+- **Nullness**: every `krandom-core` package is `@NullMarked` (JSpecify), and `compileJava` runs
+  NullAway in JSpecify mode through Error Prone, so a missing `@Nullable` or a possible `null`
+  dereference fails compilation. Test sources are not checked.
 - **Module boundaries**: `scripts/verify_module_boundaries.sh` requires a unique JPMS module name
   for every published jar and rejects packages split across published jars.
 - **Release SBOMs**: `./gradlew verifyReleaseSboms` generates and validates the CycloneDX JSON and XML

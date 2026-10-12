@@ -92,8 +92,8 @@ public final class GeneratorConfig {
     private final ObjectConstructionPolicy objectConstructionPolicy;
     private final boolean      objectIgnoreErrors;
     private final GenerationFailureListener generationFailureListener;
-    private final LocalDate    objectDateMin;
-    private final LocalDate    objectDateMax;
+    private final @Nullable LocalDate objectDateMin;
+    private final @Nullable LocalDate objectDateMax;
     private final ObjectGenerationSemanticMode objectSemanticMode;
     private final ObjectFieldStreamPolicy objectFieldStreamPolicy;
     private final SemanticFieldRegistry objectSemanticRegistry;
@@ -112,8 +112,8 @@ public final class GeneratorConfig {
     private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates;
     private final Map<Class<?>, Class<?>>               objectSubtypes;
     private final Locale       locale;
-    private final Random       random;
-    private final Supplier<Random> randomFactory;
+    private final @Nullable Random random;
+    private final @Nullable Supplier<Random> randomFactory;
     private final DataRegistryContext registryContext;
     private final Clock        clock;
     private final boolean      secureRandom;
@@ -493,14 +493,14 @@ public final class GeneratorConfig {
     /**
      * Earliest date used for object-generated temporal fields, or {@code null} for built-in defaults.
      */
-    public LocalDate getObjectDateMin() {
+    public @Nullable LocalDate getObjectDateMin() {
         return objectDateMin;
     }
 
     /**
      * Latest date used for object-generated temporal fields, or {@code null} for built-in defaults.
      */
-    public LocalDate getObjectDateMax() {
+    public @Nullable LocalDate getObjectDateMax() {
         return objectDateMax;
     }
 
@@ -878,8 +878,8 @@ public final class GeneratorConfig {
         private ObjectConstructionPolicy objectConstructionPolicy = ObjectConstructionPolicy.SAFE_CONSTRUCTORS;
         private boolean           objectIgnoreErrors;
         private GenerationFailureListener generationFailureListener = NO_FAILURE_LISTENER;
-        private LocalDate         objectDateMin;
-        private LocalDate         objectDateMax;
+        private @Nullable LocalDate objectDateMin;
+        private @Nullable LocalDate objectDateMax;
         private ObjectGenerationSemanticMode objectSemanticMode = ObjectGenerationSemanticMode.RELAXED;
         private ObjectFieldStreamPolicy objectFieldStreamPolicy = ObjectFieldStreamPolicy.LEGACY;
         private SemanticFieldRegistry objectSemanticRegistry = SemanticFieldRegistry.defaults();
@@ -902,8 +902,8 @@ public final class GeneratorConfig {
         private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates = new ArrayList<>();
         private final Map<Class<?>, Class<?>>               objectSubtypes                = new HashMap<>();
         private Locale            locale            = Locale.US;
-        private Random            random;
-        private Supplier<Random>  randomFactory;
+        private @Nullable Random  random;
+        private @Nullable Supplier<Random> randomFactory;
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
         private Clock             clock             = Clock.systemDefaultZone();
         private boolean           secureRandom;

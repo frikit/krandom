@@ -61,7 +61,7 @@ public final class CountryDataRegistry {
      *
      * @return the provider, or {@code null} if none is registered for the locale or its language
      */
-    public static CountryDataProvider forLocale(Locale locale) {
+    public static @org.jspecify.annotations.Nullable CountryDataProvider forLocale(Locale locale) {
         return RegistryLookup.findWithFallback(REGISTRY, locale);
     }
 

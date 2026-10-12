@@ -29,6 +29,7 @@ import jakarta.validation.constraints.Size;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -98,11 +99,11 @@ final class BeanValidationSupport {
         boolean constrained,
         boolean nullOnly,
         boolean required,
-        SizeRange size,
-        NumericRange numeric,
-        Boolean assertion,
-        TemporalConstraint temporal,
-        TextConstraint text
+        @Nullable SizeRange size,
+        @Nullable NumericRange numeric,
+        @Nullable Boolean assertion,
+        @Nullable TemporalConstraint temporal,
+        @Nullable TextConstraint text
     ) {
 
         private static final ConstraintModel NONE =
@@ -131,15 +132,17 @@ final class BeanValidationSupport {
      * @param rawType the field's erasure
      * @return a constraint-respecting generator, or {@code null}
      */
-    static Generator<?> constraintGeneratorFor(AnnotatedElement element, Class<?> rawType) {
+    static @Nullable Generator<?> constraintGeneratorFor(@Nullable AnnotatedElement element, Class<?> rawType) {
         return constraintGeneratorFor(element, rawType, new Random(), Clock.systemDefaultZone());
     }
 
-    static Generator<?> constraintGeneratorFor(AnnotatedElement element, Class<?> rawType, Random random) {
+    static @Nullable Generator<?> constraintGeneratorFor(@Nullable AnnotatedElement element,
+                                                         Class<?> rawType,
+                                                         Random random) {
         return constraintGeneratorFor(element, rawType, random, Clock.systemDefaultZone());
     }
 
-    static Generator<?> constraintGeneratorFor(AnnotatedElement element,
+    static @Nullable Generator<?> constraintGeneratorFor(@Nullable AnnotatedElement element,
                                                Class<?> rawType,
                                                Random random,
                                                Clock clock) {
@@ -147,7 +150,7 @@ final class BeanValidationSupport {
         return constraintGeneratorFor(element, rawType, random, clock, constraints);
     }
 
-    static Generator<?> constraintGeneratorFor(AnnotatedElement element,
+    static @Nullable Generator<?> constraintGeneratorFor(@Nullable AnnotatedElement element,
                                                Class<?> rawType,
                                                Random random,
                                                Clock clock,
@@ -175,7 +178,7 @@ final class BeanValidationSupport {
         return temporalGeneratorFor(constraints.temporal(), rawType, random, clock);
     }
 
-    static ConstraintModel constraintModelFor(AnnotatedElement element, Class<?> rawType) {
+    static ConstraintModel constraintModelFor(@Nullable AnnotatedElement element, Class<?> rawType) {
         if (element == null) {
             return ConstraintModel.NONE;
         }
@@ -233,7 +236,7 @@ final class BeanValidationSupport {
             text);
     }
 
-    static SizeRange sizeRangeFor(AnnotatedElement element) {
+    static @Nullable SizeRange sizeRangeFor(@Nullable AnnotatedElement element) {
         Size size = annotation(element, Size.class);
         boolean requiresContent = annotation(element, NotEmpty.class) != null
                                   || annotation(element, NotBlank.class) != null;
@@ -261,11 +264,11 @@ final class BeanValidationSupport {
                || java.util.Map.class.isAssignableFrom(rawType);
     }
 
-    private static TextConstraint textConstraintFor(AnnotatedElement element,
-                                                    Class<?> rawType,
-                                                    SizeRange size,
-                                                    boolean nonBlank,
-                                                    NumericRange numeric) {
+    private static @Nullable TextConstraint textConstraintFor(AnnotatedElement element,
+                                                              Class<?> rawType,
+                                                              @Nullable SizeRange size,
+                                                              boolean nonBlank,
+                                                              @Nullable NumericRange numeric) {
         Email email = annotation(element, Email.class);
         List<Pattern> patternAnnotations = annotations(element, Pattern.class);
         boolean hasTextAnnotation = email != null || !patternAnnotations.isEmpty();
@@ -349,9 +352,9 @@ final class BeanValidationSupport {
 
     record TextConstraint(boolean email,
                           List<TextPattern> patterns,
-                          SizeRange size,
+                          @Nullable SizeRange size,
                           boolean nonBlank,
-                          NumericRange numeric) {
+                          @Nullable NumericRange numeric) {
 
         boolean accepts(String candidate) {
             if (size != null && (candidate.length() < size.min() || candidate.length() > size.max())) {
@@ -394,7 +397,7 @@ final class BeanValidationSupport {
         return true;
     }
 
-    static int sizeFor(AnnotatedElement element, Random random, int defaultMin, int defaultMax) {
+    static int sizeFor(@Nullable AnnotatedElement element, Random random, int defaultMin, int defaultMax) {
         SizeRange range = sizeRangeFor(element);
         if (range == null) {
             return defaultMin == defaultMax ? defaultMin : random.nextInt(defaultMin, defaultMax + 1);
@@ -426,7 +429,7 @@ final class BeanValidationSupport {
         };
     }
 
-    private static Generator<String> numericStringGeneratorFor(NumericRange range, Random random) {
+    private static @Nullable Generator<String> numericStringGeneratorFor(@Nullable NumericRange range, Random random) {
         if (range == null) {
             return null;
         }
@@ -437,7 +440,9 @@ final class BeanValidationSupport {
         return () -> randomBigInteger(random, integral.min(), integral.max()).toString();
     }
 
-    private static Generator<?> numericGeneratorFor(NumericRange range, Class<?> rawType, Random random) {
+    private static @Nullable Generator<?> numericGeneratorFor(@Nullable NumericRange range,
+                                                              Class<?> rawType,
+                                                              Random random) {
         if (range == null) {
             return null;
         }
@@ -472,7 +477,7 @@ final class BeanValidationSupport {
         return () -> randomBigDecimal(random, range);
     }
 
-    private static Generator<?> temporalGeneratorFor(TemporalConstraint constraint,
+    private static @Nullable Generator<?> temporalGeneratorFor(@Nullable TemporalConstraint constraint,
                                                      Class<?> rawType,
                                                      Random random,
                                                      Clock clock) {
@@ -560,7 +565,8 @@ final class BeanValidationSupport {
         return boundary;
     }
 
-    private static TemporalConstraint temporalConstraintFor(AnnotatedElement element, Class<?> rawType) {
+    private static @Nullable TemporalConstraint temporalConstraintFor(@Nullable AnnotatedElement element,
+                                                                      Class<?> rawType) {
         boolean futureOnly = annotation(element, Future.class) != null;
         boolean futureOrPresent = annotation(element, FutureOrPresent.class) != null;
         boolean pastOnly = annotation(element, Past.class) != null;
@@ -605,7 +611,7 @@ final class BeanValidationSupport {
 
     record TemporalConstraint(TemporalDirection direction) {}
 
-    private static Boolean assertionFor(AnnotatedElement element, Class<?> rawType) {
+    private static @Nullable Boolean assertionFor(@Nullable AnnotatedElement element, Class<?> rawType) {
         boolean assertedTrue = annotation(element, AssertTrue.class) != null;
         boolean assertedFalse = annotation(element, AssertFalse.class) != null;
         if (!assertedTrue && !assertedFalse) {
@@ -631,7 +637,7 @@ final class BeanValidationSupport {
                || annotation(element, NegativeOrZero.class) != null;
     }
 
-    private static NumericRange numericRangeFor(AnnotatedElement element, Class<?> rawType) {
+    private static @Nullable NumericRange numericRangeFor(AnnotatedElement element, Class<?> rawType) {
         if (!hasNumericConstraint(element)) {
             return null;
         }
@@ -720,28 +726,32 @@ final class BeanValidationSupport {
                || rawType == BigInteger.class;
     }
 
-    private static IntegralRange integralRangeFor(NumericRange range, Class<?> rawType) {
-        BigInteger domainMin = null;
-        BigInteger domainMax = null;
-        if (rawType == byte.class || rawType == Byte.class) {
-            domainMin = BigInteger.valueOf(Byte.MIN_VALUE);
-            domainMax = BigInteger.valueOf(Byte.MAX_VALUE);
-        } else if (rawType == short.class || rawType == Short.class) {
-            domainMin = BigInteger.valueOf(Short.MIN_VALUE);
-            domainMax = BigInteger.valueOf(Short.MAX_VALUE);
-        } else if (rawType == int.class || rawType == Integer.class) {
-            domainMin = BigInteger.valueOf(Integer.MIN_VALUE);
-            domainMax = BigInteger.valueOf(Integer.MAX_VALUE);
-        } else if (rawType != BigInteger.class) {
-            domainMin = BigInteger.valueOf(Long.MIN_VALUE);
-            domainMax = BigInteger.valueOf(Long.MAX_VALUE);
-        }
+    /** The value domain of a bounded integral target type; {@code null} for {@link BigInteger}. */
+    private record IntegralDomain(BigInteger min, BigInteger max) {}
 
+    private static @Nullable IntegralDomain integralDomainFor(Class<?> rawType) {
+        if (rawType == byte.class || rawType == Byte.class) {
+            return new IntegralDomain(BigInteger.valueOf(Byte.MIN_VALUE), BigInteger.valueOf(Byte.MAX_VALUE));
+        }
+        if (rawType == short.class || rawType == Short.class) {
+            return new IntegralDomain(BigInteger.valueOf(Short.MIN_VALUE), BigInteger.valueOf(Short.MAX_VALUE));
+        }
+        if (rawType == int.class || rawType == Integer.class) {
+            return new IntegralDomain(BigInteger.valueOf(Integer.MIN_VALUE), BigInteger.valueOf(Integer.MAX_VALUE));
+        }
+        if (rawType != BigInteger.class) {
+            return new IntegralDomain(BigInteger.valueOf(Long.MIN_VALUE), BigInteger.valueOf(Long.MAX_VALUE));
+        }
+        return null;
+    }
+
+    private static IntegralRange integralRangeFor(NumericRange range, Class<?> rawType) {
+        IntegralDomain domain = integralDomainFor(rawType);
         BigInteger min = smallestInteger(range.lower());
         BigInteger max = largestInteger(range.upper());
-        if (domainMin != null) {
-            min = min == null ? domainMin : min.max(domainMin);
-            max = max == null ? domainMax : max.min(domainMax);
+        if (domain != null) {
+            min = min == null ? domain.min() : min.max(domain.min());
+            max = max == null ? domain.max() : max.min(domain.max());
         } else if (min == null) {
             min = Objects.requireNonNull(max).subtract(DECIMAL_DEFAULT_SPAN.toBigIntegerExact());
         } else if (max == null) {
@@ -753,7 +763,7 @@ final class BeanValidationSupport {
         return new IntegralRange(min, max);
     }
 
-    private static BigInteger smallestInteger(NumericBound lower) {
+    private static @Nullable BigInteger smallestInteger(@Nullable NumericBound lower) {
         if (lower == null) {
             return null;
         }
@@ -764,7 +774,7 @@ final class BeanValidationSupport {
         return value;
     }
 
-    private static BigInteger largestInteger(NumericBound upper) {
+    private static @Nullable BigInteger largestInteger(@Nullable NumericBound upper) {
         if (upper == null) {
             return null;
         }
@@ -791,7 +801,7 @@ final class BeanValidationSupport {
         return new FloatingRange(min, max);
     }
 
-    private static Double floatingLower(NumericBound lower, boolean singlePrecision, double magnitude) {
+    private static @Nullable Double floatingLower(@Nullable NumericBound lower, boolean singlePrecision, double magnitude) {
         if (lower == null) {
             return null;
         }
@@ -812,7 +822,7 @@ final class BeanValidationSupport {
         return candidate;
     }
 
-    private static Double floatingUpper(NumericBound upper, boolean singlePrecision, double magnitude) {
+    private static @Nullable Double floatingUpper(@Nullable NumericBound upper, boolean singlePrecision, double magnitude) {
         if (upper == null) {
             return null;
         }
@@ -839,7 +849,7 @@ final class BeanValidationSupport {
 
     record NumericBound(BigDecimal value, boolean inclusive) {}
 
-    record NumericRange(NumericBound lower, NumericBound upper, boolean decimal) {}
+    record NumericRange(@Nullable NumericBound lower, @Nullable NumericBound upper, boolean decimal) {}
 
     private record IntegralRange(BigInteger min, BigInteger max) {}
 
@@ -884,7 +894,8 @@ final class BeanValidationSupport {
         return Math.min(value, max);
     }
 
-    private static <A extends java.lang.annotation.Annotation> A annotation(AnnotatedElement element, Class<A> type) {
+    private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(@Nullable AnnotatedElement element,
+                                                                                      Class<A> type) {
         if (element == null) {
             return null;
         }
@@ -961,7 +972,7 @@ final class BeanValidationSupport {
         return List.of();
     }
 
-    private static <A extends java.lang.annotation.Annotation> A accessorAnnotation(Field field, Class<A> type) {
+    private static <A extends java.lang.annotation.Annotation> @Nullable A accessorAnnotation(Field field, Class<A> type) {
         String capitalized = Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
         String[] names = field.getType() == boolean.class || field.getType() == Boolean.class
                          ? new String[] { field.getName(), "is" + capitalized, "get" + capitalized }
@@ -979,7 +990,7 @@ final class BeanValidationSupport {
         return null;
     }
 
-    private static <A extends java.lang.annotation.Annotation> A interfaceMethodAnnotation(Class<?> owner,
+    private static <A extends java.lang.annotation.Annotation> @Nullable A interfaceMethodAnnotation(Class<?> owner,
                                                                                            String name,
                                                                                            Class<A> type) {
         for (Method method : ACCESSOR_METHODS.get(owner).interfaces().getOrDefault(name, List.of())) {
@@ -991,7 +1002,7 @@ final class BeanValidationSupport {
         return null;
     }
 
-    private static <A extends java.lang.annotation.Annotation> A declaredMethodAnnotation(Class<?> owner,
+    private static <A extends java.lang.annotation.Annotation> @Nullable A declaredMethodAnnotation(Class<?> owner,
                                                                                           String name,
                                                                                           Class<A> type) {
         for (Method method : ACCESSOR_METHODS.get(owner).declared().getOrDefault(name, List.of())) {

@@ -104,7 +104,8 @@ public final class HttpFixtureGenerator implements Generator<HttpFixture> {
      */
     public HttpStatus status() {
         int code = next(STATUS_CODES);
-        return new HttpStatus(code, REASONS.get(code));
+        // Every entry of STATUS_CODES has a reason phrase.
+        return new HttpStatus(code, Objects.requireNonNull(REASONS.get(code)));
     }
 
     /**

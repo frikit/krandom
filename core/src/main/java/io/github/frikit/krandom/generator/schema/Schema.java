@@ -714,7 +714,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append('"');
     }
 
-    static void appendSqlValue(Appendable out, Object value) throws IOException {
+    static void appendSqlValue(Appendable out, @org.jspecify.annotations.Nullable Object value) throws IOException {
         value = normalizeStructuredValue(value);
         if (value == null) {
             out.append("NULL");
@@ -750,7 +750,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append('\'');
     }
 
-    static void appendJsonValue(Appendable out, Object value) throws IOException {
+    static void appendJsonValue(Appendable out, @org.jspecify.annotations.Nullable Object value) throws IOException {
         value = normalizeStructuredValue(value);
         if (value == null) {
             out.append("null");
@@ -1121,7 +1121,7 @@ public final class Schema implements Generator<Map<String, Object>> {
                || value.endsWith(" ");
     }
 
-    static String toCsvCell(Object value) {
+    static String toCsvCell(@org.jspecify.annotations.Nullable Object value) {
         Object normalized = normalizeStructuredValue(value);
         if (normalized == null) {
             return "";
@@ -1148,11 +1148,12 @@ public final class Schema implements Generator<Map<String, Object>> {
         return builder.toString();
     }
 
-    static Object normalizeStructuredValue(Object value) {
+    static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(@org.jspecify.annotations.Nullable Object value) {
         return normalizeStructuredValue(value, "");
     }
 
-    private static Object normalizeStructuredValue(Object value, String componentPath) {
+    private static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(
+        @org.jspecify.annotations.Nullable Object value, String componentPath) {
         if (value == null
             || value instanceof CharSequence
             || value instanceof Character

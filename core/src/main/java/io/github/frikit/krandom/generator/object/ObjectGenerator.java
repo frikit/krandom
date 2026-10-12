@@ -12,6 +12,7 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import org.jspecify.annotations.Nullable;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
@@ -139,11 +140,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private final Class<T>              type;
     private final ObjectGeneratorConfig config;
-    private final ObjectPool            pool;
+    private final @Nullable ObjectPool  pool;
     private final UniqueFieldTracker    uniqueFieldTracker;
     private final int                   depth;
-    private final Long                  generationSeed;
-    private final Random                topLevelSeedSequence;
+    private final @Nullable Long        generationSeed;
+    private final @Nullable Random      topLevelSeedSequence;
     private final Map<TypeVariable<?>, Type> typeBindings;
     private final String                objectPath;
 
@@ -186,8 +187,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     ObjectGenerator(Class<T> type,
                     ObjectGeneratorConfig config,
                     int depth,
-                    ObjectPool pool,
-                    Long generationSeed,
+                    @Nullable ObjectPool pool,
+                    @Nullable Long generationSeed,
                     UniqueFieldTracker uniqueFieldTracker) {
         this(type,
              config,
@@ -201,8 +202,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     ObjectGenerator(Class<T> type,
                     ObjectGeneratorConfig config,
                     int depth,
-                    ObjectPool pool,
-                    Long generationSeed,
+                    @Nullable ObjectPool pool,
+                    @Nullable Long generationSeed,
                     UniqueFieldTracker uniqueFieldTracker,
                     Map<? extends TypeVariable<?>, ? extends Type> typeBindings) {
         this(type,
@@ -218,8 +219,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     ObjectGenerator(Class<T> type,
                     ObjectGeneratorConfig config,
                     int depth,
-                    ObjectPool pool,
-                    Long generationSeed,
+                    @Nullable ObjectPool pool,
+                    @Nullable Long generationSeed,
                     UniqueFieldTracker uniqueFieldTracker,
                     Map<? extends TypeVariable<?>, ? extends Type> typeBindings,
                     String objectPath) {
@@ -245,7 +246,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Used when a record component is excluded from generation.
      * Each primitive type gets its exact wrapper to satisfy {@link java.lang.reflect.Constructor#newInstance}.
      */
-    private static Object defaultForType(Class<?> type) {
+    private static @Nullable Object defaultForType(Class<?> type) {
         if (type == boolean.class) return false;
         if (type == byte.class) return (byte) 0;
         if (type == short.class) return (short) 0;
@@ -353,6 +354,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
+    // Lenient mode deliberately returns the null fallback of a failed root factory from a
+    // non-null generator contract; that documented behavior is kept rather than widened.
+    @SuppressWarnings("NullAway")
     private T generateFromRootFactory(String factoryKind, Supplier<?> factory) {
         try {
             Object value = factory.get();
@@ -457,7 +461,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
-    private Long nextGenerationSeed() {
+    private @Nullable Long nextGenerationSeed() {
         return topLevelSeedSequence != null ? Long.valueOf(topLevelSeedSequence.nextLong()) : generationSeed;
     }
 
@@ -469,7 +473,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         RecordComponent[] components = meta.components();
         Field[] backingFields = meta.backingFields();
 
-        Object[] args = new Object[components.length];
+        @Nullable Object[] args = new @Nullable Object[components.length];
         for (int i = 0; i < components.length; i++) {
             RecordComponent comp = components[i];
             if (config.shouldExclude(backingFields[i])) {
@@ -589,7 +593,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                || config.getTypeOverride(rawType).isPresent();
     }
 
-    private static ObjectConstructionAdapter constructionAdapterFor(Class<?> requestedType) {
+    private static @Nullable ObjectConstructionAdapter constructionAdapterFor(Class<?> requestedType) {
         for (ObjectConstructionAdapter adapter : ServiceLoader.load(ObjectConstructionAdapter.class)) {
             if (adapter.supports(requestedType)) {
                 return adapter;
@@ -730,7 +734,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         Constructor<T> constructor = (Constructor<T>) candidates[0];
         ensureAccessible(constructor, type);
         Parameter[] parameters = constructor.getParameters();
-        Object[] arguments = new Object[parameters.length];
+        @Nullable Object[] arguments = new @Nullable Object[parameters.length];
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
             // Parameter names are only available when the owner was compiled with -parameters.

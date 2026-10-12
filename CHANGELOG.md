@@ -108,6 +108,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   native-image smoke test in CI.
 - Group Dependabot minor/patch Gradle and GitHub Actions updates, cover the consumer examples, and
   add `scripts/update_verification_metadata.sh` for regenerating dependency checksums.
+- Compile `krandom-core` main sources with NullAway (JSpecify mode) through Error Prone, so the
+  `@NullMarked` and `@Nullable` contracts are verified instead of documented; no other Error Prone
+  check is enabled and test sources are not checked.
 - Add `scripts/fix_dependabot_pr.sh`, which records the verification metadata for a Dependabot
   pull request in a temporary worktree under every JDK in `KRANDOM_METADATA_JDKS` and commits it
   on the branch, leaving the diff review and the push to the maintainer.

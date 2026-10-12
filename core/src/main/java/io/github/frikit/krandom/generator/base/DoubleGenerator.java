@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import org.jspecify.annotations.Nullable;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.math.BigDecimal;
@@ -28,13 +30,13 @@ import java.math.RoundingMode;
  */
 public final class DoubleGenerator extends AbstractBoundedGenerator<Double> {
 
-    private final Integer         precision;
+    private final @Nullable Integer precision;
     /**
      * Most recent seed from the configuration or {@link #reseed(long)}; {@code null} when unseeded.
      */
-    private Long                  seed;
+    private @Nullable Long seed;
     /** Configuration whose random source an unseeded precision generator keeps; may be {@code null}. */
-    private final GeneratorConfig config;
+    private final @Nullable GeneratorConfig config;
 
     public DoubleGenerator() {
         super(0.0, 1.0);
@@ -69,7 +71,7 @@ public final class DoubleGenerator extends AbstractBoundedGenerator<Double> {
         this(min, max, config, null);
     }
 
-    private DoubleGenerator(double min, double max, Long seed, Integer precision) {
+    private DoubleGenerator(double min, double max, @Nullable Long seed, @Nullable Integer precision) {
         super(min, max);
         this.precision = precision;
         this.config = null;
@@ -78,7 +80,7 @@ public final class DoubleGenerator extends AbstractBoundedGenerator<Double> {
         }
     }
 
-    private DoubleGenerator(double min, double max, GeneratorConfig config, Integer precision) {
+    private DoubleGenerator(double min, double max, GeneratorConfig config, @Nullable Integer precision) {
         super(min, max, config);
         this.precision = precision;
         this.seed = config.getSeed().isPresent() ? config.getSeed().getAsLong() : null;
@@ -148,11 +150,13 @@ public final class DoubleGenerator extends AbstractBoundedGenerator<Double> {
     }
 
     private double round(double value) {
-        return BigDecimal.valueOf(value).setScale(precision, RoundingMode.HALF_UP).doubleValue();
+        int scale = java.util.Objects.requireNonNull(precision, "precision");
+        return BigDecimal.valueOf(value).setScale(scale, RoundingMode.HALF_UP).doubleValue();
     }
 
     private void requireRepresentableValue(double min, double max) {
-        double smallest = BigDecimal.valueOf(min).setScale(precision, RoundingMode.CEILING).doubleValue();
+        int scale = java.util.Objects.requireNonNull(precision, "precision");
+        double smallest = BigDecimal.valueOf(min).setScale(scale, RoundingMode.CEILING).doubleValue();
         if (smallest >= max) {
             throw new IllegalArgumentException("Range [" + min + ", " + max + ") contains no value with "
                                                + precision + " decimal places");

@@ -263,7 +263,7 @@ public final class CountryGenerator implements Generator<String> {
 
         this.random = config.createRandom();
 
-        this.countries = registryContext.countryProvider(locale).getCountries();
+        this.countries = java.util.Objects.requireNonNull(registryContext.countryProvider(locale)).getCountries();
     }
 
     /**

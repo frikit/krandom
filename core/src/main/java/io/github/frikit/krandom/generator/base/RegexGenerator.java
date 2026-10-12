@@ -295,7 +295,7 @@ public final class RegexGenerator implements Generator<String> {
 
         // ── Atom ──────────────────────────────────────────────────────────────
 
-        private Node parseAtom() {
+        private @org.jspecify.annotations.Nullable Node parseAtom() {
             char c = src.charAt(pos);
 
             if (c == '(') {

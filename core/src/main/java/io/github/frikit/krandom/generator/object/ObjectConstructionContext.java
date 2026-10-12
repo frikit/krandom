@@ -26,10 +26,10 @@ public final class ObjectConstructionContext<T> {
     @FunctionalInterface
     interface ValueResolver {
 
-        Object generate(Type genericType,
-                        Class<?> rawType,
-                        String memberName,
-                        @Nullable AnnotatedElement element);
+        @Nullable Object generate(Type genericType,
+                                  Class<?> rawType,
+                                  String memberName,
+                                  @Nullable AnnotatedElement element);
     }
 
     @FunctionalInterface

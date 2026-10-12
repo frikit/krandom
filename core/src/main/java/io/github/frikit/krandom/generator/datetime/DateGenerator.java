@@ -86,8 +86,8 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
     /**
      * Non-null only when constructed via the bounded constructor.
      */
-    private final LocalDate rangeMin;
-    private final LocalDate rangeMax;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMax;
 
     /**
      * Creates a date generator with default configuration.
@@ -136,7 +136,7 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
     public LocalDate generate() {
         if (rangeMin != null) {
             long lo = rangeMin.toEpochDay();
-            long hi = rangeMax.toEpochDay();
+            long hi = Objects.requireNonNull(rangeMax).toEpochDay();
             return LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
         }
         int year = generateYear();

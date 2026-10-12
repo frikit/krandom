@@ -29,8 +29,8 @@ public final class ProviderSchemaProjection<T> {
     private final List<String>                  aliases;
     private final BiFunction<? super T, GeneratorConfig, ?> extractor;
     private final boolean                       integer;
-    private final String                        format;
-    private final Class<?>                      recordType;
+    private final @org.jspecify.annotations.Nullable String format;
+    private final @org.jspecify.annotations.Nullable Class<?> recordType;
     private final Set<String>                   nullableComponents;
     private final ProviderSafetyMetadata        safetyMetadata;
 
@@ -52,8 +52,8 @@ public final class ProviderSchemaProjection<T> {
                              List<String> aliases,
                              BiFunction<? super T, GeneratorConfig, ?> extractor,
                              boolean integer,
-                             String format,
-                             Class<?> recordType,
+                             @org.jspecify.annotations.Nullable String format,
+                             @org.jspecify.annotations.Nullable Class<?> recordType,
                              Set<String> nullableComponents) {
         this(reference,
              aliases,
@@ -69,8 +69,8 @@ public final class ProviderSchemaProjection<T> {
                              List<String> aliases,
                              BiFunction<? super T, GeneratorConfig, ?> extractor,
                              boolean integer,
-                             String format,
-                             Class<?> recordType,
+                             @org.jspecify.annotations.Nullable String format,
+                             @org.jspecify.annotations.Nullable Class<?> recordType,
                              Set<String> nullableComponents,
                              ProviderSafetyMetadata safetyMetadata) {
         this.reference = Objects.requireNonNull(reference, "reference must not be null");
@@ -180,8 +180,8 @@ public final class ProviderSchemaProjection<T> {
         private final BiFunction<? super T, GeneratorConfig, ?> extractor;
         private final List<String> aliases = new ArrayList<>();
         private boolean integer;
-        private String format;
-        private Class<?> recordType;
+        private @org.jspecify.annotations.Nullable String format;
+        private @org.jspecify.annotations.Nullable Class<?> recordType;
         private Set<String> nullableComponents = Set.of();
         private ProviderSafetyMetadata safetyMetadata = ProviderSafetyMetadata.unclassified();
 

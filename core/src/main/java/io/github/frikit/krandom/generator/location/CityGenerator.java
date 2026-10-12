@@ -59,7 +59,7 @@ public final class CityGenerator implements Generator<String> {
 
         this.random = config.createRandom();
 
-        this.cities = registryContext.cityProvider(locale).getCities();
+        this.cities = java.util.Objects.requireNonNull(registryContext.cityProvider(locale)).getCities();
     }
 
     /**

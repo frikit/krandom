@@ -36,7 +36,7 @@ public record PaymentInfo(
     String method,
     String processor,
     LocalDate authorizedOn,
-    LocalDate settledOn,
+    @org.jspecify.annotations.Nullable LocalDate settledOn,
     String currencyCode,
     BigDecimal amount,
     PersonInfo payer,

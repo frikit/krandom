@@ -45,7 +45,8 @@ final class SchemaTemplateEngine {
                                                   inferPayloadSchema(template));
     }
 
-    private Object renderPayload(Object template, SchemaContext context) {
+    private @org.jspecify.annotations.Nullable Object renderPayload(@org.jspecify.annotations.Nullable Object template,
+                                                                   SchemaContext context) {
         if (template == null) {
             return null;
         }
@@ -72,7 +73,7 @@ final class SchemaTemplateEngine {
         }
         if (template.getClass().isArray()) {
             int length = Array.getLength(template);
-            Object[] resolved = new Object[length];
+            @org.jspecify.annotations.Nullable Object[] resolved = new @org.jspecify.annotations.Nullable Object[length];
             for (int i = 0; i < length; i++) {
                 resolved[i] = renderPayload(Array.get(template, i), context);
             }

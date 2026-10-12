@@ -74,7 +74,7 @@ final class PostalCodeLayouts {
         return LAYOUTS.keySet();
     }
 
-    static Layout forCountry(String country) {
+    static @org.jspecify.annotations.Nullable Layout forCountry(String country) {
         return LAYOUTS.get(country);
     }
 

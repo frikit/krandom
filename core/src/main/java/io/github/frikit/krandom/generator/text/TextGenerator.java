@@ -133,7 +133,7 @@ public final class TextGenerator implements Generator<String> {
 
     public record TextOptions(
         int maxChars,
-        List<String> extWordList,
+        @org.jspecify.annotations.Nullable List<String> extWordList,
         boolean uniqueWords,
         boolean variableWordCount
     ) {

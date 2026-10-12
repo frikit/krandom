@@ -58,11 +58,11 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
         DataRegistryContext registryContext = config.getRegistryContext();
         Locale locale = config.getLocale();
         this.cities = registryContext.isCityRegistered(locale)
-                      ? registryContext.cityProvider(locale).getCities()
+                      ? java.util.Objects.requireNonNull(registryContext.cityProvider(locale)).getCities()
                       : new String[0];
 
         if (registryContext.isStateRegistered(locale)) {
-            StateDataProvider provider = registryContext.stateProvider(locale);
+            StateDataProvider provider = java.util.Objects.requireNonNull(registryContext.stateProvider(locale));
             this.states = provider.getStates();
             this.stateAbbreviations = provider.getAbbreviations();
         } else {

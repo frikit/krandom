@@ -67,8 +67,8 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime>, S
     }
 
     private final Random    random;
-    private final LocalDate rangeMin;
-    private final LocalDate rangeMax;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMax;
 
     /**
      * Creates a zoned-date-time generator with default configuration.
@@ -116,7 +116,7 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime>, S
         LocalDate date;
         if (rangeMin != null) {
             long lo = rangeMin.toEpochDay();
-            long hi = rangeMax.toEpochDay();
+            long hi = Objects.requireNonNull(rangeMax).toEpochDay();
             date = LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
         } else {
             int year = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);

@@ -200,7 +200,7 @@ public final class CharGenerator implements Generator<Character> {
         private boolean includeLowercase = false;
         private boolean includeDigits    = false;
         private boolean includeSpecial   = false;
-        private Long    seed             = null;
+        private @org.jspecify.annotations.Nullable Long seed = null;
 
         /**
          * Add uppercase ASCII letters A–Z.

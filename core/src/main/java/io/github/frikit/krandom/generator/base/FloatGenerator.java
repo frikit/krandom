@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.base;
 
+import org.jspecify.annotations.Nullable;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
 import java.math.BigDecimal;
@@ -30,13 +32,13 @@ import java.math.RoundingMode;
  */
 public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
 
-    private final Integer         precision;
+    private final @Nullable Integer precision;
     /**
      * Most recent seed from the configuration or {@link #reseed(long)}; {@code null} when unseeded.
      */
-    private Long                  seed;
+    private @Nullable Long seed;
     /** Configuration whose random source an unseeded precision generator keeps; may be {@code null}. */
-    private final GeneratorConfig config;
+    private final @Nullable GeneratorConfig config;
 
     public FloatGenerator() {
         super(0f, 1f);
@@ -71,7 +73,7 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
         this(min, max, config, null);
     }
 
-    private FloatGenerator(float min, float max, Long seed, Integer precision) {
+    private FloatGenerator(float min, float max, @Nullable Long seed, @Nullable Integer precision) {
         super(min, max);
         this.precision = precision;
         this.config = null;
@@ -80,7 +82,7 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
         }
     }
 
-    private FloatGenerator(float min, float max, GeneratorConfig config, Integer precision) {
+    private FloatGenerator(float min, float max, GeneratorConfig config, @Nullable Integer precision) {
         super(min, max, config);
         this.precision = precision;
         this.seed = config.getSeed().isPresent() ? config.getSeed().getAsLong() : null;
@@ -150,12 +152,14 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
     }
 
     private float round(float value) {
-        return BigDecimal.valueOf(value).setScale(precision, RoundingMode.HALF_UP).floatValue();
+        int scale = java.util.Objects.requireNonNull(precision, "precision");
+        return BigDecimal.valueOf(value).setScale(scale, RoundingMode.HALF_UP).floatValue();
     }
 
     private void requireRepresentableValue(float min, float max) {
+        int scale = java.util.Objects.requireNonNull(precision, "precision");
         // Float.toString gives the shortest decimal that identifies the float, e.g. "0.1" for 0.1f.
-        float smallest = new BigDecimal(Float.toString(min)).setScale(precision, RoundingMode.CEILING).floatValue();
+        float smallest = new BigDecimal(Float.toString(min)).setScale(scale, RoundingMode.CEILING).floatValue();
         if (smallest >= max) {
             throw new IllegalArgumentException("Range [" + min + ", " + max + ") contains no value with "
                                                + precision + " decimal places");

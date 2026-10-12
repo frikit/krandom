@@ -497,7 +497,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
             case "CZ" -> generateCzechPhone(formatted, mobile);
             case "SA" -> generateSaudiPhone(formatted, mobile);
             case "IN" -> generateIndianPhone(formatted, mobile);
-            default -> PhoneNumberLayouts.forCountry(country).generate(random, formatted, mobile);
+            default -> Objects.requireNonNull(PhoneNumberLayouts.forCountry(country), country)
+                              .generate(random, formatted, mobile);
         };
     }
 
@@ -517,7 +518,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
      * @return country calling code
      */
     public String generateCountryCallingCode() {
-        return COUNTRY_CALLING_CODES.get(country);
+        // The country was resolved to a supported one at construction, so a code always exists.
+        return Objects.requireNonNull(COUNTRY_CALLING_CODES.get(country), country);
     }
 
     /**

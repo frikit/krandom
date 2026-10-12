@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.network;
 
+import org.jspecify.annotations.Nullable;
+
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 
@@ -83,7 +85,7 @@ public final class DomainGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
     private final Random          random;
-    private final String          localeTLD;
+    private final @Nullable String localeTLD;
 
     /**
      * Creates a domain generator with default configuration.
@@ -214,7 +216,7 @@ public final class DomainGenerator implements Generator<String> {
      *
      * @return the locale TLD, or null if no specific TLD for the locale
      */
-    public String getLocaleTLD() {
+    public @Nullable String getLocaleTLD() {
         return localeTLD;
     }
 
@@ -258,7 +260,7 @@ public final class DomainGenerator implements Generator<String> {
      * @param locale the locale
      * @return the country-code TLD, or null if not mapped
      */
-    private String getLocaleTLD(Locale locale) {
+    private @Nullable String getLocaleTLD(@Nullable Locale locale) {
         if (locale == null) {
             return null;
         }

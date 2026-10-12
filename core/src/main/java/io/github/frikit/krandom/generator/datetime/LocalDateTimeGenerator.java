@@ -56,8 +56,8 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime>, S
 
     private final Random    random;
     private final Clock     clock;
-    private final LocalDate rangeMin;
-    private final LocalDate rangeMax;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMax;
 
     /**
      * Creates a local-date-time generator with default configuration.
@@ -106,7 +106,7 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime>, S
         LocalDate date;
         if (rangeMin != null) {
             long lo = rangeMin.toEpochDay();
-            long hi = rangeMax.toEpochDay();
+            long hi = Objects.requireNonNull(rangeMax).toEpochDay();
             date = LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
         } else {
             int year = MIN_YEAR + random.nextInt(MAX_YEAR - MIN_YEAR + 1);

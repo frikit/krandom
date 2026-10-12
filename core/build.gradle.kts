@@ -1,7 +1,10 @@
+import net.ltgt.gradle.errorprone.errorprone
+
 plugins {
     `java-library`
     jacoco
     alias(libs.plugins.pitest)
+    alias(libs.plugins.errorprone)
 }
 
 val coverageThreshold = "1.0".toBigDecimal()
@@ -36,6 +39,27 @@ dependencies {
     // Logging backend + capture API (ListAppender) for the build's own tests only;
     // intentionally NOT shipped to consumers.
     testImplementation(libs.logback.classic)
+
+    // Nullness verification only: Error Prone hosts NullAway, every other Error Prone check is off.
+    errorprone(libs.errorprone.core)
+    errorprone(libs.nullaway)
+}
+
+// Every core package is @NullMarked (JSpecify). NullAway verifies those contracts in JSpecify mode
+// for the main sources; the test fixtures are deliberately unannotated and stay unchecked.
+tasks.withType<JavaCompile>().configureEach {
+    // Report every finding instead of javac's first 100.
+    options.compilerArgs.addAll(listOf("-Xmaxerrs", "1000"))
+    options.errorprone {
+        disableAllChecks.set(true)
+        error("NullAway")
+        option("NullAway:AnnotatedPackages", "io.github.frikit.krandom")
+        option("NullAway:JSpecifyMode", "true")
+    }
+}
+
+tasks.compileTestJava {
+    options.errorprone.enabled.set(false)
 }
 
 // Test fixtures keep their constructor parameter names so the object engine resolves constructor

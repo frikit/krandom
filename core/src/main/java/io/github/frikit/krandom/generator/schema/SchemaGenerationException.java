@@ -72,8 +72,9 @@ public final class SchemaGenerationException extends RuntimeException {
         if (context.operation() == GenerationOperation.EXPORT_SCHEMA) {
             message = "Failed to export schema metadata for field '" + context.path() + "'";
         } else if (context.operation() == GenerationOperation.READ) {
+            // Record reads always carry the owner type in their context.
             message = "Failed to read schema record component '" + context.path() + "' from "
-                      + context.ownerType().getName();
+                      + java.util.Objects.requireNonNull(context.ownerType()).getName();
         } else {
             message = "Failed to generate field '" + context.path() + "' for record index " + context.recordIndex();
         }

@@ -85,6 +85,7 @@ import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry;
 import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
 import io.github.frikit.krandom.generator.weather.WeatherDataRegistry;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -215,7 +216,7 @@ public final class DataRegistryContext {
         return new Builder();
     }
 
-    public FirstNameDataProvider firstNameProvider(Locale locale) {
+    public @Nullable FirstNameDataProvider firstNameProvider(Locale locale) {
         return resolve(firstNames, locale, FirstNameDataRegistry::forLocale, FirstNameDataRegistry::registeredKeys);
     }
 
@@ -227,7 +228,7 @@ public final class DataRegistryContext {
         return mergeKeys(firstNames.keySet(), useGlobalFallback ? FirstNameDataRegistry.registeredKeys() : Set.of());
     }
 
-    public LastNameDataProvider lastNameProvider(Locale locale) {
+    public @Nullable LastNameDataProvider lastNameProvider(Locale locale) {
         return resolve(lastNames, locale, LastNameDataRegistry::forLocale, LastNameDataRegistry::registeredKeys);
     }
 
@@ -239,7 +240,7 @@ public final class DataRegistryContext {
         return mergeKeys(lastNames.keySet(), useGlobalFallback ? LastNameDataRegistry.registeredKeys() : Set.of());
     }
 
-    public GenderDataProvider genderProvider(Locale locale) {
+    public @Nullable GenderDataProvider genderProvider(Locale locale) {
         return resolve(genders, locale, GenderDataRegistry::forLocale, GenderDataRegistry::registeredKeys);
     }
 
@@ -251,7 +252,7 @@ public final class DataRegistryContext {
         return mergeKeys(genders.keySet(), useGlobalFallback ? GenderDataRegistry.registeredKeys() : Set.of());
     }
 
-    public TitleDataProvider titleProvider(Locale locale) {
+    public @Nullable TitleDataProvider titleProvider(Locale locale) {
         return resolve(titles, locale, TitleDataRegistry::forLocale, TitleDataRegistry::registeredKeys);
     }
 
@@ -263,7 +264,7 @@ public final class DataRegistryContext {
         return mergeKeys(titles.keySet(), useGlobalFallback ? TitleDataRegistry.registeredKeys() : Set.of());
     }
 
-    public SuffixDataProvider suffixProvider(Locale locale) {
+    public @Nullable SuffixDataProvider suffixProvider(Locale locale) {
         return resolve(suffixes, locale, SuffixDataRegistry::forLocale, SuffixDataRegistry::registeredKeys);
     }
 
@@ -275,7 +276,7 @@ public final class DataRegistryContext {
         return mergeKeys(suffixes.keySet(), useGlobalFallback ? SuffixDataRegistry.registeredKeys() : Set.of());
     }
 
-    public ProfessionDataProvider professionProvider(Locale locale) {
+    public @Nullable ProfessionDataProvider professionProvider(Locale locale) {
         return resolve(professions, locale, ProfessionDataRegistry::forLocale, ProfessionDataRegistry::registeredKeys);
     }
 
@@ -287,7 +288,7 @@ public final class DataRegistryContext {
         return mergeKeys(professions.keySet(), useGlobalFallback ? ProfessionDataRegistry.registeredKeys() : Set.of());
     }
 
-    public CityDataProvider cityProvider(Locale locale) {
+    public @Nullable CityDataProvider cityProvider(Locale locale) {
         return resolve(cities, locale, CityDataRegistry::forLocale, CityDataRegistry::registeredKeys);
     }
 
@@ -299,7 +300,7 @@ public final class DataRegistryContext {
         return mergeKeys(cities.keySet(), useGlobalFallback ? CityDataRegistry.registeredKeys() : Set.of());
     }
 
-    public StateDataProvider stateProvider(Locale locale) {
+    public @Nullable StateDataProvider stateProvider(Locale locale) {
         return resolve(states, locale, StateDataRegistry::forLocale, StateDataRegistry::registeredKeys);
     }
 
@@ -311,7 +312,7 @@ public final class DataRegistryContext {
         return mergeKeys(states.keySet(), useGlobalFallback ? StateDataRegistry.registeredKeys() : Set.of());
     }
 
-    public CountryDataProvider countryProvider(Locale locale) {
+    public @Nullable CountryDataProvider countryProvider(Locale locale) {
         return resolve(countries, locale, CountryDataRegistry::forLocale, CountryDataRegistry::registeredKeys);
     }
 
@@ -323,7 +324,7 @@ public final class DataRegistryContext {
         return mergeKeys(countries.keySet(), useGlobalFallback ? CountryDataRegistry.registeredKeys() : Set.of());
     }
 
-    public StreetAddressDataProvider streetAddressProvider(Locale locale) {
+    public @Nullable StreetAddressDataProvider streetAddressProvider(Locale locale) {
         return resolve(streetAddresses, locale, StreetAddressDataRegistry::forLocale, StreetAddressDataRegistry::registeredKeys);
     }
 
@@ -347,7 +348,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public NationalIdProvider nationalIdProvider(Locale locale) {
+    public @Nullable NationalIdProvider nationalIdProvider(Locale locale) {
         if (locale == null) {
             return null;
         }
@@ -384,7 +385,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public WeatherDataProvider weatherProvider(Locale locale) {
+    public @Nullable WeatherDataProvider weatherProvider(Locale locale) {
         return resolve(weather, locale, WeatherDataRegistry::forLocale, WeatherDataRegistry::registeredKeys);
     }
 
@@ -413,7 +414,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public MeasurementDataProvider measurementProvider(Locale locale) {
+    public @Nullable MeasurementDataProvider measurementProvider(Locale locale) {
         return resolve(measurements, locale, MeasurementDataRegistry::forLocale, MeasurementDataRegistry::registeredKeys);
     }
 
@@ -442,7 +443,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public FinancialTermDataProvider financialTermProvider(Locale locale) {
+    public @Nullable FinancialTermDataProvider financialTermProvider(Locale locale) {
         return resolve(financialTerms, locale, FinancialTermDataRegistry::forLocale, FinancialTermDataRegistry::registeredKeys);
     }
 
@@ -471,7 +472,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public RestaurantTypeDataProvider restaurantTypeProvider(Locale locale) {
+    public @Nullable RestaurantTypeDataProvider restaurantTypeProvider(Locale locale) {
         return resolve(restaurantTypes, locale, RestaurantTypeDataRegistry::forLocale, RestaurantTypeDataRegistry::registeredKeys);
     }
 
@@ -500,7 +501,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public HobbyDataProvider hobbyProvider(Locale locale) {
+    public @Nullable HobbyDataProvider hobbyProvider(Locale locale) {
         return resolve(hobbies, locale, HobbyDataRegistry::forLocale, HobbyDataRegistry::registeredKeys);
     }
 
@@ -529,7 +530,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public NationalityDataProvider nationalityProvider(Locale locale) {
+    public @Nullable NationalityDataProvider nationalityProvider(Locale locale) {
         return resolve(nationalities, locale, NationalityDataRegistry::forLocale, NationalityDataRegistry::registeredKeys);
     }
 
@@ -558,7 +559,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public PronounDataProvider pronounProvider(Locale locale) {
+    public @Nullable PronounDataProvider pronounProvider(Locale locale) {
         return resolve(pronouns, locale, PronounDataRegistry::forLocale, PronounDataRegistry::registeredKeys);
     }
 
@@ -587,7 +588,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public BloodTypeDataProvider bloodTypeProvider(Locale locale) {
+    public @Nullable BloodTypeDataProvider bloodTypeProvider(Locale locale) {
         return resolve(bloodTypes, locale, BloodTypeDataRegistry::forLocale, BloodTypeDataRegistry::registeredKeys);
     }
 
@@ -616,7 +617,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public ChineseZodiacDataProvider chineseZodiacProvider(Locale locale) {
+    public @Nullable ChineseZodiacDataProvider chineseZodiacProvider(Locale locale) {
         return resolve(chineseZodiacs, locale, ChineseZodiacDataRegistry::forLocale, ChineseZodiacDataRegistry::registeredKeys);
     }
 
@@ -645,7 +646,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public ZodiacDataProvider zodiacProvider(Locale locale) {
+    public @Nullable ZodiacDataProvider zodiacProvider(Locale locale) {
         return resolve(zodiacs, locale, ZodiacDataRegistry::forLocale, ZodiacDataRegistry::registeredKeys);
     }
 
@@ -677,7 +678,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when no local pack is registered
      */
-    public UniversityDataProvider universityProvider(Locale locale) {
+    public @Nullable UniversityDataProvider universityProvider(Locale locale) {
         return resolve(universities, locale, ignored -> null, Set::of);
     }
 
@@ -706,7 +707,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public IndustryDataProvider industryProvider(Locale locale) {
+    public @Nullable IndustryDataProvider industryProvider(Locale locale) {
         return resolve(industries, locale, IndustryDataRegistry::forLocale, IndustryDataRegistry::registeredKeys);
     }
 
@@ -735,7 +736,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public JobFieldDataProvider jobFieldProvider(Locale locale) {
+    public @Nullable JobFieldDataProvider jobFieldProvider(Locale locale) {
         return resolve(jobFields, locale, JobFieldDataRegistry::forLocale, JobFieldDataRegistry::registeredKeys);
     }
 
@@ -764,7 +765,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public SeniorityDataProvider seniorityProvider(Locale locale) {
+    public @Nullable SeniorityDataProvider seniorityProvider(Locale locale) {
         return resolve(seniorities, locale, SeniorityDataRegistry::forLocale, SeniorityDataRegistry::registeredKeys);
     }
 
@@ -793,7 +794,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public PositionDataProvider positionProvider(Locale locale) {
+    public @Nullable PositionDataProvider positionProvider(Locale locale) {
         return resolve(positions, locale, PositionDataRegistry::forLocale, PositionDataRegistry::registeredKeys);
     }
 
@@ -822,7 +823,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public EducationalAttainmentDataProvider educationalAttainmentProvider(Locale locale) {
+    public @Nullable EducationalAttainmentDataProvider educationalAttainmentProvider(Locale locale) {
         return resolve(educationalAttainments, locale, EducationalAttainmentDataRegistry::forLocale, EducationalAttainmentDataRegistry::registeredKeys);
     }
 
@@ -851,7 +852,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public MaritalStatusDataProvider maritalStatusProvider(Locale locale) {
+    public @Nullable MaritalStatusDataProvider maritalStatusProvider(Locale locale) {
         return resolve(maritalStatuses, locale, MaritalStatusDataRegistry::forLocale, MaritalStatusDataRegistry::registeredKeys);
     }
 
@@ -880,7 +881,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public JobTypeDataProvider jobTypeProvider(Locale locale) {
+    public @Nullable JobTypeDataProvider jobTypeProvider(Locale locale) {
         return resolve(jobTypes, locale, JobTypeDataRegistry::forLocale, JobTypeDataRegistry::registeredKeys);
     }
 
@@ -909,7 +910,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public CompanyNameDataProvider companyNameProvider(Locale locale) {
+    public @Nullable CompanyNameDataProvider companyNameProvider(Locale locale) {
         return resolve(companyNames, locale, CompanyNameDataRegistry::forLocale, CompanyNameDataRegistry::registeredKeys);
     }
 
@@ -938,7 +939,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public CompanyBuzzwordDataProvider companyBuzzwordProvider(Locale locale) {
+    public @Nullable CompanyBuzzwordDataProvider companyBuzzwordProvider(Locale locale) {
         return resolve(companyBuzzwords, locale, CompanyBuzzwordDataRegistry::forLocale, CompanyBuzzwordDataRegistry::registeredKeys);
     }
 
@@ -967,7 +968,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public CompanyCatchPhraseDataProvider companyCatchPhraseProvider(Locale locale) {
+    public @Nullable CompanyCatchPhraseDataProvider companyCatchPhraseProvider(Locale locale) {
         return resolve(companyCatchPhrases, locale, CompanyCatchPhraseDataRegistry::forLocale, CompanyCatchPhraseDataRegistry::registeredKeys);
     }
 
@@ -996,7 +997,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public TextWordDataProvider textWordProvider(Locale locale) {
+    public @Nullable TextWordDataProvider textWordProvider(Locale locale) {
         return resolve(textWords, locale, TextWordDataRegistry::forLocale, TextWordDataRegistry::registeredKeys);
     }
 
@@ -1025,7 +1026,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public CommerceDataProvider commerceProvider(Locale locale) {
+    public @Nullable CommerceDataProvider commerceProvider(Locale locale) {
         return resolve(commerce, locale, CommerceDataRegistry::forLocale, CommerceDataRegistry::registeredKeys);
     }
 
@@ -1054,7 +1055,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public DatabaseColumnDataProvider databaseColumnProvider(Locale locale) {
+    public @Nullable DatabaseColumnDataProvider databaseColumnProvider(Locale locale) {
         return resolve(databaseColumns, locale, DatabaseColumnDataRegistry::forLocale, DatabaseColumnDataRegistry::registeredKeys);
     }
 
@@ -1083,7 +1084,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public DirectoryNameDataProvider directoryNameProvider(Locale locale) {
+    public @Nullable DirectoryNameDataProvider directoryNameProvider(Locale locale) {
         return resolve(directoryNames, locale, DirectoryNameDataRegistry::forLocale, DirectoryNameDataRegistry::registeredKeys);
     }
 
@@ -1112,7 +1113,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public BankNameDataProvider bankNameProvider(Locale locale) {
+    public @Nullable BankNameDataProvider bankNameProvider(Locale locale) {
         return resolve(bankNames, locale, BankNameDataRegistry::forLocale, BankNameDataRegistry::registeredKeys);
     }
 
@@ -1141,7 +1142,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public BankTypeDataProvider bankTypeProvider(Locale locale) {
+    public @Nullable BankTypeDataProvider bankTypeProvider(Locale locale) {
         return resolve(bankTypes, locale, BankTypeDataRegistry::forLocale, BankTypeDataRegistry::registeredKeys);
     }
 
@@ -1170,7 +1171,7 @@ public final class DataRegistryContext {
      * @param locale requested locale
      * @return matching provider, or {@code null} when none is registered
      */
-    public BankAccountDataProvider bankAccountProvider(Locale locale) {
+    public @Nullable BankAccountDataProvider bankAccountProvider(Locale locale) {
         return resolve(bankAccounts, locale, BankAccountDataRegistry::forLocale, BankAccountDataRegistry::registeredKeys);
     }
 
@@ -1212,9 +1213,9 @@ public final class DataRegistryContext {
      * scoped language, then global language. A scoped regional registration therefore only acts
      * as a language fallback for locales that have no exact match anywhere.
      */
-    private <T> T resolve(Map<String, T> scoped,
-                          Locale locale,
-                          Function<Locale, T> globalLookup,
+    private <T> @Nullable T resolve(Map<String, T> scoped,
+                                    Locale locale,
+                                    Function<Locale, @Nullable T> globalLookup,
                           Supplier<Set<String>> globalKeys) {
         if (locale == null) {
             return null;

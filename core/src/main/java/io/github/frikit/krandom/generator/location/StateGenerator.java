@@ -63,7 +63,7 @@ public final class StateGenerator implements Generator<String> {
 
         this.random = config.createRandom();
 
-        StateDataProvider provider = registryContext.stateProvider(locale);
+        StateDataProvider provider = java.util.Objects.requireNonNull(registryContext.stateProvider(locale));
         this.states = provider.getStates();
         this.abbreviations = provider.getAbbreviations();
     }

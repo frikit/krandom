@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import org.jspecify.annotations.Nullable;
+
 import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
@@ -186,7 +188,7 @@ final class FieldGeneratorResolver {
     private final GeneratorConfig       generatorConfig;
     private final ObjectPool            pool;
     private final UniqueFieldTracker    uniqueFieldTracker;
-    private final Long                  generationSeed;
+    private final @Nullable Long        generationSeed;
     private final boolean               namedChildStreams;
     private final Random                sequenceRandom;
     private final Map<Class<?>, Generator<?>> builtins;
@@ -202,7 +204,7 @@ final class FieldGeneratorResolver {
     FieldGeneratorResolver(ObjectGeneratorConfig config,
                            ObjectPool pool,
                            UniqueFieldTracker uniqueFieldTracker,
-                           Long generationSeed,
+                           @Nullable Long generationSeed,
                            Map<? extends TypeVariable<?>, ? extends Type> typeBindings,
                            String objectPath) {
         this.config = config;
@@ -363,11 +365,11 @@ final class FieldGeneratorResolver {
         }
     }
 
-    private static Long nextDeterministicSeed(GeneratorConfig config, Random seedSource) {
+    private static @Nullable Long nextDeterministicSeed(GeneratorConfig config, Random seedSource) {
         return config.getSeed().isPresent() ? seedSource.nextLong() : null;
     }
 
-    private static GeneratorConfig configWithSeed(GeneratorConfig config, Long seed) {
+    private static GeneratorConfig configWithSeed(GeneratorConfig config, @Nullable Long seed) {
         return seed != null ? config.toBuilder().seed(seed).build() : config;
     }
 
@@ -390,7 +392,7 @@ final class FieldGeneratorResolver {
 
     private static <G> Supplier<G> lazy(Supplier<G> factory) {
         return new Supplier<>() {
-            private G value;
+            private @Nullable G value;
 
             @Override
             public G get() {
@@ -411,7 +413,7 @@ final class FieldGeneratorResolver {
         return CharGenerator.builder().uppercase().lowercase().seed(seed).build();
     }
 
-    private static Generator<Character> charGenerator(Long seed, Random source) {
+    private static Generator<Character> charGenerator(@Nullable Long seed, Random source) {
         if (seed != null) {
             return buildCharGenerator(seed);
         }
@@ -426,11 +428,11 @@ final class FieldGeneratorResolver {
      * source directly instead of building a seeded {@link GeneratorConfig} per generator. Each draws
      * exactly what the corresponding base generator draws, so seeded output is unchanged.
      */
-    private static Random streamFor(Long seed, Random source) {
+    private static Random streamFor(@Nullable Long seed, Random source) {
         return seed != null ? new Random(seed) : source;
     }
 
-    private static Generator<Boolean> booleanGenerator(Long seed, Random source) {
+    private static Generator<Boolean> booleanGenerator(@Nullable Long seed, Random source) {
         if (seed == null) {
             return source::nextBoolean;
         }
@@ -439,7 +441,7 @@ final class FieldGeneratorResolver {
         return () -> random.nextInt(100) < 50;
     }
 
-    private static Generator<String> buildStringGenerator(GeneratorConfig config, Long seed, Random source) {
+    private static Generator<String> buildStringGenerator(GeneratorConfig config, @Nullable Long seed, Random source) {
         if (seed == null) {
             Generator<Character> characters = charGenerator(null, source);
             return () -> {
@@ -461,12 +463,12 @@ final class FieldGeneratorResolver {
         return builder.seed(seed).build();
     }
 
-    private static Generator<Byte> byteGenerator(Long seed, Random source, byte min, byte maxExclusive) {
+    private static Generator<Byte> byteGenerator(@Nullable Long seed, Random source, byte min, byte maxExclusive) {
         Random random = streamFor(seed, source);
         return () -> (byte) random.nextInt(min, maxExclusive);
     }
 
-    private static Generator<Short> shortGenerator(Long seed, Random source, short min, short maxExclusive) {
+    private static Generator<Short> shortGenerator(@Nullable Long seed, Random source, short min, short maxExclusive) {
         Random random = streamFor(seed, source);
         return () -> (short) random.nextInt(min, maxExclusive);
     }
@@ -617,7 +619,7 @@ final class FieldGeneratorResolver {
      * The seed from which {@link ObjectFieldStreamPolicy#INDEPENDENT} member streams derive their
      * provider-backed semantic generators, or {@code null} for every other stream model.
      */
-    private Long independentSemanticSeed(Long generationSeed) {
+    private @Nullable Long independentSemanticSeed(@Nullable Long generationSeed) {
         return generationSeed != null
                && generatorConfig.getObjectFieldStreamPolicy() == ObjectFieldStreamPolicy.INDEPENDENT
                ? generationSeed
@@ -627,7 +629,7 @@ final class FieldGeneratorResolver {
     private static SemanticStringGenerators buildSemanticStringGenerators(GeneratorConfig config,
                                                                          Random seedSource,
                                                                          SemanticFieldRegistry semanticRegistry,
-                                                                         Long independentSemanticSeed) {
+                                                                         @Nullable Long independentSemanticSeed) {
         Set<String> providerKeys = semanticRegistry.providerBackedSemanticKeys();
         long[] providerSeeds = null;
         // The number of provider-backed keys depends on installed modules. INDEPENDENT member streams
@@ -655,7 +657,7 @@ final class FieldGeneratorResolver {
         /** Structural-only generation has no semantic string generators. */
         SemanticStringGenerators NONE = semanticKey -> null;
 
-        Generator<?> get(String semanticKey);
+        @Nullable Generator<?> get(String semanticKey);
     }
 
     /**
@@ -666,16 +668,16 @@ final class FieldGeneratorResolver {
     private static final class LazySemanticGenerators implements SemanticStringGenerators {
 
         private final Set<String> providerKeys;
-        private final long[] providerSeeds;
-        private final Long independentSeed;
-        private final BiFunction<String, Long, Generator<?>> providerFactory;
+        private final long @Nullable [] providerSeeds;
+        private final @Nullable Long independentSeed;
+        private final BiFunction<String, @Nullable Long, Generator<?>> providerFactory;
         private final Supplier<Generator<?>> statusFactory;
         private final Map<String, Optional<Generator<?>>> built = new HashMap<>();
 
         private LazySemanticGenerators(Set<String> providerKeys,
-                                       long[] providerSeeds,
-                                       Long independentSeed,
-                                       BiFunction<String, Long, Generator<?>> providerFactory,
+                                       long @Nullable [] providerSeeds,
+                                       @Nullable Long independentSeed,
+                                       BiFunction<String, @Nullable Long, Generator<?>> providerFactory,
                                        Supplier<Generator<?>> statusFactory) {
             this.providerKeys = providerKeys;
             this.providerSeeds = providerSeeds;
@@ -685,7 +687,7 @@ final class FieldGeneratorResolver {
         }
 
         @Override
-        public Generator<?> get(String semanticKey) {
+        public @Nullable Generator<?> get(String semanticKey) {
             Optional<Generator<?>> generator = built.get(semanticKey);
             if (generator == null) {
                 generator = construct(semanticKey);
@@ -714,7 +716,7 @@ final class FieldGeneratorResolver {
             }
         }
 
-        private Long seedFor(String key, int index) {
+        private @Nullable Long seedFor(String key, int index) {
             if (independentSeed != null) {
                 return GenerationRecipe.deriveChildSeed(independentSeed, "semantic:" + key);
             }
@@ -908,7 +910,7 @@ final class FieldGeneratorResolver {
         return provider;
     }
 
-    private static Generator<BigDecimal> bigDecimalGenerator(Long seed,
+    private static Generator<BigDecimal> bigDecimalGenerator(@Nullable Long seed,
                                                              Random source,
                                                              String min,
                                                              String max,
@@ -922,7 +924,7 @@ final class FieldGeneratorResolver {
         return () -> BigDecimal.valueOf(random.nextLong(originInclusive, boundExclusive), scale);
     }
 
-    private static Generator<BigInteger> bigIntegerGenerator(Long seed,
+    private static Generator<BigInteger> bigIntegerGenerator(@Nullable Long seed,
                                                              Random source,
                                                              long min,
                                                              long maxExclusive) {
@@ -937,21 +939,21 @@ final class FieldGeneratorResolver {
         return () -> BigInteger.valueOf(source.nextLong(min, maxExclusive));
     }
 
-    private static Generator<Integer> intGenerator(Long seed, Random source, int min, int maxExclusive) {
+    private static Generator<Integer> intGenerator(@Nullable Long seed, Random source, int min, int maxExclusive) {
         Random random = streamFor(seed, source);
         return () -> random.nextInt(min, maxExclusive);
     }
 
-    private static Generator<Long> longGenerator(Long seed, Random source, long min, long maxExclusive) {
+    private static Generator<Long> longGenerator(@Nullable Long seed, Random source, long min, long maxExclusive) {
         Random random = streamFor(seed, source);
         return () -> random.nextLong(min, maxExclusive);
     }
 
-    private static Generator<Double> doubleGenerator(Long seed,
+    private static Generator<Double> doubleGenerator(@Nullable Long seed,
                                                      Random source,
                                                      double min,
                                                      double max,
-                                                     Integer precision) {
+                                                     @Nullable Integer precision) {
         Random random = streamFor(seed, source);
         return () -> {
             double value = random.nextDouble(min, max);
@@ -959,11 +961,11 @@ final class FieldGeneratorResolver {
         };
     }
 
-    private static Generator<Float> floatGenerator(Long seed,
+    private static Generator<Float> floatGenerator(@Nullable Long seed,
                                                    Random source,
                                                    float min,
                                                    float max,
-                                                   Integer precision) {
+                                                   @Nullable Integer precision) {
         Random random = streamFor(seed, source);
         return () -> {
             float value = random.nextFloat(min, max);
@@ -992,8 +994,13 @@ final class FieldGeneratorResolver {
         return () -> {
             io.github.frikit.krandom.generator.finance.Currency localeCurrency =
                 io.github.frikit.krandom.generator.finance.Currency.forLocale(config.getLocale());
-            return localeCurrency != null ? localeCurrency
-                                          : io.github.frikit.krandom.generator.finance.Currency.fromCode(codeGenerator.generate());
+            if (localeCurrency != null) {
+                return localeCurrency;
+            }
+            // The code generator only emits codes from the library's own currency table.
+            return Objects.requireNonNull(
+                io.github.frikit.krandom.generator.finance.Currency.fromCode(codeGenerator.generate()),
+                "generated currency code must resolve to a library currency");
         };
     }
 
@@ -1006,7 +1013,7 @@ final class FieldGeneratorResolver {
         return SemanticFieldRegistry.normalizeFieldName(fieldName);
     }
 
-    static String semanticKeyForFieldName(String fieldName) {
+    static @Nullable String semanticKeyForFieldName(String fieldName) {
         return SemanticFieldRegistry.defaults().semanticKeyForFieldName(fieldName);
     }
 
@@ -1014,11 +1021,11 @@ final class FieldGeneratorResolver {
         return SemanticFieldRegistry.defaults().semanticAliasesFor(semanticKey);
     }
 
-    static String semanticProviderNameFor(String semanticKey) {
+    static @Nullable String semanticProviderNameFor(String semanticKey) {
         return SemanticFieldRegistry.defaults().semanticProviderNameFor(semanticKey);
     }
 
-    private Generator<?> semanticGeneratorFor(Class<?> rawType, String fieldName) {
+    private @Nullable Generator<?> semanticGeneratorFor(Class<?> rawType, String fieldName) {
         if (semanticMode == ObjectGenerationSemanticMode.STRUCTURAL_ONLY) {
             return null;
         }
@@ -1046,7 +1053,7 @@ final class FieldGeneratorResolver {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private Generator<?> semanticStatusEnumGenerator(Class<?> rawType) {
+    private @Nullable Generator<?> semanticStatusEnumGenerator(Class<?> rawType) {
         Object[] constants = rawType.getEnumConstants();
         if (constants == null || constants.length == 0) {
             return null;
@@ -1071,7 +1078,7 @@ final class FieldGeneratorResolver {
         return generateWithUniqueness(fieldName, null, generator);
     }
 
-    private Object generateWithUniqueness(String fieldName, String semanticKey, Generator<?> generator) {
+    private Object generateWithUniqueness(String fieldName, @Nullable String semanticKey, Generator<?> generator) {
         String normalizedFieldName = normalizeSemanticFieldName(fieldName);
         if (!isUniqueField(normalizedFieldName, semanticKey)) {
             return generator.generate();
@@ -1082,7 +1089,7 @@ final class FieldGeneratorResolver {
             config.getUniquenessMaxAttempts());
     }
 
-    private boolean isUniqueField(String normalizedFieldName, String semanticKey) {
+    private boolean isUniqueField(String normalizedFieldName, @Nullable String semanticKey) {
         if (uniqueFieldNames.contains(normalizedFieldName)) {
             return true;
         }
@@ -1100,10 +1107,10 @@ final class FieldGeneratorResolver {
         return false;
     }
 
-    private boolean shouldReturnNull(AnnotatedElement element,
+    private boolean shouldReturnNull(@Nullable AnnotatedElement element,
                                      Class<?> rawType,
-                                     Generator<?> annotationGenerator,
-                                     Generator<?> bvGen,
+                                     @Nullable Generator<?> annotationGenerator,
+                                     @Nullable Generator<?> bvGen,
                                      boolean requiredConstraint) {
         if (element == null || element instanceof AnnotatedType || rawType.isPrimitive() || rawType == Optional.class) {
             return false;
@@ -1115,14 +1122,14 @@ final class FieldGeneratorResolver {
         return probability > 0.0 && sequenceRandom.nextDouble() < probability;
     }
 
-    private boolean shouldReturnNull(AnnotatedElement element,
+    private boolean shouldReturnNull(@Nullable AnnotatedElement element,
                                      Class<?> rawType,
-                                     Generator<?> annotationGenerator,
-                                     Generator<?> bvGen) {
+                                     @Nullable Generator<?> annotationGenerator,
+                                     @Nullable Generator<?> bvGen) {
         return shouldReturnNull(element, rawType, annotationGenerator, bvGen, false);
     }
 
-    private boolean shouldReturnEmptyOptional(AnnotatedElement element) {
+    private boolean shouldReturnEmptyOptional(@Nullable AnnotatedElement element) {
         if (element == null || element instanceof AnnotatedType) {
             return false;
         }
@@ -1154,6 +1161,11 @@ final class FieldGeneratorResolver {
         return current;
     }
 
+    /** The raw class of a type the caller has already checked is resolved. */
+    private static Class<?> resolvedRawClass(ResolvedType type) {
+        return Objects.requireNonNull(mostSpecific(type).rawClass(), "type must be resolved");
+    }
+
     private static boolean isSortedContainer(Class<?> rawType) {
         return rawType == TreeSet.class || rawType == SortedSet.class || rawType == NavigableSet.class
                || rawType == PriorityQueue.class
@@ -1166,7 +1178,7 @@ final class FieldGeneratorResolver {
      * {@link Object#toString()} would be ordered by identity hash codes, which differ between runs.
      */
     private static boolean hasDeterministicOrder(ResolvedType elementType) {
-        Class<?> type = mostSpecific(elementType).rawClass();
+        Class<?> type = resolvedRawClass(elementType);
         return Comparable.class.isAssignableFrom(type) || overridesToString(type);
     }
 
@@ -1178,8 +1190,8 @@ final class FieldGeneratorResolver {
         }
     }
 
-    private static Comparator<Object> sortedOrderFor(ResolvedType elementType) {
-        return Comparable.class.isAssignableFrom(mostSpecific(elementType).rawClass())
+    private static @Nullable Comparator<Object> sortedOrderFor(ResolvedType elementType) {
+        return Comparable.class.isAssignableFrom(resolvedRawClass(elementType))
                ? null
                : Comparator.comparing(String::valueOf);
     }
@@ -1193,7 +1205,7 @@ final class FieldGeneratorResolver {
         return true;
     }
 
-    private static Set<Object> toSetType(Class<?> rawType, ResolvedType elementType, List<Object> values) {
+    private static @Nullable Set<Object> toSetType(Class<?> rawType, ResolvedType elementType, List<Object> values) {
         if (rawType == TreeSet.class
             || rawType == SortedSet.class
             || rawType == NavigableSet.class) {
@@ -1206,7 +1218,7 @@ final class FieldGeneratorResolver {
         }
         if (rawType == java.util.EnumSet.class) {
             // EnumSet is abstract and has no constructor; it must be created for its element type.
-            Set<Object> enumSet = newEnumSet(mostSpecific(elementType).rawClass());
+            Set<Object> enumSet = newEnumSet(resolvedRawClass(elementType));
             addAllOrThrow(enumSet, values);
             return enumSet;
         }
@@ -1223,7 +1235,7 @@ final class FieldGeneratorResolver {
 
     // ── Array generation ──────────────────────────────────────────────────────
 
-    private static List<Object> toListType(Class<?> rawType, List<Object> values) {
+    private static @Nullable List<Object> toListType(Class<?> rawType, List<Object> values) {
         if (rawType == List.class) {
             return Collections.unmodifiableList(values);
         }
@@ -1259,7 +1271,7 @@ final class FieldGeneratorResolver {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static Queue<Object> toQueueType(Class<?> rawType, ResolvedType elementType, List<Object> values) {
+    private static @Nullable Queue<Object> toQueueType(Class<?> rawType, ResolvedType elementType, List<Object> values) {
         if (rawType == PriorityQueue.class) {
             Queue<Object> queue = new PriorityQueue<>(sortedOrderFor(elementType));
             queue.addAll(values);
@@ -1278,7 +1290,7 @@ final class FieldGeneratorResolver {
         return null;
     }
 
-    private static Map<Object, Object> toMapType(Class<?> rawType, ResolvedType keyType) {
+    private static @Nullable Map<Object, Object> toMapType(Class<?> rawType, ResolvedType keyType) {
         if (rawType == TreeMap.class
             || rawType == SortedMap.class
             || rawType == NavigableMap.class) {
@@ -1286,7 +1298,7 @@ final class FieldGeneratorResolver {
         }
         if (rawType == java.util.EnumMap.class) {
             // EnumMap has no no-argument constructor; it must be created for its key type.
-            return newEnumMap(mostSpecific(keyType).rawClass());
+            return newEnumMap(resolvedRawClass(keyType));
         }
         Map<Object, Object> concrete = instantiateCollectionType(rawType, Map.class);
         if (concrete != null) {
@@ -1323,7 +1335,7 @@ final class FieldGeneratorResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T instantiateCollectionType(Class<?> rawType, Class<?> expectedType) {
+    private static <T> @Nullable T instantiateCollectionType(Class<?> rawType, Class<?> expectedType) {
         if (!expectedType.isAssignableFrom(rawType)) {
             return null;
         }
@@ -1396,7 +1408,7 @@ final class FieldGeneratorResolver {
         }
     }
 
-    private Generator<?> fakeAnnotationGeneratorFor(AnnotatedElement element, Class<?> rawType) {
+    private @Nullable Generator<?> fakeAnnotationGeneratorFor(AnnotatedElement element, Class<?> rawType) {
         Fake annotation = element.getAnnotation(Fake.class);
         if (annotation == null) return null;
         String key = normalizeSemanticFieldName(annotation.value());
@@ -1418,7 +1430,7 @@ final class FieldGeneratorResolver {
         return null;
     }
 
-    private Generator<?> fakeRangeGeneratorFor(AnnotatedElement element, Class<?> rawType) {
+    private @Nullable Generator<?> fakeRangeGeneratorFor(AnnotatedElement element, Class<?> rawType) {
         FakeRange annotation = element.getAnnotation(FakeRange.class);
         if (annotation == null) return null;
         long min = annotation.min();
@@ -1475,7 +1487,7 @@ final class FieldGeneratorResolver {
         return new long[] {narrowedMin, narrowedMax};
     }
 
-    private Generator<?> annotationRandomizerFor(AnnotatedElement element,
+    private @Nullable Generator<?> annotationRandomizerFor(AnnotatedElement element,
                                                  Class<?> ownerType,
                                                  String fieldName,
                                                  int depth) {
@@ -1614,9 +1626,9 @@ final class FieldGeneratorResolver {
      * @return generated value, or a safe default / {@code null} when the type is unsupported
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    Object resolveAndGenerate(Type genericType, Class<?> rawType,
-                              String fieldName, Class<?> ownerType,
-                              int currentDepth, AnnotatedElement element) {
+    @Nullable Object resolveAndGenerate(Type genericType, Class<?> rawType,
+                                        String fieldName, Class<?> ownerType,
+                                        int currentDepth, @Nullable AnnotatedElement element) {
 
         ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
         rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
@@ -1946,13 +1958,13 @@ final class FieldGeneratorResolver {
         return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
     }
 
-    Object resolveAndGenerateMember(Type genericType,
-                                    Class<?> rawType,
-                                    String fieldName,
-                                    Class<?> ownerType,
-                                    int currentDepth,
-                                    AnnotatedElement element,
-                                    String streamIdentity) {
+    @Nullable Object resolveAndGenerateMember(Type genericType,
+                                              Class<?> rawType,
+                                              String fieldName,
+                                              Class<?> ownerType,
+                                              int currentDepth,
+                                              @Nullable AnnotatedElement element,
+                                              String streamIdentity) {
         if (!namedChildStreams) {
             return resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element);
         }
@@ -1970,7 +1982,7 @@ final class FieldGeneratorResolver {
                                                 Class<?> ownerType,
                                                 int depth,
                                                 Type declaredType,
-                                                AnnotatedElement declaration) {
+                                                @Nullable AnnotatedElement declaration) {
         return new GenerationContext(fieldName,
                                      ownerType,
                                      depth,
@@ -2041,10 +2053,10 @@ final class FieldGeneratorResolver {
     private static ObjectGenerationException nestedFailure(GenerationFailureCategory category,
                                                            GenerationOperation operation,
                                                            String path,
-                                                           Class<?> ownerType,
-                                                           String declaredType,
+                                                           @Nullable Class<?> ownerType,
+                                                           @Nullable String declaredType,
                                                            int depth,
-                                                           Throwable cause) {
+                                                           @Nullable Throwable cause) {
         GenerationFailureContext context = new GenerationFailureContext(
             category,
             operation,
@@ -2060,7 +2072,7 @@ final class FieldGeneratorResolver {
             cause);
     }
 
-    private Object handleUnsupportedType(Class<?> rawType,
+    private @Nullable Object handleUnsupportedType(Class<?> rawType,
                                          Type declaredType,
                                          Class<?> ownerType,
                                          String fieldName,
@@ -2086,7 +2098,7 @@ final class FieldGeneratorResolver {
             PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
     }
 
-    private Object handleConstraintConflict(Class<?> rawType,
+    private @Nullable Object handleConstraintConflict(Class<?> rawType,
                                             Type declaredType,
                                             Class<?> ownerType,
                                             String fieldName,
@@ -2111,14 +2123,15 @@ final class FieldGeneratorResolver {
             PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
     }
 
-    private Object generateConstraintValue(Generator<?> generator,
-                                           Class<?> rawType,
-                                           Type declaredType,
-                                           Class<?> ownerType,
-                                           String fieldName,
-                                           int depth) {
+    private @Nullable Object generateConstraintValue(@Nullable Generator<?> generator,
+                                                     Class<?> rawType,
+                                                     Type declaredType,
+                                                     Class<?> ownerType,
+                                                     String fieldName,
+                                                     int depth) {
         try {
-            return generator.generate();
+            // A constrained model always carries its generator; the resolver only gets here for one.
+            return Objects.requireNonNull(generator, "constraint generator").generate();
         } catch (BeanValidationSupport.ConstraintConflictException conflict) {
             Object fallback = handleConstraintConflict(
                 rawType, declaredType, ownerType, fieldName, depth, conflict);
@@ -2126,7 +2139,7 @@ final class FieldGeneratorResolver {
         }
     }
 
-    private Object handleCollectionInsertionFailure(Class<?> ownerType,
+    private @Nullable Object handleCollectionInsertionFailure(Class<?> ownerType,
                                                     String fieldName,
                                                     Type declaredType,
                                                     int depth,
@@ -2156,7 +2169,7 @@ final class FieldGeneratorResolver {
      * leaving the member {@code null}: strict mode throws, lenient mode returns {@code null} and
      * notifies the listener.
      */
-    private Object handleNonConstructibleCollection(Class<?> rawType,
+    private @Nullable Object handleNonConstructibleCollection(Class<?> rawType,
                                                     Type declaredType,
                                                     Class<?> ownerType,
                                                     String fieldName,
@@ -2170,7 +2183,7 @@ final class FieldGeneratorResolver {
                 "No usable no-argument constructor for " + rawType.getName()));
     }
 
-    private Object handleCollectionConstructionFailure(Class<?> ownerType,
+    private @Nullable Object handleCollectionConstructionFailure(Class<?> ownerType,
                                                        String fieldName,
                                                        Type declaredType,
                                                        int depth,
@@ -2194,11 +2207,11 @@ final class FieldGeneratorResolver {
             null);
     }
 
-    private Object resolveAndGenerate(ResolvedType type,
-                                      String fieldName,
-                                      Class<?> ownerType,
-                                      int currentDepth,
-                                      AnnotatedElement element) {
+    private @Nullable Object resolveAndGenerate(ResolvedType type,
+                                                String fieldName,
+                                                Class<?> ownerType,
+                                                int currentDepth,
+                                                @Nullable AnnotatedElement element) {
         ResolvedType generationType = mostSpecific(type);
         Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
         return resolveAndGenerate(
@@ -2208,7 +2221,7 @@ final class FieldGeneratorResolver {
     private Object generateArray(ResolvedType declaredArrayType,
                                  Class<?> runtimeArrayType,
                                  Class<?> ownerType,
-                                 String fieldName, int depth, AnnotatedElement element) {
+                                 String fieldName, int depth, @Nullable AnnotatedElement element) {
         Class<?> comp = runtimeArrayType.getComponentType();
         ResolvedType declaredComponentType = Objects.requireNonNull(declaredArrayType.componentType());
         int elementCount = nextCollectionSize(element);
@@ -2245,7 +2258,7 @@ final class FieldGeneratorResolver {
         return arr;
     }
 
-    private static AnnotatedElement typeArgumentElement(AnnotatedElement element, int index) {
+    private static @Nullable AnnotatedElement typeArgumentElement(@Nullable AnnotatedElement element, int index) {
         AnnotatedType type = annotatedTypeFor(element);
         if (!(type instanceof AnnotatedParameterizedType parameterizedType)) {
             return null;
@@ -2254,12 +2267,12 @@ final class FieldGeneratorResolver {
         return index < arguments.length ? arguments[index] : null;
     }
 
-    private static AnnotatedElement arrayComponentElement(AnnotatedElement element) {
+    private static @Nullable AnnotatedElement arrayComponentElement(@Nullable AnnotatedElement element) {
         AnnotatedType type = annotatedTypeFor(element);
         return type instanceof AnnotatedArrayType arrayType ? arrayType.getAnnotatedGenericComponentType() : null;
     }
 
-    private static AnnotatedType annotatedTypeFor(AnnotatedElement element) {
+    private static @Nullable AnnotatedType annotatedTypeFor(@Nullable AnnotatedElement element) {
         if (element instanceof AnnotatedType annotatedType) {
             return annotatedType;
         }
@@ -2280,8 +2293,8 @@ final class FieldGeneratorResolver {
      * small (a {@code Set<Boolean>} holds at most two values). That is fine for the default size,
      * but a declared minimum must not be violated silently.
      */
-    private static BeanValidationSupport.ConstraintConflictException sizeShortfall(int reached,
-                                                                                   AnnotatedElement element) {
+    private static BeanValidationSupport.@Nullable ConstraintConflictException sizeShortfall(int reached,
+                                                                                             @Nullable AnnotatedElement element) {
         BeanValidationSupport.SizeRange declared = BeanValidationSupport.sizeRangeFor(element);
         if (declared == null || reached >= declared.min()) {
             return null;
@@ -2290,7 +2303,7 @@ final class FieldGeneratorResolver {
             "only " + reached + " distinct values available for a declared minimum size of " + declared.min());
     }
 
-    private int nextCollectionSize(AnnotatedElement element) {
+    private int nextCollectionSize(@Nullable AnnotatedElement element) {
         return BeanValidationSupport.sizeFor(element,
                                              sequenceRandom,
                                              generatorConfig.getMinCollectionSize(),

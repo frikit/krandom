@@ -37,7 +37,7 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
     private final CurrencyGenerator    currencyGenerator;
     private final PersonInfoGenerator  personInfoGenerator;
     private final ProductInfoGenerator productInfoGenerator;
-    private final AddressInfoGenerator shippingAddressGenerator;
+    private final @org.jspecify.annotations.Nullable AddressInfoGenerator shippingAddressGenerator;
 
     /**
      * Creates an order-info generator using default configuration ({@link Locale#US}).

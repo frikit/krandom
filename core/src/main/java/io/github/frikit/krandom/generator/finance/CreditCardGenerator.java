@@ -417,7 +417,8 @@ public final class CreditCardGenerator implements Generator<String> {
 
     private String generateCardNumber(CardType type) {
         if (config.getPaymentCardSafetyPolicy() == PaymentCardSafetyPolicy.STRIPE_SANDBOX) {
-            return STRIPE_SANDBOX_NUMBERS.get(type);
+            // Every card type has a sandbox number.
+            return Objects.requireNonNull(STRIPE_SANDBOX_NUMBERS.get(type), type::name);
         }
 
         // Select a prefix pattern

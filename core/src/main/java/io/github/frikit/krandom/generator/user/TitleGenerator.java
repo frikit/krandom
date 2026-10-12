@@ -45,7 +45,7 @@ public final class TitleGenerator implements Generator<String> {
 
         this.random = config.createRandom();
 
-        this.titles = registryContext.titleProvider(locale).getTitles();
+        this.titles = java.util.Objects.requireNonNull(registryContext.titleProvider(locale)).getTitles();
     }
 
     public TitleGenerator(Locale locale) {

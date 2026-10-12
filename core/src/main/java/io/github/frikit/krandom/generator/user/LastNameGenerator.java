@@ -67,7 +67,7 @@ public final class LastNameGenerator implements Generator<String> {
         }
 
         this.random = config.createRandom();
-        this.lastNames = registryContext.lastNameProvider(locale).getLastNames();
+        this.lastNames = java.util.Objects.requireNonNull(registryContext.lastNameProvider(locale)).getLastNames();
     }
 
     @Override

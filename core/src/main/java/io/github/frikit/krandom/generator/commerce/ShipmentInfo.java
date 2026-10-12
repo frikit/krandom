@@ -36,7 +36,7 @@ public record ShipmentInfo(
     String status,
     LocalDate shippedOn,
     LocalDate estimatedDeliveryOn,
-    LocalDate deliveredOn,
+    @org.jspecify.annotations.Nullable LocalDate deliveredOn,
     BigDecimal weightKg,
     PersonInfo recipient,
     AddressInfo destination

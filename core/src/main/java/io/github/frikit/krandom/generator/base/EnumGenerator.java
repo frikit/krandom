@@ -38,7 +38,7 @@ public final class EnumGenerator<E extends Enum<E>> implements Generator<E> {
     /**
      * Uses a seeded {@link Random} for reproducible output.
      */
-    public EnumGenerator(Class<E> enumClass, Long seed) {
+    public EnumGenerator(Class<E> enumClass, @org.jspecify.annotations.Nullable Long seed) {
         Objects.requireNonNull(enumClass, "enumClass must not be null");
         this.constants = enumClass.getEnumConstants();
         if (constants == null || constants.length == 0) {

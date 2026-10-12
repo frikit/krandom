@@ -110,7 +110,8 @@ public final class ProviderHub {
      */
     public Object get(String name) {
         String canonical = resolveName(name);
-        ProviderFactory factory = providers.get(canonical);
+        // resolveName only returns names that are registered.
+        ProviderFactory factory = Objects.requireNonNull(providers.get(canonical), canonical);
         return factory.create(config);
     }
 

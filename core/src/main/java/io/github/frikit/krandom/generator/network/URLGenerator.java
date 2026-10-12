@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.network;
 
+import org.jspecify.annotations.Nullable;
+
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.file.FileExtensionGenerator;
@@ -117,7 +119,7 @@ public final class URLGenerator implements Generator<String> {
         return value;
     }
 
-    private static String normalizeOptional(String value, String field) {
+    private static @Nullable String normalizeOptional(@Nullable String value, String field) {
         if (value == null) {
             return null;
         }
@@ -414,11 +416,11 @@ public final class URLGenerator implements Generator<String> {
      * @param withQuery    whether query parameters should be appended
      */
     public record URLOptions(
-        String protocol,
-        String domain,
-        String domainPrefix,
-        String path,
-        String[] extensions,
+        @Nullable String protocol,
+        @Nullable String domain,
+        @Nullable String domainPrefix,
+        @Nullable String path,
+        String @Nullable [] extensions,
         boolean withQuery
     ) {
 

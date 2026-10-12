@@ -45,7 +45,7 @@ final class BuiltInProviderResolver {
         return expectedType.cast(descriptor.create(config));
     }
 
-    private static ProviderDescriptor<?> extensionProvider(String name, GeneratorConfig config) {
+    private static @org.jspecify.annotations.Nullable ProviderDescriptor<?> extensionProvider(String name, GeneratorConfig config) {
         for (ProviderDescriptor<?> descriptor : config.getExtensionRegistry().getProviderDescriptors()) {
             if (descriptor.getKey().equals(name) || descriptor.getAliases().contains(name)) {
                 return descriptor;

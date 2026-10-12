@@ -30,10 +30,10 @@ public final class StreetAddressGenerator implements Generator<String> {
     private final String[]        streetTypesLong;
     private final String[]        secondaryUnits;
 
-    private final CityGenerator       cityGenerator;
-    private final StateGenerator      stateGenerator;
+    private final @org.jspecify.annotations.Nullable CityGenerator cityGenerator;
+    private final @org.jspecify.annotations.Nullable StateGenerator stateGenerator;
     private final PostalCodeGenerator postalCodeGenerator;
-    private final CountryGenerator    countryGenerator;
+    private final @org.jspecify.annotations.Nullable CountryGenerator countryGenerator;
 
     /**
      * Creates a street-address generator with default configuration (Locale.US).
@@ -68,7 +68,8 @@ public final class StreetAddressGenerator implements Generator<String> {
 
         this.random = config.createRandom();
 
-        StreetAddressDataProvider provider = registryContext.streetAddressProvider(locale);
+        StreetAddressDataProvider provider =
+            java.util.Objects.requireNonNull(registryContext.streetAddressProvider(locale));
         this.streetNames = provider.getStreetNames();
         this.streetTypesShort = provider.getStreetTypesShort();
         this.streetTypesLong = provider.getStreetTypesLong();

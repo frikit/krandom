@@ -156,7 +156,8 @@ public final class PostalCodeGenerator implements Generator<String> {
             case "CZ" -> generateCzechPostcode();
             case "SA" -> generateSaudiPostcode();
             case "IN" -> generateIndianPin();
-            default -> PostalCodeLayouts.forCountry(country).generate(random, extended);
+            default -> java.util.Objects.requireNonNull(PostalCodeLayouts.forCountry(country), country)
+                                        .generate(random, extended);
         };
     }
 

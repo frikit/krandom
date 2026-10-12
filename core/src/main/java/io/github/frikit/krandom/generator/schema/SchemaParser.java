@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import org.jspecify.annotations.Nullable;
+
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
@@ -293,7 +295,7 @@ public final class SchemaParser {
 
     private static SchemaValueProvider resolveString(String fieldName,
                                                       Map<String, Object> schema,
-                                                      String format,
+                                                      @Nullable String format,
                                                       Field field,
                                                       GeneratorConfig config) {
         // Explicit constraints win over field-name semantics: pattern first, then format, and
@@ -335,7 +337,7 @@ public final class SchemaParser {
         return new RegexGenerator(pattern, GeneratorConfig.builder().seed(seed).build()).generate();
     }
 
-    private static SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
+    private static @Nullable SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
         Function<GeneratorConfig, Generator<?>> factory = switch (format) {
             case "email" -> Generators::ofEmail;
             case "uri", "url" -> URLGenerator::new;
@@ -499,7 +501,7 @@ public final class SchemaParser {
                                      .generate();
     }
 
-    private static SchemaValueProvider trySemanticResolve(String fieldName, Field field) {
+    private static @Nullable SchemaValueProvider trySemanticResolve(String fieldName, Field field) {
         // Normalize field name to potential schema reference
         String normalized = normalizeFieldName(fieldName);
 
@@ -525,7 +527,7 @@ public final class SchemaParser {
             .replace('_', '.');
     }
 
-    private static String semanticReference(String normalized) {
+    private static @Nullable String semanticReference(String normalized) {
         // Only mappings whose normalized forms are NOT already registered as
         // FieldLookup aliases belong here. Aliases like "city", "state",
         // "country", "domain", "username", "email", "name", "url", "uuid"
@@ -567,25 +569,25 @@ public final class SchemaParser {
         return "";
     }
 
-    private static String stringOrNull(Object value) {
+    private static @Nullable String stringOrNull(@Nullable Object value) {
         return value instanceof String s ? s : null;
     }
 
-    private static int intOrDefault(Object value, int defaultValue) {
+    private static int intOrDefault(@Nullable Object value, int defaultValue) {
         if (value instanceof Number n) {
             return n.intValue();
         }
         return defaultValue;
     }
 
-    private static long longOrDefault(Object value, long defaultValue) {
+    private static long longOrDefault(@Nullable Object value, long defaultValue) {
         if (value instanceof Number n) {
             return n.longValue();
         }
         return defaultValue;
     }
 
-    private static double doubleOrDefault(Object value, double defaultValue) {
+    private static double doubleOrDefault(@Nullable Object value, double defaultValue) {
         if (value instanceof Number n) {
             return n.doubleValue();
         }

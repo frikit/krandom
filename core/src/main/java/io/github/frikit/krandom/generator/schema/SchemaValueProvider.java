@@ -20,7 +20,7 @@ public interface SchemaValueProvider {
      * @param context schema generation context
      * @return generated value
      */
-    Object generate(SchemaContext context);
+    @org.jspecify.annotations.Nullable Object generate(SchemaContext context);
 
     /**
      * Returns the JSON Schema fragment for values produced by this provider.
@@ -51,7 +51,7 @@ public interface SchemaValueProvider {
         return new SchemaValueProvider() {
 
             @Override
-            public Object generate(SchemaContext context) {
+            public @org.jspecify.annotations.Nullable Object generate(SchemaContext context) {
                 return provider.generate(context);
             }
 

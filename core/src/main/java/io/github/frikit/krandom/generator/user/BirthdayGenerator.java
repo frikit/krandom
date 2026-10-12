@@ -71,7 +71,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
     private final Random random;
     private final int    minAge;
     private final int    maxAge;
-    private final Locale locale;
+    private final @org.jspecify.annotations.Nullable Locale locale;
     private final Clock  clock;
 
     // ── Default-format constructors ───────────────────────────────────────────
@@ -183,11 +183,15 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
 
     // ── Private constructors ──────────────────────────────────────────────────
 
-    private BirthdayGenerator(int minAge, int maxAge, Random random, Locale locale) {
+    private BirthdayGenerator(int minAge, int maxAge, Random random, @org.jspecify.annotations.Nullable Locale locale) {
         this(minAge, maxAge, random, locale, GeneratorConfig.defaults().getClock());
     }
 
-    private BirthdayGenerator(int minAge, int maxAge, Random random, Locale locale, Clock clock) {
+    private BirthdayGenerator(int minAge,
+                              int maxAge,
+                              Random random,
+                              @org.jspecify.annotations.Nullable Locale locale,
+                              Clock clock) {
         if (minAge < 0) {
             throw new IllegalArgumentException("minAge must be >= 0, got: " + minAge);
         }
@@ -269,7 +273,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      *
      * @return the locale, or {@code null}
      */
-    public Locale getLocale() {
+    public @org.jspecify.annotations.Nullable Locale getLocale() {
         return locale;
     }
 }

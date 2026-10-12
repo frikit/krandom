@@ -44,6 +44,48 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
+    @DisplayName("a blank domain field is backfilled from the email domain")
+    void blankDomainFieldIsBackfilledFromEmail() {
+        BlankDomainHolder value = new ObjectGenerator<>(BlankDomainHolder.class).generate();
+
+        assertNotNull(value.email);
+        assertEquals(emailDomain(value.email), value.domain);
+    }
+
+    @Test
+    @DisplayName("an email-only type stays coherent without a domain field")
+    void emailOnlyTypeStaysCoherentWithoutDomainField() {
+        EmailOnly value = new ObjectGenerator<>(EmailOnly.class).generate();
+
+        assertTrue(value.email().contains("@"));
+    }
+
+    @Test
+    @DisplayName("an excluded blank domain field is left alone by coherence")
+    void excludedDomainFieldIsLeftAlone() {
+        GeneratorConfig config = GeneratorConfig.builder().objectExcludeField("domain").build();
+
+        BlankDomainHolder value = new ObjectGenerator<>(BlankDomainHolder.class, config).generate();
+
+        assertEquals("", value.domain);
+        assertTrue(value.email.contains("@"));
+    }
+
+    @Test
+    @DisplayName("a blank domain field with an override is protected from coherence")
+    void overriddenBlankDomainIsProtected() {
+        // The initializer is kept, so the override never runs; the override still marks the field protected.
+        GeneratorConfig config = GeneratorConfig.builder()
+            .objectOverride(BlankDomainHolder.class, "domain", () -> "override.example")
+            .build();
+
+        BlankDomainHolder value = new ObjectGenerator<>(BlankDomainHolder.class, config).generate();
+
+        assertEquals("", value.domain);
+        assertTrue(value.email.contains("@"));
+    }
+
+    @Test
     @DisplayName("records align related semantic fields")
     void recordsAlignRelatedSemanticFields() {
         CoherentPersonRecord value = new ObjectGenerator<>(CoherentPersonRecord.class).generate();
@@ -351,5 +393,15 @@ class ObjectGeneratorSemanticCoherenceTest {
         INACTIVE,
         DISABLED,
         PENDING
+    }
+
+    static class BlankDomainHolder {
+
+        String email;
+        /** The safe construction policy keeps this initializer, so coherence sees a present but blank domain. */
+        String domain = "";
+    }
+
+    record EmailOnly(String email) {
     }
 }

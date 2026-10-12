@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.cyclonedx)
     alias(libs.plugins.nmcp.aggregation)
     alias(libs.plugins.pitest) apply false
+    alias(libs.plugins.errorprone) apply false
 }
 
 allprojects {

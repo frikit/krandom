@@ -46,7 +46,7 @@ public final class NationalIdGenerator implements Generator<String> {
                 "Locale " + locale + " is not supported. Registered locales: " +
                 registryContext.nationalIdRegisteredKeys());
         }
-        this.provider = registryContext.nationalIdProvider(locale);
+        this.provider = java.util.Objects.requireNonNull(registryContext.nationalIdProvider(locale));
         this.random = config.createRandom();
     }
 

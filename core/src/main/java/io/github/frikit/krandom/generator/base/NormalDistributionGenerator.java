@@ -45,7 +45,7 @@ public final class NormalDistributionGenerator implements io.github.frikit.krand
     private final double          standardDeviation;
 
     // Box-Muller generates two values at once; cache the second for efficiency
-    private Double cachedValue = null;
+    private @org.jspecify.annotations.Nullable Double cachedValue = null;
 
     /**
      * Create a standard normal distribution generator (mean=0, stdDev=1).

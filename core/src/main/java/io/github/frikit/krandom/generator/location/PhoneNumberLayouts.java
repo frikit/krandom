@@ -160,7 +160,7 @@ final class PhoneNumberLayouts {
      * Returns the layouts of {@code country}, or {@code null} when the country has a dedicated
      * formatting method in {@link PhoneNumberGenerator}.
      */
-    static Plan forCountry(String country) {
+    static @org.jspecify.annotations.Nullable Plan forCountry(String country) {
         return PLANS.get(country);
     }
 

@@ -127,7 +127,7 @@ final class EmailLocalParts {
         return out.toString();
     }
 
-    private static String mapCodePoint(int codePoint) {
+    private static @org.jspecify.annotations.Nullable String mapCodePoint(int codePoint) {
         if (codePoint < 0x80) {
             return Character.isLetterOrDigit(codePoint) ? Character.toString(codePoint) : "";
         }
